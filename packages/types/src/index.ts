@@ -22,11 +22,20 @@
  * @packageDocumentation
  */
 
+/**
+ * @public
+ */
 export enum Ahah {
     'LOL' = 'LOL',
     'MDR' = 'MDR',
 }
 
+/**
+ * @public
+ */
 export type Eheh = keyof typeof Ahah;
 
+/**
+ * @public
+ */
 export const ResponseToUniverse = 42;

@@ -4,10 +4,12 @@
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
+    "api-report": "scripty",
     "clean": "rimraf dist *.tsbuildinfo",
     "test": "scripty",
     "lint": "scripty",

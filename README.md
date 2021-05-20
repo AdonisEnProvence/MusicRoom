@@ -43,7 +43,7 @@ yarn clean
 Lint
 
 ```sh
-yarn clean
+yarn lint
 ```
 
 Run jest tests

@@ -1,0 +1,25 @@
+{
+  "name": "@musicroom/utils",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "clean": "rimraf dist *.tsbuildinfo",
+    "test": "scripty",
+    "lint": "scripty",
+    "build": "scripty"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.14.2",
+    "@babel/preset-typescript": "^7.13.0",
+    "@musicroom/types": "0.0.1",
+    "@types/jest": "^26.0.23",
+    "jest": "^26.6.3"
+  },
+  "scripty": {
+    "path": "../../scripts/packages"
+  }
+}

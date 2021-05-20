@@ -22,10 +22,7 @@
  * @packageDocumentation
  */
 
-export enum Ahah
-
-
-{
+export enum Ahah {
     'LOL' = 'LOL',
     'MDR' = 'MDR',
 }

@@ -29,6 +29,7 @@
     "@commitlint/cli": "^12.1.4",
     "@commitlint/config-conventional": "^12.1.4",
     "@commitlint/config-lerna-scopes": "^12.1.4",
+    "@microsoft/api-documenter": "^7.13.9",
     "@microsoft/api-extractor": "^7.15.2",
     "@typescript-eslint/eslint-plugin": "^4.24.0",
     "@typescript-eslint/parser": "^4.24.0",

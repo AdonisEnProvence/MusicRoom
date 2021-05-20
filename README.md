@@ -26,6 +26,10 @@ Start up the project in development mode by running
 yarn dev
 ```
 
+Changing any files in the `src` folder will result in an incremental rebuild, and a refresh of the screen.
+
+By default, the app is served on https://localhost:1234.
+
 ## Utils
 
 Build all the packages
@@ -51,7 +55,3 @@ Run jest tests
 ```sh
 yarn test
 ```
-
-Changing any files in the `src` folder will result in an incremental rebuild, and a refresh of the screen.
-
-By default, the app is served on https://localhost:1234.

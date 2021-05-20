@@ -18,7 +18,8 @@
     "build": "scripty",
     "clean": "scripty",
     "lint": "scripty",
-    "test": "scripty"
+    "test": "scripty",
+    "prepare": "husky install"
   },
   "volta": {
     "node": "16.0.0",
@@ -37,18 +38,13 @@
     "husky": "^6.0.0",
     "lerna": "^4.0.0",
     "lerna-changelog": "^1.0.1",
+    "lint-staged": "^11.0.0",
     "prettier": "^2.3.0",
     "rimraf": "^3.0.2",
     "scripty": "^2.0.0"
   },
   "scripty": {
     "path": "./scripts/workspace"
-  },
-  "husky": {
-    "hooks": {
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "lint-staged"
-    }
   },
   "lint-staged": {
     "*.{ts,tsx}": [

@@ -22,11 +22,14 @@
  * @packageDocumentation
  */
 
-export enum Ahah  {
+export enum Ahah
+
+
+{
     'LOL' = 'LOL',
-    'MDR' = 'MDR'
+    'MDR' = 'MDR',
 }
 
-export type Eheh = keyof typeof Ahah
+export type Eheh = keyof typeof Ahah;
 
-export const ResponseToUniverse = 42
+export const ResponseToUniverse = 42;

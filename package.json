@@ -32,9 +32,12 @@
     "@typescript-eslint/parser": "^4.24.0",
     "commitlint": "^12.1.4",
     "eslint": "^7.26.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^3.4.0",
     "husky": "^6.0.0",
     "lerna": "^4.0.0",
     "lerna-changelog": "^1.0.1",
+    "prettier": "^2.3.0",
     "rimraf": "^3.0.2",
     "scripty": "^2.0.0"
   },
@@ -43,7 +46,13 @@
   },
   "husky": {
     "hooks": {
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+      "pre-commit": "lint-staged"
     }
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix"
+    ]
   }
 }

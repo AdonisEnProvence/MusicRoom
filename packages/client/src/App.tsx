@@ -1,100 +1,57 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * Generated with the TypeScript template
- * https://github.com/react-native-community/react-native-template-typescript
- *
- * @format
- */
-
 import React from 'react';
 import {
     SafeAreaView,
     ScrollView,
-    StatusBar,
     StyleSheet,
+    StatusBar,
     Text,
-    useColorScheme,
     View,
+    TouchableOpacity,
 } from 'react-native';
+import { createMachine } from 'xstate';
+import { useMachine } from '@xstate/react';
 
-import {
-    Colors,
-    DebugInstructions,
-    Header,
-    LearnMoreLinks,
-    ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const playingMachine = createMachine({
+    initial: 'paused',
 
-const Section: React.FC<{
-    title: string;
-}> = ({ children, title }) => {
-    const isDarkMode = useColorScheme() === 'dark';
-    return (
-        <View style={styles.sectionContainer}>
-            <Text
-                style={[
-                    styles.sectionTitle,
-                    {
-                        color: isDarkMode ? Colors.white : Colors.black,
-                    },
-                ]}
-            >
-                {title}
-            </Text>
-            <Text
-                style={[
-                    styles.sectionDescription,
-                    {
-                        color: isDarkMode ? Colors.light : Colors.dark,
-                    },
-                ]}
-            >
-                {children}
-            </Text>
-        </View>
-    );
-};
+    states: {
+        paused: {
+            on: {
+                TOGGLE: {
+                    target: 'playing',
+                },
+            },
+        },
+        playing: {
+            on: {
+                TOGGLE: {
+                    target: 'paused',
+                },
+            },
+        },
+    },
+});
 
 const App: React.FC = () => {
-    const isDarkMode = useColorScheme() === 'dark';
-
-    const backgroundStyle = {
-        backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-    };
+    const [state, send] = useMachine(playingMachine);
 
     return (
-        <SafeAreaView style={backgroundStyle}>
-            <StatusBar
-                barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-            />
-            <ScrollView
-                contentInsetAdjustmentBehavior="automatic"
-                style={backgroundStyle}
-            >
-                <Header />
-                <View
-                    style={{
-                        backgroundColor: isDarkMode
-                            ? Colors.black
-                            : Colors.white,
-                    }}
-                >
-                    <Section title="Step One">
-                        Edit <Text style={styles.highlight}>App.js</Text> to
-                        change this screen and then come back to see your edits.
-                    </Section>
-                    <Section title="See Your Changes">
-                        <ReloadInstructions />
-                    </Section>
-                    <Section title="Debug">
-                        <DebugInstructions />
-                    </Section>
-                    <Section title="Learn More">
-                        Read the docs to discover what to do next:
-                    </Section>
-                    <LearnMoreLinks />
+        <SafeAreaView>
+            <StatusBar barStyle="light-content" />
+            <ScrollView contentInsetAdjustmentBehavior="automatic">
+                <View style={styles.playerContainer}>
+                    <Text style={styles.playerState}>
+                        {state.matches('paused') ? 'Paused' : 'Playing'}
+                    </Text>
+
+                    <TouchableOpacity
+                        style={styles.playerToggleButton}
+                        onPress={() => send('TOGGLE')}
+                    >
+                        <Text style={styles.playerToggleButtonText}>
+                            {state.matches('paused') ? 'Play' : 'Pause'}
+                        </Text>
+                    </TouchableOpacity>
                 </View>
             </ScrollView>
         </SafeAreaView>
@@ -102,21 +59,32 @@ const App: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-    sectionContainer: {
-        marginTop: 32,
-        paddingHorizontal: 24,
+    playerContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+
+        marginTop: 20,
     },
-    sectionTitle: {
-        fontSize: 24,
-        fontWeight: '600',
+
+    playerState: {
+        fontSize: 20,
     },
-    sectionDescription: {
-        marginTop: 8,
-        fontSize: 18,
-        fontWeight: '400',
+
+    playerToggleButton: {
+        marginTop: 40,
+        width: 65,
+        flexDirection: 'row',
+        justifyContent: 'center',
+
+        backgroundColor: '#2aa198',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 100,
     },
-    highlight: {
-        fontWeight: '700',
+
+    playerToggleButtonText: {
+        color: 'white',
     },
 });
 

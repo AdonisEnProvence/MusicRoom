@@ -1,0 +1,47 @@
+name: ci
+
+on:
+    pull_request:
+        branches:
+            - master
+
+jobs:
+    commitlint:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout 🛎
+              uses: actions/checkout@v2
+              with:
+                  fetch-depth: 0
+            - name: Run commitlinter 👀
+              uses: wagoid/commitlint-github-action@v3
+    lint_and_tests:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout 🛎
+              uses: actions/checkout@v2
+
+            - name: Setup node env 🏗
+              uses: actions/setup-node@v2.1.2
+              with:
+                  node-version: 16
+                  check-latest: true
+
+            - name: Cache node_modules 📦
+              uses: actions/cache@v2
+              with:
+                  path: ~/.npm
+                  key: ubuntu-latest-node-${{ hashFiles('**/yarn.lock') }}
+                  restore-keys: |
+                      ubuntu-latest-node-
+            - name: Install dependencies 👨🏻‍💻
+              run: yarn
+
+            - name: Build packages 👷
+              run: yarn run build
+
+            - name: Run linter 👀
+              run: yarn run lint
+
+            - name: Run tests 🧪
+              run: yarn run test

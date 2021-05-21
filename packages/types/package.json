@@ -4,7 +4,6 @@
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "license": "MIT",
   "publishConfig": {
     "access": "public"
   },

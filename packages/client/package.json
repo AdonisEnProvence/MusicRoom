@@ -44,5 +44,11 @@
   },
   "scripty": {
     "path": "../../scripts/packages"
+  },
+  "workspaces": {
+    "nohoist": [
+      "*react-native*",
+      "*react-native*/**"
+    ]
   }
 }

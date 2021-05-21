@@ -1,4 +1,5 @@
 {
+  "root": true,
   "extends": ["../../.eslintrc", "@react-native-community"],
   "parserOptions": {
     "project": "tsconfig.json"

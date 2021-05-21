@@ -8,29 +8,90 @@ import {
     View,
     TouchableOpacity,
 } from 'react-native';
-import { createMachine } from 'xstate';
+import { assign, createMachine } from 'xstate';
 import { useMachine } from '@xstate/react';
+import {
+    auth as SpotifyAuth,
+    remote as SpotifyRemote,
+    ApiScope,
+    ApiConfig,
+    SpotifySession,
+} from 'react-native-spotify-remote';
 
-const playingMachine = createMachine({
-    initial: 'paused',
+// Api Config object, replace with your own applications client id and urls
+const spotifyConfig: ApiConfig = {
+    clientID: 'SPOTIFY_CLIENT_ID',
+    redirectURL: 'SPOTIFY_REDIRECT_URL',
+    tokenRefreshURL: 'SPOTIFY_TOKEN_REFRESH_URL',
+    tokenSwapURL: 'SPOTIFY_TOKEN_SWAP_URL',
+    scopes: [ApiScope.AppRemoteControlScope, ApiScope.UserFollowReadScope],
+};
 
-    states: {
-        paused: {
-            on: {
-                TOGGLE: {
-                    target: 'playing',
+interface PlayingMachineContext {
+    session?: SpotifySession;
+}
+
+type PlayingMachineEvent =
+    | { type: 'AUTHENTICATED_WITH_SPOTIFY'; session: SpotifySession }
+    | { type: 'TOGGLE' };
+
+const playingMachine = createMachine<
+    PlayingMachineContext,
+    PlayingMachineEvent
+>(
+    {
+        context: {
+            session: undefined,
+        },
+
+        initial: 'authenticating',
+
+        states: {
+            authenticating: {
+                invoke: {
+                    src: 'authenticating',
+                },
+
+                on: {
+                    AUTHENTICATED_WITH_SPOTIFY: {
+                        target: 'paused',
+                        actions: assign({
+                            session: (_context, { session }) => session,
+                        }),
+                    },
                 },
             },
-        },
-        playing: {
-            on: {
-                TOGGLE: {
-                    target: 'paused',
+
+            paused: {
+                on: {
+                    TOGGLE: {
+                        target: 'playing',
+                    },
+                },
+            },
+            playing: {
+                on: {
+                    TOGGLE: {
+                        target: 'paused',
+                    },
                 },
             },
         },
     },
-});
+    {
+        services: {
+            authenticating: () => async (sendBack) => {
+                const session = await SpotifyAuth.authorize(spotifyConfig);
+                await SpotifyRemote.connect(session.accessToken);
+
+                sendBack({
+                    type: 'AUTHENTICATED_WITH_SPOTIFY',
+                    session,
+                });
+            },
+        },
+    },
+);
 
 const App: React.FC = () => {
     const [state, send] = useMachine(playingMachine);
@@ -39,20 +100,26 @@ const App: React.FC = () => {
         <SafeAreaView>
             <StatusBar barStyle="light-content" />
             <ScrollView contentInsetAdjustmentBehavior="automatic">
-                <View style={styles.playerContainer}>
-                    <Text style={styles.playerState}>
-                        {state.matches('paused') ? 'Paused' : 'Playing'}
-                    </Text>
-
-                    <TouchableOpacity
-                        style={styles.playerToggleButton}
-                        onPress={() => send('TOGGLE')}
-                    >
-                        <Text style={styles.playerToggleButtonText}>
-                            {state.matches('paused') ? 'Play' : 'Pause'}
+                {state.matches('authenticating') ? (
+                    <View>
+                        <Text>Loading</Text>
+                    </View>
+                ) : (
+                    <View style={styles.playerContainer}>
+                        <Text style={styles.playerState}>
+                            {state.matches('paused') ? 'Paused' : 'Playing'}
                         </Text>
-                    </TouchableOpacity>
-                </View>
+
+                        <TouchableOpacity
+                            style={styles.playerToggleButton}
+                            onPress={() => send('TOGGLE')}
+                        >
+                            <Text style={styles.playerToggleButtonText}>
+                                {state.matches('paused') ? 'Play' : 'Pause'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
             </ScrollView>
         </SafeAreaView>
     );

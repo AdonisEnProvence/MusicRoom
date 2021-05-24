@@ -12,6 +12,8 @@ target 'client' do
     :hermes_enabled => false
   )
 
+  pod 'RNEventEmitter', :path => "../node_modules/react-native-events"
+
   target 'clientTests' do
     inherit! :complete
     # Pods for testing

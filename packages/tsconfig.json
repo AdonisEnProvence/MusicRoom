@@ -3,6 +3,7 @@
     "references": [
         { "path": "utils" },
         { "path": "types" },
-        { "path": "client" }
+        { "path": "client" },
+        { "path": "server" }
     ]
 }

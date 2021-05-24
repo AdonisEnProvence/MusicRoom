@@ -20,11 +20,12 @@ import {
 
 // Api Config object, replace with your own applications client id and urls
 const spotifyConfig: ApiConfig = {
-    clientID: 'SPOTIFY_CLIENT_ID',
-    redirectURL: 'SPOTIFY_REDIRECT_URL',
-    tokenRefreshURL: 'SPOTIFY_TOKEN_REFRESH_URL',
-    tokenSwapURL: 'SPOTIFY_TOKEN_SWAP_URL',
-    scopes: [ApiScope.AppRemoteControlScope, ApiScope.UserFollowReadScope],
+    clientID: 'client id',
+    redirectURL: 'org.reactjs.native.example.client://oauthredirect',
+    // tokenRefreshURL: 'http://localhost:3000/refresh',
+    // tokenSwapURL: 'http://localhost:3000/swap',
+
+    scopes: [ApiScope.StreamingScope],
 };
 
 interface PlayingMachineContext {
@@ -81,13 +82,19 @@ const playingMachine = createMachine<
     {
         services: {
             authenticating: () => async (sendBack) => {
-                const session = await SpotifyAuth.authorize(spotifyConfig);
-                await SpotifyRemote.connect(session.accessToken);
+                try {
+                    const session = await SpotifyAuth.authorize(spotifyConfig);
 
-                sendBack({
-                    type: 'AUTHENTICATED_WITH_SPOTIFY',
-                    session,
-                });
+                    console.log('fetched session', session);
+                    await SpotifyRemote.connect(session.accessToken);
+
+                    sendBack({
+                        type: 'AUTHENTICATED_WITH_SPOTIFY',
+                        session,
+                    });
+                } catch (err) {
+                    console.error(err);
+                }
             },
         },
     },

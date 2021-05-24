@@ -6,7 +6,6 @@
     "build": "node ace dist --production",
     "start": "node server.js",
     "dev": "node ace serve --watch",
-    "test": "scripty",
     "lint": "yarn eslint app start --ext ts,js,tsx,jsx --fix",
     "clean": "rimraf dist *.tsbuildinfo"
   },

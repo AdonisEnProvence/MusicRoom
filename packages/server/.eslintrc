@@ -1,5 +1,5 @@
 {
-    "extends": ["../../.eslintrc"],
+    "extends": ["plugin:adonis/typescriptPackage", "../../.eslintrc"],
     "parserOptions": {
         "project": "tsconfig.json"
     },

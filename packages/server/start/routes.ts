@@ -24,7 +24,7 @@ Route.get('/spotify/auth', SpotifiesController.login);
 
 Route.get('/ping', SpotifiesController.ping);
 
-Route.get('/spotify/callback', SpotifiesController.callback);
+Route.get('/spotify/swap', SpotifiesController.swap);
 
 Route.get('/', () => {
     return { hello: 'world' };

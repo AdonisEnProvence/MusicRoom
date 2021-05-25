@@ -136,6 +136,9 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        manifestPlaceholders = [
+            appAuthRedirectScheme: 'io.identityserver.demo' //the scheme is the beginning of your OAuth Redirect URL, up to the scheme separator (:) character. E.g. if your redirect uri is com.myapp://oauth, then the url scheme will is com.myapp.
+        ]
     }
     splits {
         abi {

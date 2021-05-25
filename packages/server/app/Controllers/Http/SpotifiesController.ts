@@ -26,9 +26,13 @@ const generateRandomString = (length: number): string => {
 };
 
 export default class SpotifiesController {
-    public static login({ response }: HttpContextContract): void {
+    public static login({ request, response }: HttpContextContract): void {
+        console.log('[login]');
+        const tmp = request.qs();
+        console.log(tmp);
         const state = generateRandomString(16);
         response.cookie(stateKey, state);
+        console.log('[done]');
 
         // your application requests authorization
         const scope = 'user-read-private user-read-email';
@@ -39,10 +43,11 @@ export default class SpotifiesController {
             redirect_uri: spotifyAuth.redirect_uri,
             state: state,
         });
-        response.redirect(`https://accounts.spotify.com/authorize?${queries}`);
+        console.log(queries);
+        // response.redirect(`https://accounts.spotify.com/authorize?${queries}`);
     }
 
-    public static async callback({
+    public static async swap({
         request,
         response,
     }: HttpContextContract): Promise<void> {
@@ -97,8 +102,9 @@ export default class SpotifiesController {
         }
     }
 
-    public static ping(): void {
+    public static ping(): { pong: string } {
         console.log('pong');
+        return { pong: 'pong' };
     }
 }
 

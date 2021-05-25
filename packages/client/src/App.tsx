@@ -11,29 +11,31 @@ import {
 import { assign, createMachine } from 'xstate';
 import { useMachine } from '@xstate/react';
 import {
-    auth as SpotifyAuth,
-    remote as SpotifyRemote,
-    ApiScope,
-    ApiConfig,
-    SpotifySession,
-} from 'react-native-spotify-remote';
+    AuthConfiguration,
+    authorize,
+    AuthorizeResult,
+} from 'react-native-app-auth';
 
 // Api Config object, replace with your own applications client id and urls
-const spotifyConfig: ApiConfig = {
-    clientID: 'client id',
-    redirectURL: 'org.reactjs.native.example.client://oauthredirect',
-    // tokenRefreshURL: 'http://localhost:3000/refresh',
-    // tokenSwapURL: 'http://localhost:3000/swap',
-
-    scopes: [ApiScope.StreamingScope],
+const androidLocalHostIP = '10.0.2.2';
+const spotifyConfig: AuthConfiguration = {
+    clientId: '61140504dfd14dd591dbfdd22d8a253a', // available on the app page
+    redirectUrl: 'io.identityserver.demo:/callback', // the redirect you defined after creating the app
+    scopes: ['user-read-email', 'playlist-modify-public', 'user-read-private'], // the scopes you need to access
+    serviceConfiguration: {
+        authorizationEndpoint: 'https://accounts.spotify.com/authorize', //`http://${androidLocalHostIP}:3333/spotify/auth`,
+        tokenEndpoint: 'https://musicroomspotify.herokuapp.com/api/token',
+    },
+    usePKCE: false,
+    dangerouslyAllowInsecureHttpRequests: true, //This needs to become a env var TODO
 };
 
 interface PlayingMachineContext {
-    session?: SpotifySession;
+    session?: AuthorizeResult;
 }
 
 type PlayingMachineEvent =
-    | { type: 'AUTHENTICATED_WITH_SPOTIFY'; session: SpotifySession }
+    | { type: 'AUTHENTICATED_WITH_SPOTIFY'; session: AuthorizeResult }
     | { type: 'TOGGLE' };
 
 const playingMachine = createMachine<
@@ -83,17 +85,18 @@ const playingMachine = createMachine<
         services: {
             authenticating: () => async (sendBack) => {
                 try {
-                    const session = await SpotifyAuth.authorize(spotifyConfig);
+                    console.log(spotifyConfig);
+                    const authState = await authorize(spotifyConfig);
 
-                    console.log('fetched session', session);
-                    await SpotifyRemote.connect(session.accessToken);
+                    console.log('fetched session', authState);
+                    // await SpotifyRemote.connect(session.accessToken);
 
                     sendBack({
                         type: 'AUTHENTICATED_WITH_SPOTIFY',
-                        session,
+                        session: authState,
                     });
                 } catch (err) {
-                    console.error(err);
+                    console.error('erreur ici', err);
                 }
             },
         },
@@ -115,6 +118,19 @@ const App: React.FC = () => {
                     <View style={styles.playerContainer}>
                         <Text style={styles.playerState}>
                             {state.matches('paused') ? 'Paused' : 'Playing'}
+                        </Text>
+                        <Text
+                            onPress={async () => {
+                                try {
+                                    await fetch(
+                                        `http://${androidLocalHostIP}:3333/ping`,
+                                    );
+                                } catch (e) {
+                                    console.error('oeoe', e);
+                                }
+                            }}
+                        >
+                            Submit
                         </Text>
 
                         <TouchableOpacity

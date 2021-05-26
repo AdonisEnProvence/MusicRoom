@@ -21,6 +21,7 @@
     "@adonisjs/core": "^5.1.0",
     "@adonisjs/repl": "^3.0.0",
     "@types/node-fetch": "^2.5.10",
+    "googleapis": "^74.1.0",
     "node-fetch": "^2.6.1",
     "proxy-addr": "^2.0.6",
     "query-string": "^7.0.0",

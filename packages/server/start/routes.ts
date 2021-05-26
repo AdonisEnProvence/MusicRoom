@@ -19,12 +19,15 @@
 */
 import Route from '@ioc:Adonis/Core/Route';
 import SpotifiesController from 'App/Controllers/Http/SpotifiesController';
+import { TracksSearchController } from '../app/Controllers/Http/TracksSearchesController';
 
 Route.get('/spotify/auth', SpotifiesController.login);
 
 Route.get('/ping', SpotifiesController.ping);
 
 Route.get('/spotify/swap', SpotifiesController.swap);
+
+Route.post('/search/track/:query', TracksSearchController.searchTrackName);
 
 Route.get('/', () => {
     return { hello: 'world' };

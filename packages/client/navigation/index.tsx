@@ -12,9 +12,10 @@ import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
 import { ColorSchemeName } from 'react-native';
 
-import NotFoundScreen from '../screens/NotFoundScreen';
 import { RootStackParamList } from '../types';
-import BottomTabNavigator from './BottomTabNavigator';
+import HomeScreen from '../screens/HomeScreen';
+import SearchTrackScreen from '../screens/SearchTrackScreen';
+import SearchTrackResultsScreen from '../screens/SearchTrackResultsScreen';
 import LinkingConfiguration from './LinkingConfiguration';
 
 const Navigation: React.FC<{
@@ -36,12 +37,25 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 function RootNavigator() {
     return (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="Root" component={BottomTabNavigator} />
+        <Stack.Navigator
+            initialRouteName="SearchTrack"
+            screenOptions={{ headerShown: false }}
+        >
             <Stack.Screen
-                name="NotFound"
-                component={NotFoundScreen}
-                options={{ title: 'Oops!' }}
+                name="Home"
+                component={HomeScreen}
+                options={{ title: 'Home', headerShown: true }}
+            />
+
+            <Stack.Screen
+                name="SearchTrack"
+                component={SearchTrackScreen}
+                options={{ title: 'Search', headerShown: true }}
+            />
+            <Stack.Screen
+                name="SearchTrackResults"
+                component={SearchTrackResultsScreen}
+                options={{ title: 'Results', headerShown: true }}
             />
         </Stack.Navigator>
     );

@@ -8,7 +8,6 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "eject": "expo eject",
-    "test": "jest --watchAll",
     "build": "scripty",
     "lint": "yarn eslint . --ext ts,tsx --fix",
     "generate:xstate": "xstate-codegen machines/*.ts"

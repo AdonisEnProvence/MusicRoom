@@ -60,11 +60,6 @@ const SearchTrackScreen: React.FC<
                         <Text style={styles.searchSubmitButtonText}>✅</Text>
                     </TouchableOpacity>
                 </View>
-
-                <Text style={{ marginTop: 40 }}>
-                    {state.context.searchQuery}
-                </Text>
-                <Text style={{ marginTop: 40 }}>{state.value}</Text>
             </View>
         </View>
     );

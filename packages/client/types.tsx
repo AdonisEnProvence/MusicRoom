@@ -10,4 +10,7 @@ export type RootStackParamList = {
     SearchTrackResults: {
         tracks: SearchedTrack[];
     };
+    TrackPlayer: {
+        track: SearchedTrack;
+    };
 };

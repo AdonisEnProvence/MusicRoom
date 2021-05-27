@@ -17,6 +17,7 @@ import HomeScreen from '../screens/HomeScreen';
 import SearchTrackScreen from '../screens/SearchTrackScreen';
 import SearchTrackResultsScreen from '../screens/SearchTrackResultsScreen';
 import LinkingConfiguration from './LinkingConfiguration';
+import TrackPlayer from '../screens/TrackPlayer';
 
 const Navigation: React.FC<{
     colorScheme: ColorSchemeName;
@@ -56,6 +57,12 @@ function RootNavigator() {
                 name="SearchTrackResults"
                 component={SearchTrackResultsScreen}
                 options={{ title: 'Results', headerShown: true }}
+            />
+
+            <Stack.Screen
+                name="TrackPlayer"
+                component={TrackPlayer}
+                options={{ title: 'Player', headerShown: true }}
             />
         </Stack.Navigator>
     );

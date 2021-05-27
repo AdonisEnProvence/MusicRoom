@@ -1,25 +1,45 @@
 import { StackScreenProps } from '@react-navigation/stack';
 import React from 'react';
-import { StyleSheet, Text, View, FlatList, ListRenderItem } from 'react-native';
+import {
+    StyleSheet,
+    Text,
+    View,
+    FlatList,
+    ListRenderItem,
+    TouchableOpacity,
+} from 'react-native';
 import { SearchedTrack } from '../machines/searchTrackMachine';
 
 import { RootStackParamList } from '../types';
 
 const Item = ({ title }: SearchedTrack) => (
     <View style={styles.track}>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.title}>{title || 'yes'}</Text>
     </View>
 );
 
 const SearchTrackResultsScreen: React.FC<
     StackScreenProps<RootStackParamList, 'SearchTrackResults'>
-> = ({ route }) => {
+> = ({ route, navigation }) => {
     const { tracks } = route.params;
+
     const renderTrack: ListRenderItem<SearchedTrack> = (data) => {
         console.log(data);
         const { id, title } = data.item;
-        return <Item id={id} title={title} />;
+        return (
+            <TouchableOpacity
+                key={'touchableOpacity-' + id}
+                onPress={() => {
+                    navigation.navigate('TrackPlayer', {
+                        track: data.item,
+                    });
+                }}
+            >
+                <Item id={id} title={title} />
+            </TouchableOpacity>
+        );
     };
+
     return (
         <View style={styles.container}>
             <Text>Results</Text>

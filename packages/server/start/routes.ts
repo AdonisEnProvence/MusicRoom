@@ -27,7 +27,7 @@ Route.get('/ping', SpotifiesController.ping);
 
 Route.get('/spotify/swap', SpotifiesController.swap);
 
-Route.post('/search/track/:query', TracksSearchController.searchTrackName);
+Route.get('/search/track/:query', TracksSearchController.searchTrackName);
 
 Route.get('/', () => {
     return { hello: 'world' };

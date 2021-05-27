@@ -18,8 +18,13 @@ const SearchTrackScreen: React.FC<
     const [state, send] = useMachine(searchTrackMachine);
 
     useEffect(() => {
-        if (state.matches('fetchedTracks')) {
-            navigation.navigate('SearchTrackResults');
+        if (
+            state.matches('fetchedTracks') &&
+            state.context.tracks !== undefined
+        ) {
+            navigation.navigate('SearchTrackResults', {
+                tracks: state.context.tracks,
+            });
         }
     }, [state, navigation]);
 
@@ -59,6 +64,7 @@ const SearchTrackScreen: React.FC<
                 <Text style={{ marginTop: 40 }}>
                     {state.context.searchQuery}
                 </Text>
+                <Text style={{ marginTop: 40 }}>{state.value}</Text>
             </View>
         </View>
     );

@@ -1,15 +1,13 @@
 import { assign, createMachine } from 'xstate';
 import * as z from 'zod';
 
-interface SearchTrackContext {
-    searchQuery: string;
-}
+const ENDPOINT = 'http://10.0.2.2:3333';
 
 const SearchedTrack = z.object({
     id: z.string(),
     title: z.string(),
 });
-type SearchedTrack = z.infer<typeof SearchedTrack>;
+export type SearchedTrack = z.infer<typeof SearchedTrack>;
 
 type UpdateSearchQueryEvent = {
     type: 'UPDATE_SEARCH_QUERY';
@@ -33,15 +31,29 @@ const SearchTracksAPIResult = z.object({
     tracks: z.array(SearchedTrack),
 });
 
-async function fetchTracks({ searchQuery }: FetchTracksArgs) {
-    const response = await fetch(`/tracks/search?q=${searchQuery}`);
+async function fetchTracks({
+    searchQuery,
+}: FetchTracksArgs): Promise<SearchedTrack[]> {
+    const url = `${ENDPOINT}/search/track/${encodeURIComponent(searchQuery)}`;
+    const response = await fetch(url);
     if (response.ok === false) {
+        console.error(response.status, response.statusText);
         throw new Error('Could not get tracks');
     }
-
-    const { tracks } = SearchTracksAPIResult.parse(await response.json());
-
+    const parsedResponse = {
+        tracks: (await response.json()).videos.map((el: any) => ({
+            id: el.id.videoId,
+            title: el.snippet.title,
+        })),
+    };
+    console.log(parsedResponse);
+    const { tracks } = SearchTracksAPIResult.parse(parsedResponse);
     return tracks;
+}
+
+interface SearchTrackContext {
+    searchQuery: string;
+    tracks: undefined | SearchedTrack[];
 }
 
 export const searchTrackMachine = createMachine<
@@ -51,6 +63,7 @@ export const searchTrackMachine = createMachine<
     {
         context: {
             searchQuery: '',
+            tracks: undefined,
         },
 
         initial: 'editing',
@@ -91,6 +104,7 @@ export const searchTrackMachine = createMachine<
         },
     },
     {
+        //sync state machine dedicated
         actions: {
             assignSearchQueryToContext: assign((context, event) => {
                 if (event.type !== 'UPDATE_SEARCH_QUERY') {
@@ -115,18 +129,21 @@ export const searchTrackMachine = createMachine<
             }),
         },
 
+        //async side effect
         services: {
             fetchTracks:
                 ({ searchQuery }, _event) =>
                 async (sendBack, _onReceive) => {
                     try {
                         const tracks = await fetchTracks({ searchQuery });
-
-                        sendBack({
-                            type: 'FETCHED_TRACKS',
-                            tracks,
-                        });
+                        if (tracks) {
+                            sendBack({
+                                type: 'FETCHED_TRACKS',
+                                tracks,
+                            });
+                        }
                     } catch (err) {
+                        console.error(err);
                         sendBack({
                             type: 'FAILED_FETCHING_TRACKS',
                         });

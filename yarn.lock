@@ -15377,15 +15377,10 @@ typeof-article@^0.1.1:
   dependencies:
     kind-of "^3.1.0"
 
-typescript@^4.0.3:
+typescript@^4.0.3, typescript@^4.3.2:
   version "4.3.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.3.2.tgz#399ab18aac45802d6f2498de5054fcbbe716a805"
   integrity sha512-zZ4hShnmnoVnAHpVHWpTcxdv7dWP60S2FsydQLV8V5PbS3FifjWFFRiHSWpDJahly88PRyV5teTSLoq4eG7mKw==
-
-typescript@~4.0.0:
-  version "4.0.7"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.0.7.tgz#7168032c43d2a2671c95c07812f69523c79590af"
-  integrity sha512-yi7M4y74SWvYbnazbn8/bmJmX4Zlej39ZOqwG/8dut/MYoSQ119GY9ZFbbGsD4PFZYWxqik/XsP3vk3+W5H3og==
 
 typescript@~4.2, typescript@~4.2.4:
   version "4.2.4"
@@ -16254,7 +16249,7 @@ z-schema@~3.18.3:
   optionalDependencies:
     commander "^2.7.1"
 
-zod@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/zod/-/zod-3.1.0.tgz#b9b6c0f949f9b54eb2c32cbbe81e9d0f24a143d8"
-  integrity sha512-qS0an8oo9EvVLVqIVxMZrQrfR2pVwBtlPp+BzTB/F19IyPTRaLLoFfdXRzgh626pxFR1efuTWV8bPoEE58KwqA==
+zod@^1.11.17:
+  version "1.11.17"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-1.11.17.tgz#2aae9e91fc66128116ae9844e8f416a95f453f8e"
+  integrity sha512-UzIwO92D0dSFwIRyyqAfRXICITLjF0IP8tRbEK/un7adirMssWZx8xF/1hZNE7t61knWZ+lhEuUvxlu2MO8qqA==

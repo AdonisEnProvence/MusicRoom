@@ -7,5 +7,6 @@
     "noEmit": false,
     "emitDeclarationOnly": true,
     "declarationMap": true
-  }
+  },
+  "exclude": ["node_modules", "dist"]
 }

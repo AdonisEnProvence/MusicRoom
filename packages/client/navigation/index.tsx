@@ -4,21 +4,20 @@
  *
  */
 import {
-    NavigationContainer,
-    DefaultTheme,
     DarkTheme,
+    DefaultTheme,
+    NavigationContainer,
 } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
 import { ColorSchemeName } from 'react-native';
-
-import { RootStackParamList } from '../types';
 import ChatScreen from '../screens/ChatScreen';
 import HomeScreen from '../screens/HomeScreen';
-import SearchTrackScreen from '../screens/SearchTrackScreen';
 import SearchTrackResultsScreen from '../screens/SearchTrackResultsScreen';
-import LinkingConfiguration from './LinkingConfiguration';
+import SearchTrackScreen from '../screens/SearchTrackScreen';
 import TrackPlayer from '../screens/TrackPlayer';
+import { RootStackParamList } from '../types';
+import LinkingConfiguration from './LinkingConfiguration';
 
 const Navigation: React.FC<{
     colorScheme: ColorSchemeName;
@@ -58,7 +57,7 @@ function RootNavigator() {
             <Stack.Screen
                 name="SearchTrack"
                 component={SearchTrackScreen}
-                options={{ title: 'Search', headerShown: true }}
+                options={{ title: 'Tracks Search', headerShown: true }}
             />
             <Stack.Screen
                 name="SearchTrackResults"

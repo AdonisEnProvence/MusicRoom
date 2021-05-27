@@ -1,12 +1,12 @@
 {
-    "extends": "../tsconfig.settings.json",
-    "compilerOptions": {
-        "composite": true,
-        "outDir": "dist",
-        "rootDir": "src",
-        "jsx": "react-native",
-        "emitDeclarationOnly": true,
-        "lib": ["esNext"]
-    },
-    "include": ["src"]
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "composite": true,
+    "strict": true,
+    "outDir": "dist",
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declarationMap": true
+  },
+  "exclude": ["node_modules", "dist"]
 }

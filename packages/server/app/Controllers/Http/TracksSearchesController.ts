@@ -1,6 +1,6 @@
+import Env from '@ioc:Adonis/Core/Env';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import { google, youtube_v3 } from 'googleapis';
-import Env from '@ioc:Adonis/Core/Env';
 
 const youtube = google.youtube({
     version: 'v3',

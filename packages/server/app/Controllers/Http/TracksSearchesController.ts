@@ -7,40 +7,28 @@ const youtube = google.youtube({
     auth: Env.get('GOOGLE_API_KEY'),
 });
 
-async function searchTrackName({
-    request,
-    response,
-}: HttpContextContract): Promise<
-    { videos: youtube_v3.Schema$SearchResult[] | undefined } | undefined
-> {
-    console.log(request, response);
-    const params = request.params();
-    console.log(params);
-    if (params.query !== undefined) {
-        try {
-            const res = (
-                await youtube.search.list({
-                    q: params.query,
-                    part: ['id', 'snippet'],
-                    regionCode: 'FR',
-                    videoCategoryId: '10',
-                    safeSearch: 'moderate',
-                    type: ['video'],
-                    videoCaption: 'any',
-                    videoDuration: 'short', //less than 4 minutes
-                })
-            ).data;
-            return { videos: res.items };
-        } catch (e) {
-            console.error(e);
-            response.status(500);
-        }
-    } else {
-        response.status(400);
-        response.send('missing query parameter');
+export default class TracksSearchesController {
+    public async searchTrackName({
+        request,
+    }: HttpContextContract): Promise<
+        { videos: youtube_v3.Schema$SearchResult[] | undefined } | undefined
+    > {
+        const params = request.params();
+        const query = decodeURIComponent(params.query);
+
+        const {
+            data: { items: videos },
+        } = await youtube.search.list({
+            q: query,
+            part: ['id', 'snippet'],
+            regionCode: 'FR',
+            videoCategoryId: '10',
+            safeSearch: 'moderate',
+            type: ['video'],
+            videoCaption: 'any',
+            videoDuration: 'short', //less than 4 minutes
+        });
+
+        return { videos };
     }
 }
-
-export const TracksSearchController = {
-    searchTrackName,
-};

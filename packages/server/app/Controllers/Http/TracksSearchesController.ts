@@ -7,7 +7,7 @@ const youtube = google.youtube({
     auth: Env.get('GOOGLE_API_KEY'),
 });
 
-export async function searchTrackName({
+async function searchTrackName({
     request,
     response,
 }: HttpContextContract): Promise<

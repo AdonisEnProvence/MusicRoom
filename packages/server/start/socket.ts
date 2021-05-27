@@ -2,10 +2,33 @@ import Ws from 'App/Services/Ws';
 
 Ws.boot();
 
-Ws.io.on('connection', (socket) => {
-    socket.emit('ack', { message: 'Hello!' });
+interface Message {
+    author: string;
+    text: string;
+}
 
-    socket.on('pong', (data) => {
-        console.log('data', data);
+const messages: Message[] = [
+    {
+        author: 'Baptiste Devessier',
+        text: 'Hey all!',
+    },
+];
+
+Ws.io.on('connection', (socket) => {
+    console.log('new connection');
+
+    socket.emit('loadMessages', { messages });
+
+    socket.on('writeMessage', ({ message }) => {
+        const newChatMessage: Message = {
+            author: 'Baptiste Devessier',
+            text: message,
+        };
+
+        console.log('add message and broadcast it');
+
+        messages.push(newChatMessage);
+
+        Ws.io.emit('receivedMessage', newChatMessage);
     });
 });

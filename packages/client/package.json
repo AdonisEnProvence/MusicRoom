@@ -43,7 +43,8 @@
     "socket.io-client": "^4.1.2",
     "xstate": "^4.19.2",
     "xstate-codegen": "^0.3.0",
-    "zod": "^1.11.17"
+    "zod": "^1.11.17",
+    "@musicroom/types": "^0.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.9.0",

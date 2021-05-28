@@ -1,5 +1,8 @@
 {
   "extends": "expo/tsconfig.base",
+  "references": [
+    { "path": "../types" }
+  ],
   "compilerOptions": {
     "composite": true,
     "strict": true,

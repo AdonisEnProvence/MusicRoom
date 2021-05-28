@@ -2,7 +2,11 @@ import { useMachine, useSelector } from '@xstate/react';
 import React from 'react';
 import { Text, View, StyleSheet, TextInput, FlatList } from 'react-native';
 import { assign, createMachine, send } from 'xstate';
-import { io } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
+import {
+    ChatClientToServerEvents,
+    ChatServerToClientEvents,
+} from '@musicroom/types';
 
 interface ChatMessage {
     text: string;
@@ -37,7 +41,10 @@ const chatMachine = createMachine<ChatMachineContext, ChatMachineEvent>({
     invoke: {
         id: 'connectionToBackend',
         src: () => (sendBack, onReceive) => {
-            const socket = io('http://127.0.0.1:3333/');
+            const socket: Socket<
+                ChatServerToClientEvents,
+                ChatClientToServerEvents
+            > = io('http://127.0.0.1:3333/');
 
             socket.on('connect', () => {
                 sendBack({
@@ -45,14 +52,14 @@ const chatMachine = createMachine<ChatMachineContext, ChatMachineEvent>({
                 });
             });
 
-            socket.on('loadMessages', ({ messages }) => {
+            socket.on('LOAD_MESSAGES', ({ messages }) => {
                 sendBack({
                     type: 'LOADED_MESSAGES',
                     messages,
                 });
             });
 
-            socket.on('receivedMessage', ({ author, text }) => {
+            socket.on('RECEIVED_MESSAGE', ({ message: { author, text } }) => {
                 console.log('received message');
 
                 sendBack({
@@ -69,7 +76,12 @@ const chatMachine = createMachine<ChatMachineContext, ChatMachineEvent>({
 
                 switch (event.type) {
                     case 'SEND_MESSAGE_TO_SERVER': {
-                        socket.emit('writeMessage', { message: event.message });
+                        socket.emit('NEW_MESSAGE', {
+                            message: {
+                                author: 'Baptiste Devessier',
+                                text: event.message,
+                            },
+                        });
                     }
                 }
             });

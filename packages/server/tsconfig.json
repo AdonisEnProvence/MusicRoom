@@ -1,5 +1,8 @@
 {
     "extends": "./node_modules/adonis-preset-ts/tsconfig",
+    "references": [
+        { "path": "../types" }
+    ],
     "include": ["**/*"],
     "exclude": ["node_modules", "dist"],
     "compilerOptions": {

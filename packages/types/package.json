@@ -23,5 +23,6 @@
   },
   "scripty": {
     "path": "../../scripts/packages"
-  }
+  },
+  "dependencies": {}
 }

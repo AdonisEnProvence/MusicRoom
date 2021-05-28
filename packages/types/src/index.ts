@@ -39,3 +39,5 @@ export type Eheh = keyof typeof Ahah;
  * @public
  */
 export const ResponseToUniverse = 42;
+
+export * from './websockets';

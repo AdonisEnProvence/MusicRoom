@@ -1,34 +1,35 @@
 import Ws from 'App/Services/Ws';
+import ChatController from 'App/Controllers/Ws/ChatController';
 
 Ws.boot();
 
-interface Message {
-    author: string;
-    text: string;
+interface WsController<WsClass> {
+    new (ws: typeof Ws.io): WsClass;
 }
 
-const messages: Message[] = [
-    {
-        author: 'Baptiste Devessier',
-        text: 'Hey all!',
-    },
-];
+// From https://gist.github.com/karol-majewski/ba4c4049e2d8c735fa1910486fd6aba9
+type MethodOf<T> = {
+    [P in keyof T]: T[P] extends (this: infer U, ...args: unknown[]) => any
+        ? U extends T
+            ? P
+            : never
+        : never;
+}[keyof T];
+
+function use<WsClass>(
+    constructor: WsController<WsClass>,
+    method: MethodOf<WsClass>,
+): OmitThisParameter<WsClass[MethodOf<WsClass>]> {
+    const instance = new constructor(Ws.io);
+
+    const instanceMethod = instance[method];
+    return (instanceMethod as any).bind(instance) as WsClass[MethodOf<WsClass>];
+}
 
 Ws.io.on('connection', (socket) => {
-    console.log('new connection');
+    use(ChatController, 'onConnect')({ socket, data: undefined });
 
-    socket.emit('loadMessages', { messages });
-
-    socket.on('writeMessage', ({ message }) => {
-        const newChatMessage: Message = {
-            author: 'Baptiste Devessier',
-            text: message,
-        };
-
-        console.log('add message and broadcast it');
-
-        messages.push(newChatMessage);
-
-        Ws.io.emit('receivedMessage', newChatMessage);
+    socket.on('writeMessage', (data) => {
+        use(ChatController, 'onWriteMessage')({ socket, data });
     });
 });

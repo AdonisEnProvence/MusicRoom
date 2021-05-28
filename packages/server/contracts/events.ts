@@ -1,4 +1,3 @@
-/* eslint-disable */ //Tmp
 /**
  * Contract source: https://git.io/JfefG
  *

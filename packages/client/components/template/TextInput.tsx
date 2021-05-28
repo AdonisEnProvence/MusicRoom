@@ -3,10 +3,11 @@ import { TextInput } from 'react-native';
 
 const MSTextInput = styled(TextInput)(() => ({
     flex: 1,
-    borderColor: 'primary',
+    borderColor: 'secondary',
     borderWidth: 's',
     borderRadius: 's',
     padding: 'm',
+    color: 'text',
     fontSize: 's',
 }));
 

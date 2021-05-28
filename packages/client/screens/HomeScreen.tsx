@@ -1,11 +1,12 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import Block from '../components/template/Block';
+import Typo from '../components/template/Typo';
 
 const HomeScreen: React.FC = () => {
     return (
-        <View>
-            <Text>Home</Text>
-        </View>
+        <Block background={'primary'}>
+            <Typo>Home</Typo>
+        </Block>
     );
 };
 

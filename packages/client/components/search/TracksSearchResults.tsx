@@ -1,102 +1,33 @@
-import { useNavigation } from '@react-navigation/core';
 import React from 'react';
-import {
-    FlatList,
-    ListRenderItem,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native';
 import { SearchedTrack } from '../../machines/searchTrackMachine';
-
-const Item = ({ title }: SearchedTrack) => (
-    <View style={styles.track}>
-        <Text style={styles.title}>{title || 'yes'}</Text>
-    </View>
-);
+import Block from '../template/Block';
+import Hr from '../template/Hr';
+import MSFlatList from '../template/MSFlatList';
+import Title from '../template/Title';
+import TrackPreview from './TrackPreview';
 
 type ComponentProps = {
     tracks: SearchedTrack[];
 };
 
 const TracksSearchResults: React.FC<ComponentProps> = ({ tracks }) => {
-    const navigation = useNavigation();
-    const renderTrack: ListRenderItem<SearchedTrack> = (data) => {
-        console.log(data);
-        const { id, title } = data.item;
-        return (
-            <TouchableOpacity
-                key={'touchableOpacity-' + id}
-                onPress={() => {
-                    navigation.navigate('TrackPlayer', {
-                        track: data.item,
-                    });
-                }}
-            >
-                <Item id={id} title={title} />
-            </TouchableOpacity>
-        );
-    };
-
+    // const navigation = useNavigation();
     return (
-        <View style={styles.container}>
-            <Text>Results</Text>
-            <FlatList
+        <Block background="primary">
+            <Title color={'white'}>Results</Title>
+            <Hr />
+            <MSFlatList<SearchedTrack>
+                onPress={(event) => {
+                    console.log(event.target);
+                    // navigation.navigate('TrackPlayer', {
+                    //     track: event.target,
+                    // });
+                }}
                 data={tracks}
-                renderItem={renderTrack}
-                keyExtractor={(track) => track.id}
+                Item={(item) => <TrackPreview track={item} />}
             />
-        </View>
+        </Block>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#fff',
-        padding: 20,
-        width: '100%',
-    },
-
-    searchInputContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 12,
-    },
-
-    searchInput: {
-        flex: 1,
-        borderColor: 'grey',
-        borderWidth: 1,
-        borderRadius: 6,
-        paddingHorizontal: 10,
-        paddingVertical: 10,
-        fontSize: 16,
-        marginRight: 4,
-    },
-
-    searchSubmitButton: {
-        padding: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        textAlign: 'center',
-    },
-
-    searchSubmitButtonText: {
-        textAlign: 'center',
-        fontSize: 18,
-    },
-
-    track: {
-        backgroundColor: '#f9c2ff',
-        padding: 20,
-        marginVertical: 8,
-        marginHorizontal: 16,
-    },
-    title: {
-        fontSize: 32,
-    },
-});
 
 export default TracksSearchResults;

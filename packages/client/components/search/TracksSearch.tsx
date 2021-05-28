@@ -7,11 +7,11 @@ import Block from '../template/Block';
 import FlexRowContainer from '../template/FlexRowContainer';
 import MSTextInput from '../template/TextInput';
 import Title from '../template/Title';
+import Typo from '../template/Typo';
 
 const TracksSearch: React.FC = () => {
     const [state, send] = useMachine(searchTrackMachine);
     const navigation = useNavigation();
-
     useEffect(() => {
         if (
             state.matches('fetchedTracks') &&
@@ -37,10 +37,14 @@ const TracksSearch: React.FC = () => {
     }
 
     return (
-        <Block>
+        <Block background="primary">
             <Title>Search a track</Title>
+            <Typo onPress={() => navigation.navigate('Home')}>
+                Navigate Home
+            </Typo>
             <FlexRowContainer>
                 <MSTextInput
+                    placeholderTextColor={'white'}
                     placeholder={'Search a song here...'}
                     onChangeText={handleInputChangeText}
                 />

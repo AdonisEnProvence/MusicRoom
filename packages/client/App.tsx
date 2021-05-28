@@ -1,58 +1,62 @@
 import { DripsyProvider } from 'dripsy';
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
+import React, { useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { colorPalette } from './constants/Colors';
 import useCachedResources from './hooks/useCachedResources';
-import useColorScheme from './hooks/useColorScheme';
 import Navigation from './navigation';
 
-export type SizeTerms = 's' | 'm' | 'l' | 'xl';
-export type BackgroundTerms = 'primary' | 'seconday' | 'tertiary';
-
-const theme = {
-    colors: {
-        primary: '#212922',
-        secondary: '#294936',
-        tertiary: '#5B8266',
-        text: '#626262',
-        background: '#fff',
-        success: 'gold',
-    },
-    space: {
-        s: 4,
-        m: 8,
-        l: 16,
-        xl: 24,
-    },
-    borderWidths: {
-        s: 1,
-        m: 2,
-        l: 3,
-    },
-    fontSizes: {
-        s: 16,
-        m: 20,
-        l: 24,
-        xl: 32,
-    },
-    radii: {
-        s: 5,
-        m: 10,
-        l: 15,
-    },
-};
+export type SizeTerms = 'xs' | 's' | 'm' | 'l' | 'xl';
+export type BackgroundTerms = 'primary' | 'seconday' | 'white' | 'text';
 
 const App: React.FC = () => {
+    const [colorScheme, setColorScheme] = useState<'dark' | 'light'>('dark');
     const isLoadingComplete = useCachedResources();
-    const colorScheme = useColorScheme();
+    const palette = colorPalette(colorScheme);
+    const theme = {
+        colors: {
+            ...palette,
+        },
+        space: {
+            none: 0,
+            xs: 2,
+            s: 4,
+            m: 8,
+            l: 16,
+            xl: 24,
+        },
+        borderWidths: {
+            s: 1,
+            m: 2,
+            l: 3,
+        },
+        fontSizes: {
+            s: 16,
+            m: 20,
+            l: 24,
+            xl: 32,
+        },
+        radii: {
+            s: 5,
+            m: 10,
+            l: 15,
+        },
+    };
+
+    const toggleColorScheme = () => {
+        setColorScheme(colorScheme === 'dark' ? 'light' : 'dark');
+    };
 
     if (!isLoadingComplete) {
         return null;
     } else {
         return (
             <DripsyProvider theme={theme}>
-                <SafeAreaProvider>
-                    <Navigation colorScheme={colorScheme} />
+                <SafeAreaProvider style={{ flex: 1 }}>
+                    <Navigation
+                        colorScheme={colorScheme}
+                        toggleColorScheme={toggleColorScheme}
+                    />
                     <StatusBar />
                 </SafeAreaProvider>
             </DripsyProvider>

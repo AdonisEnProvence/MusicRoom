@@ -15,9 +15,10 @@ export type RootStackParamList = {
     TrackPlayer: {
         track: SearchedTrack;
     };
+    Settings: undefined;
 };
 
-export type BottomTabParamList = {
+export type BottomTabNavigatorParamList = {
     Home: undefined;
     SearchTracks: undefined;
 };

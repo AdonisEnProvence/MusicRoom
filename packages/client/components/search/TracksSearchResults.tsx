@@ -14,7 +14,7 @@ const TracksSearchResults: React.FC<ComponentProps> = ({ tracks }) => {
     // const navigation = useNavigation();
     return (
         <Block background="primary">
-            <Title color={'white'}>Results</Title>
+            <Title>Results</Title>
             <Hr />
             <MSFlatList<SearchedTrack>
                 onPress={(event) => {

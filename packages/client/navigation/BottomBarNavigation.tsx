@@ -5,46 +5,23 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import {
-    createStackNavigator,
-    StackScreenProps,
-} from '@react-navigation/stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
-import { RootNavigatorProps } from '.';
+import { ColorModeProps } from '.';
+import { tabStyle } from '../constants/Colors';
 import HomeScreen from '../screens/HomeScreen';
 import SearchTrackScreen from '../screens/SearchTrackScreen';
-import {
-    BottomTabParamList,
-    HomeParamsList,
-    RootStackParamList,
-    SearchTracksParamsList,
-} from '../types';
+import { HomeParamsList, SearchTracksParamsList } from '../types';
 
-const BottomTab = createBottomTabNavigator<BottomTabParamList>();
+const BottomTab = createBottomTabNavigator();
 
-const BottomTabNavigator: React.FC<
-    StackScreenProps<RootStackParamList, 'Root'> & RootNavigatorProps
-> = ({ colorScheme }) => {
-    // const style = navigationStyle(colorScheme);
+const BottomTabComponent: React.FC<ColorModeProps> = ({ colorScheme }) => {
+    const style = tabStyle(colorScheme);
     console.log(colorScheme);
     return (
         <BottomTab.Navigator
             initialRouteName="Home"
-            tabBarOptions={{ activeTintColor: 'gold' }}
-            screenOptions={{}}
-            // screenOptions={{
-            //     // headerShown: false,
-            //     // headerStyle: {
-            //     //     backgroundColor: style.backgroundColor,
-            //     // },
-            //     headerTintColor: style.headerTintColor,
-            //     headerTitleStyle: {
-            //         fontWeight: style.fontWeight,
-            //     },
-            //     headerRight: () => (
-            //         <Button onPress={() => toggleColorScheme()} title="toto" />
-            //     ),
-            // }}
+            tabBarOptions={{ ...style }}
         >
             <BottomTab.Screen
                 name="Home"
@@ -83,11 +60,11 @@ const TabOneStack = createStackNavigator<HomeParamsList>();
 
 function TabOneNavigator() {
     return (
-        <TabOneStack.Navigator>
+        <TabOneStack.Navigator headerMode={'screen'}>
             <TabOneStack.Screen
                 name="HomeScreen"
                 component={HomeScreen}
-                options={{ headerTitle: 'Home' }}
+                options={{ headerTitle: 'Home', headerShown: false }}
             />
         </TabOneStack.Navigator>
     );
@@ -97,14 +74,14 @@ const TabTwoStack = createStackNavigator<SearchTracksParamsList>();
 
 function TabTwoNavigator() {
     return (
-        <TabTwoStack.Navigator>
+        <TabTwoStack.Navigator headerMode={'screen'}>
             <TabTwoStack.Screen
                 name="SearchTracksScreen"
                 component={SearchTrackScreen}
-                options={{ headerTitle: 'Search' }}
+                options={{ headerTitle: 'Search', headerShown: false }}
             />
         </TabTwoStack.Navigator>
     );
 }
 
-export default BottomTabNavigator;
+export default BottomTabComponent;

@@ -1,3 +1,4 @@
+import { BottomTabBarOptions } from '@react-navigation/bottom-tabs';
 import { ColorSchemeName } from 'react-native';
 
 interface Palette {
@@ -53,12 +54,44 @@ const navigationPalette: { dark: navigationStyle; light: navigationStyle } = {
     },
 };
 
+const tabPalette: { dark: BottomTabBarOptions; light: BottomTabBarOptions } = {
+    light: {
+        activeBackgroundColor: lightPalette.secondary,
+        inactiveBackgroundColor: lightPalette.primary,
+        activeTintColor: lightPalette.primary,
+        inactiveTintColor: lightPalette.secondary,
+        style: {
+            borderTopColor: lightPalette.secondary,
+        },
+    },
+    dark: {
+        activeBackgroundColor: darkPalette.secondary,
+        inactiveBackgroundColor: darkPalette.primary,
+        activeTintColor: darkPalette.primary,
+        inactiveTintColor: darkPalette.secondary,
+        style: {
+            borderTopColor: darkPalette.secondary,
+        },
+    },
+};
+
+export const tabStyle = (scheme: ColorSchemeName): BottomTabBarOptions => {
+    switch (scheme) {
+        case 'dark':
+            return tabPalette.dark;
+        case 'light':
+            return tabPalette.light;
+        default:
+            return tabPalette.dark;
+    }
+};
+
 export const navigationStyle = (scheme: ColorSchemeName): navigationStyle => {
     switch (scheme) {
         case 'dark':
             return navigationPalette.dark;
         case 'light':
-            return navigationPalette.light; //todo
+            return navigationPalette.light;
         default:
             return navigationPalette.dark;
     }

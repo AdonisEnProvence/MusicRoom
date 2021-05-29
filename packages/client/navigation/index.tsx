@@ -7,18 +7,18 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
 import { navigationStyle } from '../constants/Colors';
-import ChatScreen from '../screens/ChatScreen';
 import SearchTrackResultsScreen from '../screens/SearchTrackResultsScreen';
 import SearchTrackScreen from '../screens/SearchTrackScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 import { RootStackParamList } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
 
-export interface RootNavigatorProps {
+export interface ColorModeProps {
     toggleColorScheme: () => void;
     colorScheme: 'dark' | 'light';
 }
 
-const Navigation: React.FC<RootNavigatorProps> = ({
+const Navigation: React.FC<ColorModeProps> = ({
     toggleColorScheme,
     colorScheme,
 }) => {
@@ -36,15 +36,16 @@ const Navigation: React.FC<RootNavigatorProps> = ({
 // Read more here: https://reactnavigation.org/docs/modal
 const Stack = createStackNavigator<RootStackParamList>();
 
-function RootNavigator({ toggleColorScheme, colorScheme }: RootNavigatorProps) {
+function RootNavigator({ toggleColorScheme, colorScheme }: ColorModeProps) {
     const style = navigationStyle(colorScheme);
     console.log(style);
     return (
         <Stack.Navigator
             screenOptions={{ headerShown: false }}
             initialRouteName="Root"
+            headerMode={'screen'}
             screenOptions={{
-                headerShown: false,
+                headerShown: true,
                 headerStyle: {
                     backgroundColor: style.backgroundColor,
                 },
@@ -52,17 +53,9 @@ function RootNavigator({ toggleColorScheme, colorScheme }: RootNavigatorProps) {
                 headerTitleStyle: {
                     fontWeight: style.fontWeight,
                 },
-                headerRight: () => (
-                    <Button onPress={() => toggleColorScheme()} title="toto" />
-                ),
             }}
         >
-            <Stack.Screen
-                name="Chat"
-                component={ChatScreen}
-                options={{ title: 'Chat', headerShown: true }}
-            />
-            <Stack.Screen name="Root" options={{ headerShown: true }}>
+            <Stack.Screen name="Root" options={{ headerShown: false }}>
                 {(props) => (
                     <BottomTabNavigator
                         colorScheme={colorScheme}
@@ -82,6 +75,18 @@ function RootNavigator({ toggleColorScheme, colorScheme }: RootNavigatorProps) {
                 component={SearchTrackScreen}
                 options={{ title: 'Player', headerShown: true }}
             />
+            <Stack.Screen
+                name="Settings"
+                options={{ title: 'Settings', headerShown: true }}
+            >
+                {(props) => (
+                    <SettingsScreen
+                        colorScheme={colorScheme}
+                        toggleColorScheme={toggleColorScheme}
+                        {...props}
+                    />
+                )}
+            </Stack.Screen>
         </Stack.Navigator>
     );
 }

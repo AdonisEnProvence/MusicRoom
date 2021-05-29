@@ -26,11 +26,13 @@ Start up the project in development mode by running
 
 ### Client
 
-Start the expo app by running. Then choose where the run the app
+Start the expo app by running.
 
 ```sh
 cd packages/client && yarn start
 ```
+
+Then choose a platform where to run the app.
 
 Changing any files in the folder will result in an incremental rebuild, and a refresh of the screen
 
@@ -44,7 +46,7 @@ cd packages/server && yarn dev
 
 By default, the server is served on https://localhost:3333.
 
-Do not forget to set the env variables. If not the server won't start
+Do not forget to set the env variables, if not the server won't start
 
 ## Utils
 

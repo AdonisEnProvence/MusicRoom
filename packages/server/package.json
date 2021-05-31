@@ -21,12 +21,16 @@
     "@adonisjs/core": "^5.1.0",
     "@adonisjs/repl": "^3.0.0",
     "@types/node-fetch": "^2.5.10",
+    "@types/socket.io": "^3.0.2",
     "googleapis": "^74.1.0",
     "node-fetch": "^2.6.1",
     "proxy-addr": "^2.0.6",
     "query-string": "^7.0.0",
     "reflect-metadata": "^0.1.13",
-    "source-map-support": "^0.5.19"
+    "socket.io": "^4.1.2",
+    "source-map-support": "^0.5.19",
+    "zod": "^1.11.17",
+    "@musicroom/types": "*"
   },
   "workspaces": {
     "nohoist": [

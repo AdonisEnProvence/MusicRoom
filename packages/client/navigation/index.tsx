@@ -13,6 +13,7 @@ import * as React from 'react';
 import { ColorSchemeName } from 'react-native';
 
 import { RootStackParamList } from '../types';
+import ChatScreen from '../screens/ChatScreen';
 import HomeScreen from '../screens/HomeScreen';
 import SearchTrackScreen from '../screens/SearchTrackScreen';
 import SearchTrackResultsScreen from '../screens/SearchTrackResultsScreen';
@@ -39,9 +40,15 @@ const Stack = createStackNavigator<RootStackParamList>();
 function RootNavigator() {
     return (
         <Stack.Navigator
-            initialRouteName="SearchTrack"
+            initialRouteName="Chat"
             screenOptions={{ headerShown: false }}
         >
+            <Stack.Screen
+                name="Chat"
+                component={ChatScreen}
+                options={{ title: 'Chat', headerShown: true }}
+            />
+
             <Stack.Screen
                 name="Home"
                 component={HomeScreen}

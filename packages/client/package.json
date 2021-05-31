@@ -1,7 +1,7 @@
 {
   "name": "@musicroom/client",
   "version": "0.0.2",
-  "main": "node_modules/expo/AppEntry.js",
+  "main": "__generated__/AppEntry.js",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -10,36 +10,39 @@
     "eject": "expo eject",
     "build": "scripty",
     "lint": "yarn eslint . --ext ts,tsx --fix",
-    "generate:xstate": "xstate-codegen machines/*.ts"
+    "generate:xstate": "xstate-codegen machines/*.ts",
+    "postinstall": "expo-yarn-workspaces postinstall"
   },
   "jest": {
     "preset": "jest-expo"
   },
   "dependencies": {
-    "@expo/vector-icons": "^12.0.0",
+    "@expo/vector-icons": "^12.0.5",
+    "@musicroom/types": "*",
     "@react-native-community/masked-view": "0.1.10",
-    "@react-navigation/bottom-tabs": "5.11.2",
-    "@react-navigation/native": "~5.8.10",
-    "@react-navigation/stack": "~5.12.8",
+    "@react-navigation/bottom-tabs": "5.11.11",
+    "@react-navigation/native": "~5.9.4",
+    "@react-navigation/stack": "~5.14.5",
     "@xstate/react": "^1.3.3",
     "expo": "~41.0.1",
-    "expo-asset": "~8.3.1",
+    "expo-asset": "~8.3.2",
     "expo-constants": "~10.1.3",
     "expo-font": "~9.1.0",
     "expo-linking": "~2.2.3",
     "expo-splash-screen": "~0.10.2",
     "expo-status-bar": "~1.0.4",
     "expo-web-browser": "~9.1.0",
-    "react": "16.13.1",
-    "react-dom": "16.13.1",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
     "react-native": "https://github.com/expo/react-native/archive/sdk-41.0.0.tar.gz",
-    "react-native-gesture-handler": "~1.10.2",
+    "react-native-gesture-handler": "~1.10.3",
     "react-native-reanimated": "~2.1.0",
     "react-native-safe-area-context": "3.2.0",
     "react-native-screens": "~3.0.0",
-    "react-native-web": "~0.13.12",
+    "react-native-web": "~0.16.3",
     "react-native-webview": "11.2.3",
     "react-native-youtube-iframe": "^2.1.0",
+    "socket.io-client": "^4.1.2",
     "xstate": "^4.19.2",
     "xstate-codegen": "^0.3.0",
     "zod": "^1.11.17"
@@ -47,19 +50,15 @@
   "devDependencies": {
     "@babel/core": "^7.9.0",
     "@react-native-community/eslint-config": "^2.0.0",
-    "@types/react": "~16.9.35",
-    "@types/react-native": "~0.63.2",
-    "eslint": "^7.27.0",
+    "@types/react": "~17.0.8",
+    "@types/react-native": "~0.64.8",
+    "expo-yarn-workspaces": "^1.5.1",
     "jest-expo": "~41.0.0",
+    "metro-config": "^0.59.0",
     "typescript": "^4.3.2"
   },
   "scripty": {
     "path": "../../scripts/packages"
   },
-  "private": true,
-  "workspaces": {
-    "nohoist": [
-      "**"
-    ]
-  }
+  "private": true
 }

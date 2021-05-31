@@ -18,9 +18,8 @@
 |
 */
 import Route from '@ioc:Adonis/Core/Route';
-import { TracksSearchController } from '../app/Controllers/Http/TracksSearchesController';
 
-Route.get('/search/track/:query', TracksSearchController.searchTrackName);
+Route.get('/search/track/:query', 'TracksSearchesController.searchTrackName');
 
 Route.get('/', () => {
     return { hello: 'world' };

@@ -5,6 +5,7 @@
 import { SearchedTrack } from './machines/searchTrackMachine';
 
 export type RootStackParamList = {
+    Chat: undefined;
     Home: undefined;
     SearchTrack: undefined;
     SearchTrackResults: {

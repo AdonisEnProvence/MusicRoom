@@ -8,7 +8,10 @@ import {
 
 interface MSFlatListProps<ItemT> {
     data: ItemT[];
-    onPress?: (event: GestureResponderEvent) => void | (() => void);
+    onPress?: (
+        item: ItemT,
+        event: GestureResponderEvent,
+    ) => void | (() => void);
     Item: (item: ItemT) => JSX.Element;
 }
 
@@ -22,7 +25,9 @@ function MSFlatList<ItemT extends { id: string }>({
         return onPress ? (
             <TouchableOpacity
                 key={'touchableOpacity-' + data.item.id}
-                onPress={onPress}
+                onPress={(event) => {
+                    onPress(data.item, event);
+                }}
             >
                 {item}
             </TouchableOpacity>

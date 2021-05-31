@@ -1,15 +1,12 @@
 {
-  "extends": "expo/tsconfig.base",
-  "references": [
-    { "path": "../types" }
-  ],
-  "compilerOptions": {
-    "composite": true,
-    "strict": true,
-    "outDir": "dist",
-    "noEmit": false,
-    "emitDeclarationOnly": true,
-    "declarationMap": true
-  },
-  "exclude": ["node_modules", "dist"]
+    "extends": "expo/tsconfig.base",
+    "compilerOptions": {
+        "composite": true,
+        "strict": true,
+        "outDir": "dist",
+        "noEmit": false,
+        "emitDeclarationOnly": true,
+        "declarationMap": true
+    },
+    "exclude": ["node_modules", "dist"]
 }

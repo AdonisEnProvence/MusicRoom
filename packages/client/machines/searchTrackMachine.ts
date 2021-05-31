@@ -1,7 +1,6 @@
 import { assign, createMachine } from 'xstate';
 import * as z from 'zod';
-
-const ENDPOINT = 'http://10.0.2.2:3333';
+import { SERVER_ENDPOINT } from '../constants/Endpoints';
 
 const SearchedTrack = z.object({
     id: z.string(),
@@ -34,7 +33,9 @@ const SearchTracksAPIResult = z.object({
 async function fetchTracks({
     searchQuery,
 }: FetchTracksArgs): Promise<SearchedTrack[]> {
-    const url = `${ENDPOINT}/search/track/${encodeURIComponent(searchQuery)}`;
+    const url = `${SERVER_ENDPOINT}/search/track/${encodeURIComponent(
+        searchQuery,
+    )}`;
     const response = await fetch(url);
     if (response.ok === false) {
         console.error(response.status, response.statusText);

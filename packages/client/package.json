@@ -54,6 +54,8 @@
     "@react-native-community/eslint-config": "^2.0.0",
     "@types/react": "~17.0.8",
     "@types/react-native": "~0.64.8",
+    "babel-plugin-inline-dotenv": "^1.6.0",
+    "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "expo-yarn-workspaces": "^1.5.1",
     "jest-expo": "~41.0.0",
     "metro-config": "^0.59.0",

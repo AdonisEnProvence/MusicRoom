@@ -13,6 +13,10 @@ const HomeScreen: React.FC = () => {
                 title="Go settings"
                 onPress={() => navigation.navigate('Settings')}
             />
+            <Button
+                title="Go chat"
+                onPress={() => navigation.navigate('Chat')}
+            />
         </Block>
     );
 };

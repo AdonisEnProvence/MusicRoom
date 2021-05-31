@@ -7,10 +7,12 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
 import { navigationStyle } from '../constants/Colors';
+import ChatScreen from '../screens/ChatScreen';
 import SearchTrackResultsScreen from '../screens/SearchTrackResultsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import TrackPlayer from '../screens/TrackPlayer';
 import { RootStackParamList } from '../types';
+import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 
 export interface ColorModeProps {
@@ -41,7 +43,6 @@ function RootNavigator({ toggleColorScheme, colorScheme }: ColorModeProps) {
     console.log(style);
     return (
         <Stack.Navigator
-            screenOptions={{ headerShown: false }}
             initialRouteName="Root"
             headerMode={'screen'}
             screenOptions={style}
@@ -64,6 +65,11 @@ function RootNavigator({ toggleColorScheme, colorScheme }: ColorModeProps) {
                 name="TrackPlayer"
                 component={TrackPlayer}
                 options={{ title: 'Player', headerShown: true }}
+            />
+            <Stack.Screen
+                name="Chat"
+                component={ChatScreen}
+                options={{ title: 'Chat', headerShown: true }}
             />
             <Stack.Screen
                 name="Settings"

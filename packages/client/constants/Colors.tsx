@@ -1,6 +1,9 @@
+import { AntDesign } from '@expo/vector-icons';
 import { BottomTabBarOptions } from '@react-navigation/bottom-tabs';
 import { StackNavigationOptions } from '@react-navigation/stack';
+import * as React from 'react';
 import { ColorSchemeName } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 interface Palette {
     primary: string;
@@ -26,6 +29,17 @@ const lightPalette: Palette = {
     headerBackground: '#FE6D35',
 };
 
+function HeaderIcon(props: {
+    color: string;
+    name: React.ComponentProps<typeof AntDesign>['name'];
+}): JSX.Element {
+    return (
+        <TouchableOpacity>
+            <AntDesign size={30} style={{ marginBottom: -3 }} {...props} />
+        </TouchableOpacity>
+    );
+}
+
 const navigationPalette: {
     dark: StackNavigationOptions;
     light: StackNavigationOptions;
@@ -39,6 +53,18 @@ const navigationPalette: {
         headerTitleStyle: {
             fontWeight: 'bold',
         },
+        headerLeftContainerStyle: {
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        headerLeft: (props) => (
+            <HeaderIcon
+                color={lightPalette.white}
+                name={'arrowleft'}
+                {...props}
+            />
+        ),
     },
     dark: {
         headerShown: true,
@@ -49,6 +75,19 @@ const navigationPalette: {
         headerTitleStyle: {
             fontWeight: 'bold',
         },
+        headerLeftContainerStyle: {
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingLeft: 8, //TODO CENTRALIZE SPACE GLOBAL VALUE IN AN EXPORTABLE OBJECT INSTEAD OF DIRECTLY IN DRIPSY
+        },
+        headerLeft: (props) => (
+            <HeaderIcon
+                color={lightPalette.white}
+                name={'arrowleft'}
+                {...props}
+            />
+        ),
     },
 };
 

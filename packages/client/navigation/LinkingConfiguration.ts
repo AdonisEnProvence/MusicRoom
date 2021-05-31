@@ -29,6 +29,7 @@ export default {
             SearchTrackResults: 'searchTrackResults/:tracks',
             TrackPlayer: 'trackPlayer/:track',
             Settings: 'settings/:id',
+            Chat: 'chat',
             NotFound: '*',
         },
     },

@@ -47,3 +47,4 @@ jobs:
               run: yarn run test
               env:
                 GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+                HOST: "0.0.0.0"

@@ -7,6 +7,7 @@
     "start": "node server.js",
     "dev": "node ace serve --watch",
     "lint": "yarn eslint app start --ext ts,js,tsx,jsx --fix",
+    "test": "node -r @adonisjs/assembler/build/register japaFile.ts",
     "clean": "rimraf dist *.tsbuildinfo"
   },
   "devDependencies": {

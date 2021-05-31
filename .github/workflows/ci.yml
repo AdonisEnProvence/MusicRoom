@@ -35,7 +35,7 @@ jobs:
                   restore-keys: |
                       ubuntu-latest-node-
             - name: Install dependencies 👨🏻‍💻
-              run: yarn
+              run: yarn --network-concurrency 1
 
             - name: Build packages 👷
               run: yarn run build

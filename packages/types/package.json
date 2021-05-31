@@ -11,9 +11,14 @@
     "api-report": "scripty",
     "clean": "rimraf dist *.tsbuildinfo",
     "lint": "scripty",
+    "test": "scripty",
     "build": "scripty"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.14.2",
+    "@babel/preset-typescript": "^7.13.0",
+    "@types/jest": "^26.0.23",
+    "jest": "^26.6.3",
     "typescript": "^4.0.3"
   },
   "scripty": {

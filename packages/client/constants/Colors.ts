@@ -1,4 +1,5 @@
 import { BottomTabBarOptions } from '@react-navigation/bottom-tabs';
+import { StackNavigationOptions } from '@react-navigation/stack';
 import { ColorSchemeName } from 'react-native';
 
 interface Palette {
@@ -9,7 +10,7 @@ interface Palette {
     headerBackground: string;
 }
 
-const darkPalette = {
+const darkPalette: Palette = {
     primary: '#212121',
     secondary: '#1db954',
     text: '#fff',
@@ -17,7 +18,7 @@ const darkPalette = {
     headerBackground: '#121212',
 };
 
-const lightPalette = {
+const lightPalette: Palette = {
     primary: '#FF9533',
     secondary: '#000',
     text: '#000',
@@ -25,39 +26,36 @@ const lightPalette = {
     headerBackground: '#FE6D35',
 };
 
-interface navigationStyle {
-    backgroundColor: string;
-    headerTintColor: string;
-    fontWeight: 'bold';
-}
-
-const navigationPalette: { dark: navigationStyle; light: navigationStyle } = {
+const navigationPalette: {
+    dark: StackNavigationOptions;
+    light: StackNavigationOptions;
+} = {
     light: {
-        backgroundColor: lightPalette.headerBackground,
+        headerShown: true,
+        headerStyle: {
+            backgroundColor: lightPalette.headerBackground,
+        },
         headerTintColor: lightPalette.white,
-        fontWeight: 'bold',
-        // text: '#fff',
-        // background: '#191414',
-        // tint: tintColorLight,
-        // tabIconDefault: '#ccc',
-        // tabIconSelected: tintColorLight,
+        headerTitleStyle: {
+            fontWeight: 'bold',
+        },
     },
     dark: {
-        backgroundColor: darkPalette.headerBackground,
+        headerShown: true,
+        headerStyle: {
+            backgroundColor: darkPalette.headerBackground,
+        },
         headerTintColor: darkPalette.white,
-        fontWeight: 'bold',
-        // text: darkPalette.text,
-        // background: darkPalette.primary,
-        // tint: darkPalette.secondary,
-        // tabIconDefault: '#ccc',
-        // tabIconSelected: darkPalette.secondary,
+        headerTitleStyle: {
+            fontWeight: 'bold',
+        },
     },
 };
 
 const tabPalette: { dark: BottomTabBarOptions; light: BottomTabBarOptions } = {
     light: {
         activeBackgroundColor: lightPalette.secondary,
-        inactiveBackgroundColor: lightPalette.primary,
+        inactiveBackgroundColor: lightPalette.headerBackground,
         activeTintColor: lightPalette.primary,
         inactiveTintColor: lightPalette.secondary,
         style: {
@@ -66,7 +64,7 @@ const tabPalette: { dark: BottomTabBarOptions; light: BottomTabBarOptions } = {
     },
     dark: {
         activeBackgroundColor: darkPalette.secondary,
-        inactiveBackgroundColor: darkPalette.primary,
+        inactiveBackgroundColor: darkPalette.headerBackground,
         activeTintColor: darkPalette.primary,
         inactiveTintColor: darkPalette.secondary,
         style: {
@@ -86,7 +84,9 @@ export const tabStyle = (scheme: ColorSchemeName): BottomTabBarOptions => {
     }
 };
 
-export const navigationStyle = (scheme: ColorSchemeName): navigationStyle => {
+export const navigationStyle = (
+    scheme: ColorSchemeName,
+): StackNavigationOptions => {
     switch (scheme) {
         case 'dark':
             return navigationPalette.dark;

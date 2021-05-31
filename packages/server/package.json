@@ -9,6 +9,7 @@
     "lint": "yarn eslint app start --ext ts,js,tsx,jsx --fix",
     "test": "node -r @adonisjs/assembler/build/register japaFile.ts",
     "test:watch": "nodemon -e ts --exec 'yarn test'",
+    "coverage": "nyc yarn test",
     "clean": "rimraf dist *.tsbuildinfo"
   },
   "devDependencies": {
@@ -19,6 +20,7 @@
     "get-port": "^5.1.1",
     "japa": "^3.1.1",
     "nodemon": "^2.0.7",
+    "nyc": "^15.1.0",
     "pino-pretty": "^4.8.0",
     "supertest": "^6.1.3",
     "typescript": "~4.2",

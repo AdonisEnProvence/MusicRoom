@@ -10,20 +10,25 @@ export default {
     prefixes: [Linking.makeUrl('/')],
     config: {
         screens: {
+            initialRouteName: 'Root',
             Root: {
+                initialRouteName: 'Home',
                 screens: {
-                    TabOne: {
+                    Home: {
                         screens: {
-                            TabOneScreen: 'one',
+                            HomeScreen: 'home',
                         },
                     },
-                    TabTwo: {
+                    SearchTracks: {
                         screens: {
-                            TabTwoScreen: 'two',
+                            SearchTracksScreen: 'searchTracks',
                         },
                     },
                 },
             },
+            SearchTrackResults: 'searchTrackResults/:tracks',
+            TrackPlayer: 'trackPlayer/:track',
+            Settings: 'settings/:id',
             NotFound: '*',
         },
     },

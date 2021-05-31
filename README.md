@@ -4,6 +4,8 @@
 
 Next, make sure you have installed [volta](http://volta.sh/) which ensures you have the right version of node and yarn for this project
 
+You might also need [expo](https://docs.expo.io/get-started/installation/) to iterate on the client package
+
 ## Clone
 
 Next, checkout a working copy of this project enter the directory you just created
@@ -22,15 +24,33 @@ yarn
 
 Start up the project in development mode by running
 
+### Client
+
+Start the expo app by running.
+
 ```sh
-yarn dev
+cd packages/client && yarn start
 ```
 
-Changing any files in the `src` folder will result in an incremental rebuild, and a refresh of the screen.
+Then choose a platform where to run the app.
 
-By default, the app is served on https://localhost:1234.
+Changing any files in the folder will result in an incremental rebuild, and a refresh of the screen
+
+### Server
+
+Start the server:
+
+```sh
+cd packages/server && yarn dev
+```
+
+By default, the server is served on https://localhost:3333.
+
+Do not forget to set the env variables, if not the server won't start
 
 ## Utils
+
+From musicRoom/
 
 Build all the packages
 

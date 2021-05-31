@@ -52,7 +52,6 @@
     "@react-native-community/eslint-config": "^2.0.0",
     "@types/react": "~17.0.8",
     "@types/react-native": "~0.64.8",
-    "eslint": "^7.27.0",
     "expo-yarn-workspaces": "^1.5.1",
     "jest-expo": "~41.0.0",
     "metro-config": "^0.59.0",

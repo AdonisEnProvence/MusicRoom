@@ -45,3 +45,5 @@ jobs:
 
             - name: Run tests 🧪
               run: yarn run test
+              env:
+                GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}

@@ -1,3 +1,4 @@
+import { useNavigation } from '@react-navigation/core';
 import React from 'react';
 import { SearchedTrack } from '../../machines/searchTrackMachine';
 import Block from '../template/Block';
@@ -11,17 +12,17 @@ type ComponentProps = {
 };
 
 const TracksSearchResults: React.FC<ComponentProps> = ({ tracks }) => {
-    // const navigation = useNavigation();
+    const navigation = useNavigation();
     return (
         <Block background="primary">
             <Title>Results</Title>
             <Hr />
             <MSFlatList<SearchedTrack>
-                onPress={(event) => {
-                    console.log(event.target);
-                    // navigation.navigate('TrackPlayer', {
-                    //     track: event.target,
-                    // });
+                onPress={(item) => {
+                    console.log(item);
+                    navigation.navigate('TrackPlayer', {
+                        track: item,
+                    });
                 }}
                 data={tracks}
                 Item={(item) => <TrackPreview track={item} />}

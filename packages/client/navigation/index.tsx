@@ -8,8 +8,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
 import { navigationStyle } from '../constants/Colors';
 import SearchTrackResultsScreen from '../screens/SearchTrackResultsScreen';
-import SearchTrackScreen from '../screens/SearchTrackScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import TrackPlayer from '../screens/TrackPlayer';
 import { RootStackParamList } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
 
@@ -44,16 +44,7 @@ function RootNavigator({ toggleColorScheme, colorScheme }: ColorModeProps) {
             screenOptions={{ headerShown: false }}
             initialRouteName="Root"
             headerMode={'screen'}
-            screenOptions={{
-                headerShown: true,
-                headerStyle: {
-                    backgroundColor: style.backgroundColor,
-                },
-                headerTintColor: style.headerTintColor,
-                headerTitleStyle: {
-                    fontWeight: style.fontWeight,
-                },
-            }}
+            screenOptions={style}
         >
             <Stack.Screen name="Root" options={{ headerShown: false }}>
                 {(props) => (
@@ -69,10 +60,9 @@ function RootNavigator({ toggleColorScheme, colorScheme }: ColorModeProps) {
                 component={SearchTrackResultsScreen}
                 options={{ title: 'Results', headerShown: true }}
             />
-
             <Stack.Screen
                 name="TrackPlayer"
-                component={SearchTrackScreen}
+                component={TrackPlayer}
                 options={{ title: 'Player', headerShown: true }}
             />
             <Stack.Screen

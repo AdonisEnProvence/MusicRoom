@@ -28,7 +28,7 @@ const BottomTabComponent: React.FC<ColorModeProps> = ({ colorScheme }) => {
                 component={TabOneNavigator}
                 options={{
                     tabBarIcon: ({ color }) => (
-                        <TabBarIcon name="ios-code" color={color} />
+                        <TabBarIcon name="home" color={color} />
                     ),
                 }}
             />
@@ -37,7 +37,7 @@ const BottomTabComponent: React.FC<ColorModeProps> = ({ colorScheme }) => {
                 component={TabTwoNavigator}
                 options={{
                     tabBarIcon: ({ color }) => (
-                        <TabBarIcon name="ios-code" color={color} />
+                        <TabBarIcon name="search" color={color} />
                     ),
                 }}
             />

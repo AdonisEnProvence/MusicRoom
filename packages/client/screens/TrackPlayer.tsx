@@ -1,12 +1,9 @@
-import { StackScreenProps } from '@react-navigation/stack';
 import React, { useState, useCallback } from 'react';
 import { View, Alert, Button } from 'react-native';
 // import YoutubePlayer from 'react-native-youtube-iframe';
-import { RootStackParamList } from '../types';
+import { TrackPlayerScreenProps } from '../types';
 
-const TrackPlayer: React.FC<
-    StackScreenProps<RootStackParamList, 'TrackPlayer'>
-> = ({ route }) => {
+const TrackPlayer: React.FC<TrackPlayerScreenProps> = ({ route }) => {
     const [playing, setPlaying] = useState(false);
     const videoID = route.params.track.id;
     const onStateChange = useCallback((state) => {

@@ -11,19 +11,20 @@ import { ColorModeProps } from '.';
 import { tabStyle } from '../constants/Colors';
 import HomeScreen from '../screens/HomeScreen';
 import SearchTrackScreen from '../screens/SearchTrackScreen';
-import { HomeParamsList, SearchTracksParamsList } from '../types';
+import {
+    BottomTabNavigatorParamList,
+    HomeParamsList,
+    SearchTracksParamsList,
+} from '../types';
 
-const BottomTab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<BottomTabNavigatorParamList>();
 
-const BottomTabComponent: React.FC<ColorModeProps> = ({ colorScheme }) => {
+const BottomTab: React.FC<ColorModeProps> = ({ colorScheme }) => {
     const style = tabStyle(colorScheme);
     console.log(colorScheme);
     return (
-        <BottomTab.Navigator
-            initialRouteName="Home"
-            tabBarOptions={{ ...style }}
-        >
-            <BottomTab.Screen
+        <Tab.Navigator initialRouteName="Home" tabBarOptions={{ ...style }}>
+            <Tab.Screen
                 name="Home"
                 component={TabOneNavigator}
                 options={{
@@ -32,8 +33,8 @@ const BottomTabComponent: React.FC<ColorModeProps> = ({ colorScheme }) => {
                     ),
                 }}
             />
-            <BottomTab.Screen
-                name="SearchTracks"
+            <Tab.Screen
+                name="Search"
                 component={TabTwoNavigator}
                 options={{
                     tabBarIcon: ({ color }) => (
@@ -41,7 +42,7 @@ const BottomTabComponent: React.FC<ColorModeProps> = ({ colorScheme }) => {
                     ),
                 }}
             />
-        </BottomTab.Navigator>
+        </Tab.Navigator>
     );
 };
 
@@ -62,7 +63,7 @@ function TabOneNavigator() {
     return (
         <TabOneStack.Navigator headerMode={'screen'}>
             <TabOneStack.Screen
-                name="HomeScreen"
+                name="HomeX"
                 component={HomeScreen}
                 options={{ headerTitle: 'Home', headerShown: false }}
             />
@@ -76,7 +77,7 @@ function TabTwoNavigator() {
     return (
         <TabTwoStack.Navigator headerMode={'screen'}>
             <TabTwoStack.Screen
-                name="SearchTracksScreen"
+                name="SearchTracks"
                 component={SearchTrackScreen}
                 options={{ headerTitle: 'Search', headerShown: false }}
             />
@@ -84,4 +85,4 @@ function TabTwoNavigator() {
     );
 }
 
-export default BottomTabComponent;
+export default BottomTab;

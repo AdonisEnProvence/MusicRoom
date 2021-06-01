@@ -1,11 +1,10 @@
-import { StackScreenProps } from '@react-navigation/stack';
 import React from 'react';
 import TracksSearchResults from '../components/search/TracksSearchResults';
-import { RootStackParamList } from '../types';
+import { SearchTrackResultsScreenProps } from '../types';
 
-const SearchTracksResultsScreen: React.FC<
-    StackScreenProps<RootStackParamList, 'SearchTrackResults'>
-> = ({ route }) => {
+const SearchTracksResultsScreen: React.FC<SearchTrackResultsScreenProps> = ({
+    route,
+}) => {
     const tracks = route.params.tracks;
     return <TracksSearchResults tracks={tracks} />;
 };

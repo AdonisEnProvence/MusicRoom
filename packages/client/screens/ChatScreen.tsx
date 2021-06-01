@@ -8,6 +8,7 @@ import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { io, Socket } from 'socket.io-client';
 import { assign, createMachine, send } from 'xstate';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
+import { ChatScreenProps } from '../types';
 
 interface ChatMessage {
     text: string;
@@ -175,7 +176,7 @@ const chatMachine = createMachine<ChatMachineContext, ChatMachineEvent>({
     },
 });
 
-const ChatScreen: React.FC = () => {
+const ChatScreen: React.FC<ChatScreenProps> = () => {
     const [, send, service] = useMachine(chatMachine);
     const currentMessage = useSelector(
         service,

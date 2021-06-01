@@ -3,32 +3,33 @@
  * https://reactnavigation.org/docs/getting-started
  *
  */
-import {
-    NavigationContainer,
-    DefaultTheme,
-    DarkTheme,
-} from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
-import { ColorSchemeName } from 'react-native';
-
-import { RootStackParamList } from '../types';
+import { navigationStyle } from '../constants/Colors';
 import ChatScreen from '../screens/ChatScreen';
-import HomeScreen from '../screens/HomeScreen';
-import SearchTrackScreen from '../screens/SearchTrackScreen';
 import SearchTrackResultsScreen from '../screens/SearchTrackResultsScreen';
-import LinkingConfiguration from './LinkingConfiguration';
+import SettingsScreen from '../screens/SettingsScreen';
 import TrackPlayer from '../screens/TrackPlayer';
+import { RootStackParamList } from '../types';
+import BottomTabNavigator from './BottomBarNavigation';
+import LinkingConfiguration from './LinkingConfiguration';
 
-const Navigation: React.FC<{
-    colorScheme: ColorSchemeName;
-}> = ({ colorScheme }) => {
+export interface ColorModeProps {
+    toggleColorScheme: () => void;
+    colorScheme: 'dark' | 'light';
+}
+
+const Navigation: React.FC<ColorModeProps> = ({
+    toggleColorScheme,
+    colorScheme,
+}) => {
     return (
-        <NavigationContainer
-            linking={LinkingConfiguration}
-            theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
-        >
-            <RootNavigator />
+        <NavigationContainer linking={LinkingConfiguration} theme={undefined}>
+            <RootNavigator
+                colorScheme={colorScheme}
+                toggleColorScheme={toggleColorScheme}
+            />
         </NavigationContainer>
     );
 };
@@ -37,40 +38,51 @@ const Navigation: React.FC<{
 // Read more here: https://reactnavigation.org/docs/modal
 const Stack = createStackNavigator<RootStackParamList>();
 
-function RootNavigator() {
+function RootNavigator({ toggleColorScheme, colorScheme }: ColorModeProps) {
+    const style = navigationStyle(colorScheme);
+    console.log(style);
     return (
         <Stack.Navigator
-            initialRouteName="Chat"
-            screenOptions={{ headerShown: false }}
+            initialRouteName="Root"
+            headerMode={'screen'}
+            screenOptions={style}
         >
-            <Stack.Screen
-                name="Chat"
-                component={ChatScreen}
-                options={{ title: 'Chat', headerShown: true }}
-            />
-
-            <Stack.Screen
-                name="Home"
-                component={HomeScreen}
-                options={{ title: 'Home', headerShown: true }}
-            />
-
-            <Stack.Screen
-                name="SearchTrack"
-                component={SearchTrackScreen}
-                options={{ title: 'Search', headerShown: true }}
-            />
+            <Stack.Screen name="Root" options={{ headerShown: false }}>
+                {(props) => (
+                    <BottomTabNavigator
+                        colorScheme={colorScheme}
+                        toggleColorScheme={toggleColorScheme}
+                        {...props}
+                    />
+                )}
+            </Stack.Screen>
             <Stack.Screen
                 name="SearchTrackResults"
                 component={SearchTrackResultsScreen}
                 options={{ title: 'Results', headerShown: true }}
             />
-
             <Stack.Screen
                 name="TrackPlayer"
                 component={TrackPlayer}
                 options={{ title: 'Player', headerShown: true }}
             />
+            <Stack.Screen
+                name="Chat"
+                component={ChatScreen}
+                options={{ title: 'Chat', headerShown: true }}
+            />
+            <Stack.Screen
+                name="Settings"
+                options={{ title: 'Settings', headerShown: true }}
+            >
+                {(props) => (
+                    <SettingsScreen
+                        colorScheme={colorScheme}
+                        toggleColorScheme={toggleColorScheme}
+                        {...props}
+                    />
+                )}
+            </Stack.Screen>
         </Stack.Navigator>
     );
 }

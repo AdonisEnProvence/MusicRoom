@@ -1,12 +1,13 @@
-import { useMachine, useSelector } from '@xstate/react';
-import React from 'react';
-import { Text, View, StyleSheet, TextInput, FlatList } from 'react-native';
-import { assign, createMachine, send } from 'xstate';
-import { io, Socket } from 'socket.io-client';
 import {
     ChatClientToServerEvents,
     ChatServerToClientEvents,
 } from '@musicroom/types';
+import { useMachine, useSelector } from '@xstate/react';
+import React from 'react';
+import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { io, Socket } from 'socket.io-client';
+import { assign, createMachine, send } from 'xstate';
+import { SERVER_ENDPOINT } from '../constants/Endpoints';
 
 interface ChatMessage {
     text: string;
@@ -44,7 +45,7 @@ const chatMachine = createMachine<ChatMachineContext, ChatMachineEvent>({
             const socket: Socket<
                 ChatServerToClientEvents,
                 ChatClientToServerEvents
-            > = io('http://127.0.0.1:3333/');
+            > = io(SERVER_ENDPOINT);
 
             socket.on('connect', () => {
                 sendBack({
@@ -194,7 +195,6 @@ const ChatScreen: React.FC = () => {
             type: 'SEND_MESSAGE',
         });
     }
-
     return (
         <View style={styles.container}>
             <View style={{ flex: 1 }}>

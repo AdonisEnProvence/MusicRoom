@@ -7,9 +7,3 @@
 | boot.
 |
 */
-
-import Redis from '@ioc:Adonis/Addons/Redis';
-
-Redis.subscribe('music', (user: string) => {
-    console.log(JSON.parse(user));
-});

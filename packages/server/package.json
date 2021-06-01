@@ -32,6 +32,7 @@
     "@adonisjs/redis": "^7.0.4",
     "@adonisjs/repl": "^3.0.0",
     "@musicroom/types": "*",
+    "@socket.io/redis-adapter": "^7.0.0",
     "@types/node-fetch": "^2.5.10",
     "@types/socket.io": "^3.0.2",
     "googleapis": "^74.1.0",

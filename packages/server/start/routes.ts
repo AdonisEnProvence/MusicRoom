@@ -18,16 +18,10 @@
 |
 */
 // import Redis from '@ioc:Adonis/Addons/Redis';
-import Redis from '@ioc:Adonis/Addons/Redis';
-import HealthCheck from '@ioc:Adonis/Core/HealthCheck';
 import Route from '@ioc:Adonis/Core/Route';
 
 Route.get('/search/track/:query', 'TracksSearchesController.searchTrackName');
 
-Route.get('/', async () => {
-    const report = await HealthCheck.getReport();
-    console.log(report.report.redis.meta);
-    await Redis.publish('music', JSON.stringify({ id: '1' }));
-
+Route.get('/', () => {
     return { hello: 'world' };
 });

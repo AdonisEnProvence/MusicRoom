@@ -52,6 +52,7 @@ const navigationPalette: {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
+            paddingLeft: 8, //TODO CENTRALIZE SPACE GLOBAL VALUE IN AN EXPORTABLE OBJECT INSTEAD OF DIRECTLY IN DRIPSY
         },
         headerLeft: (props) => (
             <HeaderIcon

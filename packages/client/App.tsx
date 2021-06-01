@@ -57,7 +57,7 @@ const App: React.FC = () => {
                         colorScheme={colorScheme}
                         toggleColorScheme={toggleColorScheme}
                     />
-                    <StatusBar />
+                    <StatusBar style={'inverted'} />
                 </SafeAreaProvider>
             </DripsyProvider>
         );

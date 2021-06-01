@@ -6,6 +6,19 @@ on:
             - master
 
 jobs:
+    runner-job:
+        runs-on: ubuntu-latest
+        services:
+            redis:
+                image: redis:4.0.5-alpine
+                command: redis-server --requirepass yourpassword
+                hostname: local
+                ports:
+                    - '6379:6379'
+                networks:
+                    - redis-net
+                volumes:
+                    - redis-data:/data
     commitlint:
         runs-on: ubuntu-latest
         steps:
@@ -17,6 +30,7 @@ jobs:
               uses: wagoid/commitlint-github-action@v3
     lint_and_tests:
         runs-on: ubuntu-latest
+
         steps:
             - name: Checkout 🛎
               uses: actions/checkout@v2
@@ -46,6 +60,6 @@ jobs:
             - name: Run tests 🧪
               run: yarn run test
               env:
-                GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-                HOST: "0.0.0.0"
-                APP_KEY: "-qyExFFunSk4vSAvUiwheisaGicpYVpC"
+                  GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+                  HOST: '0.0.0.0'
+                  APP_KEY: '-qyExFFunSk4vSAvUiwheisaGicpYVpC'

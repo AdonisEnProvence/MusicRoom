@@ -52,6 +52,9 @@ jobs:
             - name: Run tests 🧪
               run: yarn run test
               env:
+                  REDIS_CONNECTION: 'local'
+                  REDIS_HOST: '127.0.0.1'
+                  REDIS_PASSWORD: 'yourpassword'
                   GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
                   HOST: '0.0.0.0'
                   APP_KEY: '-qyExFFunSk4vSAvUiwheisaGicpYVpC'

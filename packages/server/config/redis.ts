@@ -5,8 +5,8 @@
  * file.
  */
 
-import Env from '@ioc:Adonis/Core/Env';
 import { RedisConfig } from '@ioc:Adonis/Addons/Redis';
+import Env from '@ioc:Adonis/Core/Env';
 
 /*
 |--------------------------------------------------------------------------
@@ -41,6 +41,7 @@ const redisConfig: RedisConfig = {
             password: Env.get('REDIS_PASSWORD', ''),
             db: 0,
             keyPrefix: '',
+            healthCheck: true,
         },
     },
 };

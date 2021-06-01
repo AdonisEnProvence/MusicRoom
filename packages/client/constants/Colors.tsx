@@ -3,7 +3,6 @@ import { BottomTabBarOptions } from '@react-navigation/bottom-tabs';
 import { StackNavigationOptions } from '@react-navigation/stack';
 import * as React from 'react';
 import { ColorSchemeName } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 
 interface Palette {
     primary: string;
@@ -33,11 +32,7 @@ function HeaderIcon(props: {
     color: string;
     name: React.ComponentProps<typeof AntDesign>['name'];
 }): JSX.Element {
-    return (
-        <TouchableOpacity>
-            <AntDesign size={30} style={{ marginBottom: -3 }} {...props} />
-        </TouchableOpacity>
-    );
+    return <AntDesign size={30} style={{ marginBottom: -3 }} {...props} />;
 }
 
 const navigationPalette: {

@@ -1,7 +1,7 @@
 import { StackScreenProps } from '@react-navigation/stack';
 import React, { useState, useCallback } from 'react';
 import { View, Alert, Button } from 'react-native';
-import YoutubePlayer from 'react-native-youtube-iframe';
+// import YoutubePlayer from 'react-native-youtube-iframe';
 import { RootStackParamList } from '../types';
 
 const TrackPlayer: React.FC<
@@ -22,12 +22,12 @@ const TrackPlayer: React.FC<
 
     return (
         <View>
-            <YoutubePlayer
+            {/* <YoutubePlayer
                 height={300}
                 play={playing}
                 videoId={videoID}
                 onChangeState={onStateChange}
-            />
+            /> */}
             <Button
                 title={playing ? 'pause' : 'play'}
                 onPress={togglePlaying}

@@ -31,7 +31,7 @@ jobs:
               uses: actions/cache@v2
               with:
                   path: ~/.npm
-                  key: ubuntu-latest-node-${{ hashFiles('**/yarn.lock') }}
+                  key: ubuntu-latest-node-${{ hashFiles('yarn.lock') }}
                   restore-keys: |
                       ubuntu-latest-node-
             - name: Install dependencies 👨🏻‍💻
@@ -45,3 +45,7 @@ jobs:
 
             - name: Run tests 🧪
               run: yarn run test
+              env:
+                GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+                HOST: "0.0.0.0"
+                APP_KEY: "-qyExFFunSk4vSAvUiwheisaGicpYVpC"

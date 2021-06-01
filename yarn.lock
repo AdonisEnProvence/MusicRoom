@@ -1736,17 +1736,10 @@
   resolved "https://registry.yarnpkg.com/@expo/config-types/-/config-types-41.0.0.tgz#ffe1444c6c26e0e3a8f7149b4afe486e357536d1"
   integrity sha512-Ax0pHuY5OQaSrzplOkT9DdpdmNzaVDnq9VySb4Ujq7UJ4U4jriLy8u93W98zunOXpcu0iiKubPsqD6lCiq0pig==
 
-<<<<<<< HEAD
 "@expo/config@4.0.1":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@expo/config/-/config-4.0.1.tgz#62c4bb254a374765a4642bad3c09daddfa445204"
   integrity sha512-de9tNFUSilb7yTcUk8tgAnjk5PHyOfRbOvRv330sQTuhwK6X68tQ/g4pm5OwVXnxDW5tMuNleOvPMvBqSX/Xcg==
-=======
-"@expo/config@4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@expo/config/-/config-4.0.0.tgz#92b76c4ead19b38bdd927b1eeded12b5707c16c7"
-  integrity sha512-Hy2/49BMMzziDhJFf+N0gG5znLuhoorS9/+OFO7wqDbRV4LRraNx4UuGdyY06yLI7F0BgEJBGy109pZ4LZoKrA==
->>>>>>> chore(client): install @expo/webpack-config and set up webpack.config.js
   dependencies:
     "@babel/core" "7.9.0"
     "@babel/plugin-proposal-class-properties" "~7.12.13"

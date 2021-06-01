@@ -20,7 +20,6 @@ jobs:
         services:
             redis:
                 image: redis
-                hostname: local
                 ports:
                     - '6379:6379'
                 options: --entrypoint redis-server --requirepass yourpassword

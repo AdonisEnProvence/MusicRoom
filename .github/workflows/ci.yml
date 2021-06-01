@@ -6,19 +6,6 @@ on:
             - master
 
 jobs:
-    runner-job:
-        runs-on: ubuntu-latest
-        services:
-            redis:
-                image: redis:4.0.5-alpine
-                command: redis-server --requirepass yourpassword
-                hostname: local
-                ports:
-                    - '6379:6379'
-                networks:
-                    - redis-net
-                volumes:
-                    - redis-data:/data
     commitlint:
         runs-on: ubuntu-latest
         steps:
@@ -30,7 +17,13 @@ jobs:
               uses: wagoid/commitlint-github-action@v3
     lint_and_tests:
         runs-on: ubuntu-latest
-
+        services:
+            redis:
+                image: redis
+                hostname: local
+                ports:
+                    - '6379:6379'
+                options: --entrypoint redis-server --requirepass yourpassword
         steps:
             - name: Checkout 🛎
               uses: actions/checkout@v2

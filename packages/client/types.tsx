@@ -27,6 +27,8 @@ export type SearchTracksParamsList = {
 export type RootStackParamList = {
     Root: NavigatorScreenParams<BottomTabNavigatorParamList>;
 
+    MusicTrackVoteSearch: undefined;
+
     Chat: undefined;
     SearchTrackResults: {
         tracks: SearchedTrack[];
@@ -44,6 +46,11 @@ export type RootStackParamList = {
  * Please note that two screen MUST NOT have the same name.
  * Otherwise the type safety will be disabled.
  */
+
+export type MusicTrackVoteSearchScreenProps = {
+    navigation: StackNavigationProp<RootStackParamList, 'MusicTrackVoteSearch'>;
+    route: RouteProp<RootStackParamList, 'MusicTrackVoteSearch'>;
+};
 
 export type ChatScreenProps = {
     navigation: StackNavigationProp<RootStackParamList, 'Chat'>;

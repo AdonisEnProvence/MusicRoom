@@ -38,10 +38,16 @@ Changing any files in the folder will result in an incremental rebuild, and a re
 
 ### Server
 
+First launch redis container:
+
+```sh
+cd packages/server && docker-compose -d
+```
+
 Start the server:
 
 ```sh
-cd packages/server && yarn dev
+yarn dev
 ```
 
 By default, the server is served on https://localhost:3333.

@@ -1,5 +1,5 @@
-import Ws from 'App/Services/Ws';
 import ChatController from 'App/Controllers/Ws/ChatController';
+import Ws from 'App/Services/Ws';
 
 Ws.boot();
 

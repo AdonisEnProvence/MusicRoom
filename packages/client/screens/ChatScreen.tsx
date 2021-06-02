@@ -179,7 +179,7 @@ const ChatScreen: React.FC = () => {
     const [, send, service] = useMachine(chatMachine);
     const currentMessage = useSelector(
         service,
-        (state) => state.context.currentMessage,
+        (state) => state.context.currentMessage ?? '',
     );
     const messages = useSelector(service, (state) => state.context.messages);
 
@@ -226,7 +226,7 @@ const ChatScreen: React.FC = () => {
                     style={styles.newMessageInput}
                     value={currentMessage}
                     onChangeText={handleNewMessageChangeText}
-                    onEndEditing={handleNewMessageEndEditing}
+                    onSubmitEditing={handleNewMessageEndEditing}
                 />
             </View>
         </View>

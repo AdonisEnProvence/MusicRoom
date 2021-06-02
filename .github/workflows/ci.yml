@@ -17,6 +17,12 @@ jobs:
               uses: wagoid/commitlint-github-action@v3
     lint_and_tests:
         runs-on: ubuntu-latest
+        services:
+            redis:
+                image: redis
+                ports:
+                    - '6379:6379'
+                options: --entrypoint redis-server
         steps:
             - name: Checkout 🛎
               uses: actions/checkout@v2
@@ -46,6 +52,9 @@ jobs:
             - name: Run tests 🧪
               run: yarn run test
               env:
-                GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-                HOST: "0.0.0.0"
-                APP_KEY: "-qyExFFunSk4vSAvUiwheisaGicpYVpC"
+                  REDIS_CONNECTION: 'local'
+                  REDIS_HOST: '127.0.0.1'
+                  REDIS_PORT: '6379'
+                  GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+                  HOST: '0.0.0.0'
+                  APP_KEY: '-qyExFFunSk4vSAvUiwheisaGicpYVpC'

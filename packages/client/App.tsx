@@ -1,6 +1,7 @@
-import { DripsyProvider, SafeAreaView } from 'dripsy';
+import { DripsyProvider } from 'dripsy';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { colorPalette } from './constants/Colors';
 import useCachedResources from './hooks/useCachedResources';
 import Navigation from './navigation';
@@ -51,15 +52,14 @@ const App: React.FC = () => {
     } else {
         return (
             <DripsyProvider theme={theme}>
-                <SafeAreaView
-                    sx={{ backgroundColor: 'headerBackground', flex: 1 }}
-                >
+                <SafeAreaProvider>
                     <Navigation
                         colorScheme={colorScheme}
                         toggleColorScheme={toggleColorScheme}
+                        sx={{ backgroundColor: 'headerBackground', flex: 1 }}
                     />
                     <StatusBar style={'inverted'} />
-                </SafeAreaView>
+                </SafeAreaProvider>
             </DripsyProvider>
         );
     }

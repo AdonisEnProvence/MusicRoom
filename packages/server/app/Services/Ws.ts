@@ -17,7 +17,11 @@ class Ws {
             return;
         }
         this.booted = true;
-        this.io = new Server(AdonisServer.instance);
+        this.io = new Server(AdonisServer.instance, {
+            cors: {
+                origin: '*',
+            },
+        });
         const pubClient = new RedisClient({
             host: Env.get('REDIS_HOST'),
             port: Env.get('REDIS_PORT'),

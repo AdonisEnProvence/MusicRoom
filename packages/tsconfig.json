@@ -4,6 +4,7 @@
         { "path": "utils" },
         { "path": "types" },
         { "path": "client" },
-        { "path": "server" }
+        { "path": "server" },
+        { "path": "temporal" }
     ]
 }

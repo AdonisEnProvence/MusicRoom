@@ -43,14 +43,6 @@ const redisConfig: RedisConfig = {
             keyPrefix: '',
             healthCheck: true,
         },
-        pub: {
-            host: Env.get('REDIS_HOST'),
-            port: Env.get('REDIS_PORT'),
-            password: Env.get('REDIS_PASSWORD', ''),
-            db: 1,
-            keyPrefix: 'pub',
-            healthCheck: true,
-        },
     },
 };
 

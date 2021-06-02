@@ -1,11 +1,11 @@
 import {
-    ChatMessage,
     ChatClientToServerEvents,
-    ChatServerToClientEvents,
     ChatClientToServerNewMessageArgs,
+    ChatMessage,
+    ChatServerToClientEvents,
 } from '@musicroom/types';
-import { Socket } from 'socket.io';
 import Ws from 'App/Services/Ws';
+import { Socket } from 'socket.io';
 
 interface WsControllerMethodArgs<Payload> {
     socket: Socket<ChatClientToServerEvents, ChatServerToClientEvents>;

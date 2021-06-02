@@ -11,6 +11,7 @@ import { AnimatePresence, View as MotiView } from 'moti';
 
 type SearchBatProps = {
     query: string;
+    showCancelButton: boolean;
     setQuery: (query: string) => void;
     onBlur: () => void;
     onFocus: () => void;
@@ -58,10 +59,13 @@ const searchBarMachine = createMachine<
 
 const SearchBar: React.FC<SearchBatProps> = ({
     query,
+    showCancelButton,
     setQuery,
     onBlur,
     onFocus,
 }) => {
+    const [{ width: containerWidth }, onContainerLayout] = useLayout();
+    const [{ width }, onLayout] = useLayout();
     const textInputRef = useRef<RNTextInput | null>(null);
     const [state, send] = useMachine(searchBarMachine, {
         actions: {
@@ -75,6 +79,8 @@ const SearchBar: React.FC<SearchBatProps> = ({
     });
     const sx = useSx();
 
+    const cancelButtonLeftMargin = sx({ marginLeft: 'l' }).marginLeft as number;
+
     function blurTextInput() {
         textInputRef.current?.blur();
     }
@@ -87,6 +93,10 @@ const SearchBar: React.FC<SearchBatProps> = ({
         onFocus();
     }
 
+    function handleTextClear() {
+        setQuery('');
+    }
+
     function handleTextInputBlur() {
         send({
             type: 'BLUR',
@@ -96,17 +106,24 @@ const SearchBar: React.FC<SearchBatProps> = ({
     }
 
     return (
-        <View sx={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
-            <View
-                sx={{
+        <View
+            sx={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}
+            onLayout={onContainerLayout}
+        >
+            <MotiView
+                animate={{
+                    width: showCancelButton
+                        ? containerWidth - width - cancelButtonLeftMargin
+                        : containerWidth,
+                }}
+                style={sx({
                     flexDirection: 'row',
-                    flex: 1,
                     backgroundColor: 'greyLight',
                     alignItems: 'center',
                     paddingLeft: 'm',
                     paddingRight: 'm',
                     borderRadius: 'm',
-                }}
+                })}
             >
                 <Ionicons
                     name="search"
@@ -128,7 +145,7 @@ const SearchBar: React.FC<SearchBatProps> = ({
                 />
 
                 {state.matches('active') && query.length > 0 && (
-                    <TouchableOpacity onPress={blurTextInput}>
+                    <TouchableOpacity onPress={handleTextClear}>
                         <Ionicons
                             name="close-circle-outline"
                             style={sx({
@@ -138,7 +155,23 @@ const SearchBar: React.FC<SearchBatProps> = ({
                         />
                     </TouchableOpacity>
                 )}
-            </View>
+            </MotiView>
+
+            <MotiView
+                animate={{
+                    opacity: showCancelButton ? 1 : 0,
+                }}
+            >
+                <TouchableOpacity
+                    style={{
+                        marginLeft: cancelButtonLeftMargin,
+                    }}
+                    onLayout={onLayout}
+                    onPress={blurTextInput}
+                >
+                    <Typo sx={{ fontSize: 's' }}>Cancel</Typo>
+                </TouchableOpacity>
+            </MotiView>
         </View>
     );
 };
@@ -187,6 +220,7 @@ const screenHeaderMachine = createMachine<
 
 function useLayout() {
     const [layout, setLayout] = useState({
+        width: 0,
         height: 0,
     });
     const onLayout: ComponentProps<typeof View>['onLayout'] = ({
@@ -271,6 +305,7 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
                 <View sx={{ flexDirection: 'row' }}>
                     <SearchBar
                         query={searchQuery}
+                        showCancelButton={showHeader === false}
                         setQuery={handleUpdateSearchQuery}
                         onFocus={handleTextInputFocus}
                         onBlur={handleTextInputBlur}

@@ -1,12 +1,17 @@
 import React, { ComponentProps, useEffect, useRef, useState } from 'react';
-import { View, useSx, ScrollView } from 'dripsy';
+import { View, useSx } from 'dripsy';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { createMachine, assign, Sender } from 'xstate';
 import { MusicTrackVoteSearchScreenProps } from '../types';
 import { Title, Typo, TextInput } from '../components/kit';
 import { useMachine } from '@xstate/react';
-import { TouchableOpacity, TextInput as RNTextInput } from 'react-native';
+import {
+    TouchableOpacity,
+    TextInput as RNTextInput,
+    ListRenderItem,
+    FlatList,
+} from 'react-native';
 import { AnimatePresence, View as MotiView } from 'moti';
 
 type SearchBatProps = {
@@ -282,7 +287,6 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
                 paddingTop: insetTop,
                 paddingLeft: 'l',
                 paddingRight: 'l',
-                paddingBottom: 'l',
             }}
         >
             <View style={{ marginBottom: titleMarginBottom }}>
@@ -316,12 +320,104 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
     );
 };
 
+type SuggestionListProps = {
+    bottomInset: number;
+};
+
+interface RoomSuggestion {
+    title: string;
+}
+
+const SuggestionsList: React.FC<SuggestionListProps> = ({ bottomInset }) => {
+    const sx = useSx();
+
+    const suggestions: RoomSuggestion[] = [
+        {
+            title: 'Claude Nougaro - Toulouse',
+        },
+        {
+            title: 'Biolay Fans',
+        },
+        {
+            title: 'Feu! Chatterton Fans',
+        },
+        {
+            title: 'Orelsan Fans',
+        },
+        {
+            title: 'Alain Bashung Fans',
+        },
+        {
+            title: 'Francis Cabrel Fans',
+        },
+    ];
+
+    const renderItem: ListRenderItem<RoomSuggestion> = ({
+        item: { title },
+    }) => (
+        <TouchableOpacity>
+            <View
+                sx={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 'm',
+                }}
+            >
+                <View sx={{}}>
+                    <Typo sx={{ fontSize: 's' }}>{title}</Typo>
+                    <Typo sx={{ fontSize: 'xs', color: 'greyLighter' }}>
+                        Baptiste Devessier
+                    </Typo>
+                </View>
+
+                <Ionicons
+                    name="chevron-forward"
+                    style={sx({
+                        color: 'greyLighter',
+                        fontSize: 'm',
+                    })}
+                />
+            </View>
+        </TouchableOpacity>
+    );
+
+    return (
+        <FlatList
+            data={suggestions}
+            renderItem={renderItem}
+            ListHeaderComponent={() => (
+                <Typo
+                    sx={{ fontSize: 's', fontWeight: '700', marginBottom: 'm' }}
+                >
+                    Suggestions
+                </Typo>
+            )}
+            keyExtractor={({ title }) => title}
+            // This is here that we ensure the Flat List will not show items
+            // on an unsafe area.
+            contentContainerStyle={{
+                paddingBottom: bottomInset,
+            }}
+        />
+    );
+};
+
+const SearchList: React.FC = () => {
+    return (
+        <View>
+            <Typo>Search results</Typo>
+        </View>
+    );
+};
+
 const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
     navigation,
 }) => {
     const [offset, setOffset] = useState(0);
     const [state, send] = useMachine(screenHeaderMachine);
     const showHeader = state.matches('idle');
+    const showSuggestions = state.matches('idle');
 
     const insets = useSafeAreaInsets();
 
@@ -330,12 +426,14 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
             sx={{
                 flex: 1,
                 backgroundColor: 'primary',
-                paddingBottom: insets.bottom,
             }}
         >
             <MotiView
                 animate={{
                     top: showHeader ? 0 : offset,
+                }}
+                style={{
+                    flex: 1,
                 }}
             >
                 <ScreenHeader
@@ -346,9 +444,19 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
                     showHeader={showHeader}
                 />
 
-                <ScrollView sx={{ paddingLeft: 'l', paddingRight: 'l' }}>
-                    <Typo>Some random text</Typo>
-                </ScrollView>
+                <View
+                    sx={{
+                        paddingLeft: 'l',
+                        paddingRight: 'l',
+                        flex: 1,
+                    }}
+                >
+                    {showSuggestions ? (
+                        <SuggestionsList bottomInset={insets.bottom} />
+                    ) : (
+                        <SearchList />
+                    )}
+                </View>
             </MotiView>
         </View>
     );

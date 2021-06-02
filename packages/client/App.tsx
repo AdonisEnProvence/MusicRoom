@@ -31,6 +31,7 @@ const App: React.FC = () => {
             l: 3,
         },
         fontSizes: {
+            xs: 14,
             s: 16,
             m: 20,
             l: 24,

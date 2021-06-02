@@ -1,7 +1,6 @@
 import React from 'react';
 import { SearchedTrack } from '../../machines/searchTrackMachine';
-import Block from '../template/Block';
-import Typo from '../template/Typo';
+import { Block, Typo } from '../kit';
 
 type ComponentProps = {
     track: SearchedTrack;

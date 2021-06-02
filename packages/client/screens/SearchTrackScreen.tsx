@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMachine } from '@xstate/react';
 import { searchTrackMachine } from '../machines/searchTrackMachine';
-import Block from '../components/template/Block';
-import FlexRowContainer from '../components/template/FlexRowContainer';
-import MSTextInput from '../components/template/TextInput';
-import Title from '../components/template/Title';
+import { Block, FlexRowContainer, TextInput, Title } from '../components/kit';
+
 import { SearchTabSearchTracksScreenProps } from '../types';
 
 const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
@@ -37,10 +36,10 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
     }
 
     return (
-        <Block background="primary">
+        <Block as={SafeAreaView} background="primary">
             <Title>Search a track</Title>
             <FlexRowContainer>
-                <MSTextInput
+                <TextInput
                     placeholderTextColor={'white'}
                     placeholder={'Search a song here...'}
                     onChangeText={handleInputChangeText}

@@ -1,10 +1,7 @@
 import { useNavigation } from '@react-navigation/core';
 import React from 'react';
 import { SearchedTrack } from '../../machines/searchTrackMachine';
-import Block from '../template/Block';
-import Hr from '../template/Hr';
-import MSFlatList from '../template/MSFlatList';
-import Title from '../template/Title';
+import { Block, Hr, MSFlatList, Title } from '../kit';
 import TrackPreview from './TrackPreview';
 
 type ComponentProps = {

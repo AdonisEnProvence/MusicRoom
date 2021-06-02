@@ -5,6 +5,7 @@ import {
 import { useMachine, useSelector } from '@xstate/react';
 import React from 'react';
 import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { io, Socket } from 'socket.io-client';
 import { assign, createMachine, send } from 'xstate';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
@@ -197,7 +198,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
         });
     }
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <View style={{ flex: 1 }}>
                 <Text style={styles.title}>Chat</Text>
 
@@ -230,7 +231,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                     onSubmitEditing={handleNewMessageEndEditing}
                 />
             </View>
-        </View>
+        </SafeAreaView>
     );
 };
 

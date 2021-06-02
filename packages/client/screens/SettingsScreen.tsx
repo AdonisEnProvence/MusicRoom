@@ -1,7 +1,6 @@
 import { Button } from '@dripsy/core';
 import React from 'react';
-import Block from '../components/template/Block';
-import Title from '../components/template/Title';
+import { Block, Title } from '../components/kit';
 import { ColorModeProps } from '../navigation';
 import { SettingsScreenProps } from '../types';
 

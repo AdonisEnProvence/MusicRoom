@@ -1,13 +1,13 @@
 import { Button } from '@dripsy/core';
 import React from 'react';
-import Block from '../components/template/Block';
-import Title from '../components/template/Title';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Block, Title } from '../components/kit';
 import Player from '../components/MusicPlayer';
 import { HomeTabHomeXScreenProps } from '../types';
 
 const HomeScreen: React.FC<HomeTabHomeXScreenProps> = ({ navigation }) => {
     return (
-        <Block background={'primary'}>
+        <Block as={SafeAreaView} background={'primary'}>
             <Title>This is a basic home</Title>
 
             <Player />
@@ -15,9 +15,7 @@ const HomeScreen: React.FC<HomeTabHomeXScreenProps> = ({ navigation }) => {
             <Button
                 title="Go to Music Track Vote"
                 onPress={() => {
-                    navigation.navigate('Home', {
-                        screen: 'HomeX',
-                    });
+                    navigation.navigate('MusicTrackVoteSearch');
                 }}
             />
 

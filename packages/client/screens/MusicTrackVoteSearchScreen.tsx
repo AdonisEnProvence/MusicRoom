@@ -17,7 +17,24 @@ type SearchBatProps = {
     setQuery: (query: string) => void;
 };
 
-const searchBarMachine = createMachine({
+type SearchBarMachineContext = {
+    searchQuery: string;
+};
+
+type SearchBarMachineEvent =
+    | {
+          type: 'BLUR';
+      }
+    | { type: 'FOCUS' };
+
+const searchBarMachine = createMachine<
+    SearchBarMachineContext,
+    SearchBarMachineEvent
+>({
+    context: {
+        searchQuery: '',
+    },
+
     initial: 'inactive',
 
     states: {
@@ -25,6 +42,7 @@ const searchBarMachine = createMachine({
             on: {
                 BLUR: {
                     target: 'inactive',
+                    actions: ['resetSearchQuery', 'blurTextInput'],
                 },
             },
         },
@@ -41,7 +59,16 @@ const searchBarMachine = createMachine({
 
 const SearchBar: React.FC<SearchBatProps> = ({ query, setQuery }) => {
     const textInputRef = useRef<RNTextInput | null>(null);
-    const [state, send] = useMachine(searchBarMachine);
+    const [state, send] = useMachine(searchBarMachine, {
+        actions: {
+            resetSearchQuery: () => {
+                setQuery('');
+            },
+            blurTextInput: () => {
+                blurTextInput();
+            },
+        },
+    });
     const sx = useSx();
 
     function blurTextInput() {
@@ -91,16 +118,19 @@ const SearchBar: React.FC<SearchBatProps> = ({ query, setQuery }) => {
                     onFocus={handleTextInputFocus}
                     onBlur={handleTextInputBlur}
                 />
-            </View>
 
-            {state.matches('active') && (
-                <TouchableOpacity
-                    style={sx({ marginLeft: 'l' })}
-                    onPress={blurTextInput}
-                >
-                    <Typo sx={{ fontSize: 's' }}>Cancel</Typo>
-                </TouchableOpacity>
-            )}
+                {state.matches('active') && query.length > 0 && (
+                    <TouchableOpacity onPress={blurTextInput}>
+                        <Ionicons
+                            name="close-circle-outline"
+                            style={sx({
+                                color: 'white',
+                                fontSize: 'm',
+                            })}
+                        />
+                    </TouchableOpacity>
+                )}
+            </View>
         </View>
     );
 };

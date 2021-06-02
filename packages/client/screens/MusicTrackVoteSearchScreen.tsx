@@ -294,8 +294,6 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
                     <MotiView
                         animate={{
                             opacity: showHeader ? 1 : 0,
-                            scaleX: showHeader ? 1 : 0.9,
-                            translateX: showHeader ? '0%' : '-20%',
                         }}
                         style={sx({
                             marginBottom: 'l',

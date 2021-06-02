@@ -1,20 +1,19 @@
-import React, { useRef, useState } from 'react';
+import React, { ComponentProps, useEffect, useRef, useState } from 'react';
 import { View, useSx, ScrollView } from 'dripsy';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { createMachine } from 'xstate';
+import { createMachine, assign, Sender } from 'xstate';
 import { MusicTrackVoteSearchScreenProps } from '../types';
 import { Title, Typo, TextInput } from '../components/kit';
 import { useMachine } from '@xstate/react';
 import { TouchableOpacity, TextInput as RNTextInput } from 'react-native';
-
-type ScreenHeaderProps = {
-    insetTop: number;
-};
+import { AnimatePresence, View as MotiView } from 'moti';
 
 type SearchBatProps = {
     query: string;
     setQuery: (query: string) => void;
+    onBlur: () => void;
+    onFocus: () => void;
 };
 
 type SearchBarMachineContext = {
@@ -57,7 +56,12 @@ const searchBarMachine = createMachine<
     },
 });
 
-const SearchBar: React.FC<SearchBatProps> = ({ query, setQuery }) => {
+const SearchBar: React.FC<SearchBatProps> = ({
+    query,
+    setQuery,
+    onBlur,
+    onFocus,
+}) => {
     const textInputRef = useRef<RNTextInput | null>(null);
     const [state, send] = useMachine(searchBarMachine, {
         actions: {
@@ -79,12 +83,16 @@ const SearchBar: React.FC<SearchBatProps> = ({ query, setQuery }) => {
         send({
             type: 'FOCUS',
         });
+
+        onFocus();
     }
 
     function handleTextInputBlur() {
         send({
             type: 'BLUR',
         });
+
+        onBlur();
     }
 
     return (
@@ -135,8 +143,104 @@ const SearchBar: React.FC<SearchBatProps> = ({ query, setQuery }) => {
     );
 };
 
-const ScreenHeader: React.FC<ScreenHeaderProps> = ({ insetTop }) => {
-    const [query, setQuery] = useState('');
+type ScreenHeaderMachineContext = {
+    searchQuery: string;
+};
+
+type ScreenHeaderMachineEvent =
+    | { type: 'FOCUS' }
+    | { type: 'BLUR' }
+    | { type: 'UPDATE_SEARCH_QUERY'; searchQuery: string };
+
+const screenHeaderMachine = createMachine<
+    ScreenHeaderMachineContext,
+    ScreenHeaderMachineEvent
+>({
+    context: {
+        searchQuery: '',
+    },
+
+    initial: 'idle',
+
+    states: {
+        idle: {
+            on: {
+                FOCUS: {
+                    target: 'typing',
+                },
+            },
+        },
+
+        typing: {
+            on: {
+                BLUR: 'idle',
+
+                UPDATE_SEARCH_QUERY: {
+                    actions: assign({
+                        searchQuery: (_context, { searchQuery }) => searchQuery,
+                    }),
+                },
+            },
+        },
+    },
+});
+
+function useLayout() {
+    const [layout, setLayout] = useState({
+        height: 0,
+    });
+    const onLayout: ComponentProps<typeof View>['onLayout'] = ({
+        nativeEvent,
+    }) => {
+        console.log('native event', nativeEvent);
+
+        setLayout(nativeEvent.layout);
+    };
+
+    return [layout, onLayout] as const;
+}
+
+type ScreenHeaderProps = {
+    insetTop: number;
+    setOffset: (offset: number) => void;
+    showHeader: boolean;
+    searchQuery: string;
+    sendToMachine: Sender<ScreenHeaderMachineEvent>;
+};
+
+const ScreenHeader: React.FC<ScreenHeaderProps> = ({
+    insetTop,
+    showHeader,
+    setOffset,
+    searchQuery,
+    sendToMachine,
+}) => {
+    const [{ height }, onLayout] = useLayout();
+    const sx = useSx();
+    const titleMarginBottom = sx({ marginBottom: 'l' }).marginBottom as number;
+
+    useEffect(() => {
+        setOffset(-height - titleMarginBottom);
+    }, [setOffset, height, titleMarginBottom]);
+
+    function handleTextInputFocus() {
+        sendToMachine({
+            type: 'FOCUS',
+        });
+    }
+
+    function handleTextInputBlur() {
+        sendToMachine({
+            type: 'BLUR',
+        });
+    }
+
+    function handleUpdateSearchQuery(searchQuery: string) {
+        sendToMachine({
+            type: 'UPDATE_SEARCH_QUERY',
+            searchQuery,
+        });
+    }
 
     return (
         <View
@@ -147,11 +251,30 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({ insetTop }) => {
                 paddingBottom: 'l',
             }}
         >
-            <View sx={{ paddingTop: 'l' }}>
-                <Title>Track vote</Title>
+            <View style={{ marginBottom: titleMarginBottom }}>
+                <AnimatePresence>
+                    <MotiView
+                        animate={{
+                            opacity: showHeader ? 1 : 0,
+                            scaleX: showHeader ? 1 : 0.9,
+                            translateX: showHeader ? '0%' : '-20%',
+                        }}
+                        style={sx({
+                            marginBottom: 'l',
+                        })}
+                        onLayout={onLayout}
+                    >
+                        <Title>Track vote</Title>
+                    </MotiView>
+                </AnimatePresence>
 
-                <View sx={{ marginTop: 'l', flexDirection: 'row' }}>
-                    <SearchBar query={query} setQuery={setQuery} />
+                <View sx={{ flexDirection: 'row' }}>
+                    <SearchBar
+                        query={searchQuery}
+                        setQuery={handleUpdateSearchQuery}
+                        onFocus={handleTextInputFocus}
+                        onBlur={handleTextInputBlur}
+                    />
                 </View>
             </View>
         </View>
@@ -161,6 +284,10 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({ insetTop }) => {
 const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
     navigation,
 }) => {
+    const [offset, setOffset] = useState(0);
+    const [state, send] = useMachine(screenHeaderMachine);
+    const showHeader = state.matches('idle');
+
     const insets = useSafeAreaInsets();
 
     return (
@@ -171,11 +298,23 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
                 paddingBottom: insets.bottom,
             }}
         >
-            <ScreenHeader insetTop={insets.top} />
+            <MotiView
+                animate={{
+                    top: showHeader ? 0 : offset,
+                }}
+            >
+                <ScreenHeader
+                    insetTop={insets.top}
+                    setOffset={setOffset}
+                    searchQuery={state.context.searchQuery}
+                    sendToMachine={send}
+                    showHeader={showHeader}
+                />
 
-            <ScrollView sx={{ paddingLeft: 'l', paddingRight: 'l' }}>
-                <Typo>Some random text</Typo>
-            </ScrollView>
+                <ScrollView sx={{ paddingLeft: 'l', paddingRight: 'l' }}>
+                    <Typo>Some random text</Typo>
+                </ScrollView>
+            </MotiView>
         </View>
     );
 };

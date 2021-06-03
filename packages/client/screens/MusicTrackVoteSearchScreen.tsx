@@ -12,7 +12,7 @@ import {
     ListRenderItem,
     FlatList,
 } from 'react-native';
-import { AnimatePresence, View as MotiView } from 'moti';
+import { View as MotiView } from 'moti';
 
 type SearchBatProps = {
     query: string;
@@ -193,35 +193,89 @@ type ScreenHeaderMachineEvent =
 const screenHeaderMachine = createMachine<
     ScreenHeaderMachineContext,
     ScreenHeaderMachineEvent
->({
-    context: {
-        searchQuery: '',
-    },
+>(
+    {
+        context: {
+            searchQuery: '',
+        },
 
-    initial: 'idle',
+        initial: 'idle',
 
-    states: {
-        idle: {
-            on: {
-                FOCUS: {
-                    target: 'typing',
+        states: {
+            idle: {
+                tags: ['showHeaderTitle', 'showSuggestions'],
+
+                on: {
+                    FOCUS: {
+                        target: 'typing',
+                    },
+                },
+            },
+
+            typing: {
+                initial: 'waitingSearchQuery',
+
+                states: {
+                    waitingSearchQuery: {
+                        tags: ['showSuggestions'],
+
+                        on: {
+                            UPDATE_SEARCH_QUERY: {
+                                target: 'editingSearchQuery',
+                                actions: 'setSearchQuery',
+                            },
+                        },
+                    },
+
+                    editingSearchQuery: {
+                        tags: ['showClearButton', 'showSearchResults'],
+
+                        on: {
+                            UPDATE_SEARCH_QUERY: [
+                                {
+                                    cond: 'isSearchQueryEmptyFromEvent',
+                                    target: 'waitingSearchQuery',
+                                    actions: 'setSearchQuery',
+                                },
+                                {
+                                    actions: 'setSearchQuery',
+                                },
+                            ],
+                        },
+                    },
+                },
+
+                on: {
+                    BLUR: 'idle',
                 },
             },
         },
+    },
+    {
+        actions: {
+            setSearchQuery: assign((context, event) => {
+                if (event.type !== 'UPDATE_SEARCH_QUERY') {
+                    return context;
+                }
 
-        typing: {
-            on: {
-                BLUR: 'idle',
+                return {
+                    ...context,
+                    searchQuery: event.searchQuery,
+                };
+            }),
+        },
 
-                UPDATE_SEARCH_QUERY: {
-                    actions: assign({
-                        searchQuery: (_context, { searchQuery }) => searchQuery,
-                    }),
-                },
+        guards: {
+            isSearchQueryEmptyFromEvent: (_context, event): boolean => {
+                if (event.type !== 'UPDATE_SEARCH_QUERY') {
+                    return true;
+                }
+
+                return event.searchQuery.length === 0;
             },
         },
     },
-});
+);
 
 function useLayout() {
     const [layout, setLayout] = useState({
@@ -290,19 +344,17 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
             }}
         >
             <View style={{ marginBottom: titleMarginBottom }}>
-                <AnimatePresence>
-                    <MotiView
-                        animate={{
-                            opacity: showHeader ? 1 : 0,
-                        }}
-                        style={sx({
-                            marginBottom: 'l',
-                        })}
-                        onLayout={onLayout}
-                    >
-                        <Title>Track vote</Title>
-                    </MotiView>
-                </AnimatePresence>
+                <MotiView
+                    animate={{
+                        opacity: showHeader ? 1 : 0,
+                    }}
+                    style={sx({
+                        marginBottom: 'l',
+                    })}
+                    onLayout={onLayout}
+                >
+                    <Title>Track vote</Title>
+                </MotiView>
 
                 <View sx={{ flexDirection: 'row' }}>
                     <SearchBar
@@ -362,7 +414,7 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({ bottomInset }) => {
                     marginBottom: 'm',
                 }}
             >
-                <View sx={{}}>
+                <View>
                     <Typo sx={{ fontSize: 's' }}>{title}</Typo>
                     <Typo sx={{ fontSize: 'xs', color: 'greyLighter' }}>
                         Baptiste Devessier
@@ -414,8 +466,8 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
 }) => {
     const [offset, setOffset] = useState(0);
     const [state, send] = useMachine(screenHeaderMachine);
-    const showHeader = state.matches('idle');
-    const showSuggestions = state.matches('idle');
+    const showHeader = state.hasTag('showHeaderTitle');
+    const showSuggestions = state.hasTag('showSuggestions');
 
     const insets = useSafeAreaInsets();
 

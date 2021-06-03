@@ -480,7 +480,7 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
         >
             <MotiView
                 animate={{
-                    top: showHeader ? 0 : offset,
+                    translateY: showHeader ? 0 : offset,
                 }}
                 style={{
                     flex: 1,

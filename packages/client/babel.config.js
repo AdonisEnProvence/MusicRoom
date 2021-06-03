@@ -6,7 +6,6 @@ module.exports = function (api) {
             'react-native-reanimated/plugin',
             'transform-inline-environment-variables',
             'inline-dotenv',
-            'react-native-reanimated/plugin',
         ],
     };
 };

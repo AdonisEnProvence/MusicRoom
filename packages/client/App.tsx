@@ -59,7 +59,9 @@ const App: React.FC = () => {
                         toggleColorScheme={toggleColorScheme}
                         sx={{ backgroundColor: 'headerBackground', flex: 1 }}
                     />
-                    <StatusBar style={'inverted'} />
+                    <StatusBar
+                        style={colorScheme === 'dark' ? 'light' : 'dark'}
+                    />
                 </SafeAreaProvider>
             </DripsyProvider>
         );

@@ -372,13 +372,17 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
 
 type SuggestionListProps = {
     bottomInset: number;
+    onSuggestionPress: (id: string) => void;
 };
 
 interface RoomSuggestion {
     title: string;
 }
 
-const SuggestionsList: React.FC<SuggestionListProps> = ({ bottomInset }) => {
+const SuggestionsList: React.FC<SuggestionListProps> = ({
+    bottomInset,
+    onSuggestionPress,
+}) => {
     const sx = useSx();
 
     const suggestions: RoomSuggestion[] = [
@@ -405,7 +409,11 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({ bottomInset }) => {
     const renderItem: ListRenderItem<RoomSuggestion> = ({
         item: { title },
     }) => (
-        <TouchableOpacity>
+        <TouchableOpacity
+            onPress={() => {
+                onSuggestionPress(title);
+            }}
+        >
             <View
                 sx={{
                     flexDirection: 'row',
@@ -502,7 +510,14 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
                     }}
                 >
                     {showSuggestions ? (
-                        <SuggestionsList bottomInset={insets.bottom} />
+                        <SuggestionsList
+                            bottomInset={insets.bottom}
+                            onSuggestionPress={(roomId: string) => {
+                                navigation.navigate('MusicTrackVote', {
+                                    roomId,
+                                });
+                            }}
+                        />
                     ) : (
                         <SearchList />
                     )}

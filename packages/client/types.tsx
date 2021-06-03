@@ -28,6 +28,9 @@ export type RootStackParamList = {
     Root: NavigatorScreenParams<BottomTabNavigatorParamList>;
 
     MusicTrackVoteSearch: undefined;
+    MusicTrackVote: {
+        roomId: string;
+    };
 
     Chat: undefined;
     SearchTrackResults: {
@@ -50,6 +53,11 @@ export type RootStackParamList = {
 export type MusicTrackVoteSearchScreenProps = {
     navigation: StackNavigationProp<RootStackParamList, 'MusicTrackVoteSearch'>;
     route: RouteProp<RootStackParamList, 'MusicTrackVoteSearch'>;
+};
+
+export type MusicTrackVoteScreenProps = {
+    navigation: StackNavigationProp<RootStackParamList, 'MusicTrackVote'>;
+    route: RouteProp<RootStackParamList, 'MusicTrackVote'>;
 };
 
 export type ChatScreenProps = {

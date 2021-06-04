@@ -9,7 +9,7 @@ import (
 
 type (
 	ControlState struct {
-		playing bool
+		Playing bool
 	}
 )
 
@@ -17,7 +17,7 @@ func ControlWorkflow(ctx workflow.Context, state ControlState) error {
 	// https://docs.temporal.io/docs/concepts/workflows/#workflows-have-options
 	logger := workflow.GetLogger(ctx)
 
-	err := workflow.SetQueryHandler(ctx, "getCart", func(input []byte) (ControlState, error) {
+	err := workflow.SetQueryHandler(ctx, "getState", func(input []byte) (ControlState, error) {
 		return state, nil
 	})
 	if err != nil {
@@ -83,8 +83,8 @@ func ControlWorkflow(ctx workflow.Context, state ControlState) error {
 // @@@SNIPSTART temporal-ecommerce-add-and-remove
 
 func (state *ControlState) Pause() {
-	if state.playing {
-		state.playing = false
+	if state.Playing {
+		state.Playing = false
 		fmt.Println("PAUSED")
 	} else {
 		fmt.Println("PAUSED FAILED")
@@ -92,8 +92,8 @@ func (state *ControlState) Pause() {
 }
 
 func (state *ControlState) Play() {
-	if !state.playing {
-		state.playing = true
+	if !state.Playing {
+		state.Playing = true
 		fmt.Println("PLAYED")
 	} else {
 		fmt.Println("PLAYED FAILED")

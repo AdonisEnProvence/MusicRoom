@@ -19,11 +19,11 @@ type RouteSignal struct {
 	Route string
 }
 
-type TogglePlaySignal struct {
+type PlaySignal struct {
 	Route string
 }
 
-type TogglePauseSignal struct {
+type PauseSignal struct {
 	Route string
 }
 

@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/mitchellh/mapstructure"
 	"go.temporal.io/sdk/workflow"
@@ -29,8 +30,6 @@ func ControlWorkflow(ctx workflow.Context, state ControlState) error {
 	checkedOut := false
 	// sentAbandonedCartEmail := false
 
-	// var a *Activities
-
 	for {
 		selector := workflow.NewSelector(ctx)
 		selector.AddReceive(channel, func(c workflow.ReceiveChannel, _ bool) {
@@ -47,6 +46,18 @@ func ControlWorkflow(ctx workflow.Context, state ControlState) error {
 			switch {
 			case routeSignal.Route == RouteTypes.PLAY:
 				state.Play()
+				options := workflow.ActivityOptions{
+					ScheduleToStartTimeout: time.Minute,
+					StartToCloseTimeout:    time.Minute,
+				}
+
+				ctx = workflow.WithActivityOptions(ctx, options)
+
+				err = workflow.ExecuteActivity(ctx, PingActivity).Get(ctx, nil)
+				if err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
 			case routeSignal.Route == RouteTypes.PAUSE:
 				state.Pause()
 			}
@@ -80,8 +91,6 @@ func ControlWorkflow(ctx workflow.Context, state ControlState) error {
 	return nil
 }
 
-// @@@SNIPSTART temporal-ecommerce-add-and-remove
-
 func (state *ControlState) Pause() {
 	if state.Playing {
 		state.Playing = false
@@ -99,5 +108,3 @@ func (state *ControlState) Play() {
 		fmt.Println("PLAYED FAILED")
 	}
 }
-
-// @@@SNIPEND

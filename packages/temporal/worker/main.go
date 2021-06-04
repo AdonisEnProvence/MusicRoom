@@ -20,6 +20,7 @@ func main() {
 	// This worker hosts both Worker and Activity functions
 	w := worker.New(c, app.ControlTaskQueue, worker.Options{})
 	w.RegisterWorkflow(app.ControlWorkflow)
+	w.RegisterActivity(app.PingActivity)
 	// Start listening to the Task Queue
 	err = w.Run(worker.InterruptCh())
 	if err != nil {

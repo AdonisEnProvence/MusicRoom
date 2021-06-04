@@ -22,6 +22,8 @@ import Route from '@ioc:Adonis/Core/Route';
 
 Route.get('/search/track/:query', 'TracksSearchesController.searchTrackName');
 
+Route.get('/ping', () => console.log('pong'));
+
 Route.get('/', () => {
     return { hello: 'world' };
 });

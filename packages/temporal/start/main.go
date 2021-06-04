@@ -11,6 +11,7 @@ import (
 	"hello-world-project-template-go/app"
 )
 
+//TODO REFACTO FOR CONTROL-WORKFLOW
 func main() {
 	// Create the client object just once per process
 	c, err := client.NewClient(client.Options{})
@@ -20,10 +21,9 @@ func main() {
 	defer c.Close()
 	options := client.StartWorkflowOptions{
 		ID:        "greeting-workflow",
-		TaskQueue: app.GreetingTaskQueue,
+		TaskQueue: app.ControlTaskQueue,
 	}
-	name := "World"
-	we, err := c.ExecuteWorkflow(context.Background(), options, app.GreetingWorkflow, name)
+	we, err := c.ExecuteWorkflow(context.Background(), options, app.ControlWorkflow)
 	if err != nil {
 		log.Fatalln("unable to complete Workflow", err)
 	}

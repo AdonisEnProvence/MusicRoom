@@ -1,7 +1,6 @@
 // @@@SNIPSTART hello-world-project-template-go-shared
 package app
 
-const GreetingTaskQueue = "GREETING_TASK_QUEUE"
 const ControlTaskQueue = "CONTROL_TASK_QUEUE"
 
 var (

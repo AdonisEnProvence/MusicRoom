@@ -80,7 +80,7 @@ func TogglePlayHandler(w http.ResponseWriter, r *http.Request) {
 	defer c.Close()
 	options := client.StartWorkflowOptions{
 		ID:        "control-workflow",
-		TaskQueue: app.GreetingTaskQueue,
+		TaskQueue: app.ControlTaskQueue,
 	}
 	name := "World"
 	we, err := c.ExecuteWorkflow(context.Background(), options, app.ControlWorkflow, name)
@@ -118,31 +118,3 @@ func TogglePlayHandler(w http.ResponseWriter, r *http.Request) {
 	res["ok"] = 1
 	json.NewEncoder(w).Encode(res)
 */
-
-func GreetingHandler(w http.ResponseWriter, r *http.Request) {
-	c, err := client.NewClient(client.Options{})
-	if err != nil {
-		log.Fatalln("unable to create Temporal client", err)
-	}
-	defer c.Close()
-	options := client.StartWorkflowOptions{
-		ID:        "greeting-workflow",
-		TaskQueue: app.GreetingTaskQueue,
-	}
-	name := "World"
-	we, err := c.ExecuteWorkflow(context.Background(), options, app.GreetingWorkflow, name)
-	if err != nil {
-		log.Fatalln("unable to complete Workflow", err)
-	}
-	var greeting string
-	err = we.Get(context.Background(), &greeting)
-	if err != nil {
-		log.Fatalln("unable to get Workflow result", err)
-	}
-	printResults(greeting, we.GetID(), we.GetRunID())
-}
-
-func printResults(greeting string, workflowID, runID string) {
-	fmt.Printf("\nWorkflowID: %s RunID: %s\n", workflowID, runID)
-	fmt.Printf("\n%s\n\n", greeting)
-}

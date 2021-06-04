@@ -18,11 +18,8 @@ func main() {
 	}
 	defer c.Close()
 	// This worker hosts both Worker and Activity functions
-	w := worker.New(c, app.GreetingTaskQueue, worker.Options{})
-	w.RegisterWorkflow(app.GreetingWorkflow)
+	w := worker.New(c, app.ControlTaskQueue, worker.Options{})
 	w.RegisterWorkflow(app.ControlWorkflow)
-	w.RegisterActivity(app.ComposeGreeting)
-	w.RegisterActivity(app.TogglePlay)
 	// Start listening to the Task Queue
 	err = w.Run(worker.InterruptCh())
 	if err != nil {

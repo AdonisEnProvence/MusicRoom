@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { View, useSx } from 'dripsy';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useMachine } from '@xstate/react';
+import { TouchableOpacity, ListRenderItem, FlatList } from 'react-native';
+import { View as MotiView } from 'moti';
+import { appScreenHeaderWithSearchBarMachine } from '../machines/appScreenHeaderWithSearchBarMachine';
 import { MusicTrackVoteSearchScreenProps } from '../types';
 import {
     Typo,
@@ -9,9 +13,6 @@ import {
     AppScreenHeaderWithSearchBar,
     AppScreenContainer,
 } from '../components/kit';
-import { useMachine } from '@xstate/react';
-import { TouchableOpacity, ListRenderItem, FlatList } from 'react-native';
-import { appScreenHeaderWithSearchBarMachine } from '../machines/appScreenHeaderWithSearchBarMachine';
 
 type SuggestionListProps = {
     bottomInset: number;
@@ -120,6 +121,7 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
     const [state, send] = useMachine(appScreenHeaderWithSearchBarMachine);
     const showHeader = state.hasTag('showHeaderTitle');
     const showSuggestions = state.hasTag('showSuggestions');
+    const reduceSuggestionsOpacity = state.hasTag('reduceSuggestionsOpacity');
 
     return (
         <AppScreen screenOffsetY={showHeader === true ? 0 : screenOffsetY}>
@@ -134,14 +136,22 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
 
             <AppScreenContainer>
                 {showSuggestions ? (
-                    <SuggestionsList
-                        bottomInset={insets.bottom}
-                        onSuggestionPress={(roomId: string) => {
-                            navigation.navigate('MusicTrackVote', {
-                                roomId,
-                            });
+                    <MotiView
+                        animate={{
+                            opacity:
+                                reduceSuggestionsOpacity === true ? 0.7 : 1,
                         }}
-                    />
+                        style={{ flex: 1 }}
+                    >
+                        <SuggestionsList
+                            bottomInset={insets.bottom}
+                            onSuggestionPress={(roomId: string) => {
+                                navigation.navigate('MusicTrackVote', {
+                                    roomId,
+                                });
+                            }}
+                        />
+                    </MotiView>
                 ) : (
                     <SearchList />
                 )}

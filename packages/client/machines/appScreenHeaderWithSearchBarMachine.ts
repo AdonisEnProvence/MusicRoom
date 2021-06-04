@@ -36,7 +36,7 @@ export const appScreenHeaderWithSearchBarMachine = createMachine<
 
                 states: {
                     waitingSearchQuery: {
-                        tags: ['showSuggestions'],
+                        tags: ['showSuggestions', 'reduceSuggestionsOpacity'],
 
                         on: {
                             UPDATE_SEARCH_QUERY: {

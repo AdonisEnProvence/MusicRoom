@@ -1,9 +1,13 @@
 import React, { useState, useCallback } from 'react';
-import { View, Alert, Button, Text } from 'react-native';
+import { Alert, Button, Text } from 'react-native';
 import { MusicTrackVoteScreenProps } from '../types';
+import { AppScreen } from '../components/kit';
 import MusicPlayer from '../components/track-vote/MusicPlayer';
 
-const TrackPlayer: React.FC<MusicTrackVoteScreenProps> = ({ route }) => {
+const TrackPlayer: React.FC<MusicTrackVoteScreenProps> = ({
+    route,
+    navigation,
+}) => {
     const roomId = route.params.roomId;
 
     const [playing, setPlaying] = useState(false);
@@ -19,16 +23,21 @@ const TrackPlayer: React.FC<MusicTrackVoteScreenProps> = ({ route }) => {
     }, []);
 
     return (
-        <View style={{ paddingVertical: 60, paddingHorizontal: 20 }}>
+        <AppScreen
+            canGoBack={true}
+            goBack={() => {
+                navigation.goBack();
+            }}
+        >
             <Text>{roomId}</Text>
 
-            <MusicPlayer videoId="55SwKPVMVM4" videoState="playing" />
+            <MusicPlayer videoId="55SwKPVMVM4" videoState="stopped" />
 
             <Button
                 title={playing ? 'pause' : 'play'}
                 onPress={togglePlaying}
             />
-        </View>
+        </AppScreen>
     );
 };
 

@@ -1,5 +1,13 @@
 {
     "name": "@musicroom/temporal",
-    "version": "0.0.1"
+    "version": "0.0.1",
+    "dependencies": {},
+    "scripts": {
+        "dev": "nodemon --exec env PORT=3000 go run api/main.go --signal SIGTERM",
+        "worker": "go run worker/main.go",
+        "temporal": "cd docker-compose/ && docker-compose -d"
+    },
+    "devDependencies": {
+        "nodemon": "^2.0.7"
+    }
 }
-  

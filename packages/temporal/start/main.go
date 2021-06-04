@@ -39,4 +39,5 @@ func printResults(greeting string, workflowID, runID string) {
 	fmt.Printf("\nWorkflowID: %s RunID: %s\n", workflowID, runID)
 	fmt.Printf("\n%s\n\n", greeting)
 }
+
 // @@@SNIPEND

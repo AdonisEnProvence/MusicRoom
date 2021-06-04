@@ -16,4 +16,5 @@ func GreetingWorkflow(ctx workflow.Context, name string) (string, error) {
 	err := workflow.ExecuteActivity(ctx, ComposeGreeting, name).Get(ctx, &result)
 	return result, err
 }
+
 // @@@SNIPEND

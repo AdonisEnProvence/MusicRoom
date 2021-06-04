@@ -20,11 +20,14 @@ func main() {
 	// This worker hosts both Worker and Activity functions
 	w := worker.New(c, app.GreetingTaskQueue, worker.Options{})
 	w.RegisterWorkflow(app.GreetingWorkflow)
+	w.RegisterWorkflow(app.ControlWorkflow)
 	w.RegisterActivity(app.ComposeGreeting)
+	w.RegisterActivity(app.TogglePlay)
 	// Start listening to the Task Queue
 	err = w.Run(worker.InterruptCh())
 	if err != nil {
 		log.Fatalln("unable to start Worker", err)
 	}
 }
+
 // @@@SNIPEND

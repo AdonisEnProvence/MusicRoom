@@ -23,5 +23,8 @@
   },
   "scripty": {
     "path": "../../scripts/packages"
+  },
+  "dependencies": {
+    "zod": "^3.1.0"
   }
 }

@@ -12,7 +12,7 @@ import { AppScreenHeaderWithSearchBarMachineEvent } from '../../machines/appScre
 type AppScreenHeaderWithSearchBarPropsBase = {
     insetTop: number;
     setScreenOffsetY: (offset: number) => void;
-
+    title: string;
     showHeader: boolean;
     searchQuery: string;
     sendToMachine: Sender<AppScreenHeaderWithSearchBarMachineEvent>;
@@ -32,6 +32,7 @@ const AppScreenHeaderWithSearchBar: React.FC<AppScreenHeaderWithSearchBarProps> 
         insetTop,
         setScreenOffsetY,
         showHeader,
+        title,
         searchQuery,
         sendToMachine,
         ...props
@@ -102,7 +103,7 @@ const AppScreenHeaderWithSearchBar: React.FC<AppScreenHeaderWithSearchBarProps> 
                             </TouchableOpacity>
                         )}
 
-                        <AppScreenHeaderTitle>Track vote</AppScreenHeaderTitle>
+                        <AppScreenHeaderTitle>{title}</AppScreenHeaderTitle>
                     </MotiView>
 
                     <View sx={{ flexDirection: 'row' }}>

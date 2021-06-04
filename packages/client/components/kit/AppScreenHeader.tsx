@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 type AppScreenHeaderPropsBase = {
     insetTop: number;
+    title: string;
 };
 
 type AppScreenHeaderProps = AppScreenHeaderPropsBase &
@@ -19,6 +20,7 @@ type AppScreenHeaderProps = AppScreenHeaderPropsBase &
 
 const AppScreenHeader: React.FC<AppScreenHeaderProps> = ({
     insetTop,
+    title,
     ...props
 }) => {
     const sx = useSx();
@@ -56,7 +58,7 @@ const AppScreenHeader: React.FC<AppScreenHeaderProps> = ({
                     </TouchableOpacity>
                 )}
 
-                <AppScreenHeaderTitle>Track vote</AppScreenHeaderTitle>
+                <AppScreenHeaderTitle>{title}</AppScreenHeaderTitle>
             </View>
         </View>
     );

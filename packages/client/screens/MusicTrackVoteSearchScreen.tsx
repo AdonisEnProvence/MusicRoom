@@ -30,7 +30,7 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
 
     const suggestions: RoomSuggestion[] = [
         {
-            title: 'Claude Nougaro - Toulouse',
+            title: 'Claude Nougaro - Toulouse Eheheheheheheheheheh',
         },
         {
             title: 'Biolay Fans',
@@ -124,6 +124,7 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
     return (
         <AppScreen screenOffsetY={showHeader === true ? 0 : screenOffsetY}>
             <AppScreenHeaderWithSearchBar
+                title="Track Vote"
                 insetTop={insets.top}
                 setScreenOffsetY={setScreenOffsetY}
                 searchQuery={state.context.searchQuery}

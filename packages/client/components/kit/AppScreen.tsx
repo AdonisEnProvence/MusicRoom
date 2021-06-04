@@ -3,10 +3,13 @@ import { View } from 'dripsy';
 import { View as MotiView } from 'moti';
 
 type AppScreenProps = {
-    screenOffsetY: number;
+    screenOffsetY?: number;
 };
 
-const AppScreen: React.FC<AppScreenProps> = ({ screenOffsetY, children }) => {
+const AppScreen: React.FC<AppScreenProps> = ({
+    screenOffsetY = 0,
+    children,
+}) => {
     return (
         <View
             sx={{

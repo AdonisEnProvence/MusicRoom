@@ -1,16 +1,37 @@
-import React, { useEffect } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useEffect, useState } from 'react';
+import { Button } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMachine } from '@xstate/react';
 import { searchTrackMachine } from '../machines/searchTrackMachine';
-import { Block, FlexRowContainer, TextInput, Title } from '../components/kit';
+import {
+    AppScreen,
+    AppScreenContainer,
+    AppScreenHeaderWithSearchBar,
+} from '../components/kit';
 
 import { SearchTabSearchTracksScreenProps } from '../types';
+import { appScreenHeaderWithSearchBarMachine } from '../machines/appScreenHeaderWithSearchBarMachine';
 
 const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
     navigation,
 }) => {
+    const insets = useSafeAreaInsets();
+    const [screenOffsetY, setScreenOffsetY] = useState(0);
+    const [searchState, sendToSearch] = useMachine(
+        appScreenHeaderWithSearchBarMachine,
+    );
+    const showHeader = searchState.hasTag('showHeaderTitle');
     const [state, send] = useMachine(searchTrackMachine);
+
+    useEffect(() => {
+        if (searchState.matches('submitted')) {
+            send({
+                type: 'SEND_REQUEST',
+                searchQuery: searchState.context.searchQuery,
+            });
+        }
+    }, [searchState, send]);
+
     useEffect(() => {
         if (
             state.matches('fetchedTracks') &&
@@ -22,61 +43,30 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
         }
     }, [state, navigation]);
 
-    function sendQuery() {
-        send({
-            type: 'SEND_REQUEST',
-        });
-    }
-
-    function handleInputChangeText(searchQuery: string) {
-        send({
-            type: 'UPDATE_SEARCH_QUERY',
-            searchQuery,
-        });
-    }
-
     return (
-        <Block as={SafeAreaView} background="primary">
-            <Title>Search a track</Title>
-            <FlexRowContainer>
-                <TextInput
-                    placeholderTextColor={'white'}
-                    placeholder={'Search a song here...'}
-                    onChangeText={handleInputChangeText}
-                />
-
-                <TouchableOpacity
-                    style={styles.searchSubmitButton}
-                    onPress={sendQuery}
-                >
-                    <Text style={styles.searchSubmitButtonText}>✅</Text>
-                </TouchableOpacity>
-            </FlexRowContainer>
-
-            <Button
-                title="Go to home"
-                onPress={() => {
-                    navigation.navigate('Home', {
-                        screen: 'HomeX',
-                    });
-                }}
+        <AppScreen screenOffsetY={showHeader === true ? 0 : screenOffsetY}>
+            <AppScreenHeaderWithSearchBar
+                title="Search a track"
+                searchInputPlaceholder="Search a track..."
+                insetTop={insets.top}
+                setScreenOffsetY={setScreenOffsetY}
+                searchQuery={searchState.context.searchQuery}
+                sendToMachine={sendToSearch}
+                showHeader={showHeader}
             />
-        </Block>
+
+            <AppScreenContainer>
+                <Button
+                    title="Go to home"
+                    onPress={() => {
+                        navigation.navigate('Home', {
+                            screen: 'HomeX',
+                        });
+                    }}
+                />
+            </AppScreenContainer>
+        </AppScreen>
     );
 };
-
-const styles = StyleSheet.create({
-    searchSubmitButton: {
-        padding: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        textAlign: 'center',
-    },
-
-    searchSubmitButtonText: {
-        textAlign: 'center',
-        fontSize: 18,
-    },
-});
 
 export default SearchTrackScreen;

@@ -13,6 +13,7 @@ type AppScreenHeaderWithSearchBarPropsBase = {
     insetTop: number;
     setScreenOffsetY: (offset: number) => void;
     title: string;
+    searchInputPlaceholder: string;
     showHeader: boolean;
     searchQuery: string;
     sendToMachine: Sender<AppScreenHeaderWithSearchBarMachineEvent>;
@@ -33,6 +34,7 @@ const AppScreenHeaderWithSearchBar: React.FC<AppScreenHeaderWithSearchBarProps> 
         setScreenOffsetY,
         showHeader,
         title,
+        searchInputPlaceholder,
         searchQuery,
         sendToMachine,
         ...props
@@ -55,6 +57,12 @@ const AppScreenHeaderWithSearchBar: React.FC<AppScreenHeaderWithSearchBarProps> 
         function handleTextInputBlur() {
             sendToMachine({
                 type: 'BLUR',
+            });
+        }
+
+        function handleTextInputSubmit() {
+            sendToMachine({
+                type: 'SUBMIT',
             });
         }
 
@@ -108,11 +116,13 @@ const AppScreenHeaderWithSearchBar: React.FC<AppScreenHeaderWithSearchBarProps> 
 
                     <View sx={{ flexDirection: 'row' }}>
                         <AppScreenHeaderSearchBar
+                            searchInputPlaceholder={searchInputPlaceholder}
                             query={searchQuery}
                             showCancelButton={showHeader === false}
                             setQuery={handleUpdateSearchQuery}
                             onFocus={handleTextInputFocus}
                             onBlur={handleTextInputBlur}
+                            onSubmit={handleTextInputSubmit}
                         />
                     </View>
                 </View>

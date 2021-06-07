@@ -10,11 +10,13 @@ import Typo from './Typo';
 import TextInput from './TextInput';
 
 type AppScreenHeaderSearchBarProps = {
+    searchInputPlaceholder: string;
     query: string;
     showCancelButton: boolean;
     setQuery: (query: string) => void;
     onBlur: () => void;
     onFocus: () => void;
+    onSubmit: () => void;
 };
 
 type SearchBarMachineContext = {
@@ -58,11 +60,13 @@ const searchBarMachine = createMachine<
 });
 
 const AppScreenHeaderSearchBar: React.FC<AppScreenHeaderSearchBarProps> = ({
+    searchInputPlaceholder,
     query,
     showCancelButton,
     setQuery,
     onBlur,
     onFocus,
+    onSubmit,
 }) => {
     const [{ width: containerWidth }, onContainerLayout] = useLayout();
     const [{ width }, onLayout] = useLayout(true);
@@ -104,13 +108,15 @@ const AppScreenHeaderSearchBar: React.FC<AppScreenHeaderSearchBarProps> = ({
     }
 
     function handleTextInputBlur() {
-        console.log('blur');
-
         send({
             type: 'BLUR',
         });
 
         onBlur();
+    }
+
+    function handleTextInputSubmit() {
+        onSubmit();
     }
 
     return (
@@ -146,10 +152,11 @@ const AppScreenHeaderSearchBar: React.FC<AppScreenHeaderSearchBarProps> = ({
                     placeholderTextColor="white"
                     value={query}
                     onChangeText={setQuery}
-                    placeholder="Search a song here..."
+                    placeholder={searchInputPlaceholder}
                     sx={{ borderWidth: 0 }}
                     onFocus={handleTextInputFocus}
                     onBlur={handleTextInputBlur}
+                    onSubmitEditing={handleTextInputSubmit}
                 />
 
                 {state.matches('active') && query.length > 0 && (

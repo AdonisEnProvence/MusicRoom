@@ -5,6 +5,7 @@ export type AppScreenHeaderWithSearchBarMachineContext = {
 };
 
 export type AppScreenHeaderWithSearchBarMachineEvent =
+    | { type: 'SUBMIT' }
     | { type: 'FOCUS' }
     | { type: 'BLUR' }
     | { type: 'UPDATE_SEARCH_QUERY'; searchQuery: string };
@@ -65,7 +66,19 @@ export const appScreenHeaderWithSearchBarMachine = createMachine<
                 },
 
                 on: {
+                    SUBMIT: 'submitted',
+
                     BLUR: 'idle',
+                },
+            },
+
+            submitted: {
+                tags: ['showSearchResults'],
+
+                on: {
+                    FOCUS: {
+                        target: 'typing',
+                    },
                 },
             },
         },

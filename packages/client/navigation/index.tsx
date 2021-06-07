@@ -46,9 +46,9 @@ function RootNavigator({ toggleColorScheme, colorScheme }: ColorModeProps) {
         <Stack.Navigator
             initialRouteName="Root"
             headerMode="screen"
-            screenOptions={style}
+            screenOptions={{ ...style, headerShown: false }}
         >
-            <Stack.Screen name="Root" options={{ headerShown: false }}>
+            <Stack.Screen name="Root">
                 {(props) => (
                     <BottomTabNavigator
                         colorScheme={colorScheme}
@@ -61,28 +61,25 @@ function RootNavigator({ toggleColorScheme, colorScheme }: ColorModeProps) {
             <Stack.Screen
                 name="MusicTrackVoteSearch"
                 component={MusicTrackVoteSearchScreen}
-                options={{ title: 'Track Vote Search', headerShown: false }}
+                options={{ title: 'Track Vote Search' }}
             />
 
             <Stack.Screen
                 name="SearchTrackResults"
                 component={SearchTrackResultsScreen}
-                options={{ title: 'Results', headerShown: true }}
+                options={{ title: 'Results' }}
             />
             <Stack.Screen
                 name="TrackPlayer"
                 component={TrackPlayer}
-                options={{ title: 'Player', headerShown: true }}
+                options={{ title: 'Player' }}
             />
             <Stack.Screen
                 name="Chat"
                 component={ChatScreen}
-                options={{ title: 'Chat', headerShown: true }}
+                options={{ title: 'Chat' }}
             />
-            <Stack.Screen
-                name="Settings"
-                options={{ title: 'Settings', headerShown: true }}
-            >
+            <Stack.Screen name="Settings" options={{ title: 'Settings' }}>
                 {(props) => (
                     <SettingsScreen
                         colorScheme={colorScheme}

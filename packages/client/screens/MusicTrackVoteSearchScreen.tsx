@@ -127,6 +127,7 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
         <AppScreen screenOffsetY={showHeader === true ? 0 : screenOffsetY}>
             <AppScreenHeaderWithSearchBar
                 title="Track Vote"
+                searchInputPlaceholder="Search a room..."
                 insetTop={insets.top}
                 setScreenOffsetY={setScreenOffsetY}
                 searchQuery={state.context.searchQuery}

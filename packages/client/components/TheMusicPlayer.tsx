@@ -7,6 +7,8 @@ import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Slider from '@react-native-community/slider';
 import { assign, createMachine } from 'xstate';
+import { format } from 'date-fns';
+import { enUS } from 'date-fns/locale';
 import { AppScreen, AppScreenContainer, Typo } from '../components/kit';
 import MusicPlayer, {
     MusicPlayerRef,
@@ -17,12 +19,9 @@ import { useLayout } from '../hooks/useLayout';
 function useFormatSeconds(seconds: number): string {
     const truncatedSecondsToMilliseconds = Math.trunc(seconds) * 1000;
     const formattedTime = useMemo(() => {
-        const formatter = new Intl.DateTimeFormat('en-US', {
-            second: 'numeric',
-            minute: 'numeric',
+        return format(truncatedSecondsToMilliseconds, 'mm:ss', {
+            locale: enUS,
         });
-
-        return formatter.format(truncatedSecondsToMilliseconds);
     }, [truncatedSecondsToMilliseconds]);
 
     return formattedTime;

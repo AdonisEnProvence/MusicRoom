@@ -42,7 +42,7 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 function RootNavigator({ toggleColorScheme, colorScheme }: ColorModeProps) {
     const style = navigationStyle(colorScheme);
-    console.log(style);
+
     return (
         <Stack.Navigator
             initialRouteName="Root"

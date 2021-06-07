@@ -1,18 +1,18 @@
 import React, { useRef, useMemo } from 'react';
+import { TouchableWithoutFeedback } from 'react-native';
+import { View, useSx } from 'dripsy';
+import { Ionicons } from '@expo/vector-icons';
+import { useMachine } from '@xstate/react';
 import { TouchableOpacity } from 'react-native';
-import { useSx, View } from 'dripsy';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Slider from '@react-native-community/slider';
 import { assign, createMachine } from 'xstate';
-import { MusicTrackVoteScreenProps } from '../types';
 import { AppScreen, AppScreenContainer, Typo } from '../components/kit';
 import MusicPlayer, {
     MusicPlayerRef,
 } from '../components/track-vote/MusicPlayer';
 import AppModalHeader from '../components/kit/AppModalHeader';
 import { useLayout } from '../hooks/useLayout';
-import { Ionicons } from '@expo/vector-icons';
-import { useMachine } from '@xstate/react';
 
 function useFormatSeconds(seconds: number): string {
     const truncatedSecondsToMilliseconds = Math.trunc(seconds) * 1000;
@@ -259,11 +259,10 @@ const musicControlMachine = createMachine<
     },
 );
 
-const MusicTrackVoteScreen: React.FC<MusicTrackVoteScreenProps> = ({
-    route,
-    navigation,
-}) => {
-    const roomId = route.params.roomId;
+const TheMusicPlayerFullScreen: React.FC<{
+    dismissFullScreenPlayer: () => void;
+}> = ({ dismissFullScreenPlayer }) => {
+    const roomId = 'room id';
     const insets = useSafeAreaInsets();
     const playerRef = useRef<MusicPlayerRef | null>(null);
     const [state, send] = useMachine(musicControlMachine, {
@@ -344,7 +343,7 @@ const MusicTrackVoteScreen: React.FC<MusicTrackVoteScreenProps> = ({
             <AppModalHeader
                 insetTop={insets.top}
                 dismiss={() => {
-                    navigation.goBack();
+                    dismissFullScreenPlayer();
                 }}
                 HeaderLeft={() => (
                     <View sx={{ flex: 1 }}>
@@ -382,4 +381,123 @@ const MusicTrackVoteScreen: React.FC<MusicTrackVoteScreenProps> = ({
     );
 };
 
-export default MusicTrackVoteScreen;
+type TheMusicPlayerMiniProps = {
+    height: number;
+    roomName: string;
+    currentTrackName: string;
+    currentTrackArtist: string;
+};
+
+const TheMusicPlayerMini: React.FC<TheMusicPlayerMiniProps> = ({
+    height,
+    roomName,
+    currentTrackName,
+    currentTrackArtist,
+}) => {
+    const sx = useSx();
+
+    return (
+        <View
+            sx={{
+                height,
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingLeft: 'l',
+                paddingRight: 'l',
+            }}
+        >
+            <View
+                sx={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    marginRight: 'xl',
+                }}
+            >
+                <Typo numberOfLines={1} sx={{ fontSize: 's' }}>
+                    {roomName}
+                </Typo>
+
+                <Typo
+                    numberOfLines={1}
+                    sx={{ fontSize: 'xs', color: 'greyLighter' }}
+                >
+                    {currentTrackName} • {currentTrackArtist}
+                </Typo>
+            </View>
+
+            <TouchableOpacity
+                onPress={() => {
+                    console.log('toggle');
+                }}
+            >
+                <Ionicons
+                    name="pause"
+                    style={sx({
+                        fontSize: 'xl',
+                        color: 'white',
+                    })}
+                />
+            </TouchableOpacity>
+        </View>
+    );
+};
+
+type TheMusicPlayerProps = {
+    isFullScreen: boolean;
+    setIsFullScren: (isOpen: boolean) => void;
+};
+
+const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
+    isFullScreen,
+    setIsFullScren,
+}) => {
+    const sx = useSx();
+    const MINI_PLAYER_HEIGHT = 52;
+    const roomName = 'Biolay Fans';
+    const currentTrackName = 'Visage Pâle';
+    const currentTrackArtist = 'Benjamin Biolay';
+
+    return (
+        <TouchableWithoutFeedback
+            onPress={() => {
+                setIsFullScren(true);
+            }}
+        >
+            <View
+                style={sx({
+                    backgroundColor: 'greyLight',
+                    borderBottomColor: 'black',
+                    borderBottomWidth: 1,
+                    position: isFullScreen ? 'absolute' : 'relative',
+                    top: isFullScreen ? -1 * MINI_PLAYER_HEIGHT : 0,
+                    bottom: 0,
+                    right: 0,
+                    left: 0,
+                    zIndex: 20,
+                })}
+            >
+                <TheMusicPlayerMini
+                    height={MINI_PLAYER_HEIGHT}
+                    roomName={roomName}
+                    currentTrackName={currentTrackName}
+                    currentTrackArtist={currentTrackArtist}
+                />
+
+                <View
+                    style={{
+                        flex: 1,
+                        transform: [{ translateY: isFullScreen ? 0 : 200 }],
+                    }}
+                >
+                    <TheMusicPlayerFullScreen
+                        dismissFullScreenPlayer={() => {
+                            setIsFullScren(false);
+                        }}
+                    />
+                </View>
+            </View>
+        </TouchableWithoutFeedback>
+    );
+};
+
+export default TheMusicPlayer;

@@ -55,11 +55,6 @@ export type MusicTrackVoteSearchScreenProps = {
     route: RouteProp<RootStackParamList, 'MusicTrackVoteSearch'>;
 };
 
-export type MusicTrackVoteScreenProps = {
-    navigation: StackNavigationProp<RootStackParamList, 'MusicTrackVote'>;
-    route: RouteProp<RootStackParamList, 'MusicTrackVote'>;
-};
-
 export type ChatScreenProps = {
     navigation: StackNavigationProp<RootStackParamList, 'Chat'>;
     route: RouteProp<RootStackParamList, 'Chat'>;

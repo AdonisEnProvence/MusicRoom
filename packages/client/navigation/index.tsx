@@ -12,7 +12,6 @@ import SearchTrackResultsScreen from '../screens/SearchTrackResultsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import TrackPlayer from '../screens/TrackPlayer';
 import MusicTrackVoteSearchScreen from '../screens/MusicTrackVoteSearchScreen';
-import MusicTrackVoteScreen from '../screens/MusicTrackVoteScreen';
 import { RootStackParamList } from '../types';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
@@ -63,11 +62,6 @@ function RootNavigator({ toggleColorScheme, colorScheme }: ColorModeProps) {
                 name="MusicTrackVoteSearch"
                 component={MusicTrackVoteSearchScreen}
                 options={{ title: 'Track Vote Search', headerShown: false }}
-            />
-            <Stack.Screen
-                name="MusicTrackVote"
-                component={MusicTrackVoteScreen}
-                options={{ title: 'Track Vote', headerShown: false }}
             />
 
             <Stack.Screen

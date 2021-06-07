@@ -22,6 +22,7 @@ import {
     HomeParamsList,
     SearchTracksParamsList,
 } from '../types';
+import TheMusicPlayer from '../components/TheMusicPlayer';
 
 const Tab = createBottomTabNavigator<BottomTabNavigatorParamList>();
 
@@ -44,35 +45,10 @@ function MyTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
     return (
         <>
-            <TouchableWithoutFeedback
-                onPress={() => setFullscreenPlayer((state) => !state)}
-            >
-                <View
-                    style={sx({
-                        backgroundColor: 'greyLight',
-                        borderBottomColor: 'black',
-                        borderBottomWidth: 1,
-                        position: fullscreenPlayer ? 'absolute' : 'relative',
-                        top: 0,
-                        bottom: 0,
-                        right: 0,
-                        left: 0,
-                        zIndex: 20,
-                    })}
-                >
-                    <Text
-                        sx={{
-                            fontSize: 'l',
-                            color: 'white',
-                            textAlign: 'center',
-                            paddingTop: 'm',
-                            paddingBottom: 'm',
-                        }}
-                    >
-                        LOL
-                    </Text>
-                </View>
-            </TouchableWithoutFeedback>
+            <TheMusicPlayer
+                isFullScreen={fullscreenPlayer}
+                setIsFullScren={setFullscreenPlayer}
+            />
 
             <View
                 sx={{

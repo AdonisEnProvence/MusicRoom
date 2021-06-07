@@ -106,8 +106,14 @@ func PauseHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
 	fmt.Println("Create called")
+	vars := mux.Vars(r)
+	var name string
+	err := json.NewDecoder(r.Body).Decode(&name)
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
 	workflowID := vars["workflowID"]
 
 	options := client.StartWorkflowOptions{
@@ -117,6 +123,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 	state := app.ControlState{
 		Playing: false,
+		Name:    name,
 	}
 	we, err := temporal.ExecuteWorkflow(context.Background(), options, app.ControlWorkflow, state)
 	if err != nil {

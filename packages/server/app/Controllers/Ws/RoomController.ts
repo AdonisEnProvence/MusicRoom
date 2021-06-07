@@ -25,7 +25,10 @@ export default class RoomController {
             console.log('Creating room' + payload.name);
             const roomID = genId();
             await socket.join(roomID);
-            await ServerToTemporalController.createWorflow(roomID);
+            await ServerToTemporalController.createWorflow(
+                roomID,
+                payload.name,
+            );
         } catch (e) {
             console.log('failed to create room', e);
         }

@@ -11,6 +11,7 @@ import (
 type (
 	ControlState struct {
 		Playing bool
+		Name    string
 		Users   []string
 	}
 )

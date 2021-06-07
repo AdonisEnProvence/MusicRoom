@@ -1,15 +1,12 @@
 import Env from '@ioc:Adonis/Core/Env';
 import AdonisServer from '@ioc:Adonis/Core/Server';
-import {
-    ChatClientToServerEvents,
-    ChatServerToClientEvents,
-} from '@musicroom/types';
+import { AllEvents } from '@musicroom/types/src/websockets';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { RedisClient } from 'redis';
 import { Server } from 'socket.io';
 
 class Ws {
-    public io: Server<ChatClientToServerEvents, ChatServerToClientEvents>;
+    public io: Server<AllEvents>;
     private booted = false;
 
     public boot() {

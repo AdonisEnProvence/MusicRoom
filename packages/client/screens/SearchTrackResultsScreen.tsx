@@ -9,13 +9,21 @@ import {
 import TrackPreview from '../components/search/TrackPreview';
 import { SearchTrackResultsScreenProps } from '../types';
 import { SearchedTrack } from '../machines/searchTrackMachine';
+import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 
 const SearchTracksResultsScreen: React.FC<SearchTrackResultsScreenProps> = ({
     route,
-    navigation,
 }) => {
     const tracks = route.params.tracks;
     const insets = useSafeAreaInsets();
+    const { sendToMachine } = useMusicPlayer();
+
+    function handleTrackPress(trackId: string) {
+        sendToMachine({
+            type: 'CREATE_ROOM',
+            roomName: trackId,
+        });
+    }
 
     return (
         <AppScreen>
@@ -24,10 +32,7 @@ const SearchTracksResultsScreen: React.FC<SearchTrackResultsScreenProps> = ({
             <AppScreenContainer>
                 <MSFlatList<SearchedTrack>
                     onPress={(item) => {
-                        console.log(item);
-                        navigation.navigate('TrackPlayer', {
-                            track: item,
-                        });
+                        handleTrackPress(item.title);
                     }}
                     data={tracks}
                     Item={(item) => <TrackPreview track={item} />}

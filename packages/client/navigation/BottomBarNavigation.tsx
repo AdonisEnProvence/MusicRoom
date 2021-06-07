@@ -11,12 +11,13 @@ import {
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useState } from 'react';
 import { View, Text, useSx } from 'dripsy';
-import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ColorModeProps } from '.';
 import { tabStyle } from '../constants/Colors';
 import HomeScreen from '../screens/HomeScreen';
 import SearchTrackScreen from '../screens/SearchTrackScreen';
+import SearchTrackResultsScreen from '../screens/SearchTrackResultsScreen';
 import {
     BottomTabNavigatorParamList,
     HomeParamsList,
@@ -209,11 +210,16 @@ const TabTwoStack = createStackNavigator<SearchTracksParamsList>();
 
 function TabTwoNavigator() {
     return (
-        <TabTwoStack.Navigator headerMode={'screen'}>
+        <TabTwoStack.Navigator headerMode={'none'}>
             <TabTwoStack.Screen
                 name="SearchTracks"
                 component={SearchTrackScreen}
                 options={{ headerTitle: 'Search', headerShown: false }}
+            />
+            <TabTwoStack.Screen
+                name="SearchTrackResults"
+                component={SearchTrackResultsScreen}
+                options={{ title: 'Results' }}
             />
         </TabTwoStack.Navigator>
     );

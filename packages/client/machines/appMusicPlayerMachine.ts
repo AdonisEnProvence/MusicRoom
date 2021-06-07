@@ -6,12 +6,13 @@ interface TrackVoteRoom {
     name: string;
 }
 
+interface TrackVoteTrack {
+    name: string;
+    artistName: string;
+}
 export interface AppMusicPlayerMachineContext {
     currentRoom?: TrackVoteRoom;
-    currentTrack?: {
-        name: string;
-        artistName: string;
-    };
+    currentTrack?: TrackVoteTrack;
 }
 
 export type AppMusicPlayerMachineEvent =
@@ -19,7 +20,7 @@ export type AppMusicPlayerMachineEvent =
           type: 'CREATE_ROOM';
           roomName: string;
       }
-    | { type: 'JOINED_ROOM'; room: TrackVoteRoom };
+    | { type: 'JOINED_ROOM'; room: TrackVoteRoom; track: TrackVoteTrack };
 
 interface CreateAppMusicPlayerMachineArgs {
     socket: Socket;
@@ -43,7 +44,9 @@ export const createAppMusicPlayerMachine = ({
         states: {
             waitingJoiningRoom: {
                 on: {
-                    CREATE_ROOM: {},
+                    CREATE_ROOM: {
+                        target: 'connectingToRoom',
+                    },
                 },
             },
 
@@ -64,6 +67,10 @@ export const createAppMusicPlayerMachine = ({
                                 id: event.roomName,
                                 name: event.roomName,
                             },
+                            track: {
+                                name: 'Monde Nouveau',
+                                artistName: 'Feu! Chatterton',
+                            },
                         });
                     },
                 },
@@ -79,6 +86,7 @@ export const createAppMusicPlayerMachine = ({
                             return {
                                 ...context,
                                 currentRoom: event.room,
+                                currentTrack: event.track,
                             };
                         }),
                     },

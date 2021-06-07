@@ -22,6 +22,9 @@ export type HomeParamsList = {
 
 export type SearchTracksParamsList = {
     SearchTracks: undefined;
+    SearchTrackResults: {
+        tracks: SearchedTrack[];
+    };
 };
 
 export type RootStackParamList = {
@@ -33,9 +36,7 @@ export type RootStackParamList = {
     };
 
     Chat: undefined;
-    SearchTrackResults: {
-        tracks: SearchedTrack[];
-    };
+
     TrackPlayer: {
         track: SearchedTrack;
     };
@@ -58,11 +59,6 @@ export type MusicTrackVoteSearchScreenProps = {
 export type ChatScreenProps = {
     navigation: StackNavigationProp<RootStackParamList, 'Chat'>;
     route: RouteProp<RootStackParamList, 'Chat'>;
-};
-
-export type SearchTrackResultsScreenProps = {
-    navigation: StackNavigationProp<RootStackParamList, 'SearchTrackResults'>;
-    route: RouteProp<RootStackParamList, 'SearchTrackResults'>;
 };
 
 export type TrackPlayerScreenProps = {
@@ -111,4 +107,15 @@ export type SearchTabSearchTracksScreenProps = {
         >
     >;
     route: RouteProp<SearchTracksParamsList, 'SearchTracks'>;
+};
+
+export type SearchTrackResultsScreenProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'Root'>,
+        CompositeNavigationProp<
+            BottomTabNavigationProp<BottomTabNavigatorParamList, 'Search'>,
+            StackNavigationProp<SearchTracksParamsList, 'SearchTrackResults'>
+        >
+    >;
+    route: RouteProp<SearchTracksParamsList, 'SearchTrackResults'>;
 };

@@ -79,6 +79,8 @@ export const appScreenHeaderWithSearchBarMachine = createMachine<
                     FOCUS: {
                         target: 'typing',
                     },
+
+                    BLUR: 'idle',
                 },
             },
         },

@@ -259,10 +259,16 @@ const musicControlMachine = createMachine<
     },
 );
 
-const TheMusicPlayerFullScreen: React.FC<{
+type TheMusicPlayerFullScreenProps = {
     dismissFullScreenPlayer: () => void;
-}> = ({ dismissFullScreenPlayer }) => {
-    const roomId = 'room id';
+    roomName?: string;
+};
+
+const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
+    dismissFullScreenPlayer,
+    roomName,
+}) => {
+    const roomId = roomName;
     const insets = useSafeAreaInsets();
     const playerRef = useRef<MusicPlayerRef | null>(null);
     const [state, send] = useMachine(musicControlMachine, {
@@ -276,7 +282,7 @@ const TheMusicPlayerFullScreen: React.FC<{
                         type: 'LOAD_DURATION',
                         duration,
                     });
-                }, 100);
+                }, 1_000);
 
                 return () => {
                     clearInterval(timerId);
@@ -504,6 +510,7 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
                             dismissFullScreenPlayer={() => {
                                 setIsFullScren(false);
                             }}
+                            roomName={currentRoom?.name}
                         />
                     </View>
                 )}

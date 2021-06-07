@@ -1,10 +1,11 @@
 import { useMachine, useSelector } from '@xstate/react';
 import React, { useContext } from 'react';
+import { Socket } from 'socket.io-client';
 import { Sender, State } from 'xstate';
 import {
-    appMusicPlayerMachine,
     AppMusicPlayerMachineEvent,
     AppMusicPlayerMachineContext,
+    createAppMusicPlayerMachine,
 } from '../machines/appMusicPlayerMachine';
 
 interface MusicPlayerContextValue {
@@ -21,21 +22,27 @@ function selectContext(
     return state.context;
 }
 
-export const MusicPlayerContextProvider: React.FC = ({ children }) => {
-    const [, send, service] = useMachine(appMusicPlayerMachine);
-    const context = useSelector(service, selectContext);
-
-    return (
-        <MusicPlayerContext.Provider
-            value={{
-                sendToMachine: send,
-                context,
-            }}
-        >
-            {children}
-        </MusicPlayerContext.Provider>
-    );
+type MusicPlayerContextProviderProps = {
+    socket: Socket;
 };
+
+export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProps> =
+    ({ socket, children }) => {
+        const appMusicPlayerMachine = createAppMusicPlayerMachine({ socket });
+        const [, send, service] = useMachine(appMusicPlayerMachine);
+        const context = useSelector(service, selectContext);
+
+        return (
+            <MusicPlayerContext.Provider
+                value={{
+                    sendToMachine: send,
+                    context,
+                }}
+            >
+                {children}
+            </MusicPlayerContext.Provider>
+        );
+    };
 
 export function useMusicPlayer(): MusicPlayerContextValue {
     const context = useContext(MusicPlayerContext);

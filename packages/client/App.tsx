@@ -5,12 +5,14 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { colorPalette } from './constants/Colors';
 import { MusicPlayerContextProvider } from './contexts/MusicPlayerContext';
 import useCachedResources from './hooks/useCachedResources';
+import { useSocket } from './hooks/useSocket';
 import Navigation from './navigation';
 
 export type SizeTerms = 'xs' | 's' | 'm' | 'l' | 'xl';
 export type BackgroundTerms = 'primary' | 'seconday' | 'white' | 'text';
 
 const App: React.FC = () => {
+    const socket = useSocket();
     const [colorScheme, setColorScheme] = useState<'dark' | 'light'>('dark');
     const isLoadingComplete = useCachedResources();
     const palette = colorPalette(colorScheme);
@@ -56,7 +58,7 @@ const App: React.FC = () => {
         return (
             <DripsyProvider theme={theme}>
                 <SafeAreaProvider>
-                    <MusicPlayerContextProvider>
+                    <MusicPlayerContextProvider socket={socket}>
                         <Navigation
                             colorScheme={colorScheme}
                             toggleColorScheme={toggleColorScheme}

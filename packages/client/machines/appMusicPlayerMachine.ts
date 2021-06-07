@@ -1,4 +1,5 @@
-import { assign, createMachine } from 'xstate';
+import { Socket } from 'socket.io-client';
+import { assign, createMachine, StateMachine } from 'xstate';
 
 interface TrackVoteRoom {
     id: string;
@@ -20,62 +21,70 @@ export type AppMusicPlayerMachineEvent =
       }
     | { type: 'JOINED_ROOM'; room: TrackVoteRoom };
 
-export const appMusicPlayerMachine = createMachine<
+interface CreateAppMusicPlayerMachineArgs {
+    socket: Socket;
+}
+
+export const createAppMusicPlayerMachine = ({
+    socket,
+}: CreateAppMusicPlayerMachineArgs): StateMachine<
     AppMusicPlayerMachineContext,
+    any,
     AppMusicPlayerMachineEvent
->({
-    context: {
-        currentRoom: undefined,
-        currentTrack: undefined,
-    },
-
-    initial: 'waitingJoiningRoom',
-
-    states: {
-        waitingJoiningRoom: {
-            on: {
-                CREATE_ROOM: {},
-            },
+> =>
+    createMachine<AppMusicPlayerMachineContext, AppMusicPlayerMachineEvent>({
+        context: {
+            currentRoom: undefined,
+            currentTrack: undefined,
         },
 
-        connectingToRoom: {
-            invoke: {
-                src: (_context, event) => (sendBack) => {
-                    if (event.type !== 'CREATE_ROOM') {
-                        throw new Error(
-                            'Service must be called in reaction to CREATE_ROOM event',
-                        );
-                    }
+        initial: 'waitingJoiningRoom',
 
-                    console.log('roomName', event.roomName);
-
-                    sendBack({
-                        type: 'JOINED_ROOM',
-                        room: {
-                            id: event.roomName,
-                            name: event.roomName,
-                        },
-                    });
+        states: {
+            waitingJoiningRoom: {
+                on: {
+                    CREATE_ROOM: {},
                 },
             },
 
-            on: {
-                JOINED_ROOM: {
-                    target: 'connectedToRoom',
-                    actions: assign((context, event) => {
-                        if (event.type !== 'JOINED_ROOM') {
-                            return context;
+            connectingToRoom: {
+                invoke: {
+                    src: (_context, event) => (sendBack) => {
+                        if (event.type !== 'CREATE_ROOM') {
+                            throw new Error(
+                                'Service must be called in reaction to CREATE_ROOM event',
+                            );
                         }
 
-                        return {
-                            ...context,
-                            currentRoom: event.room,
-                        };
-                    }),
+                        console.log('roomName', event.roomName);
+
+                        sendBack({
+                            type: 'JOINED_ROOM',
+                            room: {
+                                id: event.roomName,
+                                name: event.roomName,
+                            },
+                        });
+                    },
+                },
+
+                on: {
+                    JOINED_ROOM: {
+                        target: 'connectedToRoom',
+                        actions: assign((context, event) => {
+                            if (event.type !== 'JOINED_ROOM') {
+                                return context;
+                            }
+
+                            return {
+                                ...context,
+                                currentRoom: event.room,
+                            };
+                        }),
+                    },
                 },
             },
-        },
 
-        connectedToRoom: {},
-    },
-});
+            connectedToRoom: {},
+        },
+    });

@@ -47,6 +47,7 @@ func main() {
 	r.Handle("/control/{workflowID}/{runID}/play", http.HandlerFunc(PlayHandler)).Methods("PUT")
 	r.Handle("/control/{workflowID}/{runID}/pause", http.HandlerFunc(PauseHandler)).Methods("PUT")
 	r.Handle("/create/{workflowID}", http.HandlerFunc(CreateRoomHandler)).Methods("PUT")
+	r.Handle("/join/{workflowID}/{runID}", http.HandlerFunc(JoinRoomHandler)).Methods("PUT")
 	r.Handle("/state/{workflowID}/{runID}", http.HandlerFunc(GetStateHandler)).Methods("GET")
 
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
@@ -131,6 +132,29 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	printResults("", workflowID, we.GetRunID())
 
+	json.NewEncoder(w).Encode(res)
+}
+
+func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	var userID string
+	err := json.NewDecoder(r.Body).Decode(&userID)
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	update := app.JoinSignal{Route: app.RouteTypes.JOIN, UserID: userID}
+
+	err = temporal.SignalWorkflow(context.Background(), vars["workflowID"], vars["runID"], app.SignalChannelName, update)
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	res := make(map[string]interface{})
+	res["ok"] = 1
 	json.NewEncoder(w).Encode(res)
 }
 

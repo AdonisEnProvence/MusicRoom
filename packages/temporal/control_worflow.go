@@ -11,6 +11,7 @@ import (
 type (
 	ControlState struct {
 		Playing bool
+		Users   []string
 	}
 )
 
@@ -60,6 +61,14 @@ func ControlWorkflow(ctx workflow.Context, state ControlState) error {
 				}
 			case routeSignal.Route == RouteTypes.PAUSE:
 				state.Pause()
+			case routeSignal.Route == RouteTypes.JOIN:
+				var message JoinSignal
+				err := mapstructure.Decode(signal, &message)
+				if err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
+				state.Join(message.UserID)
 			}
 		})
 
@@ -107,4 +116,8 @@ func (state *ControlState) Play() {
 	} else {
 		fmt.Println("PLAYED FAILED")
 	}
+}
+
+func (state *ControlState) Join(userID string) {
+	state.Users = append(state.Users, userID)
 }

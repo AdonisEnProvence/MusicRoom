@@ -26,6 +26,10 @@ Route.post('/create', 'MTVRoomsController.createRoom');
 
 Route.get('/ping', () => console.log('pong'));
 
+Route.get('/temporal/play/:roomID', 'TemporalToServerController.play');
+
+Route.get('/temporal/pause/:roomID', 'TemporalToServerController.pause');
+
 Route.get('/', () => {
     return { hello: 'world' };
 });

@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { colorPalette } from './constants/Colors';
+import { MusicPlayerContextProvider } from './contexts/MusicPlayerContext';
 import useCachedResources from './hooks/useCachedResources';
 import Navigation from './navigation';
 
@@ -55,14 +56,19 @@ const App: React.FC = () => {
         return (
             <DripsyProvider theme={theme}>
                 <SafeAreaProvider>
-                    <Navigation
-                        colorScheme={colorScheme}
-                        toggleColorScheme={toggleColorScheme}
-                        sx={{ backgroundColor: 'headerBackground', flex: 1 }}
-                    />
-                    <StatusBar
-                        style={colorScheme === 'dark' ? 'light' : 'dark'}
-                    />
+                    <MusicPlayerContextProvider>
+                        <Navigation
+                            colorScheme={colorScheme}
+                            toggleColorScheme={toggleColorScheme}
+                            sx={{
+                                backgroundColor: 'headerBackground',
+                                flex: 1,
+                            }}
+                        />
+                        <StatusBar
+                            style={colorScheme === 'dark' ? 'light' : 'dark'}
+                        />
+                    </MusicPlayerContextProvider>
                 </SafeAreaProvider>
             </DripsyProvider>
         );

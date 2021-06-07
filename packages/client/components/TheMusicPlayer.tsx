@@ -15,6 +15,7 @@ import MusicPlayer, {
 } from '../components/track-vote/MusicPlayer';
 import AppModalHeader from '../components/kit/AppModalHeader';
 import { useLayout } from '../hooks/useLayout';
+import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 
 function useFormatSeconds(seconds: number): string {
     const truncatedSecondsToMilliseconds = Math.trunc(seconds) * 1000;
@@ -382,18 +383,23 @@ const TheMusicPlayerFullScreen: React.FC<{
 
 type TheMusicPlayerMiniProps = {
     height: number;
-    roomName: string;
-    currentTrackName: string;
-    currentTrackArtist: string;
+    roomName?: string;
+    currentTrackName?: string;
+    currentTrackArtist?: string;
 };
 
 const TheMusicPlayerMini: React.FC<TheMusicPlayerMiniProps> = ({
     height,
-    roomName,
-    currentTrackName,
-    currentTrackArtist,
+    ...props
 }) => {
     const sx = useSx();
+    const isInRoom = props.roomName !== undefined;
+    const firstLine =
+        isInRoom === true ? props.roomName : 'Join a room to listen to music';
+    const secondLine =
+        isInRoom === true
+            ? `${props.currentTrackName} • ${props.currentTrackArtist}`
+            : '-';
 
     return (
         <View
@@ -413,18 +419,19 @@ const TheMusicPlayerMini: React.FC<TheMusicPlayerMiniProps> = ({
                 }}
             >
                 <Typo numberOfLines={1} sx={{ fontSize: 's' }}>
-                    {roomName}
+                    {firstLine}
                 </Typo>
 
                 <Typo
                     numberOfLines={1}
                     sx={{ fontSize: 'xs', color: 'greyLighter' }}
                 >
-                    {currentTrackName} • {currentTrackArtist}
+                    {secondLine}
                 </Typo>
             </View>
 
             <TouchableOpacity
+                disabled={isInRoom === false}
                 onPress={() => {
                     console.log('toggle');
                 }}
@@ -450,18 +457,22 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
     isFullScreen,
     setIsFullScren,
 }) => {
-    const sx = useSx();
     const MINI_PLAYER_HEIGHT = 52;
-    const roomName = 'Biolay Fans';
-    const currentTrackName = 'Visage Pâle';
-    const currentTrackArtist = 'Benjamin Biolay';
+    const sx = useSx();
+    const {
+        context: { currentRoom, currentTrack },
+        sendToMachine,
+    } = useMusicPlayer();
+    const isInRoom = currentRoom !== undefined;
+
+    function openPlayerInFullScreen() {
+        if (isInRoom === true) {
+            setIsFullScren(true);
+        }
+    }
 
     return (
-        <TouchableWithoutFeedback
-            onPress={() => {
-                setIsFullScren(true);
-            }}
-        >
+        <TouchableWithoutFeedback onPress={openPlayerInFullScreen}>
             <View
                 style={sx({
                     backgroundColor: 'greyLight',
@@ -477,23 +488,25 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
             >
                 <TheMusicPlayerMini
                     height={MINI_PLAYER_HEIGHT}
-                    roomName={roomName}
-                    currentTrackName={currentTrackName}
-                    currentTrackArtist={currentTrackArtist}
+                    roomName={currentRoom?.name}
+                    currentTrackName={currentTrack?.name}
+                    currentTrackArtist={currentTrack?.artistName}
                 />
 
-                <View
-                    style={{
-                        flex: 1,
-                        transform: [{ translateY: isFullScreen ? 0 : 200 }],
-                    }}
-                >
-                    <TheMusicPlayerFullScreen
-                        dismissFullScreenPlayer={() => {
-                            setIsFullScren(false);
+                {isInRoom && (
+                    <View
+                        style={{
+                            flex: 1,
+                            transform: [{ translateY: isFullScreen ? 0 : 200 }],
                         }}
-                    />
-                </View>
+                    >
+                        <TheMusicPlayerFullScreen
+                            dismissFullScreenPlayer={() => {
+                                setIsFullScren(false);
+                            }}
+                        />
+                    </View>
+                )}
             </View>
         </TouchableWithoutFeedback>
     );

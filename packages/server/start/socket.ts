@@ -12,12 +12,20 @@ Ws.io.on('connection', (socket) => {
     });
 
     /// ROOM ///
-    socket.on('CREATE_ROOM', (payload) => {
-        RoomController.onCreate({ socket, payload });
+    socket.on('CREATE_ROOM', async (payload) => {
+        try {
+            await RoomController.onCreate({ socket, payload });
+        } catch (e) {
+            console.error(e);
+        }
     });
 
-    socket.on('JOIN_ROOM', (payload) => {
-        RoomController.onJoin({ socket, payload });
+    socket.on('JOIN_ROOM', async (payload) => {
+        try {
+            await RoomController.onJoin({ socket, payload });
+        } catch (e) {
+            console.error(e);
+        }
     });
 
     //AUTH REQUEST
@@ -34,12 +42,20 @@ Ws.io.on('connection', (socket) => {
         next();
     });
 
-    socket.on('ACTION_PLAY', (payload) => {
-        RoomController.onPause({ socket, payload });
+    socket.on('ACTION_PLAY', async (payload) => {
+        try {
+            await RoomController.onPause({ socket, payload });
+        } catch (e) {
+            console.error(e);
+        }
     });
 
-    socket.on('ACTION_PAUSE', (payload) => {
-        RoomController.onPlay({ socket, payload });
+    socket.on('ACTION_PAUSE', async (payload) => {
+        try {
+            await RoomController.onPlay({ socket, payload });
+        } catch (e) {
+            console.error(e);
+        }
     });
     /// //// ///
 });

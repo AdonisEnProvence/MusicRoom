@@ -15,11 +15,11 @@ const genId = () => {
 };
 
 const getRunID = async (roomID: string): Promise<string> => {
-    const runID = await Redis.get(roomID);
+    const runID: string | undefined = (await Redis.get(roomID)) || undefined;
     if (!runID) {
         throw new Error('Redis failed to get runID for ' + roomID);
     }
-    return runID as string;
+    return runID;
 };
 
 interface WsControllerMethodArgs<Payload> {

@@ -1,21 +1,20 @@
-import React, { useRef, useMemo } from 'react';
-import { TouchableWithoutFeedback } from 'react-native';
-import { View, useSx } from 'dripsy';
 import { Ionicons } from '@expo/vector-icons';
-import { useMachine } from '@xstate/react';
-import { TouchableOpacity } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Slider from '@react-native-community/slider';
-import { assign, createMachine } from 'xstate';
+import { useMachine } from '@xstate/react';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
+import { useSx, View } from 'dripsy';
+import React, { useMemo, useRef } from 'react';
+import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { assign, createMachine } from 'xstate';
 import { AppScreen, AppScreenContainer, Typo } from '../components/kit';
+import AppModalHeader from '../components/kit/AppModalHeader';
 import MusicPlayer, {
     MusicPlayerRef,
 } from '../components/track-vote/MusicPlayer';
-import AppModalHeader from '../components/kit/AppModalHeader';
-import { useLayout } from '../hooks/useLayout';
 import { useMusicPlayer } from '../contexts/MusicPlayerContext';
+import { useLayout } from '../hooks/useLayout';
 
 function useFormatSeconds(seconds: number): string {
     const truncatedSecondsToMilliseconds = Math.trunc(seconds) * 1000;
@@ -282,7 +281,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                         type: 'LOAD_DURATION',
                         duration,
                     });
-                }, 1_000);
+                }, 1000);
 
                 return () => {
                     clearInterval(timerId);

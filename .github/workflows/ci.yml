@@ -33,8 +33,6 @@ jobs:
                     - 5432:5432
 
             temporal:
-                depends_on:
-                    - postgresql
                 env:
                     - DB=postgresql
                     - DB_PORT=5432

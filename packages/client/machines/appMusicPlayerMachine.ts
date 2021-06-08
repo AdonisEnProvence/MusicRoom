@@ -1,3 +1,7 @@
+import {
+    RoomClientToServerEvents,
+    RoomServerToClientEvents,
+} from '@musicroom/types';
 import { Socket } from 'socket.io-client';
 import { assign, createMachine, StateMachine } from 'xstate';
 
@@ -23,7 +27,7 @@ export type AppMusicPlayerMachineEvent =
     | { type: 'JOINED_ROOM'; room: TrackVoteRoom; track: TrackVoteTrack };
 
 interface CreateAppMusicPlayerMachineArgs {
-    socket: Socket;
+    socket: Socket<RoomServerToClientEvents, RoomClientToServerEvents>;
 }
 
 export const createAppMusicPlayerMachine = ({
@@ -58,20 +62,25 @@ export const createAppMusicPlayerMachine = ({
                                 'Service must be called in reaction to CREATE_ROOM event',
                             );
                         }
-
-                        console.log('roomName', event.roomName);
-
-                        sendBack({
-                            type: 'JOINED_ROOM',
-                            room: {
-                                id: event.roomName,
-                                name: event.roomName,
+                        const name = 'your_room_name';
+                        socket.emit(
+                            'CREATE_ROOM',
+                            { name, userID: 'userA' },
+                            (roomID) => {
+                                console.log(roomID);
+                                sendBack({
+                                    type: 'JOINED_ROOM',
+                                    room: {
+                                        id: roomID,
+                                        name,
+                                    },
+                                    track: {
+                                        name: 'Monde Nouveau',
+                                        artistName: 'Feu! Chatterton',
+                                    },
+                                });
                             },
-                            track: {
-                                name: 'Monde Nouveau',
-                                artistName: 'Feu! Chatterton',
-                            },
-                        });
+                        );
                     },
                 },
 

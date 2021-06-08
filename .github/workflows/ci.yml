@@ -25,7 +25,7 @@ jobs:
                 options: --entrypoint redis-server
 
             postgresl:
-                environment:
+                env:
                     POSTGRES_PASSWORD: temporal
                     POSTGRES_USER: temporal
                 image: postgres:9.6
@@ -35,7 +35,7 @@ jobs:
             temporal:
                 depends_on:
                     - postgresql
-                environment:
+                env:
                     - DB=postgresql
                     - DB_PORT=5432
                     - POSTGRES_USER=temporal

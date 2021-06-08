@@ -30,6 +30,8 @@ Route.get('/temporal/play/:roomID', 'TemporalToServerController.play');
 
 Route.get('/temporal/pause/:roomID', 'TemporalToServerController.pause');
 
+Route.get('/temporal/join/:roomID/:userID', 'TemporalToServerController.join');
+
 Route.get('/', () => {
     return { hello: 'world' };
 });

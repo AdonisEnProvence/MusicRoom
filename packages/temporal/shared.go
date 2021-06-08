@@ -30,8 +30,9 @@ type PauseSignal struct {
 }
 
 type JoinSignal struct {
-	Route  string
-	UserID string
+	Route      string
+	UserID     string
+	WorkflowID string
 }
 
 // @@@SNIPEND

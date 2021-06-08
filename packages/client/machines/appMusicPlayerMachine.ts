@@ -3,7 +3,7 @@ import {
     RoomServerToClientEvents,
 } from '@musicroom/types';
 import { Socket } from 'socket.io-client';
-import { assign, createMachine, StateMachine } from 'xstate';
+import { assign, createMachine, Sender, StateMachine } from 'xstate';
 
 interface TrackVoteRoom {
     id: string;
@@ -17,6 +17,7 @@ interface TrackVoteTrack {
 export interface AppMusicPlayerMachineContext {
     currentRoom?: TrackVoteRoom;
     currentTrack?: TrackVoteTrack;
+    waitingRoomID?: string;
 }
 
 export type AppMusicPlayerMachineEvent =
@@ -24,10 +25,28 @@ export type AppMusicPlayerMachineEvent =
           type: 'CREATE_ROOM';
           roomName: string;
       }
-    | { type: 'JOINED_ROOM'; room: TrackVoteRoom; track: TrackVoteTrack };
+    | { type: 'JOINED_ROOM'; room: TrackVoteRoom; track: TrackVoteTrack }
+    | { type: 'JOIN_ROOM'; roomID: string };
 
 interface CreateAppMusicPlayerMachineArgs {
     socket: Socket<RoomServerToClientEvents, RoomClientToServerEvents>;
+}
+
+function joinRoomCallback(sendBack: Sender<AppMusicPlayerMachineEvent>) {
+    return (roomID: string, name: string) => {
+        console.log(roomID);
+        sendBack({
+            type: 'JOINED_ROOM',
+            room: {
+                id: roomID,
+                name,
+            },
+            track: {
+                name: 'Monde Nouveau',
+                artistName: 'Feu! Chatterton',
+            },
+        });
+    };
 }
 
 export const createAppMusicPlayerMachine = ({
@@ -38,9 +57,20 @@ export const createAppMusicPlayerMachine = ({
     AppMusicPlayerMachineEvent
 > =>
     createMachine<AppMusicPlayerMachineContext, AppMusicPlayerMachineEvent>({
+        invoke: {
+            src: (_context, event) => (sendBack) => {
+                socket.on('JOIN_ROOM_CALLBACK', () => {
+                    console.log(
+                        `J'AI BIEN RECU MON FIX AUJDH MAIS JE VAIS EN PRENDRE UN DEUXIEME CE SOIR`,
+                    );
+                    sendBack('JOINED_ROOM');
+                });
+            },
+        },
         context: {
             currentRoom: undefined,
             currentTrack: undefined,
+            waitingRoomID: undefined,
         },
 
         initial: 'waitingJoiningRoom',
@@ -50,6 +80,19 @@ export const createAppMusicPlayerMachine = ({
                 on: {
                     CREATE_ROOM: {
                         target: 'connectingToRoom',
+                    },
+                    JOIN_ROOM: {
+                        target: 'joinRoom',
+                        actions: assign((context, event) => {
+                            if (event.type !== 'JOIN_ROOM') {
+                                return context;
+                            }
+
+                            return {
+                                ...context,
+                                waitingRoomID: event.roomID,
+                            };
+                        }),
                     },
                 },
             },
@@ -62,24 +105,14 @@ export const createAppMusicPlayerMachine = ({
                                 'Service must be called in reaction to CREATE_ROOM event',
                             );
                         }
-                        const name = 'your_room_name';
+                        const payload = {
+                            userID: 'user1',
+                            name: 'your_room_name',
+                        };
                         socket.emit(
                             'CREATE_ROOM',
-                            { name, userID: 'userA' },
-                            (roomID) => {
-                                console.log(roomID);
-                                sendBack({
-                                    type: 'JOINED_ROOM',
-                                    room: {
-                                        id: roomID,
-                                        name,
-                                    },
-                                    track: {
-                                        name: 'Monde Nouveau',
-                                        artistName: 'Feu! Chatterton',
-                                    },
-                                });
-                            },
+                            payload,
+                            joinRoomCallback(sendBack),
                         );
                     },
                 },
@@ -101,7 +134,35 @@ export const createAppMusicPlayerMachine = ({
                     },
                 },
             },
-
-            connectedToRoom: {},
+            joinRoom: {
+                invoke: {
+                    src: (_context, event) => (sendBack) => {
+                        if (event.type !== 'JOIN_ROOM') {
+                            throw new Error(
+                                'Service must be called in reaction to JOIN_ROOM event',
+                            );
+                        }
+                        console.log('POUIOUIUIPOUIIOPUOIPUOIU', event);
+                        const payload = {
+                            roomID: event.roomID,
+                            userID: 'user2',
+                        };
+                        socket.emit('JOIN_ROOM', payload);
+                    },
+                },
+                on: {
+                    JOINED_ROOM: {
+                        target: 'connectedToRoom',
+                        cond: (context, event) => {
+                            return event.room.id === context.waitingRoomID;
+                        },
+                    },
+                },
+            },
+            connectedToRoom: {
+                on: {
+                    JOIN_ROOM: 'joinRoom',
+                },
+            },
         },
     });

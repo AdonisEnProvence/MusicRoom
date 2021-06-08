@@ -27,8 +27,11 @@ Ws.io.on('connection', (socket) => {
     /// ROOM ///
     socket.on('CREATE_ROOM', async (payload, callback) => {
         try {
-            const runID = await RoomController.onCreate({ socket, payload });
-            callback(runID);
+            const { runID, state } = await RoomController.onCreate({
+                socket,
+                payload,
+            });
+            callback(runID, state.name);
         } catch (e) {
             console.error(e);
         }

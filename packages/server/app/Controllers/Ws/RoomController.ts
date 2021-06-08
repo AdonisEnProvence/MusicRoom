@@ -1,11 +1,13 @@
 import Redis from '@ioc:Adonis/Addons/Redis';
 import {
+    CreateWorkflowResponse,
     RoomClientToServerCreate,
     RoomClientToServerEvents,
     RoomClientToServerJoin,
     RoomClientToServerPause,
     RoomClientToServerPlay,
 } from '@musicroom/types';
+import Ws from 'App/Services/Ws';
 import { Socket } from 'socket.io';
 import ServerToTemporalController from '../Temporal/ServerToTemporalController';
 
@@ -31,17 +33,17 @@ export default class RoomController {
     public static async onCreate({
         socket,
         payload,
-    }: WsControllerMethodArgs<RoomClientToServerCreate>): Promise<string> {
+    }: WsControllerMethodArgs<RoomClientToServerCreate>): Promise<CreateWorkflowResponse> {
         console.log('Creating room' + payload.name);
         const roomID = genId();
         await socket.join(roomID);
-        const { runID } = await ServerToTemporalController.createWorflow(
+        const res = await ServerToTemporalController.createWorflow(
             roomID,
             payload.name,
             payload.userID,
         );
-        await Redis.set(roomID, runID);
-        return runID;
+        await Redis.set(roomID, res.runID);
+        return res;
     }
 
     public static async onJoin({
@@ -49,6 +51,9 @@ export default class RoomController {
         payload,
     }: WsControllerMethodArgs<RoomClientToServerJoin>): Promise<void> {
         const { roomID, userID } = payload;
+        console.log(Ws.io.sockets.adapter.rooms);
+        if (!Ws.io.sockets.adapter.rooms[roomID])
+            throw new Error('Room does not exist ' + roomID);
         console.log(`JOIN ${roomID} with ${socket.id}`);
         const runID = await getRunID(roomID);
         await ServerToTemporalController.joinWorkflow(roomID, runID, userID);

@@ -21,6 +21,9 @@ func main() {
 	w := worker.New(c, app.ControlTaskQueue, worker.Options{})
 	w.RegisterWorkflow(app.ControlWorkflow)
 	w.RegisterActivity(app.PingActivity)
+	w.RegisterActivity(app.PlayActivity)
+	w.RegisterActivity(app.PauseActivity)
+	w.RegisterActivity(app.JoinActivity)
 	// Start listening to the Task Queue
 	err = w.Run(worker.InterruptCh())
 	if err != nil {

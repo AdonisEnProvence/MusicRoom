@@ -162,7 +162,7 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	update := app.JoinSignal{Route: app.RouteTypes.JOIN, UserID: userID}
+	update := app.JoinSignal{Route: app.RouteTypes.JOIN, UserID: userID, WorkflowID: vars["workflowID"]}
 
 	err = temporal.SignalWorkflow(context.Background(), vars["workflowID"], vars["runID"], app.SignalChannelName, update)
 	if err != nil {

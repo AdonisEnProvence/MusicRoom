@@ -44,7 +44,7 @@ jobs:
               run: yarn --frozen-lockfile
 
             - name: Build packages 👷
-              run: yarn run build
+              run: yarn run build:tsc
 
             - name: Run linter 👀
               run: yarn run lint

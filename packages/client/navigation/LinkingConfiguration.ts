@@ -26,6 +26,10 @@ export default {
                     },
                 },
             },
+
+            MusicTrackVoteSearch: 'track-vote/search',
+            MusicTrackVote: 'track-vote/:roomId',
+
             SearchTrackResults: 'searchTrackResults/:tracks',
             TrackPlayer: 'trackPlayer/:track',
             Settings: 'settings/:id',

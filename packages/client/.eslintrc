@@ -3,5 +3,8 @@
     "extends": ["@react-native-community", "../../.eslintrc"],
     "parserOptions": {
         "project": "tsconfig.json"
+    },
+    "rules": {
+        "@typescript-eslint/restrict-template-expressions": "off"
     }
 }

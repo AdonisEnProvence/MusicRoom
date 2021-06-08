@@ -10,6 +10,9 @@ interface Palette {
     text: string;
     white: string;
     headerBackground: string;
+
+    greyLight: string;
+    greyLighter: string;
 }
 
 const darkPalette: Palette = {
@@ -18,6 +21,9 @@ const darkPalette: Palette = {
     text: '#fff',
     white: '#fff',
     headerBackground: '#121212',
+
+    greyLight: 'rgb(42, 42, 44)',
+    greyLighter: 'rgb(149, 150, 156)',
 };
 
 const lightPalette: Palette = {
@@ -26,6 +32,9 @@ const lightPalette: Palette = {
     text: '#000',
     white: '#fff',
     headerBackground: '#FE6D35',
+
+    greyLight: 'rgb(42, 42, 44)',
+    greyLighter: 'rgb(149, 150, 156)',
 };
 
 function HeaderIcon(props: {

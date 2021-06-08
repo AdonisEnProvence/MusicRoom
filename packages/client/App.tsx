@@ -1,14 +1,18 @@
-import { DripsyProvider, SafeAreaView } from 'dripsy';
+import { DripsyProvider } from 'dripsy';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { colorPalette } from './constants/Colors';
+import { MusicPlayerContextProvider } from './contexts/MusicPlayerContext';
 import useCachedResources from './hooks/useCachedResources';
+import { useSocket } from './hooks/useSocket';
 import Navigation from './navigation';
 
 export type SizeTerms = 'xs' | 's' | 'm' | 'l' | 'xl';
 export type BackgroundTerms = 'primary' | 'seconday' | 'white' | 'text';
 
 const App: React.FC = () => {
+    const socket = useSocket();
     const [colorScheme, setColorScheme] = useState<'dark' | 'light'>('dark');
     const isLoadingComplete = useCachedResources();
     const palette = colorPalette(colorScheme);
@@ -30,6 +34,7 @@ const App: React.FC = () => {
             l: 3,
         },
         fontSizes: {
+            xs: 14,
             s: 16,
             m: 20,
             l: 24,
@@ -39,6 +44,7 @@ const App: React.FC = () => {
             s: 5,
             m: 10,
             l: 15,
+            full: 9999,
         },
     };
 
@@ -51,15 +57,21 @@ const App: React.FC = () => {
     } else {
         return (
             <DripsyProvider theme={theme}>
-                <SafeAreaView
-                    sx={{ backgroundColor: 'headerBackground', flex: 1 }}
-                >
-                    <Navigation
-                        colorScheme={colorScheme}
-                        toggleColorScheme={toggleColorScheme}
-                    />
-                    <StatusBar style={'inverted'} />
-                </SafeAreaView>
+                <SafeAreaProvider>
+                    <MusicPlayerContextProvider socket={socket}>
+                        <Navigation
+                            colorScheme={colorScheme}
+                            toggleColorScheme={toggleColorScheme}
+                            sx={{
+                                backgroundColor: 'headerBackground',
+                                flex: 1,
+                            }}
+                        />
+                        <StatusBar
+                            style={colorScheme === 'dark' ? 'light' : 'dark'}
+                        />
+                    </MusicPlayerContextProvider>
+                </SafeAreaProvider>
             </DripsyProvider>
         );
     }

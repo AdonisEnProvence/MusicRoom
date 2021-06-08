@@ -8,15 +8,10 @@ const SearchedTrack = z.object({
 });
 export type SearchedTrack = z.infer<typeof SearchedTrack>;
 
-type UpdateSearchQueryEvent = {
-    type: 'UPDATE_SEARCH_QUERY';
-    searchQuery: string;
-};
-
 type SearchTrackEvent =
-    | UpdateSearchQueryEvent
     | {
           type: 'SEND_REQUEST';
+          searchQuery: string;
       }
     | { type: 'FETCHED_TRACKS'; tracks: SearchedTrack[] }
     | { type: 'FAILED_FETCHING_TRACKS' };
@@ -53,7 +48,6 @@ async function fetchTracks({
 }
 
 interface SearchTrackContext {
-    searchQuery: string;
     tracks: undefined | SearchedTrack[];
 }
 
@@ -63,19 +57,14 @@ export const searchTrackMachine = createMachine<
 >(
     {
         context: {
-            searchQuery: '',
             tracks: undefined,
         },
 
-        initial: 'editing',
+        initial: 'idle',
 
         states: {
-            editing: {
+            idle: {
                 on: {
-                    UPDATE_SEARCH_QUERY: {
-                        actions: 'assignSearchQueryToContext',
-                    },
-
                     SEND_REQUEST: {
                         target: 'fetchingTracks',
                     },
@@ -105,19 +94,7 @@ export const searchTrackMachine = createMachine<
         },
     },
     {
-        //sync state machine dedicated
         actions: {
-            assignSearchQueryToContext: assign((context, event) => {
-                if (event.type !== 'UPDATE_SEARCH_QUERY') {
-                    return context;
-                }
-
-                return {
-                    ...context,
-                    searchQuery: event.searchQuery,
-                };
-            }),
-
             assignTracksToContext: assign((context, event) => {
                 if (event.type !== 'FETCHED_TRACKS') {
                     return context;
@@ -130,26 +107,29 @@ export const searchTrackMachine = createMachine<
             }),
         },
 
-        //async side effect
         services: {
-            fetchTracks:
-                ({ searchQuery }, _event) =>
-                async (sendBack, _onReceive) => {
-                    try {
-                        const tracks = await fetchTracks({ searchQuery });
-                        if (tracks) {
-                            sendBack({
-                                type: 'FETCHED_TRACKS',
-                                tracks,
-                            });
-                        }
-                    } catch (err) {
-                        console.error(err);
+            fetchTracks: (_context, event) => async (sendBack, _onReceive) => {
+                if (event.type !== 'SEND_REQUEST') {
+                    return;
+                }
+
+                const { searchQuery } = event;
+
+                try {
+                    const tracks = await fetchTracks({ searchQuery });
+                    if (tracks) {
                         sendBack({
-                            type: 'FAILED_FETCHING_TRACKS',
+                            type: 'FETCHED_TRACKS',
+                            tracks,
                         });
                     }
-                },
+                } catch (err) {
+                    console.error(err);
+                    sendBack({
+                        type: 'FAILED_FETCHING_TRACKS',
+                    });
+                }
+            },
         },
     },
 );

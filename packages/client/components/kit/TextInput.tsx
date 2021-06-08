@@ -1,7 +1,7 @@
 import { styled } from 'dripsy';
-import { TextInput } from 'react-native';
+import { TextInput as RNTextInput } from 'react-native';
 
-const MSTextInput = styled(TextInput)(() => ({
+const TextInput = styled(RNTextInput)(() => ({
     flex: 1,
     borderColor: 'secondary',
     borderWidth: 's',
@@ -11,4 +11,4 @@ const MSTextInput = styled(TextInput)(() => ({
     fontSize: 's',
 }));
 
-export default MSTextInput;
+export default TextInput;

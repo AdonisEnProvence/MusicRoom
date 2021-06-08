@@ -8,9 +8,9 @@ import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
 import { navigationStyle } from '../constants/Colors';
 import ChatScreen from '../screens/ChatScreen';
-import SearchTrackResultsScreen from '../screens/SearchTrackResultsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import TrackPlayer from '../screens/TrackPlayer';
+import MusicTrackVoteSearchScreen from '../screens/MusicTrackVoteSearchScreen';
 import { RootStackParamList } from '../types';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
@@ -40,14 +40,14 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 function RootNavigator({ toggleColorScheme, colorScheme }: ColorModeProps) {
     const style = navigationStyle(colorScheme);
-    console.log(style);
+
     return (
         <Stack.Navigator
             initialRouteName="Root"
-            headerMode={'screen'}
-            screenOptions={style}
+            headerMode="screen"
+            screenOptions={{ ...style, headerShown: false }}
         >
-            <Stack.Screen name="Root" options={{ headerShown: false }}>
+            <Stack.Screen name="Root">
                 {(props) => (
                     <BottomTabNavigator
                         colorScheme={colorScheme}
@@ -56,25 +56,24 @@ function RootNavigator({ toggleColorScheme, colorScheme }: ColorModeProps) {
                     />
                 )}
             </Stack.Screen>
+
             <Stack.Screen
-                name="SearchTrackResults"
-                component={SearchTrackResultsScreen}
-                options={{ title: 'Results', headerShown: true }}
+                name="MusicTrackVoteSearch"
+                component={MusicTrackVoteSearchScreen}
+                options={{ title: 'Track Vote Search' }}
             />
+
             <Stack.Screen
                 name="TrackPlayer"
                 component={TrackPlayer}
-                options={{ title: 'Player', headerShown: true }}
+                options={{ title: 'Player' }}
             />
             <Stack.Screen
                 name="Chat"
                 component={ChatScreen}
-                options={{ title: 'Chat', headerShown: true }}
+                options={{ title: 'Chat' }}
             />
-            <Stack.Screen
-                name="Settings"
-                options={{ title: 'Settings', headerShown: true }}
-            >
+            <Stack.Screen name="Settings" options={{ title: 'Settings' }}>
                 {(props) => (
                     <SettingsScreen
                         colorScheme={colorScheme}

@@ -17,6 +17,7 @@ export interface ChatServerToClientReceivedMessageArgs {
 
 export interface RoomClientToServerCreate {
     name: string;
+    userID: string;
 }
 
 export interface RoomClientToServerJoin {
@@ -35,7 +36,10 @@ export interface ChatClientToServerEvents {
 }
 
 export interface RoomClientToServerEvents {
-    CREATE_ROOM: (args: RoomClientToServerCreate) => void;
+    CREATE_ROOM: (
+        args: RoomClientToServerCreate,
+        callback: (roomID: string) => void,
+    ) => void;
     JOIN_ROOM: (args: RoomClientToServerJoin) => void;
     ACTION_PLAY: (args: RoomClientToServerPlay) => void;
     ACTION_PAUSE: (args: RoomClientToServerPause) => void;

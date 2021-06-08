@@ -23,6 +23,29 @@ jobs:
                 ports:
                     - '6379:6379'
                 options: --entrypoint redis-server
+
+            postgresl:
+                container_name: temporal-postgresql
+                environment:
+                    POSTGRES_PASSWORD: temporal
+                    POSTGRES_USER: temporal
+                image: postgres:9.6
+                ports:
+                    - 5432:5432
+
+            temporal:
+                container_name: temporal
+                depends_on:
+                    - postgresql
+                environment:
+                    - DB=postgresql
+                    - DB_PORT=5432
+                    - POSTGRES_USER=temporal
+                    - POSTGRES_PWD=temporal
+                    - POSTGRES_SEEDS=postgresql
+                image: temporalio/auto-setup:1.9.2
+                ports:
+                    - 7233:7233
         steps:
             - name: Checkout 🛎
               uses: actions/checkout@v2
@@ -33,6 +56,11 @@ jobs:
                   node-version: 16
                   check-latest: true
 
+            - name: Setup Golang
+              uses: actions/setup-go@v2
+              with:
+                go-version: '^1.16'
+
             - name: Cache node_modules 📦
               uses: actions/cache@v2
               with:
@@ -40,16 +68,16 @@ jobs:
                   key: ubuntu-latest-node-${{ hashFiles('yarn.lock') }}
                   restore-keys: |
                       ubuntu-latest-node-
-            - name: Install dependencies 👨🏻‍💻
+            - name: Install Node.js dependencies 👨🏻‍💻
               run: yarn --frozen-lockfile
 
-            - name: Build packages 👷
+            - name: Build TypeScript packages 👷
               run: yarn run build:tsc
 
-            - name: Run linter 👀
+            - name: Run ESLint and Prettier 👀
               run: yarn run lint
 
-            - name: Run tests 🧪
+            - name: Run JavaScript tests 🧪
               run: yarn run test
               env:
                   REDIS_CONNECTION: 'local'

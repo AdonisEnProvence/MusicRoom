@@ -8,9 +8,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
 import { navigationStyle } from '../constants/Colors';
 import ChatScreen from '../screens/ChatScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import TrackPlayer from '../screens/TrackPlayer';
 import MusicTrackVoteSearchScreen from '../screens/MusicTrackVoteSearchScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 import { RootStackParamList } from '../types';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
@@ -63,11 +62,6 @@ function RootNavigator({ toggleColorScheme, colorScheme }: ColorModeProps) {
                 options={{ title: 'Track Vote Search' }}
             />
 
-            <Stack.Screen
-                name="TrackPlayer"
-                component={TrackPlayer}
-                options={{ title: 'Player' }}
-            />
             <Stack.Screen
                 name="Chat"
                 component={ChatScreen}

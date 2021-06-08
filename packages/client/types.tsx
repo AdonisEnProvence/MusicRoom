@@ -37,9 +37,6 @@ export type RootStackParamList = {
 
     Chat: undefined;
 
-    TrackPlayer: {
-        track: SearchedTrack;
-    };
     Settings: undefined;
 };
 
@@ -59,11 +56,6 @@ export type MusicTrackVoteSearchScreenProps = {
 export type ChatScreenProps = {
     navigation: StackNavigationProp<RootStackParamList, 'Chat'>;
     route: RouteProp<RootStackParamList, 'Chat'>;
-};
-
-export type TrackPlayerScreenProps = {
-    navigation: StackNavigationProp<RootStackParamList, 'TrackPlayer'>;
-    route: RouteProp<RootStackParamList, 'TrackPlayer'>;
 };
 
 export type SettingsScreenProps = {

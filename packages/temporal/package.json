@@ -5,7 +5,7 @@
     "scripts": {
         "dev": "nodemon --exec env PORT=3000 ADONIS_ENDPOINT=`http://localhost:3333` go run api/main.go --signal SIGTERM",
         "worker": "env PORT=3000 ADONIS_ENDPOINT=http://localhost:3333 go run worker/main.go",
-        "temporal": "cd docker-compose/ && docker-compose -d",
+        "temporal": "cd docker-compose && docker-compose up -d",
         "test": "go test"
     },
     "devDependencies": {

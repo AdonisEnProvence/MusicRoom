@@ -105,11 +105,22 @@ func PauseHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
+type Credentials struct {
+	UserID string
+	Name   string
+}
+
+type CreateRoomResponse struct {
+	State      app.ControlState `json:"state"`
+	WorkflowID string           `json:"workflowID"`
+	RunID      string           `json:"runID"`
+}
+
 func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Create called")
 	vars := mux.Vars(r)
-	var name string
-	err := json.NewDecoder(r.Body).Decode(&name)
+	var credentials Credentials
+	err := json.NewDecoder(r.Body).Decode(&credentials)
 	if err != nil {
 		WriteError(w, err)
 		return
@@ -123,7 +134,8 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 	state := app.ControlState{
 		Playing: false,
-		Name:    name,
+		Name:    credentials.Name,
+		Users:   []string{credentials.UserID},
 	}
 	we, err := temporal.ExecuteWorkflow(context.Background(), options, app.ControlWorkflow, state)
 	if err != nil {
@@ -131,14 +143,13 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := make(map[string]interface{})
-	res["state"] = state
-	res["workflowID"] = we.GetID()
-	res["runID"] = we.GetRunID()
+	res := CreateRoomResponse{
+		State:      state,
+		WorkflowID: we.GetID(),
+		RunID:      we.GetRunID(),
+	}
 
 	w.WriteHeader(http.StatusCreated)
-	printResults("", workflowID, we.GetRunID())
-
 	json.NewEncoder(w).Encode(res)
 }
 

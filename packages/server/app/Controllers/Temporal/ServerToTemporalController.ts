@@ -1,30 +1,24 @@
 import Env from '@ioc:Adonis/Core/Env';
 import { CreateWorkflowResponse } from '@musicroom/types';
-import { ZodCreateWorkflow } from '@musicroom/types/src';
 import got from 'got';
 
 export default class ServerToTemporalController {
     public static async createWorflow(
         workflowID: string,
         name: string,
+        userID: string,
     ): Promise<CreateWorkflowResponse> {
-        try {
-            return ZodCreateWorkflow.parse(
-                await got
-                    .put(
-                        `${Env.get('TEMPORAL_ENDPOINT')}/create/${workflowID}`,
-                        {
-                            json: {
-                                name,
-                            },
-                            responseType: 'json',
-                        },
-                    )
-                    .json(),
-            );
-        } catch (e) {
-            throw new Error('Failed to create temporal workflow ' + workflowID);
-        }
+        return CreateWorkflowResponse.parse(
+            await got
+                .put(`${Env.get('TEMPORAL_ENDPOINT')}/create/${workflowID}`, {
+                    json: {
+                        name,
+                        userID,
+                    },
+                    responseType: 'json',
+                })
+                .json(),
+        );
     }
 
     public static async joinWorkflow(

@@ -31,64 +31,46 @@ export default class RoomController {
     public static async onCreate({
         socket,
         payload,
-    }: WsControllerMethodArgs<RoomClientToServerCreate>): Promise<void> {
-        try {
-            console.log('Creating room' + payload.name);
-            const roomID = genId();
-            await socket.join(roomID);
-            const { runID } = await ServerToTemporalController.createWorflow(
-                roomID,
-                payload.name,
-            );
-            await Redis.set(roomID, runID);
-        } catch (e) {
-            throw new Error('failed to create room');
-        }
+    }: WsControllerMethodArgs<RoomClientToServerCreate>): Promise<string> {
+        console.log('Creating room' + payload.name);
+        const roomID = genId();
+        await socket.join(roomID);
+        const { runID } = await ServerToTemporalController.createWorflow(
+            roomID,
+            payload.name,
+            payload.userID,
+        );
+        await Redis.set(roomID, runID);
+        return runID;
     }
 
     public static async onJoin({
         socket,
         payload,
     }: WsControllerMethodArgs<RoomClientToServerJoin>): Promise<void> {
-        try {
-            const { roomID, userID } = payload;
-            console.log(`JOIN ${roomID} with ${socket.id}`);
-            const runID = await getRunID(roomID);
-            await ServerToTemporalController.joinWorkflow(
-                roomID,
-                runID,
-                userID,
-            );
-        } catch (e) {
-            throw new Error('failed on JOIN attempt');
-        }
+        const { roomID, userID } = payload;
+        console.log(`JOIN ${roomID} with ${socket.id}`);
+        const runID = await getRunID(roomID);
+        await ServerToTemporalController.joinWorkflow(roomID, runID, userID);
     }
 
     public static async onPause({
         socket,
         payload,
     }: WsControllerMethodArgs<RoomClientToServerPause>): Promise<void> {
-        try {
-            const { roomID, userID } = payload;
-            console.log(`PAUSE ${roomID} with ${socket.id}`);
-            const runID = await getRunID(roomID);
-            await ServerToTemporalController.pause(roomID, runID, userID);
-        } catch (e) {
-            throw new Error('failed on PAUSE_ACTION attempt');
-        }
+        const { roomID, userID } = payload;
+        console.log(`PAUSE ${roomID} with ${socket.id}`);
+        const runID = await getRunID(roomID);
+        await ServerToTemporalController.pause(roomID, runID, userID);
     }
 
     public static async onPlay({
         socket,
         payload,
     }: WsControllerMethodArgs<RoomClientToServerPlay>): Promise<void> {
-        try {
-            const { roomID, userID } = payload;
-            console.log(`PLAY ${payload.roomID} with ${socket.id}`);
-            const runID = await getRunID(roomID);
-            await ServerToTemporalController.play(roomID, runID, userID);
-        } catch (e) {
-            throw new Error('failed on PLAY_ACTION attempt');
-        }
+        const { roomID, userID } = payload;
+        console.log(`PLAY ${payload.roomID} with ${socket.id}`);
+        const runID = await getRunID(roomID);
+        await ServerToTemporalController.play(roomID, runID, userID);
     }
 }

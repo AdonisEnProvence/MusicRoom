@@ -25,7 +25,6 @@ jobs:
                 options: --entrypoint redis-server
 
             postgresl:
-                container_name: temporal-postgresql
                 environment:
                     POSTGRES_PASSWORD: temporal
                     POSTGRES_USER: temporal
@@ -34,7 +33,6 @@ jobs:
                     - 5432:5432
 
             temporal:
-                container_name: temporal
                 depends_on:
                     - postgresql
                 environment:

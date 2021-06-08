@@ -4,6 +4,19 @@ import Ws from 'App/Services/Ws';
 
 Ws.boot();
 
+//TODO SECURE ROOM CALL
+// const roomAuth = (socketID: string, roomID: string | undefined) => {
+//     if (!roomID) {
+//         console.error('ROOMID REQUIRED 404');
+//         return false;
+//     }
+//     if (!Ws.io.sockets.adapter.rooms[roomID].sockets[socketID]) {
+//         console.error('UNAUTH 403');
+//         return false;
+//     }
+//     return true;
+// };
+
 Ws.io.on('connection', (socket) => {
     ChatController.onConnect({ socket, payload: undefined });
 
@@ -12,9 +25,10 @@ Ws.io.on('connection', (socket) => {
     });
 
     /// ROOM ///
-    socket.on('CREATE_ROOM', async (payload) => {
+    socket.on('CREATE_ROOM', async (payload, callback) => {
         try {
-            await RoomController.onCreate({ socket, payload });
+            const runID = await RoomController.onCreate({ socket, payload });
+            callback(runID);
         } catch (e) {
             console.error(e);
         }
@@ -26,20 +40,6 @@ Ws.io.on('connection', (socket) => {
         } catch (e) {
             console.error(e);
         }
-    });
-
-    //AUTH REQUEST
-    Ws.io.use((_, next) => {
-        const roomID = socket.data.roomID as string | undefined;
-        if (!roomID) {
-            console.log('ROOMID REQUIRED');
-            return;
-        }
-        if (!Ws.io.sockets.adapter.rooms[roomID].sockets[socket.id]) {
-            console.log('UNAUTH');
-            return;
-        }
-        next();
     });
 
     socket.on('ACTION_PLAY', async (payload) => {

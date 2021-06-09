@@ -58,8 +58,8 @@ export const createAppMusicPlayerMachine = ({
 > =>
     createMachine<AppMusicPlayerMachineContext, AppMusicPlayerMachineEvent>({
         invoke: {
-            src: (_context, event) => (sendBack) => {
-                socket.on('JOIN_ROOM_CALLBACK', ({ roomID }) => {
+            src: (_context, _event) => (sendBack) => {
+                socket.on('JOIN_ROOM_CALLBACK', ({ roomID, name }) => {
                     console.log(
                         `J'AI BIEN RECU MON FIX AUJDH MAIS JE VAIS EN PRENDRE UN DEUXIEME CE SOIR`,
                         roomID,
@@ -67,12 +67,12 @@ export const createAppMusicPlayerMachine = ({
                     sendBack({
                         type: 'JOINED_ROOM',
                         room: {
-                            name: '',
+                            name: name,
                             roomID,
                         },
                         track: {
-                            artistName: 'artistName',
-                            name: 'name',
+                            artistName: 'artistName', //TODO
+                            name: 'name', //TODO
                         },
                     });
                 });

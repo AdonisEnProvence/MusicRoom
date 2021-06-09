@@ -33,7 +33,7 @@ export interface Track {
 export type RoomServerToClientJoin = {
     roomID: string;
     name: string;
-    track: Track;
+    // track: Track;
 };
 export type RoomClientToServerPause = {
     roomID: string;

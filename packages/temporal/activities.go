@@ -41,7 +41,7 @@ func PlayActivity(_ context.Context, roomID string) error {
 }
 
 type JoinActivityBody struct {
-	State ControlState
+	State ControlState `json:"state"`
 }
 
 func JoinActivity(ctx context.Context, roomID string, userID string, state ControlState) error {

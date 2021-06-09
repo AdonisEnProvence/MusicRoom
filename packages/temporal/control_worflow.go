@@ -47,6 +47,12 @@ func ControlWorkflow(ctx workflow.Context, state ControlState) error {
 
 			switch {
 			case routeSignal.Route == RouteTypes.PLAY:
+				var message PlaySignal
+				err := mapstructure.Decode(signal, &message)
+				if err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
 				state.Play()
 				options := workflow.ActivityOptions{
 					ScheduleToStartTimeout: time.Minute,
@@ -55,13 +61,31 @@ func ControlWorkflow(ctx workflow.Context, state ControlState) error {
 
 				ctx = workflow.WithActivityOptions(ctx, options)
 
-				err = workflow.ExecuteActivity(ctx, PingActivity).Get(ctx, nil)
+				err = workflow.ExecuteActivity(ctx, PlayActivity, message.WorkflowID).Get(ctx, nil)
 				if err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
 			case routeSignal.Route == RouteTypes.PAUSE:
+				var message PauseSignal
+				err := mapstructure.Decode(signal, &message)
+				if err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
 				state.Pause()
+				options := workflow.ActivityOptions{
+					ScheduleToStartTimeout: time.Minute,
+					StartToCloseTimeout:    time.Minute,
+				}
+
+				ctx = workflow.WithActivityOptions(ctx, options)
+
+				err = workflow.ExecuteActivity(ctx, PauseActivity, message.WorkflowID).Get(ctx, nil)
+				if err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
 			case routeSignal.Route == RouteTypes.JOIN:
 				var message JoinSignal
 				err := mapstructure.Decode(signal, &message)
@@ -70,27 +94,20 @@ func ControlWorkflow(ctx workflow.Context, state ControlState) error {
 					return
 				}
 				state.Join(message.UserID)
+				options := workflow.ActivityOptions{
+					ScheduleToStartTimeout: time.Minute,
+					StartToCloseTimeout:    time.Minute,
+				}
+
+				ctx = workflow.WithActivityOptions(ctx, options)
+
+				err = workflow.ExecuteActivity(ctx, JoinActivity, message.WorkflowID, message.UserID).Get(ctx, nil)
+				if err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
 			}
 		})
-
-		// if !sentAbandonedCartEmail && len(state.Items) > 0 {
-		// 	selector.AddFuture(workflow.NewTimer(ctx, abandonedCartTimeout), func(f workflow.Future) {
-		// 		sentAbandonedCartEmail = true
-		// 		ao := workflow.ActivityOptions{
-		// 			ScheduleToStartTimeout: time.Minute,
-		// 			StartToCloseTimeout:    time.Minute,
-		// 		}
-
-		// 		ctx = workflow.WithActivityOptions(ctx, ao)
-
-		// 		err := workflow.ExecuteActivity(ctx, a.SendAbandonedCartEmail, state.Email).Get(ctx, nil)
-		// 		if err != nil {
-		// 			logger.Error("Error sending email %v", err)
-		// 			return
-		// 		}
-		// 	})
-		// }
-
 		selector.Select(ctx)
 
 		if checkedOut {

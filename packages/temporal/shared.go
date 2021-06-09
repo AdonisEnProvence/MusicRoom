@@ -22,16 +22,19 @@ type RouteSignal struct {
 }
 
 type PlaySignal struct {
-	Route string
+	Route      string
+	WorkflowID string
 }
 
 type PauseSignal struct {
-	Route string
+	Route      string
+	WorkflowID string
 }
 
 type JoinSignal struct {
-	Route  string
-	UserID string
+	Route      string
+	UserID     string
+	WorkflowID string
 }
 
 // @@@SNIPEND

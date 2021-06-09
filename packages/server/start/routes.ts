@@ -35,7 +35,7 @@ Route.get(
     'Temporal/TemporalToServerController.pause',
 );
 
-Route.get(
+Route.post(
     '/temporal/join/:roomID/:userID',
     'Temporal/TemporalToServerController.join',
 );

@@ -8,9 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-
-	"go.temporal.io/sdk/activity"
-	"go.uber.org/zap"
 )
 
 var (
@@ -51,20 +48,13 @@ func JoinActivity(ctx context.Context, roomID string, userID string, state Contr
 	body := JoinActivityBody{
 		State: state,
 	}
-	logger := activity.GetLogger(ctx)
-	logger.Info("yes yes", zap.Any("state", state))
-
-	json_data, err := json.Marshal(body)
-
+	marshaledBody, err := json.Marshal(body)
 	if err != nil {
 		return err
 	}
-	url := adonisEndpoint + "/temporal/join/" + url.QueryEscape(roomID) + "/" + url.QueryEscape(userID)
-	logger.Info("monCul", zap.String("url", url))
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(json_data))
 
-	if err != nil {
-		fmt.Println("JoinActivity Failed")
-	}
+	url := adonisEndpoint + "/temporal/join/" + url.QueryEscape(roomID) + "/" + url.QueryEscape(userID)
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+
 	return err
 }

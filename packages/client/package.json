@@ -49,6 +49,7 @@
     "react-native-webview": "11.2.3",
     "react-native-youtube-iframe": "^2.1.0",
     "socket.io-client": "^4.1.2",
+    "urlcat": "^2.0.4",
     "xstate": "^4.19.2",
     "xstate-codegen": "^0.3.0",
     "zod": "^1.11.17"

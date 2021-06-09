@@ -7,6 +7,7 @@ import (
 	"hello-world-project-template-go/app"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -125,8 +126,11 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
-	workflowID := vars["workflowID"]
-
+	workflowID, err := url.QueryUnescape(vars["workflowID"])
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
 	options := client.StartWorkflowOptions{
 		ID:        workflowID,
 		TaskQueue: app.ControlTaskQueue,
@@ -153,6 +157,25 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
+type UnescapeRoomIDAndRundIDResponse struct {
+	worflowID, runID string
+}
+
+func UnescapeRoomIDAndRundID(workflowID, runID string) (UnescapeRoomIDAndRundIDResponse, error) {
+	workflowID, err := url.QueryUnescape(workflowID)
+	if err != nil {
+		return UnescapeRoomIDAndRundIDResponse{}, err
+	}
+	runID, err = url.QueryUnescape(runID)
+	if err != nil {
+		return UnescapeRoomIDAndRundIDResponse{}, err
+	}
+	return UnescapeRoomIDAndRundIDResponse{
+		workflowID,
+		runID,
+	}, nil
+}
+
 func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	var userID string
@@ -161,10 +184,16 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
+	unescaped, err := UnescapeRoomIDAndRundID(vars["workflowID"], vars["runID"])
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
+	workflowID := unescaped.worflowID
+	runID := unescaped.runID
+	update := app.JoinSignal{Route: app.RouteTypes.JOIN, UserID: userID, WorkflowID: workflowID}
 
-	update := app.JoinSignal{Route: app.RouteTypes.JOIN, UserID: userID, WorkflowID: vars["workflowID"]}
-
-	err = temporal.SignalWorkflow(context.Background(), vars["workflowID"], vars["runID"], app.SignalChannelName, update)
+	err = temporal.SignalWorkflow(context.Background(), workflowID, runID, app.SignalChannelName, update)
 	if err != nil {
 		WriteError(w, err)
 		return
@@ -178,7 +207,14 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetStateHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	response, err := temporal.QueryWorkflow(context.Background(), vars["workflowID"], vars["runID"], "getState")
+	unescaped, err := UnescapeRoomIDAndRundID(vars["workflowID"], vars["runID"])
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
+	workflowID := unescaped.worflowID
+	runID := unescaped.runID
+	response, err := temporal.QueryWorkflow(context.Background(), workflowID, runID, "getState")
 	if err != nil {
 		WriteError(w, err)
 		return

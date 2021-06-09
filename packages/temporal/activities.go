@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 )
 
@@ -21,7 +22,7 @@ func PingActivity(_ context.Context) error {
 }
 
 func PauseActivity(_ context.Context, roomID string) error {
-	_, err := http.Get(adonisEndpoint + "/temporal/pause/" + roomID)
+	_, err := http.Get(adonisEndpoint + "/temporal/pause/" + url.QueryEscape(roomID))
 	if err != nil {
 		fmt.Println("PauseActivity Failed")
 	}
@@ -29,7 +30,8 @@ func PauseActivity(_ context.Context, roomID string) error {
 }
 
 func PlayActivity(_ context.Context, roomID string) error {
-	_, err := http.Get(adonisEndpoint + "/temporal/play/" + roomID)
+
+	_, err := http.Get(adonisEndpoint + "/temporal/play/" + url.QueryEscape(roomID))
 	if err != nil {
 		fmt.Println("PlayActivity Failed")
 	}
@@ -37,7 +39,7 @@ func PlayActivity(_ context.Context, roomID string) error {
 }
 
 func JoinActivity(_ context.Context, roomID string, userID string) error {
-	_, err := http.Get(adonisEndpoint + "/temporal/join/" + roomID + "/" + userID)
+	_, err := http.Get(adonisEndpoint + "/temporal/join/" + url.QueryEscape(roomID) + "/" + url.QueryEscape(userID))
 	if err != nil {
 		fmt.Println("JoinActivity Failed")
 	}

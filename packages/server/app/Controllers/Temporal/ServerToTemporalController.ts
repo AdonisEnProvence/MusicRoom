@@ -1,6 +1,9 @@
 import Env from '@ioc:Adonis/Core/Env';
 import { CreateWorkflowResponse } from '@musicroom/types';
 import got from 'got';
+import urlcat from 'urlcat';
+
+const TEMPORAL_ENDPOINT = Env.get('TEMPORAL_ENDPOINT');
 
 export default class ServerToTemporalController {
     public static async createWorflow(
@@ -8,9 +11,12 @@ export default class ServerToTemporalController {
         name: string,
         userID: string,
     ): Promise<CreateWorkflowResponse> {
+        const url = urlcat(TEMPORAL_ENDPOINT, '/create/:workflowID', {
+            workflowID,
+        });
         return CreateWorkflowResponse.parse(
             await got
-                .put(`${Env.get('TEMPORAL_ENDPOINT')}/create/${workflowID}`, {
+                .put(url, {
                     json: {
                         name,
                         userID,
@@ -27,15 +33,16 @@ export default class ServerToTemporalController {
         userID: string,
     ): Promise<void> {
         try {
-            await got.put(
-                `${Env.get('TEMPORAL_ENDPOINT')}/join/${workflowID}/${runID}`,
-                {
-                    json: {
-                        userID,
-                    },
-                    responseType: 'json',
+            const url = urlcat(TEMPORAL_ENDPOINT, '/join/:workflowID/:runID', {
+                workflowID,
+                runID,
+            });
+            await got.put(url, {
+                json: {
+                    userID,
                 },
-            );
+                responseType: 'json',
+            });
         } catch (e) {
             throw new Error('Failed to create temporal workflow ' + workflowID);
         }
@@ -47,17 +54,20 @@ export default class ServerToTemporalController {
         userID: string,
     ): Promise<void> {
         try {
-            await got.put(
-                `${Env.get(
-                    'TEMPORAL_ENDPOINT',
-                )}/control/${workflowID}/${runID}/pause`,
+            const url = urlcat(
+                TEMPORAL_ENDPOINT,
+                '/control/:workflowID/:runID/pause',
                 {
-                    json: {
-                        userID,
-                    },
-                    responseType: 'json',
+                    workflowID,
+                    runID,
                 },
             );
+            await got.put(url, {
+                json: {
+                    userID,
+                },
+                responseType: 'json',
+            });
         } catch (e) {
             throw new Error('PAUSE FAILED ' + workflowID);
         }
@@ -69,17 +79,20 @@ export default class ServerToTemporalController {
         userID: string,
     ): Promise<void> {
         try {
-            await got.put(
-                `${Env.get(
-                    'TEMPORAL_ENDPOINT',
-                )}/control/${workflowID}/${runID}/play`,
+            const url = urlcat(
+                TEMPORAL_ENDPOINT,
+                '/control/:workflowID/:runID/play',
                 {
-                    json: {
-                        userID,
-                    },
-                    responseType: 'json',
+                    workflowID,
+                    runID,
                 },
             );
+            await got.put(url, {
+                json: {
+                    userID,
+                },
+                responseType: 'json',
+            });
         } catch (e) {
             throw new Error('PLAY FAILED ' + workflowID);
         }

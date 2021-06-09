@@ -3,20 +3,20 @@ import Ws from 'App/Services/Ws';
 
 export default class TemporalToServerController {
     public static pause({ request }: HttpContextContract): void {
-        const roomID = request.param('roomID');
+        const roomID = decodeURIComponent(request.param('roomID'));
         Ws.io.to(roomID).emit('PLAY');
     }
 
     public static play({ request }: HttpContextContract): void {
-        const roomID = request.param('roomID');
+        const roomID = decodeURIComponent(request.param('roomID'));
         Ws.io.to(roomID).emit('PLAY');
     }
 
     public static join({ request }: HttpContextContract): void {
-        const roomID = request.param('roomID');
-        const userID = request.param('userID');
+        const roomID = decodeURIComponent(request.param('roomID'));
+        const userID = decodeURIComponent(request.param('userID'));
         console.log('SUCCESS:', roomID, userID);
         //TODO store socketID[] per userID in redis ?
-        Ws.io.emit('JOIN_ROOM_CALLBACK', roomID);
+        Ws.io.emit('JOIN_ROOM_CALLBACK', { roomID });
     }
 }

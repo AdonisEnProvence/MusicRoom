@@ -100,8 +100,8 @@ func ControlWorkflow(ctx workflow.Context, state ControlState) error {
 				}
 
 				ctx = workflow.WithActivityOptions(ctx, options)
-
-				err = workflow.ExecuteActivity(ctx, JoinActivity, message.WorkflowID, message.UserID).Get(ctx, nil)
+				fmt.Println(state)
+				err = workflow.ExecuteActivity(ctx, JoinActivity, message.WorkflowID, message.UserID, state).Get(ctx, nil)
 				if err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return

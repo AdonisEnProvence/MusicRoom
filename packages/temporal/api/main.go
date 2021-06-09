@@ -176,10 +176,14 @@ func UnescapeRoomIDAndRundID(workflowID, runID string) (UnescapeRoomIDAndRundIDR
 	}, nil
 }
 
+type JoinRoomHandlerBody struct {
+	UserID string
+}
+
 func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	var userID string
-	err := json.NewDecoder(r.Body).Decode(&userID)
+	var body JoinRoomHandlerBody
+	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		WriteError(w, err)
 		return
@@ -189,9 +193,10 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
+
 	workflowID := unescaped.worflowID
 	runID := unescaped.runID
-	update := app.JoinSignal{Route: app.RouteTypes.JOIN, UserID: userID, WorkflowID: workflowID}
+	update := app.JoinSignal{Route: app.RouteTypes.JOIN, UserID: body.UserID, WorkflowID: workflowID}
 
 	err = temporal.SignalWorkflow(context.Background(), workflowID, runID, app.SignalChannelName, update)
 	if err != nil {

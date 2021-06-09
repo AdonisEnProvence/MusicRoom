@@ -131,6 +131,10 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
                 searchQuery={searchState.context.searchQuery}
                 sendToMachine={sendSearchMachine}
                 showHeader={showHeader}
+                canGoBack={true}
+                goBack={() => {
+                    navigation.goBack();
+                }}
             />
 
             <AppScreenContainer>

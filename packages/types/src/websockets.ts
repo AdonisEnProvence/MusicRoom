@@ -24,11 +24,14 @@ export interface RoomClientToServerJoin {
     roomID: string;
     userID: string;
 }
-
+export type RoomServerToClientJoin = {
+    roomID: string;
+};
 export type RoomClientToServerPause = {
     roomID: string;
     userID: string;
 };
+
 export type RoomClientToServerPlay = RoomClientToServerPause;
 
 export interface ChatClientToServerEvents {
@@ -38,7 +41,7 @@ export interface ChatClientToServerEvents {
 export interface RoomClientToServerEvents {
     CREATE_ROOM: (
         args: RoomClientToServerCreate,
-        callback: (roomID: string) => void,
+        callback: (roomID: string, name: string) => void,
     ) => void;
     JOIN_ROOM: (args: RoomClientToServerJoin) => void;
     ACTION_PLAY: (args: RoomClientToServerPlay) => void;
@@ -48,6 +51,7 @@ export interface RoomClientToServerEvents {
 export interface RoomServerToClientEvents {
     PLAY: () => void;
     PAUSE: () => void;
+    JOIN_ROOM_CALLBACK: (args: RoomServerToClientJoin) => void;
 }
 
 export interface ChatServerToClientEvents {

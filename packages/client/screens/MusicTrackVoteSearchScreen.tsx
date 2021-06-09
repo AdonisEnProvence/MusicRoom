@@ -1,18 +1,19 @@
-import React, { useState } from 'react';
-import { View, useSx } from 'dripsy';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useMachine } from '@xstate/react';
-import { TouchableOpacity, ListRenderItem, FlatList } from 'react-native';
+import { useSx, View } from 'dripsy';
 import { View as MotiView } from 'moti';
+import React, { useState } from 'react';
+import { FlatList, ListRenderItem, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+    AppScreen,
+    AppScreenContainer,
+    AppScreenHeaderWithSearchBar,
+    Typo,
+} from '../components/kit';
+import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import { appScreenHeaderWithSearchBarMachine } from '../machines/appScreenHeaderWithSearchBarMachine';
 import { MusicTrackVoteSearchScreenProps } from '../types';
-import {
-    Typo,
-    AppScreen,
-    AppScreenHeaderWithSearchBar,
-    AppScreenContainer,
-} from '../components/kit';
 
 type SuggestionListProps = {
     bottomInset: number;
@@ -122,7 +123,7 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
     const showHeader = state.hasTag('showHeaderTitle');
     const showSuggestions = state.hasTag('showSuggestions');
     const reduceSuggestionsOpacity = state.hasTag('reduceSuggestionsOpacity');
-
+    const { sendToMachine } = useMusicPlayer();
     return (
         <AppScreen screenOffsetY={showHeader === true ? 0 : screenOffsetY}>
             <AppScreenHeaderWithSearchBar
@@ -147,8 +148,9 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
                         <SuggestionsList
                             bottomInset={insets.bottom}
                             onSuggestionPress={(roomId: string) => {
-                                navigation.navigate('MusicTrackVote', {
-                                    roomId,
+                                sendToMachine({
+                                    type: 'JOIN_ROOM',
+                                    roomID: '_iw0qdhbs0',
                                 });
                             }}
                         />

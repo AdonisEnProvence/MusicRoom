@@ -9,7 +9,7 @@ import {
 } from '@musicroom/types';
 import Ws from 'App/Services/Ws';
 import { Socket } from 'socket.io';
-import ServerToTemporalController from '../Temporal/ServerToTemporalController';
+import ServerToTemporalController from '../Http/Temporal/ServerToTemporalController';
 
 //TODO replace by uid generator lib
 const genId = () => {
@@ -53,7 +53,7 @@ export default class RoomController {
     }: WsControllerMethodArgs<RoomClientToServerJoin>): Promise<void> {
         const { roomID, userID } = payload;
         console.log(Ws.io.sockets.adapter.rooms);
-        if (!Ws.io.sockets.adapter.rooms[roomID])
+        if (!Ws.io.sockets.adapter.rooms.has(roomID))
             throw new Error('Room does not exist ' + roomID);
         console.log(`JOIN ${roomID} with ${socket.id}`);
         const runID = await getRunID(roomID);

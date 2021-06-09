@@ -44,7 +44,8 @@ export default class ServerToTemporalController {
                 responseType: 'json',
             });
         } catch (e) {
-            throw new Error('Failed to create temporal workflow ' + workflowID);
+            console.error(e);
+            throw new Error('Failed to join temporal workflow ' + workflowID);
         }
     }
 

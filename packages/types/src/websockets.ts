@@ -24,8 +24,16 @@ export interface RoomClientToServerJoin {
     roomID: string;
     userID: string;
 }
+
+export interface Track {
+    name: string;
+    artistName: string;
+}
+
 export type RoomServerToClientJoin = {
     roomID: string;
+    name: string;
+    track: Track;
 };
 export type RoomClientToServerPause = {
     roomID: string;

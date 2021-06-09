@@ -6,7 +6,7 @@ import { Socket } from 'socket.io-client';
 import { assign, createMachine, Sender, StateMachine } from 'xstate';
 
 interface TrackVoteRoom {
-    id: string;
+    roomID: string;
     name: string;
 }
 
@@ -38,7 +38,7 @@ function joinRoomCallback(sendBack: Sender<AppMusicPlayerMachineEvent>) {
         sendBack({
             type: 'JOINED_ROOM',
             room: {
-                id: roomID,
+                roomID,
                 name,
             },
             track: {
@@ -64,7 +64,17 @@ export const createAppMusicPlayerMachine = ({
                         `J'AI BIEN RECU MON FIX AUJDH MAIS JE VAIS EN PRENDRE UN DEUXIEME CE SOIR`,
                         roomID,
                     );
-                    sendBack('JOINED_ROOM');
+                    sendBack({
+                        type: 'JOINED_ROOM',
+                        room: {
+                            name: '',
+                            roomID,
+                        },
+                        track: {
+                            artistName: 'artistName',
+                            name: 'name',
+                        },
+                    });
                 });
             },
         },
@@ -155,7 +165,7 @@ export const createAppMusicPlayerMachine = ({
                     JOINED_ROOM: {
                         target: 'connectedToRoom',
                         cond: (context, event) => {
-                            return event.room.id === context.waitingRoomID;
+                            return event.room.roomID === context.waitingRoomID;
                         },
                     },
                 },

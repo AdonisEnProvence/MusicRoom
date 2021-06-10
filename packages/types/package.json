@@ -12,7 +12,7 @@
     "clean": "rimraf dist *.tsbuildinfo",
     "lint": "scripty",
     "test": "scripty",
-    "build": "scripty"
+    "build:tsc": "scripty"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.14.2",
@@ -23,5 +23,8 @@
   },
   "scripty": {
     "path": "../../scripts/packages"
+  },
+  "dependencies": {
+    "zod": "^3.1.0"
   }
 }

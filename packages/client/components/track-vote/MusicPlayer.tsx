@@ -29,6 +29,8 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
                     height={playerHeight}
                     play={videoState === 'playing'}
                     videoId={videoId}
+                    //FIX for android see https://stackoverflow.com/questions/63171131/when-rendering-iframes-with-html-android-crashes-while-navigating-back-to-s
+                    webViewStyle={{ opacity: 0.99 }}
                 />
             </View>
         </Pressable>

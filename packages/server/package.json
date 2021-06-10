@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "build:tsc": "scripty",
     "build": "node ace dist --production",
     "start": "node server.js",
     "dev": "node ace serve --watch",
@@ -14,10 +15,10 @@
   },
   "devDependencies": {
     "@adonisjs/assembler": "^5.0.0",
-    "@types/supertest": "^2.0.11",
     "@types/node-fetch": "^2.5.10",
     "@types/redis": "^2.8.29",
     "@types/socket.io": "^3.0.2",
+    "@types/supertest": "^2.0.11",
     "adonis-preset-ts": "^2.1.0",
     "execa": "^5.0.1",
     "get-port": "^5.1.1",
@@ -37,6 +38,7 @@
     "@musicroom/types": "*",
     "@socket.io/redis-adapter": "^7.0.0",
     "googleapis": "^74.1.0",
+    "got": "^11.8.2",
     "node-fetch": "^2.6.1",
     "proxy-addr": "^2.0.6",
     "query-string": "^7.0.0",
@@ -44,6 +46,7 @@
     "reflect-metadata": "^0.1.13",
     "socket.io": "^4.1.2",
     "source-map-support": "^0.5.19",
+    "urlcat": "^2.0.4",
     "zod": "^1.11.17"
   },
   "workspaces": {

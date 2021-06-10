@@ -22,6 +22,22 @@ import Route from '@ioc:Adonis/Core/Route';
 
 Route.get('/search/track/:query', 'TracksSearchesController.searchTrackName');
 
+Route.post('/search/rooms', 'MtvRoomsHttpController.listAllRooms');
+
+Route.get('/ping', () => console.log('pong'));
+
+Route.get('/temporal/play/:roomID', 'Temporal/TemporalToServerController.play');
+
+Route.get(
+    '/temporal/pause/:roomID',
+    'Temporal/TemporalToServerController.pause',
+);
+
+Route.post(
+    '/temporal/join/:roomID/:userID',
+    'Temporal/TemporalToServerController.join',
+);
+
 Route.get('/', () => {
     return { hello: 'world' };
 });

@@ -15,7 +15,7 @@
     "start": "scripty",
     "greet": "scripty",
     "dev": "scripty",
-    "build": "scripty",
+    "build:tsc": "scripty",
     "clean": "scripty",
     "lint": "scripty",
     "test": "scripty",

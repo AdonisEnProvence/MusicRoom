@@ -31,7 +31,6 @@ export default {
             MusicTrackVote: 'track-vote/:roomId',
 
             SearchTrackResults: 'searchTrackResults/:tracks',
-            TrackPlayer: 'trackPlayer/:track',
             Settings: 'settings/:id',
             Chat: 'chat',
             NotFound: '*',

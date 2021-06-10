@@ -8,7 +8,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "eject": "expo eject",
-    "build": "scripty",
+    "build:tsc": "scripty",
     "lint": "yarn eslint . --ext ts,tsx --fix",
     "generate:xstate": "xstate-codegen machines/*.ts",
     "postinstall": "expo-yarn-workspaces postinstall"
@@ -49,6 +49,7 @@
     "react-native-webview": "11.2.3",
     "react-native-youtube-iframe": "^2.1.0",
     "socket.io-client": "^4.1.2",
+    "urlcat": "^2.0.4",
     "xstate": "^4.19.2",
     "xstate-codegen": "^0.3.0",
     "zod": "^1.11.17"

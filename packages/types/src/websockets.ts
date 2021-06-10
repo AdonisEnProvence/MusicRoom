@@ -67,7 +67,8 @@ export interface ChatServerToClientEvents {
     RECEIVED_MESSAGE: (args: ChatServerToClientReceivedMessageArgs) => void;
 }
 
-export type AllEvents = ChatServerToClientEvents &
-    RoomClientToServerEvents &
-    RoomServerToClientEvents &
+export type AllClientToServerEvents = RoomClientToServerEvents &
     ChatClientToServerEvents;
+
+export type AllServerToClientEvents = ChatServerToClientEvents &
+    RoomServerToClientEvents;

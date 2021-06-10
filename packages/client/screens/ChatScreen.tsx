@@ -1,14 +1,11 @@
-import {
-    ChatClientToServerEvents,
-    ChatServerToClientEvents,
-} from '@musicroom/types';
 import { useMachine, useSelector } from '@xstate/react';
 import React from 'react';
 import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
 import { assign, createMachine, send } from 'xstate';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
+import { SocketClient } from '../hooks/useSocket';
 import { ChatScreenProps } from '../types';
 
 interface ChatMessage {
@@ -44,10 +41,7 @@ const chatMachine = createMachine<ChatMachineContext, ChatMachineEvent>({
     invoke: {
         id: 'connectionToBackend',
         src: () => (sendBack, onReceive) => {
-            const socket: Socket<
-                ChatServerToClientEvents,
-                ChatClientToServerEvents
-            > = io(SERVER_ENDPOINT);
+            const socket: SocketClient = io(SERVER_ENDPOINT);
 
             socket.on('connect', () => {
                 sendBack({

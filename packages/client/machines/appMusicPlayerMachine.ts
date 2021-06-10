@@ -1,9 +1,5 @@
-import {
-    RoomClientToServerEvents,
-    RoomServerToClientEvents,
-} from '@musicroom/types';
-import { Socket } from 'socket.io-client';
 import { assign, createMachine, Sender, StateMachine } from 'xstate';
+import { SocketClient } from '../hooks/useSocket';
 
 interface TrackVoteRoom {
     roomID: string;
@@ -29,7 +25,7 @@ export type AppMusicPlayerMachineEvent =
     | { type: 'JOIN_ROOM'; roomID: string };
 
 interface CreateAppMusicPlayerMachineArgs {
-    socket: Socket<RoomServerToClientEvents, RoomClientToServerEvents>;
+    socket: SocketClient;
 }
 
 function joiningRoomCallback(sendBack: Sender<AppMusicPlayerMachineEvent>) {

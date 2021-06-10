@@ -1,12 +1,15 @@
 import Env from '@ioc:Adonis/Core/Env';
 import AdonisServer from '@ioc:Adonis/Core/Server';
-import { AllEvents } from '@musicroom/types/src/websockets';
+import {
+    AllClientToServerEvents,
+    AllServerToClientEvents,
+} from '@musicroom/types';
 import { createAdapter, RedisAdapter } from '@socket.io/redis-adapter';
 import { RedisClient } from 'redis';
 import { Server } from 'socket.io';
 
 class Ws {
-    public io: Server<AllEvents>;
+    public io: Server<AllClientToServerEvents, AllServerToClientEvents>;
     private booted = false;
 
     public boot() {
@@ -26,7 +29,6 @@ class Ws {
             db: 1,
             prefix: 'pubSub',
         });
-
         const subClient = pubClient.duplicate();
         //For further informations see https://socket.io/docs/v3/using-multiple-nodes/index.html
         this.io.adapter(createAdapter(pubClient, subClient));

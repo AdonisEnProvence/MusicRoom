@@ -11,7 +11,10 @@
     "build:tsc": "scripty",
     "lint": "yarn eslint . --ext ts,tsx --fix",
     "generate:xstate": "xstate-codegen machines/*.ts",
-    "postinstall": "expo-yarn-workspaces postinstall"
+    "postinstall": "expo-yarn-workspaces postinstall",
+    "test": "is-ci-cli \"test:coverage\" \"test:watch\"",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch"
   },
   "jest": {
     "preset": "jest-expo"
@@ -58,11 +61,14 @@
     "@babel/core": "^7.9.0",
     "@expo/webpack-config": "^0.12.76",
     "@react-native-community/eslint-config": "^2.0.0",
+    "@testing-library/jest-native": "^4.0.1",
+    "@testing-library/react-native": "^7.2.0",
     "@types/react": "~17.0.8",
     "@types/react-native": "~0.64.8",
     "babel-plugin-inline-dotenv": "^1.6.0",
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "expo-yarn-workspaces": "^1.5.1",
+    "is-ci-cli": "^2.2.0",
     "jest-expo": "~41.0.0",
     "metro-config": "^0.59.0",
     "typescript": "^4.3.2"

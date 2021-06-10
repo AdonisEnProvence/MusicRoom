@@ -37,7 +37,10 @@ const Navigation: React.FC<ColorModeProps> = ({
 // Read more here: https://reactnavigation.org/docs/modal
 const Stack = createStackNavigator<RootStackParamList>();
 
-function RootNavigator({ toggleColorScheme, colorScheme }: ColorModeProps) {
+export const RootNavigator: React.FC<ColorModeProps> = ({
+    toggleColorScheme,
+    colorScheme,
+}) => {
     const style = navigationStyle(colorScheme);
 
     return (
@@ -78,6 +81,6 @@ function RootNavigator({ toggleColorScheme, colorScheme }: ColorModeProps) {
             </Stack.Screen>
         </Stack.Navigator>
     );
-}
+};
 
 export default Navigation;

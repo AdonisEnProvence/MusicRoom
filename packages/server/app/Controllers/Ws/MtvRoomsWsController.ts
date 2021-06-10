@@ -29,7 +29,7 @@ interface WsControllerMethodArgs<Payload> {
     payload: Payload;
 }
 
-export default class RoomController {
+export default class MtvRoomsWsController {
     public static async onCreate({
         socket,
         payload,

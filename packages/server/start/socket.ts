@@ -1,5 +1,5 @@
 import ChatController from 'App/Controllers/Ws/ChatController';
-import RoomController from 'App/Controllers/Ws/RoomController';
+import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Ws from 'App/Services/Ws';
 
 Ws.boot();
@@ -27,7 +27,7 @@ Ws.io.on('connection', (socket) => {
     /// ROOM ///
     socket.on('CREATE_ROOM', async (payload, callback) => {
         try {
-            const { runID, state } = await RoomController.onCreate({
+            const { runID, state } = await MtvRoomsWsController.onCreate({
                 socket,
                 payload,
             });
@@ -39,7 +39,7 @@ Ws.io.on('connection', (socket) => {
 
     socket.on('JOIN_ROOM', async (payload) => {
         try {
-            await RoomController.onJoin({ socket, payload });
+            await MtvRoomsWsController.onJoin({ socket, payload });
         } catch (e) {
             console.error(e);
         }
@@ -47,7 +47,7 @@ Ws.io.on('connection', (socket) => {
 
     socket.on('ACTION_PLAY', async (payload) => {
         try {
-            await RoomController.onPause({ socket, payload });
+            await MtvRoomsWsController.onPause({ socket, payload });
         } catch (e) {
             console.error(e);
         }
@@ -55,7 +55,7 @@ Ws.io.on('connection', (socket) => {
 
     socket.on('ACTION_PAUSE', async (payload) => {
         try {
-            await RoomController.onPlay({ socket, payload });
+            await MtvRoomsWsController.onPlay({ socket, payload });
         } catch (e) {
             console.error(e);
         }

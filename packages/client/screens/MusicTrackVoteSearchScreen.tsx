@@ -3,7 +3,7 @@ import { useMachine } from '@xstate/react';
 import { useSx, View } from 'dripsy';
 import { View as MotiView } from 'moti';
 import React, { useEffect, useState } from 'react';
-import { FlatList, ListRenderItem, Text, TouchableOpacity } from 'react-native';
+import { FlatList, ListRenderItem, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
     AppScreen,
@@ -13,7 +13,7 @@ import {
 } from '../components/kit';
 import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import { appScreenHeaderWithSearchBarMachine } from '../machines/appScreenHeaderWithSearchBarMachine';
-import { searchMTVRoomsMachine } from '../machines/searchMTVRoomsMachine';
+import { searchMtvRoomsMachine } from '../machines/searchMtvRoomsMachine';
 import { MusicTrackVoteSearchScreenProps } from '../types';
 
 type SuggestionListProps = {
@@ -110,12 +110,12 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
         'reduceSuggestionsOpacity',
     );
     const { sendToMachine } = useMusicPlayer();
-    const [MTVRoomsState, sendToMTVRoomsMachine] = useMachine(
-        searchMTVRoomsMachine,
+    const [mtvRoomState, sendToMtvRoomsMachine] = useMachine(
+        searchMtvRoomsMachine,
     );
 
     useEffect(() => {
-        sendToMTVRoomsMachine({
+        sendToMtvRoomsMachine({
             type: 'SEND_REQUEST',
         });
         //eslint-disable-next-line react-hooks/exhaustive-deps
@@ -146,12 +146,9 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
                         }}
                         style={{ flex: 1 }}
                     >
-                        <Text>
-                            {JSON.stringify(MTVRoomsState.context.rooms)}
-                        </Text>
                         <SuggestionsList
                             suggestions={
-                                MTVRoomsState.context.rooms?.map((el) => ({
+                                mtvRoomState.context.rooms?.map((el) => ({
                                     roomID: el,
                                 })) ?? []
                             }

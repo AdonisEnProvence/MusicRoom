@@ -22,9 +22,7 @@ import Route from '@ioc:Adonis/Core/Route';
 
 Route.get('/search/track/:query', 'TracksSearchesController.searchTrackName');
 
-Route.post('/search/rooms', 'MTVRoomsController.listAllRooms');
-
-Route.post('/create', 'MTVRoomsController.createRoom');
+Route.post('/search/rooms', 'MtvRoomsHttpController.listAllRooms');
 
 Route.get('/ping', () => console.log('pong'));
 

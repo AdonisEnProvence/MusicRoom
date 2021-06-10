@@ -1,18 +1,18 @@
 import { assign, createMachine } from 'xstate';
-import { listAllRooms } from '../services/MTVService';
+import { listAllRooms } from '../services/MtvService';
 
-type SearchMTVRoomsEvent =
+type SearchMtvRoomsEvent =
     | { type: 'SEND_REQUEST' }
     | { type: 'FETCHED_ROOMS'; rooms: string[] }
     | { type: 'FAILED_FETCHING_ROOMS' };
 
-interface SearchMTVRoomContext {
+interface SearchMtvRoomContext {
     rooms: undefined | string[];
 }
 
-export const searchMTVRoomsMachine = createMachine<
-    SearchMTVRoomContext,
-    SearchMTVRoomsEvent
+export const searchMtvRoomsMachine = createMachine<
+    SearchMtvRoomContext,
+    SearchMtvRoomsEvent
 >(
     {
         context: {

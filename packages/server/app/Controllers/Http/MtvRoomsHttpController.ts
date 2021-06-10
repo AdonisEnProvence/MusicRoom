@@ -8,15 +8,11 @@ export const getAllRooms = async (): Promise<string[]> => {
     return [...(await adapter.allRooms())] as string[];
 };
 
-export default class MTVRoomsController {
+export default class MtvRoomsHttpController {
     public createRoom({ request }: HttpContextContract): void {
         const body = request.body();
         console.log(body);
-        try {
-            ZodRoomSettings.parse(body);
-        } catch (e) {
-            console.log(e);
-        }
+        ZodRoomSettings.parse(body);
     }
     public async listAllRooms(): Promise<string[]> {
         //TODO USE POSTGRESS, BELOW IS JUST A TEST HACK/FIX

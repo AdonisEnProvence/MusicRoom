@@ -3,7 +3,7 @@ import {
     AllServerToClientEvents,
 } from '@musicroom/types';
 import { useMemo } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { io, Socket } from '../services/websockets';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
 
 export type SocketClient = Socket<

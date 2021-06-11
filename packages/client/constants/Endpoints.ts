@@ -1,7 +1,9 @@
 import { Platform } from 'react-native';
 
+type ApplicationEnvironment = 'development' | 'prod';
+
 function computeServerEndpoint(
-    env: 'development' | 'prod',
+    env: ApplicationEnvironment,
     os: 'ios' | 'android' | 'windows' | 'macos' | 'web',
 ): string {
     if (env !== 'development') {
@@ -20,7 +22,10 @@ function computeServerEndpoint(
     }
 }
 
+const currentEnvironment: ApplicationEnvironment = (process.env.NODE_ENV ??
+    'development') as ApplicationEnvironment;
+
 export const SERVER_ENDPOINT = computeServerEndpoint(
-    process.env.NODE_ENV ?? 'development',
+    currentEnvironment,
     Platform.OS,
 );

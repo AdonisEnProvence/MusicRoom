@@ -7,7 +7,7 @@ import { useSx, View } from 'dripsy';
 import React, { useMemo, useRef } from 'react';
 import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { assign, createMachine } from 'xstate';
+import { assign, createMachine, Sender } from 'xstate';
 import { AppScreen, AppScreenContainer, Typo } from '../components/kit';
 import AppModalHeader from '../components/kit/AppModalHeader';
 import MusicPlayer, {
@@ -15,6 +15,10 @@ import MusicPlayer, {
 } from '../components/track-vote/MusicPlayer';
 import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import { useLayout } from '../hooks/useLayout';
+import {
+    AppMusicPlayerMachineEvent,
+    AppMusicPlayerMachineState,
+} from '../machines/appMusicPlayerMachine';
 
 function useFormatSeconds(seconds: number): string {
     const truncatedSecondsToMilliseconds = Math.trunc(seconds) * 1000;
@@ -261,11 +265,15 @@ const musicControlMachine = createMachine<
 type TheMusicPlayerFullScreenProps = {
     dismissFullScreenPlayer: () => void;
     roomName?: string;
+    sendToMachine: Sender<AppMusicPlayerMachineEvent>;
+    machineState: AppMusicPlayerMachineState;
 };
 
 const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     dismissFullScreenPlayer,
     roomName,
+    sendToMachine,
+    machineState,
 }) => {
     const roomId = roomName;
     const insets = useSafeAreaInsets();
@@ -375,8 +383,10 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     videoId="55SwKPVMVM4"
                     trackTitle="Monde Nouveau"
                     trackArtist="Feu! Chatterton"
-                    isPlaying={state.matches('playing')}
-                    onPlayingToggle={handlePlayingStateToggle}
+                    isPlaying={machineState.matches('connectedToRoom.play')}
+                    onPlayingToggle={() => {
+                        sendToMachine('PLAY_PAUSE_TOGGLE');
+                    }}
                     onNextTrackPress={handleNextTrackPress}
                     elapsedTime={state.context.elapsedTime}
                     totalDuration={state.context.duration}
@@ -464,12 +474,9 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
 }) => {
     const MINI_PLAYER_HEIGHT = 52;
     const sx = useSx();
-    const {
-        context: { currentRoom, currentTrack },
-        sendToMachine,
-    } = useMusicPlayer();
+    const { state, sendToMachine } = useMusicPlayer();
+    const { currentRoom, currentTrack } = state.context;
     const isInRoom = currentRoom !== undefined;
-
     function openPlayerInFullScreen() {
         if (isInRoom === true) {
             setIsFullScren(true);
@@ -510,6 +517,8 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
                                 setIsFullScren(false);
                             }}
                             roomName={currentRoom?.name}
+                            sendToMachine={sendToMachine}
+                            machineState={state}
                         />
                     </View>
                 )}

@@ -9,5 +9,5 @@
         "declarationMap": true
     },
     "exclude": ["node_modules", "dist"],
-    "include": ["./jest.setup.ts", "tests", "./constants", "./machines"]
+    "include": ["./jest.setup.ts", "tests", "./constants", "./machines", "./hooks", "./services", "./contexts"]
 }

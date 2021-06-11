@@ -1,14 +1,14 @@
+import React from 'react';
 import {
     RenderAPI,
     RenderOptions,
     render as rtlRender,
 } from '@testing-library/react-native';
 import { DripsyProvider } from 'dripsy';
-import React, { useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { colorPalette } from '../constants/Colors';
 import { MusicPlayerContextProvider } from '../contexts/MusicPlayerContext';
 import { useSocket } from '../hooks/useSocket';
+import { useTheme } from '../hooks/useTheme';
 import { ServerSocket, serverSocket } from '../services/websockets';
 
 export type SizeTerms = 'xs' | 's' | 'm' | 'l' | 'xl';
@@ -16,39 +16,7 @@ export type BackgroundTerms = 'primary' | 'seconday' | 'white' | 'text';
 
 const AllTheProviders: React.FC = ({ children }) => {
     const socket = useSocket();
-    const [colorScheme] = useState<'dark' | 'light'>('dark');
-    const palette = colorPalette(colorScheme);
-    const theme = {
-        colors: {
-            ...palette,
-        },
-        space: {
-            none: 0,
-            xs: 2,
-            s: 4,
-            m: 8,
-            l: 16,
-            xl: 24,
-        },
-        borderWidths: {
-            s: 1,
-            m: 2,
-            l: 3,
-        },
-        fontSizes: {
-            xs: 14,
-            s: 16,
-            m: 20,
-            l: 24,
-            xl: 32,
-        },
-        radii: {
-            s: 5,
-            m: 10,
-            l: 15,
-            full: 9999,
-        },
-    };
+    const { theme } = useTheme();
 
     return (
         <DripsyProvider theme={theme}>

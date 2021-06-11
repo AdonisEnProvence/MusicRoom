@@ -7,7 +7,7 @@ function noop() {
     return undefined;
 }
 
-test(`Let's user search for a song, shows the results and let's the user click on a song, that redirects them to results screen`, async () => {
+test(`Goes to Search a Track screen, searches a track and sees search results`, async () => {
     const { getByText, getByPlaceholderText } = render(
         <NavigationContainer>
             <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
@@ -20,6 +20,7 @@ test(`Let's user search for a song, shows the results and let's the user click o
     expect(searchScreenLink).toBeTruthy();
 
     fireEvent.press(searchScreenLink);
+
     await waitFor(() => expect(getByText(/search.*track/i)).toBeTruthy());
 
     const searchInput = getByPlaceholderText(/search.*track/i);
@@ -27,6 +28,15 @@ test(`Let's user search for a song, shows the results and let's the user click o
 
     const SEARCH_QUERY = 'Benjamin Biolay';
 
+    /**
+     * To simulate a real interaction with a text input, we need to:
+     * 1. Focus it
+     * 2. Change its text
+     * 3. Submit the changes
+     */
+    fireEvent(searchInput, 'focus');
     fireEvent.changeText(searchInput, SEARCH_QUERY);
     fireEvent(searchInput, 'submitEditing');
+
+    await waitFor(() => expect(getByText(/results/i)).toBeTruthy());
 });

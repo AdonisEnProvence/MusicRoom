@@ -1,4 +1,37 @@
+/* eslint-disable */
 import '@testing-library/jest-native';
+import fetch from 'node-fetch';
+import { server } from './tests/server/test-server';
+
+// The Fetch API is not available in Expo Jest environment (which is Node.js).
+// We use node-fetch polyfill and set the global reference to it.
+global.fetch = fetch;
+
+// MSW uses the LocalStorage internally. In order for MSW to work we need
+// to mock the LocalStorage API.
+class LocalStorageMock {
+    constructor() {
+        this.store = {};
+    }
+
+    clear() {
+        this.store = {};
+    }
+
+    getItem(key) {
+        return this.store[key] || null;
+    }
+
+    setItem(key, value) {
+        this.store[key] = String(value);
+    }
+
+    removeItem(key) {
+        delete this.store[key];
+    }
+}
+
+global.localStorage = new LocalStorageMock();
 
 jest.setTimeout(20_000);
 
@@ -34,3 +67,8 @@ jest.mock('./navigation/LinkingConfiguration.ts', () => {
 
 // Silence the warning: Animated: `useNativeDriver` is not supported because the native animated module is missing
 jest.mock('react-native/Libraries/Animated/src/NativeAnimatedHelper');
+
+// Set up MSW before all tests, close MSW after all tests and clear temporary listeners after each test.
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+afterAll(() => server.close());
+afterEach(() => server.resetHandlers());

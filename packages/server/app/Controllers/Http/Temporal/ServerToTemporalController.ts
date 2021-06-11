@@ -52,7 +52,6 @@ export default class ServerToTemporalController {
     public static async pause(
         workflowID: string,
         runID: string,
-        userID: string,
     ): Promise<void> {
         try {
             const url = urlcat(
@@ -64,9 +63,6 @@ export default class ServerToTemporalController {
                 },
             );
             await got.put(url, {
-                json: {
-                    userID,
-                },
                 responseType: 'json',
             });
         } catch (e) {
@@ -74,11 +70,7 @@ export default class ServerToTemporalController {
         }
     }
 
-    public static async play(
-        workflowID: string,
-        runID: string,
-        userID: string,
-    ): Promise<void> {
+    public static async play(workflowID: string, runID: string): Promise<void> {
         try {
             const url = urlcat(
                 TEMPORAL_ENDPOINT,
@@ -89,9 +81,6 @@ export default class ServerToTemporalController {
                 },
             );
             await got.put(url, {
-                json: {
-                    userID,
-                },
                 responseType: 'json',
             });
         } catch (e) {

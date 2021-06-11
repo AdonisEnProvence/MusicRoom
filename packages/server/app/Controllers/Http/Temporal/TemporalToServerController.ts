@@ -13,13 +13,15 @@ type TemporalToServeJoinBody = z.infer<typeof TemporalToServeJoinBody>;
 
 export default class TemporalToServerController {
     public pause({ request }: HttpContextContract): void {
+        console.log('TEMPORAL SENT PAUSE');
         const roomID = decodeURIComponent(request.param('roomID'));
-        Ws.io.to(roomID).emit('PLAY');
+        Ws.io.to(roomID).emit('ACTION_PAUSE_CALLBACK');
     }
 
     public play({ request }: HttpContextContract): void {
+        console.log('TEMPORAL SENT PLAY');
         const roomID = decodeURIComponent(request.param('roomID'));
-        Ws.io.to(roomID).emit('PLAY');
+        Ws.io.to(roomID).emit('ACTION_PLAY_CALLBACK');
     }
 
     public join({ request }: HttpContextContract): void {

@@ -24,7 +24,9 @@ func PingActivity(_ context.Context) error {
 }
 
 func PauseActivity(_ context.Context, roomID string) error {
-	_, err := http.Get(adonisEndpoint + "/temporal/pause/" + url.QueryEscape(roomID))
+	url := adonisEndpoint + "/temporal/pause/" + url.QueryEscape(roomID)
+	fmt.Println(url)
+	_, err := http.Get(url)
 	if err != nil {
 		fmt.Println("PauseActivity Failed")
 	}
@@ -32,8 +34,9 @@ func PauseActivity(_ context.Context, roomID string) error {
 }
 
 func PlayActivity(_ context.Context, roomID string) error {
-
-	_, err := http.Get(adonisEndpoint + "/temporal/play/" + url.QueryEscape(roomID))
+	url := adonisEndpoint + "/temporal/play/" + url.QueryEscape(roomID)
+	fmt.Println(url)
+	_, err := http.Get(url)
 	if err != nil {
 		fmt.Println("PlayActivity Failed")
 	}

@@ -69,10 +69,10 @@ func main() {
 func PlayHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Control called")
 	vars := mux.Vars(r)
-	update := app.PlaySignal{Route: app.RouteTypes.PLAY}
 
 	workflowID := vars["workflowID"]
 	runID := vars["runID"]
+	update := app.PlaySignal{Route: app.RouteTypes.PLAY, WorkflowID: workflowID}
 	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, app.SignalChannelName, update)
 	if err != nil {
 		WriteError(w, err)
@@ -89,10 +89,10 @@ func PlayHandler(w http.ResponseWriter, r *http.Request) {
 func PauseHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Control called")
 	vars := mux.Vars(r)
-	update := app.PlaySignal{Route: app.RouteTypes.PAUSE}
 
 	workflowID := vars["workflowID"]
 	runID := vars["runID"]
+	update := app.PlaySignal{Route: app.RouteTypes.PAUSE, WorkflowID: workflowID}
 	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, app.SignalChannelName, update)
 	if err != nil {
 		WriteError(w, err)

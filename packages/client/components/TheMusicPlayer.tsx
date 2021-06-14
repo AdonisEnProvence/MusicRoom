@@ -1,10 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
+import { useFocusEffect } from '@react-navigation/native';
 import { useMachine } from '@xstate/react';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { useSx, View } from 'dripsy';
 import React, { useMemo, useRef } from 'react';
+import { useEffect } from 'react';
+import { useCallback } from 'react';
+import { BackHandler } from 'react-native';
 import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { assign, createMachine, Sender } from 'xstate';
@@ -482,6 +486,23 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
             setIsFullScren(true);
         }
     }
+
+    useEffect(() => {
+        function onBackPress() {
+            if (isFullScreen) {
+                setIsFullScren(false);
+                return true;
+            }
+
+            return false;
+        }
+
+        BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+        return () => {
+            BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+        };
+    }, [isFullScreen, setIsFullScren]);
 
     return (
         <TouchableWithoutFeedback onPress={openPlayerInFullScreen}>

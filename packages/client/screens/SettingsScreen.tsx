@@ -1,22 +1,40 @@
 import { Button } from '@dripsy/core';
 import React from 'react';
-import { Block, Title } from '../components/kit';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+    AppScreen,
+    AppScreenHeader,
+    AppScreenContainer,
+} from '../components/kit';
 import { ColorModeProps } from '../navigation';
 import { SettingsScreenProps } from '../types';
 
 const SettingsScreen: React.FC<ColorModeProps & SettingsScreenProps> = ({
     toggleColorScheme,
+    navigation,
 }) => {
+    const insets = useSafeAreaInsets();
+
     return (
-        <Block background={'primary'}>
-            <Title>Settings page</Title>
-            <Button
-                onPress={() => {
-                    toggleColorScheme();
+        <AppScreen>
+            <AppScreenHeader
+                title="Settings"
+                insetTop={insets.top}
+                canGoBack={true}
+                goBack={() => {
+                    navigation.goBack();
                 }}
-                title="toto"
             />
-        </Block>
+
+            <AppScreenContainer>
+                <Button
+                    onPress={() => {
+                        toggleColorScheme();
+                    }}
+                    title="Toggle theme"
+                />
+            </AppScreenContainer>
+        </AppScreen>
     );
 };
 

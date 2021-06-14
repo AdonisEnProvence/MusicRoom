@@ -1,5 +1,11 @@
 version: '3'
 services:
+    database:
+        image: 'postgres'
+        env_file:
+            - database.env
+        volumes:
+            - database-data:/var/lib/postgresql/data/
     redis:
         image: redis:4.0.5-alpine
         command: redis-server --requirepass yourpassword
@@ -16,3 +22,4 @@ networks:
 
 volumes:
     redis-data:
+    database-data:

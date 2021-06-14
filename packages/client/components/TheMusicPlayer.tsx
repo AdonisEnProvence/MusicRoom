@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
+import { useBackHandler } from '@react-native-community/hooks';
 import { useMachine } from '@xstate/react';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
@@ -482,6 +483,15 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
             setIsFullScren(true);
         }
     }
+
+    useBackHandler(() => {
+        if (isFullScreen) {
+            setIsFullScren(false);
+            return true;
+        }
+
+        return false;
+    });
 
     return (
         <TouchableWithoutFeedback onPress={openPlayerInFullScreen}>

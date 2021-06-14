@@ -1,8 +1,9 @@
 import { assign, createMachine } from 'xstate';
 import { listAllRooms } from '../services/MtvService';
+import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 
 type SearchMtvRoomsEvent =
-    | { type: 'SEND_REQUEST' }
+    | { type: 'SUBMITTED' }
     | { type: 'FETCHED_ROOMS'; rooms: string[] }
     | { type: 'FAILED_FETCHING_ROOMS' };
 
@@ -19,12 +20,19 @@ export const searchMtvRoomsMachine = createMachine<
             rooms: undefined,
         },
 
-        initial: 'idle',
+        // FIXME: replace by idle when we will have implemented
+        // suggestions fetching
+        initial: 'fetchingRooms',
+
+        invoke: {
+            id: 'searchBarMachine',
+            src: appScreenHeaderWithSearchBarMachine,
+        },
 
         states: {
             idle: {
                 on: {
-                    SEND_REQUEST: {
+                    SUBMITTED: {
                         target: 'fetchingRooms',
                     },
                 },
@@ -67,10 +75,12 @@ export const searchMtvRoomsMachine = createMachine<
         },
 
         services: {
-            fetchRooms: (_context, event) => async (sendBack, _onReceive) => {
-                if (event.type !== 'SEND_REQUEST') {
-                    return;
-                }
+            fetchRooms: (_context, _event) => async (sendBack, _onReceive) => {
+                // if (event.type !== 'SUBMITTED') {
+                //     throw new Error(
+                //         'fetchRooms service must be invoked in response to SUBMITTED event',
+                //     );
+                // }
 
                 try {
                     const rooms = await listAllRooms();

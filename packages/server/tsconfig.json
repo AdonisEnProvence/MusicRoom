@@ -28,7 +28,8 @@
         "types": [
             "@adonisjs/core",
             "@adonisjs/repl",
-            "@adonisjs/redis"
+            "@adonisjs/redis",
+            "@adonisjs/lucid"
         ]
     }
 }

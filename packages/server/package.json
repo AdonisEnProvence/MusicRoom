@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@adonisjs/core": "^5.1.0",
+    "@adonisjs/lucid": "^15.0.1",
     "@adonisjs/redis": "^7.0.4",
     "@adonisjs/repl": "^3.0.0",
     "@musicroom/types": "*",

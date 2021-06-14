@@ -1,47 +1,44 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useMachine } from '@xstate/react';
+import { ActorRef } from 'xstate';
+import { useMachine, useActor } from '@xstate/react';
 import { searchTrackMachine } from '../machines/searchTrackMachine';
 import {
     AppScreen,
     AppScreenContainer,
     AppScreenHeaderWithSearchBar,
 } from '../components/kit';
-
 import { SearchTabSearchTracksScreenProps } from '../types';
-import { appScreenHeaderWithSearchBarMachine } from '../machines/appScreenHeaderWithSearchBarMachine';
+import {
+    AppScreenHeaderWithSearchBarMachineEvent,
+    AppScreenHeaderWithSearchBarMachineState,
+} from '../machines/appScreenHeaderWithSearchBarMachine';
 
 const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
     navigation,
 }) => {
     const insets = useSafeAreaInsets();
     const [screenOffsetY, setScreenOffsetY] = useState(0);
-    const [searchState, sendToSearch] = useMachine(
-        appScreenHeaderWithSearchBarMachine,
-    );
+    const [state] = useMachine(searchTrackMachine, {
+        actions: {
+            navigateToResultsPage: ({ tracks }) => {
+                if (tracks === undefined) {
+                    return;
+                }
+
+                navigation.navigate('SearchTrackResults', {
+                    tracks,
+                });
+            },
+        },
+    });
+    const searchBarActor: ActorRef<
+        AppScreenHeaderWithSearchBarMachineEvent,
+        AppScreenHeaderWithSearchBarMachineState
+    > = state.children.searchBarMachine;
+    const [searchState, sendToSearch] = useActor(searchBarActor);
     const showHeader = searchState.hasTag('showHeaderTitle');
-    const [state, send] = useMachine(searchTrackMachine);
-
-    useEffect(() => {
-        if (searchState.matches('submitted')) {
-            send({
-                type: 'SEND_REQUEST',
-                searchQuery: searchState.context.searchQuery,
-            });
-        }
-    }, [searchState, send]);
-
-    useEffect(() => {
-        if (
-            state.matches('fetchedTracks') &&
-            state.context.tracks !== undefined
-        ) {
-            navigation.navigate('SearchTrackResults', {
-                tracks: state.context.tracks,
-            });
-        }
-    }, [state, navigation]);
 
     return (
         <AppScreen screenOffsetY={showHeader === true ? 0 : screenOffsetY}>

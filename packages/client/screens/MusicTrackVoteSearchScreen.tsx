@@ -101,6 +101,7 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
 }) => {
     const insets = useSafeAreaInsets();
     const [screenOffsetY, setScreenOffsetY] = useState(0);
+    // TODO: invoke appScreenHeaderWithSearchBarMachine instead of creating a service with useMachine
     const [searchState, sendSearchMachine] = useMachine(
         appScreenHeaderWithSearchBarMachine,
     );

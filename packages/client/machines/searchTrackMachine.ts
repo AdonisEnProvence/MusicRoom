@@ -2,20 +2,13 @@ import urlcat from 'urlcat';
 import { assign, createMachine } from 'xstate';
 import * as z from 'zod';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
+import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 
 const SearchedTrack = z.object({
     id: z.string(),
     title: z.string(),
 });
 export type SearchedTrack = z.infer<typeof SearchedTrack>;
-
-type SearchTrackEvent =
-    | {
-          type: 'SEND_REQUEST';
-          searchQuery: string;
-      }
-    | { type: 'FETCHED_TRACKS'; tracks: SearchedTrack[] }
-    | { type: 'FAILED_FETCHING_TRACKS' };
 
 interface FetchTracksArgs {
     searchQuery: string;
@@ -67,6 +60,11 @@ interface SearchTrackContext {
     tracks: undefined | SearchedTrack[];
 }
 
+type SearchTrackEvent =
+    | { type: 'FETCHED_TRACKS'; tracks: SearchedTrack[] }
+    | { type: 'FAILED_FETCHING_TRACKS' }
+    | { type: 'SUBMITTED'; searchQuery: string };
+
 export const searchTrackMachine = createMachine<
     SearchTrackContext,
     SearchTrackEvent
@@ -78,10 +76,15 @@ export const searchTrackMachine = createMachine<
 
         initial: 'idle',
 
+        invoke: {
+            id: 'searchBarMachine',
+            src: appScreenHeaderWithSearchBarMachine,
+        },
+
         states: {
             idle: {
                 on: {
-                    SEND_REQUEST: {
+                    SUBMITTED: {
                         target: 'fetchingTracks',
                     },
                 },
@@ -104,7 +107,9 @@ export const searchTrackMachine = createMachine<
                 },
             },
 
-            fetchedTracks: {},
+            fetchedTracks: {
+                entry: ['navigateToResultsPage'],
+            },
 
             errFetchingTracks: {},
         },
@@ -125,7 +130,7 @@ export const searchTrackMachine = createMachine<
 
         services: {
             fetchTracks: (_context, event) => async (sendBack, _onReceive) => {
-                if (event.type !== 'SEND_REQUEST') {
+                if (event.type !== 'SUBMITTED') {
                     return;
                 }
 

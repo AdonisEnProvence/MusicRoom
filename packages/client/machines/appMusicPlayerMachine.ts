@@ -1,4 +1,11 @@
-import { assign, createMachine, Sender, StateMachine } from 'xstate';
+import {
+    assign,
+    createMachine,
+    send,
+    Sender,
+    State,
+    StateMachine,
+} from 'xstate';
 import { SocketClient } from '../hooks/useSocket';
 
 interface TrackVoteRoom {
@@ -16,13 +23,24 @@ export interface AppMusicPlayerMachineContext {
     waitingRoomID?: string;
 }
 
+export type AppMusicPlayerMachineState = State<
+    AppMusicPlayerMachineContext,
+    AppMusicPlayerMachineEvent
+>;
+
 export type AppMusicPlayerMachineEvent =
     | {
           type: 'CREATE_ROOM';
           roomName: string;
       }
     | { type: 'JOINED_ROOM'; room: TrackVoteRoom; track: TrackVoteTrack }
-    | { type: 'JOIN_ROOM'; roomID: string };
+    | { type: 'JOIN_ROOM'; roomID: string }
+    | {
+          type: 'PLAY_PAUSE_TOGGLE';
+          params: { status: 'play' | 'pause'; roomID?: string };
+      }
+    | { type: 'PLAY_CALLBACK' }
+    | { type: 'PAUSE_CALLBACK' };
 
 interface CreateAppMusicPlayerMachineArgs {
     socket: SocketClient;
@@ -55,7 +73,8 @@ export const createAppMusicPlayerMachine = ({
     createMachine<AppMusicPlayerMachineContext, AppMusicPlayerMachineEvent>(
         {
             invoke: {
-                src: (_context, _event) => (sendBack) => {
+                id: 'root',
+                src: (context, _event) => (sendBack, onReceive) => {
                     socket.on('JOIN_ROOM_CALLBACK', ({ roomID, name }) => {
                         sendBack({
                             type: 'JOINED_ROOM',
@@ -68,6 +87,36 @@ export const createAppMusicPlayerMachine = ({
                                 name: 'name', //TODO
                             },
                         });
+                    });
+
+                    socket.on('ACTION_PLAY_CALLBACK', () => {
+                        console.log('SERVER RESPONSE FOR PLAY');
+                        sendBack({
+                            type: 'PLAY_CALLBACK',
+                        });
+                    });
+
+                    socket.on('ACTION_PAUSE_CALLBACK', () => {
+                        console.log('SERVER RESPONSE FOR PAUSE');
+                        sendBack({
+                            type: 'PAUSE_CALLBACK',
+                        });
+                    });
+
+                    onReceive((e) => {
+                        console.log('Event received ' + e.type);
+                        if (e.type === 'PLAY_PAUSE_TOGGLE' && e.params.roomID) {
+                            console.log(e.params);
+                            const { roomID, status } = e.params;
+                            const payload = {
+                                roomID: roomID,
+                            };
+                            if (status === 'play') {
+                                socket.emit('ACTION_PAUSE', payload);
+                            } else {
+                                socket.emit('ACTION_PLAY', payload);
+                            }
+                        }
                     });
                 },
             },
@@ -162,7 +211,62 @@ export const createAppMusicPlayerMachine = ({
                 },
 
                 connectedToRoom: {
+                    initial: 'pause',
+                    states: {
+                        pause: {
+                            initial: 'idle',
+                            states: {
+                                idle: {
+                                    on: {
+                                        PLAY_PAUSE_TOGGLE: {
+                                            target: 'toggled',
+                                        },
+                                    },
+                                },
+                                toggled: {
+                                    entry: send(
+                                        (context, _event) => ({
+                                            type: 'PLAY_PAUSE_TOGGLE',
+                                            params: {
+                                                status: 'pause',
+                                                roomID: context.currentRoom
+                                                    ?.roomID,
+                                            },
+                                        }),
+                                        { to: 'root' },
+                                    ),
+                                },
+                            },
+                        },
+                        play: {
+                            initial: 'idle',
+                            states: {
+                                idle: {
+                                    on: {
+                                        PLAY_PAUSE_TOGGLE: {
+                                            target: 'toggled',
+                                        },
+                                    },
+                                },
+                                toggled: {
+                                    entry: send(
+                                        (context, _event) => ({
+                                            type: 'PLAY_PAUSE_TOGGLE',
+                                            params: {
+                                                status: 'play',
+                                                roomID: context.currentRoom
+                                                    ?.roomID,
+                                            },
+                                        }),
+                                        { to: 'root' },
+                                    ),
+                                },
+                            },
+                        },
+                    },
                     on: {
+                        PAUSE_CALLBACK: { target: '.pause' },
+                        PLAY_CALLBACK: { target: '.play' },
                         JOIN_ROOM: 'joiningRoom',
                     },
                 },

@@ -27,11 +27,11 @@ Ws.io.on('connection', (socket) => {
     /// ROOM ///
     socket.on('CREATE_ROOM', async (payload, callback) => {
         try {
-            const { runID, state } = await MtvRoomsWsController.onCreate({
+            const { workflowID, state } = await MtvRoomsWsController.onCreate({
                 socket,
                 payload,
             });
-            callback(runID, state.name);
+            callback(workflowID, state.name);
         } catch (e) {
             console.error(e);
         }
@@ -47,7 +47,8 @@ Ws.io.on('connection', (socket) => {
 
     socket.on('ACTION_PLAY', async (payload) => {
         try {
-            await MtvRoomsWsController.onPause({ socket, payload });
+            //we need to check auth from socket id into a userId into a room users[]
+            await MtvRoomsWsController.onPlay({ socket, payload });
         } catch (e) {
             console.error(e);
         }
@@ -55,7 +56,7 @@ Ws.io.on('connection', (socket) => {
 
     socket.on('ACTION_PAUSE', async (payload) => {
         try {
-            await MtvRoomsWsController.onPlay({ socket, payload });
+            await MtvRoomsWsController.onPause({ socket, payload });
         } catch (e) {
             console.error(e);
         }

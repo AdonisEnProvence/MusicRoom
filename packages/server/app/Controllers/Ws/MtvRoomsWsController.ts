@@ -43,7 +43,6 @@ export default class MtvRoomsWsController {
         );
         await socket.join(roomID);
         await Redis.set(roomID, res.runID);
-        console.log('Room created');
         return res;
     }
 
@@ -64,19 +63,19 @@ export default class MtvRoomsWsController {
         socket,
         payload,
     }: WsControllerMethodArgs<RoomClientToServerPause>): Promise<void> {
-        const { roomID, userID } = payload;
+        const { roomID } = payload;
         console.log(`PAUSE ${roomID} with ${socket.id}`);
         const runID = await getRunID(roomID);
-        await ServerToTemporalController.pause(roomID, runID, userID);
+        await ServerToTemporalController.pause(roomID, runID);
     }
 
     public static async onPlay({
         socket,
         payload,
     }: WsControllerMethodArgs<RoomClientToServerPlay>): Promise<void> {
-        const { roomID, userID } = payload;
+        const { roomID } = payload;
         console.log(`PLAY ${payload.roomID} with ${socket.id}`);
         const runID = await getRunID(roomID);
-        await ServerToTemporalController.play(roomID, runID, userID);
+        await ServerToTemporalController.play(roomID, runID);
     }
 }

@@ -1,42 +1,36 @@
-import { useMachine, useSelector } from '@xstate/react';
+import { useMachine } from '@xstate/react';
 import React, { useContext } from 'react';
-import { Socket } from '../services/websockets';
-import { Sender, State } from 'xstate';
+import { Sender } from 'xstate';
 import {
     AppMusicPlayerMachineEvent,
-    AppMusicPlayerMachineContext,
+    AppMusicPlayerMachineState,
     createAppMusicPlayerMachine,
 } from '../machines/appMusicPlayerMachine';
+import { Socket } from '../services/websockets';
 
 interface MusicPlayerContextValue {
     sendToMachine: Sender<AppMusicPlayerMachineEvent>;
-    context: AppMusicPlayerMachineContext;
+    state: AppMusicPlayerMachineState;
 }
 
 const MusicPlayerContext =
     React.createContext<MusicPlayerContextValue | undefined>(undefined);
 
-function selectContext(
-    state: State<AppMusicPlayerMachineContext>,
-): AppMusicPlayerMachineContext {
-    return state.context;
-}
-
 type MusicPlayerContextProviderProps = {
     socket: Socket;
 };
 
+//FIXME perfs optimizations here
 export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProps> =
     ({ socket, children }) => {
         const appMusicPlayerMachine = createAppMusicPlayerMachine({ socket });
-        const [, send, service] = useMachine(appMusicPlayerMachine);
-        const context = useSelector(service, selectContext);
+        const [state, send] = useMachine(appMusicPlayerMachine);
 
         return (
             <MusicPlayerContext.Provider
                 value={{
                     sendToMachine: send,
-                    context,
+                    state,
                 }}
             >
                 {children}

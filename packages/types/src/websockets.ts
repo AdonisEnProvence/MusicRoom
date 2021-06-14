@@ -37,7 +37,6 @@ export type RoomServerToClientJoin = {
 };
 export type RoomClientToServerPause = {
     roomID: string;
-    userID: string;
 };
 
 export type RoomClientToServerPlay = RoomClientToServerPause;
@@ -57,8 +56,8 @@ export interface RoomClientToServerEvents {
 }
 
 export interface RoomServerToClientEvents {
-    PLAY: () => void;
-    PAUSE: () => void;
+    ACTION_PLAY_CALLBACK: () => void;
+    ACTION_PAUSE_CALLBACK: () => void;
     JOIN_ROOM_CALLBACK: (args: RoomServerToClientJoin) => void;
 }
 

@@ -1,6 +1,6 @@
 import { useMachine, useSelector } from '@xstate/react';
 import React, { useContext } from 'react';
-import { Socket } from 'socket.io-client';
+import { Socket } from '../services/websockets';
 import { Sender, State } from 'xstate';
 import {
     AppMusicPlayerMachineEvent,

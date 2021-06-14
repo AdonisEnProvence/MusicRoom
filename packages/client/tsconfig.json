@@ -8,5 +8,20 @@
         "emitDeclarationOnly": true,
         "declarationMap": true
     },
-    "exclude": ["node_modules", "dist"]
+    "exclude": ["node_modules", "dist"],
+    "include": [
+        "./jest.setup.ts",
+        "tests",
+        "./constants",
+        "./machines",
+        "./hooks",
+        "./services",
+        "./contexts",
+        "./navigation",
+        "./components",
+        "./screens",
+        "./App.tsx",
+        "./types.tsx",
+        "__tests__"
+    ]
 }

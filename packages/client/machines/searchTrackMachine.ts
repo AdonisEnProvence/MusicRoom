@@ -1,3 +1,4 @@
+import urlcat from 'urlcat';
 import { assign, createMachine } from 'xstate';
 import * as z from 'zod';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
@@ -21,30 +22,45 @@ interface FetchTracksArgs {
     tracks?: SearchedTrack[];
 }
 
-const SearchTracksAPIResult = z.object({
-    tracks: z.array(SearchedTrack),
+export const SearchTracksAPIRawResponse = z.object({
+    videos: z.array(
+        z
+            .object({
+                id: z
+                    .object({
+                        videoId: z.string(),
+                    })
+                    .nonstrict(),
+                snippet: z
+                    .object({
+                        title: z.string(),
+                    })
+                    .nonstrict(),
+            })
+            .nonstrict(),
+    ),
 });
+export type SearchTracksAPIRawResponse = z.infer<
+    typeof SearchTracksAPIRawResponse
+>;
 
 async function fetchTracks({
     searchQuery,
 }: FetchTracksArgs): Promise<SearchedTrack[]> {
-    const url = `${SERVER_ENDPOINT}/search/track/${encodeURIComponent(
+    const url = urlcat(SERVER_ENDPOINT, '/search/track/:searchQuery', {
         searchQuery,
-    )}`;
+    });
     const response = await fetch(url);
     if (response.ok === false) {
-        console.error(response.status, response.statusText);
         throw new Error('Could not get tracks');
     }
-    const parsedResponse = {
-        tracks: (await response.json()).videos.map((el: any) => ({
-            id: el.id.videoId,
-            title: el.snippet.title,
-        })),
-    };
-    console.log(parsedResponse);
-    const { tracks } = SearchTracksAPIResult.parse(parsedResponse);
-    return tracks;
+
+    const { videos } = SearchTracksAPIRawResponse.parse(await response.json());
+
+    return videos.map(({ id: { videoId: id }, snippet: { title } }) => ({
+        id,
+        title,
+    }));
 }
 
 interface SearchTrackContext {

@@ -4,6 +4,10 @@
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "volta": {
+    "node": "16.0.0",
+    "yarn": "1.22.10"
+  },
   "publishConfig": {
     "access": "public"
   },

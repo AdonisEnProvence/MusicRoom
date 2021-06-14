@@ -1,7 +1,9 @@
+type ApplicationEnvironment = 'development' | 'prod';
+
 declare global {
     namespace NodeJS {
         interface ProcessEnv {
-            NODE_ENV?: 'development' | 'prod';
+            NODE_ENV?: ApplicationEnvironment;
         }
     }
 }

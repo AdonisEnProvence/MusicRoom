@@ -8,11 +8,9 @@ const youtube = google.youtube({
 });
 
 export default class TracksSearchesController {
-    public async searchTrackName({
-        request,
-    }: HttpContextContract): Promise<
-        { videos: youtube_v3.Schema$SearchResult[] | undefined } | undefined
-    > {
+    public async searchTrackName({ request }: HttpContextContract): Promise<{
+        videos: youtube_v3.Schema$SearchResult[] | undefined;
+    }> {
         const params = request.params();
         const query = decodeURIComponent(params.query);
 

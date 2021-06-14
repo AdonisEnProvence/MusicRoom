@@ -8,7 +8,7 @@ type MusicPlayerProps = {
     videoId: string;
     videoState: 'playing' | 'stopped';
     playerHeight: number;
-    playerRef: React.MutableRefObject<MusicPlayerRef>;
+    setPlayerRef: (playerRef: MusicPlayerRef) => void;
 };
 
 function noop() {
@@ -19,8 +19,10 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
     videoId,
     videoState,
     playerHeight,
-    playerRef,
+    setPlayerRef,
 }) => {
+    const playerRef = setPlayerRef as unknown as any;
+
     return (
         <Pressable onPress={noop} onLongPress={noop}>
             <View pointerEvents="none">

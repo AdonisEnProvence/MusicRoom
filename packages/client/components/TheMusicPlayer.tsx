@@ -39,7 +39,7 @@ type MusicPlayerWithControlsProps = {
     isPlaying: boolean;
     onPlayingToggle: () => void;
     onNextTrackPress: () => void;
-    playerRef: React.MutableRefObject<MusicPlayerRef>;
+    setPlayerRef: (playerRef: MusicPlayerRef) => void;
     totalDuration: number;
     elapsedTime: number;
 };
@@ -98,7 +98,7 @@ const MusicPlayerWithControls: React.FC<MusicPlayerWithControlsProps> = ({
     isPlaying,
     onPlayingToggle,
     onNextTrackPress,
-    playerRef,
+    setPlayerRef,
     totalDuration,
     elapsedTime,
 }) => {
@@ -110,7 +110,7 @@ const MusicPlayerWithControls: React.FC<MusicPlayerWithControlsProps> = ({
     return (
         <View sx={{ flex: 1 }} onLayout={onContainerLayout}>
             <MusicPlayer
-                playerRef={playerRef}
+                setPlayerRef={setPlayerRef}
                 videoId={videoId}
                 videoState={isPlaying ? 'playing' : 'stopped'}
                 playerHeight={playerHeight}
@@ -178,6 +178,7 @@ type MusicControlMachineContext = {
 };
 
 type MusicControlMachineEvent =
+    | { type: 'PLAYER_HAS_BEEN_SET' }
     | { type: 'LOAD_DURATION'; duration: number }
     | {
           type: 'TOGGLE';
@@ -200,6 +201,14 @@ const musicControlMachine = createMachine<
         initial: 'loading',
 
         states: {
+            waitingForPlayerToBeSet: {
+                on: {
+                    PLAYER_HAS_BEEN_SET: {
+                        target: 'loading',
+                    },
+                },
+            },
+
             loading: {
                 invoke: {
                     src: 'getDuration',
@@ -281,20 +290,17 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     const playerRef = useRef<MusicPlayerRef | null>(null);
     const [state, send] = useMachine(musicControlMachine, {
         services: {
-            getDuration: () => (sendBack) => {
-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                const timerId = setInterval(async () => {
+            getDuration: () => async (sendBack) => {
+                try {
                     const duration = await fetchMusicPlayerTotalDuration();
 
                     sendBack({
                         type: 'LOAD_DURATION',
                         duration,
                     });
-                }, 1000);
-
-                return () => {
-                    clearInterval(timerId);
-                };
+                } catch (err) {
+                    console.error(err);
+                }
             },
 
             pollPlayerElapsedTime: () => (sendBack) => {
@@ -316,9 +322,11 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
         },
     });
 
-    function handlePlayingStateToggle() {
+    function setPlayerRef(ref: MusicPlayerRef) {
+        playerRef.current = ref;
+
         send({
-            type: 'TOGGLE',
+            type: 'PLAYER_HAS_BEEN_SET',
         });
     }
 
@@ -380,7 +388,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
 
             <AppScreenContainer>
                 <MusicPlayerWithControls
-                    playerRef={playerRef}
+                    setPlayerRef={setPlayerRef}
                     videoId="55SwKPVMVM4"
                     trackTitle="Monde Nouveau"
                     trackArtist="Feu! Chatterton"

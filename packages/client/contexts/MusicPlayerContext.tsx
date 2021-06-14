@@ -23,12 +23,8 @@ type MusicPlayerContextProviderProps = {
 //FIXME perfs optimizations here
 export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProps> =
     ({ socket, children }) => {
-        console.log('1');
         const appMusicPlayerMachine = createAppMusicPlayerMachine({ socket });
-        console.log('2');
-
         const [state, send] = useMachine(appMusicPlayerMachine);
-        console.log('3');
 
         return (
             <MusicPlayerContext.Provider

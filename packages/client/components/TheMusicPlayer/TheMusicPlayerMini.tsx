@@ -26,6 +26,7 @@ const TheMusicPlayerMini: React.FC<TheMusicPlayerMiniProps> = ({
 
     return (
         <View
+            testID="music-player-mini"
             sx={{
                 height,
                 flexDirection: 'row',

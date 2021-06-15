@@ -69,11 +69,17 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
                         justifyContent: 'space-between',
                     }}
                 >
-                    <Typo sx={{ fontSize: 'xs', color: 'greyLighter' }}>
+                    <Typo
+                        sx={{ fontSize: 'xs', color: 'greyLighter' }}
+                        accessibilityLabel={`${formattedElapsedTime} minutes elapsed`}
+                    >
                         {formattedElapsedTime}
                     </Typo>
 
-                    <Typo sx={{ fontSize: 'xs', color: 'greyLighter' }}>
+                    <Typo
+                        sx={{ fontSize: 'xs', color: 'greyLighter' }}
+                        accessibilityLabel={`${formattedElapsedTime} minutes duration`}
+                    >
                         {formattedTotalDuration}
                     </Typo>
                 </View>
@@ -91,6 +97,9 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
                     iconName={isPlaying ? 'pause' : 'play'}
                     variant="prominent"
                     adjustIconHorizontally={2}
+                    accessibilityLabel={
+                        isPlaying ? 'Pause the video' : 'Play the video'
+                    }
                     onPress={onPlayingToggle}
                 />
 

@@ -1,7 +1,7 @@
 import { useSx } from '@dripsy/core';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, TouchableOpacityProps } from 'react-native';
 
 type MusicPlayerControlButtonProps = {
     iconName: React.ComponentProps<typeof Ionicons>['name'];
@@ -10,11 +10,14 @@ type MusicPlayerControlButtonProps = {
     onPress: () => void;
 };
 
-const MusicPlayerControlButton: React.FC<MusicPlayerControlButtonProps> = ({
+const MusicPlayerControlButton: React.FC<
+    MusicPlayerControlButtonProps & TouchableOpacityProps
+> = ({
     iconName,
     adjustIconHorizontally,
     variant = 'normal',
     onPress,
+    ...props
 }) => {
     const sx = useSx();
 
@@ -34,6 +37,7 @@ const MusicPlayerControlButton: React.FC<MusicPlayerControlButtonProps> = ({
                 alignItems: 'center',
             })}
             onPress={onPress}
+            {...props}
         >
             <Ionicons
                 name={iconName}

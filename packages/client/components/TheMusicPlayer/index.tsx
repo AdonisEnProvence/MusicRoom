@@ -59,6 +59,7 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
 
                 {isInRoom && (
                     <View
+                        accessibilityState={{ expanded: isFullScreen === true }}
                         style={{
                             flex: 1,
                             transform: [{ translateY: isFullScreen ? 0 : 200 }],

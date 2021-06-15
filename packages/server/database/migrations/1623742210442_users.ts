@@ -5,7 +5,7 @@ export default class Users extends BaseSchema {
 
     public up(): void {
         this.schema.createTable(this.tableName, (table) => {
-            table.increments('uuid').primary();
+            table.uuid('uuid').notNullable().primary();
             table.string('nickname').unique().notNullable();
             table.timestamps(true, true);
         });

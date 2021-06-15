@@ -1,7 +1,7 @@
-import Redis from '@ioc:Adonis/Addons/Redis';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import { ZodRoomSettings } from '@musicroom/types';
 import Ws from 'App/Services/Ws';
+import Room from '../../Models/Room';
 
 export const getAllRooms = async (): Promise<string[]> => {
     const adapter = Ws.adapter();
@@ -16,6 +16,7 @@ export default class MtvRoomsHttpController {
     }
     public async listAllRooms(): Promise<string[]> {
         //TODO USE POSTGRESS, BELOW IS JUST A TEST HACK/FIX
-        return (await Redis.keys('*')) as string[];
+        const rooms = await Room.all();
+        return rooms.map<string>((room) => room.uuid);
     }
 }

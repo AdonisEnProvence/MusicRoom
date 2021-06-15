@@ -1,4 +1,3 @@
-import Redis from '@ioc:Adonis/Addons/Redis';
 import {
     CreateWorkflowResponse,
     RoomClientToServerCreate,
@@ -7,22 +6,11 @@ import {
     RoomClientToServerPause,
     RoomClientToServerPlay,
 } from '@musicroom/types';
+import Room from 'App/Models/Room';
 import Ws from 'App/Services/Ws';
+import { randomUUID } from 'crypto';
 import { Socket } from 'socket.io';
 import ServerToTemporalController from '../Http/Temporal/ServerToTemporalController';
-
-//TODO replace by uid generator lib
-const genId = () => {
-    return '_' + Math.random().toString(36).substr(2, 9);
-};
-
-const getRunID = async (roomID: string): Promise<string> => {
-    const runID: string | undefined = (await Redis.get(roomID)) || undefined;
-    if (!runID) {
-        throw new Error('Redis failed to get runID for ' + roomID);
-    }
-    return runID;
-};
 
 interface WsControllerMethodArgs<Payload> {
     socket: Socket<RoomClientToServerEvents>; //RoomServerToClientEvents
@@ -35,14 +23,17 @@ export default class MtvRoomsWsController {
         payload,
     }: WsControllerMethodArgs<RoomClientToServerCreate>): Promise<CreateWorkflowResponse> {
         console.log('Creating room' + payload.name);
-        const roomID = genId();
+        const roomID = randomUUID();
         const res = await ServerToTemporalController.createWorflow(
             roomID,
             payload.name,
             payload.userID,
         );
         await socket.join(roomID);
-        await Redis.set(roomID, res.runID);
+        await Room.create({
+            uuid: roomID,
+            runID: res.runID,
+        });
         return res;
     }
 
@@ -55,7 +46,7 @@ export default class MtvRoomsWsController {
         if (!Ws.io.sockets.adapter.rooms.has(roomID))
             throw new Error('Room does not exist ' + roomID);
         console.log(`JOIN ${roomID} with ${socket.id}`);
-        const runID = await getRunID(roomID);
+        const { runID } = await Room.findOrFail(roomID);
         await ServerToTemporalController.joinWorkflow(roomID, runID, userID);
     }
 
@@ -65,7 +56,7 @@ export default class MtvRoomsWsController {
     }: WsControllerMethodArgs<RoomClientToServerPause>): Promise<void> {
         const { roomID } = payload;
         console.log(`PAUSE ${roomID} with ${socket.id}`);
-        const runID = await getRunID(roomID);
+        const { runID } = await Room.findOrFail(roomID);
         await ServerToTemporalController.pause(roomID, runID);
     }
 
@@ -75,7 +66,7 @@ export default class MtvRoomsWsController {
     }: WsControllerMethodArgs<RoomClientToServerPlay>): Promise<void> {
         const { roomID } = payload;
         console.log(`PLAY ${payload.roomID} with ${socket.id}`);
-        const runID = await getRunID(roomID);
+        const { runID } = await Room.findOrFail(roomID);
         await ServerToTemporalController.play(roomID, runID);
     }
 }

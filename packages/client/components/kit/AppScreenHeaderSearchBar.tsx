@@ -83,10 +83,6 @@ const AppScreenHeaderSearchBar: React.FC<AppScreenHeaderSearchBarProps> = ({
     });
     const sx = useSx();
 
-    useEffect(() => {
-        console.log('search bar state value', state.value);
-    }, [state]);
-
     const cancelButtonLeftMargin = sx({ marginLeft: 'l' }).marginLeft as number;
 
     function blurTextInput() {
@@ -94,8 +90,6 @@ const AppScreenHeaderSearchBar: React.FC<AppScreenHeaderSearchBarProps> = ({
     }
 
     function handleTextInputFocus() {
-        console.log('focused');
-
         send({
             type: 'FOCUS',
         });

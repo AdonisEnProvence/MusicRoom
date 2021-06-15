@@ -6,8 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import AppScreenHeaderTitle from './AppScreenHeaderTitle';
 import { useLayout } from '../../hooks/useLayout';
 import AppScreenHeaderSearchBar from './AppScreenHeaderSearchBar';
-import { Sender } from 'xstate';
 import { AppScreenHeaderWithSearchBarMachineEvent } from '../../machines/appScreenHeaderWithSearchBarMachine';
+import { Sender } from '@xstate/react/lib/types';
 
 type AppScreenHeaderWithSearchBarPropsBase = {
     insetTop: number;

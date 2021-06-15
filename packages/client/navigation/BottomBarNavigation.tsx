@@ -151,7 +151,7 @@ function MyTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
 const BottomTab: React.FC<ColorModeProps> = ({ colorScheme }) => {
     const style = tabStyle(colorScheme);
-    console.log(colorScheme);
+
     return (
         <Tab.Navigator
             initialRouteName="Home"

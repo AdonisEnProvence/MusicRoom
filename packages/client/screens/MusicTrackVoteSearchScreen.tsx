@@ -1,10 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMachine } from '@xstate/react';
+import { useActor, useMachine } from '@xstate/react';
 import { useSx, View } from 'dripsy';
 import { View as MotiView } from 'moti';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { FlatList, ListRenderItem, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ActorRef } from 'xstate';
 import {
     AppScreen,
     AppScreenContainer,
@@ -12,7 +13,10 @@ import {
     Typo,
 } from '../components/kit';
 import { useMusicPlayer } from '../contexts/MusicPlayerContext';
-import { appScreenHeaderWithSearchBarMachine } from '../machines/appScreenHeaderWithSearchBarMachine';
+import {
+    AppScreenHeaderWithSearchBarMachineEvent,
+    AppScreenHeaderWithSearchBarMachineState,
+} from '../machines/appScreenHeaderWithSearchBarMachine';
 import { searchMtvRoomsMachine } from '../machines/searchMtvRoomsMachine';
 import { MusicTrackVoteSearchScreenProps } from '../types';
 
@@ -101,25 +105,18 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
 }) => {
     const insets = useSafeAreaInsets();
     const [screenOffsetY, setScreenOffsetY] = useState(0);
-    const [searchState, sendSearchMachine] = useMachine(
-        appScreenHeaderWithSearchBarMachine,
-    );
+    const [mtvRoomState] = useMachine(searchMtvRoomsMachine);
+    const searchBarActor: ActorRef<
+        AppScreenHeaderWithSearchBarMachineEvent,
+        AppScreenHeaderWithSearchBarMachineState
+    > = mtvRoomState.children.searchBarMachine;
+    const [searchState, sendToSearch] = useActor(searchBarActor);
     const showHeader = searchState.hasTag('showHeaderTitle');
     const showSuggestions = searchState.hasTag('showSuggestions');
     const reduceSuggestionsOpacity = searchState.hasTag(
         'reduceSuggestionsOpacity',
     );
-    const { sendToMachine } = useMusicPlayer();
-    const [mtvRoomState, sendToMtvRoomsMachine] = useMachine(
-        searchMtvRoomsMachine,
-    );
-
-    useEffect(() => {
-        sendToMtvRoomsMachine({
-            type: 'SEND_REQUEST',
-        });
-        //eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const { sendToMachine: sendToMusicPlayerMachine } = useMusicPlayer();
 
     return (
         <AppScreen screenOffsetY={showHeader === true ? 0 : screenOffsetY}>
@@ -129,7 +126,7 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
                 insetTop={insets.top}
                 setScreenOffsetY={setScreenOffsetY}
                 searchQuery={searchState.context.searchQuery}
-                sendToMachine={sendSearchMachine}
+                sendToMachine={sendToSearch}
                 showHeader={showHeader}
                 canGoBack={true}
                 goBack={() => {
@@ -154,7 +151,7 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
                             }
                             bottomInset={insets.bottom}
                             onSuggestionPress={(roomID: string) => {
-                                sendToMachine({
+                                sendToMusicPlayerMachine({
                                     type: 'JOIN_ROOM',
                                     roomID,
                                 });

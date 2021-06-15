@@ -1,8 +1,8 @@
 import { rest } from 'msw';
-import faker from 'faker';
 
 import { SERVER_ENDPOINT } from '../../constants/Endpoints';
 import { SearchTracksAPIRawResponse } from '../../machines/searchTrackMachine';
+import { db } from '../data';
 
 export const handlers = [
     rest.get<undefined, SearchTracksAPIRawResponse, { query: string }>(
@@ -10,14 +10,20 @@ export const handlers = [
         (req, res, ctx) => {
             const { query } = req.params;
 
+            const tracks = db.tracks.findMany({
+                where: {
+                    title: {
+                        contains: query,
+                    },
+                },
+            });
+
             return res(
                 ctx.json({
-                    videos: [
-                        {
-                            id: { videoId: faker.datatype.uuid() },
-                            snippet: { title: faker.random.words(3) },
-                        },
-                    ],
+                    videos: tracks.map(({ id, title }) => ({
+                        id: { videoId: id },
+                        snippet: { title },
+                    })),
                 }),
             );
         },

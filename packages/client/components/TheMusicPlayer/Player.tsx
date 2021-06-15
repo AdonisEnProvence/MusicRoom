@@ -9,6 +9,7 @@ type MusicPlayerProps = {
     videoState: 'playing' | 'stopped';
     playerHeight: number;
     setPlayerRef: (playerRef: MusicPlayerRef) => void;
+    onTrackReady: () => void;
 };
 
 function noop() {
@@ -20,6 +21,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
     videoState,
     playerHeight,
     setPlayerRef,
+    onTrackReady,
 }) => {
     const playerRef = setPlayerRef as unknown as any;
 
@@ -33,6 +35,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
                     videoId={videoId}
                     //FIX for android see https://stackoverflow.com/questions/63171131/when-rendering-iframes-with-html-android-crashes-while-navigating-back-to-s
                     webViewStyle={{ opacity: 0.99 }}
+                    onReady={onTrackReady}
                 />
             </View>
         </Pressable>

@@ -1,4 +1,4 @@
-import { assign, createMachine } from 'xstate';
+import { assign, createMachine, sendParent, State } from 'xstate';
 
 export type AppScreenHeaderWithSearchBarMachineContext = {
     searchQuery: string;
@@ -8,7 +8,8 @@ export type AppScreenHeaderWithSearchBarMachineEvent =
     | { type: 'SUBMIT' }
     | { type: 'FOCUS' }
     | { type: 'BLUR' }
-    | { type: 'UPDATE_SEARCH_QUERY'; searchQuery: string };
+    | { type: 'UPDATE_SEARCH_QUERY'; searchQuery: string }
+    | { type: 'SUBMITTED'; searchQuery: string };
 
 export const appScreenHeaderWithSearchBarMachine = createMachine<
     AppScreenHeaderWithSearchBarMachineContext,
@@ -73,6 +74,11 @@ export const appScreenHeaderWithSearchBarMachine = createMachine<
             },
 
             submitted: {
+                entry: sendParent((context, _event) => ({
+                    type: 'SUBMITTED',
+                    searchQuery: context.searchQuery,
+                })),
+
                 tags: ['showSearchResults'],
 
                 on: {
@@ -110,3 +116,8 @@ export const appScreenHeaderWithSearchBarMachine = createMachine<
         },
     },
 );
+
+export type AppScreenHeaderWithSearchBarMachineState = State<
+    AppScreenHeaderWithSearchBarMachineContext,
+    AppScreenHeaderWithSearchBarMachineEvent
+>;

@@ -21,6 +21,9 @@ export interface AppMusicPlayerMachineContext {
     currentRoom?: TrackVoteRoom;
     currentTrack?: TrackVoteTrack;
     waitingRoomID?: string;
+
+    currentTrackDuration: number;
+    currentTrackElapsedTime: number;
 }
 
 export type AppMusicPlayerMachineState = State<
@@ -35,6 +38,16 @@ export type AppMusicPlayerMachineEvent =
       }
     | { type: 'JOINED_ROOM'; room: TrackVoteRoom; track: TrackVoteTrack }
     | { type: 'JOIN_ROOM'; roomID: string }
+    | { type: 'MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET' }
+    | { type: 'TRACK_HAS_LOADED' }
+    | {
+          type: 'LOADED_TRACK_DURATION';
+          duration: number;
+      }
+    | {
+          type: 'UPDATE_CURRENT_TRACK_ELAPSED_TIME';
+          elapsedTime: number;
+      }
     | {
           type: 'PLAY_PAUSE_TOGGLE';
           params: { status: 'play' | 'pause'; roomID?: string };
@@ -72,8 +85,8 @@ export const createAppMusicPlayerMachine = ({
     createMachine<AppMusicPlayerMachineContext, AppMusicPlayerMachineEvent>(
         {
             invoke: {
-                id: 'root',
-                src: (context, _event) => (sendBack, onReceive) => {
+                id: 'socketConnection',
+                src: (_context, _event) => (sendBack, onReceive) => {
                     socket.on('JOIN_ROOM_CALLBACK', ({ roomID, name }) => {
                         sendBack({
                             type: 'JOINED_ROOM',
@@ -120,6 +133,9 @@ export const createAppMusicPlayerMachine = ({
                 currentRoom: undefined,
                 currentTrack: undefined,
                 waitingRoomID: undefined,
+
+                currentTrackDuration: 0,
+                currentTrackElapsedTime: 0,
             },
 
             initial: 'waitingJoiningRoom',
@@ -205,62 +221,127 @@ export const createAppMusicPlayerMachine = ({
                 },
 
                 connectedToRoom: {
-                    initial: 'pause',
+                    initial: 'waitingForPlayerToBeSet',
+
                     states: {
-                        pause: {
-                            initial: 'idle',
-                            states: {
-                                idle: {
-                                    on: {
-                                        PLAY_PAUSE_TOGGLE: {
-                                            target: 'toggled',
-                                        },
-                                    },
-                                },
-                                toggled: {
-                                    entry: send(
-                                        (context, _event) => ({
-                                            type: 'PLAY_PAUSE_TOGGLE',
-                                            params: {
-                                                status: 'pause',
-                                                roomID: context.currentRoom
-                                                    ?.roomID,
-                                            },
-                                        }),
-                                        { to: 'root' },
-                                    ),
+                        waitingForPlayerToBeSet: {
+                            on: {
+                                MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET: {
+                                    target: 'waitingForTrackToLoad',
                                 },
                             },
                         },
-                        play: {
-                            initial: 'idle',
+
+                        waitingForTrackToLoad: {
+                            on: {
+                                TRACK_HAS_LOADED: {
+                                    target: 'loadingTrackDuration',
+                                },
+                            },
+                        },
+
+                        loadingTrackDuration: {
+                            invoke: {
+                                src: 'getTrackDuration',
+                            },
+
+                            on: {
+                                LOADED_TRACK_DURATION: {
+                                    target: 'activatedPlayer',
+                                    actions: 'assignDurationToContext',
+                                },
+                            },
+                        },
+
+                        activatedPlayer: {
+                            initial: 'pause',
+
                             states: {
-                                idle: {
-                                    on: {
-                                        PLAY_PAUSE_TOGGLE: {
-                                            target: 'toggled',
+                                pause: {
+                                    tags: 'playerOnPause',
+
+                                    initial: 'idle',
+
+                                    states: {
+                                        idle: {
+                                            on: {
+                                                PLAY_PAUSE_TOGGLE: {
+                                                    target: 'waitingServerAcknowledgement',
+                                                },
+                                            },
+                                        },
+
+                                        waitingServerAcknowledgement: {
+                                            entry: send(
+                                                (context, _event) => ({
+                                                    type: 'PLAY_PAUSE_TOGGLE',
+                                                    params: {
+                                                        status: 'pause',
+                                                        roomID: context
+                                                            .currentRoom
+                                                            ?.roomID,
+                                                    },
+                                                }),
+                                                { to: 'socketConnection' },
+                                            ),
                                         },
                                     },
                                 },
-                                toggled: {
-                                    entry: send(
-                                        (context, _event) => ({
-                                            type: 'PLAY_PAUSE_TOGGLE',
-                                            params: {
-                                                status: 'play',
-                                                roomID: context.currentRoom
-                                                    ?.roomID,
+
+                                play: {
+                                    tags: 'playerOnPlay',
+
+                                    invoke: {
+                                        src: 'pollTrackElapsedTime',
+                                    },
+
+                                    initial: 'idle',
+
+                                    states: {
+                                        idle: {
+                                            on: {
+                                                PLAY_PAUSE_TOGGLE: {
+                                                    target: 'waitingServerAcknowledgement',
+                                                },
                                             },
-                                        }),
-                                        { to: 'root' },
-                                    ),
+                                        },
+
+                                        waitingServerAcknowledgement: {
+                                            entry: send(
+                                                (context, _event) => ({
+                                                    type: 'PLAY_PAUSE_TOGGLE',
+                                                    params: {
+                                                        status: 'play',
+                                                        roomID: context
+                                                            .currentRoom
+                                                            ?.roomID,
+                                                    },
+                                                }),
+                                                { to: 'socketConnection' },
+                                            ),
+                                        },
+                                    },
+
+                                    on: {
+                                        UPDATE_CURRENT_TRACK_ELAPSED_TIME: {
+                                            actions:
+                                                'assignElapsedTimeToContext',
+                                        },
+                                    },
+                                },
+                            },
+
+                            on: {
+                                PAUSE_CALLBACK: {
+                                    target: 'activatedPlayer.pause',
+                                },
+                                PLAY_CALLBACK: {
+                                    target: 'activatedPlayer.play',
                                 },
                             },
                         },
                     },
                     on: {
-                        PAUSE_CALLBACK: { target: '.pause' },
-                        PLAY_CALLBACK: { target: '.play' },
                         JOIN_ROOM: 'joiningRoom',
                     },
                 },
@@ -277,6 +358,28 @@ export const createAppMusicPlayerMachine = ({
                         ...context,
                         currentRoom: event.room,
                         currentTrack: event.track,
+                    };
+                }),
+
+                assignElapsedTimeToContext: assign((context, event) => {
+                    if (event.type !== 'UPDATE_CURRENT_TRACK_ELAPSED_TIME') {
+                        return context;
+                    }
+
+                    return {
+                        ...context,
+                        currentTrackElapsedTime: event.elapsedTime,
+                    };
+                }),
+
+                assignDurationToContext: assign((context, event) => {
+                    if (event.type !== 'LOADED_TRACK_DURATION') {
+                        return context;
+                    }
+
+                    return {
+                        ...context,
+                        currentTrackDuration: event.duration,
                     };
                 }),
             },

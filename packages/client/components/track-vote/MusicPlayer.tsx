@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRef } from 'react';
 import { Pressable, View } from 'react-native';
 import YoutubePlayer, { YoutubeIframeRef } from 'react-native-youtube-iframe';
 
@@ -9,6 +10,7 @@ type MusicPlayerProps = {
     videoState: 'playing' | 'stopped';
     playerHeight: number;
     setPlayerRef: (playerRef: MusicPlayerRef) => void;
+    onTrackReady: () => void;
 };
 
 function noop() {
@@ -20,7 +22,9 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
     videoState,
     playerHeight,
     setPlayerRef,
+    onTrackReady,
 }) => {
+    const ref = useRef();
     const playerRef = setPlayerRef as unknown as any;
 
     return (
@@ -33,6 +37,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
                     videoId={videoId}
                     //FIX for android see https://stackoverflow.com/questions/63171131/when-rendering-iframes-with-html-android-crashes-while-navigating-back-to-s
                     webViewStyle={{ opacity: 0.99 }}
+                    onReady={onTrackReady}
                 />
             </View>
         </Pressable>

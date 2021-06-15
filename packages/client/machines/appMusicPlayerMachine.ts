@@ -48,7 +48,6 @@ interface CreateAppMusicPlayerMachineArgs {
 
 function joiningRoomCallback(sendBack: Sender<AppMusicPlayerMachineEvent>) {
     return (roomID: string, name: string) => {
-        console.log(roomID);
         sendBack({
             type: 'JOINED_ROOM',
             room: {
@@ -90,23 +89,19 @@ export const createAppMusicPlayerMachine = ({
                     });
 
                     socket.on('ACTION_PLAY_CALLBACK', () => {
-                        console.log('SERVER RESPONSE FOR PLAY');
                         sendBack({
                             type: 'PLAY_CALLBACK',
                         });
                     });
 
                     socket.on('ACTION_PAUSE_CALLBACK', () => {
-                        console.log('SERVER RESPONSE FOR PAUSE');
                         sendBack({
                             type: 'PAUSE_CALLBACK',
                         });
                     });
 
                     onReceive((e) => {
-                        console.log('Event received ' + e.type);
                         if (e.type === 'PLAY_PAUSE_TOGGLE' && e.params.roomID) {
-                            console.log(e.params);
                             const { roomID, status } = e.params;
                             const payload = {
                                 roomID: roomID,
@@ -188,7 +183,6 @@ export const createAppMusicPlayerMachine = ({
                                     'Service must be called in reaction to JOIN_ROOM event',
                                 );
                             }
-                            console.log('POUIOUIUIPOUIIOPUOIPUOIU', event);
                             const payload = {
                                 roomID: event.roomID,
                                 userID: 'user2',

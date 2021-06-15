@@ -57,8 +57,6 @@ const chatMachine = createMachine<ChatMachineContext, ChatMachineEvent>({
             });
 
             socket.on('RECEIVED_MESSAGE', ({ message: { author, text } }) => {
-                console.log('received message');
-
                 sendBack({
                     type: 'RECEIVED_MESSAGE',
                     message: {
@@ -69,8 +67,6 @@ const chatMachine = createMachine<ChatMachineContext, ChatMachineEvent>({
             });
 
             onReceive((event) => {
-                console.log('global service received a message');
-
                 switch (event.type) {
                     case 'SEND_MESSAGE_TO_SERVER': {
                         socket.emit('NEW_MESSAGE', {
@@ -132,11 +128,6 @@ const chatMachine = createMachine<ChatMachineContext, ChatMachineEvent>({
                                     actions: [
                                         send(
                                             (context) => {
-                                                console.log(
-                                                    'send message!',
-                                                    context,
-                                                );
-
                                                 return {
                                                     type: 'SEND_MESSAGE_TO_SERVER',
                                                     message:

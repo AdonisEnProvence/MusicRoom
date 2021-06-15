@@ -1,6 +1,5 @@
 import '@testing-library/jest-native';
-import React from 'react';
-import { cleanup } from './services/__mocks__/websockets';
+import { cleanup } from './services/websockets';
 import { server } from './tests/server/test-server';
 import {
     YoutubeIframeProps,

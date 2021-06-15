@@ -1,5 +1,4 @@
 import React from 'react';
-import { useRef } from 'react';
 import { Pressable, View } from 'react-native';
 import YoutubePlayer, { YoutubeIframeRef } from 'react-native-youtube-iframe';
 
@@ -24,7 +23,6 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
     setPlayerRef,
     onTrackReady,
 }) => {
-    const ref = useRef();
     const playerRef = setPlayerRef as unknown as any;
 
     return (

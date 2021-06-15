@@ -9,7 +9,7 @@ import {
 } from '../../machines/appMusicPlayerMachine';
 import { AppScreen, AppScreenContainer, Typo } from '../kit';
 import AppModalHeader from '../kit/AppModalHeader';
-import { MusicPlayerRef } from '../track-vote/MusicPlayer';
+import { MusicPlayerRef } from './Player';
 import TheMusicPlayerWithControls from './TheMusicPlayerWithControls';
 
 type MusicControlMachineContext = {

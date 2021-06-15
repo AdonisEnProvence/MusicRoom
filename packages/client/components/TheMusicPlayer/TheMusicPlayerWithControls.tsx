@@ -4,7 +4,7 @@ import React from 'react';
 import { useFormatSeconds } from '../../hooks/useFormatSeconds';
 import { useLayout } from '../../hooks/useLayout';
 import { Typo } from '../kit';
-import MusicPlayer, { MusicPlayerRef } from '../track-vote/MusicPlayer';
+import MusicPlayer, { MusicPlayerRef } from './Player';
 import MusicPlayerControlButton from './MusicPlayerControlButton';
 
 type TheMusicPlayerWithControlsProps = {

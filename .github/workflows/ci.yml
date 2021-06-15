@@ -23,6 +23,10 @@ jobs:
                 ports:
                     - '6379:6379'
                 options: --entrypoint redis-server
+            postgresql:
+                image: postgres:latest
+                ports:
+                    - 5432:5432
         steps:
             - name: Checkout 🛎
               uses: actions/checkout@v2
@@ -58,3 +62,9 @@ jobs:
                   GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
                   HOST: '0.0.0.0'
                   APP_KEY: '-qyExFFunSk4vSAvUiwheisaGicpYVpC'
+                  DB_CONNECTION: pg
+                  PG_HOST: localhost
+                  PG_PORT: 5432
+                  PG_USER: lucid
+                  PG_PASSWORD: yourpassword
+                  PG_DB_NAME: lucid

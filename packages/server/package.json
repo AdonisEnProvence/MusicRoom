@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@adonisjs/core": "^5.1.0",
+    "@adonisjs/lucid": "^15.0.1",
     "@adonisjs/redis": "^7.0.4",
     "@adonisjs/repl": "^3.0.0",
     "@musicroom/types": "*",
@@ -44,6 +45,7 @@
     "googleapis": "^74.1.0",
     "got": "^11.8.2",
     "node-fetch": "^2.6.1",
+    "pg": "^8.6.0",
     "proxy-addr": "^2.0.6",
     "query-string": "^7.0.0",
     "redis": "^3.1.2",

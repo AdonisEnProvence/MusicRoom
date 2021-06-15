@@ -38,7 +38,7 @@ Changing any files in the folder will result in an incremental rebuild, and a re
 
 ### Server
 
-First launch redis container:
+First launch redis & postgres container:
 
 ```sh
 cd packages/server && docker-compose -d
@@ -53,6 +53,28 @@ yarn dev
 By default, the server is served on https://localhost:3333.
 
 Do not forget to set the env variables, if not the server won't start
+
+### Temporal
+
+First launch temporal server:
+
+```sh
+cd packages/temporal && yarn temporal
+```
+
+Start the api
+
+```sh
+yarn dev
+```
+
+Start the worker
+
+```sh
+yarn worker
+```
+
+If you got some errors from the two previous commands, just wait few minutes for the temporal server to be ready
 
 ## Utils
 

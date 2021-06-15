@@ -23,6 +23,17 @@ jobs:
                 ports:
                     - '6379:6379'
                 options: --entrypoint redis-server
+            postgresql:
+                env:
+                    DB_CONNECTION: pg
+                    PG_HOST: localhost
+                    PG_PORT: 5432
+                    PG_USER: lucid
+                    PG_PASSWORD: yourpassword
+                    PG_DB_NAME: lucid
+                image: postgres:9.6
+                ports:
+                    - 5432:5432
         steps:
             - name: Checkout 🛎
               uses: actions/checkout@v2

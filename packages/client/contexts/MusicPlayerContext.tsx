@@ -1,6 +1,5 @@
 import { useMachine } from '@xstate/react';
-import React, { useContext } from 'react';
-import { useRef } from 'react';
+import React, { useContext, useRef } from 'react';
 import { Sender } from 'xstate';
 import { MusicPlayerRef } from '../components/TheMusicPlayer/Player';
 import {
@@ -63,6 +62,11 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
                     return () => {
                         clearInterval(timerId);
                     };
+                },
+            },
+            actions: {
+                alertForcedDisconnection: () => {
+                    console.log('ALLLERRRRTE FORCED DISCONNECTION');
                 },
             },
         });

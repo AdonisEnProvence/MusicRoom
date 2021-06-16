@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import {
     assign,
     createMachine,
@@ -53,6 +54,7 @@ export type AppMusicPlayerMachineEvent =
           params: { status: 'play' | 'pause'; roomID?: string };
       }
     | { type: 'PLAY_CALLBACK' }
+    | { type: 'FORCED_DISCONNECTION' }
     | { type: 'PAUSE_CALLBACK' };
 
 interface CreateAppMusicPlayerMachineArgs {
@@ -110,6 +112,13 @@ export const createAppMusicPlayerMachine = ({
                     socket.on('ACTION_PAUSE_CALLBACK', () => {
                         sendBack({
                             type: 'PAUSE_CALLBACK',
+                        });
+                    });
+
+                    socket.on('FORCED_DISCONNECTION', () => {
+                        console.log('RECEIVED FORCED DISCONNECTION');
+                        sendBack({
+                            type: 'FORCED_DISCONNECTION',
                         });
                     });
 
@@ -172,7 +181,8 @@ export const createAppMusicPlayerMachine = ({
                                 );
                             }
                             const payload = {
-                                userID: 'user1',
+                                userID:
+                                    Platform.OS === 'web' ? 'web' : 'android', //TODO
                                 name: 'your_room_name',
                             };
                             socket.emit(
@@ -201,7 +211,8 @@ export const createAppMusicPlayerMachine = ({
                             }
                             const payload = {
                                 roomID: event.roomID,
-                                userID: 'user2',
+                                userID:
+                                    Platform.OS === 'web' ? 'web' : 'android',
                             };
                             socket.emit('JOIN_ROOM', payload);
                         },
@@ -342,7 +353,11 @@ export const createAppMusicPlayerMachine = ({
                         },
                     },
                     on: {
-                        JOIN_ROOM: 'joiningRoom',
+                        FORCED_DISCONNECTION: {
+                            target: 'waitingJoiningRoom',
+                            actions: 'alertForcedDisconnection',
+                        },
+                        JOIN_ROOM: { target: 'joiningRoom' },
                     },
                 },
             },

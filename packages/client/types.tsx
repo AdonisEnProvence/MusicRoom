@@ -38,6 +38,10 @@ export type RootStackParamList = {
     Chat: undefined;
 
     Settings: undefined;
+
+    Alert: {
+        reason: 'FORCED_DISCONNECTION';
+    };
 };
 
 /**
@@ -61,6 +65,11 @@ export type ChatScreenProps = {
 export type SettingsScreenProps = {
     navigation: StackNavigationProp<RootStackParamList, 'Settings'>;
     route: RouteProp<RootStackParamList, 'Settings'>;
+};
+
+export type AlertScreenProps = {
+    navigation: StackNavigationProp<RootStackParamList, 'Alert'>;
+    route: RouteProp<RootStackParamList, 'Alert'>;
 };
 
 export type HomeTabProps = {

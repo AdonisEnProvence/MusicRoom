@@ -7,6 +7,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
 import { navigationStyle } from '../constants/Colors';
+import { AlertScreen } from '../screens/AlertScreen';
 import ChatScreen from '../screens/ChatScreen';
 import MusicTrackVoteSearchScreen from '../screens/MusicTrackVoteSearchScreen';
 import SettingsScreen from '../screens/SettingsScreen';
@@ -79,6 +80,8 @@ export const RootNavigator: React.FC<ColorModeProps> = ({
                     />
                 )}
             </Stack.Screen>
+
+            <Stack.Screen name="Alert" component={AlertScreen} />
         </Stack.Navigator>
     );
 };

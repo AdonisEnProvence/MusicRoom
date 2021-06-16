@@ -161,11 +161,18 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		ID:        workflowID,
 		TaskQueue: app.ControlTaskQueue,
 	}
+
+	seedTracksIDs := []string{
+		"JK7WLK3ZSu8",
+		"9Tfciw7QM3c",
+		"H3s1mt7aFlc",
+	}
+	initialTracksIDsList := append(body.InitialTracksIDs, seedTracksIDs...)
 	state := app.ControlState{
 		Playing:       false,
 		Name:          body.Name,
 		Users:         []string{body.UserID},
-		TracksIDsList: body.InitialTracksIDs,
+		TracksIDsList: initialTracksIDsList,
 	}
 
 	we, err := temporal.ExecuteWorkflow(context.Background(), options, app.ControlWorkflow, state)

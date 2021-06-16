@@ -29,7 +29,7 @@ func ControlWorkflow(ctx workflow.Context, state ControlState) error {
 	}
 
 	channel := workflow.GetSignalChannel(ctx, SignalChannelName)
-	checkedOut := false
+	terminated := false
 	// sentAbandonedCartEmail := false
 
 	for {
@@ -106,11 +106,14 @@ func ControlWorkflow(ctx workflow.Context, state ControlState) error {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
+			case routeSignal.Route == RouteTypes.TERMINATE:
+				fmt.Println("Terminating workflow")
+				terminated = true
 			}
 		})
 		selector.Select(ctx)
 
-		if checkedOut {
+		if terminated {
 			break
 		}
 	}

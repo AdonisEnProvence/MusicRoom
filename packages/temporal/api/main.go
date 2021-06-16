@@ -50,6 +50,7 @@ func main() {
 	r.Handle("/create/{workflowID}", http.HandlerFunc(CreateRoomHandler)).Methods("PUT")
 	r.Handle("/join/{workflowID}/{runID}", http.HandlerFunc(JoinRoomHandler)).Methods("PUT")
 	r.Handle("/state/{workflowID}/{runID}", http.HandlerFunc(GetStateHandler)).Methods("GET")
+	r.Handle("/terminate/{workflowID}/{runID}", http.HandlerFunc(TerminateWorkflowHandler)).Methods("GET")
 
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 
@@ -73,6 +74,26 @@ func PlayHandler(w http.ResponseWriter, r *http.Request) {
 	workflowID := vars["workflowID"]
 	runID := vars["runID"]
 	update := app.PlaySignal{Route: app.RouteTypes.PLAY, WorkflowID: workflowID}
+	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, app.SignalChannelName, update)
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	res := make(map[string]interface{})
+	res["ok"] = 1
+	printResults("", workflowID, runID)
+	json.NewEncoder(w).Encode(res)
+}
+
+func TerminateWorkflowHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Control called")
+	vars := mux.Vars(r)
+
+	workflowID := vars["workflowID"]
+	runID := vars["runID"]
+	update := app.PlaySignal{Route: app.RouteTypes.TERMINATE}
 	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, app.SignalChannelName, update)
 	if err != nil {
 		WriteError(w, err)

@@ -1,4 +1,5 @@
-import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm';
+import { BaseModel, beforeCreate, column } from '@ioc:Adonis/Lucid/Orm';
+import { randomUUID } from 'crypto';
 import { DateTime } from 'luxon';
 
 export default class Room extends BaseModel {
@@ -13,4 +14,9 @@ export default class Room extends BaseModel {
 
     @column.dateTime({ autoCreate: true, autoUpdate: true })
     public updatedAt: DateTime;
+
+    @beforeCreate()
+    public static assignUuid(room: Room): void {
+        room.uuid = randomUUID();
+    }
 }

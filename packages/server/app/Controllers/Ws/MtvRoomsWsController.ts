@@ -31,7 +31,6 @@ export default class MtvRoomsWsController {
         );
         await socket.join(roomID);
         await Room.create({
-            uuid: roomID,
             runID: res.runID,
         });
         return res;

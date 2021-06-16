@@ -9,21 +9,21 @@ import {
     createBottomTabNavigator,
 } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
+import { Text, useSx, View } from 'dripsy';
 import React, { useState } from 'react';
-import { View, Text, useSx } from 'dripsy';
 import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ColorModeProps } from '.';
+import TheMusicPlayer from '../components/TheMusicPlayer';
 import { tabStyle } from '../constants/Colors';
 import HomeScreen from '../screens/HomeScreen';
-import SearchTrackScreen from '../screens/SearchTrackScreen';
 import SearchTrackResultsScreen from '../screens/SearchTrackResultsScreen';
+import SearchTrackScreen from '../screens/SearchTrackScreen';
 import {
     BottomTabNavigatorParamList,
     HomeParamsList,
     SearchTracksParamsList,
 } from '../types';
-import TheMusicPlayer from '../components/TheMusicPlayer';
 
 const Tab = createBottomTabNavigator<BottomTabNavigatorParamList>();
 

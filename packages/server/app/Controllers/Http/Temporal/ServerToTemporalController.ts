@@ -8,22 +8,39 @@ import urlcat from 'urlcat';
 
 const TEMPORAL_ENDPOINT = Env.get('TEMPORAL_ENDPOINT');
 
+interface TemporalCreateMtvWorkflowArgs {
+    workflowID: string;
+    roomName: string;
+    userID: string;
+    initialTracksIDs: string[];
+}
+
+interface TemporalCreateMtvWorkflowBody {
+    roomName: string;
+    userID: string;
+    initialTracksIDs: string[];
+}
+
 export default class ServerToTemporalController {
-    public static async createWorflow(
-        workflowID: string,
-        name: string,
-        userID: string,
-    ): Promise<CreateWorkflowResponse> {
+    public static async createMtvWorflow({
+        workflowID,
+        roomName,
+        userID,
+        initialTracksIDs,
+    }: TemporalCreateMtvWorkflowArgs): Promise<CreateWorkflowResponse> {
         const url = urlcat(TEMPORAL_ENDPOINT, '/create/:workflowID', {
             workflowID,
         });
+        const requestBody: TemporalCreateMtvWorkflowBody = {
+            roomName,
+            userID,
+            initialTracksIDs,
+        };
+
         return CreateWorkflowResponse.parse(
             await got
                 .put(url, {
-                    json: {
-                        name,
-                        userID,
-                    },
+                    json: requestBody,
                     responseType: 'json',
                 })
                 .json(),

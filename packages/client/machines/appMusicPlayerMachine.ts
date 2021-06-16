@@ -11,6 +11,7 @@ import {
     State,
     StateMachine,
 } from 'xstate';
+import { RoomClientToServerCreate } from '../../types/dist';
 import { SocketClient } from '../hooks/useSocket';
 
 export type AppMusicPlayerMachineState = State<
@@ -22,6 +23,7 @@ export type AppMusicPlayerMachineEvent =
     | {
           type: 'CREATE_ROOM';
           roomName: string;
+          initialTracksIDs: string[];
       }
     | { type: 'JOINED_ROOM'; room: TrackVoteRoom; track: TrackVoteTrack }
     | { type: 'JOIN_ROOM'; roomID: string }
@@ -180,11 +182,16 @@ export const createAppMusicPlayerMachine = ({
                                     'Service must be called in reaction to CREATE_ROOM event',
                                 );
                             }
+
+                            const { initialTracksIDs } = event;
+                            const payload: RoomClientToServerCreate = {
+                                name: 'your_room_name',
+                                initialTracksIDs,
+                            };
+
                             socket.emit(
                                 'CREATE_ROOM',
-                                {
-                                    name: 'your_room_name',
-                                },
+                                payload,
                                 joiningRoomCallback(sendBack),
                             );
                         },

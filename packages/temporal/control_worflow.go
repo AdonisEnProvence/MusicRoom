@@ -10,9 +10,10 @@ import (
 
 type (
 	ControlState struct {
-		Playing bool     `json:"playing"`
-		Name    string   `json:"name"`
-		Users   []string `json:"users"`
+		Playing       bool     `json:"playing"`
+		Name          string   `json:"name"`
+		Users         []string `json:"users"`
+		TracksIDsList []string `json:"tracksIDsList"`
 	}
 )
 

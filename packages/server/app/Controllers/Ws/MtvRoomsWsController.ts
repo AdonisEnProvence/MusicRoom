@@ -44,25 +44,26 @@ export default class MtvRoomsWsController {
     >): Promise<CreateWorkflowResponse> {
         const roomID = randomUUID();
         console.log(`USER ${payload.userID} CREATE_ROOM ${roomID}`);
-        const res = await ServerToTemporalController.createWorflow(
-            roomID,
-            payload.name,
-            payload.userID,
-        );
+        const temporalResponse =
+            await ServerToTemporalController.createMtvWorflow({
+                workflowID: roomID,
+                roomName: payload.name,
+                userID: payload.userID,
+                initialTracksIDs: payload.initialTracksIDs,
+            });
 
         const roomCreator = await User.findOrFail(payload.userID);
         await joinEveryUserDevicesToRoom(roomCreator, roomID);
 
         const room = await MtvRoom.create({
             uuid: roomID,
-            runID: res.runID,
-            creator: payload.userID,
+            runID: temporalResponse.runID,
         });
         roomCreator.mtvRoomID = roomID;
         await room.save();
         await room.related('members').save(roomCreator);
 
-        return res;
+        return temporalResponse;
     }
 
     public static async onJoin({

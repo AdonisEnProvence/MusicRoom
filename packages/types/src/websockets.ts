@@ -19,6 +19,7 @@ export interface ChatServerToClientReceivedMessageArgs {
 
 export interface RoomClientToServerCreate {
     name: string;
+    initialTracksIDs: string[];
 }
 
 export interface RoomClientToServerJoin {

@@ -127,9 +127,10 @@ func PauseHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
-type Credentials struct {
-	UserID string
-	Name   string
+type CreateRoomRequestBody struct {
+	UserID           string   `json:"userID"`
+	Name             string   `json:"roomName"`
+	InitialTracksIDs []string `json:"initialTracksIDs"`
 }
 
 type CreateRoomResponse struct {
@@ -140,28 +141,33 @@ type CreateRoomResponse struct {
 
 func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Create called")
+
 	vars := mux.Vars(r)
-	var credentials Credentials
-	err := json.NewDecoder(r.Body).Decode(&credentials)
+	var body CreateRoomRequestBody
+
+	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		WriteError(w, err)
 		return
 	}
+
 	workflowID, err := url.QueryUnescape(vars["workflowID"])
 	if err != nil {
 		WriteError(w, err)
 		return
 	}
+
 	options := client.StartWorkflowOptions{
 		ID:        workflowID,
 		TaskQueue: app.ControlTaskQueue,
 	}
-
 	state := app.ControlState{
-		Playing: false,
-		Name:    credentials.Name,
-		Users:   []string{credentials.UserID},
+		Playing:       false,
+		Name:          body.Name,
+		Users:         []string{body.UserID},
+		TracksIDsList: body.InitialTracksIDs,
 	}
+
 	we, err := temporal.ExecuteWorkflow(context.Background(), options, app.ControlWorkflow, state)
 	if err != nil {
 		WriteError(w, err)

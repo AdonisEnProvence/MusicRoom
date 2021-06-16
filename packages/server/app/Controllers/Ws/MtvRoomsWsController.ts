@@ -29,9 +29,16 @@ export default class MtvRoomsWsController {
             payload.name,
             payload.userID,
         );
-        await socket.join(roomID);
+        await Ws.adapter().remoteJoin(socket.id, roomID);
+        console.log('in array', await Ws.adapter().sockets(new Set([roomID])));
+        console.log(
+            'withtout array',
+            await Ws.adapter().sockets(new Set(roomID)),
+        );
         await Room.create({
+            uuid: roomID,
             runID: res.runID,
+            creator: payload.userID,
         });
         return res;
     }
@@ -47,6 +54,12 @@ export default class MtvRoomsWsController {
         console.log(`JOIN ${roomID} with ${socket.id}`);
         const { runID } = await Room.findOrFail(roomID);
         await ServerToTemporalController.joinWorkflow(roomID, runID, userID);
+        await Ws.adapter().remoteJoin(socket.id, roomID);
+        console.log('in array', await Ws.adapter().sockets(new Set([roomID])));
+        console.log(
+            'withtout array',
+            await Ws.adapter().sockets(new Set(roomID)),
+        );
     }
 
     public static async onPause({
@@ -67,5 +80,15 @@ export default class MtvRoomsWsController {
         console.log(`PLAY ${payload.roomID} with ${socket.id}`);
         const { runID } = await Room.findOrFail(roomID);
         await ServerToTemporalController.play(roomID, runID);
+    }
+
+    public static async onTerminate({
+        payload,
+    }: WsControllerMethodArgs<{ roomID: string }>): Promise<void> {
+        const { roomID } = payload;
+        console.log(`TERMINATE ${payload.roomID}`);
+        const room = await Room.findOrFail(roomID);
+        await ServerToTemporalController.terminateWorkflow(roomID, room.runID);
+        await room.delete();
     }
 }

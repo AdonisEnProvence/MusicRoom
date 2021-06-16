@@ -1,5 +1,7 @@
 import ChatController from 'App/Controllers/Ws/ChatController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
+import Device from 'App/Models/Device';
+import Room from 'App/Models/Room';
 import Ws from 'App/Services/Ws';
 
 Ws.boot();
@@ -17,12 +19,32 @@ Ws.boot();
 //     return true;
 // };
 
-Ws.io.on('connection', (socket) => {
+Ws.io.on('connection', async (socket) => {
     ChatController.onConnect({ socket, payload: undefined });
 
+    const userID = socket.handshake.query['userID'];
+    console.log({ userID });
+
+    if (!(await Device.findBy('socket_id', socket.id))) {
+        console.log(`registering a device for user ${userID}`);
+        if (!userID || typeof userID !== 'string') {
+            throw new Error('Empty or invalid user token');
+        }
+        const userAgent = socket.request.headers['user-agent'];
+        Device.create({
+            socketID: socket.id,
+            userID,
+            userAgent,
+        });
+    } else {
+        console.log('socketID already registered');
+    }
+
+    /// CHAT ///
     socket.on('NEW_MESSAGE', (payload) => {
         ChatController.onWriteMessage({ socket, payload });
     });
+    /// //// ///
 
     /// ROOM ///
     socket.on('CREATE_ROOM', async (payload, callback) => {
@@ -60,6 +82,49 @@ Ws.io.on('connection', (socket) => {
         } catch (e) {
             console.error(e);
         }
+    });
+
+    socket.on('disconnecting', async () => {
+        console.log('_'.repeat(10));
+        console.log('loosing connection on socket :', socket.id);
+        const device = await Device.findBy('socket_id', socket.id);
+        if (device) {
+            const ownedRooms = await Room.query().where(
+                'creator',
+                device.userID,
+            );
+            console.log('ownedRooms length ', ownedRooms.length);
+            await Promise.all(
+                ownedRooms.map(async (room) => {
+                    try {
+                        const adapter = Ws.adapter();
+                        const connectedSockets = await adapter.sockets(
+                            new Set([room.uuid]),
+                        );
+                        console.log({ connectedSockets });
+                        const payload = {
+                            roomID: room.uuid,
+                        };
+                        await MtvRoomsWsController.onTerminate({
+                            socket,
+                            payload,
+                        });
+                        Ws.io.in(room.uuid).emit('FORCED_DISCONNECTION');
+                        connectedSockets.forEach((socketID) =>
+                            adapter.remoteLeave(socketID, room.uuid),
+                        );
+                        //should use below
+                        // console.log(await Ws.adapter().allRooms());
+                    } catch (e) {
+                        console.error(
+                            `error while terminating room: ${room.uuid}`,
+                            e,
+                        );
+                    }
+                }),
+            );
+        }
+        console.log('='.repeat(10));
     });
     /// //// ///
 });

@@ -59,6 +59,7 @@ export interface RoomServerToClientEvents {
     ACTION_PLAY_CALLBACK: () => void;
     ACTION_PAUSE_CALLBACK: () => void;
     JOIN_ROOM_CALLBACK: (args: RoomServerToClientJoin) => void;
+    FORCED_DISCONNECTION: () => void;
 }
 
 export interface ChatServerToClientEvents {

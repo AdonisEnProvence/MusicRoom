@@ -184,9 +184,9 @@ export const createAppMusicPlayerMachine = ({
                                 );
                             }
 
-                            const { initialTracksIDs } = event;
+                            const { roomName, initialTracksIDs } = event;
                             const payload: RoomClientToServerCreate = {
-                                name: 'your_room_name',
+                                name: roomName,
                                 initialTracksIDs,
                             };
 

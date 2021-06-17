@@ -7,25 +7,12 @@ import {
     State,
     StateMachine,
 } from 'xstate';
+import {
+    AppMusicPlayerMachineContext,
+    TrackVoteRoom,
+    TrackVoteTrack,
+} from '../../types/dist';
 import { SocketClient } from '../hooks/useSocket';
-
-interface TrackVoteRoom {
-    roomID: string;
-    name: string;
-}
-
-interface TrackVoteTrack {
-    name: string;
-    artistName: string;
-}
-export interface AppMusicPlayerMachineContext {
-    currentRoom?: TrackVoteRoom;
-    currentTrack?: TrackVoteTrack;
-    waitingRoomID?: string;
-
-    currentTrackDuration: number;
-    currentTrackElapsedTime: number;
-}
 
 export type AppMusicPlayerMachineState = State<
     AppMusicPlayerMachineContext,
@@ -57,7 +44,7 @@ export type AppMusicPlayerMachineEvent =
     | { type: 'FORCED_DISCONNECTION' }
     | {
           type: 'RETRIEVE_CONTEXT';
-          params: { context: AppMusicPlayerMachineContext };
+          context: AppMusicPlayerMachineContext;
       }
     | { type: 'PAUSE_CALLBACK' };
 
@@ -102,6 +89,13 @@ export const createAppMusicPlayerMachine = ({
             invoke: {
                 id: 'socketConnection',
                 src: (_context, _event) => (sendBack, onReceive) => {
+                    socket.on('RETRIEVE_CONTEXT', ({ context }) => {
+                        console.log('RETRIVE_CONTEXT');
+                        sendBack({
+                            type: 'RETRIEVE_CONTEXT',
+                            context,
+                        });
+                    });
                     socket.on('JOIN_ROOM_CALLBACK', ({ roomID, name }) => {
                         sendBack({
                             type: 'JOINED_ROOM',
@@ -383,7 +377,7 @@ export const createAppMusicPlayerMachine = ({
                     }
                     return {
                         ...context,
-                        ...event.params.context,
+                        ...event.context,
                     };
                 }),
                 assignRawContext: assign((context) => ({

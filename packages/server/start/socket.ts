@@ -91,40 +91,40 @@ Ws.io.on('connection', async (socket) => {
             console.log('loosing connection on socket :', socket.id);
             const device = await Device.findBy('socket_id', socket.id);
             if (device) {
-                const ownedRooms = await Room.query().where(
-                    'creator',
+                /*
+                    Manage owned MTVRoom max 1 per user
+                */
+                const room = await Room.findBy('creator', device.userID);
+                const allUserDevices = await Device.query().where(
+                    'user_id',
                     device.userID,
                 );
-                console.log('ownedRooms length ', ownedRooms.length);
-                await Promise.all(
-                    ownedRooms.map(async (room) => {
-                        try {
-                            const adapter = Ws.adapter();
-                            const connectedSockets = await adapter.sockets(
-                                new Set([room.uuid]),
-                            );
-                            console.log({ connectedSockets });
-                            const payload = {
-                                roomID: room.uuid,
-                            };
-                            await MtvRoomsWsController.onTerminate({
-                                socket,
-                                payload,
-                            });
-                            Ws.io.in(room.uuid).emit('FORCED_DISCONNECTION');
-                            connectedSockets.forEach((socketID) =>
-                                adapter.remoteLeave(socketID, room.uuid),
-                            );
-                            //should use below
-                            // console.log(await Ws.adapter().allRooms());
-                        } catch (e) {
-                            console.error(
-                                `error while terminating room: ${room.uuid}`,
-                                e,
-                            );
-                        }
-                    }),
-                );
+                /*
+                    Kill the room if the creator doesn't have any other session alive on other device
+                    All sessions room's connections are synchronized, if device is in pg the room connection is alive
+                */
+                if (room && allUserDevices.length <= 1) {
+                    const adapter = Ws.adapter();
+                    const connectedSockets = await adapter.sockets(
+                        new Set([room.uuid]),
+                    );
+                    console.log({ connectedSockets });
+                    const payload = {
+                        roomID: room.uuid,
+                    };
+                    await MtvRoomsWsController.onTerminate({
+                        socket,
+                        payload,
+                    });
+                    Ws.io.in(room.uuid).emit('FORCED_DISCONNECTION');
+                    connectedSockets.forEach((socketID) =>
+                        adapter.remoteLeave(socketID, room.uuid),
+                    );
+                }
+                /*
+                    Remove device from pg
+                */
+                await device.delete();
             }
             console.log('='.repeat(10));
         });

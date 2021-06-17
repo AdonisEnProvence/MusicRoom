@@ -6,6 +6,7 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
+import { useEffect } from 'react';
 import { navigationStyle } from '../constants/Colors';
 import { AlertScreen } from '../screens/AlertScreen';
 import ChatScreen from '../screens/ChatScreen';
@@ -14,6 +15,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import { RootStackParamList } from '../types';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
+import { isReadyRef, navigationRef } from './RootNavigation';
 
 export interface ColorModeProps {
     toggleColorScheme: () => void;
@@ -24,8 +26,21 @@ const Navigation: React.FC<ColorModeProps> = ({
     toggleColorScheme,
     colorScheme,
 }) => {
+    useEffect(() => {
+        return () => {
+            isReadyRef.current = false;
+        };
+    }, []);
+
     return (
-        <NavigationContainer linking={LinkingConfiguration} theme={undefined}>
+        <NavigationContainer
+            ref={navigationRef}
+            onReady={() => {
+                isReadyRef.current = true;
+            }}
+            linking={LinkingConfiguration}
+            theme={undefined}
+        >
             <RootNavigator
                 colorScheme={colorScheme}
                 toggleColorScheme={toggleColorScheme}

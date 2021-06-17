@@ -1,0 +1,21 @@
+// RootNavigation.js
+
+import { NavigationContainerRef } from '@react-navigation/native';
+import * as React from 'react';
+
+export const isReadyRef: React.MutableRefObject<boolean | null> =
+    React.createRef();
+
+export const navigationRef = React.createRef<NavigationContainerRef>();
+
+// eslint-disable-next-line
+export function navigate(name: string, params: any): void {
+    if (isReadyRef.current && navigationRef.current) {
+        // Perform navigation if the app has mounted
+        navigationRef.current.navigate(name, params);
+    } else {
+        console.error('NavigationContainer not mounted');
+        // You can decide what to do if the app hasn't mounted
+        // You can ignore this, or add these actions to a queue you can call later
+    }
+}

@@ -55,6 +55,10 @@ export type AppMusicPlayerMachineEvent =
       }
     | { type: 'PLAY_CALLBACK' }
     | { type: 'FORCED_DISCONNECTION' }
+    | {
+          type: 'RETRIEVE_CONTEXT';
+          params: { context: AppMusicPlayerMachineContext };
+      }
     | { type: 'PAUSE_CALLBACK' };
 
 interface CreateAppMusicPlayerMachineArgs {
@@ -364,9 +368,24 @@ export const createAppMusicPlayerMachine = ({
                     },
                 },
             },
+            on: {
+                RETRIEVE_CONTEXT: {
+                    target: 'connectedToRoom',
+                    actions: 'assignRetrievedContext',
+                },
+            },
         },
         {
             actions: {
+                assignRetrievedContext: assign((context, event) => {
+                    if (event.type !== 'RETRIEVE_CONTEXT') {
+                        return context;
+                    }
+                    return {
+                        ...context,
+                        ...event.params.context,
+                    };
+                }),
                 assignRawContext: assign((context) => ({
                     ...context,
                     ...rawContext,

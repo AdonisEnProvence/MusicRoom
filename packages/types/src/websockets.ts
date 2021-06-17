@@ -31,10 +31,14 @@ export interface Track {
     artistName: string;
 }
 
+export interface RoomServerToClientCreateCallback {
+    roomID: string;
+    roomName: string;
+}
+
 export type RoomServerToClientJoin = {
     roomID: string;
     name: string;
-    // track: Track;
 };
 
 export type RoomServerToClientRetrieveContext = {
@@ -46,10 +50,7 @@ export interface ChatClientToServerEvents {
 }
 
 export interface RoomClientToServerEvents {
-    CREATE_ROOM: (
-        args: RoomClientToServerCreate,
-        callback: (roomID: string, name: string) => void,
-    ) => void;
+    CREATE_ROOM: (args: RoomClientToServerCreate) => void;
     JOIN_ROOM: (args: RoomClientToServerJoin) => void;
     ACTION_PLAY: () => void;
     GET_CONTEXT: (
@@ -62,6 +63,7 @@ export interface RoomServerToClientEvents {
     RETRIEVE_CONTEXT: (args: RoomServerToClientRetrieveContext) => void;
     ACTION_PLAY_CALLBACK: () => void;
     ACTION_PAUSE_CALLBACK: () => void;
+    CREATE_ROOM_CALLBACK: (args: RoomServerToClientCreateCallback) => void;
     JOIN_ROOM_CALLBACK: (args: RoomServerToClientJoin) => void;
     FORCED_DISCONNECTION: () => void;
 }

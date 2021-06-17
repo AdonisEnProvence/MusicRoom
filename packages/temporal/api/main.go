@@ -1,10 +1,11 @@
 package main
 
 import (
+	"adonis-en-provence/music_room/shared"
+	"adonis-en-provence/music_room/workflows"
 	"context"
 	"encoding/json"
 	"fmt"
-	"hello-world-project-template-go/app"
 	"log"
 	"net/http"
 	"net/url"
@@ -70,11 +71,13 @@ func main() {
 func PlayHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Control called")
 	vars := mux.Vars(r)
-
 	workflowID := vars["workflowID"]
 	runID := vars["runID"]
-	update := app.PlaySignal{Route: app.RouteTypes.PLAY, WorkflowID: workflowID}
-	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, app.SignalChannelName, update)
+
+	signal := shared.NewPlaySignal(shared.NewPlaySignalArgs{
+		WorkflowID: workflowID,
+	})
+	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, shared.SignalChannelName, signal)
 	if err != nil {
 		WriteError(w, err)
 		return
@@ -93,8 +96,8 @@ func TerminateWorkflowHandler(w http.ResponseWriter, r *http.Request) {
 
 	workflowID := vars["workflowID"]
 	runID := vars["runID"]
-	update := app.PlaySignal{Route: app.RouteTypes.TERMINATE}
-	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, app.SignalChannelName, update)
+	terminateSignal := shared.NewTerminateSignal(shared.NewTerminateSignalArgs{})
+	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, shared.SignalChannelName, terminateSignal)
 	if err != nil {
 		WriteError(w, err)
 		return
@@ -110,11 +113,13 @@ func TerminateWorkflowHandler(w http.ResponseWriter, r *http.Request) {
 func PauseHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Control called")
 	vars := mux.Vars(r)
-
 	workflowID := vars["workflowID"]
 	runID := vars["runID"]
-	update := app.PlaySignal{Route: app.RouteTypes.PAUSE, WorkflowID: workflowID}
-	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, app.SignalChannelName, update)
+
+	signal := shared.NewPlaySignal(shared.NewPlaySignalArgs{
+		WorkflowID: workflowID,
+	})
+	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, shared.SignalChannelName, signal)
 	if err != nil {
 		WriteError(w, err)
 		return
@@ -134,9 +139,9 @@ type CreateRoomRequestBody struct {
 }
 
 type CreateRoomResponse struct {
-	State      app.ControlState `json:"state"`
-	WorkflowID string           `json:"workflowID"`
-	RunID      string           `json:"runID"`
+	State      shared.ControlState `json:"state"`
+	WorkflowID string              `json:"workflowID"`
+	RunID      string              `json:"runID"`
 }
 
 func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
@@ -159,7 +164,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 	options := client.StartWorkflowOptions{
 		ID:        workflowID,
-		TaskQueue: app.ControlTaskQueue,
+		TaskQueue: shared.ControlTaskQueue,
 	}
 
 	seedTracksIDs := []string{
@@ -168,14 +173,14 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		"H3s1mt7aFlc",
 	}
 	initialTracksIDsList := append(body.InitialTracksIDs, seedTracksIDs...)
-	state := app.ControlState{
+	state := shared.ControlState{
 		Playing:       false,
 		Name:          body.Name,
 		Users:         []string{body.UserID},
 		TracksIDsList: initialTracksIDsList,
 	}
 
-	we, err := temporal.ExecuteWorkflow(context.Background(), options, app.ControlWorkflow, state)
+	we, err := temporal.ExecuteWorkflow(context.Background(), options, workflows.MtvRoomWorkflow, state)
 	if err != nil {
 		WriteError(w, err)
 		return
@@ -222,17 +227,20 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
-	unescaped, err := UnescapeRoomIDAndRundID(vars["workflowID"], vars["runID"])
+	unescapedData, err := UnescapeRoomIDAndRundID(vars["workflowID"], vars["runID"])
 	if err != nil {
 		WriteError(w, err)
 		return
 	}
 
-	workflowID := unescaped.worflowID
-	runID := unescaped.runID
-	update := app.JoinSignal{Route: app.RouteTypes.JOIN, UserID: body.UserID, WorkflowID: workflowID}
+	workflowID := unescapedData.worflowID
+	runID := unescapedData.runID
+	signal := shared.NewJoinSignal(shared.NewJoinSignalArgs{
+		UserID:     body.UserID,
+		WorkflowID: workflowID,
+	})
 
-	err = temporal.SignalWorkflow(context.Background(), workflowID, runID, app.SignalChannelName, update)
+	err = temporal.SignalWorkflow(context.Background(), workflowID, runID, shared.SignalChannelName, signal)
 	if err != nil {
 		WriteError(w, err)
 		return

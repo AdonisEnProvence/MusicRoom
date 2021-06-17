@@ -1,14 +1,34 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Ws from 'App/Services/Ws';
 import * as z from 'zod';
-const TemporalToServeJoinBody = z.object({
-    state: z.object({
-        playing: z.boolean(),
-        name: z.string(),
-        users: z.array(z.string()),
-    }),
-});
 
+const TracksMetadata = z.object({
+    id: z.string(),
+    title: z.string(),
+    artistName: z.string(),
+});
+type TracksMetadata = z.infer<typeof TracksMetadata>;
+
+const MtvWorkflowState = z.object({
+    playing: z.boolean(),
+    name: z.string(),
+    users: z.array(z.string()),
+    tracks: z.array(TracksMetadata).nullable(),
+});
+type MtvWorkflowState = z.infer<typeof MtvWorkflowState>;
+
+const TemporalToServerMtvCreationAcknowledgement = z.object({
+    userID: z.string().uuid(),
+    roomID: z.string().uuid(),
+    state: MtvWorkflowState,
+});
+type TemporalToServerMtvCreationAcknowledgement = z.infer<
+    typeof TemporalToServerMtvCreationAcknowledgement
+>;
+
+const TemporalToServeJoinBody = z.object({
+    state: MtvWorkflowState,
+});
 type TemporalToServeJoinBody = z.infer<typeof TemporalToServeJoinBody>;
 
 export default class TemporalToServerController {
@@ -22,6 +42,18 @@ export default class TemporalToServerController {
         console.log('TEMPORAL SENT PLAY');
         const roomID = decodeURIComponent(request.param('roomID'));
         Ws.io.to(roomID).emit('ACTION_PLAY_CALLBACK');
+    }
+
+    public mtvCreationAcknowledgement({ request }: HttpContextContract): void {
+        console.log('mtv creation ack', request.body());
+
+        const {
+            roomID,
+            userID,
+            state: { name: roomName },
+        } = TemporalToServerMtvCreationAcknowledgement.parse(request.body());
+
+        Ws.io.emit('CREATE_ROOM_CALLBACK', { roomID, roomName });
     }
 
     public join({ request }: HttpContextContract): void {

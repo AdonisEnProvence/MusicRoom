@@ -16,7 +16,8 @@
     "clean": "rimraf dist *.tsbuildinfo",
     "lint": "scripty",
     "test": "scripty",
-    "build:tsc": "scripty"
+    "build:tsc": "scripty",
+    "build:tsc:watch": "scripty"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.14.2",

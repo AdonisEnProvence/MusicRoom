@@ -1,27 +1,20 @@
-package app
+package workflows
 
 import (
 	"fmt"
 	"time"
 
+	"adonis-en-provence/music_room/activities"
+	"adonis-en-provence/music_room/shared"
+
 	"github.com/mitchellh/mapstructure"
 	"go.temporal.io/sdk/workflow"
 )
 
-type (
-	ControlState struct {
-		Playing       bool     `json:"playing"`
-		Name          string   `json:"name"`
-		Users         []string `json:"users"`
-		TracksIDsList []string `json:"tracksIDsList"`
-	}
-)
-
-func ControlWorkflow(ctx workflow.Context, state ControlState) error {
-	// https://docs.temporal.io/docs/concepts/workflows/#workflows-have-options
+func MtvRoomWorkflow(ctx workflow.Context, state shared.ControlState) error {
 	logger := workflow.GetLogger(ctx)
 
-	err := workflow.SetQueryHandler(ctx, "getState", func(input []byte) (ControlState, error) {
+	err := workflow.SetQueryHandler(ctx, "getState", func(input []byte) (shared.ControlState, error) {
 		return state, nil
 	})
 	if err != nil {
@@ -29,31 +22,38 @@ func ControlWorkflow(ctx workflow.Context, state ControlState) error {
 		return err
 	}
 
-	channel := workflow.GetSignalChannel(ctx, SignalChannelName)
+	channel := workflow.GetSignalChannel(ctx, shared.SignalChannelName)
 	terminated := false
 	// sentAbandonedCartEmail := false
+	if err := acknowledgeRoomCreation(ctx, state); err != nil {
+		return err
+	}
 
 	for {
 		selector := workflow.NewSelector(ctx)
+
 		selector.AddReceive(channel, func(c workflow.ReceiveChannel, _ bool) {
 			var signal interface{}
 			c.Receive(ctx, &signal)
 
-			var routeSignal RouteSignal
+			var routeSignal shared.GenericRouteSignal
+
 			err := mapstructure.Decode(signal, &routeSignal)
 			if err != nil {
 				logger.Error("Invalid signal type %v", err)
 				return
 			}
 
-			switch {
-			case routeSignal.Route == RouteTypes.PLAY:
-				var message PlaySignal
+			switch routeSignal.Route {
+			case shared.SignalRoutePlay:
+				var message shared.PlaySignal
+
 				err := mapstructure.Decode(signal, &message)
 				if err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
+
 				state.Play()
 				options := workflow.ActivityOptions{
 					ScheduleToStartTimeout: time.Minute,
@@ -62,18 +62,21 @@ func ControlWorkflow(ctx workflow.Context, state ControlState) error {
 
 				ctx = workflow.WithActivityOptions(ctx, options)
 
-				err = workflow.ExecuteActivity(ctx, PlayActivity, message.WorkflowID).Get(ctx, nil)
+				err = workflow.ExecuteActivity(ctx, activities.PlayActivity, message.WorkflowID).Get(ctx, nil)
 				if err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-			case routeSignal.Route == RouteTypes.PAUSE:
-				var message PauseSignal
+
+			case shared.SignalRoutePause:
+				var message shared.PauseSignal
+
 				err := mapstructure.Decode(signal, &message)
 				if err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
+
 				state.Pause()
 				options := workflow.ActivityOptions{
 					ScheduleToStartTimeout: time.Minute,
@@ -82,18 +85,21 @@ func ControlWorkflow(ctx workflow.Context, state ControlState) error {
 
 				ctx = workflow.WithActivityOptions(ctx, options)
 
-				err = workflow.ExecuteActivity(ctx, PauseActivity, message.WorkflowID).Get(ctx, nil)
+				err = workflow.ExecuteActivity(ctx, activities.PauseActivity, message.WorkflowID).Get(ctx, nil)
 				if err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-			case routeSignal.Route == RouteTypes.JOIN:
-				var message JoinSignal
+
+			case shared.SignalRouteJoin:
+				var message shared.JoinSignal
+
 				err := mapstructure.Decode(signal, &message)
 				if err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
+
 				state.Join(message.UserID)
 				options := workflow.ActivityOptions{
 					ScheduleToStartTimeout: time.Minute,
@@ -102,16 +108,17 @@ func ControlWorkflow(ctx workflow.Context, state ControlState) error {
 
 				ctx = workflow.WithActivityOptions(ctx, options)
 				fmt.Println(state)
-				err = workflow.ExecuteActivity(ctx, JoinActivity, message.WorkflowID, message.UserID, state).Get(ctx, nil)
+				err = workflow.ExecuteActivity(ctx, activities.JoinActivity, message.WorkflowID, message.UserID, state).Get(ctx, nil)
 				if err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-			case routeSignal.Route == RouteTypes.TERMINATE:
+			case shared.SignalRouteTerminate:
 				fmt.Println("Terminating workflow")
 				terminated = true
 			}
 		})
+
 		selector.Select(ctx)
 
 		if terminated {
@@ -122,24 +129,24 @@ func ControlWorkflow(ctx workflow.Context, state ControlState) error {
 	return nil
 }
 
-func (state *ControlState) Pause() {
-	if state.Playing {
-		state.Playing = false
-		fmt.Println("PAUSED")
-	} else {
-		fmt.Println("PAUSED FAILED")
+func acknowledgeRoomCreation(ctx workflow.Context, state shared.ControlState) error {
+	ao := workflow.ActivityOptions{
+		ScheduleToStartTimeout: time.Minute,
+		StartToCloseTimeout:    time.Minute,
 	}
-}
+	ctx = workflow.WithActivityOptions(ctx, ao)
 
-func (state *ControlState) Play() {
-	if !state.Playing {
-		state.Playing = true
-		fmt.Println("PLAYED")
-	} else {
-		fmt.Println("PLAYED FAILED")
+	var result string
+	activityArgs := activities.CreationAcknowledgementActivityArgs{
+		RoomID: "8af81cc4-aa0c-4791-ac91-4f6a71379137", // TODO: replace with real value
+		UserID: "8af81cc4-aa0c-4791-ac91-4f6a71379137", // TODO: replace with real value
+		State:  state,
 	}
-}
 
-func (state *ControlState) Join(userID string) {
-	state.Users = append(state.Users, userID)
+	err := workflow.ExecuteActivity(ctx, activities.CreationAcknowledgementActivity, activityArgs).Get(ctx, &result)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

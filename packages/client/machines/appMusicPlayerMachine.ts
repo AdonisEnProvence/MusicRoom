@@ -53,22 +53,6 @@ interface CreateAppMusicPlayerMachineArgs {
     socket: SocketClient;
 }
 
-function joiningRoomCallback(sendBack: Sender<AppMusicPlayerMachineEvent>) {
-    return (roomID: string, name: string) => {
-        sendBack({
-            type: 'JOINED_ROOM',
-            room: {
-                roomID,
-                name,
-            },
-            track: {
-                name: 'Monde Nouveau',
-                artistName: 'Feu! Chatterton',
-            },
-        });
-    };
-}
-
 const rawContext: AppMusicPlayerMachineContext = {
     currentRoom: undefined,
     currentTrack: undefined,
@@ -99,6 +83,23 @@ export const createAppMusicPlayerMachine = ({
                         });
                     });
 
+                    socket.on(
+                        'CREATE_ROOM_CALLBACK',
+                        ({ roomID, roomName }) => {
+                            sendBack({
+                                type: 'JOINED_ROOM',
+                                room: {
+                                    name: roomName,
+                                    roomID,
+                                },
+                                track: {
+                                    name: 'Monde Nouveau',
+                                    artistName: 'Feu! Chatterton',
+                                },
+                            });
+                        },
+                    );
+
                     socket.on('JOIN_ROOM_CALLBACK', ({ roomID, name }) => {
                         sendBack({
                             type: 'JOINED_ROOM',
@@ -107,8 +108,8 @@ export const createAppMusicPlayerMachine = ({
                                 roomID,
                             },
                             track: {
-                                artistName: 'artistName', //TODO
-                                name: 'name', //TODO
+                                name: 'Monde Nouveau',
+                                artistName: 'Feu! Chatterton',
                             },
                         });
                     });
@@ -176,7 +177,7 @@ export const createAppMusicPlayerMachine = ({
 
                 connectingToRoom: {
                     invoke: {
-                        src: (_context, event) => (sendBack) => {
+                        src: (_context, event) => () => {
                             if (event.type !== 'CREATE_ROOM') {
                                 throw new Error(
                                     'Service must be called in reaction to CREATE_ROOM event',
@@ -189,11 +190,7 @@ export const createAppMusicPlayerMachine = ({
                                 initialTracksIDs,
                             };
 
-                            socket.emit(
-                                'CREATE_ROOM',
-                                payload,
-                                joiningRoomCallback(sendBack),
-                            );
+                            socket.emit('CREATE_ROOM', payload);
                         },
                     },
 

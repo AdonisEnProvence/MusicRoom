@@ -1,4 +1,5 @@
 import React from 'react';
+import { datatype } from 'faker';
 import { render, fireEvent, waitFor, within } from '../tests/tests-utils';
 import { RootNavigator } from '../navigation';
 import { NavigationContainer } from '@react-navigation/native';
@@ -20,8 +21,11 @@ function waitForTimeout(ms: number): Promise<void> {
 test(`Goes to Search a Track screen, searches a track, sees search results, presses a song and listens to it`, async () => {
     const fakeTrack = db.tracks.create();
 
-    serverSocket.on('CREATE_ROOM', (_args, cb) => {
-        cb(fakeTrack.id, fakeTrack.title);
+    serverSocket.on('CREATE_ROOM', () => {
+        serverSocket.emit('CREATE_ROOM_CALLBACK', {
+            roomID: datatype.uuid(),
+            roomName: fakeTrack.title,
+        });
     });
 
     serverSocket.on('ACTION_PAUSE', () => {

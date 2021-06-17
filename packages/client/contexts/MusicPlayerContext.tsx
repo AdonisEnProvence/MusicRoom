@@ -7,7 +7,7 @@ import {
     AppMusicPlayerMachineState,
     createAppMusicPlayerMachine,
 } from '../machines/appMusicPlayerMachine';
-import { navigationRef } from '../navigation/RootNavigation';
+import { navigateFromRef } from '../navigation/RootNavigation';
 import { Socket } from '../services/websockets';
 
 interface MusicPlayerContextValue {
@@ -68,7 +68,7 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
             },
             actions: {
                 alertForcedDisconnection: () => {
-                    navigationRef.current?.navigate('Alert', {
+                    navigateFromRef('Alert', {
                         reason: 'FORCED_DISCONNECTION',
                     });
                 },

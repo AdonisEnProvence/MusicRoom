@@ -11,38 +11,48 @@ import {
 import { StackNavigationProp } from '@react-navigation/stack';
 import { SearchedTrack } from './machines/searchTrackMachine';
 
+export type NavigateFromRefParams = {
+    Alert: AlertParams;
+};
+
+export type NavigateFromRefRoutes = keyof NavigateFromRefParams;
+
 export type BottomTabNavigatorParamList = {
     Home: NavigatorScreenParams<HomeParamsList>;
     Search: NavigatorScreenParams<SearchTracksParamsList>;
 };
 
 export type HomeParamsList = {
-    HomeX: undefined;
+    HomeX: undefined; //why homeX and not HomeScreen ?
 };
 
 export type SearchTracksParamsList = {
     SearchTracks: undefined;
-    SearchTrackResults: {
-        tracks: SearchedTrack[];
-    };
+    SearchTrackResults: SearchTracksResultsParams;
 };
 
 export type RootStackParamList = {
     Root: NavigatorScreenParams<BottomTabNavigatorParamList>;
 
     MusicTrackVoteSearch: undefined;
-    MusicTrackVote: {
-        roomId: string;
-    };
+    MusicTrackVote: MusicTrackVoteParams;
 
     Chat: undefined;
 
     Settings: undefined;
 
-    Alert: {
-        reason: 'FORCED_DISCONNECTION';
-    };
+    Alert: AlertParams;
 };
+
+interface AlertParams {
+    reason: 'FORCED_DISCONNECTION';
+}
+interface MusicTrackVoteParams {
+    roomId: string;
+}
+interface SearchTracksResultsParams {
+    tracks: SearchedTrack[];
+}
 
 /**
  * See https://reactnavigation.org/docs/typescript/#nesting-navigators

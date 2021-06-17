@@ -32,7 +32,7 @@ Ws.io.on('connection', async (socket) => {
                 throw new Error('Empty or invalid user token');
             }
             const userAgent = socket.request.headers['user-agent'];
-            Device.create({
+            await Device.create({
                 socketID: socket.id,
                 userID,
                 userAgent,

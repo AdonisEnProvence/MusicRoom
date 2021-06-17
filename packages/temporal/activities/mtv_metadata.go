@@ -2,9 +2,41 @@ package activities
 
 import (
 	"adonis-en-provence/music_room/shared"
+	"adonis-en-provence/music_room/youtube"
 	"context"
+	"errors"
+	"os"
+
+	"github.com/senseyeio/duration"
 )
 
-func FetchTracksInformation(ctx context.Context) (shared.TrackMetadata, error) {
-	return shared.TrackMetadata{}, nil
+var ErrInvalidGoogleAPIKey = errors.New("invalid Google API key")
+
+func FetchTracksInformation(ctx context.Context, tracksIDs []string) ([]shared.TrackMetadata, error) {
+	apiKey := os.Getenv("GOOGLE_API_KEY")
+	if apiKey == "" {
+		return nil, ErrInvalidGoogleAPIKey
+	}
+
+	youtubeResponse, err := youtube.FetchYouTubeVideosInformation(ctx, apiKey, tracksIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	metadata := make([]shared.TrackMetadata, 0, len(tracksIDs))
+
+	for _, entry := range youtubeResponse.Items {
+		parsedDuration, _ := duration.ParseISO8601(entry.ContentDetails.Duration)
+
+		trackMetadata := shared.TrackMetadata{
+			ID:         entry.ID,
+			Title:      entry.Snippet.Title,
+			ArtistName: entry.Snippet.ChannelTitle,
+			Duration:   parsedDuration,
+		}
+
+		metadata = append(metadata, trackMetadata)
+	}
+
+	return metadata, nil
 }

@@ -2,19 +2,28 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Ws from 'App/Services/Ws';
 import * as z from 'zod';
 
+const ISO8601Duration = z
+    .string()
+    .refine((duration) => duration.startsWith('P'), {
+        message: 'ISO8601 duration must begin with P',
+    });
+
 const TracksMetadata = z.object({
     id: z.string(),
     title: z.string(),
     artistName: z.string(),
+    duration: ISO8601Duration,
 });
 type TracksMetadata = z.infer<typeof TracksMetadata>;
 
-const MtvWorkflowState = z.object({
-    playing: z.boolean(),
-    name: z.string(),
-    users: z.array(z.string()),
-    tracks: z.array(TracksMetadata).nullable(),
-});
+const MtvWorkflowState = z
+    .object({
+        playing: z.boolean(),
+        name: z.string(),
+        users: z.array(z.string()),
+        tracks: z.array(TracksMetadata),
+    })
+    .nonstrict();
 type MtvWorkflowState = z.infer<typeof MtvWorkflowState>;
 
 const TemporalToServerMtvCreationAcknowledgement = z.object({

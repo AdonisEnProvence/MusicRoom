@@ -1,24 +1,27 @@
 package shared
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/senseyeio/duration"
+)
 
 const ControlTaskQueue = "CONTROL_TASK_QUEUE"
 
-var (
-	SignalChannelName = "control"
-)
+var SignalChannelName = "control"
 
 type TrackMetadata struct {
-	ID         string
-	Title      string
-	ArtistName string
+	ID         string            `json:"id"`
+	Title      string            `json:"title"`
+	ArtistName string            `json:"artistName"`
+	Duration   duration.Duration `json:"duration"`
 }
 
 type ControlState struct {
 	Playing       bool            `json:"playing"`
 	Name          string          `json:"name"`
 	Users         []string        `json:"users"`
-	TracksIDsList []string        `json:"-"`
+	TracksIDsList []string        `json:"tracksIDsList"`
 	Tracks        []TrackMetadata `json:"tracks"`
 }
 

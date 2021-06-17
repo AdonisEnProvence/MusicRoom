@@ -24,7 +24,12 @@ func MtvRoomWorkflow(ctx workflow.Context, state shared.ControlState) error {
 
 	channel := workflow.GetSignalChannel(ctx, shared.SignalChannelName)
 	terminated := false
-	// sentAbandonedCartEmail := false
+
+	state.Tracks, err = getInitialTracksInformation(ctx, state.TracksIDsList)
+	if err != nil {
+		return err
+	}
+
 	if err := acknowledgeRoomCreation(ctx, state); err != nil {
 		return err
 	}
@@ -127,6 +132,26 @@ func MtvRoomWorkflow(ctx workflow.Context, state shared.ControlState) error {
 	}
 
 	return nil
+}
+
+func getInitialTracksInformation(ctx workflow.Context, initialTracksIDs []string) ([]shared.TrackMetadata, error) {
+	ao := workflow.ActivityOptions{
+		ScheduleToStartTimeout: time.Minute,
+		StartToCloseTimeout:    time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	var initialTracksMetadata []shared.TrackMetadata
+
+	if err := workflow.ExecuteActivity(
+		ctx,
+		activities.FetchTracksInformation,
+		initialTracksIDs,
+	).Get(ctx, &initialTracksMetadata); err != nil {
+		return nil, err
+	}
+
+	return initialTracksMetadata, nil
 }
 
 func acknowledgeRoomCreation(ctx workflow.Context, state shared.ControlState) error {

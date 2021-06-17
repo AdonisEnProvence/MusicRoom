@@ -77,6 +77,15 @@ function joiningRoomCallback(sendBack: Sender<AppMusicPlayerMachineEvent>) {
     };
 }
 
+const rawContext: AppMusicPlayerMachineContext = {
+    currentRoom: undefined,
+    currentTrack: undefined,
+    waitingRoomID: undefined,
+
+    currentTrackDuration: 0,
+    currentTrackElapsedTime: 0,
+};
+
 export const createAppMusicPlayerMachine = ({
     socket,
 }: CreateAppMusicPlayerMachineArgs): StateMachine<
@@ -138,19 +147,13 @@ export const createAppMusicPlayerMachine = ({
                 },
             },
 
-            context: {
-                currentRoom: undefined,
-                currentTrack: undefined,
-                waitingRoomID: undefined,
-
-                currentTrackDuration: 0,
-                currentTrackElapsedTime: 0,
-            },
+            context: rawContext,
 
             initial: 'waitingJoiningRoom',
 
             states: {
                 waitingJoiningRoom: {
+                    entry: 'assignRawContext',
                     on: {
                         CREATE_ROOM: {
                             target: 'connectingToRoom',
@@ -364,6 +367,10 @@ export const createAppMusicPlayerMachine = ({
         },
         {
             actions: {
+                assignRawContext: assign((context) => ({
+                    ...context,
+                    ...rawContext,
+                })),
                 assignRoomInformationToContext: assign((context, event) => {
                     if (event.type !== 'JOINED_ROOM') {
                         return context;

@@ -7,6 +7,7 @@ import {
     AppMusicPlayerMachineState,
     createAppMusicPlayerMachine,
 } from '../machines/appMusicPlayerMachine';
+import { navigationRef } from '../navigation/RootNavigation';
 import { Socket } from '../services/websockets';
 
 interface MusicPlayerContextValue {
@@ -15,8 +16,9 @@ interface MusicPlayerContextValue {
     setPlayerRef: (ref: MusicPlayerRef) => void;
 }
 
-const MusicPlayerContext =
-    React.createContext<MusicPlayerContextValue | undefined>(undefined);
+const MusicPlayerContext = React.createContext<
+    MusicPlayerContextValue | undefined
+>(undefined);
 
 type MusicPlayerContextProviderProps = {
     socket: Socket;
@@ -66,7 +68,9 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
             },
             actions: {
                 alertForcedDisconnection: () => {
-                    console.log('ALLLERRRRTE FORCED DISCONNECTION');
+                    navigationRef.current?.navigate('Alert', {
+                        reason: 'FORCED_DISCONNECTION',
+                    });
                 },
             },
         });

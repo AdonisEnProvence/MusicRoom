@@ -23,14 +23,25 @@ function waitForTimeout(ms: number): Promise<void> {
 
 const sleep = async (): Promise<void> => await waitForTimeout(100);
 
-function getSocket(
-    userID: string,
-): Socket<AllServerToClientEvents, AllClientToServerEvents> {
-    return io(BASE_URL, {
+type TypedSocket = Socket<AllServerToClientEvents, AllClientToServerEvents>;
+
+let socketsConnections: TypedSocket[] = [];
+
+async function getSocket(userID: string): Promise<TypedSocket> {
+    const socket = io(BASE_URL, {
         query: {
             userID,
         },
     });
+    socketsConnections.push(socket);
+    await sleep();
+    return socket;
+}
+
+async function disconnectSocket(socket: TypedSocket): Promise<void> {
+    socket.disconnect();
+    socketsConnections = socketsConnections.filter((el) => el.id !== socket.id);
+    await sleep();
 }
 
 /**
@@ -45,16 +56,20 @@ function getSocket(
 test.group('Rooms life cycle', (group) => {
     group.beforeEach(async () => {
         await Database.beginGlobalTransaction();
+        socketsConnections = [];
     });
 
     group.afterEach(async () => {
+        sinon.restore();
         await Database.rollbackGlobalTransaction();
+        socketsConnections.forEach((socket) => {
+            socket.disconnect();
+        });
     });
 
     test('On user socket connection, it should register his device in db, on disconnection removes it from db', async (assert) => {
         const userID = datatype.uuid();
-        const socket = getSocket(userID);
-        await sleep();
+        const socket = await getSocket(userID);
 
         /**
          * Check if only 1 device for given userID is well registered in database
@@ -64,8 +79,7 @@ test.group('Rooms life cycle', (group) => {
         console.log(device.length);
         assert.equal(device.length, 1);
         assert.equal(device[0].socketID, socket.id);
-        socket.disconnect();
-        await sleep();
+        await disconnectSocket(socket);
 
         /**
          * After disconnection the device should be remove from database
@@ -75,8 +89,7 @@ test.group('Rooms life cycle', (group) => {
 
     test('User creates a room, on user disconnection, it should removes the room from database', async (assert) => {
         const userID = datatype.uuid();
-        const socket = getSocket(userID);
-        await sleep();
+        const socket = await getSocket(userID);
         const name = random.words(1);
 
         /** Mocks */
@@ -115,8 +128,7 @@ test.group('Rooms life cycle', (group) => {
          * Emit disconnect
          * Expecting room to be removed from database
          */
-        socket.disconnect();
-        await sleep();
+        await disconnectSocket(socket);
         const roomAfter = await Room.findBy('creator', userID);
         assert.isNull(roomAfter);
     });
@@ -126,18 +138,17 @@ test.group('Rooms life cycle', (group) => {
         console.log(userIDS);
         const userA = {
             userID: userIDS[0],
-            socket: getSocket(userIDS[0]),
+            socket: await getSocket(userIDS[0]),
         };
         const userB = {
             userID: userIDS[1],
-            socket: getSocket(userIDS[1]),
+            socket: await getSocket(userIDS[1]),
             receivedEvents: [] as string[],
         };
         userB.socket.once('FORCED_DISCONNECTION', () => {
             userB.receivedEvents.push('FORCED_DISCONNECTION');
         });
         const name = random.word();
-        await sleep();
 
         /** Mocks */
         sinon
@@ -192,8 +203,7 @@ test.group('Rooms life cycle', (group) => {
         /**
          * UserA emits disconnect
          */
-        userA.socket.disconnect();
-        await sleep();
+        await disconnectSocket(userA.socket);
 
         /**
          * Check if room isn't in db
@@ -203,22 +213,18 @@ test.group('Rooms life cycle', (group) => {
         assert.isNull(await Room.findBy('creator', userA.userID));
         assert.equal(userB.receivedEvents[0], 'FORCED_DISCONNECTION');
         assert.isNotNull(await Device.findBy('user_id', userB.userID));
-        userB.socket.disconnect();
-        await sleep();
     });
-
     test('It should not remove room from database, as creator has more than one device/session alive', async (assert) => {
         const userID = datatype.uuid();
         const user = {
-            socketA: getSocket(userID),
-            socketB: getSocket(userID),
+            socketA: await getSocket(userID),
+            socketB: await getSocket(userID),
         };
         await Room.create({
             uuid: datatype.uuid(),
             runID: datatype.uuid(),
             creator: userID,
         });
-        await sleep();
 
         /** Mocks */
         sinon
@@ -233,16 +239,14 @@ test.group('Rooms life cycle', (group) => {
          *  Then emit disconnect from one device
          */
         assert.equal((await Device.query().where('user_id', userID)).length, 2);
-        user.socketA.disconnect();
-        await sleep();
+        await disconnectSocket(user.socketA);
 
         /**
          * Check if room is still in database
          * Then emit disconnect from last device
          */
         assert.isNotNull(await Room.findBy('creator', userID));
-        user.socketB.disconnect();
-        await sleep();
+        await disconnectSocket(user.socketB);
 
         /**
          * Check if room is not in database

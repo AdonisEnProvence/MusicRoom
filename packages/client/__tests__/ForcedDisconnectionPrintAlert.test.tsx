@@ -60,8 +60,16 @@ test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it 
 
     /**
      * Firstly expecting to be on the home
+     * And then click on GO TO MUSIC TRACK VOTE button
      */
     expect(getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+    const goToMusicTrackVoteButton = await findByText(
+        /GO TO MUSIC TRACK VOTE/i,
+    );
+    expect(goToMusicTrackVoteButton).toBeTruthy();
+    fireEvent.press(goToMusicTrackVoteButton);
+    expect(getAllByText(/Track Vote/i)).toBeTruthy();
+
     serverSocket.emit('FORCED_DISCONNECTION');
 
     /**
@@ -76,10 +84,4 @@ test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it 
      */
     fireEvent.press(dismissButton);
     expect(getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
-
-    /**
-     * TODO Improve the test by complexifying the user's previous workflow
-     * e.g with the music player previously toggled fullscreen
-     * (to test the right redirection to home under the hood)
-     */
 });

@@ -22,25 +22,9 @@
  * @packageDocumentation
  */
 
-/**
- * @public
- */
-export enum Ahah {
-    'LOL' = 'LOL',
-    'MDR' = 'MDR',
-}
-
-/**
- * @public
- */
-export type Eheh = keyof typeof Ahah;
-
-/**
- * @public
- */
-export const ResponseToUniverse = 42;
-
 export * from './appMusicPlayerMachine';
 export * from './http';
-export * from './TemporalToServer';
+export * from './mtv';
+export * from './server-to-temporal';
+// export * from './temporal-to-server';
 export * from './websockets';

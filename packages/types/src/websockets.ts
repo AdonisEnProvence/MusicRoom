@@ -1,4 +1,5 @@
 import { AppMusicPlayerMachineContext } from './appMusicPlayerMachine';
+import { TracksMetadata } from './mtv';
 
 export interface ChatMessage {
     author: string;
@@ -34,12 +35,14 @@ export interface Track {
 export interface RoomServerToClientCreateCallback {
     roomID: string;
     roomName: string;
+    tracks: TracksMetadata[];
 }
 
-export type RoomServerToClientJoin = {
+export interface RoomServerToClientJoinCallback {
     roomID: string;
-    name: string;
-};
+    roomName: string;
+    tracks: TracksMetadata[];
+}
 
 export type RoomServerToClientRetrieveContext = {
     context: AppMusicPlayerMachineContext;
@@ -64,8 +67,8 @@ export interface RoomServerToClientEvents {
     ACTION_PLAY_CALLBACK: () => void;
     ACTION_PAUSE_CALLBACK: () => void;
     CREATE_ROOM_CALLBACK: (args: RoomServerToClientCreateCallback) => void;
-    JOIN_ROOM_CALLBACK: (args: RoomServerToClientJoin) => void;
     FORCED_DISCONNECTION: () => void;
+    JOIN_ROOM_CALLBACK: (args: RoomServerToClientJoinCallback) => void;
 }
 
 export interface ChatServerToClientEvents {

@@ -30,6 +30,6 @@
     "path": "../../scripts/packages"
   },
   "dependencies": {
-    "zod": "^3.1.0"
+    "zod": "^1.11.17"
   }
 }

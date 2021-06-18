@@ -13,6 +13,7 @@ import { SearchedTrack } from './machines/searchTrackMachine';
 
 export type NavigateFromRefParams = {
     Alert: AlertParams;
+    HomeScreen: undefined;
 };
 
 export type NavigateFromRefRoutes = keyof NavigateFromRefParams;
@@ -23,7 +24,7 @@ export type BottomTabNavigatorParamList = {
 };
 
 export type HomeParamsList = {
-    HomeX: undefined; //why homeX and not HomeScreen ?
+    HomeScreen: undefined;
 };
 
 export type SearchTracksParamsList = {
@@ -98,15 +99,15 @@ export type SearchTabProps = {
     route: RouteProp<BottomTabNavigatorParamList, 'Search'>;
 };
 
-export type HomeTabHomeXScreenProps = {
+export type HomeTabHomeScreenScreenProps = {
     navigation: CompositeNavigationProp<
         StackNavigationProp<RootStackParamList, 'Root'>,
         CompositeNavigationProp<
             BottomTabNavigationProp<BottomTabNavigatorParamList, 'Home'>,
-            StackNavigationProp<HomeParamsList, 'HomeX'>
+            StackNavigationProp<HomeParamsList, 'HomeScreen'>
         >
     >;
-    route: RouteProp<HomeParamsList, 'HomeX'>;
+    route: RouteProp<HomeParamsList, 'HomeScreen'>;
 };
 
 export type SearchTabSearchTracksScreenProps = {

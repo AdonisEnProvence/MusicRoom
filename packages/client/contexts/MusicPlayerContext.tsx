@@ -3,6 +3,10 @@ import React, { useContext, useRef } from 'react';
 import { Sender } from 'xstate';
 import { MusicPlayerRef } from '../components/TheMusicPlayer/Player';
 import {
+    MusicPlayerFullScreenProps,
+    useMusicPlayerToggleFullScreen,
+} from '../hooks/musicPlayerToggle';
+import {
     AppMusicPlayerMachineEvent,
     AppMusicPlayerMachineState,
     createAppMusicPlayerMachine,
@@ -10,11 +14,11 @@ import {
 import { navigateFromRef } from '../navigation/RootNavigation';
 import { Socket } from '../services/websockets';
 
-interface MusicPlayerContextValue {
+type MusicPlayerContextValue = {
     sendToMachine: Sender<AppMusicPlayerMachineEvent>;
     state: AppMusicPlayerMachineState;
     setPlayerRef: (ref: MusicPlayerRef) => void;
-}
+} & MusicPlayerFullScreenProps;
 
 const MusicPlayerContext = React.createContext<
     MusicPlayerContextValue | undefined
@@ -28,6 +32,8 @@ type MusicPlayerContextProviderProps = {
 export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProps> =
     ({ socket, children }) => {
         const playerRef = useRef<MusicPlayerRef | null>(null);
+        const { isFullScreen, setIsFullScreen, toggleIsFullScreen } =
+            useMusicPlayerToggleFullScreen(false);
         const appMusicPlayerMachine = createAppMusicPlayerMachine({ socket });
         const [state, send] = useMachine(appMusicPlayerMachine, {
             services: {
@@ -68,6 +74,8 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
             },
             actions: {
                 alertForcedDisconnection: () => {
+                    setIsFullScreen(false);
+                    navigateFromRef('HomeScreen');
                     navigateFromRef('Alert', {
                         reason: 'FORCED_DISCONNECTION',
                     });
@@ -115,6 +123,9 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
                     sendToMachine: send,
                     state,
                     setPlayerRef,
+                    isFullScreen,
+                    setIsFullScreen,
+                    toggleIsFullScreen,
                 }}
             >
                 {children}

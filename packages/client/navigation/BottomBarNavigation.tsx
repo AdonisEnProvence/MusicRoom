@@ -10,12 +10,13 @@ import {
 } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Text, useSx, View } from 'dripsy';
-import React, { useState } from 'react';
+import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ColorModeProps } from '.';
 import TheMusicPlayer from '../components/TheMusicPlayer';
 import { tabStyle } from '../constants/Colors';
+import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import HomeScreen from '../screens/HomeScreen';
 import SearchTrackResultsScreen from '../screens/SearchTrackResultsScreen';
 import SearchTrackScreen from '../screens/SearchTrackScreen';
@@ -31,7 +32,7 @@ const Tab = createBottomTabNavigator<BottomTabNavigatorParamList>();
  * See https://reactnavigation.org/docs/bottom-tab-navigator#tabbar.
  */
 function MyTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-    const [fullscreenPlayer, setFullscreenPlayer] = useState(false);
+    const { isFullScreen, setIsFullScreen } = useMusicPlayer();
 
     const insets = useSafeAreaInsets();
     const sx = useSx();
@@ -47,8 +48,8 @@ function MyTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     return (
         <>
             <TheMusicPlayer
-                isFullScreen={fullscreenPlayer}
-                setIsFullScren={setFullscreenPlayer}
+                isFullScreen={isFullScreen}
+                setIsFullScren={setIsFullScreen}
             />
 
             <View

@@ -16,7 +16,7 @@ export const navigationRef = React.createRef<NavigationContainerRef>();
 // eslint-disable-next-line
 export function navigateFromRef<Route extends NavigateFromRefRoutes>(
     name: NavigateFromRefRoutes,
-    params: NavigateFromRefParams[Route],
+    params?: NavigateFromRefParams[Route],
 ): void {
     if (isReadyRef.current && navigationRef.current) {
         // Perform navigation if the app has mounted

@@ -16,8 +16,7 @@
     "lint": "yarn eslint . --ext ts,tsx --fix",
     "generate:xstate": "xstate-codegen machines/*.ts",
     "postinstall": "expo-yarn-workspaces postinstall",
-    "test": "is-ci-cli \"test:coverage\" \"test:watch\"",
-    "test:coverage": "jest --coverage",
+    "test": "jest --coverage",
     "test:watch": "jest --watch"
   },
   "jest": {

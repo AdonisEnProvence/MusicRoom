@@ -38,10 +38,7 @@ Route.get(
     'Temporal/TemporalToServerController.pause',
 );
 
-Route.post(
-    '/temporal/join/:roomID/:userID',
-    'Temporal/TemporalToServerController.join',
-);
+Route.post('/temporal/join', 'Temporal/TemporalToServerController.join');
 
 Route.get('/', () => {
     return { hello: 'world' };

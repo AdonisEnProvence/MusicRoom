@@ -31,10 +31,6 @@ export default class MtvRoomsWsController {
         );
         await Ws.adapter().remoteJoin(socket.id, roomID);
         console.log('in array', await Ws.adapter().sockets(new Set([roomID])));
-        console.log(
-            'withtout array',
-            await Ws.adapter().sockets(new Set(roomID)),
-        );
         await Room.create({
             uuid: roomID,
             runID: res.runID,
@@ -48,7 +44,6 @@ export default class MtvRoomsWsController {
         payload,
     }: WsControllerMethodArgs<RoomClientToServerJoin>): Promise<void> {
         const { roomID, userID } = payload;
-        console.log(Ws.io.sockets.adapter.rooms);
         if (!Ws.io.sockets.adapter.rooms.has(roomID))
             throw new Error('Room does not exist ' + roomID);
         console.log(`JOIN ${roomID} with ${socket.id}`);
@@ -56,10 +51,6 @@ export default class MtvRoomsWsController {
         await ServerToTemporalController.joinWorkflow(roomID, runID, userID);
         await Ws.adapter().remoteJoin(socket.id, roomID);
         console.log('in array', await Ws.adapter().sockets(new Set([roomID])));
-        console.log(
-            'withtout array',
-            await Ws.adapter().sockets(new Set(roomID)),
-        );
     }
 
     public static async onPause({

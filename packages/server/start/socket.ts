@@ -99,6 +99,12 @@ Ws.io.on('connection', async (socket) => {
                     'user_id',
                     device.userID,
                 );
+                console.log(
+                    `User ${
+                        room ? 'owns a room' : 'do not own a room'
+                    } and has ${allUserDevices.length} connected`,
+                );
+
                 /*
                     Kill the room if the creator doesn't have any other session alive on other device
                     All sessions room's connections are synchronized, if device is in pg the room connection is alive

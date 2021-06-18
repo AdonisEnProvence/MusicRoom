@@ -116,7 +116,7 @@ func PauseHandler(w http.ResponseWriter, r *http.Request) {
 	workflowID := vars["workflowID"]
 	runID := vars["runID"]
 
-	signal := shared.NewPlaySignal(shared.NewPlaySignalArgs{
+	signal := shared.NewPauseSignal(shared.NewPauseSignalArgs{
 		WorkflowID: workflowID,
 	})
 	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, shared.SignalChannelName, signal)
@@ -174,10 +174,12 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	initialTracksIDsList := append(body.InitialTracksIDs, seedTracksIDs...)
 	state := shared.ControlState{
-		Playing:       false,
-		Name:          body.Name,
-		Users:         []string{body.UserID},
-		TracksIDsList: initialTracksIDsList,
+		RoomID:            workflowID,
+		RoomCreatorUserID: body.UserID,
+		Playing:           false,
+		Name:              body.Name,
+		Users:             []string{body.UserID},
+		TracksIDsList:     initialTracksIDsList,
 	}
 
 	we, err := temporal.ExecuteWorkflow(context.Background(), options, workflows.MtvRoomWorkflow, state)

@@ -9,30 +9,6 @@ import (
 	"net/url"
 )
 
-type CreationAcknowledgementActivityArgs struct {
-	RoomID string
-	UserID string
-	State  shared.ControlState
-}
-
-type CreationAcknowledgementBody struct {
-	RoomID string              `json:"roomID"`
-	UserID string              `json:"userID"`
-	State  shared.ControlState `json:"state"`
-}
-
-type JoinActivityArgs struct {
-	RoomID string
-	UserID string
-	State  shared.ControlState
-}
-
-type JoinActivityBody struct {
-	RoomID string              `json:"roomID"`
-	UserID string              `json:"userID"`
-	State  shared.ControlState `json:"state"`
-}
-
 func PingActivity(_ context.Context) error {
 	_, err := http.Get(ADONIS_ENDPOINT + "/ping")
 
@@ -53,13 +29,8 @@ func PlayActivity(_ context.Context, roomID string) error {
 	return err
 }
 
-func CreationAcknowledgementActivity(_ context.Context, args CreationAcknowledgementActivityArgs) error {
-	body := CreationAcknowledgementBody{
-		RoomID: args.RoomID,
-		UserID: args.UserID,
-		State:  args.State,
-	}
-	marshaledBody, err := json.Marshal(body)
+func CreationAcknowledgementActivity(_ context.Context, state shared.ControlState) error {
+	marshaledBody, err := json.Marshal(state)
 	if err != nil {
 		return err
 	}
@@ -71,13 +42,8 @@ func CreationAcknowledgementActivity(_ context.Context, args CreationAcknowledge
 	return err
 }
 
-func JoinActivity(ctx context.Context, args JoinActivityArgs) error {
-	body := JoinActivityBody{
-		RoomID: args.RoomID,
-		UserID: args.UserID,
-		State:  args.State,
-	}
-	marshaledBody, err := json.Marshal(body)
+func JoinActivity(ctx context.Context, state shared.ControlState) error {
+	marshaledBody, err := json.Marshal(state)
 	if err != nil {
 		return err
 	}

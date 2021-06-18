@@ -17,6 +17,8 @@ export type TracksMetadata = z.infer<typeof TracksMetadata>;
 
 export const MtvWorkflowState = z
     .object({
+        roomID: z.string().uuid(),
+        roomCreatorUserID: z.string().uuid(),
         playing: z.boolean(),
         name: z.string(),
         users: z.array(z.string()),

@@ -2,6 +2,7 @@ import { View } from '@dripsy/core';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sender } from 'xstate';
+import { TracksMetadata } from '@musicroom/types';
 import {
     AppMusicPlayerMachineEvent,
     AppMusicPlayerMachineState,
@@ -13,7 +14,9 @@ import TheMusicPlayerWithControls from './TheMusicPlayerWithControls';
 
 type TheMusicPlayerFullScreenProps = {
     dismissFullScreenPlayer: () => void;
-    roomName?: string;
+    roomName: string;
+    currentTrack: TracksMetadata;
+    nextTracksList: TracksMetadata[];
     sendToMachine: Sender<AppMusicPlayerMachineEvent>;
     machineState: AppMusicPlayerMachineState;
     setPlayerRef: (ref: MusicPlayerRef) => void;
@@ -22,6 +25,8 @@ type TheMusicPlayerFullScreenProps = {
 const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     dismissFullScreenPlayer,
     roomName,
+    currentTrack,
+    nextTracksList,
     sendToMachine,
     machineState,
     setPlayerRef,
@@ -73,9 +78,9 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
             <AppScreenContainer>
                 <TheMusicPlayerWithControls
                     setPlayerRef={setPlayerRef}
-                    videoId="55SwKPVMVM4"
-                    trackTitle="Monde Nouveau"
-                    trackArtist="Feu! Chatterton"
+                    videoId={currentTrack.id}
+                    trackTitle={currentTrack.title}
+                    trackArtist={currentTrack.artistName}
                     isPlaying={isPlaying}
                     onTrackReady={handleTrackReady}
                     onPlayingToggle={handlePlayPauseToggle}

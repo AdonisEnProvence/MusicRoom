@@ -1,8 +1,10 @@
 import * as z from 'zod';
-import { MtvWorkflowState } from './mtv';
+import { MtvWorkflowState, TracksMetadata } from './mtv';
 
 export const CreateWorkflowResponse = z.object({
-    state: MtvWorkflowState,
+    state: MtvWorkflowState.extend({
+        tracks: z.array(TracksMetadata).nullable(),
+    }),
     workflowID: z.string(),
     runID: z.string(),
 });

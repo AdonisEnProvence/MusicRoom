@@ -71,7 +71,7 @@ func MtvRoomWorkflow(ctx workflow.Context, state shared.ControlState) error {
 				if err := workflow.ExecuteActivity(
 					ctx,
 					activities.PlayActivity,
-					message.WorkflowID,
+					state.RoomID,
 				).Get(ctx, nil); err != nil {
 					return
 				}
@@ -94,7 +94,7 @@ func MtvRoomWorkflow(ctx workflow.Context, state shared.ControlState) error {
 				if err := workflow.ExecuteActivity(
 					ctx,
 					activities.PauseActivity,
-					message.WorkflowID,
+					state.RoomID,
 				).Get(ctx, nil); err != nil {
 					return
 				}
@@ -117,11 +117,7 @@ func MtvRoomWorkflow(ctx workflow.Context, state shared.ControlState) error {
 				if err := workflow.ExecuteActivity(
 					ctx,
 					activities.JoinActivity,
-					activities.JoinActivityArgs{
-						RoomID: message.WorkflowID,
-						UserID: message.UserID,
-						State:  state,
-					},
+					state,
 				).Get(ctx, nil); err != nil {
 					return
 				}
@@ -168,15 +164,11 @@ func acknowledgeRoomCreation(ctx workflow.Context, state shared.ControlState) er
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
-	var result string
-	activityArgs := activities.CreationAcknowledgementActivityArgs{
-		RoomID: "8af81cc4-aa0c-4791-ac91-4f6a71379137", // TODO: replace with real value
-		UserID: "8af81cc4-aa0c-4791-ac91-4f6a71379137", // TODO: replace with real value
-		State:  state,
-	}
-
-	err := workflow.ExecuteActivity(ctx, activities.CreationAcknowledgementActivity, activityArgs).Get(ctx, &result)
-	if err != nil {
+	if err := workflow.ExecuteActivity(
+		ctx,
+		activities.CreationAcknowledgementActivity,
+		state,
+	).Get(ctx, nil); err != nil {
 		return err
 	}
 

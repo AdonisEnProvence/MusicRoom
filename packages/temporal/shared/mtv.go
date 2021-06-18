@@ -21,11 +21,13 @@ type TrackMetadata struct {
 }
 
 type ControlState struct {
-	Playing       bool            `json:"playing"`
-	Name          string          `json:"name"`
-	Users         []string        `json:"users"`
-	TracksIDsList []string        `json:"tracksIDsList"`
-	Tracks        []TrackMetadata `json:"tracks"`
+	RoomID            string          `json:"roomID"`
+	RoomCreatorUserID string          `json:"roomCreatorUserID"`
+	Playing           bool            `json:"playing"`
+	Name              string          `json:"name"`
+	Users             []string        `json:"users"`
+	TracksIDsList     []string        `json:"tracksIDsList"`
+	Tracks            []TrackMetadata `json:"tracks"`
 }
 
 func (state *ControlState) Pause() {

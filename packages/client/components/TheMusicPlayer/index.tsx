@@ -18,7 +18,7 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
     const MINI_PLAYER_HEIGHT = 52;
     const sx = useSx();
     const { state, sendToMachine, setPlayerRef } = useMusicPlayer();
-    const { currentRoom, currentTrack } = state.context;
+    const { currentRoom, currentTrack, tracksList } = state.context;
     const isInRoom = currentRoom !== undefined;
     function openPlayerInFullScreen() {
         if (isInRoom === true) {
@@ -57,25 +57,34 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
                     currentTrackArtist={currentTrack?.artistName}
                 />
 
-                {isInRoom && (
-                    <View
-                        accessibilityState={{ expanded: isFullScreen === true }}
-                        style={{
-                            flex: 1,
-                            transform: [{ translateY: isFullScreen ? 0 : 200 }],
-                        }}
-                    >
-                        <TheMusicPlayerFullScreen
-                            dismissFullScreenPlayer={() => {
-                                setIsFullScren(false);
+                {isInRoom &&
+                    currentRoom !== undefined &&
+                    currentTrack !== undefined &&
+                    tracksList !== undefined && (
+                        <View
+                            accessibilityState={{
+                                expanded: isFullScreen === true,
                             }}
-                            roomName={currentRoom?.name}
-                            sendToMachine={sendToMachine}
-                            machineState={state}
-                            setPlayerRef={setPlayerRef}
-                        />
-                    </View>
-                )}
+                            style={{
+                                flex: 1,
+                                transform: [
+                                    { translateY: isFullScreen ? 0 : 200 },
+                                ],
+                            }}
+                        >
+                            <TheMusicPlayerFullScreen
+                                dismissFullScreenPlayer={() => {
+                                    setIsFullScren(false);
+                                }}
+                                roomName={currentRoom.name}
+                                currentTrack={currentTrack}
+                                nextTracksList={tracksList.slice(1)}
+                                sendToMachine={sendToMachine}
+                                machineState={state}
+                                setPlayerRef={setPlayerRef}
+                            />
+                        </View>
+                    )}
             </View>
         </TouchableWithoutFeedback>
     );

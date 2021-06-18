@@ -207,7 +207,7 @@ test.group('Rooms life cycle', (group) => {
         await sleep();
     });
 
-    test.only('It should not remove room from database, as creator has more than one device/session alive', async (assert) => {
+    test('It should not remove room from database, as creator has more than one device/session alive', async (assert) => {
         const userID = datatype.uuid();
         const user = {
             socketA: getSocket(userID),

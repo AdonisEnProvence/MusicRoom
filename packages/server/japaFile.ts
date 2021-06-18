@@ -1,7 +1,8 @@
-import 'reflect-metadata';
-import { join } from 'path';
+import execa from 'execa';
 import getPort from 'get-port';
 import { configure } from 'japa';
+import { join } from 'path';
+import 'reflect-metadata';
 import sourceMapSupport from 'source-map-support';
 
 process.env.NODE_ENV = 'testing';
@@ -14,10 +15,23 @@ async function startHttpServer() {
     await new Ignitor(__dirname).httpServer().start();
 }
 
+async function runMigrations() {
+    await execa.node('ace', ['migration:run'], {
+        stdio: 'inherit',
+    });
+}
+
+async function rollbackMigrations() {
+    await execa.node('ace', ['migration:rollback'], {
+        stdio: 'inherit',
+    });
+}
+
 /**
  * Configure test runner
  */
 configure({
     files: ['**/*.test.ts'],
-    before: [startHttpServer],
+    before: [runMigrations, startHttpServer],
+    after: [rollbackMigrations],
 });

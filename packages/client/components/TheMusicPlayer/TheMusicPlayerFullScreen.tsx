@@ -1,4 +1,4 @@
-import { View } from '@dripsy/core';
+import { View, Text } from 'dripsy';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sender } from 'xstate';
@@ -88,6 +88,16 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     elapsedTime={machineState.context.currentTrackElapsedTime}
                     totalDuration={machineState.context.currentTrackDuration}
                 />
+
+                <View sx={{ marginBottom: 'xl' }}>
+                    {nextTracksList.map(({ id, title, artistName }) => (
+                        <View key={id}>
+                            <Text sx={{ color: 'white' }}>
+                                {title} {artistName}
+                            </Text>
+                        </View>
+                    ))}
+                </View>
             </AppScreenContainer>
         </AppScreen>
     );

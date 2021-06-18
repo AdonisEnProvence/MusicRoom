@@ -14,7 +14,7 @@ import (
 func MtvRoomWorkflow(ctx workflow.Context, state shared.ControlState) error {
 	logger := workflow.GetLogger(ctx)
 
-	err := workflow.SetQueryHandler(ctx, "getState", func(input []byte) (shared.ControlState, error) {
+	err := workflow.SetQueryHandler(ctx, shared.MtvGetStateQuery, func(input []byte) (shared.ControlState, error) {
 		return state, nil
 	})
 	if err != nil {
@@ -145,7 +145,7 @@ func getInitialTracksInformation(ctx workflow.Context, initialTracksIDs []string
 
 	if err := workflow.ExecuteActivity(
 		ctx,
-		activities.FetchTracksInformation,
+		activities.FetchTracksInformationActivity,
 		initialTracksIDs,
 	).Get(ctx, &initialTracksMetadata); err != nil {
 		return nil, err

@@ -12,7 +12,7 @@ import (
 
 var ErrInvalidGoogleAPIKey = errors.New("invalid Google API key")
 
-func FetchTracksInformation(ctx context.Context, tracksIDs []string) ([]shared.TrackMetadata, error) {
+func FetchTracksInformationActivity(ctx context.Context, tracksIDs []string) ([]shared.TrackMetadata, error) {
 	apiKey := os.Getenv("GOOGLE_API_KEY")
 	if apiKey == "" {
 		return nil, ErrInvalidGoogleAPIKey

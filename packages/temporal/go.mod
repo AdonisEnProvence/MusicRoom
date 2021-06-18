@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/bojanz/httpx v0.0.0-20201111190843-d1cf01c49b2e
+	github.com/bxcodec/faker/v3 v3.6.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/gorilla/handlers v1.5.1

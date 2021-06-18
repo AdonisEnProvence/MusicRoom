@@ -8,7 +8,10 @@ import (
 
 const ControlTaskQueue = "CONTROL_TASK_QUEUE"
 
-var SignalChannelName = "control"
+var (
+	SignalChannelName = "control"
+	MtvGetStateQuery  = "getState"
+)
 
 type TrackMetadata struct {
 	ID         string            `json:"id"`

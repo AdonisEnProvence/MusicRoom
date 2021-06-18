@@ -261,7 +261,7 @@ func GetStateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	workflowID := unescaped.worflowID
 	runID := unescaped.runID
-	response, err := temporal.QueryWorkflow(context.Background(), workflowID, runID, "getState")
+	response, err := temporal.QueryWorkflow(context.Background(), workflowID, runID, shared.MtvGetStateQuery)
 	if err != nil {
 		WriteError(w, err)
 		return

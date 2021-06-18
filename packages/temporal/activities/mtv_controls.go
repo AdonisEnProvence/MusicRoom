@@ -5,35 +5,27 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
 )
 
 func PingActivity(_ context.Context) error {
-	fmt.Println("activity ping " + ADONIS_ENDPOINT)
 	_, err := http.Get(ADONIS_ENDPOINT + "/ping")
-	if err != nil {
-		fmt.Println("failed to ping to adonis server")
-	}
+
 	return err
 }
 
 func PauseActivity(_ context.Context, roomID string) error {
 	url := ADONIS_ENDPOINT + "/temporal/pause/" + url.QueryEscape(roomID)
 	_, err := http.Get(url)
-	if err != nil {
-		fmt.Println("PauseActivity Failed")
-	}
+
 	return err
 }
 
 func PlayActivity(_ context.Context, roomID string) error {
 	url := ADONIS_ENDPOINT + "/temporal/play/" + url.QueryEscape(roomID)
 	_, err := http.Get(url)
-	if err != nil {
-		fmt.Println("PlayActivity Failed")
-	}
+
 	return err
 }
 
@@ -61,8 +53,6 @@ func CreationAcknowledgementActivity(_ context.Context, args CreationAcknowledge
 	}
 
 	url := ADONIS_ENDPOINT + "/temporal/mtv-creation-acknowledgement"
-
-	fmt.Printf("url to request = %v\n", url)
 
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 

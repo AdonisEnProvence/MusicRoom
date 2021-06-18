@@ -1,4 +1,8 @@
 import Database from '@ioc:Adonis/Lucid/Database';
+import {
+    AllClientToServerEvents,
+    AllServerToClientEvents,
+} from '@musicroom/types';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import Device from 'App/Models/Device';
 import Room from 'App/Models/Room';
@@ -6,10 +10,6 @@ import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import { io, Socket } from 'socket.io-client';
-import {
-    AllClientToServerEvents,
-    AllServerToClientEvents,
-} from '../../types/dist';
 
 const BASE_URL = `http://${process.env.HOST!}:${process.env.PORT!}`;
 

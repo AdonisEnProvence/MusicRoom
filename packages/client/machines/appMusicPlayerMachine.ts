@@ -1,3 +1,8 @@
+import {
+    AppMusicPlayerMachineContext,
+    TrackVoteRoom,
+    TrackVoteTrack,
+} from '@musicroom/types';
 import { Platform } from 'react-native';
 import {
     assign,
@@ -7,11 +12,6 @@ import {
     State,
     StateMachine,
 } from 'xstate';
-import {
-    AppMusicPlayerMachineContext,
-    TrackVoteRoom,
-    TrackVoteTrack,
-} from '../../types/dist';
 import { SocketClient } from '../hooks/useSocket';
 
 export type AppMusicPlayerMachineState = State<

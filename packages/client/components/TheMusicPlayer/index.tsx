@@ -53,7 +53,7 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
                 <TheMusicPlayerMini
                     height={MINI_PLAYER_HEIGHT}
                     roomName={currentRoom?.name}
-                    currentTrackName={currentTrack?.name}
+                    currentTrackName={currentTrack?.title}
                     currentTrackArtist={currentTrack?.artistName}
                 />
 

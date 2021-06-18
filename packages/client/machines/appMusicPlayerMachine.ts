@@ -1,7 +1,8 @@
 import {
     AppMusicPlayerMachineContext,
     TrackVoteRoom,
-    TrackVoteTrack,
+    RoomClientToServerCreate,
+    TracksMetadata,
 } from '@musicroom/types';
 import {
     assign,
@@ -11,7 +12,6 @@ import {
     State,
     StateMachine,
 } from 'xstate';
-import { RoomClientToServerCreate } from '../../types/dist';
 import { SocketClient } from '../hooks/useSocket';
 
 export type AppMusicPlayerMachineState = State<
@@ -25,7 +25,7 @@ export type AppMusicPlayerMachineEvent =
           roomName: string;
           initialTracksIDs: string[];
       }
-    | { type: 'JOINED_ROOM'; room: TrackVoteRoom; track: TrackVoteTrack }
+    | { type: 'JOINED_ROOM'; room: TrackVoteRoom; tracksList: TracksMetadata[] }
     | { type: 'JOIN_ROOM'; roomID: string }
     | { type: 'MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET' }
     | { type: 'TRACK_HAS_LOADED' }
@@ -58,6 +58,7 @@ const rawContext: AppMusicPlayerMachineContext = {
     currentTrack: undefined,
     waitingRoomID: undefined,
     users: undefined,
+    tracksList: undefined,
 
     currentTrackDuration: 42,
     currentTrackElapsedTime: 0,
@@ -85,34 +86,31 @@ export const createAppMusicPlayerMachine = ({
 
                     socket.on(
                         'CREATE_ROOM_CALLBACK',
-                        ({ roomID, roomName }) => {
+                        ({ roomID, roomName, tracks }) => {
                             sendBack({
                                 type: 'JOINED_ROOM',
                                 room: {
                                     name: roomName,
                                     roomID,
                                 },
-                                track: {
-                                    name: 'Monde Nouveau',
-                                    artistName: 'Feu! Chatterton',
-                                },
+                                tracksList: tracks,
                             });
                         },
                     );
 
-                    socket.on('JOIN_ROOM_CALLBACK', ({ roomID, name }) => {
-                        sendBack({
-                            type: 'JOINED_ROOM',
-                            room: {
-                                name: name,
-                                roomID,
-                            },
-                            track: {
-                                name: 'Monde Nouveau',
-                                artistName: 'Feu! Chatterton',
-                            },
-                        });
-                    });
+                    socket.on(
+                        'JOIN_ROOM_CALLBACK',
+                        ({ roomID, roomName, tracks }) => {
+                            sendBack({
+                                type: 'JOINED_ROOM',
+                                room: {
+                                    name: roomName,
+                                    roomID,
+                                },
+                                tracksList: tracks,
+                            });
+                        },
+                    );
 
                     socket.on('ACTION_PLAY_CALLBACK', () => {
                         sendBack({
@@ -386,10 +384,13 @@ export const createAppMusicPlayerMachine = ({
                         return context;
                     }
 
+                    const { room, tracksList } = event;
+
                     return {
                         ...context,
-                        currentRoom: event.room,
-                        currentTrack: event.track,
+                        currentRoom: room,
+                        currentTrack: tracksList[0],
+                        tracksList: tracksList,
                     };
                 }),
 

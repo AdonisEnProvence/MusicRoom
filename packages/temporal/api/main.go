@@ -74,9 +74,7 @@ func PlayHandler(w http.ResponseWriter, r *http.Request) {
 	workflowID := vars["workflowID"]
 	runID := vars["runID"]
 
-	signal := shared.NewPlaySignal(shared.NewPlaySignalArgs{
-		WorkflowID: workflowID,
-	})
+	signal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
 	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, shared.SignalChannelName, signal)
 	if err != nil {
 		WriteError(w, err)
@@ -116,9 +114,7 @@ func PauseHandler(w http.ResponseWriter, r *http.Request) {
 	workflowID := vars["workflowID"]
 	runID := vars["runID"]
 
-	signal := shared.NewPauseSignal(shared.NewPauseSignalArgs{
-		WorkflowID: workflowID,
-	})
+	signal := shared.NewPauseSignal(shared.NewPauseSignalArgs{})
 	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, shared.SignalChannelName, signal)
 	if err != nil {
 		WriteError(w, err)
@@ -238,8 +234,7 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	workflowID := unescapedData.worflowID
 	runID := unescapedData.runID
 	signal := shared.NewJoinSignal(shared.NewJoinSignalArgs{
-		UserID:     body.UserID,
-		WorkflowID: workflowID,
+		UserID: body.UserID,
 	})
 
 	err = temporal.SignalWorkflow(context.Background(), workflowID, runID, shared.SignalChannelName, signal)

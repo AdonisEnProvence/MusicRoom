@@ -66,53 +66,44 @@ type GenericRouteSignal struct {
 }
 
 type PlaySignal struct {
-	Route      SignalRoute
-	WorkflowID string
+	Route SignalRoute
 }
 
 type NewPlaySignalArgs struct {
-	WorkflowID string
 }
 
 func NewPlaySignal(args NewPlaySignalArgs) PlaySignal {
 	return PlaySignal{
-		Route:      SignalRoutePlay,
-		WorkflowID: args.WorkflowID,
+		Route: SignalRoutePlay,
 	}
 }
 
 type PauseSignal struct {
-	Route      SignalRoute
-	WorkflowID string
+	Route SignalRoute
 }
 
 type NewPauseSignalArgs struct {
-	WorkflowID string
 }
 
 func NewPauseSignal(args NewPauseSignalArgs) PauseSignal {
 	return PauseSignal{
-		Route:      SignalRoutePause,
-		WorkflowID: args.WorkflowID,
+		Route: SignalRoutePause,
 	}
 }
 
 type JoinSignal struct {
-	Route      SignalRoute
-	UserID     string
-	WorkflowID string
+	Route  SignalRoute
+	UserID string
 }
 
 type NewJoinSignalArgs struct {
-	UserID     string
-	WorkflowID string
+	UserID string
 }
 
 func NewJoinSignal(args NewJoinSignalArgs) JoinSignal {
 	return JoinSignal{
-		Route:      SignalRouteJoin,
-		UserID:     args.UserID,
-		WorkflowID: args.WorkflowID,
+		Route:  SignalRouteJoin,
+		UserID: args.UserID,
 	}
 }
 

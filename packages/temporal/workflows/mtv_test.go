@@ -35,9 +35,11 @@ func (s *UnitTestSuite) Test_PlayTrack() {
 	fakeWorkflowID := faker.UUIDHyphenated()
 
 	state := shared.ControlState{
-		Playing: false,
-		Users:   []string{},
-		Name:    faker.Word(),
+		RoomID:            fakeWorkflowID,
+		RoomCreatorUserID: faker.UUIDHyphenated(),
+		Playing:           false,
+		Users:             []string{},
+		Name:              faker.Word(),
 	}
 
 	s.env.OnActivity(
@@ -64,9 +66,7 @@ func (s *UnitTestSuite) Test_PlayTrack() {
 	).Return(nil)
 
 	s.env.RegisterDelayedCallback(func() {
-		signal := shared.NewPlaySignal(shared.NewPlaySignalArgs{
-			WorkflowID: fakeWorkflowID,
-		})
+		signal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
 
 		s.env.SignalWorkflow(shared.SignalChannelName, signal)
 	}, time.Millisecond*0)
@@ -85,9 +85,11 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 	fakeWorkflowID := faker.UUIDHyphenated()
 
 	state := shared.ControlState{
-		Playing: false,
-		Users:   []string{},
-		Name:    faker.Word(),
+		RoomID:            fakeWorkflowID,
+		RoomCreatorUserID: faker.UUIDHyphenated(),
+		Playing:           false,
+		Users:             []string{},
+		Name:              faker.Word(),
 	}
 
 	s.env.OnActivity(
@@ -119,17 +121,13 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 	).Return(nil)
 
 	s.env.RegisterDelayedCallback(func() {
-		playSignal := shared.NewPlaySignal(shared.NewPlaySignalArgs{
-			WorkflowID: fakeWorkflowID,
-		})
+		playSignal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
 		s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
 
 	}, time.Millisecond*0)
 
 	s.env.RegisterDelayedCallback(func() {
-		pauseSignal := shared.NewPauseSignal(shared.NewPauseSignalArgs{
-			WorkflowID: fakeWorkflowID,
-		})
+		pauseSignal := shared.NewPauseSignal(shared.NewPauseSignalArgs{})
 		s.env.SignalWorkflow(shared.SignalChannelName, pauseSignal)
 	}, time.Second*2)
 
@@ -151,9 +149,11 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 	)
 
 	state := shared.ControlState{
-		Playing: false,
-		Users:   []string{},
-		Name:    faker.Word(),
+		RoomID:            fakeWorkflowID,
+		RoomCreatorUserID: faker.UUIDHyphenated(),
+		Playing:           false,
+		Users:             []string{},
+		Name:              faker.Word(),
 	}
 
 	s.env.OnActivity(
@@ -181,8 +181,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 
 	s.env.RegisterDelayedCallback(func() {
 		signal := shared.NewJoinSignal(shared.NewJoinSignalArgs{
-			WorkflowID: fakeWorkflowID,
-			UserID:     fakeUserID,
+			UserID: fakeUserID,
 		})
 
 		s.env.SignalWorkflow(shared.SignalChannelName, signal)

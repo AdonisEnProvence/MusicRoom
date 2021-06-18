@@ -68,3 +68,4 @@ jobs:
                   PG_USER: lucid
                   PG_PASSWORD: yourpassword
                   PG_DB_NAME: lucid
+                  PORT: 3333

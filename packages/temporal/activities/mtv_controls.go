@@ -9,6 +9,30 @@ import (
 	"net/url"
 )
 
+type CreationAcknowledgementActivityArgs struct {
+	RoomID string
+	UserID string
+	State  shared.ControlState
+}
+
+type CreationAcknowledgementBody struct {
+	RoomID string              `json:"roomID"`
+	UserID string              `json:"userID"`
+	State  shared.ControlState `json:"state"`
+}
+
+type JoinActivityArgs struct {
+	RoomID string
+	UserID string
+	State  shared.ControlState
+}
+
+type JoinActivityBody struct {
+	RoomID string              `json:"roomID"`
+	UserID string              `json:"userID"`
+	State  shared.ControlState `json:"state"`
+}
+
 func PingActivity(_ context.Context) error {
 	_, err := http.Get(ADONIS_ENDPOINT + "/ping")
 
@@ -29,18 +53,6 @@ func PlayActivity(_ context.Context, roomID string) error {
 	return err
 }
 
-type CreationAcknowledgementActivityArgs struct {
-	RoomID string
-	UserID string
-	State  shared.ControlState
-}
-
-type CreationAcknowledgementBody struct {
-	RoomID string              `json:"roomID"`
-	UserID string              `json:"userID"`
-	State  shared.ControlState `json:"state"`
-}
-
 func CreationAcknowledgementActivity(_ context.Context, args CreationAcknowledgementActivityArgs) error {
 	body := CreationAcknowledgementBody{
 		RoomID: args.RoomID,
@@ -59,20 +71,18 @@ func CreationAcknowledgementActivity(_ context.Context, args CreationAcknowledge
 	return err
 }
 
-type JoinActivityBody struct {
-	State shared.ControlState `json:"state"`
-}
-
-func JoinActivity(ctx context.Context, roomID string, userID string, state shared.ControlState) error {
+func JoinActivity(ctx context.Context, args JoinActivityArgs) error {
 	body := JoinActivityBody{
-		State: state,
+		RoomID: args.RoomID,
+		UserID: args.UserID,
+		State:  args.State,
 	}
 	marshaledBody, err := json.Marshal(body)
 	if err != nil {
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/join/" + url.QueryEscape(roomID) + "/" + url.QueryEscape(userID)
+	url := ADONIS_ENDPOINT + "/temporal/join"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err

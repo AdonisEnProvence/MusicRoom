@@ -1,6 +1,6 @@
+import { ResponseToUniverse } from '@musicroom/types';
 import test from 'japa';
 import supertest from 'supertest';
-import { ResponseToUniverse } from '@musicroom/types';
 
 const BASE_URL = `http://${process.env.HOST!}:${process.env.PORT!}`;
 

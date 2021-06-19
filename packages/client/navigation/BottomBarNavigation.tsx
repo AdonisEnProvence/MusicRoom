@@ -9,21 +9,22 @@ import {
     createBottomTabNavigator,
 } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import React, { useState } from 'react';
-import { View, Text, useSx } from 'dripsy';
+import { Text, useSx, View } from 'dripsy';
+import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ColorModeProps } from '.';
+import TheMusicPlayer from '../components/TheMusicPlayer';
 import { tabStyle } from '../constants/Colors';
+import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import HomeScreen from '../screens/HomeScreen';
-import SearchTrackScreen from '../screens/SearchTrackScreen';
 import SearchTrackResultsScreen from '../screens/SearchTrackResultsScreen';
+import SearchTrackScreen from '../screens/SearchTrackScreen';
 import {
     BottomTabNavigatorParamList,
     HomeParamsList,
     SearchTracksParamsList,
 } from '../types';
-import TheMusicPlayer from '../components/TheMusicPlayer';
 
 const Tab = createBottomTabNavigator<BottomTabNavigatorParamList>();
 
@@ -31,7 +32,7 @@ const Tab = createBottomTabNavigator<BottomTabNavigatorParamList>();
  * See https://reactnavigation.org/docs/bottom-tab-navigator#tabbar.
  */
 function MyTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-    const [fullscreenPlayer, setFullscreenPlayer] = useState(false);
+    const { isFullScreen, setIsFullScreen } = useMusicPlayer();
 
     const insets = useSafeAreaInsets();
     const sx = useSx();
@@ -47,8 +48,8 @@ function MyTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     return (
         <>
             <TheMusicPlayer
-                isFullScreen={fullscreenPlayer}
-                setIsFullScren={setFullscreenPlayer}
+                isFullScreen={isFullScreen}
+                setIsFullScren={setIsFullScreen}
             />
 
             <View
@@ -198,7 +199,7 @@ function TabOneNavigator() {
     return (
         <TabOneStack.Navigator headerMode={'screen'}>
             <TabOneStack.Screen
-                name="HomeX"
+                name="HomeScreen"
                 component={HomeScreen}
                 options={{ headerTitle: 'Home', headerShown: false }}
             />

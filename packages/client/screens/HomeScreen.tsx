@@ -6,9 +6,9 @@ import {
     AppScreenContainer,
     AppScreenHeader,
 } from '../components/kit';
-import { HomeTabHomeXScreenProps } from '../types';
+import { HomeTabHomeScreenScreenProps } from '../types';
 
-const HomeScreen: React.FC<HomeTabHomeXScreenProps> = ({ navigation }) => {
+const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
 
     return (

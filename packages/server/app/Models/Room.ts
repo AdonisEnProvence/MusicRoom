@@ -8,6 +8,9 @@ export default class Room extends BaseModel {
     @column({ columnName: 'run_id' })
     public runID: string;
 
+    @column()
+    public creator: string;
+
     @column.dateTime({ autoCreate: true })
     public createdAt: DateTime;
 

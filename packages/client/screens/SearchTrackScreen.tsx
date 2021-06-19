@@ -1,19 +1,19 @@
+import { useActor, useMachine } from '@xstate/react';
 import React, { useState } from 'react';
 import { Button } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActorRef } from 'xstate';
-import { useMachine, useActor } from '@xstate/react';
-import { searchTrackMachine } from '../machines/searchTrackMachine';
 import {
     AppScreen,
     AppScreenContainer,
     AppScreenHeaderWithSearchBar,
 } from '../components/kit';
-import { SearchTabSearchTracksScreenProps } from '../types';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
 } from '../machines/appScreenHeaderWithSearchBarMachine';
+import { searchTrackMachine } from '../machines/searchTrackMachine';
+import { SearchTabSearchTracksScreenProps } from '../types';
 
 const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
     navigation,
@@ -57,7 +57,7 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
                     title="Go to home"
                     onPress={() => {
                         navigation.navigate('Home', {
-                            screen: 'HomeX',
+                            screen: 'HomeScreen',
                         });
                     }}
                 />

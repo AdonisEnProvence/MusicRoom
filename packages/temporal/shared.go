@@ -8,13 +8,15 @@ var (
 )
 
 var RouteTypes = struct {
-	PLAY  string
-	PAUSE string
-	JOIN  string
+	PLAY      string
+	PAUSE     string
+	JOIN      string
+	TERMINATE string
 }{
-	PLAY:  "play",
-	PAUSE: "pause",
-	JOIN:  "join",
+	PLAY:      "play",
+	PAUSE:     "pause",
+	JOIN:      "join",
+	TERMINATE: "terminate",
 }
 
 type RouteSignal struct {
@@ -35,6 +37,10 @@ type JoinSignal struct {
 	Route      string
 	UserID     string
 	WorkflowID string
+}
+
+type TerminateSignal struct {
+	Route string
 }
 
 // @@@SNIPEND

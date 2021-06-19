@@ -11,34 +11,49 @@ import {
 import { StackNavigationProp } from '@react-navigation/stack';
 import { SearchedTrack } from './machines/searchTrackMachine';
 
+export type NavigateFromRefParams = {
+    Alert: AlertParams;
+    HomeScreen: undefined;
+};
+
+export type NavigateFromRefRoutes = keyof NavigateFromRefParams;
+
 export type BottomTabNavigatorParamList = {
     Home: NavigatorScreenParams<HomeParamsList>;
     Search: NavigatorScreenParams<SearchTracksParamsList>;
 };
 
 export type HomeParamsList = {
-    HomeX: undefined;
+    HomeScreen: undefined;
 };
 
 export type SearchTracksParamsList = {
     SearchTracks: undefined;
-    SearchTrackResults: {
-        tracks: SearchedTrack[];
-    };
+    SearchTrackResults: SearchTracksResultsParams;
 };
 
 export type RootStackParamList = {
     Root: NavigatorScreenParams<BottomTabNavigatorParamList>;
 
     MusicTrackVoteSearch: undefined;
-    MusicTrackVote: {
-        roomId: string;
-    };
+    MusicTrackVote: MusicTrackVoteParams;
 
     Chat: undefined;
 
     Settings: undefined;
+
+    Alert: AlertParams;
 };
+
+interface AlertParams {
+    reason: 'FORCED_DISCONNECTION';
+}
+interface MusicTrackVoteParams {
+    roomId: string;
+}
+interface SearchTracksResultsParams {
+    tracks: SearchedTrack[];
+}
 
 /**
  * See https://reactnavigation.org/docs/typescript/#nesting-navigators
@@ -63,6 +78,11 @@ export type SettingsScreenProps = {
     route: RouteProp<RootStackParamList, 'Settings'>;
 };
 
+export type AlertScreenProps = {
+    navigation: StackNavigationProp<RootStackParamList, 'Alert'>;
+    route: RouteProp<RootStackParamList, 'Alert'>;
+};
+
 export type HomeTabProps = {
     navigation: CompositeNavigationProp<
         StackNavigationProp<RootStackParamList, 'Root'>,
@@ -79,15 +99,15 @@ export type SearchTabProps = {
     route: RouteProp<BottomTabNavigatorParamList, 'Search'>;
 };
 
-export type HomeTabHomeXScreenProps = {
+export type HomeTabHomeScreenScreenProps = {
     navigation: CompositeNavigationProp<
         StackNavigationProp<RootStackParamList, 'Root'>,
         CompositeNavigationProp<
             BottomTabNavigationProp<BottomTabNavigatorParamList, 'Home'>,
-            StackNavigationProp<HomeParamsList, 'HomeX'>
+            StackNavigationProp<HomeParamsList, 'HomeScreen'>
         >
     >;
-    route: RouteProp<HomeParamsList, 'HomeX'>;
+    route: RouteProp<HomeParamsList, 'HomeScreen'>;
 };
 
 export type SearchTabSearchTracksScreenProps = {

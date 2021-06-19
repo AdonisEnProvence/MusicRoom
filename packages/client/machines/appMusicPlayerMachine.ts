@@ -1,4 +1,10 @@
 import {
+    AppMusicPlayerMachineContext,
+    TrackVoteRoom,
+    TrackVoteTrack,
+} from '@musicroom/types';
+import { Platform } from 'react-native';
+import {
     assign,
     createMachine,
     send,
@@ -7,24 +13,6 @@ import {
     StateMachine,
 } from 'xstate';
 import { SocketClient } from '../hooks/useSocket';
-
-interface TrackVoteRoom {
-    roomID: string;
-    name: string;
-}
-
-interface TrackVoteTrack {
-    name: string;
-    artistName: string;
-}
-export interface AppMusicPlayerMachineContext {
-    currentRoom?: TrackVoteRoom;
-    currentTrack?: TrackVoteTrack;
-    waitingRoomID?: string;
-
-    currentTrackDuration: number;
-    currentTrackElapsedTime: number;
-}
 
 export type AppMusicPlayerMachineState = State<
     AppMusicPlayerMachineContext,
@@ -53,6 +41,11 @@ export type AppMusicPlayerMachineEvent =
           params: { status: 'play' | 'pause'; roomID?: string };
       }
     | { type: 'PLAY_CALLBACK' }
+    | { type: 'FORCED_DISCONNECTION' }
+    | {
+          type: 'RETRIEVE_CONTEXT';
+          context: AppMusicPlayerMachineContext;
+      }
     | { type: 'PAUSE_CALLBACK' };
 
 interface CreateAppMusicPlayerMachineArgs {
@@ -75,6 +68,15 @@ function joiningRoomCallback(sendBack: Sender<AppMusicPlayerMachineEvent>) {
     };
 }
 
+const rawContext: AppMusicPlayerMachineContext = {
+    currentRoom: undefined,
+    currentTrack: undefined,
+    waitingRoomID: undefined,
+
+    currentTrackDuration: 0,
+    currentTrackElapsedTime: 0,
+};
+
 export const createAppMusicPlayerMachine = ({
     socket,
 }: CreateAppMusicPlayerMachineArgs): StateMachine<
@@ -87,6 +89,14 @@ export const createAppMusicPlayerMachine = ({
             invoke: {
                 id: 'socketConnection',
                 src: (_context, _event) => (sendBack, onReceive) => {
+                    socket.on('RETRIEVE_CONTEXT', ({ context }) => {
+                        console.log('RETRIVE_CONTEXT');
+                        sendBack({
+                            type: 'RETRIEVE_CONTEXT',
+                            context,
+                        });
+                    });
+
                     socket.on('JOIN_ROOM_CALLBACK', ({ roomID, name }) => {
                         sendBack({
                             type: 'JOINED_ROOM',
@@ -113,6 +123,13 @@ export const createAppMusicPlayerMachine = ({
                         });
                     });
 
+                    socket.on('FORCED_DISCONNECTION', () => {
+                        console.log('RECEIVED FORCED DISCONNECTION');
+                        sendBack({
+                            type: 'FORCED_DISCONNECTION',
+                        });
+                    });
+
                     onReceive((e) => {
                         if (e.type === 'PLAY_PAUSE_TOGGLE' && e.params.roomID) {
                             const { roomID, status } = e.params;
@@ -129,19 +146,13 @@ export const createAppMusicPlayerMachine = ({
                 },
             },
 
-            context: {
-                currentRoom: undefined,
-                currentTrack: undefined,
-                waitingRoomID: undefined,
-
-                currentTrackDuration: 0,
-                currentTrackElapsedTime: 0,
-            },
+            context: rawContext,
 
             initial: 'waitingJoiningRoom',
 
             states: {
                 waitingJoiningRoom: {
+                    entry: 'assignRawContext',
                     on: {
                         CREATE_ROOM: {
                             target: 'connectingToRoom',
@@ -172,7 +183,8 @@ export const createAppMusicPlayerMachine = ({
                                 );
                             }
                             const payload = {
-                                userID: 'user1',
+                                userID:
+                                    Platform.OS === 'web' ? 'web' : 'android', //TODO
                                 name: 'your_room_name',
                             };
                             socket.emit(
@@ -201,7 +213,8 @@ export const createAppMusicPlayerMachine = ({
                             }
                             const payload = {
                                 roomID: event.roomID,
-                                userID: 'user2',
+                                userID:
+                                    Platform.OS === 'web' ? 'web' : 'android',
                             };
                             socket.emit('JOIN_ROOM', payload);
                         },
@@ -342,13 +355,38 @@ export const createAppMusicPlayerMachine = ({
                         },
                     },
                     on: {
-                        JOIN_ROOM: 'joiningRoom',
+                        FORCED_DISCONNECTION: {
+                            target: 'waitingJoiningRoom',
+                            actions: 'alertForcedDisconnection',
+                        },
+                        JOIN_ROOM: { target: 'joiningRoom' },
                     },
+                },
+            },
+            on: {
+                RETRIEVE_CONTEXT: {
+                    target: 'connectedToRoom',
+                    actions: 'assignRetrievedContext',
                 },
             },
         },
         {
             actions: {
+                assignRetrievedContext: assign((context, event) => {
+                    if (event.type !== 'RETRIEVE_CONTEXT') {
+                        return context;
+                    }
+                    return {
+                        ...context,
+                        ...event.context,
+                    };
+                }),
+
+                assignRawContext: assign((context) => ({
+                    ...context,
+                    ...rawContext,
+                })),
+
                 assignRoomInformationToContext: assign((context, event) => {
                     if (event.type !== 'JOINED_ROOM') {
                         return context;

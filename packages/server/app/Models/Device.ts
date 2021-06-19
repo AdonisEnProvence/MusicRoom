@@ -2,12 +2,18 @@ import { BaseModel, beforeCreate, column } from '@ioc:Adonis/Lucid/Orm';
 import { randomUUID } from 'crypto';
 import { DateTime } from 'luxon';
 
-export default class User extends BaseModel {
+export default class Device extends BaseModel {
     @column({ isPrimary: true })
     public uuid: string;
 
+    @column({ columnName: 'user_id' })
+    public userID: string;
+
+    @column({ columnName: 'socket_id' })
+    public socketID: string;
+
     @column()
-    public nickname: string;
+    public userAgent?: string;
 
     @column.dateTime({ autoCreate: true })
     public createdAt: DateTime;
@@ -16,7 +22,7 @@ export default class User extends BaseModel {
     public updatedAt: DateTime;
 
     @beforeCreate()
-    public static assignUuid(user: User): void {
-        user.uuid = randomUUID();
+    public static assignUuid(device: Device): void {
+        device.uuid = randomUUID();
     }
 }

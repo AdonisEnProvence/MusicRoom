@@ -1,5 +1,7 @@
 import ChatController from 'App/Controllers/Ws/ChatController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
+import Device from 'App/Models/Device';
+import Room from 'App/Models/Room';
 import Ws from 'App/Services/Ws';
 
 Ws.boot();
@@ -17,49 +19,133 @@ Ws.boot();
 //     return true;
 // };
 
-Ws.io.on('connection', (socket) => {
-    ChatController.onConnect({ socket, payload: undefined });
+Ws.io.on('connection', async (socket) => {
+    try {
+        ChatController.onConnect({ socket, payload: undefined });
 
-    socket.on('NEW_MESSAGE', (payload) => {
-        ChatController.onWriteMessage({ socket, payload });
-    });
+        const userID = socket.handshake.query['userID'];
+        console.log({ userID });
 
-    /// ROOM ///
-    socket.on('CREATE_ROOM', async (payload, callback) => {
-        try {
-            const { workflowID, state } = await MtvRoomsWsController.onCreate({
-                socket,
-                payload,
+        const hasDeviceNotBeenFound =
+            (await Device.findBy('socket_id', socket.id)) === null;
+        if (hasDeviceNotBeenFound) {
+            console.log(`registering a device for user ${userID}`);
+            if (!userID || typeof userID !== 'string') {
+                throw new Error('Empty or invalid user token');
+            }
+            const userAgent = socket.request.headers['user-agent'];
+            await Device.create({
+                socketID: socket.id,
+                userID,
+                userAgent,
             });
-            callback(workflowID, state.name);
-        } catch (e) {
-            console.error(e);
+        } else {
+            console.log('socketID already registered');
         }
-    });
 
-    socket.on('JOIN_ROOM', async (payload) => {
-        try {
-            await MtvRoomsWsController.onJoin({ socket, payload });
-        } catch (e) {
-            console.error(e);
-        }
-    });
+        /// CHAT ///
+        socket.on('NEW_MESSAGE', (payload) => {
+            ChatController.onWriteMessage({ socket, payload });
+        });
+        /// //// ///
 
-    socket.on('ACTION_PLAY', async (payload) => {
-        try {
-            //we need to check auth from socket id into a userId into a room users[]
-            await MtvRoomsWsController.onPlay({ socket, payload });
-        } catch (e) {
-            console.error(e);
-        }
-    });
+        /// ROOM ///
+        socket.on('CREATE_ROOM', async (payload, callback) => {
+            try {
+                const { workflowID, state } =
+                    await MtvRoomsWsController.onCreate({
+                        socket,
+                        payload,
+                    });
+                callback(workflowID, state.name);
+            } catch (e) {
+                console.error(e);
+            }
+        });
 
-    socket.on('ACTION_PAUSE', async (payload) => {
-        try {
-            await MtvRoomsWsController.onPause({ socket, payload });
-        } catch (e) {
-            console.error(e);
-        }
-    });
+        socket.on('JOIN_ROOM', async (payload) => {
+            try {
+                await MtvRoomsWsController.onJoin({ socket, payload });
+            } catch (e) {
+                console.error(e);
+            }
+        });
+
+        socket.on('ACTION_PLAY', async (payload) => {
+            try {
+                //we need to check auth from socket id into a userId into a room users[]
+                await MtvRoomsWsController.onPlay({ socket, payload });
+            } catch (e) {
+                console.error(e);
+            }
+        });
+
+        socket.on('ACTION_PAUSE', async (payload) => {
+            try {
+                await MtvRoomsWsController.onPause({ socket, payload });
+            } catch (e) {
+                console.error(e);
+            }
+        });
+
+        socket.on('disconnecting', async () => {
+            try {
+                console.log('_'.repeat(10));
+                console.log('loosing connection on socket :', socket.id);
+                const device = await Device.findByOrFail(
+                    'socket_id',
+                    socket.id,
+                );
+                /**
+                 *  Manage owned MTVRoom max 1 per user
+                 */
+                const room = await Room.findBy('creator', device.userID);
+                const allUserDevices = await Device.query().where(
+                    'user_id',
+                    device.userID,
+                );
+                console.log(
+                    `User ${
+                        room ? 'owns a room' : 'do not own a room'
+                    } and has ${allUserDevices.length} connected`,
+                );
+
+                /**
+                     *  Kill the room if the creator doesn't have any other session alive on other device
+                        All sessions room's connections are synchronized, if device is in pg the room connection is alive
+                     */
+                const hasNoMoreDevice = allUserDevices.length <= 1;
+                if (room !== null && hasNoMoreDevice) {
+                    const adapter = Ws.adapter();
+                    const connectedSockets = await adapter.sockets(
+                        new Set([room.uuid]),
+                    );
+                    console.log({ connectedSockets });
+                    const payload = {
+                        roomID: room.uuid,
+                    };
+                    await MtvRoomsWsController.onTerminate({
+                        socket,
+                        payload,
+                    });
+                    Ws.io.in(room.uuid).emit('FORCED_DISCONNECTION');
+                    connectedSockets.forEach((socketID) =>
+                        adapter.remoteLeave(socketID, room.uuid),
+                    );
+                }
+
+                /**
+                 *  Remove device from pg
+                 */
+                await device.delete();
+                console.log('='.repeat(10));
+            } catch (e) {
+                console.error('Error on socket.on(disconection)', e);
+            }
+        });
+    } catch (e) {
+        console.error(e);
+    }
+
     /// //// ///
 });

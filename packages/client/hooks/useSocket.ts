@@ -3,8 +3,9 @@ import {
     AllServerToClientEvents,
 } from '@musicroom/types';
 import { useMemo } from 'react';
-import { io, Socket } from '../services/websockets';
+import { Platform } from 'react-native';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
+import { io, Socket } from '../services/websockets';
 
 export type SocketClient = Socket<
     AllServerToClientEvents,
@@ -12,7 +13,15 @@ export type SocketClient = Socket<
 >;
 
 export function useSocket(): SocketClient {
-    const socket: SocketClient = useMemo(() => io(SERVER_ENDPOINT), []);
+    const socket: SocketClient = useMemo(
+        () =>
+            io(SERVER_ENDPOINT, {
+                query: {
+                    userID: Platform.OS === 'web' ? 'web' : 'android',
+                },
+            }),
+        [],
+    );
 
     return socket;
 }

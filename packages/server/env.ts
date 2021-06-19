@@ -15,14 +15,14 @@
 import Env from '@ioc:Adonis/Core/Env';
 
 export default Env.rules({
-    /* Database */
+    /** Database */
     DB_CONNECTION: Env.schema.string(),
     PG_HOST: Env.schema.string({ format: 'host' }),
     PG_PORT: Env.schema.number(),
     PG_USER: Env.schema.string(),
     PG_PASSWORD: Env.schema.string.optional(),
     PG_DB_NAME: Env.schema.string(),
-    /* ******** */
+    /** ******** */
 
     GOOGLE_API_KEY: Env.schema.string(),
     HOST: Env.schema.string({ format: 'host' }),

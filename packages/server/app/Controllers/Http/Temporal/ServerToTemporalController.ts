@@ -27,6 +27,17 @@ export default class ServerToTemporalController {
         );
     }
 
+    public static async terminateWorkflow(
+        workflowID: string,
+        runID: string,
+    ): Promise<void> {
+        const url = urlcat(TEMPORAL_ENDPOINT, '/terminate/:workflowID/:runID', {
+            workflowID,
+            runID,
+        });
+        await got.get(url);
+    }
+
     public static async joinWorkflow(
         workflowID: string,
         runID: string,

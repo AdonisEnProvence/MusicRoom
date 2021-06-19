@@ -26,7 +26,9 @@ Ws.io.on('connection', async (socket) => {
         const userID = socket.handshake.query['userID'];
         console.log({ userID });
 
-        if (!(await Device.findBy('socket_id', socket.id))) {
+        const hasDeviceNotBeenFound =
+            (await Device.findBy('socket_id', socket.id)) === null;
+        if (hasDeviceNotBeenFound) {
             console.log(`registering a device for user ${userID}`);
             if (!userID || typeof userID !== 'string') {
                 throw new Error('Empty or invalid user token');
@@ -87,13 +89,16 @@ Ws.io.on('connection', async (socket) => {
         });
 
         socket.on('disconnecting', async () => {
-            console.log('_'.repeat(10));
-            console.log('loosing connection on socket :', socket.id);
-            const device = await Device.findBy('socket_id', socket.id);
-            if (device) {
-                /*
-                    Manage owned MTVRoom max 1 per user
-                */
+            try {
+                console.log('_'.repeat(10));
+                console.log('loosing connection on socket :', socket.id);
+                const device = await Device.findByOrFail(
+                    'socket_id',
+                    socket.id,
+                );
+                /**
+                 *  Manage owned MTVRoom max 1 per user
+                 */
                 const room = await Room.findBy('creator', device.userID);
                 const allUserDevices = await Device.query().where(
                     'user_id',
@@ -105,11 +110,12 @@ Ws.io.on('connection', async (socket) => {
                     } and has ${allUserDevices.length} connected`,
                 );
 
-                /*
-                    Kill the room if the creator doesn't have any other session alive on other device
-                    All sessions room's connections are synchronized, if device is in pg the room connection is alive
-                */
-                if (room && allUserDevices.length <= 1) {
+                /**
+                     *  Kill the room if the creator doesn't have any other session alive on other device
+                        All sessions room's connections are synchronized, if device is in pg the room connection is alive
+                     */
+                const hasNoMoreDevice = allUserDevices.length <= 1;
+                if (room !== null && hasNoMoreDevice) {
                     const adapter = Ws.adapter();
                     const connectedSockets = await adapter.sockets(
                         new Set([room.uuid]),
@@ -127,12 +133,15 @@ Ws.io.on('connection', async (socket) => {
                         adapter.remoteLeave(socketID, room.uuid),
                     );
                 }
-                /*
-                    Remove device from pg
-                */
+
+                /**
+                 *  Remove device from pg
+                 */
                 await device.delete();
+                console.log('='.repeat(10));
+            } catch (e) {
+                console.error('Error on socket.on(disconection)', e);
             }
-            console.log('='.repeat(10));
         });
     } catch (e) {
         console.error(e);

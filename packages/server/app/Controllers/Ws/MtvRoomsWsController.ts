@@ -73,6 +73,13 @@ export default class MtvRoomsWsController {
         await ServerToTemporalController.play(roomID, runID);
     }
 
+    /**
+     * In this function we do three operations that can fail for an infinite number of reasons.
+     * The problem is that they are all necessary to keep consistence of our data.
+     * Using a Temporal Workflow would ease dealing with failure.
+     *
+     * See https://github.com/AdonisEnProvence/MusicRoom/issues/49
+     */
     public static async onTerminate({
         payload,
     }: WsControllerMethodArgs<{ roomID: string }>): Promise<void> {

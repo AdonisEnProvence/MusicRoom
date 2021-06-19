@@ -96,6 +96,7 @@ export const createAppMusicPlayerMachine = ({
                             context,
                         });
                     });
+
                     socket.on('JOIN_ROOM_CALLBACK', ({ roomID, name }) => {
                         sendBack({
                             type: 'JOINED_ROOM',
@@ -380,10 +381,12 @@ export const createAppMusicPlayerMachine = ({
                         ...event.context,
                     };
                 }),
+
                 assignRawContext: assign((context) => ({
                     ...context,
                     ...rawContext,
                 })),
+
                 assignRoomInformationToContext: assign((context, event) => {
                     if (event.type !== 'JOINED_ROOM') {
                         return context;

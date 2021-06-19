@@ -27,6 +27,10 @@ jobs:
                 image: postgres:latest
                 ports:
                     - 5432:5432
+                env:
+                    POSTGRES_PASSWORD: yourpassword
+                    POSTGRES_USER: lucid
+                    POSTGRES_DB: lucid
         steps:
             - name: Checkout 🛎
               uses: actions/checkout@v2
@@ -63,7 +67,7 @@ jobs:
                   HOST: '0.0.0.0'
                   APP_KEY: '-qyExFFunSk4vSAvUiwheisaGicpYVpC'
                   DB_CONNECTION: pg
-                  PG_HOST: localhost
+                  PG_HOST: '127.0.0.1'
                   PG_PORT: 5432
                   PG_USER: lucid
                   PG_PASSWORD: yourpassword

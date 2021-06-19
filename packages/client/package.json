@@ -75,7 +75,6 @@
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "expo-yarn-workspaces": "^1.5.1",
     "faker": "^5.5.3",
-    "is-ci-cli": "^2.2.0",
     "jest-expo": "~41.0.0",
     "metro-config": "^0.59.0",
     "msw": "^0.29.0",

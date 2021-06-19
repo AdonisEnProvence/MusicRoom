@@ -7,10 +7,11 @@ import { NavigateFromRefParams, NavigateFromRefRoutes } from '../types';
 export const isReadyRef: React.MutableRefObject<boolean | null> =
     React.createRef();
 
-/*
-        ☢️ DO NOT navigationRef.current?.navigation directly ☢️
-        user navigateFromRef() instead as it's react navigation init safe
-    */
+/**
+ *  ☢️ DO NOT navigationRef.current?.navigation directly ☢️
+ *  user navigateFromRef() instead as it's react navigation init safe
+ */
+
 export const navigationRef = React.createRef<NavigationContainerRef>();
 
 // eslint-disable-next-line

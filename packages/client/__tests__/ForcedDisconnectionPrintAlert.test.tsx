@@ -37,9 +37,9 @@ test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it 
         </NavigationContainer>,
     );
 
-    /*
-      Retrieve context to have the appMusicPlayerMachine directly
-      in state connectedToRoom
+    /**
+     * Retrieve context to have the appMusicPlayerMachine directly
+     * in state connectedToRoom
      */
     serverSocket.emit('RETRIEVE_CONTEXT', {
         context: {

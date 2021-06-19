@@ -29,7 +29,7 @@ export default class MtvRoomsWsController {
             payload.name,
             payload.userID,
         );
-        await Ws.adapter().remoteJoin(socket.id, roomID);
+        await socket.join(roomID);
         console.log('in array', await Ws.adapter().sockets(new Set([roomID])));
         await Room.create({
             uuid: roomID,
@@ -49,7 +49,7 @@ export default class MtvRoomsWsController {
         console.log(`JOIN ${roomID} with ${socket.id}`);
         const { runID } = await Room.findOrFail(roomID);
         await ServerToTemporalController.joinWorkflow(roomID, runID, userID);
-        await Ws.adapter().remoteJoin(socket.id, roomID);
+        await socket.join(roomID);
         console.log('in array', await Ws.adapter().sockets(new Set([roomID])));
     }
 

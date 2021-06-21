@@ -58,6 +58,7 @@ export default class MtvRoomsWsController {
         const room = await MtvRoom.create({
             uuid: roomID,
             runID: temporalResponse.runID,
+            creator: payload.userID,
         });
         roomCreator.mtvRoomID = roomID;
         await room.save();

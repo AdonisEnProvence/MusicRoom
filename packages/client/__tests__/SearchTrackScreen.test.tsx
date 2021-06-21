@@ -1,5 +1,5 @@
 import React from 'react';
-import { datatype } from 'faker';
+import { datatype, random, name } from 'faker';
 import { render, fireEvent, waitFor, within } from '../tests/tests-utils';
 import { RootNavigator } from '../navigation';
 import { NavigationContainer } from '@react-navigation/native';
@@ -25,6 +25,14 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
         serverSocket.emit('CREATE_ROOM_CALLBACK', {
             roomID: datatype.uuid(),
             roomName: fakeTrack.title,
+            tracks: [
+                {
+                    id: datatype.uuid(),
+                    artistName: name.findName(),
+                    duration: 'PT4M52S',
+                    title: random.words(3),
+                },
+            ],
         });
     });
 

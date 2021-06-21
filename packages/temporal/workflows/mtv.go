@@ -122,7 +122,6 @@ func MtvRoomWorkflow(ctx workflow.Context, state shared.ControlState) error {
 					return
 				}
 			case shared.SignalRouteTerminate:
-				fmt.Println("Terminating workflow")
 				terminated = true
 			}
 		})

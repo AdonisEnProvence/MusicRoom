@@ -6,9 +6,9 @@ import (
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 
-	"adonis-en-provence/music_room/activities"
-	"adonis-en-provence/music_room/shared"
-	"adonis-en-provence/music_room/workflows"
+	"github.com/AdonisEnProvence/MusicRoom/activities"
+	"github.com/AdonisEnProvence/MusicRoom/shared"
+	"github.com/AdonisEnProvence/MusicRoom/workflows"
 )
 
 func main() {

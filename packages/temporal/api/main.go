@@ -1,8 +1,6 @@
 package main
 
 import (
-	"adonis-en-provence/music_room/shared"
-	"adonis-en-provence/music_room/workflows"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,6 +9,9 @@ import (
 	"net/url"
 	"os"
 	"time"
+
+	"github.com/AdonisEnProvence/MusicRoom/shared"
+	"github.com/AdonisEnProvence/MusicRoom/workflows"
 
 	"github.com/bojanz/httpx"
 	"github.com/gorilla/handlers"

@@ -4,8 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"adonis-en-provence/music_room/activities"
-	"adonis-en-provence/music_room/shared"
+	"github.com/AdonisEnProvence/MusicRoom/activities"
+	"github.com/AdonisEnProvence/MusicRoom/shared"
 
 	"github.com/mitchellh/mapstructure"
 	"go.temporal.io/sdk/workflow"

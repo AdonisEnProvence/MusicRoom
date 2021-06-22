@@ -1,12 +1,13 @@
 package activities
 
 import (
-	"adonis-en-provence/music_room/shared"
 	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
 	"net/url"
+
+	"github.com/AdonisEnProvence/MusicRoom/shared"
 )
 
 func PingActivity(_ context.Context) error {

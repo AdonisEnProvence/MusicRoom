@@ -1,12 +1,13 @@
 package activities
 
 import (
-	"adonis-en-provence/music_room/shared"
-	"adonis-en-provence/music_room/youtube"
 	"context"
 	"errors"
 	"os"
 	"time"
+
+	"github.com/AdonisEnProvence/MusicRoom/shared"
+	"github.com/AdonisEnProvence/MusicRoom/youtube"
 
 	"github.com/senseyeio/duration"
 )

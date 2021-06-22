@@ -1,4 +1,4 @@
-module adonis-en-provence/music_room
+module github.com/AdonisEnProvence/MusicRoom
 
 go 1.16
 

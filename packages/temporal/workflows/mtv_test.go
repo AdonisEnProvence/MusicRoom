@@ -1,12 +1,13 @@
 package workflows_test
 
 import (
-	"adonis-en-provence/music_room/activities"
-	"adonis-en-provence/music_room/shared"
-	"adonis-en-provence/music_room/workflows"
 	"math/rand"
 	"testing"
 	"time"
+
+	"github.com/AdonisEnProvence/MusicRoom/activities"
+	"github.com/AdonisEnProvence/MusicRoom/shared"
+	"github.com/AdonisEnProvence/MusicRoom/workflows"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/mock"

@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"errors"
 	"time"
 
 	"adonis-en-provence/music_room/activities"
@@ -37,6 +38,16 @@ func MtvRoomWorkflow(ctx workflow.Context, state shared.ControlState) error {
 	if err := acknowledgeRoomCreation(ctx, state); err != nil {
 		return err
 	}
+
+	if len(state.Tracks) > 0 {
+		currentTrack := state.Tracks[0]
+		state.CurrentTrack = currentTrack
+		state.Tracks = state.Tracks[1:]
+		state.TracksIDsList = state.TracksIDsList[1:]
+	}
+
+	endOfTrackTimerCtx, cancelEndOfTrackTimer := workflow.WithCancel(ctx)
+	endOfTrackTimer := workflow.NewTimer(endOfTrackTimerCtx, state.CurrentTrack.Duration)
 
 	for {
 		selector := workflow.NewSelector(ctx)
@@ -86,6 +97,8 @@ func MtvRoomWorkflow(ctx workflow.Context, state shared.ControlState) error {
 
 				state.Pause()
 
+				cancelEndOfTrackTimer()
+
 				options := workflow.ActivityOptions{
 					ScheduleToStartTimeout: time.Minute,
 					StartToCloseTimeout:    time.Minute,
@@ -125,6 +138,28 @@ func MtvRoomWorkflow(ctx workflow.Context, state shared.ControlState) error {
 				terminated = true
 			}
 		})
+
+		if state.Playing {
+			selector.AddFuture(endOfTrackTimer, func(f workflow.Future) {
+				if err := f.Get(ctx, nil); errors.Is(err, workflow.ErrCanceled) {
+					return
+				}
+
+				// There are no more tracks to play, wait for tracks to be added.
+				if noMoreTrack := len(state.Tracks) == 0; noMoreTrack {
+					state.Playing = false
+					cancelEndOfTrackTimer()
+					return
+				}
+
+				state.CurrentTrack = state.Tracks[0]
+				state.Tracks = state.Tracks[1:]
+				state.TracksIDsList = state.TracksIDsList[1:]
+
+				endOfTrackTimerCtx, cancelEndOfTrackTimer = workflow.WithCancel(ctx)
+				endOfTrackTimer = workflow.NewTimer(endOfTrackTimerCtx, state.CurrentTrack.Duration)
+			})
+		}
 
 		selector.Select(ctx)
 

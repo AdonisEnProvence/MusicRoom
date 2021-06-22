@@ -2,8 +2,7 @@ package shared
 
 import (
 	"fmt"
-
-	"github.com/senseyeio/duration"
+	"time"
 )
 
 const ControlTaskQueue = "CONTROL_TASK_QUEUE"
@@ -14,10 +13,10 @@ var (
 )
 
 type TrackMetadata struct {
-	ID         string            `json:"id"`
-	Title      string            `json:"title"`
-	ArtistName string            `json:"artistName"`
-	Duration   duration.Duration `json:"duration"`
+	ID         string        `json:"id"`
+	Title      string        `json:"title"`
+	ArtistName string        `json:"artistName"`
+	Duration   time.Duration `json:"duration"`
 }
 
 type ControlState struct {
@@ -27,6 +26,7 @@ type ControlState struct {
 	Name              string          `json:"name"`
 	Users             []string        `json:"users"`
 	TracksIDsList     []string        `json:"tracksIDsList"`
+	CurrentTrack      TrackMetadata   `json:"currentTrack"`
 	Tracks            []TrackMetadata `json:"tracks"`
 }
 

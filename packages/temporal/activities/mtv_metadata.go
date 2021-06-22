@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"time"
 
 	"github.com/senseyeio/duration"
 )
@@ -32,11 +33,18 @@ func FetchTracksInformationActivity(ctx context.Context, tracksIDs []string) ([]
 			ID:         entry.ID,
 			Title:      entry.Snippet.Title,
 			ArtistName: entry.Snippet.ChannelTitle,
-			Duration:   parsedDuration,
+			Duration:   isoDurationToDuration(parsedDuration),
 		}
 
 		metadata = append(metadata, trackMetadata)
 	}
 
 	return metadata, nil
+}
+
+func isoDurationToDuration(d duration.Duration) time.Duration {
+	now := time.Now()
+	appliedDuration := d.Shift(now)
+
+	return appliedDuration.Sub(now)
 }

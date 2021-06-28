@@ -1,6 +1,16 @@
-import { BaseModel, beforeCreate, column } from '@ioc:Adonis/Lucid/Orm';
+import {
+    BaseModel,
+    beforeCreate,
+    column,
+    HasMany,
+    hasMany,
+    HasOne,
+    hasOne,
+} from '@ioc:Adonis/Lucid/Orm';
 import { randomUUID } from 'crypto';
 import { DateTime } from 'luxon';
+import Device from './Device';
+import MtvRoom from './MtvRoom';
 
 export default class User extends BaseModel {
     @column({ isPrimary: true })
@@ -8,6 +18,12 @@ export default class User extends BaseModel {
 
     @column()
     public nickname: string;
+
+    @hasOne(() => MtvRoom)
+    public mtvRoom: HasOne<typeof MtvRoom>;
+
+    @hasMany(() => Device)
+    public devices: HasMany<typeof Device>;
 
     @column.dateTime({ autoCreate: true })
     public createdAt: DateTime;

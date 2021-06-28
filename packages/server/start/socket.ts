@@ -111,9 +111,9 @@ Ws.io.on('connection', async (socket) => {
                 );
 
                 /**
-                     *  Kill the room if the creator doesn't have any other session alive on other device
-                        All sessions room's connections are synchronized, if device is in pg the room connection is alive
-                     */
+                 *  Kill the room if the creator doesn't have any other session alive on other device
+                 *  All sessions room's connections are synchronized, if device is in pg the room connection is alive
+                 */
                 const hasNoMoreDevice = allUserDevices.length <= 1;
                 if (room !== null && hasNoMoreDevice) {
                     const adapter = Ws.adapter();

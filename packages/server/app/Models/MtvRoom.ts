@@ -12,7 +12,9 @@ export default class MtvRoom extends BaseModel {
     @column()
     public creator: string;
 
-    @belongsTo(() => User)
+    @belongsTo(() => User, {
+        foreignKey: 'uuid',
+    })
     public creatorRef: BelongsTo<typeof User>;
 
     @column.dateTime({ autoCreate: true })

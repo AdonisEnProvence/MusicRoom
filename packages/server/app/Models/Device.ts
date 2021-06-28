@@ -19,7 +19,9 @@ export default class Device extends BaseModel {
     @column({ columnName: 'socket_id' })
     public socketID: string;
 
-    @belongsTo(() => User)
+    @belongsTo(() => User, {
+        foreignKey: 'uuid',
+    })
     public user: BelongsTo<typeof User>;
 
     @column()

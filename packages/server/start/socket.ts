@@ -2,6 +2,7 @@ import ChatController from 'App/Controllers/Ws/ChatController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
+import User from 'App/Models/User';
 import Ws from 'App/Services/Ws';
 
 Ws.boot();
@@ -34,11 +35,13 @@ Ws.io.on('connection', async (socket) => {
                 throw new Error('Empty or invalid user token');
             }
             const userAgent = socket.request.headers['user-agent'];
-            await Device.create({
+            const deviceOwner = await User.findOrFail(userID);
+            const newDevice = await Device.create({
                 socketID: socket.id,
                 userID,
                 userAgent,
             });
+            await newDevice.related('user').associate(deviceOwner);
         } else {
             console.log('socketID already registered');
         }

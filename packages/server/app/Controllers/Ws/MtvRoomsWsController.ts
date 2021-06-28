@@ -7,6 +7,7 @@ import {
     RoomClientToServerPlay,
 } from '@musicroom/types';
 import MtvRoom from 'App/Models/MtvRoom';
+import User from 'App/Models/User';
 import Ws from 'App/Services/Ws';
 import { randomUUID } from 'crypto';
 import { Socket } from 'socket.io';
@@ -31,11 +32,13 @@ export default class MtvRoomsWsController {
         );
         await socket.join(roomID);
         console.log('in array', await Ws.adapter().sockets(new Set([roomID])));
-        await MtvRoom.create({
+        const roomOwner = await User.findOrFail(payload.userID);
+        const room = await MtvRoom.create({
             uuid: roomID,
             runID: res.runID,
             creator: payload.userID,
         });
+        await room.related('creatorRef').associate(roomOwner);
         return res;
     }
 

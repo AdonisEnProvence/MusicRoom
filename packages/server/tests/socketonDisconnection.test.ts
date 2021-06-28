@@ -5,7 +5,7 @@ import {
 } from '@musicroom/types';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import Device from 'App/Models/Device';
-import Room from 'App/Models/Room';
+import MtvRoom from 'App/Models/MtvRoom';
 import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
@@ -121,7 +121,7 @@ test.group('Rooms life cycle', (group) => {
             return;
         });
         await sleep();
-        const roomBefore = await Room.findBy('creator', userID);
+        const roomBefore = await MtvRoom.findBy('creator', userID);
         assert.isNotNull(roomBefore);
 
         /**
@@ -129,7 +129,7 @@ test.group('Rooms life cycle', (group) => {
          * Expecting room to be removed from database
          */
         await disconnectSocket(socket);
-        const roomAfter = await Room.findBy('creator', userID);
+        const roomAfter = await MtvRoom.findBy('creator', userID);
         assert.isNull(roomAfter);
     });
 
@@ -191,7 +191,7 @@ test.group('Rooms life cycle', (group) => {
          * Check if room is in db
          * UserB joins the room
          */
-        const room = await Room.findBy('creator', userA.userID);
+        const room = await MtvRoom.findBy('creator', userA.userID);
         assert.isNotNull(room);
         if (!room) throw new Error('room is undefined');
         userB.socket.emit('JOIN_ROOM', {
@@ -210,7 +210,7 @@ test.group('Rooms life cycle', (group) => {
          * If UserB received FORCED_DISCONNECTION websocket event
          * If UserB device is in db
          */
-        assert.isNull(await Room.findBy('creator', userA.userID));
+        assert.isNull(await MtvRoom.findBy('creator', userA.userID));
         assert.equal(userB.receivedEvents[0], 'FORCED_DISCONNECTION');
         assert.isNotNull(await Device.findBy('user_id', userB.userID));
     });
@@ -220,7 +220,7 @@ test.group('Rooms life cycle', (group) => {
             socketA: await getSocket(userID),
             socketB: await getSocket(userID),
         };
-        await Room.create({
+        await MtvRoom.create({
             uuid: datatype.uuid(),
             runID: datatype.uuid(),
             creator: userID,
@@ -245,12 +245,12 @@ test.group('Rooms life cycle', (group) => {
          * Check if room is still in database
          * Then emit disconnect from last device
          */
-        assert.isNotNull(await Room.findBy('creator', userID));
+        assert.isNotNull(await MtvRoom.findBy('creator', userID));
         await disconnectSocket(user.socketB);
 
         /**
          * Check if room is not in database
          */
-        assert.isNull(await Room.findBy('creator', userID));
+        assert.isNull(await MtvRoom.findBy('creator', userID));
     });
 });

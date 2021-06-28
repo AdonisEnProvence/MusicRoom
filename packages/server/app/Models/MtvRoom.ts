@@ -1,7 +1,7 @@
 import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm';
 import { DateTime } from 'luxon';
 
-export default class Room extends BaseModel {
+export default class MtvRoom extends BaseModel {
     @column({ isPrimary: true })
     public uuid: string;
 

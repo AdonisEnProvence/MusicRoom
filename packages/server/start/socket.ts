@@ -1,7 +1,7 @@
 import ChatController from 'App/Controllers/Ws/ChatController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
-import Room from 'App/Models/Room';
+import MtvRoom from 'App/Models/MtvRoom';
 import Ws from 'App/Services/Ws';
 
 Ws.boot();
@@ -99,7 +99,7 @@ Ws.io.on('connection', async (socket) => {
                 /**
                  *  Manage owned MTVRoom max 1 per user
                  */
-                const room = await Room.findBy('creator', device.userID);
+                const room = await MtvRoom.findBy('creator', device.userID);
                 const allUserDevices = await Device.query().where(
                     'user_id',
                     device.userID,

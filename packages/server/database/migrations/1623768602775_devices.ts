@@ -7,7 +7,7 @@ export default class Devices extends BaseSchema {
         this.schema.createTable(this.tableName, (table) => {
             table.uuid('uuid').notNullable().primary();
             table.string('socket_id').notNullable();
-            table.string('user_id').notNullable();
+            table.uuid('user_id').references('users.uuid');
             table.string('user_agent');
             table.timestamps(true, true);
         });

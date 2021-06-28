@@ -5,6 +5,20 @@ import (
 	"time"
 )
 
+type MtvRoomTimerState string
+
+const (
+	MtvRoomTimerStateIdle     MtvRoomTimerState = "idle"
+	MtvRoomTimerStatePending  MtvRoomTimerState = "pending"
+	MtvRoomTimerStateFinished MtvRoomTimerState = "finished"
+)
+
+type MtvRoomTimer struct {
+	State         MtvRoomTimerState
+	Elapsed       time.Duration
+	TotalDuration time.Duration
+}
+
 const ControlTaskQueue = "CONTROL_TASK_QUEUE"
 
 var (
@@ -19,7 +33,7 @@ type TrackMetadata struct {
 	Duration   time.Duration `json:"duration"`
 }
 
-type ControlState struct {
+type MtvRoomState struct {
 	RoomID            string          `json:"roomID"`
 	RoomCreatorUserID string          `json:"roomCreatorUserID"`
 	Playing           bool            `json:"playing"`
@@ -28,9 +42,10 @@ type ControlState struct {
 	TracksIDsList     []string        `json:"tracksIDsList"`
 	CurrentTrack      TrackMetadata   `json:"currentTrack"`
 	Tracks            []TrackMetadata `json:"tracks"`
+	Timer             MtvRoomTimer    `json:"-"`
 }
 
-func (state *ControlState) Pause() {
+func (state *MtvRoomState) Pause() {
 	if state.Playing {
 		state.Playing = false
 		fmt.Println("PAUSED")
@@ -39,7 +54,7 @@ func (state *ControlState) Pause() {
 	}
 }
 
-func (state *ControlState) Play() {
+func (state *MtvRoomState) Play() {
 	if !state.Playing {
 		state.Playing = true
 		fmt.Println("PLAYED")
@@ -48,7 +63,7 @@ func (state *ControlState) Play() {
 	}
 }
 
-func (state *ControlState) Join(userID string) {
+func (state *MtvRoomState) Join(userID string) {
 	state.Users = append(state.Users, userID)
 }
 

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 )
@@ -30,7 +31,7 @@ func PlayActivity(_ context.Context, roomID string) error {
 	return err
 }
 
-func CreationAcknowledgementActivity(_ context.Context, state shared.ControlState) error {
+func CreationAcknowledgementActivity(_ context.Context, state shared.MtvRoomState) error {
 	marshaledBody, err := json.Marshal(state)
 	if err != nil {
 		return err
@@ -43,7 +44,7 @@ func CreationAcknowledgementActivity(_ context.Context, state shared.ControlStat
 	return err
 }
 
-func JoinActivity(ctx context.Context, state shared.ControlState) error {
+func JoinActivity(ctx context.Context, state shared.MtvRoomState) error {
 	marshaledBody, err := json.Marshal(state)
 	if err != nil {
 		return err
@@ -53,4 +54,30 @@ func JoinActivity(ctx context.Context, state shared.ControlState) error {
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
+}
+
+func TrackTimerActivity(ctx context.Context, timerState shared.MtvRoomTimer) (shared.MtvRoomTimer, error) {
+	timerStartTime := time.Now()
+	durationBeforeTrackEnd := timerState.TotalDuration - timerState.Elapsed
+	timer := time.NewTimer(durationBeforeTrackEnd)
+
+	select {
+	case <-timer.C:
+		// timer ended
+
+		timerState.State = shared.MtvRoomTimerStateFinished
+
+		return timerState, nil
+
+	case <-ctx.Done():
+		// context was canceled
+
+		cancelationTime := time.Now()
+		elapsedTimeSinceTimerStart := cancelationTime.Sub(timerStartTime)
+
+		timerState.State = shared.MtvRoomTimerStatePending
+		timerState.Elapsed += elapsedTimeSinceTimerStart
+
+		return timerState, nil
+	}
 }

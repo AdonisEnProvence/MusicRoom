@@ -136,7 +136,7 @@ type CreateRoomRequestBody struct {
 }
 
 type CreateRoomResponse struct {
-	State      shared.ControlState `json:"state"`
+	State      shared.MtvRoomState `json:"state"`
 	WorkflowID string              `json:"workflowID"`
 	RunID      string              `json:"runID"`
 }
@@ -170,7 +170,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		"H3s1mt7aFlc",
 	}
 	initialTracksIDsList := append(body.InitialTracksIDs, seedTracksIDs...)
-	state := shared.ControlState{
+	state := shared.MtvRoomState{
 		RoomID:            workflowID,
 		RoomCreatorUserID: body.UserID,
 		Playing:           false,

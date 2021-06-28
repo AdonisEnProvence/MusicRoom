@@ -46,7 +46,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		},
 	}
 	tracksIDs := []string{tracks[0].ID}
-	state := shared.ControlState{
+	state := shared.MtvRoomState{
 		RoomID:            fakeWorkflowID,
 		RoomCreatorUserID: fakeRoomCreatorUserID,
 		Playing:           false,
@@ -54,6 +54,8 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		Name:              faker.Word(),
 		TracksIDsList:     tracksIDs,
 	}
+	firstTrackDuration := tracks[0].Duration
+	firstTrackDurationFirstThird := tracks[0].Duration / 3
 
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
@@ -76,8 +78,9 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		mock.Anything,
 	).Return(nil)
 
+	initialStateQueryDelay := 1 * time.Second
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.ControlState
+		var mtvState shared.MtvRoomState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)
@@ -86,15 +89,16 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		s.NoError(err)
 
 		s.False(mtvState.Playing)
-	}, 1*time.Second)
+	}, initialStateQueryDelay)
 
+	firstPlaySignalDelay := initialStateQueryDelay + 1*time.Second
 	s.env.RegisterDelayedCallback(func() {
 		playSignal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
 
 		s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
-	}, 2*time.Second)
+	}, firstPlaySignalDelay)
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.ControlState
+		var mtvState shared.MtvRoomState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)
@@ -103,15 +107,16 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		s.NoError(err)
 
 		s.True(mtvState.Playing)
-	}, 3*time.Second)
+	}, firstPlaySignalDelay+1*time.Millisecond)
 
+	firstPauseSignalDelay := firstPlaySignalDelay + +1*time.Millisecond + firstTrackDurationFirstThird
 	s.env.RegisterDelayedCallback(func() {
 		pauseSignal := shared.NewPauseSignal(shared.NewPauseSignalArgs{})
 
 		s.env.SignalWorkflow(shared.SignalChannelName, pauseSignal)
-	}, 4*time.Second)
+	}, firstPauseSignalDelay)
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.ControlState
+		var mtvState shared.MtvRoomState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)
@@ -120,7 +125,53 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		s.NoError(err)
 
 		s.False(mtvState.Playing)
-	}, 5*time.Second)
+	}, firstPauseSignalDelay+1*time.Millisecond)
+
+	secondStateQueryAfterTotalTrackDuration := firstPauseSignalDelay + firstTrackDuration
+	s.env.RegisterDelayedCallback(func() {
+		var mtvState shared.MtvRoomState
+
+		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
+		s.NoError(err)
+
+		err = res.Get(&mtvState)
+		s.NoError(err)
+
+		s.False(mtvState.Playing)
+		s.Equal(tracks[0], mtvState.CurrentTrack)
+	}, secondStateQueryAfterTotalTrackDuration)
+
+	secondPlaySignalDelay := secondStateQueryAfterTotalTrackDuration + 1*time.Millisecond
+	s.env.RegisterDelayedCallback(func() {
+		playSignal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
+
+		s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
+	}, secondPlaySignalDelay)
+	s.env.RegisterDelayedCallback(func() {
+		var mtvState shared.MtvRoomState
+
+		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
+		s.NoError(err)
+
+		err = res.Get(&mtvState)
+		s.NoError(err)
+
+		s.True(mtvState.Playing)
+	}, secondPlaySignalDelay+1*time.Millisecond)
+
+	stateQueryAfterFirstTrackMustHaveFinished := secondPlaySignalDelay + firstTrackDuration
+	s.env.RegisterDelayedCallback(func() {
+		var mtvState shared.MtvRoomState
+
+		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
+		s.NoError(err)
+
+		err = res.Get(&mtvState)
+		s.NoError(err)
+
+		s.True(mtvState.Playing)
+		s.Equal(tracks[1], mtvState.CurrentTrack)
+	}, stateQueryAfterFirstTrackMustHaveFinished)
 
 	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, state)
 
@@ -145,7 +196,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		},
 	}
 	tracksIDs := []string{tracks[0].ID}
-	state := shared.ControlState{
+	state := shared.MtvRoomState{
 		RoomID:            fakeWorkflowID,
 		RoomCreatorUserID: fakeRoomCreatorUserID,
 		Playing:           false,
@@ -171,7 +222,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 	).Return(nil)
 
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.ControlState
+		var mtvState shared.MtvRoomState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)
@@ -191,7 +242,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 	}, 2*time.Second)
 
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.ControlState
+		var mtvState shared.MtvRoomState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)
@@ -229,7 +280,7 @@ func (s *UnitTestSuite) Test_AutomaticTracksListPlaying() {
 			Duration:   generateRandomDuration(),
 		},
 	}
-	state := shared.ControlState{
+	state := shared.MtvRoomState{
 		RoomID:            fakeWorkflowID,
 		RoomCreatorUserID: fakeUserID,
 		Playing:           false,
@@ -257,7 +308,7 @@ func (s *UnitTestSuite) Test_AutomaticTracksListPlaying() {
 	}, 0*time.Second)
 	// Query the state after setup activities have been called.
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.ControlState
+		var mtvState shared.MtvRoomState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)
@@ -272,7 +323,7 @@ func (s *UnitTestSuite) Test_AutomaticTracksListPlaying() {
 	}, 1*time.Second)
 	// The first track has finished.
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.ControlState
+		var mtvState shared.MtvRoomState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)
@@ -287,7 +338,7 @@ func (s *UnitTestSuite) Test_AutomaticTracksListPlaying() {
 	}, tracksList[0].Duration+1*time.Millisecond)
 	// The last track has finished.
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.ControlState
+		var mtvState shared.MtvRoomState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)

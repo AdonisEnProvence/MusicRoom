@@ -33,6 +33,9 @@ export default class User extends BaseModel {
 
     @beforeCreate()
     public static assignUuid(user: User): void {
-        user.uuid = randomUUID();
+        //For tests purposes only where we hard set uuid
+        if (!user.uuid) {
+            user.uuid = randomUUID();
+        }
     }
 }

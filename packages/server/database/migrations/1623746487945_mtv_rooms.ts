@@ -7,7 +7,7 @@ export default class MtvRooms extends BaseSchema {
         this.schema.createTable(this.tableName, (table) => {
             table.uuid('uuid').notNullable().primary();
             table.string('run_id').notNullable();
-            table.uuid('creator').references('users.uuid');
+            table.uuid('creator').notNullable().references('users.uuid');
             table.timestamps(true, true);
         });
     }

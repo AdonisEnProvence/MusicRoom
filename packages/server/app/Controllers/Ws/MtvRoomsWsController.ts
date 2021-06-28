@@ -6,7 +6,8 @@ import {
     RoomClientToServerPause,
     RoomClientToServerPlay,
 } from '@musicroom/types';
-import Room from 'App/Models/Room';
+import MtvRoom from 'App/Models/MtvRoom';
+import User from 'App/Models/User';
 import Ws from 'App/Services/Ws';
 import { randomUUID } from 'crypto';
 import { Socket } from 'socket.io';
@@ -31,11 +32,13 @@ export default class MtvRoomsWsController {
         );
         await socket.join(roomID);
         console.log('in array', await Ws.adapter().sockets(new Set([roomID])));
-        await Room.create({
+        const roomOwner = await User.findOrFail(payload.userID);
+        const room = await MtvRoom.create({
             uuid: roomID,
             runID: res.runID,
             creator: payload.userID,
         });
+        await room.related('creatorRef').associate(roomOwner);
         return res;
     }
 
@@ -47,7 +50,7 @@ export default class MtvRoomsWsController {
         if (!Ws.io.sockets.adapter.rooms.has(roomID))
             throw new Error('Room does not exist ' + roomID);
         console.log(`JOIN ${roomID} with ${socket.id}`);
-        const { runID } = await Room.findOrFail(roomID);
+        const { runID } = await MtvRoom.findOrFail(roomID);
         await ServerToTemporalController.joinWorkflow(roomID, runID, userID);
         await socket.join(roomID);
         console.log('in array', await Ws.adapter().sockets(new Set([roomID])));
@@ -59,7 +62,7 @@ export default class MtvRoomsWsController {
     }: WsControllerMethodArgs<RoomClientToServerPause>): Promise<void> {
         const { roomID } = payload;
         console.log(`PAUSE ${roomID} with ${socket.id}`);
-        const { runID } = await Room.findOrFail(roomID);
+        const { runID } = await MtvRoom.findOrFail(roomID);
         await ServerToTemporalController.pause(roomID, runID);
     }
 
@@ -69,7 +72,7 @@ export default class MtvRoomsWsController {
     }: WsControllerMethodArgs<RoomClientToServerPlay>): Promise<void> {
         const { roomID } = payload;
         console.log(`PLAY ${payload.roomID} with ${socket.id}`);
-        const { runID } = await Room.findOrFail(roomID);
+        const { runID } = await MtvRoom.findOrFail(roomID);
         await ServerToTemporalController.play(roomID, runID);
     }
 
@@ -85,7 +88,7 @@ export default class MtvRoomsWsController {
     }: WsControllerMethodArgs<{ roomID: string }>): Promise<void> {
         const { roomID } = payload;
         console.log(`TERMINATE ${payload.roomID}`);
-        const room = await Room.findOrFail(roomID);
+        const room = await MtvRoom.findOrFail(roomID);
         await ServerToTemporalController.terminateWorkflow(roomID, room.runID);
         await room.delete();
     }

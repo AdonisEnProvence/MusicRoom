@@ -1,7 +1,8 @@
 import ChatController from 'App/Controllers/Ws/ChatController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
-import Room from 'App/Models/Room';
+import MtvRoom from 'App/Models/MtvRoom';
+import User from 'App/Models/User';
 import Ws from 'App/Services/Ws';
 
 Ws.boot();
@@ -34,11 +35,13 @@ Ws.io.on('connection', async (socket) => {
                 throw new Error('Empty or invalid user token');
             }
             const userAgent = socket.request.headers['user-agent'];
-            await Device.create({
+            const deviceOwner = await User.findOrFail(userID);
+            const newDevice = await Device.create({
                 socketID: socket.id,
                 userID,
                 userAgent,
             });
+            await newDevice.related('user').associate(deviceOwner);
         } else {
             console.log('socketID already registered');
         }
@@ -99,7 +102,7 @@ Ws.io.on('connection', async (socket) => {
                 /**
                  *  Manage owned MTVRoom max 1 per user
                  */
-                const room = await Room.findBy('creator', device.userID);
+                const room = await MtvRoom.findBy('creator', device.userID);
                 const allUserDevices = await Device.query().where(
                     'user_id',
                     device.userID,
@@ -111,9 +114,9 @@ Ws.io.on('connection', async (socket) => {
                 );
 
                 /**
-                     *  Kill the room if the creator doesn't have any other session alive on other device
-                        All sessions room's connections are synchronized, if device is in pg the room connection is alive
-                     */
+                 *  Kill the room if the creator doesn't have any other session alive on other device
+                 *  All sessions room's connections are synchronized, if device is in pg the room connection is alive
+                 */
                 const hasNoMoreDevice = allUserDevices.length <= 1;
                 if (room !== null && hasNoMoreDevice) {
                     const adapter = Ws.adapter();

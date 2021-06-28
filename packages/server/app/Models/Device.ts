@@ -1,6 +1,13 @@
-import { BaseModel, beforeCreate, column } from '@ioc:Adonis/Lucid/Orm';
+import {
+    BaseModel,
+    beforeCreate,
+    BelongsTo,
+    belongsTo,
+    column,
+} from '@ioc:Adonis/Lucid/Orm';
 import { randomUUID } from 'crypto';
 import { DateTime } from 'luxon';
+import User from './User';
 
 export default class Device extends BaseModel {
     @column({ isPrimary: true })
@@ -11,6 +18,11 @@ export default class Device extends BaseModel {
 
     @column({ columnName: 'socket_id' })
     public socketID: string;
+
+    @belongsTo(() => User, {
+        foreignKey: 'uuid',
+    })
+    public user: BelongsTo<typeof User>;
 
     @column()
     public userAgent?: string;

@@ -5,7 +5,8 @@ import {
 } from '@musicroom/types';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import Device from 'App/Models/Device';
-import Room from 'App/Models/Room';
+import MtvRoom from 'App/Models/MtvRoom';
+import User from 'App/Models/User';
 import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
@@ -27,7 +28,7 @@ type TypedSocket = Socket<AllServerToClientEvents, AllClientToServerEvents>;
 
 let socketsConnections: TypedSocket[] = [];
 
-async function getSocket(userID: string): Promise<TypedSocket> {
+async function createSocketConnection(userID: string): Promise<TypedSocket> {
     const socket = io(BASE_URL, {
         query: {
             userID,
@@ -36,6 +37,14 @@ async function getSocket(userID: string): Promise<TypedSocket> {
     socketsConnections.push(socket);
     await sleep();
     return socket;
+}
+
+async function createUserAndGetSocket(userID: string): Promise<TypedSocket> {
+    await User.create({
+        uuid: userID,
+        nickname: random.word(),
+    });
+    return await createSocketConnection(userID);
 }
 
 async function disconnectSocket(socket: TypedSocket): Promise<void> {
@@ -49,8 +58,6 @@ async function disconnectSocket(socket: TypedSocket): Promise<void> {
  * User should join a room
  * It should create device after user's socket connection, and removes it from base after disconnection
  * It should sent FORCED_DISCONNECTION to all users in room
- *
- *
  */
 
 test.group('Rooms life cycle', (group) => {
@@ -69,7 +76,7 @@ test.group('Rooms life cycle', (group) => {
 
     test('On user socket connection, it should register his device in db, on disconnection removes it from db', async (assert) => {
         const userID = datatype.uuid();
-        const socket = await getSocket(userID);
+        const socket = await createUserAndGetSocket(userID);
 
         /**
          * Check if only 1 device for given userID is well registered in database
@@ -89,7 +96,7 @@ test.group('Rooms life cycle', (group) => {
 
     test('User creates a room, on user disconnection, it should removes the room from database', async (assert) => {
         const userID = datatype.uuid();
-        const socket = await getSocket(userID);
+        const socket = await createUserAndGetSocket(userID);
         const name = random.words(1);
 
         /** Mocks */
@@ -121,7 +128,7 @@ test.group('Rooms life cycle', (group) => {
             return;
         });
         await sleep();
-        const roomBefore = await Room.findBy('creator', userID);
+        const roomBefore = await MtvRoom.findBy('creator', userID);
         assert.isNotNull(roomBefore);
 
         /**
@@ -129,7 +136,7 @@ test.group('Rooms life cycle', (group) => {
          * Expecting room to be removed from database
          */
         await disconnectSocket(socket);
-        const roomAfter = await Room.findBy('creator', userID);
+        const roomAfter = await MtvRoom.findBy('creator', userID);
         assert.isNull(roomAfter);
     });
 
@@ -138,11 +145,11 @@ test.group('Rooms life cycle', (group) => {
         console.log(userIDS);
         const userA = {
             userID: userIDS[0],
-            socket: await getSocket(userIDS[0]),
+            socket: await createUserAndGetSocket(userIDS[0]),
         };
         const userB = {
             userID: userIDS[1],
-            socket: await getSocket(userIDS[1]),
+            socket: await createUserAndGetSocket(userIDS[1]),
             receivedEvents: [] as string[],
         };
         userB.socket.once('FORCED_DISCONNECTION', () => {
@@ -191,7 +198,7 @@ test.group('Rooms life cycle', (group) => {
          * Check if room is in db
          * UserB joins the room
          */
-        const room = await Room.findBy('creator', userA.userID);
+        const room = await MtvRoom.findBy('creator', userA.userID);
         assert.isNotNull(room);
         if (!room) throw new Error('room is undefined');
         userB.socket.emit('JOIN_ROOM', {
@@ -210,17 +217,17 @@ test.group('Rooms life cycle', (group) => {
          * If UserB received FORCED_DISCONNECTION websocket event
          * If UserB device is in db
          */
-        assert.isNull(await Room.findBy('creator', userA.userID));
+        assert.isNull(await MtvRoom.findBy('creator', userA.userID));
         assert.equal(userB.receivedEvents[0], 'FORCED_DISCONNECTION');
         assert.isNotNull(await Device.findBy('user_id', userB.userID));
     });
     test('It should not remove room from database, as creator has more than one device/session alive', async (assert) => {
         const userID = datatype.uuid();
         const user = {
-            socketA: await getSocket(userID),
-            socketB: await getSocket(userID),
+            socketA: await createUserAndGetSocket(userID),
+            socketB: await createSocketConnection(userID),
         };
-        await Room.create({
+        await MtvRoom.create({
             uuid: datatype.uuid(),
             runID: datatype.uuid(),
             creator: userID,
@@ -245,12 +252,12 @@ test.group('Rooms life cycle', (group) => {
          * Check if room is still in database
          * Then emit disconnect from last device
          */
-        assert.isNotNull(await Room.findBy('creator', userID));
+        assert.isNotNull(await MtvRoom.findBy('creator', userID));
         await disconnectSocket(user.socketB);
 
         /**
          * Check if room is not in database
          */
-        assert.isNull(await Room.findBy('creator', userID));
+        assert.isNull(await MtvRoom.findBy('creator', userID));
     });
 });

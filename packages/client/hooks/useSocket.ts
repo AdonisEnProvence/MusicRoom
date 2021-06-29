@@ -3,7 +3,7 @@ import {
     AllServerToClientEvents,
 } from '@musicroom/types';
 import { useMemo } from 'react';
-import { Platform } from 'react-native';
+import { getFakeUserID } from '../App';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
 import { io, Socket } from '../services/websockets';
 
@@ -17,7 +17,7 @@ export function useSocket(): SocketClient {
         () =>
             io(SERVER_ENDPOINT, {
                 query: {
-                    userID: Platform.OS === 'web' ? 'web' : 'android',
+                    userID: getFakeUserID(),
                 },
             }),
         [],

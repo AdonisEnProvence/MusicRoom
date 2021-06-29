@@ -3,7 +3,6 @@ import {
     TrackVoteRoom,
     TrackVoteTrack,
 } from '@musicroom/types';
-import { Platform } from 'react-native';
 import {
     assign,
     createMachine,
@@ -12,6 +11,7 @@ import {
     State,
     StateMachine,
 } from 'xstate';
+import { getFakeUserID } from '../App';
 import { SocketClient } from '../hooks/useSocket';
 
 export type AppMusicPlayerMachineState = State<
@@ -183,8 +183,7 @@ export const createAppMusicPlayerMachine = ({
                                 );
                             }
                             const payload = {
-                                userID:
-                                    Platform.OS === 'web' ? 'web' : 'android', //TODO
+                                userID: getFakeUserID(),
                                 name: 'your_room_name',
                             };
                             socket.emit(
@@ -213,8 +212,7 @@ export const createAppMusicPlayerMachine = ({
                             }
                             const payload = {
                                 roomID: event.roomID,
-                                userID:
-                                    Platform.OS === 'web' ? 'web' : 'android',
+                                userID: getFakeUserID(),
                             };
                             socket.emit('JOIN_ROOM', payload);
                         },

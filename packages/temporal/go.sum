@@ -1,13 +1,7 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Devessier/brainy v0.0.0-20210622103533-4aa073bfd80b h1:6aTSP+T+9lrYdfu+rVVs702hEk0gP/MqQC3xQh6vW+Q=
-github.com/Devessier/brainy v0.0.0-20210622103533-4aa073bfd80b/go.mod h1:nG8qoiAMKBnUY5RKd2K6h9NNcKtwsir99YP3lNwvQvA=
-github.com/Devessier/brainy v0.0.1 h1:mFTpdRM+6skdyhLF36bOiqs98PiGHYOopZM3uNVDRX4=
-github.com/Devessier/brainy v0.0.1/go.mod h1:nG8qoiAMKBnUY5RKd2K6h9NNcKtwsir99YP3lNwvQvA=
-github.com/Devessier/brainy v0.0.2 h1:ljvmUGysAlZGMOvNZq7F6aJOEtfqjz7cdYDPuyF2OKQ=
-github.com/Devessier/brainy v0.0.2/go.mod h1:8tGYMsQmAbkw8Wv5wMJrHLEU02c494VX4Ys9nRFouJA=
-github.com/Devessier/brainy v0.0.3 h1:8OtFLoh/8dqkcRaFKls9amtLf79zQS5qU+SAfvdNVUU=
-github.com/Devessier/brainy v0.0.3/go.mod h1:8tGYMsQmAbkw8Wv5wMJrHLEU02c494VX4Ys9nRFouJA=
+github.com/Devessier/brainy v0.0.5 h1:98GghEQnV1Gm2skRJk1ZJyp3n3M6He00lazt5j1TiPQ=
+github.com/Devessier/brainy v0.0.5/go.mod h1:8tGYMsQmAbkw8Wv5wMJrHLEU02c494VX4Ys9nRFouJA=
 github.com/bojanz/httpx v0.0.0-20201111190843-d1cf01c49b2e h1:ta63AKr1LlBpEDB5zMk2uDgAdpkFpypfaywDvIp5PmI=
 github.com/bojanz/httpx v0.0.0-20201111190843-d1cf01c49b2e/go.mod h1:CmIVARSG6JaD9lvVI2Y0Jur5UvpndDJTcSOmgMdMqSQ=
 github.com/bxcodec/faker/v3 v3.6.0 h1:Meuh+M6pQJsQJwxVALq6H5wpDzkZ4pStV9pmH7gbKKs=

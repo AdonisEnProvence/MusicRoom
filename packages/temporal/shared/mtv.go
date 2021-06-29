@@ -1,7 +1,6 @@
 package shared
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -33,38 +32,34 @@ type TrackMetadata struct {
 	Duration   time.Duration `json:"duration"`
 }
 
-type MtvRoomState struct {
+type MtvRoomParameters struct {
+	RoomID               string
+	RoomCreatorUserID    string
+	RoomName             string
+	InitialUsers         []string
+	InitialTracksIDsList []string
+}
+
+func (p MtvRoomParameters) Export() MtvRoomExposedState {
+	return MtvRoomExposedState{
+		RoomID:            p.RoomID,
+		Playing:           false,
+		RoomCreatorUserID: p.RoomCreatorUserID,
+		RoomName:          p.RoomName,
+		Users:             p.InitialUsers,
+		TracksIDsList:     p.InitialTracksIDsList,
+	}
+}
+
+type MtvRoomExposedState struct {
 	RoomID            string          `json:"roomID"`
 	RoomCreatorUserID string          `json:"roomCreatorUserID"`
 	Playing           bool            `json:"playing"`
-	Name              string          `json:"name"`
+	RoomName          string          `json:"name"`
 	Users             []string        `json:"users"`
 	TracksIDsList     []string        `json:"tracksIDsList"`
 	CurrentTrack      TrackMetadata   `json:"currentTrack"`
 	Tracks            []TrackMetadata `json:"tracks"`
-	Timer             MtvRoomTimer    `json:"-"`
-}
-
-func (state *MtvRoomState) Pause() {
-	if state.Playing {
-		state.Playing = false
-		fmt.Println("PAUSED")
-	} else {
-		fmt.Println("PAUSED FAILED")
-	}
-}
-
-func (state *MtvRoomState) Play() {
-	if !state.Playing {
-		state.Playing = true
-		fmt.Println("PLAYED")
-	} else {
-		fmt.Println("PLAYED FAILED")
-	}
-}
-
-func (state *MtvRoomState) Join(userID string) {
-	state.Users = append(state.Users, userID)
 }
 
 type SignalRoute string

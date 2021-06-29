@@ -1,6 +1,7 @@
 package workflows_test
 
 import (
+	"context"
 	"math/rand"
 	"testing"
 	"time"
@@ -46,13 +47,12 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		},
 	}
 	tracksIDs := []string{tracks[0].ID}
-	state := shared.MtvRoomState{
-		RoomID:            fakeWorkflowID,
-		RoomCreatorUserID: fakeRoomCreatorUserID,
-		Playing:           false,
-		Users:             []string{fakeRoomCreatorUserID},
-		Name:              faker.Word(),
-		TracksIDsList:     tracksIDs,
+	params := shared.MtvRoomParameters{
+		RoomID:               fakeWorkflowID,
+		RoomCreatorUserID:    fakeRoomCreatorUserID,
+		RoomName:             faker.Word(),
+		InitialUsers:         []string{fakeRoomCreatorUserID},
+		InitialTracksIDsList: tracksIDs,
 	}
 	firstTrackDuration := tracks[0].Duration
 	firstTrackDurationFirstThird := tracks[0].Duration / 3
@@ -77,10 +77,21 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		mock.Anything,
 		mock.Anything,
 	).Return(nil)
+	s.env.OnActivity(
+		activities.TrackTimerActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(func(ctx context.Context, timerState shared.MtvRoomTimer) (shared.MtvRoomTimer, error) {
+		return shared.MtvRoomTimer{
+			State:         shared.MtvRoomTimerStatePending,
+			Elapsed:       time.Second * 10,
+			TotalDuration: time.Second * 100,
+		}, nil
+	})
 
 	initialStateQueryDelay := 1 * time.Second
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomState
+		var mtvState shared.MtvRoomExposedState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)
@@ -98,7 +109,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
 	}, firstPlaySignalDelay)
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomState
+		var mtvState shared.MtvRoomExposedState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)
@@ -116,7 +127,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		s.env.SignalWorkflow(shared.SignalChannelName, pauseSignal)
 	}, firstPauseSignalDelay)
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomState
+		var mtvState shared.MtvRoomExposedState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)
@@ -129,7 +140,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 	secondStateQueryAfterTotalTrackDuration := firstPauseSignalDelay + firstTrackDuration
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomState
+		var mtvState shared.MtvRoomExposedState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)
@@ -148,7 +159,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
 	}, secondPlaySignalDelay)
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomState
+		var mtvState shared.MtvRoomExposedState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)
@@ -161,7 +172,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 	stateQueryAfterFirstTrackMustHaveFinished := secondPlaySignalDelay + firstTrackDuration
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomState
+		var mtvState shared.MtvRoomExposedState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)
@@ -173,7 +184,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		s.Equal(tracks[1], mtvState.CurrentTrack)
 	}, stateQueryAfterFirstTrackMustHaveFinished)
 
-	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, state)
+	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, params)
 
 	s.True(s.env.IsWorkflowCompleted())
 	err := s.env.GetWorkflowError()
@@ -196,13 +207,12 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		},
 	}
 	tracksIDs := []string{tracks[0].ID}
-	state := shared.MtvRoomState{
-		RoomID:            fakeWorkflowID,
-		RoomCreatorUserID: fakeRoomCreatorUserID,
-		Playing:           false,
-		Users:             []string{fakeRoomCreatorUserID},
-		Name:              faker.Word(),
-		TracksIDsList:     tracksIDs,
+	params := shared.MtvRoomParameters{
+		RoomID:               fakeWorkflowID,
+		RoomCreatorUserID:    fakeRoomCreatorUserID,
+		RoomName:             faker.Word(),
+		InitialUsers:         []string{fakeRoomCreatorUserID},
+		InitialTracksIDsList: tracksIDs,
 	}
 
 	s.env.OnActivity(
@@ -222,7 +232,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 	).Return(nil)
 
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomState
+		var mtvState shared.MtvRoomExposedState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)
@@ -242,7 +252,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 	}, 2*time.Second)
 
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomState
+		var mtvState shared.MtvRoomExposedState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)
@@ -253,7 +263,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		s.Len(mtvState.Users, 2)
 	}, 3*time.Second)
 
-	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, state)
+	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, params)
 
 	s.True(s.env.IsWorkflowCompleted())
 	err := s.env.GetWorkflowError()
@@ -280,13 +290,12 @@ func (s *UnitTestSuite) Test_AutomaticTracksListPlaying() {
 			Duration:   generateRandomDuration(),
 		},
 	}
-	state := shared.MtvRoomState{
-		RoomID:            fakeWorkflowID,
-		RoomCreatorUserID: fakeUserID,
-		Playing:           false,
-		Users:             []string{fakeUserID},
-		Name:              faker.Word(),
-		TracksIDsList:     []string{tracksList[0].ID, tracksList[1].ID},
+	params := shared.MtvRoomParameters{
+		RoomID:               fakeWorkflowID,
+		RoomCreatorUserID:    fakeUserID,
+		RoomName:             faker.Word(),
+		InitialUsers:         []string{fakeUserID},
+		InitialTracksIDsList: []string{tracksList[0].ID, tracksList[1].ID},
 	}
 
 	s.env.OnActivity(
@@ -308,7 +317,7 @@ func (s *UnitTestSuite) Test_AutomaticTracksListPlaying() {
 	}, 0*time.Second)
 	// Query the state after setup activities have been called.
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomState
+		var mtvState shared.MtvRoomExposedState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)
@@ -323,7 +332,7 @@ func (s *UnitTestSuite) Test_AutomaticTracksListPlaying() {
 	}, 1*time.Second)
 	// The first track has finished.
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomState
+		var mtvState shared.MtvRoomExposedState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)
@@ -338,7 +347,7 @@ func (s *UnitTestSuite) Test_AutomaticTracksListPlaying() {
 	}, tracksList[0].Duration+1*time.Millisecond)
 	// The last track has finished.
 	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomState
+		var mtvState shared.MtvRoomExposedState
 
 		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
 		s.NoError(err)
@@ -352,7 +361,7 @@ func (s *UnitTestSuite) Test_AutomaticTracksListPlaying() {
 		s.Len(mtvState.TracksIDsList, 0)
 	}, tracksList[0].Duration+1*time.Millisecond+tracksList[1].Duration+1*time.Millisecond)
 
-	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, state)
+	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, params)
 
 	s.True(s.env.IsWorkflowCompleted())
 	err := s.env.GetWorkflowError()

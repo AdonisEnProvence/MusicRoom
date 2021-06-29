@@ -136,9 +136,9 @@ type CreateRoomRequestBody struct {
 }
 
 type CreateRoomResponse struct {
-	State      shared.MtvRoomState `json:"state"`
-	WorkflowID string              `json:"workflowID"`
-	RunID      string              `json:"runID"`
+	State      shared.MtvRoomExposedState `json:"state"`
+	WorkflowID string                     `json:"workflowID"`
+	RunID      string                     `json:"runID"`
 }
 
 func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
@@ -170,23 +170,22 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		"H3s1mt7aFlc",
 	}
 	initialTracksIDsList := append(body.InitialTracksIDs, seedTracksIDs...)
-	state := shared.MtvRoomState{
-		RoomID:            workflowID,
-		RoomCreatorUserID: body.UserID,
-		Playing:           false,
-		Name:              body.Name,
-		Users:             []string{body.UserID},
-		TracksIDsList:     initialTracksIDsList,
+	params := shared.MtvRoomParameters{
+		RoomID:               workflowID,
+		RoomCreatorUserID:    body.UserID,
+		RoomName:             body.Name,
+		InitialUsers:         []string{body.UserID},
+		InitialTracksIDsList: initialTracksIDsList,
 	}
 
-	we, err := temporal.ExecuteWorkflow(context.Background(), options, workflows.MtvRoomWorkflow, state)
+	we, err := temporal.ExecuteWorkflow(context.Background(), options, workflows.MtvRoomWorkflow, params)
 	if err != nil {
 		WriteError(w, err)
 		return
 	}
 
 	res := CreateRoomResponse{
-		State:      state,
+		State:      params.Export(),
 		WorkflowID: we.GetID(),
 		RunID:      we.GetRunID(),
 	}

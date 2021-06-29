@@ -31,7 +31,7 @@ func PlayActivity(_ context.Context, roomID string) error {
 	return err
 }
 
-func CreationAcknowledgementActivity(_ context.Context, state shared.MtvRoomState) error {
+func CreationAcknowledgementActivity(_ context.Context, state shared.MtvRoomExposedState) error {
 	marshaledBody, err := json.Marshal(state)
 	if err != nil {
 		return err
@@ -44,7 +44,7 @@ func CreationAcknowledgementActivity(_ context.Context, state shared.MtvRoomStat
 	return err
 }
 
-func JoinActivity(ctx context.Context, state shared.MtvRoomState) error {
+func JoinActivity(ctx context.Context, state shared.MtvRoomExposedState) error {
 	marshaledBody, err := json.Marshal(state)
 	if err != nil {
 		return err

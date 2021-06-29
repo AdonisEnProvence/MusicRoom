@@ -3,7 +3,7 @@ module github.com/AdonisEnProvence/MusicRoom
 go 1.16
 
 require (
-	github.com/Devessier/brainy v0.0.3
+	github.com/Devessier/brainy v0.0.5
 	github.com/bojanz/httpx v0.0.0-20201111190843-d1cf01c49b2e
 	github.com/bxcodec/faker/v3 v3.6.0
 	github.com/go-playground/universal-translator v0.17.0 // indirect

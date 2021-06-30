@@ -11,7 +11,6 @@ import {
     State,
     StateMachine,
 } from 'xstate';
-import { getFakeUserID } from '../App';
 import { SocketClient } from '../hooks/useSocket';
 
 export type AppMusicPlayerMachineState = State<
@@ -72,8 +71,9 @@ const rawContext: AppMusicPlayerMachineContext = {
     currentRoom: undefined,
     currentTrack: undefined,
     waitingRoomID: undefined,
+    users: undefined,
 
-    currentTrackDuration: 0,
+    currentTrackDuration: 42,
     currentTrackElapsedTime: 0,
 };
 
@@ -133,13 +133,11 @@ export const createAppMusicPlayerMachine = ({
                     onReceive((e) => {
                         if (e.type === 'PLAY_PAUSE_TOGGLE' && e.params.roomID) {
                             const { roomID, status } = e.params;
-                            const payload = {
-                                roomID: roomID,
-                            };
+
                             if (status === 'play') {
-                                socket.emit('ACTION_PAUSE', payload);
+                                socket.emit('ACTION_PAUSE');
                             } else {
-                                socket.emit('ACTION_PLAY', payload);
+                                socket.emit('ACTION_PLAY');
                             }
                         }
                     });
@@ -182,13 +180,11 @@ export const createAppMusicPlayerMachine = ({
                                     'Service must be called in reaction to CREATE_ROOM event',
                                 );
                             }
-                            const payload = {
-                                userID: getFakeUserID(),
-                                name: 'your_room_name',
-                            };
                             socket.emit(
                                 'CREATE_ROOM',
-                                payload,
+                                {
+                                    name: 'your_room_name',
+                                },
                                 joiningRoomCallback(sendBack),
                             );
                         },
@@ -210,11 +206,7 @@ export const createAppMusicPlayerMachine = ({
                                     'Service must be called in reaction to JOIN_ROOM event',
                                 );
                             }
-                            const payload = {
-                                roomID: event.roomID,
-                                userID: getFakeUserID(),
-                            };
-                            socket.emit('JOIN_ROOM', payload);
+                            socket.emit('JOIN_ROOM', { roomID: event.roomID });
                         },
                     },
 

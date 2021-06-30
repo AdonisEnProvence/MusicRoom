@@ -1,47 +1,73 @@
+import Event from '@ioc:Adonis/Core/Event';
 import ChatController from 'App/Controllers/Ws/ChatController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
 import Ws from 'App/Services/Ws';
+import { Socket } from 'socket.io';
+import { DefaultEventsMap } from 'socket.io/dist/typed-events';
+import {
+    AllClientToServerEvents,
+    AllServerToClientEvents,
+} from '../../types/dist';
 
 Ws.boot();
 
-//TODO SECURE ROOM CALL
-// const roomAuth = (socketID: string, roomID: string | undefined) => {
-//     if (!roomID) {
-//         console.error('ROOMID REQUIRED 404');
-//         return false;
-//     }
-//     if (!Ws.io.sockets.adapter.rooms[roomID].sockets[socketID]) {
-//         console.error('UNAUTH 403');
-//         return false;
-//     }
-//     return true;
-// };
+async function getSocketConnectionCredentials(
+    socket: Socket<
+        AllClientToServerEvents,
+        AllServerToClientEvents,
+        DefaultEventsMap
+    >,
+): Promise<{ mtvRoomID?: string; userID: string }> {
+    const device = await Device.findByOrFail('socket_id', socket.id);
+    await device.load('user');
+    if (device.user === null) {
+        throw new Error(
+            `Device should always have a user relationship deviceID = ${device.uuid}`,
+        );
+    }
+    const userID = device.user.uuid;
+    await device.user.load('mtvRoom');
+    let mtvRoomID: string | undefined;
+    if (device.user.mtvRoom !== null) {
+        mtvRoomID = device.user.mtvRoom.uuid;
+    }
+    return {
+        userID,
+        mtvRoomID,
+    };
+}
+
+Event.on('db:query', function ({ sql, bindings }) {
+    console.log(sql, bindings);
+});
 
 Ws.io.on('connection', async (socket) => {
     try {
         ChatController.onConnect({ socket, payload: undefined });
 
-        const userID = socket.handshake.query['userID'];
-        console.log({ userID });
+        const queryUserID = socket.handshake.query['userID'];
+        console.log({ queryUserID });
 
         const hasDeviceNotBeenFound =
             (await Device.findBy('socket_id', socket.id)) === null;
         if (hasDeviceNotBeenFound) {
-            console.log(`registering a device for user ${userID}`);
-            if (!userID || typeof userID !== 'string') {
+            console.log(`registering a device for user ${queryUserID}`);
+            if (!queryUserID || typeof queryUserID !== 'string') {
                 throw new Error('Empty or invalid user token');
             }
             const userAgent = socket.request.headers['user-agent'];
-            const deviceOwner = await User.findOrFail(userID);
+            const deviceOwner = await User.findOrFail(queryUserID);
             const newDevice = await Device.create({
                 socketID: socket.id,
-                userID,
+                userID: queryUserID,
                 userAgent,
             });
             await newDevice.related('user').associate(deviceOwner);
+            console.log('ICI PAULO', newDevice.user);
+            // await deviceOwner.related('devices').save(newDevice); IS it really necessary does associate already does that ?
         } else {
             console.log('socketID already registered');
         }
@@ -55,10 +81,17 @@ Ws.io.on('connection', async (socket) => {
         /// ROOM ///
         socket.on('CREATE_ROOM', async (payload, callback) => {
             try {
+                const { userID } = await getSocketConnectionCredentials(socket);
+                if (!payload.name) {
+                    throw new Error('CREATE_ROOM failed name should be empty');
+                }
                 const { workflowID, state } =
                     await MtvRoomsWsController.onCreate({
                         socket,
-                        payload,
+                        payload: {
+                            name: payload.name,
+                            userID,
+                        },
                     });
                 callback(workflowID, state.name);
             } catch (e) {
@@ -87,24 +120,57 @@ Ws.io.on('connection', async (socket) => {
 
         socket.on('JOIN_ROOM', async (args) => {
             try {
-                await MtvRoomsWsController.onJoin({ socket, payload });
+                if (!args.roomID) {
+                    throw new Error('JOIN_ROOM failed roomID is empty');
+                }
+                const { userID } = await getSocketConnectionCredentials(socket);
+                await getSocketConnectionCredentials(socket);
+                await MtvRoomsWsController.onJoin({
+                    socket,
+                    payload: {
+                        roomID: args.roomID,
+                        userID,
+                    },
+                });
             } catch (e) {
                 console.error(e);
             }
         });
 
-        socket.on('ACTION_PLAY', async (payload) => {
+        socket.on('ACTION_PLAY', async () => {
             try {
                 //we need to check auth from socket id into a userId into a room users[]
-                await MtvRoomsWsController.onPlay({ socket, payload });
+                const { mtvRoomID } = await getSocketConnectionCredentials(
+                    socket,
+                );
+                if (mtvRoomID === undefined) {
+                    throw new Error('ACTION_PLAY failed room not found');
+                }
+                await MtvRoomsWsController.onPlay({
+                    socket,
+                    payload: {
+                        roomID: mtvRoomID,
+                    },
+                });
             } catch (e) {
                 console.error(e);
             }
         });
 
-        socket.on('ACTION_PAUSE', async (payload) => {
+        socket.on('ACTION_PAUSE', async () => {
             try {
-                await MtvRoomsWsController.onPause({ socket, payload });
+                const { mtvRoomID } = await getSocketConnectionCredentials(
+                    socket,
+                );
+                if (mtvRoomID === undefined) {
+                    throw new Error('ACTION_PLAY failed room not found');
+                }
+                await MtvRoomsWsController.onPause({
+                    socket,
+                    payload: {
+                        roomID: mtvRoomID,
+                    },
+                });
             } catch (e) {
                 console.error(e);
             }
@@ -143,13 +209,7 @@ Ws.io.on('connection', async (socket) => {
                         new Set([room.uuid]),
                     );
                     console.log({ connectedSockets });
-                    const payload = {
-                        roomID: room.uuid,
-                    };
-                    await MtvRoomsWsController.onTerminate({
-                        socket,
-                        payload,
-                    });
+                    await MtvRoomsWsController.onTerminate(room.uuid);
                     Ws.io.in(room.uuid).emit('FORCED_DISCONNECTION');
                     connectedSockets.forEach((socketID) =>
                         adapter.remoteLeave(socketID, room.uuid),

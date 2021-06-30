@@ -124,7 +124,7 @@ test.group('Rooms life cycle', (group) => {
          * Emit CREATE_ROOM
          * Expecting it to be in database
          */
-        socket.emit('CREATE_ROOM', { name, userID }, () => {
+        socket.emit('CREATE_ROOM', { name }, () => {
             return;
         });
         await sleep();
@@ -189,7 +189,7 @@ test.group('Rooms life cycle', (group) => {
          */
         assert.isNotNull(await Device.findBy('user_id', userA.userID));
         assert.isNotNull(await Device.findBy('user_id', userB.userID));
-        userA.socket.emit('CREATE_ROOM', { name, userID: userA.userID }, () => {
+        userA.socket.emit('CREATE_ROOM', { name }, () => {
             return;
         });
         await sleep();
@@ -203,7 +203,6 @@ test.group('Rooms life cycle', (group) => {
         if (!room) throw new Error('room is undefined');
         userB.socket.emit('JOIN_ROOM', {
             roomID: room.uuid,
-            userID: userB.userID,
         });
         await sleep();
 

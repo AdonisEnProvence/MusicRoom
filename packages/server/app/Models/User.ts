@@ -19,10 +19,14 @@ export default class User extends BaseModel {
     @column()
     public nickname: string;
 
-    @hasOne(() => MtvRoom)
+    @hasOne(() => MtvRoom, {
+        foreignKey: 'creator',
+    })
     public mtvRoom: HasOne<typeof MtvRoom>;
 
-    @hasMany(() => Device)
+    @hasMany(() => Device, {
+        foreignKey: 'userID',
+    })
     public devices: HasMany<typeof Device>;
 
     @column.dateTime({ autoCreate: true })

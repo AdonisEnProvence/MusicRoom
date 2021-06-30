@@ -33,6 +33,14 @@ async function getSocketConnectionCredentials(
     let mtvRoomID: string | undefined;
     if (device.user.mtvRoom !== null) {
         mtvRoomID = device.user.mtvRoom.uuid;
+        const socketConnectionsToRoomID = await Ws.adapter().sockets(
+            new Set(mtvRoomID),
+        );
+        if (!socketConnectionsToRoomID.has(socket.id)) {
+            throw new Error(
+                'Device should appears in the socket io room too, synchro error',
+            );
+        }
     }
     return {
         userID,
@@ -49,7 +57,6 @@ Ws.io.on('connection', async (socket) => {
         ChatController.onConnect({ socket, payload: undefined });
 
         const queryUserID = socket.handshake.query['userID'];
-        console.log({ queryUserID });
 
         const hasDeviceNotBeenFound =
             (await Device.findBy('socket_id', socket.id)) === null;
@@ -66,7 +73,6 @@ Ws.io.on('connection', async (socket) => {
                 userAgent,
             });
             await newDevice.related('user').associate(deviceOwner);
-            console.log('ICI PAULO', newDevice.user);
             // await deviceOwner.related('devices').save(newDevice); IS it really necessary does associate already does that ?
         } else {
             console.log('socketID already registered');

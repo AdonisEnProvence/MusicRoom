@@ -58,16 +58,34 @@ export default class MtvRoomsWsController {
     }
 
     public static async onJoin({
-        socket,
         payload,
     }: WsControllerMethodArgs<Credentials>): Promise<void> {
         const { roomID, userID } = payload;
-        if (!Ws.io.sockets.adapter.rooms.has(roomID))
-            throw new Error('Room does not exist ' + roomID);
-        console.log(`JOIN ${roomID} with ${socket.id}`);
-        const { runID } = await MtvRoom.findOrFail(roomID);
-        await ServerToTemporalController.joinWorkflow(roomID, runID, userID);
-        await socket.join(roomID);
+        const room = await MtvRoom.findOrFail(roomID);
+        const joiningUser = await User.findOrFail(payload.userID);
+        const roomDoesntExistInAnyNodes = !(await Ws.adapter().allRooms()).has(
+            roomID,
+        );
+        if (roomDoesntExistInAnyNodes) {
+            throw new Error(
+                'Room does not exist in any socket io server instance ' +
+                    roomID,
+            );
+        }
+        console.log(`USER ${payload.userID} JOINS ${roomID}`);
+        await ServerToTemporalController.joinWorkflow(
+            roomID,
+            room.runID,
+            userID,
+        );
+        await joiningUser.related('mtvRoom').save(room);
+        await joiningUser.load('devices');
+        await Promise.all(
+            joiningUser.devices.map(async (device) => {
+                console.log('JOIN connecting device ', device.uuid);
+                await Ws.adapter().remoteJoin(device.socketID, roomID);
+            }),
+        );
         console.log('in array', await Ws.adapter().sockets(new Set([roomID])));
     }
 

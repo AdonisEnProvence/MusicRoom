@@ -259,10 +259,26 @@ test.group('Rooms life cycle', (group) => {
          */
         assert.isNull(await MtvRoom.findBy('creator', userID));
     });
-    test("It should join room for every user's session/device after one emits JOIN_ROOM", async (assert) => {
+    test("It should creates a room, and it should join room for every user's session/device after one emits JOIN_ROOM", async (assert) => {
         const userID = datatype.uuid();
+        const creatorID = datatype.uuid();
+        const name = random.word();
         let userCouldEmitAnExclusiveRoomSignal = false;
         /** Mocks */
+        sinon
+            .stub(ServerToTemporalController, 'createWorflow')
+            .callsFake(async () => {
+                console.log('YES'.repeat(10));
+                return {
+                    runID: datatype.uuid(),
+                    workflowID: datatype.uuid(),
+                    state: {
+                        playing: false,
+                        name,
+                        users: [creatorID],
+                    },
+                };
+            });
         sinon
             .stub(ServerToTemporalController, 'joinWorkflow')
             .callsFake(async () => {

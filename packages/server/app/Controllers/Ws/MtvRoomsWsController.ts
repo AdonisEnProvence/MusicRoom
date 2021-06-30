@@ -28,7 +28,6 @@ type Credentials = RoomID & UserID;
 
 export default class MtvRoomsWsController {
     public static async onCreate({
-        socket,
         payload,
     }: WsControllerMethodArgs<
         RoomClientToServerCreate & UserID
@@ -40,15 +39,21 @@ export default class MtvRoomsWsController {
             payload.name,
             payload.userID,
         );
-        await socket.join(roomID);
-        console.log('in array', await Ws.adapter().sockets(new Set([roomID])));
-        const roomOwner = await User.findOrFail(payload.userID);
+        const roomCreator = await User.findOrFail(payload.userID);
+        await roomCreator.load('devices');
+        await Promise.all(
+            roomCreator.devices.map(async (device) => {
+                console.log('connecting device ', device.uuid);
+                await Ws.adapter().remoteJoin(device.socketID, roomID);
+            }),
+        );
         const room = await MtvRoom.create({
             uuid: roomID,
             runID: res.runID,
             creator: payload.userID,
         });
-        await room.related('creatorRef').associate(roomOwner);
+        await room.related('creatorRef').associate(roomCreator);
+        console.log(`created room ${roomID}`);
         return res;
     }
 

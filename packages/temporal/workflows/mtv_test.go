@@ -196,6 +196,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		err = res.Get(&mtvState)
 		s.NoError(err)
 
+		// TODO: currently we go to pause state after a song ended
 		s.True(mtvState.Playing)
 		s.Equal(tracks[1], mtvState.CurrentTrack)
 	}, stateQueryAfterFirstTrackMustHaveFinished)
@@ -382,26 +383,6 @@ func (s *UnitTestSuite) Test_AutomaticTracksListPlaying() {
 	s.True(s.env.IsWorkflowCompleted())
 	err := s.env.GetWorkflowError()
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
-}
-
-func (s *UnitTestSuite) Test_YoloWorkflow() {
-	s.env.OnActivity(
-		activities.TrackTimerActivity,
-		mock.Anything,
-		mock.Anything,
-	).Return(func(ctx context.Context, timerState shared.MtvRoomTimer) (shared.MtvRoomTimer, error) {
-		return shared.MtvRoomTimer{
-			State:         shared.MtvRoomTimerStatePending,
-			Elapsed:       time.Second * 10,
-			TotalDuration: time.Second * 100,
-		}, nil
-	})
-
-	s.env.ExecuteWorkflow(workflows.YoloWorkflow)
-
-	s.True(s.env.IsWorkflowCompleted())
-	err := s.env.GetWorkflowError()
-	s.NoError(err)
 }
 
 func TestUnitTestSuite(t *testing.T) {

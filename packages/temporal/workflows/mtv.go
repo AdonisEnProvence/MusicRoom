@@ -63,15 +63,13 @@ const (
 	MtvRoomPausedStoppingState         brainy.StateType = "stopping"
 	MtvRoomPausedStoppedState          brainy.StateType = "stopped"
 	MtvRoomPlayingState                brainy.StateType = "playing"
-	MtvRoomPlayingLaunchingTimerState  brainy.StateType = "launching-timer"
 	MtvRoomPlayingWaitingTimerEndState brainy.StateType = "waiting-timer-end"
 	MtvRoomPlayingTimeoutExpiredState  brainy.StateType = "timeout-expired"
 
-	MtvRoomPlayEvent          brainy.EventType = "PLAY"
-	MtvRoomPauseEvent         brainy.EventType = "PAUSE"
-	MtvRoomTimerLaunchedEvent brainy.EventType = "TIMER_LAUNCHED"
-	MtvRoomTimerExpiredEvent  brainy.EventType = "TIMER_EXPIRED"
-	MtvRoomGoToPausedEvent    brainy.EventType = "GO_TO_PAUSED"
+	MtvRoomPlayEvent         brainy.EventType = "PLAY"
+	MtvRoomPauseEvent        brainy.EventType = "PAUSE"
+	MtvRoomTimerExpiredEvent brainy.EventType = "TIMER_EXPIRED"
+	MtvRoomGoToPausedEvent   brainy.EventType = "GO_TO_PAUSED"
 )
 
 type MtvRoomTimerExpirationEvent struct {
@@ -200,45 +198,35 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 			},
 
 			MtvRoomPlayingState: &brainy.StateNode{
-				Initial: MtvRoomPlayingLaunchingTimerState,
+				Initial: MtvRoomPlayingWaitingTimerEndState,
 
 				States: brainy.StateNodes{
-					MtvRoomPlayingLaunchingTimerState: &brainy.StateNode{
+					MtvRoomPlayingWaitingTimerEndState: &brainy.StateNode{
 						OnEntry: brainy.Actions{
 							brainy.ActionFn(
 								func(c brainy.Context, e brainy.Event) error {
 									timerContext := c.(*MtvRoomMachineContext)
 
-									workflow.Go(ctx, func(ctx workflow.Context) {
-										ao := workflow.ActivityOptions{
-											ScheduleToStartTimeout: 5 * time.Second,
-											StartToCloseTimeout:    internalState.CurrentTrack.Duration * 2,
-										}
-										ctx = workflow.WithActivityOptions(ctx, ao)
+									ao := workflow.ActivityOptions{
+										ScheduleToStartTimeout: 5 * time.Second,
+										StartToCloseTimeout:    internalState.CurrentTrack.Duration * 2,
+									}
+									ctx = workflow.WithActivityOptions(ctx, ao)
 
-										ctx, cancel := workflow.WithCancel(ctx)
-										timerContext.CancelTimer = cancel
+									childCtx, cancel := workflow.WithCancel(ctx)
+									timerContext.CancelTimer = cancel
 
-										internalState.Machine.Send(MtvRoomTimerLaunchedEvent)
-
-										timerExpirationFuture = workflow.ExecuteActivity(
-											ctx,
-											activities.TrackTimerActivity,
-											timerContext.Timer,
-										)
-									})
+									timerExpirationFuture = workflow.ExecuteActivity(
+										childCtx,
+										activities.TrackTimerActivity,
+										timerContext.Timer,
+									)
 
 									return nil
 								},
 							),
 						},
 
-						On: brainy.Events{
-							MtvRoomTimerLaunchedEvent: MtvRoomPlayingWaitingTimerEndState,
-						},
-					},
-
-					MtvRoomPlayingWaitingTimerEndState: &brainy.StateNode{
 						On: brainy.Events{
 							MtvRoomTimerExpiredEvent: brainy.Transitions{
 								{
@@ -257,24 +245,20 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 												ctx := c.(*MtvRoomMachineContext)
 												event := e.(MtvRoomTimerExpirationEvent)
 
-												switch event.Timer.State {
-												case shared.MtvRoomTimerStatePending:
+												if tracksCount := len(internalState.Tracks); tracksCount == 0 {
 													ctx.Timer = event.Timer
+												} else {
+													internalState.CurrentTrack = internalState.Tracks[0]
+													ctx.Timer = shared.MtvRoomTimer{
+														State:         shared.MtvRoomTimerStateIdle,
+														Elapsed:       0,
+														TotalDuration: internalState.CurrentTrack.Duration,
+													}
 
-												case shared.MtvRoomTimerStateFinished:
-													if tracksCount := len(internalState.Tracks); tracksCount == 1 {
+													if tracksCount == 1 {
 														internalState.Tracks = []shared.TrackMetadata{}
 														internalState.TracksIDsList = []string{}
-
-														ctx.Timer = event.Timer
 													} else {
-														internalState.CurrentTrack = internalState.Tracks[0]
-														ctx.Timer = shared.MtvRoomTimer{
-															State:         shared.MtvRoomTimerStateIdle,
-															Elapsed:       0,
-															TotalDuration: internalState.CurrentTrack.Duration,
-														}
-
 														internalState.Tracks = internalState.Tracks[1:]
 														internalState.TracksIDsList = internalState.TracksIDsList[1:]
 													}

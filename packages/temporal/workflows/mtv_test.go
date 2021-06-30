@@ -45,8 +45,14 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 			ArtistName: faker.Name(),
 			Duration:   generateRandomDuration(),
 		},
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   generateRandomDuration(),
+		},
 	}
-	tracksIDs := []string{tracks[0].ID}
+	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
 	params := shared.MtvRoomParameters{
 		RoomID:               fakeWorkflowID,
 		RoomCreatorUserID:    fakeRoomCreatorUserID,
@@ -77,16 +83,14 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		mock.Anything,
 		mock.Anything,
 	).Return(nil)
+
+	var timerToReturn shared.MtvRoomTimer
 	s.env.OnActivity(
 		activities.TrackTimerActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(func(ctx context.Context, timerState shared.MtvRoomTimer) (shared.MtvRoomTimer, error) {
-		return shared.MtvRoomTimer{
-			State:         shared.MtvRoomTimerStatePending,
-			Elapsed:       time.Second * 10,
-			TotalDuration: time.Second * 100,
-		}, nil
+		return timerToReturn, nil
 	})
 
 	initialStateQueryDelay := 1 * time.Second
@@ -104,6 +108,12 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 	firstPlaySignalDelay := initialStateQueryDelay + 1*time.Second
 	s.env.RegisterDelayedCallback(func() {
+		timerToReturn = shared.MtvRoomTimer{
+			State:         shared.MtvRoomTimerStatePending,
+			Elapsed:       firstTrackDurationFirstThird,
+			TotalDuration: firstTrackDuration,
+		}
+
 		playSignal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
 
 		s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
@@ -120,7 +130,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		s.True(mtvState.Playing)
 	}, firstPlaySignalDelay+1*time.Millisecond)
 
-	firstPauseSignalDelay := firstPlaySignalDelay + +1*time.Millisecond + firstTrackDurationFirstThird
+	firstPauseSignalDelay := firstPlaySignalDelay + 1*time.Millisecond + firstTrackDurationFirstThird
 	s.env.RegisterDelayedCallback(func() {
 		pauseSignal := shared.NewPauseSignal(shared.NewPauseSignalArgs{})
 
@@ -154,6 +164,12 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 	secondPlaySignalDelay := secondStateQueryAfterTotalTrackDuration + 1*time.Millisecond
 	s.env.RegisterDelayedCallback(func() {
+		timerToReturn = shared.MtvRoomTimer{
+			State:         shared.MtvRoomTimerStateFinished,
+			Elapsed:       firstTrackDuration,
+			TotalDuration: firstTrackDuration,
+		}
+
 		playSignal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
 
 		s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
@@ -366,6 +382,26 @@ func (s *UnitTestSuite) Test_AutomaticTracksListPlaying() {
 	s.True(s.env.IsWorkflowCompleted())
 	err := s.env.GetWorkflowError()
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *UnitTestSuite) Test_YoloWorkflow() {
+	s.env.OnActivity(
+		activities.TrackTimerActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(func(ctx context.Context, timerState shared.MtvRoomTimer) (shared.MtvRoomTimer, error) {
+		return shared.MtvRoomTimer{
+			State:         shared.MtvRoomTimerStatePending,
+			Elapsed:       time.Second * 10,
+			TotalDuration: time.Second * 100,
+		}, nil
+	})
+
+	s.env.ExecuteWorkflow(workflows.YoloWorkflow)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.NoError(err)
 }
 
 func TestUnitTestSuite(t *testing.T) {

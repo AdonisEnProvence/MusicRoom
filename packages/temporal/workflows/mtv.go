@@ -25,8 +25,8 @@ type MtvRoomInternalState struct {
 func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 	s.initialParams = params
 
-	copy(s.Users, params.InitialUsers)
-	copy(s.TracksIDsList, params.InitialTracksIDsList)
+	s.Users = params.InitialUsers
+	s.TracksIDsList = params.InitialTracksIDsList
 }
 
 func (s *MtvRoomInternalState) Export() shared.MtvRoomExposedState {
@@ -137,6 +137,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 		}
 	}
 
+	var timerExpirationFuture workflow.Future = nil
+
 	internalState.Machine, err = brainy.NewMachine(brainy.StateNode{
 		Context: &MtvRoomMachineContext{
 			Timer: shared.MtvRoomTimer{
@@ -217,27 +219,13 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 										ctx, cancel := workflow.WithCancel(ctx)
 										timerContext.CancelTimer = cancel
 
-										var timerActivityResult shared.MtvRoomTimer
-
 										internalState.Machine.Send(MtvRoomTimerLaunchedEvent)
 
-										if err := workflow.ExecuteActivity(
+										timerExpirationFuture = workflow.ExecuteActivity(
 											ctx,
 											activities.TrackTimerActivity,
 											timerContext.Timer,
-										).Get(ctx, &timerActivityResult); err != nil {
-											logger.Error("error occured in timer activity", err)
-
-											return
-										}
-
-										// internalState.Machine.Send(
-										// 	NewMtvRoomTimerExpirationEvent(timerActivityResult),
-										// )
-
-										fmt.Println("after send")
-
-										timerContext.CancelTimer = nil
+										)
 									})
 
 									return nil
@@ -252,20 +240,67 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 					MtvRoomPlayingWaitingTimerEndState: &brainy.StateNode{
 						On: brainy.Events{
-							MtvRoomTimerExpiredEvent: brainy.Transition{
-								Target: MtvRoomPlayingTimeoutExpiredState,
+							MtvRoomTimerExpiredEvent: brainy.Transitions{
+								{
+									Cond: func(c brainy.Context, e brainy.Event) bool {
+										timerExpirationEvent := e.(MtvRoomTimerExpirationEvent)
+										currentTrackEnded := timerExpirationEvent.Timer.State == shared.MtvRoomTimerStateFinished
 
-								Actions: brainy.Actions{
-									brainy.ActionFn(
-										func(c brainy.Context, e brainy.Event) error {
-											ctx := c.(*MtvRoomMachineContext)
-											event := e.(MtvRoomTimerExpirationEvent)
+										return currentTrackEnded
+									},
 
-											ctx.Timer = event.Timer
+									Target: MtvRoomPlayingTimeoutExpiredState,
 
-											return nil
-										},
-									),
+									Actions: brainy.Actions{
+										brainy.ActionFn(
+											func(c brainy.Context, e brainy.Event) error {
+												ctx := c.(*MtvRoomMachineContext)
+												event := e.(MtvRoomTimerExpirationEvent)
+
+												switch event.Timer.State {
+												case shared.MtvRoomTimerStatePending:
+													ctx.Timer = event.Timer
+
+												case shared.MtvRoomTimerStateFinished:
+													if tracksCount := len(internalState.Tracks); tracksCount == 1 {
+														internalState.Tracks = []shared.TrackMetadata{}
+														internalState.TracksIDsList = []string{}
+
+														ctx.Timer = event.Timer
+													} else {
+														internalState.CurrentTrack = internalState.Tracks[0]
+														ctx.Timer = shared.MtvRoomTimer{
+															State:         shared.MtvRoomTimerStateIdle,
+															Elapsed:       0,
+															TotalDuration: internalState.CurrentTrack.Duration,
+														}
+
+														internalState.Tracks = internalState.Tracks[1:]
+														internalState.TracksIDsList = internalState.TracksIDsList[1:]
+													}
+												}
+
+												return nil
+											},
+										),
+									},
+								},
+
+								{
+									Target: MtvRoomPlayingTimeoutExpiredState,
+
+									Actions: brainy.Actions{
+										brainy.ActionFn(
+											func(c brainy.Context, e brainy.Event) error {
+												ctx := c.(*MtvRoomMachineContext)
+												event := e.(MtvRoomTimerExpirationEvent)
+
+												ctx.Timer = event.Timer
+
+												return nil
+											},
+										),
+									},
 								},
 							},
 
@@ -299,7 +334,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				},
 			},
 		},
-	}, brainy.WithDisableLocking())
+	})
 	if err != nil {
 		fmt.Printf("machine error : %v\n", err)
 		return err
@@ -368,6 +403,26 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				terminated = true
 			}
 		})
+
+		if timerExpirationFuture != nil {
+			selector.AddFuture(timerExpirationFuture, func(f workflow.Future) {
+				var timerActivityResult shared.MtvRoomTimer
+
+				if err := f.Get(ctx, &timerActivityResult); err != nil {
+					logger.Error("error occured in timer activity", err)
+
+					return
+				}
+
+				internalState.Machine.Send(
+					NewMtvRoomTimerExpirationEvent(timerActivityResult),
+				)
+
+				// timerContext.CancelTimer = nil
+
+				timerExpirationFuture = nil
+			})
+		}
 
 		selector.Select(ctx)
 

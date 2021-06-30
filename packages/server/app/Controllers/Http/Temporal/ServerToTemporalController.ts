@@ -1,5 +1,8 @@
 import Env from '@ioc:Adonis/Core/Env';
-import { CreateWorkflowResponse } from '@musicroom/types';
+import {
+    AppMusicPlayerMachineContext,
+    CreateWorkflowResponse,
+} from '@musicroom/types';
 import got from 'got';
 import urlcat from 'urlcat';
 
@@ -96,6 +99,25 @@ export default class ServerToTemporalController {
             });
         } catch (e) {
             throw new Error('PLAY FAILED ' + workflowID);
+        }
+    }
+
+    public static async getState(
+        workflowID: string,
+        runID: string,
+    ): Promise<AppMusicPlayerMachineContext> {
+        try {
+            const url = urlcat(TEMPORAL_ENDPOINT, '/state/:workflowID/:runID', {
+                workflowID,
+                runID,
+            });
+            return AppMusicPlayerMachineContext.parse(
+                await got.get(url, {
+                    responseType: 'json',
+                }),
+            );
+        } catch (e) {
+            throw new Error('Get State FAILED' + workflowID);
         }
     }
 }

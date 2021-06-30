@@ -1,4 +1,5 @@
 import {
+    AppMusicPlayerMachineContext,
     CreateWorkflowResponse,
     RoomClientToServerCreate,
     RoomClientToServerEvents,
@@ -91,5 +92,12 @@ export default class MtvRoomsWsController {
         const room = await MtvRoom.findOrFail(roomID);
         await ServerToTemporalController.terminateWorkflow(roomID, room.runID);
         await room.delete();
+    }
+
+    public static async onGetState(
+        roomID: string,
+    ): Promise<AppMusicPlayerMachineContext> {
+        const room = await MtvRoom.findOrFail(roomID);
+        return await ServerToTemporalController.getState(roomID, room.runID);
     }
 }

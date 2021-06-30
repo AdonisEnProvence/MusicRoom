@@ -66,7 +66,26 @@ Ws.io.on('connection', async (socket) => {
             }
         });
 
-        socket.on('JOIN_ROOM', async (payload) => {
+        socket.on('GET_CONTEXT', async (cb) => {
+            try {
+                //TODO CHECK AUTH, socket id is in mtvRoom
+                const { mtvRoomID } = await getSocketConnectionCredentials(
+                    socket,
+                );
+                if (mtvRoomID === undefined) {
+                    throw new Error(
+                        "GET_CONTEXT failed user doesn't have a mtvRoom",
+                    );
+                }
+                cb({
+                    context: await MtvRoomsWsController.onGetState(mtvRoomID),
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        });
+
+        socket.on('JOIN_ROOM', async (args) => {
             try {
                 await MtvRoomsWsController.onJoin({ socket, payload });
             } catch (e) {

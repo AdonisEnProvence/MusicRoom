@@ -57,8 +57,9 @@ export interface RoomClientToServerEvents {
         callback: (roomID: string, name: string) => void,
     ) => void;
     JOIN_ROOM: (args: RoomClientToServerJoin) => void;
-    ACTION_PLAY: (args: RoomClientToServerPlay) => void;
-    ACTION_PAUSE: (args: RoomClientToServerPause) => void;
+    GET_CONTEXT: (
+        callback: (payload: RoomServerToClientRetrieveContext) => void,
+    ) => void;
 }
 
 export interface RoomServerToClientEvents {

@@ -259,4 +259,118 @@ test.group('Rooms life cycle', (group) => {
          */
         assert.isNull(await MtvRoom.findBy('creator', userID));
     });
+    test("It should join room for every user's session/device after one emits JOIN_ROOM", async (assert) => {
+        const userID = datatype.uuid();
+        let userCouldEmitAnExclusiveRoomSignal = false;
+        /** Mocks */
+        sinon
+            .stub(ServerToTemporalController, 'joinWorkflow')
+            .callsFake(async () => {
+                return;
+            });
+        sinon.stub(ServerToTemporalController, 'play').callsFake(async () => {
+            userCouldEmitAnExclusiveRoomSignal = true;
+            return;
+        });
+        /** ***** */
+        const socketA = await createUserAndGetSocket(userID);
+        const socketB = await createSocketConnection(userID);
+        const fakeRoomID = datatype.uuid();
+        await MtvRoom.create({
+            uuid: fakeRoomID,
+            runID: datatype.uuid(),
+            creator: userID,
+        });
+        socketA.emit('JOIN_ROOM', { roomID: fakeRoomID });
+        await sleep();
+        socketB.emit('ACTION_PLAY');
+        await sleep();
+        assert.equal(userCouldEmitAnExclusiveRoomSignal, true);
+    });
+    test("It should join room for every user's session/device after one emits CREATE_ROOM", async (assert) => {
+        const name = random.word();
+        const userID = datatype.uuid();
+        let userCouldEmitAnExclusiveRoomSignal = false;
+        /** Mocks */
+        sinon
+            .stub(ServerToTemporalController, 'createWorflow')
+            .callsFake(async () => {
+                console.log('YES'.repeat(10));
+                return {
+                    runID: datatype.uuid(),
+                    workflowID: datatype.uuid(),
+                    state: {
+                        playing: false,
+                        name,
+                        users: [userID],
+                    },
+                };
+            });
+        sinon
+            .stub(ServerToTemporalController, 'joinWorkflow')
+            .callsFake(async () => {
+                console.log('join Mocking Called');
+                return;
+            });
+        sinon.stub(ServerToTemporalController, 'play').callsFake(async () => {
+            userCouldEmitAnExclusiveRoomSignal = true;
+            console.log('play mock called');
+            return;
+        });
+        sinon
+            .stub(ServerToTemporalController, 'terminateWorkflow')
+            .callsFake(async (): Promise<void> => {
+                return;
+            });
+        /** ***** */
+        const socketA = await createUserAndGetSocket(userID);
+        const socketB = await createSocketConnection(userID);
+        socketA.emit('CREATE_ROOM', { name }, () => {
+            return;
+        });
+        await sleep();
+        console.log('all = ', await MtvRoom.all());
+        assert.isNotNull(await MtvRoom.findBy('creator', userID));
+        socketB.emit('ACTION_PLAY');
+        await sleep();
+        assert.equal(userCouldEmitAnExclusiveRoomSignal, true);
+    });
+    test.only('It should retrieve context from previous alive sessions on new one', async (assert) => {
+        const userID = datatype.uuid();
+        const name = random.word();
+        /** Mocks */
+        sinon
+            .stub(ServerToTemporalController, 'createWorflow')
+            .callsFake(async () => {
+                return {
+                    runID: datatype.uuid(),
+                    workflowID: datatype.uuid(),
+                    state: {
+                        playing: false,
+                        name,
+                        users: [userID],
+                    },
+                };
+            });
+        sinon
+            .stub(ServerToTemporalController, 'joinWorkflow')
+            .callsFake(async () => {
+                return;
+            });
+        /** ***** */
+        const socketA = await createUserAndGetSocket(userID);
+        const socketB = {
+            socket: await createSocketConnection(userID),
+            receivedEvents: [] as string[],
+        };
+        socketB.socket.once('RETRIEVE_CONTEXT', (payload) => {
+            console.log('retrieve context', { payload });
+            socketB.receivedEvents.push('RETRIEVE_CONTEXT');
+        });
+        socketA.emit('CREATE_ROOM', { name }, () => {
+            return;
+        });
+        await sleep();
+        assert.equal(socketB.receivedEvents[0], 'RETRIEVE_CONTEXT');
+    });
 });

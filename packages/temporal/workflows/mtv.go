@@ -63,13 +63,15 @@ const (
 	MtvRoomPausedStoppingState         brainy.StateType = "stopping"
 	MtvRoomPausedStoppedState          brainy.StateType = "stopped"
 	MtvRoomPlayingState                brainy.StateType = "playing"
+	MtvRoomPlayingLauchingTimerState   brainy.StateType = "launching-timer"
 	MtvRoomPlayingWaitingTimerEndState brainy.StateType = "waiting-timer-end"
 	MtvRoomPlayingTimeoutExpiredState  brainy.StateType = "timeout-expired"
 
-	MtvRoomPlayEvent         brainy.EventType = "PLAY"
-	MtvRoomPauseEvent        brainy.EventType = "PAUSE"
-	MtvRoomTimerExpiredEvent brainy.EventType = "TIMER_EXPIRED"
-	MtvRoomGoToPausedEvent   brainy.EventType = "GO_TO_PAUSED"
+	MtvRoomPlayEvent          brainy.EventType = "PLAY"
+	MtvRoomPauseEvent         brainy.EventType = "PAUSE"
+	MtvRoomTimerLaunchedEvent brainy.EventType = "TIMER_LAUNCHED"
+	MtvRoomTimerExpiredEvent  brainy.EventType = "TIMER_EXPIRED"
+	MtvRoomGoToPausedEvent    brainy.EventType = "GO_TO_PAUSED"
 )
 
 type MtvRoomTimerExpirationEvent struct {
@@ -159,13 +161,13 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							}
 							ctx = workflow.WithActivityOptions(ctx, options)
 
-							err := workflow.ExecuteActivity(
+							workflow.ExecuteActivity(
 								ctx,
 								activities.PauseActivity,
 								params.RoomID,
-							).Get(ctx, nil)
+							)
 
-							return err
+							return nil
 						},
 					),
 				},
@@ -183,13 +185,13 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									}
 									ctx = workflow.WithActivityOptions(ctx, options)
 
-									err := workflow.ExecuteActivity(
+									workflow.ExecuteActivity(
 										ctx,
 										activities.PlayActivity,
 										params.RoomID,
-									).Get(ctx, nil)
+									)
 
-									return err
+									return nil
 								},
 							),
 						},
@@ -198,23 +200,24 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 			},
 
 			MtvRoomPlayingState: &brainy.StateNode{
-				Initial: MtvRoomPlayingWaitingTimerEndState,
+				Initial: MtvRoomPlayingLauchingTimerState,
 
 				States: brainy.StateNodes{
-					MtvRoomPlayingWaitingTimerEndState: &brainy.StateNode{
+					MtvRoomPlayingLauchingTimerState: &brainy.StateNode{
 						OnEntry: brainy.Actions{
 							brainy.ActionFn(
 								func(c brainy.Context, e brainy.Event) error {
 									timerContext := c.(*MtvRoomMachineContext)
 
-									ao := workflow.ActivityOptions{
-										ScheduleToStartTimeout: 5 * time.Second,
-										StartToCloseTimeout:    internalState.CurrentTrack.Duration * 2,
-									}
-									ctx = workflow.WithActivityOptions(ctx, ao)
-
 									childCtx, cancel := workflow.WithCancel(ctx)
 									timerContext.CancelTimer = cancel
+
+									ao := workflow.ActivityOptions{
+										StartToCloseTimeout: internalState.CurrentTrack.Duration * 2,
+										HeartbeatTimeout:    5 * time.Second,
+										WaitForCancellation: true,
+									}
+									childCtx = workflow.WithActivityOptions(childCtx, ao)
 
 									timerExpirationFuture = workflow.ExecuteActivity(
 										childCtx,
@@ -225,7 +228,15 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									return nil
 								},
 							),
+							brainy.Send(MtvRoomTimerLaunchedEvent),
 						},
+
+						On: brainy.Events{
+							MtvRoomTimerLaunchedEvent: MtvRoomPlayingWaitingTimerEndState,
+						},
+					},
+
+					MtvRoomPlayingWaitingTimerEndState: &brainy.StateNode{
 
 						On: brainy.Events{
 							MtvRoomTimerExpiredEvent: brainy.Transitions{
@@ -376,13 +387,11 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					StartToCloseTimeout:    time.Minute,
 				}
 				ctx = workflow.WithActivityOptions(ctx, options)
-				if err := workflow.ExecuteActivity(
+				workflow.ExecuteActivity(
 					ctx,
 					activities.JoinActivity,
 					internalState.Export(),
-				).Get(ctx, nil); err != nil {
-					return
-				}
+				)
 			case shared.SignalRouteTerminate:
 				terminated = true
 			}
@@ -390,6 +399,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 		if timerExpirationFuture != nil {
 			selector.AddFuture(timerExpirationFuture, func(f workflow.Future) {
+				defer func() {
+					timerExpirationFuture = nil
+				}()
+
 				var timerActivityResult shared.MtvRoomTimer
 
 				if err := f.Get(ctx, &timerActivityResult); err != nil {
@@ -403,8 +416,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				)
 
 				// timerContext.CancelTimer = nil
-
-				timerExpirationFuture = nil
 			})
 		}
 

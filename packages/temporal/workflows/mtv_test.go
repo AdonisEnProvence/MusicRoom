@@ -67,22 +67,22 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		activities.FetchTracksInformationActivity,
 		mock.Anything,
 		mock.Anything,
-	).Return(tracks, nil)
+	).Return(tracks, nil).Once()
 	s.env.OnActivity(
 		activities.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
-	).Return(nil)
+	).Return(nil).Once()
 	s.env.OnActivity(
 		activities.PlayActivity,
 		mock.Anything,
 		mock.Anything,
-	).Return(nil)
+	).Return(nil).Times(2)
 	s.env.OnActivity(
 		activities.PauseActivity,
 		mock.Anything,
 		mock.Anything,
-	).Return(nil)
+	).Return(nil).Times(3)
 
 	var timerToReturn shared.MtvRoomTimer
 	s.env.OnActivity(
@@ -118,17 +118,6 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 		s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
 	}, firstPlaySignalDelay)
-	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomExposedState
-
-		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
-		s.NoError(err)
-
-		err = res.Get(&mtvState)
-		s.NoError(err)
-
-		s.True(mtvState.Playing)
-	}, firstPlaySignalDelay+1*time.Millisecond)
 
 	firstPauseSignalDelay := firstPlaySignalDelay + 1*time.Millisecond + firstTrackDurationFirstThird
 	s.env.RegisterDelayedCallback(func() {
@@ -136,17 +125,6 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 		s.env.SignalWorkflow(shared.SignalChannelName, pauseSignal)
 	}, firstPauseSignalDelay)
-	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomExposedState
-
-		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
-		s.NoError(err)
-
-		err = res.Get(&mtvState)
-		s.NoError(err)
-
-		s.False(mtvState.Playing)
-	}, firstPauseSignalDelay+1*time.Millisecond)
 
 	secondStateQueryAfterTotalTrackDuration := firstPauseSignalDelay + firstTrackDuration
 	s.env.RegisterDelayedCallback(func() {
@@ -158,7 +136,6 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		err = res.Get(&mtvState)
 		s.NoError(err)
 
-		s.False(mtvState.Playing)
 		s.Equal(tracks[0], mtvState.CurrentTrack)
 	}, secondStateQueryAfterTotalTrackDuration)
 
@@ -174,17 +151,6 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 		s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
 	}, secondPlaySignalDelay)
-	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomExposedState
-
-		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
-		s.NoError(err)
-
-		err = res.Get(&mtvState)
-		s.NoError(err)
-
-		s.True(mtvState.Playing)
-	}, secondPlaySignalDelay+1*time.Millisecond)
 
 	stateQueryAfterFirstTrackMustHaveFinished := secondPlaySignalDelay + firstTrackDuration
 	s.env.RegisterDelayedCallback(func() {
@@ -196,8 +162,6 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		err = res.Get(&mtvState)
 		s.NoError(err)
 
-		// TODO: currently we go to pause state after a song ended
-		s.True(mtvState.Playing)
 		s.Equal(tracks[1], mtvState.CurrentTrack)
 	}, stateQueryAfterFirstTrackMustHaveFinished)
 

@@ -56,6 +56,7 @@ func JoinActivity(ctx context.Context, state shared.MtvRoomExposedState) error {
 	return err
 }
 
+// TODO: implement heartbeat
 func TrackTimerActivity(ctx context.Context, timerState shared.MtvRoomTimer) (shared.MtvRoomTimer, error) {
 	timerStartTime := time.Now()
 	durationBeforeTrackEnd := timerState.TotalDuration - timerState.Elapsed

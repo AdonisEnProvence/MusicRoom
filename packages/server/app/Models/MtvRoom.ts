@@ -1,4 +1,4 @@
-import { BaseModel, BelongsTo, belongsTo, column } from '@ioc:Adonis/Lucid/Orm';
+import { BaseModel, column, hasMany, HasMany } from '@ioc:Adonis/Lucid/Orm';
 import { DateTime } from 'luxon';
 import User from './User';
 
@@ -12,10 +12,10 @@ export default class MtvRoom extends BaseModel {
     @column()
     public creator: string;
 
-    @belongsTo(() => User, {
-        foreignKey: 'uuid',
+    @hasMany(() => User, {
+        foreignKey: 'mtvRoomID',
     })
-    public creatorRef: BelongsTo<typeof User>;
+    public members: HasMany<typeof User>;
 
     @column.dateTime({ autoCreate: true })
     public createdAt: DateTime;

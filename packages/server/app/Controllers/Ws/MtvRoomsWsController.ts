@@ -32,8 +32,8 @@ export default class MtvRoomsWsController {
     }: WsControllerMethodArgs<
         RoomClientToServerCreate & UserID
     >): Promise<CreateWorkflowResponse> {
-        console.log('Creating room' + payload.name);
         const roomID = randomUUID();
+        console.log(`USER ${payload.userID} CREATE_ROOM ${roomID}`);
         const res = await ServerToTemporalController.createWorflow(
             roomID,
             payload.name,
@@ -52,8 +52,9 @@ export default class MtvRoomsWsController {
             runID: res.runID,
             creator: payload.userID,
         });
-        await room.related('creatorRef').associate(roomCreator);
-        console.log(`created room ${roomID}`);
+        roomCreator.mtvRoomID = roomID;
+        await room.save();
+        await room.related('members').save(roomCreator);
         return res;
     }
 
@@ -78,14 +79,17 @@ export default class MtvRoomsWsController {
             room.runID,
             userID,
         );
-        await joiningUser.related('mtvRoom').save(room);
+
         await joiningUser.load('devices');
         await Promise.all(
             joiningUser.devices.map(async (device) => {
-                console.log('JOIN connecting device ', device.uuid);
+                console.log('JOIN connecting device ', device.socketID);
                 await Ws.adapter().remoteJoin(device.socketID, roomID);
             }),
         );
+        joiningUser.mtvRoomID = roomID;
+        await joiningUser.save();
+        await joiningUser.related('mtvRoom').associate(room);
         console.log('in array', await Ws.adapter().sockets(new Set([roomID])));
     }
 

@@ -30,20 +30,24 @@ async function getSocketConnectionCredentials(
         );
     }
     const userID = device.user.uuid;
-    await device.user.load('mtvRoom');
-    let mtvRoomID: string | undefined;
-    if (device.user.mtvRoom !== null) {
-        mtvRoomID = device.user.mtvRoom.uuid;
-        const socketConnectionsToRoomID = await Ws.adapter().sockets(
+    const mtvRoomID = device.user.mtvRoomID ?? undefined;
+
+    /**
+     * Implicit socket io instance auth
+     * If a user has a mtvRoomID, socket connection going through this function
+     * should be found in the room's connectedSockets
+     */
+    if (mtvRoomID !== undefined) {
+        const connectedSocketsInRoomID = await Ws.adapter().sockets(
             new Set([mtvRoomID]),
         );
-        console.log({ socketConnectionsToRoomID, socketID: socket.id });
-        if (!socketConnectionsToRoomID.has(socket.id)) {
+        if (!connectedSocketsInRoomID.has(socket.id)) {
             throw new Error(
                 'Device should appears in the socket io room too, synchro error',
             );
         }
     }
+
     return {
         userID,
         mtvRoomID,

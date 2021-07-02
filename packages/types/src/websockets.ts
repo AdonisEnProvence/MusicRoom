@@ -19,12 +19,10 @@ export interface ChatServerToClientReceivedMessageArgs {
 
 export interface RoomClientToServerCreate {
     name: string;
-    userID: string;
 }
 
 export interface RoomClientToServerJoin {
     roomID: string;
-    userID: string;
 }
 
 export interface Track {
@@ -37,15 +35,10 @@ export type RoomServerToClientJoin = {
     name: string;
     // track: Track;
 };
-export type RoomClientToServerPause = {
-    roomID: string;
-};
 
 export type RoomServerToClientRetrieveContext = {
     context: AppMusicPlayerMachineContext;
 };
-
-export type RoomClientToServerPlay = RoomClientToServerPause;
 
 export interface ChatClientToServerEvents {
     NEW_MESSAGE: (args: ChatClientToServerNewMessageArgs) => void;
@@ -57,8 +50,11 @@ export interface RoomClientToServerEvents {
         callback: (roomID: string, name: string) => void,
     ) => void;
     JOIN_ROOM: (args: RoomClientToServerJoin) => void;
-    ACTION_PLAY: (args: RoomClientToServerPlay) => void;
-    ACTION_PAUSE: (args: RoomClientToServerPause) => void;
+    ACTION_PLAY: () => void;
+    GET_CONTEXT: (
+        callback: (payload: RoomServerToClientRetrieveContext) => void,
+    ) => void;
+    ACTION_PAUSE: () => void;
 }
 
 export interface RoomServerToClientEvents {

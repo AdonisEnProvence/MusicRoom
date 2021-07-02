@@ -1,11 +1,11 @@
 import {
     BaseModel,
     beforeCreate,
+    BelongsTo,
+    belongsTo,
     column,
     HasMany,
     hasMany,
-    HasOne,
-    hasOne,
 } from '@ioc:Adonis/Lucid/Orm';
 import { randomUUID } from 'crypto';
 import { DateTime } from 'luxon';
@@ -19,10 +19,17 @@ export default class User extends BaseModel {
     @column()
     public nickname: string;
 
-    @hasOne(() => MtvRoom)
-    public mtvRoom: HasOne<typeof MtvRoom>;
+    @column({ columnName: 'mtv_room_id' })
+    public mtvRoomID: string | null;
 
-    @hasMany(() => Device)
+    @belongsTo(() => MtvRoom, {
+        foreignKey: 'mtvRoomID',
+    })
+    public mtvRoom: BelongsTo<typeof MtvRoom>;
+
+    @hasMany(() => Device, {
+        foreignKey: 'userID',
+    })
     public devices: HasMany<typeof Device>;
 
     @column.dateTime({ autoCreate: true })

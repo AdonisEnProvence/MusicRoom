@@ -24,22 +24,28 @@ function waitForTimeout(ms: number): Promise<void> {
 
 const sleep = async (): Promise<void> => await waitForTimeout(100);
 
-type TypedSocket = Socket<AllServerToClientEvents, AllClientToServerEvents>;
+type TypedTestSocket = Socket<AllServerToClientEvents, AllClientToServerEvents>;
 
-let socketsConnections: TypedSocket[] = [];
+let socketsConnections: TypedTestSocket[] = [];
 
-async function createSocketConnection(userID: string): Promise<TypedSocket> {
+async function createSocketConnection(
+    userID: string,
+    requiredEventListeners?: (socket: TypedTestSocket) => void,
+): Promise<TypedTestSocket> {
     const socket = io(BASE_URL, {
         query: {
             userID,
         },
     });
     socketsConnections.push(socket);
+    if (requiredEventListeners) requiredEventListeners(socket);
     await sleep();
     return socket;
 }
 
-async function createUserAndGetSocket(userID: string): Promise<TypedSocket> {
+async function createUserAndGetSocket(
+    userID: string,
+): Promise<TypedTestSocket> {
     await User.create({
         uuid: userID,
         nickname: random.word(),
@@ -47,7 +53,7 @@ async function createUserAndGetSocket(userID: string): Promise<TypedSocket> {
     return await createSocketConnection(userID);
 }
 
-async function disconnectSocket(socket: TypedSocket): Promise<void> {
+async function disconnectSocket(socket: TypedTestSocket): Promise<void> {
     socket.disconnect();
     socketsConnections = socketsConnections.filter((el) => el.id !== socket.id);
     await sleep();
@@ -62,16 +68,17 @@ async function disconnectSocket(socket: TypedSocket): Promise<void> {
 
 test.group('Rooms life cycle', (group) => {
     group.beforeEach(async () => {
-        await Database.beginGlobalTransaction();
         socketsConnections = [];
+        await Database.beginGlobalTransaction();
     });
 
     group.afterEach(async () => {
         sinon.restore();
-        await Database.rollbackGlobalTransaction();
         socketsConnections.forEach((socket) => {
             socket.disconnect();
         });
+        await sleep();
+        await Database.rollbackGlobalTransaction();
     });
 
     test('On user socket connection, it should register his device in db, on disconnection removes it from db', async (assert) => {
@@ -124,7 +131,7 @@ test.group('Rooms life cycle', (group) => {
          * Emit CREATE_ROOM
          * Expecting it to be in database
          */
-        socket.emit('CREATE_ROOM', { name, userID }, () => {
+        socket.emit('CREATE_ROOM', { name }, () => {
             return;
         });
         await sleep();
@@ -187,9 +194,15 @@ test.group('Rooms life cycle', (group) => {
          * Check if both users devices are in db
          * UserA creates room
          */
-        assert.isNotNull(await Device.findBy('user_id', userA.userID));
-        assert.isNotNull(await Device.findBy('user_id', userB.userID));
-        userA.socket.emit('CREATE_ROOM', { name, userID: userA.userID }, () => {
+        const deviceA = await Device.findBy('user_id', userA.userID);
+        const deviceB = await Device.findBy('socket_id', userB.socket.id);
+        assert.isNotNull(deviceA);
+        assert.isNotNull(deviceB);
+        if (!deviceA || !deviceB)
+            throw new Error('DeviceA nor DeviceB is/are undefined');
+        assert.equal(deviceA.socketID, userA.socket.id);
+        assert.equal(deviceB.userID, userB.userID);
+        userA.socket.emit('CREATE_ROOM', { name }, () => {
             return;
         });
         await sleep();
@@ -203,9 +216,11 @@ test.group('Rooms life cycle', (group) => {
         if (!room) throw new Error('room is undefined');
         userB.socket.emit('JOIN_ROOM', {
             roomID: room.uuid,
-            userID: userB.userID,
         });
         await sleep();
+        await room.refresh();
+        await room.load('members');
+        assert.equal(room.members.length, 2);
 
         /**
          * UserA emits disconnect
@@ -220,7 +235,9 @@ test.group('Rooms life cycle', (group) => {
         assert.isNull(await MtvRoom.findBy('creator', userA.userID));
         assert.equal(userB.receivedEvents[0], 'FORCED_DISCONNECTION');
         assert.isNotNull(await Device.findBy('user_id', userB.userID));
+        await disconnectSocket(userB.socket);
     });
+
     test('It should not remove room from database, as creator has more than one device/session alive', async (assert) => {
         const userID = datatype.uuid();
         const user = {
@@ -259,5 +276,194 @@ test.group('Rooms life cycle', (group) => {
          * Check if room is not in database
          */
         assert.isNull(await MtvRoom.findBy('creator', userID));
+    });
+    test("It should creates a room, and it should join room for every user's session/device after one emits JOIN_ROOM", async (assert) => {
+        const userID = datatype.uuid();
+        const creatorID = datatype.uuid();
+        const name = random.word();
+        let userCouldEmitAnExclusiveRoomSignal = false;
+
+        /** Mocks */
+        sinon
+            .stub(ServerToTemporalController, 'createWorflow')
+            .callsFake(async () => {
+                return {
+                    runID: datatype.uuid(),
+                    workflowID: datatype.uuid(),
+                    state: {
+                        playing: false,
+                        name,
+                        users: [creatorID],
+                    },
+                };
+            });
+        sinon
+            .stub(ServerToTemporalController, 'joinWorkflow')
+            .callsFake(async () => {
+                return;
+            });
+        sinon.stub(ServerToTemporalController, 'play').callsFake(async () => {
+            userCouldEmitAnExclusiveRoomSignal = true;
+            return;
+        });
+        /** ***** */
+
+        /**
+         * Fisrt creatorUser creates a room
+         */
+        const creatorUser = await createUserAndGetSocket(creatorID);
+        creatorUser.emit(
+            'CREATE_ROOM',
+            {
+                name: random.word(),
+            },
+            () => {
+                return;
+            },
+        );
+        await sleep();
+        const createdRoom = await MtvRoom.findBy('creator', creatorID);
+        assert.isNotNull(createdRoom);
+        if (!createdRoom) throw new Error('room is undefined');
+
+        /**
+         * JoiningUser connects 2 socket and joins the createdRoom with one
+         */
+        const joiningUser = {
+            socketA: await createUserAndGetSocket(userID),
+            socketB: await createSocketConnection(userID),
+        };
+        joiningUser.socketA.emit('JOIN_ROOM', { roomID: createdRoom.uuid });
+        await sleep();
+
+        /**
+         * JoiningUser emit an ACTION_PLAY with the other socket connection
+         * It achieves only if he joined the socket io server room
+         */
+        joiningUser.socketB.emit('ACTION_PLAY');
+        await sleep();
+        assert.equal(userCouldEmitAnExclusiveRoomSignal, true);
+    });
+    test("It should join room for every user's session/device after one emits CREATE_ROOM", async (assert) => {
+        const name = random.word();
+        const userID = datatype.uuid();
+        let userCouldEmitAnExclusiveRoomSignal = false;
+
+        /** Mocks */
+        sinon
+            .stub(ServerToTemporalController, 'createWorflow')
+            .callsFake(async () => {
+                return {
+                    runID: datatype.uuid(),
+                    workflowID: datatype.uuid(),
+                    state: {
+                        playing: false,
+                        name,
+                        users: [userID],
+                    },
+                };
+            });
+        sinon.stub(ServerToTemporalController, 'play').callsFake(async () => {
+            userCouldEmitAnExclusiveRoomSignal = true;
+            console.log('play mock called');
+            return;
+        });
+        sinon
+            .stub(ServerToTemporalController, 'terminateWorkflow')
+            .callsFake(async (): Promise<void> => {
+                return;
+            });
+        /** ***** */
+
+        /**
+         * User connects two devices then create a room from one
+         */
+        const socketA = await createUserAndGetSocket(userID);
+        const socketB = await createSocketConnection(userID);
+        assert.equal((await Device.all()).length, 2);
+        socketA.emit('CREATE_ROOM', { name }, () => {
+            return;
+        });
+        await sleep();
+        assert.isNotNull(await MtvRoom.findBy('creator', userID));
+
+        /**
+         * From the other one he emits an ACTION_PLAY event
+         * It achieves only if he joined the socket io server room
+         */
+        socketB.emit('ACTION_PLAY');
+        await sleep();
+        assert.equal(userCouldEmitAnExclusiveRoomSignal, true);
+    });
+
+    test('New user socket connection should join previously joined/created room and receieve RETRIEVE_CONTEXT event', async (assert) => {
+        const userID = datatype.uuid();
+        const name = random.word();
+        const socketA = await createUserAndGetSocket(userID);
+        let userCouldEmitAnExclusiveRoomSignal = false;
+        /** Mocks */
+        sinon
+            .stub(ServerToTemporalController, 'createWorflow')
+            .callsFake(async () => {
+                return {
+                    runID: datatype.uuid(),
+                    workflowID: datatype.uuid(),
+                    state: {
+                        playing: false,
+                        name,
+                        users: [userID],
+                    },
+                };
+            });
+        sinon
+            .stub(ServerToTemporalController, 'joinWorkflow')
+            .callsFake(async () => {
+                return;
+            });
+        sinon
+            .stub(ServerToTemporalController, 'getState')
+            .callsFake(async () => {
+                return {
+                    currentTrackDuration: datatype.number(),
+                    currentTrackElapsedTime: datatype.number(),
+                    currentRoom: undefined,
+                    currentTrack: undefined,
+                    users: undefined,
+                    waitingRoomID: undefined,
+                };
+            });
+        sinon.stub(ServerToTemporalController, 'play').callsFake(async () => {
+            userCouldEmitAnExclusiveRoomSignal = true;
+            return;
+        });
+        /** ***** */
+
+        /**
+         * User connects one device, then creates a room from it
+         */
+        socketA.emit('CREATE_ROOM', { name }, () => {
+            return;
+        });
+        await sleep();
+
+        /**
+         * User connects a new device, then emits an ACTION_PLAY
+         * It achieves only if he joined the socket io server room
+         * He also receives the mtvRoom's context
+         */
+        const receivedEvents: string[] = [];
+        const socketB = {
+            socket: await createSocketConnection(userID, (socket) => {
+                socket.once('RETRIEVE_CONTEXT', () => {
+                    receivedEvents.push('RETRIEVE_CONTEXT');
+                });
+            }),
+        };
+
+        socketB.socket.emit('ACTION_PLAY');
+        await sleep();
+
+        assert.isTrue(userCouldEmitAnExclusiveRoomSignal);
+        assert.equal(receivedEvents[0], 'RETRIEVE_CONTEXT');
     });
 });

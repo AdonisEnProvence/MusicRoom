@@ -20,7 +20,7 @@ export default class Device extends BaseModel {
     public socketID: string;
 
     @belongsTo(() => User, {
-        foreignKey: 'uuid',
+        foreignKey: 'userID',
     })
     public user: BelongsTo<typeof User>;
 

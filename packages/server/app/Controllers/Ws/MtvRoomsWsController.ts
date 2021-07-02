@@ -41,12 +41,17 @@ export default class MtvRoomsWsController {
         );
         const roomCreator = await User.findOrFail(payload.userID);
         await roomCreator.load('devices');
+
+        /**
+         * For all the roomCreator's devices join the room
+         */
         await Promise.all(
             roomCreator.devices.map(async (device) => {
                 console.log('connecting device ', device.uuid);
                 await Ws.adapter().remoteJoin(device.socketID, roomID);
             }),
         );
+
         const room = await MtvRoom.create({
             uuid: roomID,
             runID: res.runID,
@@ -79,14 +84,18 @@ export default class MtvRoomsWsController {
             room.runID,
             userID,
         );
-
         await joiningUser.load('devices');
+
+        /**
+         * For all the joiningUser's devices join the room
+         */
         await Promise.all(
             joiningUser.devices.map(async (device) => {
                 console.log('JOIN connecting device ', device.socketID);
                 await Ws.adapter().remoteJoin(device.socketID, roomID);
             }),
         );
+
         joiningUser.mtvRoomID = roomID;
         await joiningUser.save();
         await joiningUser.related('mtvRoom').associate(room);

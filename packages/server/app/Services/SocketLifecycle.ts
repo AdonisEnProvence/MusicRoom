@@ -6,6 +6,11 @@ import { TypedSocket } from 'start/socket';
 import Ws from './Ws';
 
 export default class SocketLifecycle {
+    /**
+     * Make the given socket joins the given mtvRoomID
+     * @param socket socket to synch
+     * @param mtvRoomID room whom to be synch with
+     */
     private static async synchMtvRoomContext(
         socket: TypedSocket,
         mtvRoomID: string,
@@ -16,6 +21,13 @@ export default class SocketLifecycle {
         socket.emit('RETRIEVE_CONTEXT', { context: mtvRoomContext });
     }
 
+    /**
+     * Register device from socket informations
+     *  - query userID
+     *  - userAgent
+     * Then associates it to the creator userModel
+     * @param socket Socket to match to a device
+     */
     public static async registerDevice(socket: TypedSocket): Promise<void> {
         const queryUserID = socket.handshake.query['userID'];
 

@@ -42,7 +42,7 @@ async function getSocketConnectionCredentials(
         );
         if (!connectedSocketsInRoomID.has(socket.id)) {
             throw new Error(
-                'Device should appears in the socket io room too, synchro error',
+                'Device should appears in the socket io room too, sync error',
             );
         }
     }

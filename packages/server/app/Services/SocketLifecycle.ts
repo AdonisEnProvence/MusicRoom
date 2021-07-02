@@ -8,10 +8,10 @@ import Ws from './Ws';
 export default class SocketLifecycle {
     /**
      * Make the given socket joins the given mtvRoomID
-     * @param socket socket to synch
-     * @param mtvRoomID room whom to be synch with
+     * @param socket socket to sync
+     * @param mtvRoomID room whom to be sync with
      */
-    private static async synchMtvRoomContext(
+    private static async syncMtvRoomContext(
         socket: TypedSocket,
         mtvRoomID: string,
     ): Promise<void> {
@@ -44,7 +44,7 @@ export default class SocketLifecycle {
         });
         await newDevice.related('user').associate(deviceOwner);
         if (deviceOwner.mtvRoomID) {
-            await this.synchMtvRoomContext(socket, deviceOwner.mtvRoomID);
+            await this.syncMtvRoomContext(socket, deviceOwner.mtvRoomID);
         }
     }
 

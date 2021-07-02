@@ -287,7 +287,6 @@ test.group('Rooms life cycle', (group) => {
         sinon
             .stub(ServerToTemporalController, 'createWorflow')
             .callsFake(async () => {
-                console.log('YES'.repeat(10));
                 return {
                     runID: datatype.uuid(),
                     workflowID: datatype.uuid(),
@@ -354,7 +353,6 @@ test.group('Rooms life cycle', (group) => {
         sinon
             .stub(ServerToTemporalController, 'createWorflow')
             .callsFake(async () => {
-                console.log('YES'.repeat(10));
                 return {
                     runID: datatype.uuid(),
                     workflowID: datatype.uuid(),

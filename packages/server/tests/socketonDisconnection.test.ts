@@ -31,6 +31,7 @@ let socketsConnections: TypedTestSocket[] = [];
 
 async function createSocketConnection(
     userID: string,
+    requiredEventListeners?: (socket: TypedTestSocket) => void,
 ): Promise<TypedTestSocket> {
     const socket = io(BASE_URL, {
         query: {
@@ -38,6 +39,7 @@ async function createSocketConnection(
         },
     });
     socketsConnections.push(socket);
+    if (requiredEventListeners) requiredEventListeners(socket);
     await sleep();
     return socket;
 }
@@ -372,9 +374,11 @@ test.group('Rooms life cycle', (group) => {
         await sleep();
         assert.equal(userCouldEmitAnExclusiveRoomSignal, true);
     });
-    test('It should retrieve context from previous alive sessions on new one', async (assert) => {
+    test('New user socket connection should join previously joined/created room and receieve RETRIEVE_CONTEXT event', async (assert) => {
         const userID = datatype.uuid();
         const name = random.word();
+        const socketA = await createUserAndGetSocket(userID);
+        let userCouldEmitAnExclusiveRoomSignal = false;
         /** Mocks */
         sinon
             .stub(ServerToTemporalController, 'createWorflow')
@@ -394,20 +398,42 @@ test.group('Rooms life cycle', (group) => {
             .callsFake(async () => {
                 return;
             });
-        /** ***** */
-        const socketA = await createUserAndGetSocket(userID);
-        const socketB = {
-            socket: await createSocketConnection(userID),
-            receivedEvents: [] as string[],
-        };
-        socketB.socket.once('RETRIEVE_CONTEXT', (payload) => {
-            console.log('retrieve context', { payload });
-            socketB.receivedEvents.push('RETRIEVE_CONTEXT');
+        sinon
+            .stub(ServerToTemporalController, 'getState')
+            .callsFake(async () => {
+                return {
+                    currentTrackDuration: datatype.number(),
+                    currentTrackElapsedTime: datatype.number(),
+                    currentRoom: undefined,
+                    currentTrack: undefined,
+                    users: undefined,
+                    waitingRoomID: undefined,
+                };
+            });
+        sinon.stub(ServerToTemporalController, 'play').callsFake(async () => {
+            userCouldEmitAnExclusiveRoomSignal = true;
+            return;
         });
+        /** ***** */
+
         socketA.emit('CREATE_ROOM', { name }, () => {
             return;
         });
         await sleep();
-        assert.equal(socketB.receivedEvents[0], 'RETRIEVE_CONTEXT');
+
+        const receivedEvents: string[] = [];
+        const socketB = {
+            socket: await createSocketConnection(userID, (socket) => {
+                socket.once('RETRIEVE_CONTEXT', (payload) => {
+                    receivedEvents.push('RETRIEVE_CONTEXT');
+                });
+            }),
+        };
+
+        socketB.socket.emit('ACTION_PLAY');
+        await sleep();
+
+        assert.isTrue(userCouldEmitAnExclusiveRoomSignal);
+        assert.equal(receivedEvents[0], 'RETRIEVE_CONTEXT');
     });
 });

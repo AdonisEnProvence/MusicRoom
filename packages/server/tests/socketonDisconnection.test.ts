@@ -7,7 +7,6 @@ import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTe
 import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
-import Ws from 'App/Services/Ws';
 import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
@@ -161,7 +160,6 @@ test.group('Rooms life cycle', (group) => {
             receivedEvents: [] as string[],
         };
         userB.socket.once('FORCED_DISCONNECTION', () => {
-            console.log('USERB RECEIVED FORCER_DISCONNECTION');
             userB.receivedEvents.push('FORCED_DISCONNECTION');
         });
         const name = random.word();
@@ -223,12 +221,12 @@ test.group('Rooms life cycle', (group) => {
         await room.refresh();
         await room.load('members');
         assert.equal(room.members.length, 2);
+
         /**
          * UserA emits disconnect
          */
-        console.log('YOLO', await Ws.adapter().sockets(new Set([room.uuid])));
         await disconnectSocket(userA.socket);
-        await waitForTimeout(1000);
+
         /**
          * Check if room isn't in db
          * If UserB received FORCED_DISCONNECTION websocket event

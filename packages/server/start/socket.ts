@@ -1,4 +1,3 @@
-import Event from '@ioc:Adonis/Core/Event';
 import ChatController from 'App/Controllers/Ws/ChatController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
@@ -53,10 +52,6 @@ async function getSocketConnectionCredentials(
         mtvRoomID,
     };
 }
-
-Event.on('db:query', function ({ sql, bindings }) {
-    console.log(sql, bindings);
-});
 
 Ws.io.on('connection', async (socket) => {
     try {

@@ -20,7 +20,7 @@ export default class User extends BaseModel {
     public nickname: string;
 
     @column({ columnName: 'mtv_room_id' })
-    public mtvRoomID: string;
+    public mtvRoomID: string | null;
 
     @belongsTo(() => MtvRoom, {
         foreignKey: 'mtvRoomID',

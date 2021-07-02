@@ -34,13 +34,7 @@ export default class SocketLifecycle {
         /**
          *  Manage owned MTVRoom max 1 per user
          */
-        console.log(await MtvRoom.all());
         const room = await MtvRoom.findBy('creator', device.userID);
-        if (room)
-            console.log(
-                'Genre avant ???',
-                await Ws.adapter().sockets(new Set([room.uuid])),
-            );
         const allUserDevices = await Device.query().where(
             'user_id',
             device.userID,

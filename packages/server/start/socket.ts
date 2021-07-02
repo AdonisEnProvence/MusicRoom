@@ -171,24 +171,10 @@ Ws.io.on('connection', async (socket) => {
 
         socket.on('disconnecting', async () => {
             try {
-                const allRooms = Array.from(await Ws.adapter().allRooms());
-                console.log('000000000');
-                await Promise.all(
-                    allRooms.map(async (room) => {
-                        console.log(
-                            await Ws.adapter().sockets(new Set([room])),
-                        );
-                    }),
-                );
-                console.log('111111111');
                 await SocketLifecycle.checkForMtvRoomDeletion(socket);
             } catch (e) {
                 console.error('Error on socket.on(disconnecting)', e);
             }
-        });
-
-        socket.on('disconnect', async () => {
-            console.log('*'.repeat(100));
         });
     } catch (e) {
         console.error(e);

@@ -26,6 +26,16 @@ interface RoomID {
 
 type Credentials = RoomID & UserID;
 
+async function joinEveryUserDevicesToRoom(user: User, roomID: string) {
+    await user.load('devices');
+    await Promise.all(
+        user.devices.map(async (device) => {
+            console.log('JOIN connecting device ', device.socketID);
+            await Ws.adapter().remoteJoin(device.socketID, roomID);
+        }),
+    );
+}
+
 export default class MtvRoomsWsController {
     public static async onCreate({
         payload,
@@ -39,18 +49,9 @@ export default class MtvRoomsWsController {
             payload.name,
             payload.userID,
         );
-        const roomCreator = await User.findOrFail(payload.userID);
-        await roomCreator.load('devices');
 
-        /**
-         * For all the roomCreator's devices join the room
-         */
-        await Promise.all(
-            roomCreator.devices.map(async (device) => {
-                console.log('connecting device ', device.uuid);
-                await Ws.adapter().remoteJoin(device.socketID, roomID);
-            }),
-        );
+        const roomCreator = await User.findOrFail(payload.userID);
+        await joinEveryUserDevicesToRoom(roomCreator, roomID);
 
         const room = await MtvRoom.create({
             uuid: roomID,
@@ -60,6 +61,7 @@ export default class MtvRoomsWsController {
         roomCreator.mtvRoomID = roomID;
         await room.save();
         await room.related('members').save(roomCreator);
+
         return res;
     }
 
@@ -72,29 +74,22 @@ export default class MtvRoomsWsController {
         const roomDoesntExistInAnyNodes = !(await Ws.adapter().allRooms()).has(
             roomID,
         );
+
         if (roomDoesntExistInAnyNodes) {
             throw new Error(
                 'Room does not exist in any socket io server instance ' +
                     roomID,
             );
         }
+
         console.log(`USER ${payload.userID} JOINS ${roomID}`);
         await ServerToTemporalController.joinWorkflow(
             roomID,
             room.runID,
             userID,
         );
-        await joiningUser.load('devices');
 
-        /**
-         * For all the joiningUser's devices join the room
-         */
-        await Promise.all(
-            joiningUser.devices.map(async (device) => {
-                console.log('JOIN connecting device ', device.socketID);
-                await Ws.adapter().remoteJoin(device.socketID, roomID);
-            }),
-        );
+        await joinEveryUserDevicesToRoom(joiningUser, roomID);
 
         joiningUser.mtvRoomID = roomID;
         await joiningUser.save();

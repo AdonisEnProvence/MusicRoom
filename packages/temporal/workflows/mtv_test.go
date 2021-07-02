@@ -225,6 +225,15 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
+// Test_JoinCreatedRoom scenario:
+//
+// 1. There is initially one user in the room.
+//
+// 2. We signal the workflow that another user wants
+// to join the room.
+//
+// 3. We expect the workflow to return that there are
+// now two users.
 func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 	var (
 		fakeWorkflowID        = faker.UUIDHyphenated()
@@ -296,132 +305,6 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 
 		s.Len(mtvState.Users, 2)
 	}, 3*time.Second)
-
-	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, params)
-
-	s.True(s.env.IsWorkflowCompleted())
-	err := s.env.GetWorkflowError()
-	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
-}
-
-func (s *UnitTestSuite) Test_AutomaticTracksListPlaying() {
-	var (
-		fakeWorkflowID = faker.UUIDHyphenated()
-		fakeUserID     = faker.UUIDHyphenated()
-	)
-
-	tracksList := []shared.TrackMetadata{
-		{
-			ID:         faker.UUIDHyphenated(),
-			Title:      faker.Word(),
-			ArtistName: faker.Name(),
-			Duration:   generateRandomDuration(),
-		},
-		{
-			ID:         faker.UUIDHyphenated(),
-			Title:      faker.Word(),
-			ArtistName: faker.Name(),
-			Duration:   generateRandomDuration(),
-		},
-	}
-	params := shared.MtvRoomParameters{
-		RoomID:               fakeWorkflowID,
-		RoomCreatorUserID:    fakeUserID,
-		RoomName:             faker.Word(),
-		InitialUsers:         []string{fakeUserID},
-		InitialTracksIDsList: []string{tracksList[0].ID, tracksList[1].ID},
-	}
-
-	s.env.OnActivity(
-		activities.FetchTracksInformationActivity,
-		mock.Anything,
-		mock.Anything,
-	).Return(tracksList, nil).Once()
-	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
-		mock.Anything,
-		mock.Anything,
-	).Return(nil).Once()
-	s.env.OnActivity(
-		activities.PlayActivity,
-		mock.Anything,
-		mock.Anything,
-	).Return(nil).Times(2)
-	s.env.OnActivity(
-		activities.PauseActivity,
-		mock.Anything,
-		mock.Anything,
-	).Return(nil).Times(1)
-
-	trackTimerActivityCalls := 0
-	s.env.OnActivity(
-		activities.TrackTimerActivity,
-		mock.Anything,
-		mock.Anything,
-	).Return(func(ctx context.Context, timerState shared.MtvRoomTimer) (shared.MtvRoomTimer, error) {
-		defer func() {
-			trackTimerActivityCalls++
-		}()
-
-		switch trackTimerActivityCalls {
-		case 0:
-			return shared.MtvRoomTimer{
-				State:         shared.MtvRoomTimerStateFinished,
-				Elapsed:       tracksList[0].Duration,
-				TotalDuration: tracksList[0].Duration,
-			}, nil
-
-		case 1:
-			return shared.MtvRoomTimer{
-				State:         shared.MtvRoomTimerStateFinished,
-				Elapsed:       tracksList[0].Duration,
-				TotalDuration: tracksList[0].Duration,
-			}, nil
-
-		default:
-			return shared.MtvRoomTimer{}, errors.New("no timer to return for this call")
-		}
-	}).Times(2)
-
-	// Query the state after setup activities have been called.
-	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomExposedState
-
-		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
-		s.NoError(err)
-
-		err = res.Get(&mtvState)
-		s.NoError(err)
-
-		// s.True(mtvState.Playing)
-		s.Equal(tracksList[0], mtvState.CurrentTrack)
-		s.Len(mtvState.Tracks, 1)
-		s.Len(mtvState.TracksIDsList, 1)
-	}, 1*time.Second)
-	// The first track has finished.
-
-	// Play tracks as soon as possible.
-	s.env.RegisterDelayedCallback(func() {
-		signal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
-
-		s.env.SignalWorkflow(shared.SignalChannelName, signal)
-	}, 2*time.Second)
-
-	// The last track has finished.
-	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomExposedState
-
-		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
-		s.NoError(err)
-
-		err = res.Get(&mtvState)
-		s.NoError(err)
-
-		// s.False(mtvState.Playing)
-		s.Equal(tracksList[1], mtvState.CurrentTrack)
-		s.Len(mtvState.Tracks, 0)
-		s.Len(mtvState.TracksIDsList, 0)
-	}, tracksList[0].Duration+1*time.Millisecond+tracksList[1].Duration+1*time.Millisecond)
 
 	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, params)
 

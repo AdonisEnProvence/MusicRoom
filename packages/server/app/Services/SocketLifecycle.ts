@@ -6,6 +6,16 @@ import { TypedSocket } from 'start/socket';
 import Ws from './Ws';
 
 export default class SocketLifecycle {
+    private static async synchMtvRoomContext(
+        socket: TypedSocket,
+        mtvRoomID: string,
+    ): Promise<void> {
+        const adapter = Ws.adapter();
+        await adapter.remoteJoin(socket.id, mtvRoomID);
+        const mtvRoomContext = await MtvRoomsWsController.onGetState(mtvRoomID);
+        socket.emit('RETRIEVE_CONTEXT', { context: mtvRoomContext });
+    }
+
     public static async registerDevice(socket: TypedSocket): Promise<void> {
         const queryUserID = socket.handshake.query['userID'];
 
@@ -21,6 +31,9 @@ export default class SocketLifecycle {
             userAgent,
         });
         await newDevice.related('user').associate(deviceOwner);
+        if (deviceOwner.mtvRoomID) {
+            await this.synchMtvRoomContext(socket, deviceOwner.mtvRoomID);
+        }
     }
 
     public static async checkForMtvRoomDeletion(

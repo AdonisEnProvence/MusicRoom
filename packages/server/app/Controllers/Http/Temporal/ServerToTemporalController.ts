@@ -102,6 +102,7 @@ export default class ServerToTemporalController {
         }
     }
 
+    //TODO to be dev in temporal atm only mocked in tests
     public static async getState(
         workflowID: string,
         runID: string,

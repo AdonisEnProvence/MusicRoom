@@ -239,6 +239,7 @@ test.group('Rooms life cycle', (group) => {
         assert.isNotNull(await Device.findBy('user_id', userB.userID));
         await disconnectSocket(userB.socket);
     });
+
     test('It should not remove room from database, as creator has more than one device/session alive', async (assert) => {
         const userID = datatype.uuid();
         const user = {
@@ -283,6 +284,7 @@ test.group('Rooms life cycle', (group) => {
         const creatorID = datatype.uuid();
         const name = random.word();
         let userCouldEmitAnExclusiveRoomSignal = false;
+
         /** Mocks */
         sinon
             .stub(ServerToTemporalController, 'createWorflow')
@@ -308,6 +310,10 @@ test.group('Rooms life cycle', (group) => {
             return;
         });
         /** ***** */
+
+        /**
+         * Fisrt creatorUser creates a room
+         */
         const creatorUser = await createUserAndGetSocket(creatorID);
         creatorUser.emit(
             'CREATE_ROOM',
@@ -322,12 +328,21 @@ test.group('Rooms life cycle', (group) => {
         const createdRoom = await MtvRoom.findBy('creator', creatorID);
         assert.isNotNull(createdRoom);
         if (!createdRoom) throw new Error('room is undefined');
+
+        /**
+         * JoiningUser connects 2 socket and joins the createdRoom with one
+         */
         const joiningUser = {
             socketA: await createUserAndGetSocket(userID),
             socketB: await createSocketConnection(userID),
         };
         joiningUser.socketA.emit('JOIN_ROOM', { roomID: createdRoom.uuid });
         await sleep();
+
+        /**
+         * JoiningUser emit an ACTION_PLAY with the other socket connection
+         * It achieves only if he joined the socket io server room
+         */
         joiningUser.socketB.emit('ACTION_PLAY');
         await sleep();
         assert.equal(userCouldEmitAnExclusiveRoomSignal, true);
@@ -336,6 +351,7 @@ test.group('Rooms life cycle', (group) => {
         const name = random.word();
         const userID = datatype.uuid();
         let userCouldEmitAnExclusiveRoomSignal = false;
+
         /** Mocks */
         sinon
             .stub(ServerToTemporalController, 'createWorflow')
@@ -362,6 +378,10 @@ test.group('Rooms life cycle', (group) => {
                 return;
             });
         /** ***** */
+
+        /**
+         * User connects two devices then create a room from one
+         */
         const socketA = await createUserAndGetSocket(userID);
         const socketB = await createSocketConnection(userID);
         assert.equal((await Device.all()).length, 2);
@@ -370,10 +390,16 @@ test.group('Rooms life cycle', (group) => {
         });
         await sleep();
         assert.isNotNull(await MtvRoom.findBy('creator', userID));
+
+        /**
+         * From the other one he emits an ACTION_PLAY event
+         * It achieves only if he joined the socket io server room
+         */
         socketB.emit('ACTION_PLAY');
         await sleep();
         assert.equal(userCouldEmitAnExclusiveRoomSignal, true);
     });
+
     test('New user socket connection should join previously joined/created room and receieve RETRIEVE_CONTEXT event', async (assert) => {
         const userID = datatype.uuid();
         const name = random.word();
@@ -416,15 +442,23 @@ test.group('Rooms life cycle', (group) => {
         });
         /** ***** */
 
+        /**
+         * User connects one device, then creates a room from it
+         */
         socketA.emit('CREATE_ROOM', { name }, () => {
             return;
         });
         await sleep();
 
+        /**
+         * User connects a new device, then emits an ACTION_PLAY
+         * It achieves only if he joined the socket io server room
+         * He also receives the mtvRoom's context
+         */
         const receivedEvents: string[] = [];
         const socketB = {
             socket: await createSocketConnection(userID, (socket) => {
-                socket.once('RETRIEVE_CONTEXT', (payload) => {
+                socket.once('RETRIEVE_CONTEXT', () => {
                     receivedEvents.push('RETRIEVE_CONTEXT');
                 });
             }),

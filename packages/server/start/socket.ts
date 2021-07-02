@@ -18,41 +18,6 @@ export type TypedSocket = Socket<
     DefaultEventsMap
 >;
 
-async function getSocketConnectionCredentials(
-    socket: TypedSocket,
-): Promise<{ mtvRoomID?: string; userID: string }> {
-    const device = await Device.findByOrFail('socket_id', socket.id);
-    await device.load('user');
-    if (device.user === null) {
-        throw new Error(
-            `Device should always have a user relationship deviceID = ${device.uuid}`,
-        );
-    }
-    const userID = device.user.uuid;
-    const mtvRoomID = device.user.mtvRoomID ?? undefined;
-
-    /**
-     * Implicit socket io instance auth
-     * If a user has a mtvRoomID, socket connection going through this function
-     * should be found in the room's connectedSockets
-     */
-    if (mtvRoomID !== undefined) {
-        const connectedSocketsInRoomID = await Ws.adapter().sockets(
-            new Set([mtvRoomID]),
-        );
-        if (!connectedSocketsInRoomID.has(socket.id)) {
-            throw new Error(
-                'Device should appears in the socket io room too, sync error',
-            );
-        }
-    }
-
-    return {
-        userID,
-        mtvRoomID,
-    };
-}
-
 Ws.io.on('connection', async (socket) => {
     try {
         ChatController.onConnect({ socket, payload: undefined });
@@ -73,7 +38,10 @@ Ws.io.on('connection', async (socket) => {
         /// ROOM ///
         socket.on('CREATE_ROOM', async (payload, callback) => {
             try {
-                const { userID } = await getSocketConnectionCredentials(socket);
+                const { userID } =
+                    await SocketLifecycle.getSocketConnectionCredentials(
+                        socket,
+                    );
                 if (!payload.name) {
                     throw new Error('CREATE_ROOM failed name should be empty');
                 }
@@ -94,9 +62,10 @@ Ws.io.on('connection', async (socket) => {
         socket.on('GET_CONTEXT', async (cb) => {
             try {
                 //TODO CHECK AUTH, socket id is in mtvRoom
-                const { mtvRoomID } = await getSocketConnectionCredentials(
-                    socket,
-                );
+                const { mtvRoomID } =
+                    await SocketLifecycle.getSocketConnectionCredentials(
+                        socket,
+                    );
                 if (mtvRoomID === undefined) {
                     throw new Error(
                         "GET_CONTEXT failed user doesn't have a mtvRoom",
@@ -115,8 +84,10 @@ Ws.io.on('connection', async (socket) => {
                 if (!args.roomID) {
                     throw new Error('JOIN_ROOM failed roomID is empty');
                 }
-                const { userID } = await getSocketConnectionCredentials(socket);
-                await getSocketConnectionCredentials(socket);
+                const { userID } =
+                    await SocketLifecycle.getSocketConnectionCredentials(
+                        socket,
+                    );
                 await MtvRoomsWsController.onJoin({
                     socket,
                     payload: {
@@ -132,9 +103,10 @@ Ws.io.on('connection', async (socket) => {
         socket.on('ACTION_PLAY', async () => {
             try {
                 //we need to check auth from socket id into a userId into a room users[]
-                const { mtvRoomID } = await getSocketConnectionCredentials(
-                    socket,
-                );
+                const { mtvRoomID } =
+                    await SocketLifecycle.getSocketConnectionCredentials(
+                        socket,
+                    );
                 if (mtvRoomID === undefined) {
                     throw new Error('ACTION_PLAY failed room not found');
                 }
@@ -151,9 +123,10 @@ Ws.io.on('connection', async (socket) => {
 
         socket.on('ACTION_PAUSE', async () => {
             try {
-                const { mtvRoomID } = await getSocketConnectionCredentials(
-                    socket,
-                );
+                const { mtvRoomID } =
+                    await SocketLifecycle.getSocketConnectionCredentials(
+                        socket,
+                    );
                 if (mtvRoomID === undefined) {
                     throw new Error('ACTION_PLAY failed room not found');
                 }

@@ -59,8 +59,10 @@ func (s *UnitTestSuite) AfterTest(suiteName, testName string) {
 // 6. As the first track was considered stopped, we send a PLAY event
 // to resume the listening.
 //
-// 7. We expect the first track and the second track to have ended.
-// We expect the second one to remain the current track, as its the last of the track list.
+// 7. We expect the first track to have ended and the second one to be the current track.
+//
+// 8. When the last track has ended, we expect the player to be on paused state and
+// the current track to remain the last initial track.
 func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 	var (
 		fakeWorkflowID        = faker.UUIDHyphenated()
@@ -111,7 +113,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		activities.PauseActivity,
 		mock.Anything,
 		mock.Anything,
-	).Return(nil).Times(2)
+	).Return(nil).Times(3)
 
 	trackTimerActivityCalls := 0
 	s.env.OnActivity(
@@ -217,6 +219,22 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 		s.Equal(tracks[1], mtvState.CurrentTrack)
 	}, stateQueryAfterFirstTrackMustHaveFinished)
+
+	// 8.We expect the last track to remain the current one and the player
+	// to be on paused state.
+	stateQueryAfterAllTracksMustHaveFinished := stateQueryAfterFirstTrackMustHaveFinished + tracks[1].Duration
+	s.env.RegisterDelayedCallback(func() {
+		var mtvState shared.MtvRoomExposedState
+
+		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
+		s.NoError(err)
+
+		err = res.Get(&mtvState)
+		s.NoError(err)
+
+		s.False(mtvState.Playing)
+		s.Equal(tracks[1], mtvState.CurrentTrack)
+	}, stateQueryAfterAllTracksMustHaveFinished)
 
 	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, params)
 

@@ -243,7 +243,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 										return currentTrackEnded && hasReachedTracksListEnd
 									},
 
-									Target: MtvRoomPlayingLauchingTimerState,
+									Target: MtvRoomPlayingTimeoutExpiredState,
 
 									Actions: brainy.Actions{
 										brainy.ActionFn(
@@ -415,9 +415,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 		if timerExpirationFuture != nil {
 			selector.AddFuture(timerExpirationFuture, func(f workflow.Future) {
-				defer func() {
-					timerExpirationFuture = nil
-				}()
+				timerExpirationFuture = nil
 
 				var timerActivityResult shared.MtvRoomTimer
 

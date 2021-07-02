@@ -8,7 +8,7 @@ export default class Devices extends BaseSchema {
             table.uuid('uuid').notNullable().primary();
             table.string('socket_id').notNullable();
             table.uuid('user_id').notNullable().references('users.uuid');
-            table.string('user_agent');
+            table.string('user_agent').nullable();
             table.timestamps(true, true);
         });
     }

@@ -7,6 +7,7 @@ export default class Users extends BaseSchema {
         this.schema.table(this.tableName, (table) => {
             table
                 .uuid('mtv_room_id')
+                .nullable()
                 .references('mtv_rooms.uuid')
                 .onDelete('SET NULL');
         });

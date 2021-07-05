@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/AdonisEnProvence/MusicRoom/shared"
+	"go.temporal.io/sdk/activity"
 )
 
 func PingActivity(_ context.Context) error {
@@ -56,29 +58,46 @@ func JoinActivity(ctx context.Context, state shared.MtvRoomExposedState) error {
 	return err
 }
 
-// TODO: implement heartbeat
 func TrackTimerActivity(ctx context.Context, timerState shared.MtvRoomTimer) (shared.MtvRoomTimer, error) {
 	timerStartTime := time.Now()
 	durationBeforeTrackEnd := timerState.TotalDuration - timerState.Elapsed
-	timer := time.NewTimer(durationBeforeTrackEnd)
+	timer := time.NewTimer(durationBeforeTrackEnd) //40 sec
+	twoSecondsDuration := 2 * time.Second
+	fmt.Println(ctx)
+	f := func(ctx context.Context, k string) {
+		if v := ctx.Value(k); v != nil {
+			fmt.Println("found value:", v)
+			return
+		}
+		fmt.Println("key not found:", k)
+	}
+	f(ctx, "foo")
 
-	select {
-	case <-timer.C:
-		// timer ended
+	for {
+		heartbeatTimer := time.NewTimer(twoSecondsDuration)
+		select {
+		case <-timer.C:
+			// timer ended
 
-		timerState.State = shared.MtvRoomTimerStateFinished
+			timerState.State = shared.MtvRoomTimerStateFinished
+			timerState.Elapsed = timerState.TotalDuration
 
-		return timerState, nil
+			return timerState, nil
 
-	case <-ctx.Done():
-		// context was canceled
+		case <-ctx.Done():
+			// context was canceled
+			fmt.Println("DONE")
+			cancelationTime := time.Now()
+			elapsedTimeSinceTimerStart := cancelationTime.Sub(timerStartTime)
 
-		cancelationTime := time.Now()
-		elapsedTimeSinceTimerStart := cancelationTime.Sub(timerStartTime)
+			timerState.State = shared.MtvRoomTimerStatePending
+			timerState.Elapsed += elapsedTimeSinceTimerStart
 
-		timerState.State = shared.MtvRoomTimerStatePending
-		timerState.Elapsed += elapsedTimeSinceTimerStart
-
-		return timerState, nil
+			return timerState, nil
+		case <-heartbeatTimer.C:
+			fmt.Println("HEARTBEAT")
+			// heartbeat timer ended, going again in the loop
+			activity.RecordHeartbeat(ctx, "status-timer-report-to-workflow")
+		}
 	}
 }

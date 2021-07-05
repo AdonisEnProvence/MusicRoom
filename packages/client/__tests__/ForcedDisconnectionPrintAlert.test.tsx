@@ -1,4 +1,5 @@
 import { NavigationContainer } from '@react-navigation/native';
+import { datatype, name, random } from 'faker';
 import React from 'react';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
@@ -48,8 +49,10 @@ test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it 
                 name: 'RoomA',
             },
             currentTrack: {
-                artistName: 'ArtistNameA',
-                name: 'TrackA',
+                id: datatype.uuid(),
+                artistName: name.findName(),
+                duration: 'PT4M52S',
+                title: random.words(3),
             },
             waitingRoomID: undefined,
 

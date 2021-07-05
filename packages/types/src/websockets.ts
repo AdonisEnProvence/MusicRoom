@@ -1,4 +1,5 @@
 import { AppMusicPlayerMachineContext } from './appMusicPlayerMachine';
+import { TracksMetadata } from './mtv';
 
 export interface ChatMessage {
     author: string;
@@ -19,6 +20,7 @@ export interface ChatServerToClientReceivedMessageArgs {
 
 export interface RoomClientToServerCreate {
     name: string;
+    initialTracksIDs: string[];
 }
 
 export interface RoomClientToServerJoin {
@@ -30,11 +32,17 @@ export interface Track {
     artistName: string;
 }
 
-export type RoomServerToClientJoin = {
+export interface RoomServerToClientCreateCallback {
     roomID: string;
-    name: string;
-    // track: Track;
-};
+    roomName: string;
+    tracks: TracksMetadata[];
+}
+
+export interface RoomServerToClientJoinCallback {
+    roomID: string;
+    roomName: string;
+    tracks: TracksMetadata[];
+}
 
 export type RoomServerToClientRetrieveContext = {
     context: AppMusicPlayerMachineContext;
@@ -45,10 +53,7 @@ export interface ChatClientToServerEvents {
 }
 
 export interface RoomClientToServerEvents {
-    CREATE_ROOM: (
-        args: RoomClientToServerCreate,
-        callback: (roomID: string, name: string) => void,
-    ) => void;
+    CREATE_ROOM: (args: RoomClientToServerCreate) => void;
     JOIN_ROOM: (args: RoomClientToServerJoin) => void;
     ACTION_PLAY: () => void;
     GET_CONTEXT: (
@@ -61,8 +66,9 @@ export interface RoomServerToClientEvents {
     RETRIEVE_CONTEXT: (args: RoomServerToClientRetrieveContext) => void;
     ACTION_PLAY_CALLBACK: () => void;
     ACTION_PAUSE_CALLBACK: () => void;
-    JOIN_ROOM_CALLBACK: (args: RoomServerToClientJoin) => void;
+    CREATE_ROOM_CALLBACK: (args: RoomServerToClientCreateCallback) => void;
     FORCED_DISCONNECTION: () => void;
+    JOIN_ROOM_CALLBACK: (args: RoomServerToClientJoinCallback) => void;
 }
 
 export interface ChatServerToClientEvents {

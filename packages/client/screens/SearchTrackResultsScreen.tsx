@@ -22,6 +22,7 @@ const SearchTracksResultsScreen: React.FC<SearchTrackResultsScreenProps> = ({
         sendToMachine({
             type: 'CREATE_ROOM',
             roomName: trackId,
+            initialTracksIDs: [trackId],
         });
     }
 
@@ -32,7 +33,7 @@ const SearchTracksResultsScreen: React.FC<SearchTrackResultsScreenProps> = ({
             <AppScreenContainer>
                 <MSFlatList<SearchedTrack>
                     onPress={(item) => {
-                        handleTrackPress(item.title);
+                        handleTrackPress(item.id);
                     }}
                     data={tracks}
                     Item={(item) => <TrackPreview track={item} />}

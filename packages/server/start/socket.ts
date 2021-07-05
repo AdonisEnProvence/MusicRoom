@@ -36,7 +36,7 @@ Ws.io.on('connection', async (socket) => {
         /// //// ///
 
         /// ROOM ///
-        socket.on('CREATE_ROOM', async (payload, callback) => {
+        socket.on('CREATE_ROOM', async (payload) => {
             try {
                 const { userID } =
                     await SocketLifecycle.getSocketConnectionCredentials(
@@ -45,15 +45,14 @@ Ws.io.on('connection', async (socket) => {
                 if (!payload.name) {
                     throw new Error('CREATE_ROOM failed name should be empty');
                 }
-                const { workflowID, state } =
-                    await MtvRoomsWsController.onCreate({
-                        socket,
-                        payload: {
-                            name: payload.name,
-                            userID,
-                        },
-                    });
-                callback(workflowID, state.name);
+                await MtvRoomsWsController.onCreate({
+                    socket,
+                    payload: {
+                        name: payload.name,
+                        userID,
+                        initialTracksIDs: payload.initialTracksIDs,
+                    },
+                });
             } catch (e) {
                 console.error(e);
             }
@@ -151,6 +150,4 @@ Ws.io.on('connection', async (socket) => {
     } catch (e) {
         console.error(e);
     }
-
-    /// //// ///
 });

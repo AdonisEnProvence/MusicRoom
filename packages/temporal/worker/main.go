@@ -1,4 +1,3 @@
-// @@@SNIPSTART hello-world-project-template-go-worker
 package main
 
 import (
@@ -7,7 +6,9 @@ import (
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 
-	"hello-world-project-template-go/app"
+	"github.com/AdonisEnProvence/MusicRoom/activities"
+	"github.com/AdonisEnProvence/MusicRoom/shared"
+	"github.com/AdonisEnProvence/MusicRoom/workflows"
 )
 
 func main() {
@@ -18,17 +19,18 @@ func main() {
 	}
 	defer c.Close()
 	// This worker hosts both Worker and Activity functions
-	w := worker.New(c, app.ControlTaskQueue, worker.Options{})
-	w.RegisterWorkflow(app.ControlWorkflow)
-	w.RegisterActivity(app.PingActivity)
-	w.RegisterActivity(app.PlayActivity)
-	w.RegisterActivity(app.PauseActivity)
-	w.RegisterActivity(app.JoinActivity)
+	w := worker.New(c, shared.ControlTaskQueue, worker.Options{})
+	w.RegisterWorkflow(workflows.MtvRoomWorkflow)
+	w.RegisterActivity(activities.PingActivity)
+	w.RegisterActivity(activities.PlayActivity)
+	w.RegisterActivity(activities.PauseActivity)
+	w.RegisterActivity(activities.JoinActivity)
+	w.RegisterActivity(activities.CreationAcknowledgementActivity)
+	w.RegisterActivity(activities.FetchTracksInformationActivity)
+	w.RegisterActivity(activities.TrackTimerActivity)
 	// Start listening to the Task Queue
 	err = w.Run(worker.InterruptCh())
 	if err != nil {
 		log.Fatalln("unable to start Worker", err)
 	}
 }
-
-// @@@SNIPEND

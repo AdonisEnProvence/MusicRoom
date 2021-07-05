@@ -1,35 +1,50 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Ws from 'App/Services/Ws';
 import * as z from 'zod';
-const TemporalToServeJoinBody = z.object({
-    state: z.object({
-        playing: z.boolean(),
-        name: z.string(),
-        users: z.array(z.string()),
-    }),
-});
+import { MtvWorkflowState } from '@musicroom/types';
 
+const TemporalToServerMtvCreationAcknowledgement = MtvWorkflowState;
+type TemporalToServerMtvCreationAcknowledgement = z.infer<
+    typeof TemporalToServerMtvCreationAcknowledgement
+>;
+
+const TemporalToServeJoinBody = MtvWorkflowState;
 type TemporalToServeJoinBody = z.infer<typeof TemporalToServeJoinBody>;
 
 export default class TemporalToServerController {
     public pause({ request }: HttpContextContract): void {
-        console.log('TEMPORAL SENT PAUSE');
         const roomID = decodeURIComponent(request.param('roomID'));
+
         Ws.io.to(roomID).emit('ACTION_PAUSE_CALLBACK');
     }
 
     public play({ request }: HttpContextContract): void {
-        console.log('TEMPORAL SENT PLAY');
         const roomID = decodeURIComponent(request.param('roomID'));
+
         Ws.io.to(roomID).emit('ACTION_PLAY_CALLBACK');
     }
 
+    public mtvCreationAcknowledgement({ request }: HttpContextContract): void {
+        const {
+            roomID,
+            name: roomName,
+            tracks,
+        } = TemporalToServerMtvCreationAcknowledgement.parse(request.body());
+
+        Ws.io.emit('CREATE_ROOM_CALLBACK', { roomID, roomName, tracks });
+    }
+
     public join({ request }: HttpContextContract): void {
-        const roomID = decodeURIComponent(request.param('roomID'));
-        const userID = decodeURIComponent(request.param('userID'));
-        const body = TemporalToServeJoinBody.parse(request.body());
-        console.log('SUCCESS:', roomID, userID, body);
-        //TODO store socketID[] per userID in redis ?
-        Ws.io.emit('JOIN_ROOM_CALLBACK', { roomID, name: body.state.name });
+        const {
+            roomID,
+            name: roomName,
+            tracks,
+        } = TemporalToServeJoinBody.parse(request.body());
+
+        Ws.io.emit('JOIN_ROOM_CALLBACK', {
+            roomID,
+            roomName,
+            tracks,
+        });
     }
 }

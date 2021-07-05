@@ -7,7 +7,7 @@ import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTe
 import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
-import { datatype, random } from 'faker';
+import { datatype, random, name } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import { io, Socket } from 'socket.io-client';
@@ -104,7 +104,7 @@ test.group('Rooms life cycle', (group) => {
     test('User creates a room, on user disconnection, it should removes the room from database', async (assert) => {
         const userID = datatype.uuid();
         const socket = await createUserAndGetSocket(userID);
-        const name = random.words(1);
+        const roomName = random.words(1);
 
         /** Mocks */
         sinon
@@ -113,15 +113,25 @@ test.group('Rooms life cycle', (group) => {
                 return;
             });
         sinon
-            .stub(ServerToTemporalController, 'createWorflow')
+            .stub(ServerToTemporalController, 'createMtvWorflow')
             .callsFake(async () => {
                 return {
                     runID: datatype.uuid(),
                     workflowID: datatype.uuid(),
                     state: {
+                        roomID: datatype.uuid(),
+                        roomCreatorUserID: userID,
                         playing: false,
-                        name,
+                        name: roomName,
                         users: [userID],
+                        tracks: [
+                            {
+                                id: datatype.uuid(),
+                                artistName: name.findName(),
+                                duration: 'PT4M52S',
+                                title: random.words(3),
+                            },
+                        ],
                     },
                 };
             });
@@ -131,9 +141,7 @@ test.group('Rooms life cycle', (group) => {
          * Emit CREATE_ROOM
          * Expecting it to be in database
          */
-        socket.emit('CREATE_ROOM', { name }, () => {
-            return;
-        });
+        socket.emit('CREATE_ROOM', { name: roomName, initialTracksIDs: [] });
         await sleep();
         const roomBefore = await MtvRoom.findBy('creator', userID);
         assert.isNotNull(roomBefore);
@@ -162,7 +170,7 @@ test.group('Rooms life cycle', (group) => {
         userB.socket.once('FORCED_DISCONNECTION', () => {
             userB.receivedEvents.push('FORCED_DISCONNECTION');
         });
-        const name = random.word();
+        const roomName = random.word();
 
         /** Mocks */
         sinon
@@ -171,15 +179,25 @@ test.group('Rooms life cycle', (group) => {
                 return;
             });
         sinon
-            .stub(ServerToTemporalController, 'createWorflow')
+            .stub(ServerToTemporalController, 'createMtvWorflow')
             .callsFake(async () => {
                 return {
                     runID: datatype.uuid(),
                     workflowID: datatype.uuid(),
                     state: {
+                        roomID: datatype.uuid(),
+                        roomCreatorUserID: userA.userID,
                         playing: false,
-                        name,
+                        name: roomName,
                         users: [userA.userID],
+                        tracks: [
+                            {
+                                id: datatype.uuid(),
+                                artistName: name.findName(),
+                                duration: 'PT4M52S',
+                                title: random.words(3),
+                            },
+                        ],
                     },
                 };
             });
@@ -202,8 +220,9 @@ test.group('Rooms life cycle', (group) => {
             throw new Error('DeviceA nor DeviceB is/are undefined');
         assert.equal(deviceA.socketID, userA.socket.id);
         assert.equal(deviceB.userID, userB.userID);
-        userA.socket.emit('CREATE_ROOM', { name }, () => {
-            return;
+        userA.socket.emit('CREATE_ROOM', {
+            name: roomName,
+            initialTracksIDs: [],
         });
         await sleep();
 
@@ -280,19 +299,29 @@ test.group('Rooms life cycle', (group) => {
     test("It should creates a room, and it should join room for every user's session/device after one emits JOIN_ROOM", async (assert) => {
         const userID = datatype.uuid();
         const creatorID = datatype.uuid();
-        const name = random.word();
+        const roomName = random.word();
         let userCouldEmitAnExclusiveRoomSignal = false;
 
         /** Mocks */
         sinon
-            .stub(ServerToTemporalController, 'createWorflow')
+            .stub(ServerToTemporalController, 'createMtvWorflow')
             .callsFake(async () => {
                 return {
                     runID: datatype.uuid(),
                     workflowID: datatype.uuid(),
                     state: {
+                        roomID: datatype.uuid(),
+                        roomCreatorUserID: datatype.uuid(),
+                        tracks: [
+                            {
+                                id: datatype.uuid(),
+                                artistName: name.findName(),
+                                duration: 'PT4M52S',
+                                title: random.words(3),
+                            },
+                        ],
                         playing: false,
-                        name,
+                        name: roomName,
                         users: [creatorID],
                     },
                 };
@@ -312,15 +341,10 @@ test.group('Rooms life cycle', (group) => {
          * Fisrt creatorUser creates a room
          */
         const creatorUser = await createUserAndGetSocket(creatorID);
-        creatorUser.emit(
-            'CREATE_ROOM',
-            {
-                name: random.word(),
-            },
-            () => {
-                return;
-            },
-        );
+        creatorUser.emit('CREATE_ROOM', {
+            name: random.word(),
+            initialTracksIDs: [datatype.uuid()],
+        });
         await sleep();
         const createdRoom = await MtvRoom.findBy('creator', creatorID);
         assert.isNotNull(createdRoom);
@@ -345,21 +369,31 @@ test.group('Rooms life cycle', (group) => {
         assert.equal(userCouldEmitAnExclusiveRoomSignal, true);
     });
     test("It should join room for every user's session/device after one emits CREATE_ROOM", async (assert) => {
-        const name = random.word();
+        const roomName = random.word();
         const userID = datatype.uuid();
         let userCouldEmitAnExclusiveRoomSignal = false;
 
         /** Mocks */
         sinon
-            .stub(ServerToTemporalController, 'createWorflow')
+            .stub(ServerToTemporalController, 'createMtvWorflow')
             .callsFake(async () => {
                 return {
                     runID: datatype.uuid(),
                     workflowID: datatype.uuid(),
                     state: {
+                        roomID: datatype.uuid(),
+                        roomCreatorUserID: datatype.uuid(),
                         playing: false,
-                        name,
+                        name: roomName,
                         users: [userID],
+                        tracks: [
+                            {
+                                id: datatype.uuid(),
+                                artistName: name.findName(),
+                                duration: 'PT4M52S',
+                                title: random.words(3),
+                            },
+                        ],
                     },
                 };
             });
@@ -381,8 +415,9 @@ test.group('Rooms life cycle', (group) => {
         const socketA = await createUserAndGetSocket(userID);
         const socketB = await createSocketConnection(userID);
         assert.equal((await Device.all()).length, 2);
-        socketA.emit('CREATE_ROOM', { name }, () => {
-            return;
+        socketA.emit('CREATE_ROOM', {
+            name: roomName,
+            initialTracksIDs: [datatype.uuid()],
         });
         await sleep();
         assert.isNotNull(await MtvRoom.findBy('creator', userID));
@@ -398,20 +433,30 @@ test.group('Rooms life cycle', (group) => {
 
     test('New user socket connection should join previously joined/created room and receieve RETRIEVE_CONTEXT event', async (assert) => {
         const userID = datatype.uuid();
-        const name = random.word();
+        const roomName = random.word();
         const socketA = await createUserAndGetSocket(userID);
         let userCouldEmitAnExclusiveRoomSignal = false;
         /** Mocks */
         sinon
-            .stub(ServerToTemporalController, 'createWorflow')
+            .stub(ServerToTemporalController, 'createMtvWorflow')
             .callsFake(async () => {
                 return {
                     runID: datatype.uuid(),
                     workflowID: datatype.uuid(),
                     state: {
+                        roomID: datatype.uuid(),
+                        roomCreatorUserID: datatype.uuid(),
                         playing: false,
-                        name,
+                        name: roomName,
                         users: [userID],
+                        tracks: [
+                            {
+                                id: datatype.uuid(),
+                                artistName: name.findName(),
+                                duration: 'PT4M52S',
+                                title: random.words(3),
+                            },
+                        ],
                     },
                 };
             });
@@ -441,8 +486,9 @@ test.group('Rooms life cycle', (group) => {
         /**
          * User connects one device, then creates a room from it
          */
-        socketA.emit('CREATE_ROOM', { name }, () => {
-            return;
+        socketA.emit('CREATE_ROOM', {
+            name: roomName,
+            initialTracksIDs: [datatype.uuid()],
         });
         await sleep();
 

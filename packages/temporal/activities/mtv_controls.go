@@ -85,7 +85,15 @@ func TrackTimerActivity(ctx context.Context, timerState shared.MtvRoomTimer) (sh
 		case <-heartbeatTimer.C:
 
 			// heartbeat timer ended, going again in the loop
-			activity.RecordHeartbeat(ctx, "status-timer-report-to-workflow")
+			RecordHeartBeatWrapper(ctx, "status-timer-report-to-workflow")
 		}
 	}
 }
+
+func MyRecordHeartBeat(ctx context.Context, label string) {
+	activity.RecordHeartbeat(ctx, label)
+}
+
+type RecordHeartBeatWrapperType func(context.Context, string)
+
+var RecordHeartBeatWrapper RecordHeartBeatWrapperType = MyRecordHeartBeat

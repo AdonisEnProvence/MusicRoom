@@ -5,6 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
+
+	"github.com/AdonisEnProvence/MusicRoom/activities/mocks"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/stretchr/testify/suite"
 	"go.temporal.io/sdk/testsuite"
@@ -57,16 +60,16 @@ func (s *UnitTestSuite) Test_Timeout_Tracks_Timer() {
 }
 
 func (s *UnitTestSuite) Test_Heartbeat_Tracks_Timer() {
+	ctx := context.Background()
+
 	originalImplementation := RecordHeartbeatWrapper
-	heartBeatCount := 0
-	RecordHeartbeatWrapper = func(ctx context.Context, details ...interface{}) {
-		heartBeatCount += 1
-	}
+	heartbeatMock := new(mocks.RecordHeartbeatWrapperType)
+	heartbeatMock.On("Execute", ctx, mock.Anything)
+	RecordHeartbeatWrapper = heartbeatMock.Execute
 	defer func() {
 		RecordHeartbeatWrapper = originalImplementation
 	}()
 
-	ctx := context.Background()
 	totalDuration := 6 * time.Second
 	timer := shared.MtvRoomTimer{
 		State:         shared.MtvRoomTimerStateIdle,
@@ -86,15 +89,16 @@ func (s *UnitTestSuite) Test_Heartbeat_Tracks_Timer() {
 
 	s.Equal(expectedResult, res)
 	//2 because last heartbeat call will be avoid by the timeout channel
-	s.Equal(2, heartBeatCount)
+	heartbeatMock.AssertNumberOfCalls(s.T(), "Execute", 2)
 }
 
 // Couldn't test corectly with context cancelation in the temporal TestActivityEnvironment
 func (s *UnitTestSuite) Test_Cancel_Tracks_Timer() {
 
 	originalImplementation := RecordHeartbeatWrapper
-	RecordHeartbeatWrapper = func(ctx context.Context, details ...interface{}) {
-	}
+	heartbeatMock := new(mocks.RecordHeartbeatWrapperType)
+	RecordHeartbeatWrapper = heartbeatMock.Execute
+
 	defer func() {
 		RecordHeartbeatWrapper = originalImplementation
 	}()

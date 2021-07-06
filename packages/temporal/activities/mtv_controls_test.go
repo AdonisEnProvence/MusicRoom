@@ -47,7 +47,6 @@ func (s *UnitTestSuite) Test_Timeout_Tracks_Timer() {
 	err = val.Get(&res)
 	s.NoError(err)
 
-	s.T().Logf("%+v\n", res)
 	expectedResult := shared.MtvRoomTimer{
 		State:         shared.MtvRoomTimerStateFinished,
 		Elapsed:       totalDuration,
@@ -82,7 +81,6 @@ func (s *UnitTestSuite) Test_Cancel_Tracks_Timer() {
 	}()
 	res, err := TrackTimerActivity(ctx, timer)
 	s.NoError(err)
-	s.T().Logf("%+v\n", res)
 
 	expectedResult := shared.MtvRoomTimer{
 		State:         shared.MtvRoomTimerStatePending,

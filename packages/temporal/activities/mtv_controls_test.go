@@ -56,6 +56,39 @@ func (s *UnitTestSuite) Test_Timeout_Tracks_Timer() {
 	s.Equal(res, expectedResult)
 }
 
+func (s *UnitTestSuite) Test_Heartbeat_Tracks_Timer() {
+	originalImplementation := RecordHeartbeatWrapper
+	heartBeatCount := 0
+	RecordHeartbeatWrapper = func(ctx context.Context, details ...interface{}) {
+		heartBeatCount += 1
+	}
+	defer func() {
+		RecordHeartbeatWrapper = originalImplementation
+	}()
+
+	ctx := context.Background()
+	totalDuration := 6 * time.Second
+	timer := shared.MtvRoomTimer{
+		State:         shared.MtvRoomTimerStateIdle,
+		Elapsed:       0,
+		TotalDuration: totalDuration,
+	}
+
+	res, err := TrackTimerActivity(ctx, timer)
+	s.NoError(err)
+
+	expectedResult := shared.MtvRoomTimer{
+		State:         shared.MtvRoomTimerStateFinished,
+		Elapsed:       totalDuration,
+		TotalDuration: totalDuration,
+	}
+	res.Elapsed = res.Elapsed.Round(time.Second * 1)
+
+	s.Equal(expectedResult, res)
+	//2 because last heartbeat call will be avoid by the timeout channel
+	s.Equal(2, heartBeatCount)
+}
+
 // Couldn't test corectly with context cancelation in the temporal TestActivityEnvironment
 func (s *UnitTestSuite) Test_Cancel_Tracks_Timer() {
 

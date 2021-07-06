@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -63,22 +62,12 @@ func TrackTimerActivity(ctx context.Context, timerState shared.MtvRoomTimer) (sh
 	durationBeforeTrackEnd := timerState.TotalDuration - timerState.Elapsed
 	timer := time.NewTimer(durationBeforeTrackEnd) //40 sec
 	twoSecondsDuration := 2 * time.Second
-	fmt.Println(ctx)
-	f := func(ctx context.Context, k string) {
-		if v := ctx.Value(k); v != nil {
-			fmt.Println("found value:", v)
-			return
-		}
-		fmt.Println("key not found:", k)
-	}
-	f(ctx, "foo")
 
 	for {
 		heartbeatTimer := time.NewTimer(twoSecondsDuration)
 		select {
 		case <-timer.C:
 			// timer ended
-
 			timerState.State = shared.MtvRoomTimerStateFinished
 			timerState.Elapsed = timerState.TotalDuration
 
@@ -86,7 +75,6 @@ func TrackTimerActivity(ctx context.Context, timerState shared.MtvRoomTimer) (sh
 
 		case <-ctx.Done():
 			// context was canceled
-			fmt.Println("DONE")
 			cancelationTime := time.Now()
 			elapsedTimeSinceTimerStart := cancelationTime.Sub(timerStartTime)
 
@@ -95,7 +83,7 @@ func TrackTimerActivity(ctx context.Context, timerState shared.MtvRoomTimer) (sh
 
 			return timerState, nil
 		case <-heartbeatTimer.C:
-			fmt.Println("HEARTBEAT")
+
 			// heartbeat timer ended, going again in the loop
 			activity.RecordHeartbeat(ctx, "status-timer-report-to-workflow")
 		}

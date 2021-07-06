@@ -1,14 +1,12 @@
-package activities_test
+package activities
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	"github.com/AdonisEnProvence/MusicRoom/activities"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/stretchr/testify/suite"
-	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/testsuite"
 	"go.temporal.io/sdk/worker"
 )
@@ -28,40 +26,68 @@ func (s *UnitTestSuite) AfterTest(suiteName, testName string) {
 	s.env = s.NewTestActivityEnvironment()
 }
 
-func loggerActivity(ctx context.Context, value bool) (bool, error) {
-	logger := activity.GetLogger(ctx)
-	logger.Info("test logging")
-	return value, nil
-}
-
-// func (s *UnitTestSuite) Test_Logger() {
-// 	s.env.RegisterActivity(loggerActivity)
-// 	val, err := s.env.ExecuteActivity(loggerActivity, true)
-// 	s.Nil(err)
-// 	var ptr bool
-// 	s.NoError(val.Get(&ptr))
-// 	s.True(ptr)
-// }
-func (s *UnitTestSuite) Test_TracksTimer() {
-	ctx := context.WithValue(context.Background(), "foo", "bar")
-	ctx, cancel := context.WithCancel(ctx)
+func (s *UnitTestSuite) Test_Timeout_Tracks_Timer() {
+	ctx := context.Background()
+	// ctx, cancel := context.WithCancel(ctx)
+	totalDuration := 4 * time.Second
 	timer := shared.MtvRoomTimer{
 		State:         shared.MtvRoomTimerStateIdle,
 		Elapsed:       0,
-		TotalDuration: 10 * time.Second,
+		TotalDuration: totalDuration,
 	}
 
-	s.env.RegisterActivity(activities.TrackTimerActivity)
+	s.env.RegisterActivity(TrackTimerActivity)
 	s.env.SetWorkerOptions(worker.Options{
 		BackgroundActivityContext: ctx,
 	})
+	val, err := s.env.ExecuteActivity(TrackTimerActivity, timer)
+	s.NoError(err)
+
+	var res shared.MtvRoomTimer
+	err = val.Get(&res)
+	s.NoError(err)
+
+	s.T().Logf("%+v\n", res)
+	expectedResult := shared.MtvRoomTimer{
+		State:         shared.MtvRoomTimerStateFinished,
+		Elapsed:       totalDuration,
+		TotalDuration: totalDuration,
+	}
+
+	s.Equal(res, expectedResult)
+}
+
+// Couldn't test corectly with context cancelation in the temporal TestActivityEnvironment
+func (s *UnitTestSuite) Test_Cancel_Tracks_Timer() {
+
 	val, err := s.env.ExecuteActivity(activities.TrackTimerActivity, timer)
 	cancel()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	totalDuration := 3 * time.Second
+	durationBeforeCancel := 1 * time.Second
+	timer := shared.MtvRoomTimer{
+		State:         shared.MtvRoomTimerStateIdle,
+		Elapsed:       0,
+		TotalDuration: totalDuration,
+	}
+
+	go func() {
+		time.Sleep(durationBeforeCancel)
+		cancel()
+	}()
+	res, err := TrackTimerActivity(ctx, timer)
 	s.NoError(err)
-	var ptr shared.MtvRoomTimer
-	err = val.Get(&ptr)
-	s.T().Logf("%+v\n", ptr)
-	s.NoError(err)
+	s.T().Logf("%+v\n", res)
+
+	expectedResult := shared.MtvRoomTimer{
+		State:         shared.MtvRoomTimerStatePending,
+		Elapsed:       durationBeforeCancel,
+		TotalDuration: totalDuration,
+	}
+	res.Elapsed = res.Elapsed.Round(time.Second * 1)
+
+	s.Equal(res, expectedResult)
 }
 
 func TestUnitTestSuite(t *testing.T) {

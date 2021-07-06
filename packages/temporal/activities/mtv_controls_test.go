@@ -60,11 +60,11 @@ func (s *UnitTestSuite) Test_Timeout_Tracks_Timer() {
 // Couldn't test corectly with context cancelation in the temporal TestActivityEnvironment
 func (s *UnitTestSuite) Test_Cancel_Tracks_Timer() {
 
-	originalImplementation := RecordHeartBeatWrapper
-	RecordHeartBeatWrapper = func(ctx context.Context, label string) {
+	originalImplementation := RecordHeartbeatWrapper
+	RecordHeartbeatWrapper = func(ctx context.Context, details ...interface{}) {
 	}
 	defer func() {
-		RecordHeartBeatWrapper = originalImplementation
+		RecordHeartbeatWrapper = originalImplementation
 	}()
 
 	ctx, cancel := context.WithCancel(context.Background())

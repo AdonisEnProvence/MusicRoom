@@ -94,18 +94,18 @@ func (s *UnitTestSuite) Test_Heartbeat_Tracks_Timer() {
 
 // Couldn't test corectly with context cancelation in the temporal TestActivityEnvironment
 func (s *UnitTestSuite) Test_Cancel_Tracks_Timer() {
+	ctx, cancel := context.WithCancel(context.Background())
 
 	originalImplementation := RecordHeartbeatWrapper
 	heartbeatMock := new(mocks.RecordHeartbeatWrapperType)
+	heartbeatMock.On("Execute", ctx, mock.Anything)
 	RecordHeartbeatWrapper = heartbeatMock.Execute
-
 	defer func() {
 		RecordHeartbeatWrapper = originalImplementation
 	}()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	totalDuration := 3 * time.Second
-	durationBeforeCancel := 1 * time.Second
+	totalDuration := 4 * time.Second
+	durationBeforeCancel := 3 * time.Second
 	timer := shared.MtvRoomTimer{
 		State:         shared.MtvRoomTimerStateIdle,
 		Elapsed:       0,

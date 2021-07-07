@@ -133,11 +133,12 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 	channel := workflow.GetSignalChannel(ctx, shared.SignalChannelName)
 
-	terminated := false
-	var workflowFatalError error
-
-	var timerExpirationFuture workflow.Future = nil
-	var fetchedInitialTracksFuture workflow.Future = nil
+	var (
+		terminated                 = false
+		workflowFatalError         error
+		timerExpirationFuture      workflow.Future
+		fetchedInitialTracksFuture workflow.Future
+	)
 
 	internalState.Machine, err = brainy.NewMachine(brainy.StateNode{
 		Context: &MtvRoomMachineContext{

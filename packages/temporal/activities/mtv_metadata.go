@@ -15,6 +15,12 @@ import (
 var ErrInvalidGoogleAPIKey = errors.New("invalid Google API key")
 
 func FetchTracksInformationActivity(ctx context.Context, tracksIDs []string) ([]shared.TrackMetadata, error) {
+	metadata := make([]shared.TrackMetadata, 0, len(tracksIDs))
+
+	if len(tracksIDs) == 0 {
+		return metadata, nil
+	}
+
 	apiKey := os.Getenv("GOOGLE_API_KEY")
 	if apiKey == "" {
 		return nil, ErrInvalidGoogleAPIKey
@@ -24,8 +30,6 @@ func FetchTracksInformationActivity(ctx context.Context, tracksIDs []string) ([]
 	if err != nil {
 		return nil, err
 	}
-
-	metadata := make([]shared.TrackMetadata, 0, len(tracksIDs))
 
 	for _, entry := range youtubeResponse.Items {
 		parsedDuration, _ := duration.ParseISO8601(entry.ContentDetails.Duration)

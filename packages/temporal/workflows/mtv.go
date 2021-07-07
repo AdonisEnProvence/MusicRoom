@@ -175,34 +175,32 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				},
 
 				On: brainy.Events{
-					MtvRoomInitialTracksFetched: brainy.Transitions{
-						{
-							Target: MtvRoomPausedState,
+					MtvRoomInitialTracksFetched: brainy.Transition{
+						Target: MtvRoomPausedState,
 
-							Actions: brainy.Actions{
-								brainy.ActionFn(
-									func(c brainy.Context, e brainy.Event) error {
+						Actions: brainy.Actions{
+							brainy.ActionFn(
+								func(c brainy.Context, e brainy.Event) error {
 
-										event := e.(MtvRoomInitialTracksFetchedEvent)
-										internalState.Tracks = event.Tracks
+									event := e.(MtvRoomInitialTracksFetchedEvent)
+									internalState.Tracks = event.Tracks
 
-										if tracksCount := len(event.Tracks); tracksCount > 0 {
-											currentTrack := internalState.Tracks[0]
-											internalState.CurrentTrack = currentTrack
+									if tracksCount := len(event.Tracks); tracksCount > 0 {
+										currentTrack := internalState.Tracks[0]
+										internalState.CurrentTrack = currentTrack
 
-											if tracksCount == 1 {
-												internalState.Tracks = []shared.TrackMetadata{}
-												internalState.TracksIDsList = []string{}
-											} else {
-												internalState.Tracks = internalState.Tracks[1:]
-												internalState.TracksIDsList = internalState.TracksIDsList[1:]
-											}
+										if tracksCount == 1 {
+											internalState.Tracks = []shared.TrackMetadata{}
+											internalState.TracksIDsList = []string{}
+										} else {
+											internalState.Tracks = internalState.Tracks[1:]
+											internalState.TracksIDsList = internalState.TracksIDsList[1:]
 										}
+									}
 
-										return nil
-									},
-								),
-							},
+									return nil
+								},
+							),
 						},
 					},
 				},

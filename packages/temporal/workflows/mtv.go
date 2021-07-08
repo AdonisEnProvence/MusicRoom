@@ -32,7 +32,7 @@ func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 func (s *MtvRoomInternalState) Export() shared.MtvRoomExposedState {
 	isPlaying := false
 	if machine := s.Machine; machine != nil {
-		isPlaying = machine.Current().Matches(MtvRoomPlayingState)
+		isPlaying = machine.UnsafeCurrent().Matches(MtvRoomPlayingState)
 	}
 
 	exposedState := shared.MtvRoomExposedState{
@@ -76,6 +76,7 @@ const (
 	MtvRoomInitialTracksFetched brainy.EventType = "INITIAL_TRACKS_FETCHED"
 	MtvRoomIsReady              brainy.EventType = "MTV_ROOM_IS_READY"
 	MtvRoomGoToPausedEvent      brainy.EventType = "GO_TO_PAUSED"
+	MtvRoomAddUserEvent         brainy.EventType = "ADD_USER"
 )
 
 type MtvRoomTimerExpirationEvent struct {
@@ -99,12 +100,28 @@ func NewMtvRoomTimerExpirationEvent(t shared.MtvRoomTimer) MtvRoomTimerExpiratio
 	}
 }
 
-func InitialTracksFetchedEvent(tracks []shared.TrackMetadata) MtvRoomInitialTracksFetchedEvent {
+func NewMtvRoomInitialTracksFetchedEvent(tracks []shared.TrackMetadata) MtvRoomInitialTracksFetchedEvent {
 	return MtvRoomInitialTracksFetchedEvent{
 		EventWithType: brainy.EventWithType{
 			Event: MtvRoomInitialTracksFetched,
 		},
 		Tracks: tracks,
+	}
+}
+
+type MtvRoomUserJoiningRoomEvent struct {
+	brainy.EventWithType
+
+	UserID string
+}
+
+func NewMtvRoomUserJoiningRoomEvent(userID string) MtvRoomUserJoiningRoomEvent {
+	return MtvRoomUserJoiningRoomEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MtvRoomAddUserEvent,
+		},
+
+		UserID: userID,
 	}
 }
 
@@ -182,7 +199,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 						Actions: brainy.Actions{
 							brainy.ActionFn(
 								func(c brainy.Context, e brainy.Event) error {
-
 									event := e.(MtvRoomInitialTracksFetchedEvent)
 									internalState.Tracks = event.Tracks
 
@@ -197,6 +213,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 											internalState.Tracks = internalState.Tracks[1:]
 											internalState.TracksIDsList = internalState.TracksIDsList[1:]
 										}
+									}
+
+									if err := acknowledgeRoomCreation(ctx, internalState.Export()); err != nil {
+										workflowFatalError = err
 									}
 
 									return nil
@@ -401,6 +421,34 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				},
 			},
 		},
+
+		On: brainy.Events{
+			MtvRoomAddUserEvent: brainy.Transition{
+				Actions: brainy.Actions{
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+							event := e.(MtvRoomUserJoiningRoomEvent)
+
+							internalState.AddUser(event.UserID)
+
+							options := workflow.ActivityOptions{
+								ScheduleToStartTimeout: time.Minute,
+								StartToCloseTimeout:    time.Minute,
+							}
+							ctx = workflow.WithActivityOptions(ctx, options)
+							workflow.ExecuteActivity(
+								ctx,
+								activities.JoinActivity,
+								internalState.Export(),
+								event.UserID,
+							)
+
+							return nil
+						},
+					),
+				},
+			},
+		},
 	})
 	if err != nil {
 		fmt.Printf("machine error : %v\n", err)
@@ -450,20 +498,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					return
 				}
 
-				// TODO: should go inside the state machine
-
-				internalState.AddUser(message.UserID)
-
-				options := workflow.ActivityOptions{
-					ScheduleToStartTimeout: time.Minute,
-					StartToCloseTimeout:    time.Minute,
-				}
-				ctx = workflow.WithActivityOptions(ctx, options)
-				workflow.ExecuteActivity(
-					ctx,
-					activities.JoinActivity,
-					internalState.Export(),
+				internalState.Machine.Send(
+					NewMtvRoomUserJoiningRoomEvent(message.UserID),
 				)
+
 			case shared.SignalRouteTerminate:
 				terminated = true
 			}
@@ -501,12 +539,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				}
 
 				internalState.Machine.Send(
-					InitialTracksFetchedEvent(initialTracksActivityResult),
+					NewMtvRoomInitialTracksFetchedEvent(initialTracksActivityResult),
 				)
-
-				if err := acknowledgeRoomCreation(ctx, internalState.Export()); err != nil {
-					workflowFatalError = err
-				}
 			})
 		}
 		/////

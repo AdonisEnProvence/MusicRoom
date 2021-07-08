@@ -290,6 +290,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		activities.JoinActivity,
 		mock.Anything,
 		mock.Anything,
+		fakeUserID,
 	).Return(nil).Once()
 
 	s.env.RegisterDelayedCallback(func() {

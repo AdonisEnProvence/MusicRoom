@@ -76,18 +76,11 @@ export default class SocketLifecycle {
          */
         const hasNoMoreDevice = allUserDevices.length <= 1;
         if (room !== null && hasNoMoreDevice) {
-            const adapter = Ws.adapter();
-            const connectedSockets = await adapter.sockets(
-                new Set([room.uuid]),
-            );
-            console.log('ABOUT TO EMIT', { connectedSockets }, socket.id);
             console.log(room.uuid);
             await MtvRoomsWsController.onTerminate(room.uuid);
             console.log('ABOUT TO EMIT');
             Ws.io.in(room.uuid).emit('FORCED_DISCONNECTION');
-            connectedSockets.forEach((socketID) =>
-                adapter.remoteLeave(socketID, room.uuid),
-            );
+            await this.deleteRoom(room.uuid);
         }
 
         /**
@@ -95,6 +88,38 @@ export default class SocketLifecycle {
          */
         await device.delete();
         console.log('='.repeat(10));
+    }
+
+    /**
+     * return a set containing every connected socket to roomID
+     * @param roomID concerned room
+     * @param log if true console.log result
+     */
+    public static async getConnectedSocketToRoom(
+        roomID: string,
+        log?: boolean,
+    ): Promise<Set<string>> {
+        const connectedSockets = await Ws.adapter().sockets(new Set([roomID]));
+        if (log) console.log({ roomID, connectedSockets });
+        return connectedSockets;
+    }
+
+    /**
+     * Disconnect every connected sockets to roomID
+     * @param roomID room about to be deleted
+     */
+    public static async deleteRoom(roomID: string): Promise<void> {
+        const adapter = Ws.adapter();
+        const connectedSockets = await this.getConnectedSocketToRoom(roomID);
+        console.log(
+            `ABOUT TO disconnect ${{ connectedSockets }} FROM roomID=${roomID}`,
+        );
+
+        await Promise.all(
+            [...connectedSockets].map(
+                async (socketID) => await adapter.remoteLeave(socketID, roomID),
+            ),
+        );
     }
 
     public static async getSocketConnectionCredentials(
@@ -116,9 +141,8 @@ export default class SocketLifecycle {
          * should be found in the room's connectedSockets
          */
         if (mtvRoomID !== undefined) {
-            const connectedSocketsInRoomID = await Ws.adapter().sockets(
-                new Set([mtvRoomID]),
-            );
+            const connectedSocketsInRoomID =
+                await this.getConnectedSocketToRoom(mtvRoomID);
             if (!connectedSocketsInRoomID.has(socket.id)) {
                 throw new Error(
                     'Device should appears in the socket io room too, sync error',

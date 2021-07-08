@@ -1,3 +1,7 @@
+import {
+    AllClientToServerEvents,
+    AllServerToClientEvents,
+} from '@musicroom/types';
 import ChatController from 'App/Controllers/Ws/ChatController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
@@ -5,10 +9,6 @@ import SocketLifecycle from 'App/Services/SocketLifecycle';
 import Ws from 'App/Services/Ws';
 import { Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
-import {
-    AllClientToServerEvents,
-    AllServerToClientEvents,
-} from '../../types/dist';
 
 Ws.boot();
 

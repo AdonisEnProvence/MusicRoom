@@ -2,15 +2,18 @@ import Database from '@ioc:Adonis/Lucid/Database';
 import {
     AllClientToServerEvents,
     AllServerToClientEvents,
+    MtvWorkflowState,
 } from '@musicroom/types';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
-import { datatype, random, name } from 'faker';
+import { datatype, name, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import { io, Socket } from 'socket.io-client';
+import supertest from 'supertest';
+import SocketLifecycle from '../app/Services/SocketLifecycle';
 
 const BASE_URL = `http://${process.env.HOST!}:${process.env.PORT!}`;
 
@@ -101,9 +104,13 @@ test.group('Rooms life cycle', (group) => {
         assert.equal((await Device.query().where('user_id', userID)).length, 0);
     });
 
-    test('User creates a room, on user disconnection, it should removes the room from database', async (assert) => {
+    test('User creates a room, receives acknowledgement, on user disconnection, it should removes the room from database', async (assert) => {
         const userID = datatype.uuid();
         const socket = await createUserAndGetSocket(userID);
+        const receivedEvents: string[] = [];
+        socket.once('CREATE_ROOM_CALLBACK', () => {
+            receivedEvents.push('CREATE_ROOM_CALLBACK');
+        });
         const roomName = random.words(1);
 
         /** Mocks */
@@ -113,26 +120,33 @@ test.group('Rooms life cycle', (group) => {
                 return;
             });
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorflow')
-            .callsFake(async () => {
+            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .callsFake(async ({ workflowID }) => {
+                const state: MtvWorkflowState = {
+                    roomID: workflowID, //workflowID === roomID
+                    roomCreatorUserID: userID,
+                    playing: false,
+                    name: roomName,
+                    users: [userID],
+                    tracks: [
+                        {
+                            id: datatype.uuid(),
+                            artistName: name.findName(),
+                            duration: 'PT4M52S',
+                            title: random.words(3),
+                        },
+                    ],
+                };
+
+                // Simulating Use Local Activity Notify
+                await supertest(BASE_URL)
+                    .post('/temporal/mtv-creation-acknowledgement')
+                    .send(state);
+
                 return {
                     runID: datatype.uuid(),
-                    workflowID: datatype.uuid(),
-                    state: {
-                        roomID: datatype.uuid(),
-                        roomCreatorUserID: userID,
-                        playing: false,
-                        name: roomName,
-                        users: [userID],
-                        tracks: [
-                            {
-                                id: datatype.uuid(),
-                                artistName: name.findName(),
-                                duration: 'PT4M52S',
-                                title: random.words(3),
-                            },
-                        ],
-                    },
+                    workflowID,
+                    state,
                 };
             });
         /** ***** */
@@ -140,11 +154,13 @@ test.group('Rooms life cycle', (group) => {
         /**
          * Emit CREATE_ROOM
          * Expecting it to be in database
+         * Also looking for the CREATE_ROOM_CALLBACK event
          */
         socket.emit('CREATE_ROOM', { name: roomName, initialTracksIDs: [] });
         await sleep();
         const roomBefore = await MtvRoom.findBy('creator', userID);
         assert.isNotNull(roomBefore);
+        assert.equal(receivedEvents[0], 'CREATE_ROOM_CALLBACK');
 
         /**
          * Emit disconnect
@@ -153,6 +169,59 @@ test.group('Rooms life cycle', (group) => {
         await disconnectSocket(socket);
         const roomAfter = await MtvRoom.findBy('creator', userID);
         assert.isNull(roomAfter);
+    });
+
+    test('It should handle a temporal onCreate error', async (assert) => {
+        const userID = datatype.uuid();
+        const socket = await createUserAndGetSocket(userID);
+        let roomID: undefined | string;
+        const receivedEvents: string[] = [];
+        socket.once('CREATE_ROOM_CALLBACK', () => {
+            receivedEvents.push('CREATE_ROOM_CALLBACK');
+        });
+        const roomName = random.words(1);
+
+        /** Mocks */
+        sinon
+            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .callsFake(async ({ workflowID }) => {
+                roomID = workflowID;
+
+                /**
+                 * Checking if the user is well registered in the socket-io
+                 * room instance
+                 */
+                const connectedSockets =
+                    await SocketLifecycle.getConnectedSocketToRoom(workflowID);
+                assert.isTrue(connectedSockets.has(socket.id));
+
+                throw new Error('Mocked error');
+            });
+        /** ***** */
+
+        /**
+         * Emit CREATE_ROOM
+         */
+        socket.emit('CREATE_ROOM', { name: roomName, initialTracksIDs: [] });
+        await sleep();
+
+        if (roomID === undefined) throw new Error('roomID is undefined');
+        /**
+         * Checking if the user has correctly been removed from the
+         * room instance
+         */
+        const connectedSockets = await SocketLifecycle.getConnectedSocketToRoom(
+            roomID,
+        );
+        assert.isFalse(connectedSockets.has(socket.id));
+        assert.equal(connectedSockets.size, 0);
+
+        /**
+         * Even if the room hasn't been inserted checking
+         * if it's really not in postgres
+         */
+        const roomBefore = await MtvRoom.findBy('creator', userID);
+        assert.isNull(roomBefore);
     });
 
     test('When a room got evicted, users in it should receive a FORCED_DISCONNECTION socket event', async (assert) => {
@@ -179,13 +248,13 @@ test.group('Rooms life cycle', (group) => {
                 return;
             });
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorflow')
-            .callsFake(async () => {
+            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .callsFake(async ({ workflowID }) => {
                 return {
                     runID: datatype.uuid(),
-                    workflowID: datatype.uuid(),
+                    workflowID,
                     state: {
-                        roomID: datatype.uuid(),
+                        roomID: workflowID,
                         roomCreatorUserID: userA.userID,
                         playing: false,
                         name: roomName,
@@ -304,13 +373,13 @@ test.group('Rooms life cycle', (group) => {
 
         /** Mocks */
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorflow')
-            .callsFake(async () => {
+            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .callsFake(async ({ workflowID }) => {
                 return {
                     runID: datatype.uuid(),
-                    workflowID: datatype.uuid(),
+                    workflowID: workflowID,
                     state: {
-                        roomID: datatype.uuid(),
+                        roomID: workflowID,
                         roomCreatorUserID: datatype.uuid(),
                         tracks: [
                             {
@@ -375,13 +444,13 @@ test.group('Rooms life cycle', (group) => {
 
         /** Mocks */
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorflow')
-            .callsFake(async () => {
+            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .callsFake(async ({ workflowID }) => {
                 return {
                     runID: datatype.uuid(),
-                    workflowID: datatype.uuid(),
+                    workflowID,
                     state: {
-                        roomID: datatype.uuid(),
+                        roomID: workflowID,
                         roomCreatorUserID: datatype.uuid(),
                         playing: false,
                         name: roomName,
@@ -438,13 +507,13 @@ test.group('Rooms life cycle', (group) => {
         let userCouldEmitAnExclusiveRoomSignal = false;
         /** Mocks */
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorflow')
-            .callsFake(async () => {
+            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .callsFake(async ({ workflowID }) => {
                 return {
                     runID: datatype.uuid(),
-                    workflowID: datatype.uuid(),
+                    workflowID,
                     state: {
-                        roomID: datatype.uuid(),
+                        roomID: workflowID,
                         roomCreatorUserID: datatype.uuid(),
                         playing: false,
                         name: roomName,

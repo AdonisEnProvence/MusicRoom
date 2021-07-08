@@ -1,17 +1,10 @@
 import {
     AppMusicPlayerMachineContext,
-    TrackVoteRoom,
     RoomClientToServerCreate,
     TracksMetadata,
+    TrackVoteRoom,
 } from '@musicroom/types';
-import {
-    assign,
-    createMachine,
-    send,
-    Sender,
-    State,
-    StateMachine,
-} from 'xstate';
+import { assign, createMachine, send, State, StateMachine } from 'xstate';
 import { SocketClient } from '../hooks/useSocket';
 
 export type AppMusicPlayerMachineState = State<
@@ -77,7 +70,7 @@ export const createAppMusicPlayerMachine = ({
                 id: 'socketConnection',
                 src: (_context, _event) => (sendBack, onReceive) => {
                     socket.on('RETRIEVE_CONTEXT', ({ context }) => {
-                        console.log('RETRIVE_CONTEXT');
+                        console.log('RETRIEVE_CONTEXT');
                         sendBack({
                             type: 'RETRIEVE_CONTEXT',
                             context,
@@ -86,11 +79,11 @@ export const createAppMusicPlayerMachine = ({
 
                     socket.on(
                         'CREATE_ROOM_CALLBACK',
-                        ({ roomID, roomName, tracks }) => {
+                        ({ roomID, name, tracks }) => {
                             sendBack({
                                 type: 'JOINED_ROOM',
                                 room: {
-                                    name: roomName,
+                                    name,
                                     roomID,
                                 },
                                 tracksList: tracks,

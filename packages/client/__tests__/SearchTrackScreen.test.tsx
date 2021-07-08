@@ -1,10 +1,10 @@
-import React from 'react';
-import { datatype, random, name } from 'faker';
-import { render, fireEvent, waitFor, within } from '../tests/tests-utils';
-import { RootNavigator } from '../navigation';
 import { NavigationContainer } from '@react-navigation/native';
-import { db } from '../tests/data';
+import { datatype, name, random } from 'faker';
+import React from 'react';
+import { RootNavigator } from '../navigation';
 import { serverSocket } from '../services/websockets';
+import { db } from '../tests/data';
+import { fireEvent, render, waitFor, within } from '../tests/tests-utils';
 
 function noop() {
     return undefined;
@@ -24,7 +24,10 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
     serverSocket.on('CREATE_ROOM', () => {
         serverSocket.emit('CREATE_ROOM_CALLBACK', {
             roomID: datatype.uuid(),
-            roomName: fakeTrack.title,
+            name: fakeTrack.title,
+            playing: false,
+            users: [],
+            roomCreatorUserID: datatype.uuid(),
             tracks: [
                 {
                     id: datatype.uuid(),

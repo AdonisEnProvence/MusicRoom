@@ -45,8 +45,18 @@ func CreationAcknowledgementActivity(_ context.Context, state shared.MtvRoomExpo
 	return err
 }
 
-func JoinActivity(ctx context.Context, state shared.MtvRoomExposedState) error {
-	marshaledBody, err := json.Marshal(state)
+type mtvJoinCallbackRequestBody struct {
+	State         shared.MtvRoomExposedState `json:"state"`
+	JoiningUserID string                     `json:"joiningUserID"`
+}
+
+func JoinActivity(ctx context.Context, state shared.MtvRoomExposedState, joiningUserID string) error {
+	requestBody := mtvJoinCallbackRequestBody{
+		State:         state,
+		JoiningUserID: joiningUserID,
+	}
+
+	marshaledBody, err := json.Marshal(requestBody)
 	if err != nil {
 		return err
 	}

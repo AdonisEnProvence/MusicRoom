@@ -440,6 +440,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								ctx,
 								activities.JoinActivity,
 								internalState.Export(),
+								event.UserID,
 							)
 
 							return nil

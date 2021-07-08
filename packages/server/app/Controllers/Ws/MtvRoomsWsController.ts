@@ -6,6 +6,7 @@ import {
 } from '@musicroom/types';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
+import SocketLifecycle from 'App/Services/SocketLifecycle';
 import Ws from 'App/Services/Ws';
 import { randomUUID } from 'crypto';
 import { Socket } from 'socket.io';
@@ -30,7 +31,7 @@ async function joinEveryUserDevicesToRoom(user: User, roomID: string) {
     await user.load('devices');
     await Promise.all(
         user.devices.map(async (device) => {
-            console.log('JOIN connecting device ', device.socketID);
+            console.log('connecting device ', device.socketID);
             await Ws.adapter().remoteJoin(device.socketID, roomID);
         }),
     );
@@ -43,28 +44,47 @@ export default class MtvRoomsWsController {
         RoomClientToServerCreate & UserID
     >): Promise<CreateWorkflowResponse> {
         const roomID = randomUUID();
+        const room = new MtvRoom();
+        let roomHasBeenSaved = false;
         console.log(`USER ${payload.userID} CREATE_ROOM ${roomID}`);
-        const temporalResponse =
-            await ServerToTemporalController.createMtvWorflow({
-                workflowID: roomID,
-                roomName: payload.name,
-                userID: payload.userID,
-                initialTracksIDs: payload.initialTracksIDs,
-            });
 
+        /**
+         * We need to create the room before the workflow
+         * because we don't know if temporal will answer faster
+         * than adonis will execute this function
+         */
         const roomCreator = await User.findOrFail(payload.userID);
         await joinEveryUserDevicesToRoom(roomCreator, roomID);
 
-        const room = await MtvRoom.create({
-            uuid: roomID,
-            runID: temporalResponse.runID,
-            creator: payload.userID,
-        });
-        roomCreator.mtvRoomID = roomID;
-        await room.save();
-        await room.related('members').save(roomCreator);
+        try {
+            const temporalResponse =
+                await ServerToTemporalController.createMtvWorflow({
+                    workflowID: roomID,
+                    roomName: payload.name,
+                    userID: payload.userID,
+                    initialTracksIDs: payload.initialTracksIDs,
+                });
 
-        return temporalResponse;
+            await room
+                .fill({
+                    uuid: roomID,
+                    runID: temporalResponse.runID,
+                    creator: payload.userID,
+                })
+                .save();
+            roomHasBeenSaved = true;
+
+            await roomCreator.merge({ mtvRoomID: roomID }).save();
+            await room.related('members').save(roomCreator);
+            console.log('created room ' + roomID);
+
+            return temporalResponse;
+        } catch (error) {
+            await SocketLifecycle.deleteRoom(roomID);
+            if (roomHasBeenSaved) await room.delete();
+
+            throw error;
+        }
     }
 
     public static async onJoin({

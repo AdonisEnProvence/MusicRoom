@@ -90,8 +90,13 @@ export default class SocketLifecycle {
         console.log('='.repeat(10));
     }
 
-    public static async logConnectedSocket(roomID: string): Promise<void> {
-        console.log(await Ws.adapter().sockets(new Set([roomID])));
+    public static async getConnectedSocketToRoom(
+        roomID: string,
+        log?: boolean,
+    ): Promise<Set<string>> {
+        const connectedSockets = await Ws.adapter().sockets(new Set([roomID]));
+        if (log) console.log({ roomID, connectedSockets });
+        return connectedSockets;
     }
 
     /**
@@ -100,7 +105,7 @@ export default class SocketLifecycle {
      */
     public static async deleteRoom(roomID: string): Promise<void> {
         const adapter = Ws.adapter();
-        const connectedSockets = await adapter.sockets(new Set([roomID]));
+        const connectedSockets = await this.getConnectedSocketToRoom(roomID);
         console.log(
             `ABOUT TO disconnect ${{ connectedSockets }} FROM roomID=${roomID}`,
         );
@@ -128,9 +133,8 @@ export default class SocketLifecycle {
          * should be found in the room's connectedSockets
          */
         if (mtvRoomID !== undefined) {
-            const connectedSocketsInRoomID = await Ws.adapter().sockets(
-                new Set([mtvRoomID]),
-            );
+            const connectedSocketsInRoomID =
+                await this.getConnectedSocketToRoom(mtvRoomID);
             if (!connectedSocketsInRoomID.has(socket.id)) {
                 throw new Error(
                     'Device should appears in the socket io room too, sync error',

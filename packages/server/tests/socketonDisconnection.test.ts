@@ -171,7 +171,7 @@ test.group('Rooms life cycle', (group) => {
         assert.isNull(roomAfter);
     });
 
-    test.only('It should handle a temporal onCreate error', async (assert) => {
+    test('It should handle a temporal onCreate error', async (assert) => {
         const userID = datatype.uuid();
         const socket = await createUserAndGetSocket(userID);
         let roomID: undefined | string;

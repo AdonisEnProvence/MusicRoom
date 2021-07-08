@@ -1,5 +1,5 @@
 import { AppMusicPlayerMachineContext } from './appMusicPlayerMachine';
-import { TracksMetadata } from './mtv';
+import { MtvWorkflowState, TracksMetadata } from './mtv';
 
 export interface ChatMessage {
     author: string;
@@ -32,12 +32,6 @@ export interface Track {
     artistName: string;
 }
 
-export interface RoomServerToClientCreateCallback {
-    roomID: string;
-    roomName: string;
-    tracks: TracksMetadata[];
-}
-
 export interface RoomServerToClientJoinCallback {
     roomID: string;
     roomName: string;
@@ -66,7 +60,7 @@ export interface RoomServerToClientEvents {
     RETRIEVE_CONTEXT: (args: RoomServerToClientRetrieveContext) => void;
     ACTION_PLAY_CALLBACK: () => void;
     ACTION_PAUSE_CALLBACK: () => void;
-    CREATE_ROOM_CALLBACK: (args: RoomServerToClientCreateCallback) => void;
+    CREATE_ROOM_CALLBACK: (args: MtvWorkflowState) => void;
     FORCED_DISCONNECTION: () => void;
     JOIN_ROOM_CALLBACK: (args: RoomServerToClientJoinCallback) => void;
 }

@@ -1,7 +1,7 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
+import { MtvWorkflowState } from '@musicroom/types';
 import Ws from 'App/Services/Ws';
 import * as z from 'zod';
-import { MtvWorkflowState } from '@musicroom/types';
 
 const TemporalToServerMtvCreationAcknowledgement = MtvWorkflowState;
 type TemporalToServerMtvCreationAcknowledgement = z.infer<
@@ -24,14 +24,14 @@ export default class TemporalToServerController {
         Ws.io.to(roomID).emit('ACTION_PLAY_CALLBACK');
     }
 
-    public mtvCreationAcknowledgement({ request }: HttpContextContract): void {
-        const {
-            roomID,
-            name: roomName,
-            tracks,
-        } = TemporalToServerMtvCreationAcknowledgement.parse(request.body());
+    public async mtvCreationAcknowledgement({
+        request,
+    }: HttpContextContract): Promise<void> {
+        const state = TemporalToServerMtvCreationAcknowledgement.parse(
+            request.body(),
+        );
 
-        Ws.io.emit('CREATE_ROOM_CALLBACK', { roomID, roomName, tracks });
+        Ws.io.to(state.roomID).emit('CREATE_ROOM_CALLBACK', state);
     }
 
     public join({ request }: HttpContextContract): void {
@@ -41,6 +41,7 @@ export default class TemporalToServerController {
             tracks,
         } = TemporalToServeJoinBody.parse(request.body());
 
+        //vomiting to refacto
         Ws.io.emit('JOIN_ROOM_CALLBACK', {
             roomID,
             roomName,

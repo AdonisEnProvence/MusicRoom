@@ -100,7 +100,7 @@ func NewMtvRoomTimerExpirationEvent(t shared.MtvRoomTimer) MtvRoomTimerExpiratio
 	}
 }
 
-func InitialTracksFetchedEvent(tracks []shared.TrackMetadata) MtvRoomInitialTracksFetchedEvent {
+func NewMtvRoomInitialTracksFetchedEvent(tracks []shared.TrackMetadata) MtvRoomInitialTracksFetchedEvent {
 	return MtvRoomInitialTracksFetchedEvent{
 		EventWithType: brainy.EventWithType{
 			Event: MtvRoomInitialTracksFetched,
@@ -199,7 +199,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 						Actions: brainy.Actions{
 							brainy.ActionFn(
 								func(c brainy.Context, e brainy.Event) error {
-
 									event := e.(MtvRoomInitialTracksFetchedEvent)
 									internalState.Tracks = event.Tracks
 
@@ -214,6 +213,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 											internalState.Tracks = internalState.Tracks[1:]
 											internalState.TracksIDsList = internalState.TracksIDsList[1:]
 										}
+									}
+
+									if err := acknowledgeRoomCreation(ctx, internalState.Export()); err != nil {
+										workflowFatalError = err
 									}
 
 									return nil
@@ -535,12 +538,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				}
 
 				internalState.Machine.Send(
-					InitialTracksFetchedEvent(initialTracksActivityResult),
+					NewMtvRoomInitialTracksFetchedEvent(initialTracksActivityResult),
 				)
-
-				if err := acknowledgeRoomCreation(ctx, internalState.Export()); err != nil {
-					workflowFatalError = err
-				}
 			})
 		}
 		/////

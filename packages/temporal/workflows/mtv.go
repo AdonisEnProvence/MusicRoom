@@ -32,7 +32,7 @@ func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 func (s *MtvRoomInternalState) Export() shared.MtvRoomExposedState {
 	isPlaying := false
 	if machine := s.Machine; machine != nil {
-		isPlaying = machine.Current().Matches(MtvRoomPlayingState)
+		isPlaying = machine.UnsafeCurrent().Matches(MtvRoomPlayingState)
 	}
 
 	exposedState := shared.MtvRoomExposedState{

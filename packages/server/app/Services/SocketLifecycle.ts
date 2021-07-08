@@ -90,6 +90,11 @@ export default class SocketLifecycle {
         console.log('='.repeat(10));
     }
 
+    /**
+     * return a set containing every connected socket to roomID
+     * @param roomID concerned room
+     * @param log if true console.log result
+     */
     public static async getConnectedSocketToRoom(
         roomID: string,
         log?: boolean,
@@ -109,8 +114,11 @@ export default class SocketLifecycle {
         console.log(
             `ABOUT TO disconnect ${{ connectedSockets }} FROM roomID=${roomID}`,
         );
-        connectedSockets.forEach((socketID) =>
-            adapter.remoteLeave(socketID, roomID),
+
+        await Promise.all(
+            [...connectedSockets].map(
+                async (socketID) => await adapter.remoteLeave(socketID, roomID),
+            ),
         );
     }
 

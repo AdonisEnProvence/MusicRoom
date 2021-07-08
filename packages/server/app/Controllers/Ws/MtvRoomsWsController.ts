@@ -58,7 +58,7 @@ export default class MtvRoomsWsController {
 
         try {
             const temporalResponse =
-                await ServerToTemporalController.createMtvWorflow({
+                await ServerToTemporalController.createMtvWorkflow({
                     workflowID: roomID,
                     roomName: payload.name,
                     userID: payload.userID,

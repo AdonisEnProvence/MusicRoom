@@ -120,7 +120,7 @@ test.group('Rooms life cycle', (group) => {
                 return;
             });
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorflow')
+            .stub(ServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
                 const state: MtvWorkflowState = {
                     roomID: workflowID, //workflowID === roomID
@@ -145,7 +145,7 @@ test.group('Rooms life cycle', (group) => {
 
                 return {
                     runID: datatype.uuid(),
-                    workflowID: datatype.uuid(),
+                    workflowID,
                     state,
                 };
             });
@@ -183,7 +183,7 @@ test.group('Rooms life cycle', (group) => {
 
         /** Mocks */
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorflow')
+            .stub(ServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
                 roomID = workflowID;
 
@@ -248,13 +248,13 @@ test.group('Rooms life cycle', (group) => {
                 return;
             });
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorflow')
-            .callsFake(async () => {
+            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .callsFake(async ({ workflowID }) => {
                 return {
                     runID: datatype.uuid(),
-                    workflowID: datatype.uuid(),
+                    workflowID,
                     state: {
-                        roomID: datatype.uuid(),
+                        roomID: workflowID,
                         roomCreatorUserID: userA.userID,
                         playing: false,
                         name: roomName,
@@ -373,13 +373,13 @@ test.group('Rooms life cycle', (group) => {
 
         /** Mocks */
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorflow')
-            .callsFake(async () => {
+            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .callsFake(async ({ workflowID }) => {
                 return {
                     runID: datatype.uuid(),
-                    workflowID: datatype.uuid(),
+                    workflowID: workflowID,
                     state: {
-                        roomID: datatype.uuid(),
+                        roomID: workflowID,
                         roomCreatorUserID: datatype.uuid(),
                         tracks: [
                             {
@@ -444,13 +444,13 @@ test.group('Rooms life cycle', (group) => {
 
         /** Mocks */
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorflow')
-            .callsFake(async () => {
+            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .callsFake(async ({ workflowID }) => {
                 return {
                     runID: datatype.uuid(),
-                    workflowID: datatype.uuid(),
+                    workflowID,
                     state: {
-                        roomID: datatype.uuid(),
+                        roomID: workflowID,
                         roomCreatorUserID: datatype.uuid(),
                         playing: false,
                         name: roomName,
@@ -507,13 +507,13 @@ test.group('Rooms life cycle', (group) => {
         let userCouldEmitAnExclusiveRoomSignal = false;
         /** Mocks */
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorflow')
-            .callsFake(async () => {
+            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .callsFake(async ({ workflowID }) => {
                 return {
                     runID: datatype.uuid(),
-                    workflowID: datatype.uuid(),
+                    workflowID,
                     state: {
-                        roomID: datatype.uuid(),
+                        roomID: workflowID,
                         roomCreatorUserID: datatype.uuid(),
                         playing: false,
                         name: roomName,

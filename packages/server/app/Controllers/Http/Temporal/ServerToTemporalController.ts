@@ -22,7 +22,7 @@ interface TemporalCreateMtvWorkflowBody {
 }
 
 export default class ServerToTemporalController {
-    public static async createMtvWorflow({
+    public static async createMtvWorkflow({
         workflowID,
         roomName,
         userID,

@@ -65,10 +65,11 @@ type MtvRoomExposedState struct {
 type SignalRoute string
 
 const (
-	SignalRoutePlay      = "play"
-	SignalRoutePause     = "pause"
-	SignalRouteJoin      = "join"
-	SignalRouteTerminate = "terminate"
+	SignalRoutePlay          = "play"
+	SignalRoutePause         = "pause"
+	SignalRouteJoin          = "join"
+	SignalRouteTerminate     = "terminate"
+	SignalRouteGoToNextTrack = "go-to-next-track"
 )
 
 type GenericRouteSignal struct {
@@ -126,5 +127,15 @@ type NewTerminateSignalArgs struct{}
 func NewTerminateSignal(args NewTerminateSignalArgs) TerminateSignal {
 	return TerminateSignal{
 		Route: SignalRouteTerminate,
+	}
+}
+
+type GoToNextTrackSignal struct {
+	Route SignalRoute
+}
+
+func NewGoToNexTrackSignal() GoToNextTrackSignal {
+	return GoToNextTrackSignal{
+		Route: SignalRouteGoToNextTrack,
 	}
 }

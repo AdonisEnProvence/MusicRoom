@@ -65,4 +65,6 @@ test(`When the user clicks on next track button, it should play the next track, 
         /play.*next.*track/i,
     );
     expect(nextTrackButton).toBeTruthy();
+
+    fireEvent.press(nextTrackButton);
 });

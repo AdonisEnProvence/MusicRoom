@@ -4,7 +4,14 @@ import {
     TracksMetadata,
     TrackVoteRoom,
 } from '@musicroom/types';
-import { assign, createMachine, send, State, StateMachine } from 'xstate';
+import {
+    assign,
+    createMachine,
+    forwardTo,
+    send,
+    State,
+    StateMachine,
+} from 'xstate';
 import { SocketClient } from '../hooks/useSocket';
 
 export type AppMusicPlayerMachineState = State<
@@ -34,6 +41,7 @@ export type AppMusicPlayerMachineEvent =
           type: 'PLAY_PAUSE_TOGGLE';
           params: { status: 'play' | 'pause'; roomID?: string };
       }
+    | { type: 'GO_TO_NEXT_TRACK' }
     | { type: 'PLAY_CALLBACK' }
     | { type: 'FORCED_DISCONNECTION' }
     | {
@@ -125,13 +133,29 @@ export const createAppMusicPlayerMachine = ({
                     });
 
                     onReceive((e) => {
-                        if (e.type === 'PLAY_PAUSE_TOGGLE' && e.params.roomID) {
-                            const { roomID, status } = e.params;
+                        switch (e.type) {
+                            case 'PLAY_PAUSE_TOGGLE': {
+                                if (e.params.roomID === undefined) {
+                                    return;
+                                }
 
-                            if (status === 'play') {
-                                socket.emit('ACTION_PAUSE');
-                            } else {
-                                socket.emit('ACTION_PLAY');
+                                const { roomID, status } = e.params;
+
+                                if (status === 'play') {
+                                    socket.emit('ACTION_PAUSE');
+                                } else {
+                                    socket.emit('ACTION_PLAY');
+                                }
+
+                                break;
+                            }
+
+                            case 'GO_TO_NEXT_TRACK': {
+                                console.log(
+                                    '== GO TO NEXT TRACK IN WS SERVICE ==',
+                                );
+
+                                break;
                             }
                         }
                     });
@@ -333,8 +357,13 @@ export const createAppMusicPlayerMachine = ({
                                 PAUSE_CALLBACK: {
                                     target: 'activatedPlayer.pause',
                                 },
+
                                 PLAY_CALLBACK: {
                                     target: 'activatedPlayer.play',
+                                },
+
+                                GO_TO_NEXT_TRACK: {
+                                    actions: forwardTo('socketConnection'),
                                 },
                             },
                         },
@@ -344,6 +373,7 @@ export const createAppMusicPlayerMachine = ({
                             target: 'waitingJoiningRoom',
                             actions: 'alertForcedDisconnection',
                         },
+
                         JOIN_ROOM: { target: 'joiningRoom' },
                     },
                 },

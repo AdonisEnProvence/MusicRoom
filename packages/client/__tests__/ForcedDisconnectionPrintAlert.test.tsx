@@ -28,20 +28,19 @@ test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it 
      */
     serverSocket.emit('RETRIEVE_CONTEXT', {
         context: {
-            currentRoom: {
-                roomID: 'RoomA_ID',
-                name: 'RoomA',
-            },
-            currentTrack: {
-                id: datatype.uuid(),
-                artistName: name.findName(),
-                duration: 'PT4M52S',
-                title: random.words(3),
-            },
-            waitingRoomID: undefined,
-
-            currentTrackDuration: 42,
-            currentTrackElapsedTime: 21,
+            roomID: datatype.uuid(),
+            name: random.word(),
+            playing: false,
+            users: [],
+            roomCreatorUserID: datatype.uuid(),
+            tracks: [
+                {
+                    id: datatype.uuid(),
+                    artistName: name.findName(),
+                    duration: 42000,
+                    title: random.words(3),
+                },
+            ],
         },
     });
 

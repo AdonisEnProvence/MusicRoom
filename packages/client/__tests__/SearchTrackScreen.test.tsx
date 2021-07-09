@@ -1,6 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { datatype, name, random } from 'faker';
 import React from 'react';
+import { AppMusicPlayerMachineContext } from '../../types/dist';
 import { RootNavigator } from '../navigation';
 import { serverSocket } from '../services/websockets';
 import { db } from '../tests/data';
@@ -21,22 +22,36 @@ function waitForTimeout(ms: number): Promise<void> {
 test(`Goes to Search a Track screen, searches a track, sees search results, presses a song and listens to it`, async () => {
     const fakeTrack = db.tracks.create();
 
-    serverSocket.on('CREATE_ROOM', () => {
-        serverSocket.emit('CREATE_ROOM_CALLBACK', {
+    serverSocket.on('CREATE_ROOM', (payload, cb) => {
+        const state: AppMusicPlayerMachineContext = {
             roomID: datatype.uuid(),
             name: fakeTrack.title,
             playing: false,
             users: [],
             roomCreatorUserID: datatype.uuid(),
+            currentTrack: {
+                artistName: random.word(),
+                id: datatype.uuid(),
+                duration: 42000,
+                elapsed: 0,
+                title: fakeTrack.title,
+            },
             tracks: [
                 {
                     id: datatype.uuid(),
                     artistName: name.findName(),
-                    duration: 'PT4M52S',
+                    duration: 42000,
                     title: random.words(3),
                 },
             ],
+        };
+        cb({
+            ...state,
+            tracks: undefined,
+            currentTrack: undefined,
         });
+
+        serverSocket.emit('CREATE_ROOM_CALLBACK', state);
     });
 
     serverSocket.on('ACTION_PAUSE', () => {

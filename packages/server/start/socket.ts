@@ -140,6 +140,30 @@ Ws.io.on('connection', async (socket) => {
             }
         });
 
+        socket.on('GO_TO_NEXT_TRACK', async () => {
+            try {
+                const { mtvRoomID } =
+                    await SocketLifecycle.getSocketConnectionCredentials(
+                        socket,
+                    );
+
+                if (mtvRoomID === undefined) {
+                    throw new Error(
+                        'Can not go to the next track, the user is not listening to a mtv room',
+                    );
+                }
+
+                await MtvRoomsWsController.onGoToNextTrack({
+                    payload: {
+                        roomID: mtvRoomID,
+                    },
+                    socket,
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
         socket.on('disconnecting', async () => {
             try {
                 await SocketLifecycle.checkForMtvRoomDeletion(socket);

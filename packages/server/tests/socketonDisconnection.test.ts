@@ -13,7 +13,8 @@ import test from 'japa';
 import sinon from 'sinon';
 import { io, Socket } from 'socket.io-client';
 import supertest from 'supertest';
-import SocketLifecycle from '../app/Services/SocketLifecycle';
+import SocketLifecycle from 'App/Services/SocketLifecycle';
+import Ws from 'App/Services/Ws';
 
 const BASE_URL = `http://${process.env.HOST!}:${process.env.PORT!}`;
 
@@ -580,5 +581,33 @@ test.group('Rooms life cycle', (group) => {
 
         assert.isTrue(userCouldEmitAnExclusiveRoomSignal);
         assert.equal(receivedEvents[0], 'RETRIEVE_CONTEXT');
+    });
+
+    test('Go to next tracks events are forwarded to Temporal', async (assert) => {
+        /**
+         * Create a user that is member of a mtv room.
+         * We want this user to send a GO_TO_NEXT_TRACK event and assert
+         * that the method that forwards the event is correctly called.
+         */
+        const userID = datatype.uuid();
+        const socket = await createUserAndGetSocket(userID);
+        const mtvRoom = await MtvRoom.create({
+            uuid: datatype.uuid(),
+            runID: datatype.uuid(),
+            creator: userID,
+        });
+        const creatorUser = await User.findOrFail(userID);
+        await creatorUser.related('mtvRoom').associate(mtvRoom);
+        await Ws.adapter().remoteJoin(socket.id, mtvRoom.uuid);
+
+        const goToNextTrackStub = sinon
+            .stub(ServerToTemporalController, 'goToNextTrack')
+            .resolves();
+
+        socket.emit('GO_TO_NEXT_TRACK');
+
+        await sleep();
+
+        assert.isTrue(goToNextTrackStub.calledOnce);
     });
 });

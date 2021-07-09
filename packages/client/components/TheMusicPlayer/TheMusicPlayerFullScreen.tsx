@@ -1,8 +1,7 @@
-import { View, Text } from 'dripsy';
+import { Text, View } from 'dripsy';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sender } from 'xstate';
-import { TracksMetadata } from '@musicroom/types';
 import {
     AppMusicPlayerMachineEvent,
     AppMusicPlayerMachineState,
@@ -13,25 +12,19 @@ import { MusicPlayerRef } from './Player';
 import TheMusicPlayerWithControls from './TheMusicPlayerWithControls';
 
 type TheMusicPlayerFullScreenProps = {
-    dismissFullScreenPlayer: () => void;
-    roomName: string;
-    currentTrack: TracksMetadata;
-    nextTracksList: TracksMetadata[];
-    sendToMachine: Sender<AppMusicPlayerMachineEvent>;
     machineState: AppMusicPlayerMachineState;
+    dismissFullScreenPlayer: () => void;
+    sendToMachine: Sender<AppMusicPlayerMachineEvent>;
     setPlayerRef: (ref: MusicPlayerRef) => void;
 };
 
 const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
-    dismissFullScreenPlayer,
-    roomName,
-    currentTrack,
-    nextTracksList,
-    sendToMachine,
     machineState,
+    dismissFullScreenPlayer,
+    sendToMachine,
     setPlayerRef,
 }) => {
-    const roomId = roomName;
+    const context = machineState.context;
     const insets = useSafeAreaInsets();
     const isPlaying = machineState.hasTag('playerOnPlay');
 
@@ -59,7 +52,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                 HeaderLeft={() => (
                     <View sx={{ flex: 1 }}>
                         <Typo numberOfLines={1} sx={{ fontSize: 'm' }}>
-                            {roomId}
+                            {context}
                         </Typo>
 
                         <Typo
@@ -69,34 +62,33 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                                 marginTop: 'xs',
                             }}
                         >
-                            2 Listeners
+                            {context.users.length} Listeners
                         </Typo>
                     </View>
                 )}
             />
 
             <AppScreenContainer>
-                <TheMusicPlayerWithControls
-                    setPlayerRef={setPlayerRef}
-                    videoId={currentTrack.id}
-                    trackTitle={currentTrack.title}
-                    trackArtist={currentTrack.artistName}
-                    isPlaying={isPlaying}
-                    onTrackReady={handleTrackReady}
-                    onPlayingToggle={handlePlayPauseToggle}
-                    onNextTrackPress={handleNextTrackPress}
-                    elapsedTime={machineState.context.currentTrackElapsedTime}
-                    totalDuration={machineState.context.currentTrackDuration}
-                />
+                {context.currentTrack && (
+                    <TheMusicPlayerWithControls
+                        currentTrack={context.currentTrack}
+                        setPlayerRef={setPlayerRef}
+                        isPlaying={isPlaying}
+                        onTrackReady={handleTrackReady}
+                        onPlayingToggle={handlePlayPauseToggle}
+                        onNextTrackPress={handleNextTrackPress}
+                    />
+                )}
 
                 <View sx={{ marginBottom: 'xl' }}>
-                    {nextTracksList.map(({ id, title, artistName }) => (
-                        <View key={id}>
-                            <Text sx={{ color: 'white' }}>
-                                {title} {artistName}
-                            </Text>
-                        </View>
-                    ))}
+                    {context.tracks &&
+                        context.tracks.map(({ id, title, artistName }) => (
+                            <View key={id}>
+                                <Text sx={{ color: 'white' }}>
+                                    {title} {artistName}
+                                </Text>
+                            </View>
+                        ))}
                 </View>
             </AppScreenContainer>
         </AppScreen>

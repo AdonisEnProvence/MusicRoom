@@ -1,65 +1,59 @@
 import Slider from '@react-native-community/slider';
 import { View } from 'dripsy';
 import React from 'react';
+import { CurrentTrack } from '../../../types/dist';
 import { useFormatSeconds } from '../../hooks/useFormatSeconds';
 import { useLayout } from '../../hooks/useLayout';
 import { Typo } from '../kit';
-import MusicPlayer, { MusicPlayerRef } from './Player';
 import MusicPlayerControlButton from './MusicPlayerControlButton';
+import MusicPlayer, { MusicPlayerRef } from './Player';
 
 type TheMusicPlayerWithControlsProps = {
-    videoId: string;
-    trackTitle: string;
-    trackArtist: string;
+    currentTrack: CurrentTrack;
     isPlaying: boolean;
     onTrackReady: () => void;
     onPlayingToggle: () => void;
     onNextTrackPress: () => void;
     setPlayerRef: (playerRef: MusicPlayerRef) => void;
-    totalDuration: number;
-    elapsedTime: number;
 };
 
 const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
-    videoId,
-    trackTitle,
-    trackArtist,
+    currentTrack,
     isPlaying,
     onTrackReady,
     onPlayingToggle,
     onNextTrackPress,
     setPlayerRef,
-    totalDuration,
-    elapsedTime,
 }) => {
+    const { title, duration, elapsed, id, artistName } = currentTrack;
     const [{ width: containerWidth }, onContainerLayout] = useLayout();
     const playerHeight = (containerWidth * 9) / 16;
-    const formattedElapsedTime = useFormatSeconds(elapsedTime);
-    const formattedTotalDuration = useFormatSeconds(totalDuration);
+    const formattedElapsedTime = useFormatSeconds(elapsed);
+    const formattedTotalDuration = useFormatSeconds(duration);
 
     return (
         <View sx={{ flex: 1 }} onLayout={onContainerLayout}>
             <MusicPlayer
                 setPlayerRef={setPlayerRef}
-                videoId={videoId}
+                videoId={id}
                 videoState={isPlaying ? 'playing' : 'stopped'}
                 playerHeight={playerHeight}
                 onTrackReady={onTrackReady}
             />
 
             <Typo sx={{ marginTop: 'l', fontSize: 'm', fontWeight: '600' }}>
-                {trackTitle}
+                {title}
             </Typo>
             <Typo sx={{ marginTop: 's', fontSize: 's', color: 'greyLighter' }}>
-                {trackArtist}
+                {artistName}
             </Typo>
 
             <View sx={{ marginTop: 'm' }}>
                 <Slider
                     disabled
-                    value={elapsedTime}
+                    value={elapsed}
                     minimumValue={0}
-                    maximumValue={totalDuration}
+                    maximumValue={duration}
                     minimumTrackTintColor="white"
                 />
 

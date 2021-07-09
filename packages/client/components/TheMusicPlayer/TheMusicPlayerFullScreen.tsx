@@ -46,6 +46,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     }
 
     function handleNextTrackPress() {
+        // TODO: send an event to the state machine
         console.log('play next track');
     }
 

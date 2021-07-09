@@ -157,7 +157,13 @@ test.group('Rooms life cycle', (group) => {
          * Expecting it to be in database
          * Also looking for the CREATE_ROOM_CALLBACK event
          */
-        socket.emit('CREATE_ROOM', { name: roomName, initialTracksIDs: [] });
+        socket.emit(
+            'CREATE_ROOM',
+            { name: roomName, initialTracksIDs: [] },
+            () => {
+                return;
+            },
+        );
         await sleep();
         const roomBefore = await MtvRoom.findBy('creator', userID);
         assert.isNotNull(roomBefore);
@@ -203,7 +209,13 @@ test.group('Rooms life cycle', (group) => {
         /**
          * Emit CREATE_ROOM
          */
-        socket.emit('CREATE_ROOM', { name: roomName, initialTracksIDs: [] });
+        socket.emit(
+            'CREATE_ROOM',
+            { name: roomName, initialTracksIDs: [] },
+            () => {
+                return;
+            },
+        );
         await sleep();
 
         if (roomID === undefined) throw new Error('roomID is undefined');
@@ -290,10 +302,16 @@ test.group('Rooms life cycle', (group) => {
             throw new Error('DeviceA nor DeviceB is/are undefined');
         assert.equal(deviceA.socketID, userA.socket.id);
         assert.equal(deviceB.userID, userB.userID);
-        userA.socket.emit('CREATE_ROOM', {
-            name: roomName,
-            initialTracksIDs: [],
-        });
+        userA.socket.emit(
+            'CREATE_ROOM',
+            {
+                name: roomName,
+                initialTracksIDs: [],
+            },
+            () => {
+                return;
+            },
+        );
         await sleep();
 
         /**
@@ -411,10 +429,16 @@ test.group('Rooms life cycle', (group) => {
          * Fisrt creatorUser creates a room
          */
         const creatorUser = await createUserAndGetSocket(creatorID);
-        creatorUser.emit('CREATE_ROOM', {
-            name: random.word(),
-            initialTracksIDs: [datatype.uuid()],
-        });
+        creatorUser.emit(
+            'CREATE_ROOM',
+            {
+                name: random.word(),
+                initialTracksIDs: [datatype.uuid()],
+            },
+            () => {
+                return;
+            },
+        );
         await sleep();
         const createdRoom = await MtvRoom.findBy('creator', creatorID);
         assert.isNotNull(createdRoom);
@@ -485,10 +509,16 @@ test.group('Rooms life cycle', (group) => {
         const socketA = await createUserAndGetSocket(userID);
         const socketB = await createSocketConnection(userID);
         assert.equal((await Device.all()).length, 2);
-        socketA.emit('CREATE_ROOM', {
-            name: roomName,
-            initialTracksIDs: [datatype.uuid()],
-        });
+        socketA.emit(
+            'CREATE_ROOM',
+            {
+                name: roomName,
+                initialTracksIDs: [datatype.uuid()],
+            },
+            () => {
+                return;
+            },
+        );
         await sleep();
         assert.isNotNull(await MtvRoom.findBy('creator', userID));
 
@@ -556,10 +586,16 @@ test.group('Rooms life cycle', (group) => {
         /**
          * User connects one device, then creates a room from it
          */
-        socketA.emit('CREATE_ROOM', {
-            name: roomName,
-            initialTracksIDs: [datatype.uuid()],
-        });
+        socketA.emit(
+            'CREATE_ROOM',
+            {
+                name: roomName,
+                initialTracksIDs: [datatype.uuid()],
+            },
+            () => {
+                return;
+            },
+        );
         await sleep();
 
         /**

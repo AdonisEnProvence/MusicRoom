@@ -85,33 +85,19 @@ export const createAppMusicPlayerMachine = ({
                         });
                     });
 
-                    socket.on(
-                        'CREATE_ROOM_CALLBACK',
-                        ({ roomID, name, tracks }) => {
-                            sendBack({
-                                type: 'JOINED_ROOM',
-                                room: {
-                                    name,
-                                    roomID,
-                                },
-                                tracksList: tracks,
-                            });
-                        },
-                    );
+                    socket.on('CREATE_ROOM_CALLBACK', (state) => {
+                        sendBack({
+                            type: 'ROOM_IS_READY',
+                            state,
+                        });
+                    });
 
-                    socket.on(
-                        'JOIN_ROOM_CALLBACK',
-                        ({ roomID, roomName, tracks }) => {
-                            sendBack({
-                                type: 'JOINED_ROOM',
-                                room: {
-                                    name: roomName,
-                                    roomID,
-                                },
-                                tracksList: tracks,
-                            });
-                        },
-                    );
+                    socket.on('JOIN_ROOM_CALLBACK', (state) => {
+                        sendBack({
+                            type: 'JOINED_ROOM',
+                            state,
+                        });
+                    });
 
                     socket.on('ACTION_PLAY_CALLBACK', () => {
                         sendBack({
@@ -203,14 +189,33 @@ export const createAppMusicPlayerMachine = ({
                                 initialTracksIDs,
                             };
 
-                            socket.emit('CREATE_ROOM', payload);
+                            socket.emit('CREATE_ROOM', payload, (state) => {
+                                sendBack({
+                                    type: 'JOINED_ROOM',
+                                    state,
+                                });
+                            });
                         },
                     },
 
-                    on: {
-                        JOINED_ROOM: {
-                            target: 'connectedToRoom',
-                            actions: 'assignRoomInformationToContext',
+                    initial: 'connectingToRoom',
+                    states: {
+                        connectingToRoom: {
+                            on: {
+                                JOINED_ROOM: {
+                                    target: 'roomIsNotReady',
+                                    actions: 'assignMergeNewState',
+                                },
+                            },
+                        },
+
+                        roomIsNotReady: {
+                            on: {
+                                ROOM_IS_READY: {
+                                    target: 'connectedToRoom',
+                                    actions: 'assignMergeNewState',
+                                },
+                            },
                         },
                     },
                 },

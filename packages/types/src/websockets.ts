@@ -1,5 +1,5 @@
 import { AppMusicPlayerMachineContext } from './appMusicPlayerMachine';
-import { MtvWorkflowState, TracksMetadata } from './mtv';
+import { MtvWorkflowState } from './mtv';
 
 export interface ChatMessage {
     author: string;
@@ -32,12 +32,6 @@ export interface Track {
     artistName: string;
 }
 
-export interface RoomServerToClientJoinCallback {
-    roomID: string;
-    roomName: string;
-    tracks: TracksMetadata[];
-}
-
 export type RoomServerToClientRetrieveContext = {
     context: AppMusicPlayerMachineContext;
 };
@@ -47,7 +41,10 @@ export interface ChatClientToServerEvents {
 }
 
 export interface RoomClientToServerEvents {
-    CREATE_ROOM: (args: RoomClientToServerCreate) => void;
+    CREATE_ROOM: (
+        args: RoomClientToServerCreate,
+        callback: (state: MtvWorkflowState) => void,
+    ) => void;
     JOIN_ROOM: (args: RoomClientToServerJoin) => void;
     ACTION_PLAY: () => void;
     GET_CONTEXT: (
@@ -61,9 +58,9 @@ export interface RoomServerToClientEvents {
     RETRIEVE_CONTEXT: (args: RoomServerToClientRetrieveContext) => void;
     ACTION_PLAY_CALLBACK: () => void;
     ACTION_PAUSE_CALLBACK: () => void;
-    CREATE_ROOM_CALLBACK: (args: MtvWorkflowState) => void;
+    CREATE_ROOM_CALLBACK: (state: MtvWorkflowState) => void;
     FORCED_DISCONNECTION: () => void;
-    JOIN_ROOM_CALLBACK: (args: RoomServerToClientJoinCallback) => void;
+    JOIN_ROOM_CALLBACK: (state: MtvWorkflowState) => void;
 }
 
 export interface ChatServerToClientEvents {

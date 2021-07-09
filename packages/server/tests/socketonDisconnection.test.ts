@@ -567,14 +567,15 @@ test.group('Rooms life cycle', (group) => {
             });
         sinon
             .stub(ServerToTemporalController, 'getState')
-            .callsFake(async () => {
+            .callsFake(async ({ workflowID }) => {
                 return {
-                    currentTrackDuration: datatype.number(),
-                    currentTrackElapsedTime: datatype.number(),
-                    currentRoom: undefined,
+                    name: roomName,
+                    roomCreatorUserID: userID,
+                    playing: false,
+                    roomID: workflowID,
+                    users: [userID],
                     currentTrack: undefined,
-                    users: undefined,
-                    waitingRoomID: undefined,
+                    tracks: undefined,
                 };
             });
         sinon.stub(ServerToTemporalController, 'play').callsFake(async () => {

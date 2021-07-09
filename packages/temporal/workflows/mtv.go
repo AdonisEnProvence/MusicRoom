@@ -77,6 +77,7 @@ const (
 	MtvRoomIsReady              brainy.EventType = "MTV_ROOM_IS_READY"
 	MtvRoomGoToPausedEvent      brainy.EventType = "GO_TO_PAUSED"
 	MtvRoomAddUserEvent         brainy.EventType = "ADD_USER"
+	MtvRoomGoToNextTrackEvent   brainy.EventType = "GO_TO_NEXT_TRACK"
 )
 
 type MtvRoomTimerExpirationEvent struct {
@@ -415,6 +416,18 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					),
 				},
 			},
+
+			MtvRoomGoToNextTrackEvent: brainy.Transition{
+				Target: MtvRoomPlayingState,
+
+				Cond: hasNextTrackToPlay(&internalState),
+
+				Actions: brainy.Actions{
+					brainy.ActionFn(
+						assignNextTrackIfAvailable(&internalState),
+					),
+				},
+			},
 		},
 	})
 	if err != nil {
@@ -468,6 +481,16 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				internalState.Machine.Send(
 					NewMtvRoomUserJoiningRoomEvent(message.UserID),
 				)
+
+			case shared.SignalRouteGoToNextTrack:
+				var message shared.GoToNextTrackSignal
+
+				if err := mapstructure.Decode(signal, &message); err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
+
+				internalState.Machine.Send(MtvRoomGoToNextTrackEvent)
 
 			case shared.SignalRouteTerminate:
 				terminated = true

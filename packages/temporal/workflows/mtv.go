@@ -18,7 +18,7 @@ type MtvRoomInternalState struct {
 	Machine       *brainy.Machine
 	Users         []string
 	TracksIDsList []string
-	CurrentTrack  shared.TrackMetadata
+	CurrentTrack  shared.CurrentTrack
 	Tracks        []shared.TrackMetadata
 }
 
@@ -35,6 +35,11 @@ func (s *MtvRoomInternalState) Export() shared.MtvRoomExposedState {
 		isPlaying = machine.UnsafeCurrent().Matches(MtvRoomPlayingState)
 	}
 
+	exposedTracks := make([]shared.ExposedTrackMetadata, 0, len(s.Tracks))
+	for _, v := range s.Tracks {
+		exposedTracks = append(exposedTracks, v.Export())
+	}
+
 	exposedState := shared.MtvRoomExposedState{
 		RoomID:            s.initialParams.RoomID,
 		RoomCreatorUserID: s.initialParams.RoomCreatorUserID,
@@ -42,8 +47,8 @@ func (s *MtvRoomInternalState) Export() shared.MtvRoomExposedState {
 		RoomName:          s.initialParams.RoomName,
 		Users:             s.Users,
 		TracksIDsList:     s.TracksIDsList,
-		CurrentTrack:      s.CurrentTrack,
-		Tracks:            s.Tracks,
+		CurrentTrack:      s.CurrentTrack.Export(),
+		Tracks:            exposedTracks,
 	}
 
 	return exposedState
@@ -315,6 +320,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 												event := e.(MtvRoomTimerExpirationEvent)
 
 												ctx.Timer = event.Timer
+												internalState.CurrentTrack.Elapsed = event.Timer.Elapsed
 
 												return nil
 											},
@@ -349,6 +355,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 												event := e.(MtvRoomTimerExpirationEvent)
 
 												ctx.Timer = event.Timer
+												internalState.CurrentTrack.Elapsed = event.Timer.Elapsed
 
 												return nil
 											},

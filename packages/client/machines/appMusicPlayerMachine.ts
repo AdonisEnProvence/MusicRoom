@@ -1,8 +1,7 @@
 import {
     AppMusicPlayerMachineContext,
+    MtvWorkflowState,
     RoomClientToServerCreate,
-    TracksMetadata,
-    TrackVoteRoom,
 } from '@musicroom/types';
 import {
     assign,
@@ -25,7 +24,8 @@ export type AppMusicPlayerMachineEvent =
           roomName: string;
           initialTracksIDs: string[];
       }
-    | { type: 'JOINED_ROOM'; room: TrackVoteRoom; tracksList: TracksMetadata[] }
+    | { type: 'JOINED_ROOM'; state: MtvWorkflowState }
+    | { type: 'ROOM_IS_READY'; state: MtvWorkflowState }
     | { type: 'JOIN_ROOM'; roomID: string }
     | { type: 'MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET' }
     | { type: 'TRACK_HAS_LOADED' }
@@ -46,7 +46,7 @@ export type AppMusicPlayerMachineEvent =
     | { type: 'FORCED_DISCONNECTION' }
     | {
           type: 'RETRIEVE_CONTEXT';
-          context: AppMusicPlayerMachineContext;
+          state: AppMusicPlayerMachineContext;
       }
     | { type: 'PAUSE_CALLBACK' };
 
@@ -55,14 +55,13 @@ interface CreateAppMusicPlayerMachineArgs {
 }
 
 const rawContext: AppMusicPlayerMachineContext = {
-    currentRoom: undefined,
+    name: '',
+    playing: false,
+    roomCreatorUserID: '',
+    roomID: '',
+    tracks: undefined,
+    users: [],
     currentTrack: undefined,
-    waitingRoomID: undefined,
-    users: undefined,
-    tracksList: undefined,
-
-    currentTrackDuration: 42,
-    currentTrackElapsedTime: 0,
 };
 
 export const createAppMusicPlayerMachine = ({
@@ -81,11 +80,12 @@ export const createAppMusicPlayerMachine = ({
                         console.log('RETRIEVE_CONTEXT');
                         sendBack({
                             type: 'RETRIEVE_CONTEXT',
-                            context,
+                            state: context,
                         });
                     });
 
                     socket.on('CREATE_ROOM_CALLBACK', (state) => {
+                        console.log('CREATE_ROOM_CALLBACK recu', { state });
                         sendBack({
                             type: 'ROOM_IS_READY',
                             state,
@@ -155,7 +155,7 @@ export const createAppMusicPlayerMachine = ({
                     entry: 'assignRawContext',
                     on: {
                         CREATE_ROOM: {
-                            target: 'connectingToRoom',
+                            target: 'creatingRoom',
                         },
 
                         JOIN_ROOM: {
@@ -174,9 +174,9 @@ export const createAppMusicPlayerMachine = ({
                     },
                 },
 
-                connectingToRoom: {
+                creatingRoom: {
                     invoke: {
-                        src: (_context, event) => () => {
+                        src: (_context, event) => (sendBack) => {
                             if (event.type !== 'CREATE_ROOM') {
                                 throw new Error(
                                     'Service must be called in reaction to CREATE_ROOM event',
@@ -190,6 +190,10 @@ export const createAppMusicPlayerMachine = ({
                             };
 
                             socket.emit('CREATE_ROOM', payload, (state) => {
+                                console.log(
+                                    'callback de premier niveau',
+                                    state,
+                                );
                                 sendBack({
                                     type: 'JOINED_ROOM',
                                     state,
@@ -212,11 +216,19 @@ export const createAppMusicPlayerMachine = ({
                         roomIsNotReady: {
                             on: {
                                 ROOM_IS_READY: {
-                                    target: 'connectedToRoom',
+                                    target: 'roomIsReady',
                                     actions: 'assignMergeNewState',
                                 },
                             },
                         },
+
+                        roomIsReady: {
+                            type: 'final',
+                        },
+                    },
+
+                    onDone: {
+                        target: 'connectedToRoom',
                     },
                 },
 
@@ -228,6 +240,7 @@ export const createAppMusicPlayerMachine = ({
                                     'Service must be called in reaction to JOIN_ROOM event',
                                 );
                             }
+
                             socket.emit('JOIN_ROOM', { roomID: event.roomID });
                         },
                     },
@@ -237,10 +250,10 @@ export const createAppMusicPlayerMachine = ({
                             target: 'connectedToRoom',
                             cond: (context, event) => {
                                 return (
-                                    event.room.roomID === context.waitingRoomID
+                                    event.state.roomID === context.waitingRoomID
                                 );
                             },
-                            actions: 'assignRoomInformationToContext',
+                            actions: 'assignMergeNewState',
                         },
                     },
                 },
@@ -307,7 +320,9 @@ export const createAppMusicPlayerMachine = ({
                                                             ?.roomID,
                                                     },
                                                 }),
-                                                { to: 'socketConnection' },
+                                                {
+                                                    to: 'socketConnection',
+                                                },
                                             ),
                                         },
                                     },
@@ -342,7 +357,9 @@ export const createAppMusicPlayerMachine = ({
                                                             ?.roomID,
                                                     },
                                                 }),
-                                                { to: 'socketConnection' },
+                                                {
+                                                    to: 'socketConnection',
+                                                },
                                             ),
                                         },
                                     },
@@ -355,7 +372,6 @@ export const createAppMusicPlayerMachine = ({
                                     },
                                 },
                             },
-
                             on: {
                                 PAUSE_CALLBACK: {
                                     target: 'activatedPlayer.pause',
@@ -371,6 +387,7 @@ export const createAppMusicPlayerMachine = ({
                             },
                         },
                     },
+
                     on: {
                         FORCED_DISCONNECTION: {
                             target: 'waitingJoiningRoom',
@@ -384,19 +401,24 @@ export const createAppMusicPlayerMachine = ({
             on: {
                 RETRIEVE_CONTEXT: {
                     target: 'connectedToRoom',
-                    actions: 'assignRetrievedContext',
+                    actions: 'assignMergeNewState',
                 },
             },
         },
         {
             actions: {
-                assignRetrievedContext: assign((context, event) => {
-                    if (event.type !== 'RETRIEVE_CONTEXT') {
+                assignMergeNewState: assign((context, event) => {
+                    if (
+                        event.type !== 'JOINED_ROOM' &&
+                        event.type !== 'RETRIEVE_CONTEXT' &&
+                        event.type !== 'ROOM_IS_READY'
+                    ) {
                         return context;
                     }
+
                     return {
                         ...context,
-                        ...event.context,
+                        ...event.state,
                     };
                 }),
 
@@ -404,21 +426,6 @@ export const createAppMusicPlayerMachine = ({
                     ...context,
                     ...rawContext,
                 })),
-
-                assignRoomInformationToContext: assign((context, event) => {
-                    if (event.type !== 'JOINED_ROOM') {
-                        return context;
-                    }
-
-                    const { room, tracksList } = event;
-
-                    return {
-                        ...context,
-                        currentRoom: room,
-                        currentTrack: tracksList[0],
-                        tracksList: tracksList,
-                    };
-                }),
 
                 assignElapsedTimeToContext: assign((context, event) => {
                     if (event.type !== 'UPDATE_CURRENT_TRACK_ELAPSED_TIME') {

@@ -151,9 +151,7 @@ export const createAppMusicPlayerMachine = ({
                             }
 
                             case 'GO_TO_NEXT_TRACK': {
-                                console.log(
-                                    '== GO TO NEXT TRACK IN WS SERVICE ==',
-                                );
+                                socket.emit('GO_TO_NEXT_TRACK');
 
                                 break;
                             }

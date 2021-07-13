@@ -451,25 +451,6 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		s.env.SignalWorkflow(shared.SignalChannelName, goToNextTrackSignal)
 	}, firstGoToNextTrackSignal)
 
-	s.env.RegisterDelayedCallback(func() {
-		pauseSignal := shared.NewPauseSignal(shared.NewPauseSignalArgs{})
-
-		s.env.SignalWorkflow(shared.SignalChannelName, pauseSignal)
-	}, firstGoToNextTrackSignal+1*time.Millisecond)
-
-	// FIXME: debugging purposes
-	// s.env.RegisterDelayedCallback(func() {
-	// 	var mtvState shared.MtvRoomExposedState
-
-	// 	res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
-	// 	s.NoError(err)
-
-	// 	err = res.Get(&mtvState)
-	// 	s.NoError(err)
-
-	// 	s.Equal(tracks[0], mtvState.CurrentTrack)
-	// }, firstGoToNextTrackSignal+1*time.Millisecond)
-
 	secondStateQueryAfterSecondTrackTotalDuration := firstGoToNextTrackSignal + secondTrackDuration
 	s.env.RegisterDelayedCallback(func() {
 		var mtvState shared.MtvRoomExposedState
@@ -483,45 +464,6 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		s.False(mtvState.Playing)
 		s.Equal(tracks[1], mtvState.CurrentTrack)
 	}, secondStateQueryAfterSecondTrackTotalDuration)
-
-	// // 6. We want to resume the first track.
-	// secondPlaySignalDelay := secondStateQueryAfterTotalTrackDuration + 1*time.Millisecond
-	// s.env.RegisterDelayedCallback(func() {
-	// 	playSignal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
-
-	// 	s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
-	// }, secondPlaySignalDelay)
-
-	// // 7. We expect the first song and the second song to have finished.
-	// // While the second one is finished, we expect to still be the CurrentTrack.
-	// stateQueryAfterFirstTrackMustHaveFinished := secondPlaySignalDelay + firstTrackDuration
-	// s.env.RegisterDelayedCallback(func() {
-	// 	var mtvState shared.MtvRoomExposedState
-
-	// 	res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
-	// 	s.NoError(err)
-
-	// 	err = res.Get(&mtvState)
-	// 	s.NoError(err)
-
-	// 	s.Equal(tracks[1], mtvState.CurrentTrack)
-	// }, stateQueryAfterFirstTrackMustHaveFinished)
-
-	// // 8.We expect the last track to remain the current one and the player
-	// // to be on paused state.
-	// stateQueryAfterAllTracksMustHaveFinished := stateQueryAfterFirstTrackMustHaveFinished + tracks[1].Duration
-	// s.env.RegisterDelayedCallback(func() {
-	// 	var mtvState shared.MtvRoomExposedState
-
-	// 	res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
-	// 	s.NoError(err)
-
-	// 	err = res.Get(&mtvState)
-	// 	s.NoError(err)
-
-	// 	s.False(mtvState.Playing)
-	// 	s.Equal(tracks[1], mtvState.CurrentTrack)
-	// }, stateQueryAfterAllTracksMustHaveFinished)
 
 	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, params)
 

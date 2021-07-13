@@ -170,7 +170,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 		Initial: MtvRoomFetchInitialTracks,
 
 		States: brainy.StateNodes{
-
 			MtvRoomFetchInitialTracks: &brainy.StateNode{
 				OnEntry: brainy.Actions{
 					brainy.ActionFn(

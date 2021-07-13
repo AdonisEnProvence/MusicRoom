@@ -1,8 +1,8 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Devessier/brainy v0.0.9 h1:CsUtLTrgkAsMHYSyoeEAAPcYnUxBYO8oUIQgtvPsP9s=
-github.com/Devessier/brainy v0.0.9/go.mod h1:8tGYMsQmAbkw8Wv5wMJrHLEU02c494VX4Ys9nRFouJA=
+github.com/Devessier/brainy v0.0.10 h1:WtFkiyMXMdlSmltkfXwQEfLdLL/Z6yRBhL9aKqOwRso=
+github.com/Devessier/brainy v0.0.10/go.mod h1:8tGYMsQmAbkw8Wv5wMJrHLEU02c494VX4Ys9nRFouJA=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/bojanz/httpx v0.0.0-20201111190843-d1cf01c49b2e h1:ta63AKr1LlBpEDB5zMk2uDgAdpkFpypfaywDvIp5PmI=
 github.com/bojanz/httpx v0.0.0-20201111190843-d1cf01c49b2e/go.mod h1:CmIVARSG6JaD9lvVI2Y0Jur5UvpndDJTcSOmgMdMqSQ=

@@ -375,7 +375,6 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		InitialUsers:         []string{fakeRoomCreatorUserID},
 		InitialTracksIDsList: tracksIDs,
 	}
-	firstTrackDuration := tracks[0].Duration
 	secondTrackDuration := tracks[1].Duration
 
 	s.env.OnActivity(
@@ -392,12 +391,12 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		activities.PlayActivity,
 		mock.Anything,
 		mock.Anything,
-	).Return(nil).Times(3)
+	).Return(nil).Once()
 	s.env.OnActivity(
 		activities.PauseActivity,
 		mock.Anything,
 		mock.Anything,
-	).Return(nil).Times(3)
+	).Return(nil).Times(2)
 
 	trackTimerActivityCalls := 0
 	s.env.OnActivity(
@@ -413,13 +412,6 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		case 0:
 			return shared.MtvRoomTimer{
 				State:         shared.MtvRoomTimerStateFinished,
-				Elapsed:       firstTrackDuration,
-				TotalDuration: firstTrackDuration,
-			}, nil
-
-		case 1:
-			return shared.MtvRoomTimer{
-				State:         shared.MtvRoomTimerStateFinished,
 				Elapsed:       secondTrackDuration,
 				TotalDuration: secondTrackDuration,
 			}, nil
@@ -427,7 +419,7 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		default:
 			return shared.MtvRoomTimer{}, errors.New("no timer to return for this call")
 		}
-	}).Times(3)
+	}).Once()
 
 	// 1. We expect the room to be paused by default.
 	initialStateQueryDelay := 1 * time.Second
@@ -451,6 +443,8 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		s.env.SignalWorkflow(shared.SignalChannelName, goToNextTrackSignal)
 	}, firstGoToNextTrackSignal)
 
+	// 3. We expect the second initial track to be the current one
+	// and the room to be not in playing state anymore.
 	secondStateQueryAfterSecondTrackTotalDuration := firstGoToNextTrackSignal + secondTrackDuration
 	s.env.RegisterDelayedCallback(func() {
 		var mtvState shared.MtvRoomExposedState
@@ -464,6 +458,30 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		s.False(mtvState.Playing)
 		s.Equal(tracks[1], mtvState.CurrentTrack)
 	}, secondStateQueryAfterSecondTrackTotalDuration)
+
+	// 4. Send the second GoToNextTrack signal.
+	secondGoToNextTrackSignal := secondStateQueryAfterSecondTrackTotalDuration + 1*time.Second
+	s.env.RegisterDelayedCallback(func() {
+		goToNextTrackSignal := shared.NewGoToNexTrackSignal()
+
+		s.env.SignalWorkflow(shared.SignalChannelName, goToNextTrackSignal)
+	}, secondGoToNextTrackSignal)
+
+	// 5. We expect the second initial track to still be the current one
+	// after we tried to go to the next track.
+	thirdStateQueryAfterTryingToGoToNextTrack := firstGoToNextTrackSignal + secondTrackDuration
+	s.env.RegisterDelayedCallback(func() {
+		var mtvState shared.MtvRoomExposedState
+
+		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
+		s.NoError(err)
+
+		err = res.Get(&mtvState)
+		s.NoError(err)
+
+		s.False(mtvState.Playing)
+		s.Equal(tracks[1], mtvState.CurrentTrack)
+	}, thirdStateQueryAfterTryingToGoToNextTrack)
 
 	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, params)
 

@@ -21,6 +21,7 @@ export const MtvWorkflowState = z
         name: z.string(),
         users: z.array(z.string()),
         currentTrack: CurrentTrack.optional().nullable(),
+        tracksIDsList: z.string().array().optional().nullable(),
         tracks: z.array(TracksMetadata).optional().nullable(),
     })
     .nonstrict();

@@ -105,6 +105,7 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
 
                 <MusicPlayerControlButton
                     iconName="play-forward"
+                    accessibilityLabel="Play next track"
                     onPress={onNextTrackPress}
                 />
             </View>

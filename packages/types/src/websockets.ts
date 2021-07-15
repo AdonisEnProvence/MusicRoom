@@ -54,6 +54,7 @@ export interface RoomClientToServerEvents {
         callback: (payload: RoomServerToClientRetrieveContext) => void,
     ) => void;
     ACTION_PAUSE: () => void;
+    GO_TO_NEXT_TRACK: () => void;
 }
 
 export interface RoomServerToClientEvents {

@@ -10,24 +10,8 @@ function noop() {
     return undefined;
 }
 
-function waitForTimeout(ms: number): Promise<void> {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve();
-        }, ms);
-    });
-}
-
 test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it when clicking on dismiss button`, async () => {
-    const {
-        getByText,
-        getByPlaceholderText,
-        getAllByText,
-        findByText,
-        getByTestId,
-        findByA11yState,
-        debug,
-    } = render(
+    const { getByText, getAllByText, findByText } = render(
         <NavigationContainer
             ref={navigationRef}
             onReady={() => {

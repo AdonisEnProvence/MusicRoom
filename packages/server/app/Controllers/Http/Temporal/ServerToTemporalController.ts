@@ -21,6 +21,13 @@ interface TemporalCreateMtvWorkflowBody {
     initialTracksIDs: string[];
 }
 
+interface TemporalBaseArgs {
+    runID: string;
+    workflowID: string;
+}
+
+interface TemporalGoToNextTrackArgs extends TemporalBaseArgs {}
+
 export default class ServerToTemporalController {
     public static async createMtvWorkflow({
         workflowID,
@@ -137,5 +144,19 @@ export default class ServerToTemporalController {
         } catch (e) {
             throw new Error('Get State FAILED' + workflowID);
         }
+    }
+
+    public static async goToNextTrack({
+        workflowID,
+        runID,
+    }: TemporalGoToNextTrackArgs): Promise<void> {
+        const url = urlcat(TEMPORAL_ENDPOINT, '/go-to-next-track');
+
+        await got.put(url, {
+            json: {
+                workflowID,
+                runID,
+            },
+        });
     }
 }

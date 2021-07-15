@@ -159,4 +159,15 @@ export default class MtvRoomsWsController {
         const room = await MtvRoom.findOrFail(roomID);
         return await ServerToTemporalController.getState(roomID, room.runID);
     }
+
+    public static async onGoToNextTrack({
+        payload: { roomID },
+    }: WsControllerMethodArgs<RoomID>): Promise<void> {
+        const { runID } = await MtvRoom.findOrFail(roomID);
+
+        await ServerToTemporalController.goToNextTrack({
+            workflowID: roomID,
+            runID,
+        });
+    }
 }

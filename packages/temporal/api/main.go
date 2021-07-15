@@ -46,13 +46,14 @@ func main() {
 	}
 
 	r := mux.NewRouter()
-	r.Handle("/ping", http.HandlerFunc(PingHandler)).Methods("GET")
-	r.Handle("/control/{workflowID}/{runID}/play", http.HandlerFunc(PlayHandler)).Methods("PUT")
-	r.Handle("/control/{workflowID}/{runID}/pause", http.HandlerFunc(PauseHandler)).Methods("PUT")
-	r.Handle("/create/{workflowID}", http.HandlerFunc(CreateRoomHandler)).Methods("PUT")
-	r.Handle("/join/{workflowID}/{runID}", http.HandlerFunc(JoinRoomHandler)).Methods("PUT")
-	r.Handle("/state/{workflowID}/{runID}", http.HandlerFunc(GetStateHandler)).Methods("GET")
-	r.Handle("/terminate/{workflowID}/{runID}", http.HandlerFunc(TerminateWorkflowHandler)).Methods("GET")
+	r.Handle("/ping", http.HandlerFunc(PingHandler)).Methods(http.MethodGet)
+	r.Handle("/control/{workflowID}/{runID}/play", http.HandlerFunc(PlayHandler)).Methods(http.MethodPut)
+	r.Handle("/control/{workflowID}/{runID}/pause", http.HandlerFunc(PauseHandler)).Methods(http.MethodPut)
+	r.Handle("/create/{workflowID}", http.HandlerFunc(CreateRoomHandler)).Methods(http.MethodPut)
+	r.Handle("/join/{workflowID}/{runID}", http.HandlerFunc(JoinRoomHandler)).Methods(http.MethodPut)
+	r.Handle("/state/{workflowID}/{runID}", http.HandlerFunc(GetStateHandler)).Methods(http.MethodGet)
+	r.Handle("/go-to-next-track", http.HandlerFunc(GoToNextTrackHandler)).Methods(http.MethodPut)
+	r.Handle("/terminate/{workflowID}/{runID}", http.HandlerFunc(TerminateWorkflowHandler)).Methods(http.MethodGet)
 
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 
@@ -86,6 +87,39 @@ func PlayHandler(w http.ResponseWriter, r *http.Request) {
 	res := make(map[string]interface{})
 	res["ok"] = 1
 	printResults("", workflowID, runID)
+	json.NewEncoder(w).Encode(res)
+}
+
+type GoToNextTrackRequestBody struct {
+	WorkflowID string `json:"workflowID"`
+	RunID      string `json:"runID"`
+}
+
+func GoToNextTrackHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var body GoToNextTrackRequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	goToNextTrackSignal := shared.NewGoToNexTrackSignal()
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		body.RunID,
+		shared.SignalChannelName,
+		goToNextTrackSignal,
+	); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	res := make(map[string]interface{})
+	res["ok"] = 1
 	json.NewEncoder(w).Encode(res)
 }
 

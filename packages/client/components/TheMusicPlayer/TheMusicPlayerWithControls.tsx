@@ -32,6 +32,7 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
     const playerHeight = (containerWidth * 9) / 16;
     const formattedElapsedTime = useFormatSeconds(elapsed);
     const formattedTotalDuration = useFormatSeconds(duration);
+    const controlDisabled = !roomIsReady;
 
     return (
         <View sx={{ flex: 1 }} onLayout={onContainerLayout}>
@@ -93,17 +94,19 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
                     iconName={isPlaying ? 'pause' : 'play'}
                     variant="prominent"
                     adjustIconHorizontally={2}
-                    disabled={!roomIsReady}
-                    accessibilityLabel={
+                    disabled={controlDisabled}
+                    accessibilityLabel={`${controlDisabled ? 'Disabled ' : ''}${
                         isPlaying ? 'Pause the video' : 'Play the video'
-                    }
+                    }`}
                     onPress={onPlayingToggle}
                 />
 
                 <MusicPlayerControlButton
-                    disabled={!roomIsReady}
+                    disabled={controlDisabled}
                     iconName="play-forward"
-                    accessibilityLabel="Play next track"
+                    accessibilityLabel={`${
+                        controlDisabled ? 'Disabled ' : ''
+                    }Play next track`}
                     onPress={onNextTrackPress}
                 />
             </View>

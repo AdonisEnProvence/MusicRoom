@@ -3,7 +3,6 @@ import { useSx, View } from 'dripsy';
 import React from 'react';
 import { TouchableWithoutFeedback } from 'react-native';
 import { useMusicPlayer } from '../../contexts/MusicPlayerContext';
-import { Typo } from '../kit';
 import TheMusicPlayerFullScreen from './TheMusicPlayerFullScreen';
 import TheMusicPlayerMini from './TheMusicPlayerMini';
 
@@ -51,7 +50,6 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
                     zIndex: 20,
                 })}
             >
-                <Typo>{JSON.stringify(state.value)}</Typo>
                 <TheMusicPlayerMini
                     height={MINI_PLAYER_HEIGHT}
                     roomName={name}
@@ -59,7 +57,7 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
                     currentTrackArtist={currentTrack?.artistName}
                 />
 
-                {isInRoom && currentTrack !== undefined && (
+                {isInRoom && currentTrack && (
                     <View
                         accessibilityState={{
                             expanded: isFullScreen === true,

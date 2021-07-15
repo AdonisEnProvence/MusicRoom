@@ -425,9 +425,16 @@ export const createAppMusicPlayerMachine = ({
                         return context;
                     }
 
+                    const currentTrack = context.currentTrack;
+                    if (!currentTrack)
+                        throw new Error('currentTrack is undefined');
+
                     return {
                         ...context,
-                        currentTrackElapsedTime: event.elapsedTime,
+                        currentTrack: {
+                            ...currentTrack,
+                            elapsed: event.elapsedTime,
+                        },
                     };
                 }),
 
@@ -436,9 +443,16 @@ export const createAppMusicPlayerMachine = ({
                         return context;
                     }
 
+                    const currentTrack = context.currentTrack;
+                    if (!currentTrack)
+                        throw new Error('currentTrack is undefined');
+
                     return {
                         ...context,
-                        currentTrackDuration: event.duration,
+                        currentTrack: {
+                            ...currentTrack,
+                            duration: event.duration,
+                        },
                     };
                 }),
             },

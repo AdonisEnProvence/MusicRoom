@@ -8,7 +8,6 @@ type MusicPlayerControlButtonProps = {
     variant?: 'prominent' | 'normal';
     adjustIconHorizontally?: 2 | 1;
     onPress: () => void;
-    disabled?: boolean;
 };
 
 const MusicPlayerControlButton: React.FC<
@@ -22,23 +21,18 @@ const MusicPlayerControlButton: React.FC<
     ...props
 }) => {
     const sx = useSx();
-
+    const opacity = disabled ? 0.7 : 1;
     return (
         <TouchableOpacity
-            disabled
             style={sx({
                 width: 56,
                 height: 56,
                 padding: 'm',
                 marginLeft: 'm',
                 marginRight: 'm',
-                opacity: disabled ? 0.7 : 1,
+                opacity,
                 backgroundColor:
-                    variant === 'prominent'
-                        ? disabled
-                            ? 'grey'
-                            : 'white'
-                        : 'transparent',
+                    variant === 'prominent' ? 'white' : 'transparent',
                 borderRadius: 'full',
                 flexDirection: 'row',
                 justifyContent: 'center',
@@ -50,12 +44,8 @@ const MusicPlayerControlButton: React.FC<
             <Ionicons
                 name={iconName}
                 style={sx({
-                    opacity: disabled ? 0.7 : 1,
-                    color: disabled
-                        ? 'greyLight'
-                        : variant === 'prominent'
-                        ? 'greyLight'
-                        : 'white',
+                    opacity,
+                    color: variant === 'prominent' ? 'greyLight' : 'white',
                     fontSize: 'xl',
                     right:
                         adjustIconHorizontally !== undefined

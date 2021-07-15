@@ -39,14 +39,14 @@ export type AppMusicPlayerMachineEvent =
       }
     | {
           type: 'PLAY_PAUSE_TOGGLE';
-          params: { status: 'play' | 'pause'; roomID?: string };
+          params: { status: 'play' | 'pause' };
       }
     | { type: 'GO_TO_NEXT_TRACK' }
     | { type: 'PLAY_CALLBACK' }
     | { type: 'FORCED_DISCONNECTION' }
     | {
           type: 'RETRIEVE_CONTEXT';
-          state: AppMusicPlayerMachineContext;
+          state: MtvWorkflowState;
       }
     | { type: 'PAUSE_CALLBACK' };
 
@@ -62,6 +62,7 @@ const rawContext: AppMusicPlayerMachineContext = {
     tracks: undefined,
     users: [],
     currentTrack: undefined,
+    waitingRoomID: undefined,
 };
 
 export const createAppMusicPlayerMachine = ({
@@ -121,11 +122,7 @@ export const createAppMusicPlayerMachine = ({
                     onReceive((e) => {
                         switch (e.type) {
                             case 'PLAY_PAUSE_TOGGLE': {
-                                if (e.params.roomID === undefined) {
-                                    return;
-                                }
-
-                                const { roomID, status } = e.params;
+                                const { status } = e.params;
 
                                 if (status === 'play') {
                                     socket.emit('ACTION_PAUSE');
@@ -315,9 +312,6 @@ export const createAppMusicPlayerMachine = ({
                                                     type: 'PLAY_PAUSE_TOGGLE',
                                                     params: {
                                                         status: 'pause',
-                                                        roomID: context
-                                                            .currentRoom
-                                                            ?.roomID,
                                                     },
                                                 }),
                                                 {
@@ -352,9 +346,6 @@ export const createAppMusicPlayerMachine = ({
                                                     type: 'PLAY_PAUSE_TOGGLE',
                                                     params: {
                                                         status: 'play',
-                                                        roomID: context
-                                                            .currentRoom
-                                                            ?.roomID,
                                                     },
                                                 }),
                                                 {
@@ -408,6 +399,7 @@ export const createAppMusicPlayerMachine = ({
         {
             actions: {
                 assignMergeNewState: assign((context, event) => {
+                    console.log('MERGE ASSIGN FROM event.type = ' + event.type);
                     if (
                         event.type !== 'JOINED_ROOM' &&
                         event.type !== 'RETRIEVE_CONTEXT' &&

@@ -43,7 +43,7 @@ func assignNextTrackIfAvailable(internalState *MtvRoomInternalState) brainy.Acti
 		}
 		ctx.Timer = shared.MtvRoomTimer{
 			State:         shared.MtvRoomTimerStateIdle,
-			Elapsed:       0,
+			Elapsed:       time.Second * 0,
 			TotalDuration: internalState.CurrentTrack.Duration,
 		}
 

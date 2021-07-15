@@ -22,37 +22,41 @@ function waitForTimeout(ms: number): Promise<void> {
 test.only(`Goes to Search a Track screen, searches a track, sees search results, presses a song and listens to it`, async () => {
     const fakeTrack = db.tracks.create();
     const roomName = random.words();
+    const state: AppMusicPlayerMachineContext = {
+        roomID: datatype.uuid(),
+        name: roomName,
+        playing: false,
+        users: [],
+        roomCreatorUserID: datatype.uuid(),
+        currentTrack: {
+            artistName: random.word(),
+            id: datatype.uuid(),
+            duration: 42000,
+            elapsed: 0,
+            title: fakeTrack.title,
+        },
+        tracks: [
+            {
+                id: datatype.uuid(),
+                artistName: name.findName(),
+                duration: 42000,
+                title: random.words(3),
+            },
+        ],
+    };
 
     serverSocket.on('CREATE_ROOM', (payload, cb) => {
-        const state: AppMusicPlayerMachineContext = {
-            roomID: datatype.uuid(),
-            name: roomName,
-            playing: false,
-            users: [],
-            roomCreatorUserID: datatype.uuid(),
-            currentTrack: {
-                artistName: random.word(),
-                id: datatype.uuid(),
-                duration: 42000,
-                elapsed: 0,
-                title: fakeTrack.title,
-            },
-            tracks: [
-                {
-                    id: datatype.uuid(),
-                    artistName: name.findName(),
-                    duration: 42000,
-                    title: random.words(3),
-                },
-            ],
-        };
         cb({
             ...state,
             tracks: undefined,
-            currentTrack: undefined,
+            currentTrack: {
+                artistName: '',
+                duration: 0,
+                elapsed: 0,
+                id: '',
+                title: '',
+            },
         });
-
-        serverSocket.emit('CREATE_ROOM_CALLBACK', state);
     });
 
     serverSocket.on('ACTION_PAUSE', () => {
@@ -106,6 +110,12 @@ test.only(`Goes to Search a Track screen, searches a track, sees search results,
 
     fireEvent.press(trackResultListItem);
 
+    /**
+     * Check that room is not ready
+     * And button disabled
+     * Also verifying that we can find default currentTrack
+     */
+
     const musicPlayerMini = getByTestId('music-player-mini');
     expect(musicPlayerMini).toBeTruthy();
 
@@ -116,16 +126,22 @@ test.only(`Goes to Search a Track screen, searches a track, sees search results,
 
     fireEvent.press(miniPlayerRoomName);
 
+    await waitForTimeout(1_000);
+
     const musicPlayerFullScreen = await findByA11yState({ expanded: true });
     expect(musicPlayerFullScreen).toBeTruthy();
-    expect(
-        within(musicPlayerFullScreen).getByText(fakeTrack.title),
-    ).toBeTruthy();
 
     const playButton = within(musicPlayerFullScreen).getByLabelText(
-        /play.*video/i,
+        /disabled.*play.*video/i,
     );
+
     expect(playButton).toBeTruthy();
+    fireEvent.press(playButton);
+    await waitForTimeout(1_000);
+
+    /**
+     * Expect ACTION_PLAY to be disabled
+     */
     const zeroCurrentTime = within(musicPlayerFullScreen).getByLabelText(
         /elapsed/i,
     );
@@ -135,11 +151,17 @@ test.only(`Goes to Search a Track screen, searches a track, sees search results,
         /duration/i,
     );
     expect(durationTime).toBeTruthy();
-    expect(durationTime).not.toHaveTextContent('00:00');
+    expect(durationTime).toHaveTextContent('00:00');
+
+    serverSocket.emit('CREATE_ROOM_CALLBACK', state);
+    await waitForTimeout(1_000);
 
     fireEvent.press(playButton);
-
     await waitForTimeout(1_000);
+
+    expect(
+        within(musicPlayerFullScreen).getByText(fakeTrack.title),
+    ).toBeTruthy();
 
     const pauseButton = await within(musicPlayerFullScreen).findByLabelText(
         /pause.*video/i,

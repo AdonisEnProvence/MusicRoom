@@ -52,7 +52,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                 HeaderLeft={() => (
                     <View sx={{ flex: 1 }}>
                         <Typo numberOfLines={1} sx={{ fontSize: 'm' }}>
-                            {context}
+                            {context.name}
                         </Typo>
 
                         <Typo

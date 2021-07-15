@@ -1,10 +1,11 @@
-import React from 'react';
 import { useBackHandler } from '@react-native-community/hooks';
 import { useSx, View } from 'dripsy';
+import React from 'react';
 import { TouchableWithoutFeedback } from 'react-native';
 import { useMusicPlayer } from '../../contexts/MusicPlayerContext';
-import TheMusicPlayerMini from './TheMusicPlayerMini';
+import { Typo } from '../kit';
 import TheMusicPlayerFullScreen from './TheMusicPlayerFullScreen';
+import TheMusicPlayerMini from './TheMusicPlayerMini';
 
 type TheMusicPlayerProps = {
     isFullScreen: boolean;
@@ -18,8 +19,8 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
     const MINI_PLAYER_HEIGHT = 52;
     const sx = useSx();
     const { state, sendToMachine, setPlayerRef } = useMusicPlayer();
-    const { currentRoom, currentTrack, tracksList } = state.context;
-    const isInRoom = currentRoom !== undefined;
+    const { currentTrack, name } = state.context;
+    const isInRoom = state.context.roomID !== '';
     function openPlayerInFullScreen() {
         if (isInRoom === true) {
             setIsFullScren(true);
@@ -50,41 +51,34 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
                     zIndex: 20,
                 })}
             >
+                <Typo>{JSON.stringify(state.value)}</Typo>
                 <TheMusicPlayerMini
                     height={MINI_PLAYER_HEIGHT}
-                    roomName={currentRoom?.name}
+                    roomName={name}
                     currentTrackName={currentTrack?.title}
                     currentTrackArtist={currentTrack?.artistName}
                 />
 
-                {isInRoom &&
-                    currentRoom !== undefined &&
-                    currentTrack !== undefined &&
-                    tracksList !== undefined && (
-                        <View
-                            accessibilityState={{
-                                expanded: isFullScreen === true,
+                {isInRoom && currentTrack !== undefined && (
+                    <View
+                        accessibilityState={{
+                            expanded: isFullScreen === true,
+                        }}
+                        style={{
+                            flex: 1,
+                            transform: [{ translateY: isFullScreen ? 0 : 200 }],
+                        }}
+                    >
+                        <TheMusicPlayerFullScreen
+                            dismissFullScreenPlayer={() => {
+                                setIsFullScren(false);
                             }}
-                            style={{
-                                flex: 1,
-                                transform: [
-                                    { translateY: isFullScreen ? 0 : 200 },
-                                ],
-                            }}
-                        >
-                            <TheMusicPlayerFullScreen
-                                dismissFullScreenPlayer={() => {
-                                    setIsFullScren(false);
-                                }}
-                                roomName={currentRoom.name}
-                                currentTrack={currentTrack}
-                                nextTracksList={tracksList.slice(1)}
-                                sendToMachine={sendToMachine}
-                                machineState={state}
-                                setPlayerRef={setPlayerRef}
-                            />
-                        </View>
-                    )}
+                            sendToMachine={sendToMachine}
+                            machineState={state}
+                            setPlayerRef={setPlayerRef}
+                        />
+                    </View>
+                )}
             </View>
         </TouchableWithoutFeedback>
     );

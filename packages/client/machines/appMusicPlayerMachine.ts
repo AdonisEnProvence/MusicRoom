@@ -257,6 +257,7 @@ export const createAppMusicPlayerMachine = ({
 
                 connectedToRoom: {
                     initial: 'waitingForPlayerToBeSet',
+                    tags: 'roomIsReady',
 
                     states: {
                         waitingForPlayerToBeSet: {

@@ -11,6 +11,7 @@ import MusicPlayer, { MusicPlayerRef } from './Player';
 type TheMusicPlayerWithControlsProps = {
     currentTrack: CurrentTrack;
     isPlaying: boolean;
+    roomIsReady: boolean;
     onTrackReady: () => void;
     onPlayingToggle: () => void;
     onNextTrackPress: () => void;
@@ -20,6 +21,7 @@ type TheMusicPlayerWithControlsProps = {
 const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
     currentTrack,
     isPlaying,
+    roomIsReady,
     onTrackReady,
     onPlayingToggle,
     onNextTrackPress,
@@ -91,6 +93,7 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
                     iconName={isPlaying ? 'pause' : 'play'}
                     variant="prominent"
                     adjustIconHorizontally={2}
+                    disabled={!roomIsReady}
                     accessibilityLabel={
                         isPlaying ? 'Pause the video' : 'Play the video'
                     }
@@ -98,6 +101,7 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
                 />
 
                 <MusicPlayerControlButton
+                    disabled={!roomIsReady}
                     iconName="play-forward"
                     accessibilityLabel="Play next track"
                     onPress={onNextTrackPress}

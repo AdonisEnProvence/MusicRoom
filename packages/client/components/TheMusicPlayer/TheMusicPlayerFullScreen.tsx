@@ -27,6 +27,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     const context = machineState.context;
     const insets = useSafeAreaInsets();
     const isPlaying = machineState.hasTag('playerOnPlay');
+    const roomIsReady = machineState.hasTag('roomIsReady');
 
     function handleTrackReady() {
         sendToMachine({
@@ -35,11 +36,11 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     }
 
     function handlePlayPauseToggle() {
-        sendToMachine('PLAY_PAUSE_TOGGLE');
+        if (roomIsReady) sendToMachine('PLAY_PAUSE_TOGGLE');
     }
 
     function handleNextTrackPress() {
-        sendToMachine('GO_TO_NEXT_TRACK');
+        if (roomIsReady) sendToMachine('GO_TO_NEXT_TRACK');
     }
 
     return (
@@ -74,6 +75,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                         currentTrack={context.currentTrack}
                         setPlayerRef={setPlayerRef}
                         isPlaying={isPlaying}
+                        roomIsReady={roomIsReady}
                         onTrackReady={handleTrackReady}
                         onPlayingToggle={handlePlayPauseToggle}
                         onNextTrackPress={handleNextTrackPress}

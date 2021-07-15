@@ -498,7 +498,21 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		s.NoError(err)
 
 		s.False(mtvState.Playing)
-		s.Equal(tracks[1], mtvState.CurrentTrack)
+
+		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
+			CurrentTrack: shared.CurrentTrack{
+				TrackMetadata: shared.TrackMetadata{
+					ID:         tracks[1].ID,
+					ArtistName: tracks[1].ArtistName,
+					Title:      tracks[1].Title,
+					Duration:   0,
+				},
+			},
+			Duration: tracks[1].Duration.Milliseconds(),
+			Elapsed:  tracks[1].Duration.Milliseconds(),
+		}
+
+		s.Equal(expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, secondStateQueryAfterSecondTrackTotalDuration)
 
 	// 4. Send the second GoToNextTrack signal.
@@ -522,7 +536,21 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		s.NoError(err)
 
 		s.False(mtvState.Playing)
-		s.Equal(tracks[1], mtvState.CurrentTrack)
+
+		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
+			CurrentTrack: shared.CurrentTrack{
+				TrackMetadata: shared.TrackMetadata{
+					ID:         tracks[1].ID,
+					ArtistName: tracks[1].ArtistName,
+					Title:      tracks[1].Title,
+					Duration:   0,
+				},
+			},
+			Duration: tracks[1].Duration.Milliseconds(),
+			Elapsed:  tracks[1].Duration.Milliseconds(),
+		}
+
+		s.Equal(expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, thirdStateQueryAfterTryingToGoToNextTrack)
 
 	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, params)

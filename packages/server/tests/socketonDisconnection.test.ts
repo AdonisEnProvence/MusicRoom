@@ -105,7 +105,7 @@ test.group('Rooms life cycle', (group) => {
         assert.equal((await Device.query().where('user_id', userID)).length, 0);
     });
 
-    test('User creates a room, receives acknowledgement, on user disconnection, it should removes the room from database', async (assert) => {
+    test.only('User creates a room, receives acknowledgement, on user disconnection, it should removes the room from database', async (assert) => {
         const userID = datatype.uuid();
         const socket = await createUserAndGetSocket(userID);
         const receivedEvents: string[] = [];
@@ -133,7 +133,7 @@ test.group('Rooms life cycle', (group) => {
                         {
                             id: datatype.uuid(),
                             artistName: name.findName(),
-                            duration: 'PT4M52S',
+                            duration: 42000,
                             title: random.words(3),
                         },
                     ],
@@ -164,6 +164,7 @@ test.group('Rooms life cycle', (group) => {
                 return;
             },
         );
+        await sleep();
         await sleep();
         const roomBefore = await MtvRoom.findBy('creator', userID);
         assert.isNotNull(roomBefore);
@@ -276,7 +277,7 @@ test.group('Rooms life cycle', (group) => {
                             {
                                 id: datatype.uuid(),
                                 artistName: name.findName(),
-                                duration: 'PT4M52S',
+                                duration: 42000,
                                 title: random.words(3),
                             },
                         ],
@@ -404,7 +405,7 @@ test.group('Rooms life cycle', (group) => {
                             {
                                 id: datatype.uuid(),
                                 artistName: name.findName(),
-                                duration: 'PT4M52S',
+                                duration: 42000,
                                 title: random.words(3),
                             },
                         ],
@@ -484,7 +485,7 @@ test.group('Rooms life cycle', (group) => {
                             {
                                 id: datatype.uuid(),
                                 artistName: name.findName(),
-                                duration: 'PT4M52S',
+                                duration: 42000,
                                 title: random.words(3),
                             },
                         ],
@@ -553,7 +554,7 @@ test.group('Rooms life cycle', (group) => {
                             {
                                 id: datatype.uuid(),
                                 artistName: name.findName(),
-                                duration: 'PT4M52S',
+                                duration: 42000,
                                 title: random.words(3),
                             },
                         ],

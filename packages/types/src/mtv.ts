@@ -13,17 +13,15 @@ export const CurrentTrack = TracksMetadata.extend({
 });
 export type CurrentTrack = z.infer<typeof CurrentTrack>;
 
-export const MtvWorkflowState = z
-    .object({
-        roomID: z.string().uuid(),
-        roomCreatorUserID: z.string().uuid(),
-        playing: z.boolean(),
-        name: z.string(),
-        users: z.array(z.string()),
-        currentTrack: CurrentTrack.optional().nullable(),
-        tracksIDsList: z.string().array().optional().nullable(),
-        tracks: z.array(TracksMetadata).optional().nullable(),
-    })
-    .nonstrict();
+export const MtvWorkflowState = z.object({
+    roomID: z.string().uuid(),
+    roomCreatorUserID: z.string().uuid(),
+    playing: z.boolean(),
+    name: z.string(),
+    users: z.array(z.string()),
+    currentTrack: CurrentTrack.optional().nullable(),
+    tracksIDsList: z.string().array().optional().nullable(),
+    tracks: z.array(TracksMetadata).optional().nullable(),
+});
 
 export type MtvWorkflowState = z.infer<typeof MtvWorkflowState>;

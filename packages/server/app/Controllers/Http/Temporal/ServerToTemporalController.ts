@@ -144,6 +144,7 @@ export default class ServerToTemporalController {
                 }),
             );
         } catch (e) {
+            console.error(e);
             throw new Error('Get State FAILED' + workflowID);
         }
     }

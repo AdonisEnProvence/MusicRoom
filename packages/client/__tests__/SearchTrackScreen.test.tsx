@@ -19,13 +19,14 @@ function waitForTimeout(ms: number): Promise<void> {
     });
 }
 
-test(`Goes to Search a Track screen, searches a track, sees search results, presses a song and listens to it`, async () => {
+test.only(`Goes to Search a Track screen, searches a track, sees search results, presses a song and listens to it`, async () => {
     const fakeTrack = db.tracks.create();
+    const roomName = random.words();
 
     serverSocket.on('CREATE_ROOM', (payload, cb) => {
         const state: AppMusicPlayerMachineContext = {
             roomID: datatype.uuid(),
-            name: fakeTrack.title,
+            name: roomName,
             playing: false,
             users: [],
             roomCreatorUserID: datatype.uuid(),
@@ -108,12 +109,12 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
     const musicPlayerMini = getByTestId('music-player-mini');
     expect(musicPlayerMini).toBeTruthy();
 
-    const miniPlayerTrackTitle = await within(musicPlayerMini).findByText(
-        fakeTrack.title,
+    const miniPlayerRoomName = await within(musicPlayerMini).findByText(
+        roomName,
     );
-    expect(miniPlayerTrackTitle).toBeTruthy();
+    expect(miniPlayerRoomName).toBeTruthy();
 
-    fireEvent.press(miniPlayerTrackTitle);
+    fireEvent.press(miniPlayerRoomName);
 
     const musicPlayerFullScreen = await findByA11yState({ expanded: true });
     expect(musicPlayerFullScreen).toBeTruthy();

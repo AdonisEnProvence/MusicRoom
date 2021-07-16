@@ -8,6 +8,7 @@ import { useLayout } from '../../hooks/useLayout';
 import AppScreenHeaderSearchBar from './AppScreenHeaderSearchBar';
 import { AppScreenHeaderWithSearchBarMachineEvent } from '../../machines/appScreenHeaderWithSearchBarMachine';
 import { Sender } from '@xstate/react/lib/types';
+import { GLOBAL_THEME_CONSTANTS } from '../../hooks/useTheme';
 
 type AppScreenHeaderWithSearchBarPropsBase = {
     insetTop: number;
@@ -41,8 +42,7 @@ const AppScreenHeaderWithSearchBar: React.FC<AppScreenHeaderWithSearchBarProps> 
     }) => {
         const [{ height }, onLayout] = useLayout();
         const sx = useSx();
-        const titleMarginBottom = sx({ marginBottom: 'l' })
-            .marginBottom as number;
+        const titleMarginBottom = GLOBAL_THEME_CONSTANTS.space.l;
 
         useEffect(() => {
             setScreenOffsetY(-height - titleMarginBottom);

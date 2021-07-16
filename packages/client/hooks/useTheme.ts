@@ -10,6 +10,35 @@ interface UseThemeReturn {
     toggleColorScheme: () => void;
 }
 
+export const GLOBAL_THEME_CONSTANTS = {
+    space: {
+        none: 0,
+        xs: 2,
+        s: 4,
+        m: 8,
+        l: 16,
+        xl: 24,
+    },
+    borderWidths: {
+        s: 1,
+        m: 2,
+        l: 3,
+    },
+    fontSizes: {
+        xs: 14,
+        s: 16,
+        m: 20,
+        l: 24,
+        xl: 32,
+    },
+    radii: {
+        s: 5,
+        m: 10,
+        l: 15,
+        full: 9999,
+    },
+};
+
 export function useTheme(): UseThemeReturn {
     const [colorScheme, setColorScheme] = useState<ApplicationTheme>('dark');
     const palette = colorPalette(colorScheme);
@@ -17,32 +46,7 @@ export function useTheme(): UseThemeReturn {
         colors: {
             ...palette,
         },
-        space: {
-            none: 0,
-            xs: 2,
-            s: 4,
-            m: 8,
-            l: 16,
-            xl: 24,
-        },
-        borderWidths: {
-            s: 1,
-            m: 2,
-            l: 3,
-        },
-        fontSizes: {
-            xs: 14,
-            s: 16,
-            m: 20,
-            l: 24,
-            xl: 32,
-        },
-        radii: {
-            s: 5,
-            m: 10,
-            l: 15,
-            full: 9999,
-        },
+        ...GLOBAL_THEME_CONSTANTS,
     };
 
     const toggleColorScheme = () => {

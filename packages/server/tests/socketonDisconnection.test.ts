@@ -137,6 +137,8 @@ test.group('Rooms life cycle', (group) => {
                             title: random.words(3),
                         },
                     ],
+                    currentTrack: null,
+                    tracksIDsList: null,
                 };
 
                 // Simulating Use Local Activity Notify
@@ -273,6 +275,8 @@ test.group('Rooms life cycle', (group) => {
                         playing: false,
                         name: roomName,
                         users: [userA.userID],
+                        currentTrack: null,
+                        tracksIDsList: null,
                         tracks: [
                             {
                                 id: datatype.uuid(),
@@ -399,6 +403,8 @@ test.group('Rooms life cycle', (group) => {
                     runID: datatype.uuid(),
                     workflowID: workflowID,
                     state: {
+                        tracksIDsList: null,
+                        currentTrack: null,
                         roomID: workflowID,
                         roomCreatorUserID: datatype.uuid(),
                         tracks: [
@@ -480,6 +486,8 @@ test.group('Rooms life cycle', (group) => {
                         roomCreatorUserID: datatype.uuid(),
                         playing: false,
                         name: roomName,
+                        tracksIDsList: null,
+                        currentTrack: null,
                         users: [userID],
                         tracks: [
                             {
@@ -549,6 +557,8 @@ test.group('Rooms life cycle', (group) => {
                         roomCreatorUserID: datatype.uuid(),
                         playing: false,
                         name: roomName,
+                        tracksIDsList: null,
+                        currentTrack: null,
                         users: [userID],
                         tracks: [
                             {
@@ -575,8 +585,9 @@ test.group('Rooms life cycle', (group) => {
                     playing: false,
                     roomID: workflowID,
                     users: [userID],
-                    currentTrack: undefined,
-                    tracks: undefined,
+                    currentTrack: null,
+                    tracksIDsList: null,
+                    tracks: null,
                 };
             });
         sinon.stub(ServerToTemporalController, 'play').callsFake(async () => {

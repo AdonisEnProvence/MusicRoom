@@ -40,6 +40,12 @@ func (s *MtvRoomInternalState) Export() shared.MtvRoomExposedState {
 		exposedTracks = append(exposedTracks, v.Export())
 	}
 
+	var currentTrackToExport *shared.ExposedCurrentTrack = nil
+	if s.CurrentTrack.ID != "" {
+		tmp := s.CurrentTrack.Export()
+		currentTrackToExport = &tmp
+	}
+
 	exposedState := shared.MtvRoomExposedState{
 		RoomID:            s.initialParams.RoomID,
 		RoomCreatorUserID: s.initialParams.RoomCreatorUserID,
@@ -47,7 +53,7 @@ func (s *MtvRoomInternalState) Export() shared.MtvRoomExposedState {
 		RoomName:          s.initialParams.RoomName,
 		Users:             s.Users,
 		TracksIDsList:     s.TracksIDsList,
-		CurrentTrack:      s.CurrentTrack.Export(),
+		CurrentTrack:      currentTrackToExport,
 		Tracks:            exposedTracks,
 	}
 

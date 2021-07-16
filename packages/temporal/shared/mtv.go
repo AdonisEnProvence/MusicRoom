@@ -92,7 +92,7 @@ type MtvRoomExposedState struct {
 	RoomName          string                 `json:"name"`
 	Users             []string               `json:"users"`
 	TracksIDsList     []string               `json:"tracksIDsList"`
-	CurrentTrack      ExposedCurrentTrack    `json:"currentTrack"`
+	CurrentTrack      *ExposedCurrentTrack   `json:"currentTrack"`
 	Tracks            []ExposedTrackMetadata `json:"tracks"`
 }
 

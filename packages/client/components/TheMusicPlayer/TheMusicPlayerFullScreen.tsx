@@ -70,17 +70,15 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
             />
 
             <AppScreenContainer>
-                {context.currentTrack && (
-                    <TheMusicPlayerWithControls
-                        currentTrack={context.currentTrack}
-                        setPlayerRef={setPlayerRef}
-                        isPlaying={isPlaying}
-                        roomIsReady={roomIsReady}
-                        onTrackReady={handleTrackReady}
-                        onPlayingToggle={handlePlayPauseToggle}
-                        onNextTrackPress={handleNextTrackPress}
-                    />
-                )}
+                <TheMusicPlayerWithControls
+                    currentTrack={context.currentTrack}
+                    setPlayerRef={setPlayerRef}
+                    isPlaying={isPlaying}
+                    roomIsReady={roomIsReady}
+                    onTrackReady={handleTrackReady}
+                    onPlayingToggle={handlePlayPauseToggle}
+                    onNextTrackPress={handleNextTrackPress}
+                />
 
                 <View sx={{ marginBottom: 'xl' }}>
                     {context.tracks &&

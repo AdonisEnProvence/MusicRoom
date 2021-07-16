@@ -9,7 +9,7 @@ import MusicPlayerControlButton from './MusicPlayerControlButton';
 import MusicPlayer, { MusicPlayerRef } from './Player';
 
 type TheMusicPlayerWithControlsProps = {
-    currentTrack: CurrentTrack;
+    currentTrack: CurrentTrack | null;
     isPlaying: boolean;
     roomIsReady: boolean;
     onTrackReady: () => void;
@@ -27,60 +27,75 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
     onNextTrackPress,
     setPlayerRef,
 }) => {
-    const { title, duration, elapsed, id, artistName } = currentTrack;
     const [{ width: containerWidth }, onContainerLayout] = useLayout();
     const playerHeight = (containerWidth * 9) / 16;
-    const formattedElapsedTime = useFormatSeconds(elapsed);
-    const formattedTotalDuration = useFormatSeconds(duration);
+    const formattedElapsedTime = useFormatSeconds(currentTrack?.elapsed || 0);
+    const formattedTotalDuration = useFormatSeconds(
+        currentTrack?.duration || 0,
+    );
     const controlDisabled = !roomIsReady;
 
     return (
         <View sx={{ flex: 1 }} onLayout={onContainerLayout}>
-            <MusicPlayer
-                setPlayerRef={setPlayerRef}
-                videoId={id}
-                videoState={isPlaying ? 'playing' : 'stopped'}
-                playerHeight={playerHeight}
-                onTrackReady={onTrackReady}
-            />
-
-            <Typo sx={{ marginTop: 'l', fontSize: 'm', fontWeight: '600' }}>
-                {title}
-            </Typo>
-            <Typo sx={{ marginTop: 's', fontSize: 's', color: 'greyLighter' }}>
-                {artistName}
-            </Typo>
-
-            <View sx={{ marginTop: 'm' }}>
-                <Slider
-                    disabled
-                    value={elapsed}
-                    minimumValue={0}
-                    maximumValue={duration}
-                    minimumTrackTintColor="white"
-                />
-
-                <View
-                    sx={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                    }}
-                >
+            {currentTrack && (
+                <>
+                    <MusicPlayer
+                        setPlayerRef={setPlayerRef}
+                        videoId={currentTrack.id}
+                        videoState={isPlaying ? 'playing' : 'stopped'}
+                        playerHeight={playerHeight}
+                        onTrackReady={onTrackReady}
+                    />
                     <Typo
-                        sx={{ fontSize: 'xs', color: 'greyLighter' }}
-                        accessibilityLabel={`${formattedElapsedTime} minutes elapsed`}
+                        sx={{
+                            marginTop: 'l',
+                            fontSize: 'm',
+                            fontWeight: '600',
+                        }}
                     >
-                        {formattedElapsedTime}
+                        {currentTrack.title}
                     </Typo>
-
                     <Typo
-                        sx={{ fontSize: 'xs', color: 'greyLighter' }}
-                        accessibilityLabel={`${formattedElapsedTime} minutes duration`}
+                        sx={{
+                            marginTop: 's',
+                            fontSize: 's',
+                            color: 'greyLighter',
+                        }}
                     >
-                        {formattedTotalDuration}
+                        {currentTrack.artistName}
                     </Typo>
-                </View>
-            </View>
+                    <View sx={{ marginTop: 'm' }}>
+                        <Slider
+                            disabled
+                            value={currentTrack.elapsed}
+                            minimumValue={0}
+                            maximumValue={currentTrack.duration}
+                            minimumTrackTintColor="white"
+                        />
+
+                        <View
+                            sx={{
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                            }}
+                        >
+                            <Typo
+                                sx={{ fontSize: 'xs', color: 'greyLighter' }}
+                                accessibilityLabel={`${formattedElapsedTime} minutes elapsed`}
+                            >
+                                {formattedElapsedTime}
+                            </Typo>
+
+                            <Typo
+                                sx={{ fontSize: 'xs', color: 'greyLighter' }}
+                                accessibilityLabel={`${formattedElapsedTime} minutes duration`}
+                            >
+                                {formattedTotalDuration}
+                            </Typo>
+                        </View>
+                    </View>
+                </>
+            )}
 
             <View
                 sx={{

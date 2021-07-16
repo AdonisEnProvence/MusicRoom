@@ -18,7 +18,6 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
     const MINI_PLAYER_HEIGHT = 52;
     const sx = useSx();
     const { state, sendToMachine, setPlayerRef } = useMusicPlayer();
-    const { currentTrack, name } = state.context;
     const isInRoom = state.context.roomID !== '';
     function openPlayerInFullScreen() {
         if (isInRoom === true) {
@@ -51,13 +50,12 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
                 })}
             >
                 <TheMusicPlayerMini
+                    machineState={state}
+                    sendToMachine={sendToMachine}
                     height={MINI_PLAYER_HEIGHT}
-                    roomName={name}
-                    currentTrackName={currentTrack?.title}
-                    currentTrackArtist={currentTrack?.artistName}
                 />
 
-                {isInRoom && currentTrack && (
+                {isInRoom && (
                     <View
                         accessibilityState={{
                             expanded: isFullScreen === true,

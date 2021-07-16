@@ -86,13 +86,13 @@ export const createAppMusicPlayerMachine = ({
                         });
                     });
 
-                    // socket.on('CREATE_ROOM_CALLBACK', (state) => {
-                    //     console.log('CREATE_ROOM_CALLBACK recu', { state });
-                    //     sendBack({
-                    //         type: 'ROOM_IS_READY',
-                    //         state,
-                    //     });
-                    // });
+                    socket.on('CREATE_ROOM_CALLBACK', (state) => {
+                        console.log('CREATE_ROOM_CALLBACK recu', { state });
+                        sendBack({
+                            type: 'ROOM_IS_READY',
+                            state,
+                        });
+                    });
 
                     socket.on('JOIN_ROOM_CALLBACK', (state) => {
                         sendBack({

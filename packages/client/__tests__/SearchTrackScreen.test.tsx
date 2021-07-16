@@ -32,7 +32,7 @@ test.only(`Goes to Search a Track screen, searches a track, sees search results,
         currentTrack: {
             artistName: random.word(),
             id: datatype.uuid(),
-            duration: 42000,
+            duration: 158000,
             elapsed: 0,
             title: fakeTrack.title,
         },
@@ -69,6 +69,7 @@ test.only(`Goes to Search a Track screen, searches a track, sees search results,
         findByText,
         getByTestId,
         findByA11yState,
+        debug,
     } = render(
         <NavigationContainer>
             <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
@@ -119,6 +120,11 @@ test.only(`Goes to Search a Track screen, searches a track, sees search results,
     );
     expect(miniPlayerRoomName).toBeTruthy();
 
+    const miniPlayerPlayButton = within(musicPlayerMini).getByLabelText(
+        /disabled.*play.*video/i,
+    );
+    expect(miniPlayerPlayButton).toBeTruthy();
+
     fireEvent.press(miniPlayerRoomName);
 
     await waitForTimeout(1_000);
@@ -129,24 +135,7 @@ test.only(`Goes to Search a Track screen, searches a track, sees search results,
     const playButton = within(musicPlayerFullScreen).getByLabelText(
         /disabled.*play.*video/i,
     );
-
     expect(playButton).toBeTruthy();
-    fireEvent.press(playButton);
-    await waitForTimeout(1_000);
-
-    /**
-     * Expect ACTION_PLAY to be disabled
-     */
-    const zeroCurrentTime = within(musicPlayerFullScreen).getByLabelText(
-        /elapsed/i,
-    );
-    expect(zeroCurrentTime).toBeTruthy();
-    expect(zeroCurrentTime).toHaveTextContent('00:00');
-    const durationTime = within(musicPlayerFullScreen).getByLabelText(
-        /duration/i,
-    );
-    expect(durationTime).toBeTruthy();
-    expect(durationTime).toHaveTextContent('00:00');
 
     serverSocket.emit('CREATE_ROOM_CALLBACK', state);
     await waitForTimeout(1_000);
@@ -167,4 +156,11 @@ test.only(`Goes to Search a Track screen, searches a track, sees search results,
     );
     expect(nonZeroCurrentTime).toBeTruthy();
     expect(nonZeroCurrentTime).not.toHaveTextContent('00:00');
+
+    const durationTime = within(musicPlayerFullScreen).getByLabelText(
+        /.*minutes duration/i,
+    );
+    debug();
+    expect(durationTime).toBeTruthy();
+    expect(durationTime).not.toHaveTextContent('00:00');
 });

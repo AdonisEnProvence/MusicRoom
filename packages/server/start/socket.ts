@@ -59,7 +59,7 @@ Ws.io.on('connection', async (socket) => {
             }
         });
 
-        socket.on('GET_CONTEXT', async (cb) => {
+        socket.on('GET_CONTEXT', async () => {
             try {
                 //TODO CHECK AUTH, socket id is in mtvRoom
                 const { mtvRoomID } =
@@ -71,9 +71,11 @@ Ws.io.on('connection', async (socket) => {
                         "GET_CONTEXT failed user doesn't have a mtvRoom",
                     );
                 }
-                cb({
-                    context: await MtvRoomsWsController.onGetState(mtvRoomID),
-                });
+
+                const context = await MtvRoomsWsController.onGetState(
+                    mtvRoomID,
+                );
+                socket.emit('RETRIEVE_CONTEXT', { context });
             } catch (e) {
                 console.error(e);
             }

@@ -17,8 +17,6 @@ export default class SocketLifecycle {
     ): Promise<void> {
         const adapter = Ws.adapter();
         await adapter.remoteJoin(socket.id, mtvRoomID);
-        const mtvRoomContext = await MtvRoomsWsController.onGetState(mtvRoomID);
-        socket.emit('RETRIEVE_CONTEXT', { context: mtvRoomContext });
     }
 
     /**

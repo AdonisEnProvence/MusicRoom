@@ -1,6 +1,8 @@
 package workflows
 
 import (
+	"time"
+
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/Devessier/brainy"
 )
@@ -12,7 +14,10 @@ func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 
 		if tracksCount := len(event.Tracks); tracksCount > 0 {
 			currentTrack := internalState.Tracks[0]
-			internalState.CurrentTrack = currentTrack
+			internalState.CurrentTrack = shared.CurrentTrack{
+				TrackMetadata: currentTrack,
+				Elapsed:       time.Second * 0,
+			}
 
 			if tracksCount == 1 {
 				internalState.Tracks = []shared.TrackMetadata{}
@@ -32,10 +37,13 @@ func assignNextTrackIfAvailable(internalState *MtvRoomInternalState) brainy.Acti
 		ctx := c.(*MtvRoomMachineContext)
 
 		tracksCount := len(internalState.Tracks)
-		internalState.CurrentTrack = internalState.Tracks[0]
+		internalState.CurrentTrack = shared.CurrentTrack{
+			TrackMetadata: internalState.Tracks[0],
+			Elapsed:       time.Second * 0,
+		}
 		ctx.Timer = shared.MtvRoomTimer{
 			State:         shared.MtvRoomTimerStateIdle,
-			Elapsed:       0,
+			Elapsed:       time.Second * 0,
 			TotalDuration: internalState.CurrentTrack.Duration,
 		}
 

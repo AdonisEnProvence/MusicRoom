@@ -1,89 +1,103 @@
 import Slider from '@react-native-community/slider';
 import { View } from 'dripsy';
 import React from 'react';
-import { useFormatSeconds } from '../../hooks/useFormatSeconds';
+import { CurrentTrack } from '../../../types/dist';
+import { useFormatMilliSeconds } from '../../hooks/useFormatMilliSeconds';
 import { useLayout } from '../../hooks/useLayout';
 import { Typo } from '../kit';
-import MusicPlayer, { MusicPlayerRef } from './Player';
 import MusicPlayerControlButton from './MusicPlayerControlButton';
+import MusicPlayer, { MusicPlayerRef } from './Player';
 
 type TheMusicPlayerWithControlsProps = {
-    videoId: string;
-    trackTitle: string;
-    trackArtist: string;
+    currentTrack: CurrentTrack | null;
     isPlaying: boolean;
+    roomIsReady: boolean;
     onTrackReady: () => void;
     onPlayingToggle: () => void;
     onNextTrackPress: () => void;
     setPlayerRef: (playerRef: MusicPlayerRef) => void;
-    totalDuration: number;
-    elapsedTime: number;
 };
 
 const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
-    videoId,
-    trackTitle,
-    trackArtist,
+    currentTrack,
     isPlaying,
+    roomIsReady,
     onTrackReady,
     onPlayingToggle,
     onNextTrackPress,
     setPlayerRef,
-    totalDuration,
-    elapsedTime,
 }) => {
     const [{ width: containerWidth }, onContainerLayout] = useLayout();
     const playerHeight = (containerWidth * 9) / 16;
-    const formattedElapsedTime = useFormatSeconds(elapsedTime);
-    const formattedTotalDuration = useFormatSeconds(totalDuration);
+    const formattedElapsedTime = useFormatMilliSeconds(
+        currentTrack?.elapsed || 0,
+    );
+    const formattedTotalDuration = useFormatMilliSeconds(
+        currentTrack?.duration || 0,
+    );
+    const controlDisabled = !roomIsReady;
 
     return (
         <View sx={{ flex: 1 }} onLayout={onContainerLayout}>
-            <MusicPlayer
-                setPlayerRef={setPlayerRef}
-                videoId={videoId}
-                videoState={isPlaying ? 'playing' : 'stopped'}
-                playerHeight={playerHeight}
-                onTrackReady={onTrackReady}
-            />
-
-            <Typo sx={{ marginTop: 'l', fontSize: 'm', fontWeight: '600' }}>
-                {trackTitle}
-            </Typo>
-            <Typo sx={{ marginTop: 's', fontSize: 's', color: 'greyLighter' }}>
-                {trackArtist}
-            </Typo>
-
-            <View sx={{ marginTop: 'm' }}>
-                <Slider
-                    disabled
-                    value={elapsedTime}
-                    minimumValue={0}
-                    maximumValue={totalDuration}
-                    minimumTrackTintColor="white"
-                />
-
-                <View
-                    sx={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                    }}
-                >
+            {currentTrack && (
+                <>
+                    <MusicPlayer
+                        setPlayerRef={setPlayerRef}
+                        videoId={currentTrack.id}
+                        videoState={isPlaying ? 'playing' : 'stopped'}
+                        playerHeight={playerHeight}
+                        onTrackReady={onTrackReady}
+                    />
                     <Typo
-                        sx={{ fontSize: 'xs', color: 'greyLighter' }}
-                        accessibilityLabel={`${formattedElapsedTime} minutes elapsed`}
+                        sx={{
+                            marginTop: 'l',
+                            fontSize: 'm',
+                            fontWeight: '600',
+                        }}
                     >
-                        {formattedElapsedTime}
+                        {currentTrack.title}
                     </Typo>
-
                     <Typo
-                        sx={{ fontSize: 'xs', color: 'greyLighter' }}
-                        accessibilityLabel={`${formattedElapsedTime} minutes duration`}
+                        sx={{
+                            marginTop: 's',
+                            fontSize: 's',
+                            color: 'greyLighter',
+                        }}
                     >
-                        {formattedTotalDuration}
+                        {currentTrack.artistName}
                     </Typo>
-                </View>
-            </View>
+                    <View sx={{ marginTop: 'm' }}>
+                        <Slider
+                            disabled
+                            value={currentTrack.elapsed}
+                            minimumValue={0}
+                            maximumValue={currentTrack.duration}
+                            minimumTrackTintColor="white"
+                        />
+
+                        <View
+                            sx={{
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                            }}
+                        >
+                            <Typo
+                                sx={{ fontSize: 'xs', color: 'greyLighter' }}
+                                accessibilityLabel={`${formattedElapsedTime} minutes elapsed`}
+                            >
+                                {formattedElapsedTime}
+                            </Typo>
+
+                            <Typo
+                                sx={{ fontSize: 'xs', color: 'greyLighter' }}
+                                accessibilityLabel={`${formattedElapsedTime} minutes duration`}
+                            >
+                                {formattedTotalDuration}
+                            </Typo>
+                        </View>
+                    </View>
+                </>
+            )}
 
             <View
                 sx={{
@@ -97,15 +111,17 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
                     iconName={isPlaying ? 'pause' : 'play'}
                     variant="prominent"
                     adjustIconHorizontally={2}
-                    accessibilityLabel={
+                    disabled={controlDisabled}
+                    accessibilityLabel={`${
                         isPlaying ? 'Pause the video' : 'Play the video'
-                    }
+                    }`}
                     onPress={onPlayingToggle}
                 />
 
                 <MusicPlayerControlButton
+                    disabled={controlDisabled}
                     iconName="play-forward"
-                    accessibilityLabel="Play next track"
+                    accessibilityLabel={`Play next track`}
                     onPress={onNextTrackPress}
                 />
             </View>

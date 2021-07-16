@@ -32,6 +32,40 @@ type TrackMetadata struct {
 	Duration   time.Duration `json:"duration"`
 }
 
+type ExposedTrackMetadata struct {
+	TrackMetadata
+
+	Duration int64 `json:"duration"`
+}
+
+func (t TrackMetadata) Export() ExposedTrackMetadata {
+	return ExposedTrackMetadata{
+		TrackMetadata: t,
+		Duration:      t.Duration.Milliseconds(),
+	}
+}
+
+type CurrentTrack struct {
+	TrackMetadata
+
+	Elapsed time.Duration `json:"elapsed"`
+}
+
+type ExposedCurrentTrack struct {
+	CurrentTrack
+
+	Duration int64 `json:"duration"`
+	Elapsed  int64 `json:"elapsed"`
+}
+
+func (c CurrentTrack) Export() ExposedCurrentTrack {
+	return ExposedCurrentTrack{
+		CurrentTrack: c,
+		Duration:     c.Duration.Milliseconds(),
+		Elapsed:      c.Elapsed.Milliseconds(),
+	}
+}
+
 type MtvRoomParameters struct {
 	RoomID               string
 	RoomCreatorUserID    string
@@ -52,14 +86,14 @@ func (p MtvRoomParameters) Export() MtvRoomExposedState {
 }
 
 type MtvRoomExposedState struct {
-	RoomID            string          `json:"roomID"`
-	RoomCreatorUserID string          `json:"roomCreatorUserID"`
-	Playing           bool            `json:"playing"`
-	RoomName          string          `json:"name"`
-	Users             []string        `json:"users"`
-	TracksIDsList     []string        `json:"tracksIDsList"`
-	CurrentTrack      TrackMetadata   `json:"currentTrack"`
-	Tracks            []TrackMetadata `json:"tracks"`
+	RoomID            string                 `json:"roomID"`
+	RoomCreatorUserID string                 `json:"roomCreatorUserID"`
+	Playing           bool                   `json:"playing"`
+	RoomName          string                 `json:"name"`
+	Users             []string               `json:"users"`
+	TracksIDsList     []string               `json:"tracksIDsList"`
+	CurrentTrack      *ExposedCurrentTrack   `json:"currentTrack"`
+	Tracks            []ExposedTrackMetadata `json:"tracks"`
 }
 
 type SignalRoute string

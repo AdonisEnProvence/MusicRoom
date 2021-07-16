@@ -1,6 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { datatype, name, random } from 'faker';
 import React from 'react';
+import { AppMusicPlayerMachineContext } from '../../types/dist';
 import { RootNavigator } from '../navigation';
 import { serverSocket } from '../services/websockets';
 import { db } from '../tests/data';
@@ -20,22 +21,36 @@ function waitForTimeout(ms: number): Promise<void> {
 
 test(`Goes to Search a Track screen, searches a track, sees search results, presses a song and listens to it`, async () => {
     const fakeTrack = db.tracks.create();
+    const roomName = random.words();
+    const state: AppMusicPlayerMachineContext = {
+        roomID: datatype.uuid(),
+        name: roomName,
+        playing: false,
+        users: [],
+        tracksIDsList: null,
+        roomCreatorUserID: datatype.uuid(),
+        currentTrack: {
+            artistName: random.word(),
+            id: datatype.uuid(),
+            duration: 158000,
+            elapsed: 0,
+            title: fakeTrack.title,
+        },
+        tracks: [
+            {
+                id: datatype.uuid(),
+                artistName: name.findName(),
+                duration: 42000,
+                title: random.words(3),
+            },
+        ],
+    };
 
-    serverSocket.on('CREATE_ROOM', () => {
-        serverSocket.emit('CREATE_ROOM_CALLBACK', {
-            roomID: datatype.uuid(),
-            name: fakeTrack.title,
-            playing: false,
-            users: [],
-            roomCreatorUserID: datatype.uuid(),
-            tracks: [
-                {
-                    id: datatype.uuid(),
-                    artistName: name.findName(),
-                    duration: 'PT4M52S',
-                    title: random.words(3),
-                },
-            ],
+    serverSocket.on('CREATE_ROOM', (payload, cb) => {
+        cb({
+            ...state,
+            tracks: null,
+            currentTrack: null,
         });
     });
 
@@ -90,40 +105,47 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
 
     fireEvent.press(trackResultListItem);
 
+    /**
+     * Check that room is not ready
+     * And button disabled
+     * Also verifying that we can find default currentTrack
+     */
+
     const musicPlayerMini = getByTestId('music-player-mini');
     expect(musicPlayerMini).toBeTruthy();
 
-    const miniPlayerTrackTitle = await within(musicPlayerMini).findByText(
-        fakeTrack.title,
+    const miniPlayerRoomName = await within(musicPlayerMini).findByText(
+        roomName,
     );
-    expect(miniPlayerTrackTitle).toBeTruthy();
+    expect(miniPlayerRoomName).toBeTruthy();
 
-    fireEvent.press(miniPlayerTrackTitle);
+    const miniPlayerPlayButton =
+        within(musicPlayerMini).getByLabelText(/play.*video/i);
+    expect(miniPlayerPlayButton).toBeTruthy();
+    expect(miniPlayerPlayButton).toBeDisabled();
+
+    fireEvent.press(miniPlayerRoomName);
+
+    await waitForTimeout(1_000);
 
     const musicPlayerFullScreen = await findByA11yState({ expanded: true });
     expect(musicPlayerFullScreen).toBeTruthy();
-    expect(
-        within(musicPlayerFullScreen).getByText(fakeTrack.title),
-    ).toBeTruthy();
 
     const playButton = within(musicPlayerFullScreen).getByLabelText(
         /play.*video/i,
     );
     expect(playButton).toBeTruthy();
-    const zeroCurrentTime = within(musicPlayerFullScreen).getByLabelText(
-        /elapsed/i,
-    );
-    expect(zeroCurrentTime).toBeTruthy();
-    expect(zeroCurrentTime).toHaveTextContent('00:00');
-    const durationTime = within(musicPlayerFullScreen).getByLabelText(
-        /duration/i,
-    );
-    expect(durationTime).toBeTruthy();
-    expect(durationTime).not.toHaveTextContent('00:00');
+    expect(playButton).toBeDisabled();
+
+    serverSocket.emit('CREATE_ROOM_CALLBACK', state);
+    await waitForTimeout(1_000);
 
     fireEvent.press(playButton);
-
     await waitForTimeout(1_000);
+
+    expect(
+        within(musicPlayerFullScreen).getByText(fakeTrack.title),
+    ).toBeTruthy();
 
     const pauseButton = await within(musicPlayerFullScreen).findByLabelText(
         /pause.*video/i,
@@ -134,4 +156,10 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
     );
     expect(nonZeroCurrentTime).toBeTruthy();
     expect(nonZeroCurrentTime).not.toHaveTextContent('00:00');
+
+    const durationTime = within(musicPlayerFullScreen).getByLabelText(
+        /.*minutes duration/i,
+    );
+    expect(durationTime).toBeTruthy();
+    expect(durationTime).not.toHaveTextContent('00:00');
 });

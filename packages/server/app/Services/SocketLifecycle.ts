@@ -44,6 +44,9 @@ export default class SocketLifecycle {
         });
         await newDevice.related('user').associate(deviceOwner);
         if (deviceOwner.mtvRoomID) {
+            console.log(
+                `User ${queryUserID} is already a mtv room member, retrieve context`,
+            );
             await this.syncMtvRoomContext(socket, deviceOwner.mtvRoomID);
         }
     }

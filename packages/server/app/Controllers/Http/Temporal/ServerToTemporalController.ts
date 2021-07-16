@@ -1,8 +1,5 @@
 import Env from '@ioc:Adonis/Core/Env';
-import {
-    AppMusicPlayerMachineContext,
-    CreateWorkflowResponse,
-} from '@musicroom/types';
+import { CreateWorkflowResponse, MtvWorkflowState } from '@musicroom/types';
 import got from 'got';
 import urlcat from 'urlcat';
 
@@ -13,6 +10,11 @@ interface TemporalCreateMtvWorkflowArgs {
     roomName: string;
     userID: string;
     initialTracksIDs: string[];
+}
+
+interface TemporalMtvWorkflowGetStateArgs {
+    workflowID: string;
+    runID: string;
 }
 
 interface TemporalCreateMtvWorkflowBody {
@@ -127,21 +129,22 @@ export default class ServerToTemporalController {
     }
 
     //TODO to be dev in temporal atm only mocked in tests
-    public static async getState(
-        workflowID: string,
-        runID: string,
-    ): Promise<AppMusicPlayerMachineContext> {
+    public static async getState({
+        workflowID,
+        runID,
+    }: TemporalMtvWorkflowGetStateArgs): Promise<MtvWorkflowState> {
         try {
             const url = urlcat(TEMPORAL_ENDPOINT, '/state/:workflowID/:runID', {
                 workflowID,
                 runID,
             });
-            return AppMusicPlayerMachineContext.parse(
+            return MtvWorkflowState.parse(
                 await got.get(url, {
                     responseType: 'json',
                 }),
             );
         } catch (e) {
+            console.error(e);
             throw new Error('Get State FAILED' + workflowID);
         }
     }

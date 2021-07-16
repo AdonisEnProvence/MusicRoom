@@ -101,7 +101,7 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
 
             const elapsedTime: number = await player.getDuration();
 
-            return elapsedTime;
+            return elapsedTime * 1000;
         }
 
         async function fetchMusicPlayerElapsedTime(): Promise<number> {
@@ -114,7 +114,7 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
 
             const elapsedTime: number = await player.getCurrentTime();
 
-            return elapsedTime;
+            return elapsedTime * 1000;
         }
 
         return (

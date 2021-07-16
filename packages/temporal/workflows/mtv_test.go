@@ -68,21 +68,25 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		fakeWorkflowID        = faker.UUIDHyphenated()
 		fakeRoomCreatorUserID = faker.UUIDHyphenated()
 	)
+	firstTrackDuration := generateRandomDuration()
+	firstTrackDurationFirstThird := firstTrackDuration / 3
+	secondTrackDuration := generateRandomDuration()
 
 	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   generateRandomDuration(),
+			Duration:   firstTrackDuration,
 		},
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   generateRandomDuration(),
+			Duration:   secondTrackDuration,
 		},
 	}
+
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
 	params := shared.MtvRoomParameters{
 		RoomID:               fakeWorkflowID,
@@ -91,8 +95,6 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		InitialUsers:         []string{fakeRoomCreatorUserID},
 		InitialTracksIDsList: tracksIDs,
 	}
-	firstTrackDuration := tracks[0].Duration
-	firstTrackDurationFirstThird := tracks[0].Duration / 3
 
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
@@ -143,8 +145,8 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		case 2:
 			return shared.MtvRoomTimer{
 				State:         shared.MtvRoomTimerStateFinished,
-				Elapsed:       tracks[1].Duration,
-				TotalDuration: tracks[1].Duration,
+				Elapsed:       secondTrackDuration,
+				TotalDuration: secondTrackDuration,
 			}, nil
 
 		default:
@@ -194,7 +196,21 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		err = res.Get(&mtvState)
 		s.NoError(err)
 
-		s.Equal(tracks[0], mtvState.CurrentTrack)
+		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
+			CurrentTrack: shared.CurrentTrack{
+				TrackMetadata: shared.TrackMetadata{
+					ID:         tracks[0].ID,
+					ArtistName: tracks[0].ArtistName,
+					Title:      tracks[0].Title,
+					Duration:   0,
+				},
+				Elapsed: 0,
+			},
+			Duration: firstTrackDuration.Milliseconds(),
+			Elapsed:  firstTrackDurationFirstThird.Milliseconds(),
+		}
+
+		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, secondStateQueryAfterTotalTrackDuration)
 
 	// 6. We want to resume the first track.
@@ -205,8 +221,8 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
 	}, secondPlaySignalDelay)
 
-	// 7. We expect the first song and the second song to have finished.
-	// While the second one is finished, we expect to still be the CurrentTrack.
+	// // 7. We expect the first song and the second song to have finished.
+	// // While the second one is finished, we expect to still be the CurrentTrack.
 	stateQueryAfterFirstTrackMustHaveFinished := secondPlaySignalDelay + firstTrackDuration
 	s.env.RegisterDelayedCallback(func() {
 		var mtvState shared.MtvRoomExposedState
@@ -217,12 +233,26 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		err = res.Get(&mtvState)
 		s.NoError(err)
 
-		s.Equal(tracks[1], mtvState.CurrentTrack)
+		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
+			CurrentTrack: shared.CurrentTrack{
+				TrackMetadata: shared.TrackMetadata{
+					ID:         tracks[1].ID,
+					ArtistName: tracks[1].ArtistName,
+					Title:      tracks[1].Title,
+					Duration:   0,
+				},
+				Elapsed: 0,
+			},
+			Duration: secondTrackDuration.Milliseconds(),
+			Elapsed:  secondTrackDuration.Milliseconds(),
+		}
+
+		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, stateQueryAfterFirstTrackMustHaveFinished)
 
-	// 8.We expect the last track to remain the current one and the player
-	// to be on paused state.
-	stateQueryAfterAllTracksMustHaveFinished := stateQueryAfterFirstTrackMustHaveFinished + tracks[1].Duration
+	// // 8.We expect the last track to remain the current one and the player
+	// // to be on paused state.
+	stateQueryAfterAllTracksMustHaveFinished := stateQueryAfterFirstTrackMustHaveFinished + firstTrackDuration
 	s.env.RegisterDelayedCallback(func() {
 		var mtvState shared.MtvRoomExposedState
 
@@ -233,7 +263,22 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		s.NoError(err)
 
 		s.False(mtvState.Playing)
-		s.Equal(tracks[1], mtvState.CurrentTrack)
+
+		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
+			CurrentTrack: shared.CurrentTrack{
+				TrackMetadata: shared.TrackMetadata{
+					ID:         tracks[1].ID,
+					ArtistName: tracks[1].ArtistName,
+					Title:      tracks[1].Title,
+					Duration:   0,
+				},
+				Elapsed: 0,
+			},
+			Duration: secondTrackDuration.Milliseconds(),
+			Elapsed:  secondTrackDuration.Milliseconds(),
+		}
+
+		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, stateQueryAfterAllTracksMustHaveFinished)
 
 	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, params)
@@ -456,7 +501,22 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		s.NoError(err)
 
 		s.False(mtvState.Playing)
-		s.Equal(tracks[1], mtvState.CurrentTrack)
+
+		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
+			CurrentTrack: shared.CurrentTrack{
+				TrackMetadata: shared.TrackMetadata{
+					ID:         tracks[1].ID,
+					ArtistName: tracks[1].ArtistName,
+					Title:      tracks[1].Title,
+					Duration:   0,
+				},
+				Elapsed: 0,
+			},
+			Duration: tracks[1].Duration.Milliseconds(),
+			Elapsed:  tracks[1].Duration.Milliseconds(),
+		}
+
+		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, secondStateQueryAfterSecondTrackTotalDuration)
 
 	// 4. Send the second GoToNextTrack signal.
@@ -480,7 +540,22 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		s.NoError(err)
 
 		s.False(mtvState.Playing)
-		s.Equal(tracks[1], mtvState.CurrentTrack)
+
+		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
+			CurrentTrack: shared.CurrentTrack{
+				TrackMetadata: shared.TrackMetadata{
+					ID:         tracks[1].ID,
+					ArtistName: tracks[1].ArtistName,
+					Title:      tracks[1].Title,
+					Duration:   0,
+				},
+				Elapsed: 0,
+			},
+			Duration: tracks[1].Duration.Milliseconds(),
+			Elapsed:  tracks[1].Duration.Milliseconds(),
+		}
+
+		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, thirdStateQueryAfterTryingToGoToNextTrack)
 
 	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, params)

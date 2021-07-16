@@ -11,6 +11,7 @@ require (
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
+	github.com/joho/godotenv v1.3.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/senseyeio/duration v0.0.0-20180430131211-7c2a214ada46

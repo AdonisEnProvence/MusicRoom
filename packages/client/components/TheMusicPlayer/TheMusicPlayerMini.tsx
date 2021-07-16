@@ -1,28 +1,41 @@
+import { View } from 'dripsy';
 import React from 'react';
-import { useSx, View } from 'dripsy';
+import { Sender } from 'xstate';
+import {
+    AppMusicPlayerMachineEvent,
+    AppMusicPlayerMachineState,
+} from '../../machines/appMusicPlayerMachine';
 import { Typo } from '../kit';
-import { TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import MusicPlayerControlButton from './MusicPlayerControlButton';
 
 type TheMusicPlayerMiniProps = {
     height: number;
-    roomName?: string;
-    currentTrackName?: string;
-    currentTrackArtist?: string;
+    machineState: AppMusicPlayerMachineState;
+    sendToMachine: Sender<AppMusicPlayerMachineEvent>;
 };
 
 const TheMusicPlayerMini: React.FC<TheMusicPlayerMiniProps> = ({
+    machineState,
     height,
-    ...props
+    sendToMachine,
 }) => {
-    const sx = useSx();
-    const isInRoom = props.roomName !== undefined;
-    const firstLine =
-        isInRoom === true ? props.roomName : 'Join a room to listen to music';
+    const { context } = machineState;
+    const { currentTrack } = context;
+    const isInRoom = context.roomID !== '';
+    const isPlaying = machineState.hasTag('playerOnPlay');
+    const roomIsReady = machineState.hasTag('roomIsReady');
+
+    function handlePlayPauseToggle() {
+        sendToMachine('PLAY_PAUSE_TOGGLE');
+    }
+
+    const firstLine = isInRoom
+        ? context.name
+        : 'Join a room to listen to music';
     const secondLine =
-        isInRoom === true
-            ? `${props.currentTrackName} • ${props.currentTrackArtist}`
-            : '-';
+        isInRoom === true && currentTrack
+            ? `${currentTrack.title} • ${currentTrack.artistName}`
+            : 'Track-Artist';
 
     return (
         <View
@@ -54,20 +67,16 @@ const TheMusicPlayerMini: React.FC<TheMusicPlayerMiniProps> = ({
                 </Typo>
             </View>
 
-            <TouchableOpacity
-                disabled={isInRoom === false}
-                onPress={() => {
-                    console.log('toggle');
-                }}
-            >
-                <Ionicons
-                    name="pause"
-                    style={sx({
-                        fontSize: 'xl',
-                        color: 'white',
-                    })}
-                />
-            </TouchableOpacity>
+            <MusicPlayerControlButton
+                iconName={isPlaying ? 'pause' : 'play'}
+                variant="normal"
+                adjustIconHorizontally={2}
+                disabled={!roomIsReady}
+                accessibilityLabel={`${
+                    isPlaying ? 'Pause the video' : 'Play the video'
+                }`}
+                onPress={handlePlayPauseToggle}
+            />
         </View>
     );
 };

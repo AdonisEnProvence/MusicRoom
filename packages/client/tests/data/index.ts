@@ -10,7 +10,7 @@ export const db = factory({
     tracksMetadata: {
         id: primaryKey(() => datatype.uuid()),
         artistName: () => name.title(),
-        duration: () => 'PT4M52S' as string,
+        duration: () => 42000,
         title: () => random.words(),
     },
 });

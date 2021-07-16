@@ -19,7 +19,7 @@ function waitForTimeout(ms: number): Promise<void> {
     });
 }
 
-test.only(`Goes to Search a Track screen, searches a track, sees search results, presses a song and listens to it`, async () => {
+test(`Goes to Search a Track screen, searches a track, sees search results, presses a song and listens to it`, async () => {
     const fakeTrack = db.tracks.create();
     const roomName = random.words();
     const state: AppMusicPlayerMachineContext = {
@@ -69,7 +69,6 @@ test.only(`Goes to Search a Track screen, searches a track, sees search results,
         findByText,
         getByTestId,
         findByA11yState,
-        debug,
     } = render(
         <NavigationContainer>
             <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
@@ -160,7 +159,6 @@ test.only(`Goes to Search a Track screen, searches a track, sees search results,
     const durationTime = within(musicPlayerFullScreen).getByLabelText(
         /.*minutes duration/i,
     );
-    debug();
     expect(durationTime).toBeTruthy();
     expect(durationTime).not.toHaveTextContent('00:00');
 });

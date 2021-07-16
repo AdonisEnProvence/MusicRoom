@@ -26,7 +26,7 @@ const TheMusicPlayerMini: React.FC<TheMusicPlayerMiniProps> = ({
     const roomIsReady = machineState.hasTag('roomIsReady');
 
     function handlePlayPauseToggle() {
-        if (roomIsReady) sendToMachine('PLAY_PAUSE_TOGGLE');
+        sendToMachine('PLAY_PAUSE_TOGGLE');
     }
 
     const firstLine = isInRoom

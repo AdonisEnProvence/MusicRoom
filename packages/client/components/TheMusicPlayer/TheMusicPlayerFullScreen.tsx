@@ -36,11 +36,11 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     }
 
     function handlePlayPauseToggle() {
-        if (roomIsReady) sendToMachine('PLAY_PAUSE_TOGGLE');
+        sendToMachine('PLAY_PAUSE_TOGGLE');
     }
 
     function handleNextTrackPress() {
-        if (roomIsReady) sendToMachine('GO_TO_NEXT_TRACK');
+        sendToMachine('GO_TO_NEXT_TRACK');
     }
 
     return (

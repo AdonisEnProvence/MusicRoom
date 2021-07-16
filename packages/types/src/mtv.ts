@@ -19,9 +19,9 @@ export const MtvWorkflowState = z.object({
     playing: z.boolean(),
     name: z.string(),
     users: z.array(z.string()),
-    currentTrack: CurrentTrack.optional().nullable(),
-    tracksIDsList: z.string().array().optional().nullable(),
-    tracks: z.array(TracksMetadata).optional().nullable(),
+    currentTrack: CurrentTrack.nullable(),
+    tracksIDsList: z.string().array().nullable(),
+    tracks: z.array(TracksMetadata).nullable(),
 });
 
 export type MtvWorkflowState = z.infer<typeof MtvWorkflowState>;

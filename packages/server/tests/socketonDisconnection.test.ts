@@ -540,7 +540,7 @@ test.group('Rooms life cycle', (group) => {
         assert.equal(userCouldEmitAnExclusiveRoomSignal, true);
     });
 
-    test('New user socket connection should join previously joined/created room and receieve RETRIEVE_CONTEXT event', async (assert) => {
+    test('New user socket connection should join previously joined/created room', async (assert) => {
         const userID = datatype.uuid();
         const roomName = random.word();
         const socketA = await createUserAndGetSocket(userID);
@@ -616,20 +616,14 @@ test.group('Rooms life cycle', (group) => {
          * It achieves only if he joined the socket io server room
          * He also receives the mtvRoom's context
          */
-        const receivedEvents: string[] = [];
         const socketB = {
-            socket: await createSocketConnection(userID, (socket) => {
-                socket.once('RETRIEVE_CONTEXT', () => {
-                    receivedEvents.push('RETRIEVE_CONTEXT');
-                });
-            }),
+            socket: await createSocketConnection(userID),
         };
 
         socketB.socket.emit('ACTION_PLAY');
         await sleep();
 
         assert.isTrue(userCouldEmitAnExclusiveRoomSignal);
-        assert.equal(receivedEvents[0], 'RETRIEVE_CONTEXT');
     });
 
     test('Go to next tracks events are forwarded to Temporal', async (assert) => {
@@ -658,5 +652,49 @@ test.group('Rooms life cycle', (group) => {
         await sleep();
 
         assert.isTrue(goToNextTrackStub.calledOnce);
+    });
+
+    test('It should send back the socket related mtv room context', async (assert) => {
+        /**
+         * Create a user that is member of a mtv room.
+         * We want this user to send a GO_TO_NEXT_TRACK event and assert
+         * that the method that forwards the event is correctly called.
+         */
+        const userID = datatype.uuid();
+        const socket = await createUserAndGetSocket(userID);
+        const receivedEvents: string[] = [];
+        socket.once('RETRIEVE_CONTEXT', () => {
+            receivedEvents.push('RETRIEVE_CONTEXT');
+        });
+        const roomID = datatype.uuid();
+        const mtvRoom = await MtvRoom.create({
+            uuid: roomID,
+            runID: datatype.uuid(),
+            creator: userID,
+        });
+        const creatorUser = await User.findOrFail(userID);
+        await creatorUser.related('mtvRoom').associate(mtvRoom);
+        await Ws.adapter().remoteJoin(socket.id, mtvRoom.uuid);
+
+        sinon
+            .stub(ServerToTemporalController, 'getState')
+            .callsFake(async () => {
+                return {
+                    roomID,
+                    currentTrack: null,
+                    name: random.word(),
+                    playing: false,
+                    roomCreatorUserID: userID,
+                    tracks: null,
+                    tracksIDsList: null,
+                    users: [userID],
+                };
+            });
+
+        socket.emit('GET_CONTEXT');
+
+        await sleep();
+
+        assert.equal(receivedEvents[0], 'RETRIEVE_CONTEXT');
     });
 });

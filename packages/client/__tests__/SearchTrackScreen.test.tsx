@@ -27,6 +27,7 @@ test.only(`Goes to Search a Track screen, searches a track, sees search results,
         name: roomName,
         playing: false,
         users: [],
+        tracksIDsList: null,
         roomCreatorUserID: datatype.uuid(),
         currentTrack: {
             artistName: random.word(),
@@ -48,14 +49,8 @@ test.only(`Goes to Search a Track screen, searches a track, sees search results,
     serverSocket.on('CREATE_ROOM', (payload, cb) => {
         cb({
             ...state,
-            tracks: undefined,
-            currentTrack: {
-                artistName: '',
-                duration: 0,
-                elapsed: 0,
-                id: '',
-                title: '',
-            },
+            tracks: null,
+            currentTrack: null,
         });
     });
 

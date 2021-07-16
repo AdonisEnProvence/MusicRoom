@@ -138,13 +138,10 @@ export default class ServerToTemporalController {
                 workflowID,
                 runID,
             });
-            return MtvWorkflowState.parse(
-                await got
-                    .get(url, {
-                        responseType: 'json',
-                    })
-                    .json(),
-            );
+
+            const res = await got.get(url).json();
+
+            return MtvWorkflowState.parse(res);
         } catch (e) {
             console.error(e);
             throw new Error('Get State FAILED' + workflowID);

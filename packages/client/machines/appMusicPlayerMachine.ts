@@ -43,7 +43,7 @@ export type AppMusicPlayerMachineEvent =
           params: { status: 'play' | 'pause' };
       }
     | { type: 'GO_TO_NEXT_TRACK' }
-    | { type: 'PLAY_CALLBACK' }
+    | { type: 'PLAY_CALLBACK'; state: MtvWorkflowState }
     | { type: 'FORCED_DISCONNECTION' }
     | {
           type: 'RETRIEVE_CONTEXT';
@@ -112,9 +112,15 @@ export const createAppMusicPlayerMachine = ({
                         });
                     });
 
-                    socket.on('ACTION_PLAY_CALLBACK', () => {
+                    socket.on('ACTION_PLAY_CALLBACK', (state) => {
+                        console.log(
+                            'received action play callback in state machine ws service',
+                            state,
+                        );
+
                         sendBack({
                             type: 'PLAY_CALLBACK',
+                            state,
                         });
                     });
 
@@ -390,6 +396,7 @@ export const createAppMusicPlayerMachine = ({
 
                                 PLAY_CALLBACK: {
                                     target: 'activatedPlayer.play',
+                                    actions: 'assignMergeNewState',
                                 },
 
                                 GO_TO_NEXT_TRACK: {

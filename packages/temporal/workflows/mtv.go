@@ -291,7 +291,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									workflow.ExecuteActivity(
 										ctx,
 										activities.PlayActivity,
-										params.RoomID,
+										internalState.Export(),
 									)
 
 									return nil

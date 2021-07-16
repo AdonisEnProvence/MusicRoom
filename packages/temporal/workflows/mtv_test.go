@@ -210,7 +210,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 			Elapsed:  firstTrackDurationFirstThird.Milliseconds(),
 		}
 
-		s.Equal(expectedExposedCurrentTrack, mtvState.CurrentTrack)
+		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, secondStateQueryAfterTotalTrackDuration)
 
 	// 6. We want to resume the first track.
@@ -247,7 +247,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 			Elapsed:  secondTrackDuration.Milliseconds(),
 		}
 
-		s.Equal(expectedExposedCurrentTrack, mtvState.CurrentTrack)
+		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, stateQueryAfterFirstTrackMustHaveFinished)
 
 	// // 8.We expect the last track to remain the current one and the player
@@ -278,7 +278,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 			Elapsed:  secondTrackDuration.Milliseconds(),
 		}
 
-		s.Equal(expectedExposedCurrentTrack, mtvState.CurrentTrack)
+		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, stateQueryAfterAllTracksMustHaveFinished)
 
 	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, params)
@@ -516,7 +516,7 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 			Elapsed:  tracks[1].Duration.Milliseconds(),
 		}
 
-		s.Equal(expectedExposedCurrentTrack, mtvState.CurrentTrack)
+		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, secondStateQueryAfterSecondTrackTotalDuration)
 
 	// 4. Send the second GoToNextTrack signal.
@@ -555,7 +555,7 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 			Elapsed:  tracks[1].Duration.Milliseconds(),
 		}
 
-		s.Equal(expectedExposedCurrentTrack, mtvState.CurrentTrack)
+		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, thirdStateQueryAfterTryingToGoToNextTrack)
 
 	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, params)

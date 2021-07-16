@@ -150,6 +150,15 @@ export const createAppMusicPlayerMachine = ({
 
             states: {
                 waitingJoiningRoom: {
+                    invoke: {
+                        src: (_context) => () => {
+                            /**
+                             * Looking for other sessions context
+                             * e.g already joined room etc etc
+                             */
+                            socket.emit('GET_CONTEXT');
+                        },
+                    },
                     entry: 'assignRawContext',
                     on: {
                         CREATE_ROOM: {

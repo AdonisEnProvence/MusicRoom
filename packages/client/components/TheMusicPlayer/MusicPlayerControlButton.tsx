@@ -24,6 +24,7 @@ const MusicPlayerControlButton: React.FC<
     const opacity = disabled ? 0.7 : 1;
     return (
         <TouchableOpacity
+            disabled={disabled}
             style={sx({
                 width: 56,
                 height: 56,

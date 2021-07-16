@@ -72,7 +72,7 @@ const TheMusicPlayerMini: React.FC<TheMusicPlayerMiniProps> = ({
                 variant="normal"
                 adjustIconHorizontally={2}
                 disabled={!roomIsReady}
-                accessibilityLabel={`${!roomIsReady ? 'Disabled ' : ''}${
+                accessibilityLabel={`${
                     isPlaying ? 'Pause the video' : 'Play the video'
                 }`}
                 onPress={handlePlayPauseToggle}

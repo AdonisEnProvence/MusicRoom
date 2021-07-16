@@ -119,10 +119,10 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
     );
     expect(miniPlayerRoomName).toBeTruthy();
 
-    const miniPlayerPlayButton = within(musicPlayerMini).getByLabelText(
-        /disabled.*play.*video/i,
-    );
+    const miniPlayerPlayButton =
+        within(musicPlayerMini).getByLabelText(/play.*video/i);
     expect(miniPlayerPlayButton).toBeTruthy();
+    expect(miniPlayerPlayButton).toBeDisabled();
 
     fireEvent.press(miniPlayerRoomName);
 
@@ -132,9 +132,10 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
     expect(musicPlayerFullScreen).toBeTruthy();
 
     const playButton = within(musicPlayerFullScreen).getByLabelText(
-        /disabled.*play.*video/i,
+        /play.*video/i,
     );
     expect(playButton).toBeTruthy();
+    expect(playButton).toBeDisabled();
 
     serverSocket.emit('CREATE_ROOM_CALLBACK', state);
     await waitForTimeout(1_000);

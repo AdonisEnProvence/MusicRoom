@@ -2,14 +2,6 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import { MtvWorkflowState } from '@musicroom/types';
 import Ws from 'App/Services/Ws';
 
-// const TemporalToServerMtvCreationAcknowledgement = MtvWorkflowState;
-// type TemporalToServerMtvCreationAcknowledgement = z.infer<
-//     typeof TemporalToServerMtvCreationAcknowledgement
-// >;
-
-// const TemporalToServeJoinBody = MtvWorkflowState;
-// type TemporalToServeJoinBody = z.infer<typeof TemporalToServeJoinBody>;
-
 export default class TemporalToServerController {
     public pause({ request }: HttpContextContract): void {
         const roomID = decodeURIComponent(request.param('roomID'));
@@ -38,4 +30,3 @@ export default class TemporalToServerController {
         Ws.io.emit('JOIN_ROOM_CALLBACK', state);
     }
 }
-``;

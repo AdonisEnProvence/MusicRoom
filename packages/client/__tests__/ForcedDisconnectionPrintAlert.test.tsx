@@ -32,6 +32,8 @@ test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it 
             name: random.word(),
             playing: false,
             users: [],
+            currentTrack: null,
+            tracksIDsList: null,
             roomCreatorUserID: datatype.uuid(),
             tracks: [
                 {

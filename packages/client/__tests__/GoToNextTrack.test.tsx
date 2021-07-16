@@ -38,7 +38,7 @@ test(`When the user clicks on next track button, it should play the next track, 
                 elapsed: 0,
             },
             tracks: [],
-            tracksIDsList: undefined,
+            tracksIDsList: null,
             waitingRoomID: undefined,
         },
     });

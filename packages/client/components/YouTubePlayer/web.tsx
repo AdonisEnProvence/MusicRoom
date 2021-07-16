@@ -23,7 +23,7 @@ const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
                 return Promise.resolve(duration);
             },
 
-            async getCurrentTime() {
+            getCurrentTime() {
                 const currentTime = playerRef.current?.getCurrentTime();
                 if (currentTime === undefined) {
                     throw new Error(

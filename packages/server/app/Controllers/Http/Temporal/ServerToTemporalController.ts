@@ -139,9 +139,11 @@ export default class ServerToTemporalController {
                 runID,
             });
             return MtvWorkflowState.parse(
-                await got.get(url, {
-                    responseType: 'json',
-                }),
+                await got
+                    .get(url, {
+                        responseType: 'json',
+                    })
+                    .json(),
             );
         } catch (e) {
             console.error(e);

@@ -8,13 +8,13 @@ import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTe
 import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
+import SocketLifecycle from 'App/Services/SocketLifecycle';
+import Ws from 'App/Services/Ws';
 import { datatype, name, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import { io, Socket } from 'socket.io-client';
 import supertest from 'supertest';
-import SocketLifecycle from 'App/Services/SocketLifecycle';
-import Ws from 'App/Services/Ws';
 
 const BASE_URL = `http://${process.env.HOST!}:${process.env.PORT!}`;
 
@@ -105,7 +105,7 @@ test.group('Rooms life cycle', (group) => {
         assert.equal((await Device.query().where('user_id', userID)).length, 0);
     });
 
-    test.only('User creates a room, receives acknowledgement, on user disconnection, it should removes the room from database', async (assert) => {
+    test('User creates a room, receives acknowledgement, on user disconnection, it should removes the room from database', async (assert) => {
         const userID = datatype.uuid();
         const socket = await createUserAndGetSocket(userID);
         const receivedEvents: string[] = [];

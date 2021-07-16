@@ -2,7 +2,7 @@ import Slider from '@react-native-community/slider';
 import { View } from 'dripsy';
 import React from 'react';
 import { CurrentTrack } from '../../../types/dist';
-import { useFormatSeconds } from '../../hooks/useFormatSeconds';
+import { useFormatMilliSeconds } from '../../hooks/useFormatMilliSeconds';
 import { useLayout } from '../../hooks/useLayout';
 import { Typo } from '../kit';
 import MusicPlayerControlButton from './MusicPlayerControlButton';
@@ -29,8 +29,10 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
 }) => {
     const [{ width: containerWidth }, onContainerLayout] = useLayout();
     const playerHeight = (containerWidth * 9) / 16;
-    const formattedElapsedTime = useFormatSeconds(currentTrack?.elapsed || 0);
-    const formattedTotalDuration = useFormatSeconds(
+    const formattedElapsedTime = useFormatMilliSeconds(
+        currentTrack?.elapsed || 0,
+    );
+    const formattedTotalDuration = useFormatMilliSeconds(
         currentTrack?.duration || 0,
     );
     const controlDisabled = !roomIsReady;

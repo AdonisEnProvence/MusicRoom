@@ -9,7 +9,7 @@ import {
     createBottomTabNavigator,
 } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Text, useSx, View } from 'dripsy';
+import { Text, useDripsyTheme, View } from 'dripsy';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -35,15 +35,16 @@ function MyTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const { isFullScreen, setIsFullScreen } = useMusicPlayer();
 
     const insets = useSafeAreaInsets();
-    const sx = useSx();
+    const { theme } = useDripsyTheme();
     const focusedOptions = descriptors[state.routes[state.index].key].options;
 
     if (focusedOptions.tabBarVisible === false) {
         return null;
     }
 
-    const greyLighter = sx({ backgroundColor: 'greyLighter' })
-        .backgroundColor as string;
+    // greyLighter is not available on dripsy.ColorModesScale type
+    // but we add it to the theme on runtime.
+    const greyLighter = (theme.colors as any).greyLighter;
 
     return (
         <>

@@ -1,5 +1,5 @@
 import { useMachine } from '@xstate/react';
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { TextInput as RNTextInput, TouchableOpacity } from 'react-native';
 import { createMachine } from 'xstate';
 import { View as MotiView } from 'moti';
@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLayout } from '../../hooks/useLayout';
 import Typo from './Typo';
 import TextInput from './TextInput';
+import { GLOBAL_THEME_CONSTANTS } from '../../hooks/useTheme';
 
 type AppScreenHeaderSearchBarProps = {
     searchInputPlaceholder: string;
@@ -83,7 +84,7 @@ const AppScreenHeaderSearchBar: React.FC<AppScreenHeaderSearchBarProps> = ({
     });
     const sx = useSx();
 
-    const cancelButtonLeftMargin = sx({ marginLeft: 'l' }).marginLeft as number;
+    const cancelButtonLeftMargin = GLOBAL_THEME_CONSTANTS.space.l;
 
     function blurTextInput() {
         textInputRef.current?.blur();

@@ -27,7 +27,10 @@ interface RoomID {
 
 type Credentials = RoomID & UserID;
 
-async function joinEveryUserDevicesToRoom(user: User, roomID: string) {
+export async function joinEveryUserDevicesToRoom(
+    user: User,
+    roomID: string,
+): Promise<void> {
     await user.load('devices');
     const devicesAttempts = await Promise.all(
         user.devices.map(async (device) => {

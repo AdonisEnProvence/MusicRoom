@@ -5,6 +5,7 @@ import {
     MtvWorkflowState,
 } from '@musicroom/types';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
+import { joinEveryUserDevicesToRoom } from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
@@ -696,4 +697,37 @@ test.group('Rooms life cycle', (group) => {
 
         assert.equal(receivedEvents[0], 'RETRIEVE_CONTEXT');
     });
+
+    test('It throw an error as no user device could join socket room', async (assert) => {
+        const userID = datatype.uuid();
+        const user = await User.create({
+            uuid: userID,
+            nickname: random.word(),
+        });
+        const roomID = datatype.uuid();
+
+        const devices = await Device.createMany([
+            {
+                userID: userID,
+                uuid: datatype.uuid(),
+                socketID: datatype.uuid(),
+            },
+            {
+                userID: userID,
+                uuid: datatype.uuid(),
+                socketID: datatype.uuid(),
+            },
+        ]);
+
+        user.related('devices').saveMany(devices);
+
+        try {
+            await joinEveryUserDevicesToRoom(user, roomID);
+        } catch ({ message }) {
+            assert.equal(
+                message,
+                `couldn't join for any device for user ${user.uuid}`,
+            );
+        }
+    }).timeout(10_000);
 });

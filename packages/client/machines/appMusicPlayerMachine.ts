@@ -113,11 +113,6 @@ export const createAppMusicPlayerMachine = ({
                     });
 
                     socket.on('ACTION_PLAY_CALLBACK', (state) => {
-                        console.log(
-                            'received action play callback in state machine ws service',
-                            state,
-                        );
-
                         sendBack({
                             type: 'PLAY_CALLBACK',
                             state,
@@ -368,7 +363,7 @@ export const createAppMusicPlayerMachine = ({
 
                                         waitingServerAcknowledgement: {
                                             entry: send(
-                                                (context, _event) => ({
+                                                (_context, _event) => ({
                                                     type: 'PLAY_PAUSE_TOGGLE',
                                                     params: {
                                                         status: 'play',
@@ -389,6 +384,7 @@ export const createAppMusicPlayerMachine = ({
                                     },
                                 },
                             },
+
                             on: {
                                 PAUSE_CALLBACK: {
                                     target: 'activatedPlayer.pause',
@@ -416,6 +412,7 @@ export const createAppMusicPlayerMachine = ({
                     },
                 },
             },
+
             on: {
                 RETRIEVE_CONTEXT: {
                     target: 'connectedToRoom',
@@ -439,7 +436,8 @@ export const createAppMusicPlayerMachine = ({
                         event.type !== 'JOINED_CREATED_ROOM' &&
                         event.type !== 'JOINED_ROOM' &&
                         event.type !== 'RETRIEVE_CONTEXT' &&
-                        event.type !== 'ROOM_IS_READY'
+                        event.type !== 'ROOM_IS_READY' &&
+                        event.type !== 'PLAY_CALLBACK'
                     ) {
                         return context;
                     }

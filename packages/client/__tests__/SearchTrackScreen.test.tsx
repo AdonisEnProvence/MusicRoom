@@ -46,7 +46,7 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
         ],
     };
 
-    serverSocket.on('CREATE_ROOM', (payload) => {
+    serverSocket.on('CREATE_ROOM', () => {
         serverSocket.emit('CREATE_ROOM_SYNCHED_CALLBACK', {
             ...state,
             tracks: null,
@@ -59,7 +59,7 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
     });
 
     serverSocket.on('ACTION_PLAY', () => {
-        serverSocket.emit('ACTION_PLAY_CALLBACK');
+        serverSocket.emit('ACTION_PLAY_CALLBACK', state);
     });
 
     const {

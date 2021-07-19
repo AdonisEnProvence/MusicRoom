@@ -36,7 +36,7 @@ Ws.io.on('connection', async (socket) => {
         /// //// ///
 
         /// ROOM ///
-        socket.on('CREATE_ROOM', async (payload, callback) => {
+        socket.on('CREATE_ROOM', async (payload) => {
             try {
                 const { userID } =
                     await SocketLifecycle.getSocketConnectionCredentials(
@@ -53,7 +53,10 @@ Ws.io.on('connection', async (socket) => {
                         initialTracksIDs: payload.initialTracksIDs,
                     },
                 });
-                callback(raw.state);
+                SocketLifecycle.getConnectedSocketToRoom(raw.workflowID, true);
+                Ws.io
+                    .to(raw.workflowID)
+                    .emit('CREATE_ROOM_SYNCHED_CALLBACK', raw.state);
             } catch (e) {
                 console.error(e);
             }

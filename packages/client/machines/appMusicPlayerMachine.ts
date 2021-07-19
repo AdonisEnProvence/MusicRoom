@@ -25,6 +25,7 @@ export type AppMusicPlayerMachineEvent =
           initialTracksIDs: string[];
       }
     | { type: 'JOINED_ROOM'; state: MtvWorkflowState }
+    | { type: 'JOINED_CREATED_ROOM'; state: MtvWorkflowState }
     | { type: 'ROOM_IS_READY'; state: MtvWorkflowState }
     | { type: 'JOIN_ROOM'; roomID: string }
     | { type: 'MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET' }
@@ -82,6 +83,16 @@ export const createAppMusicPlayerMachine = ({
                         console.log('RETRIEVE_CONTEXT');
                         sendBack({
                             type: 'RETRIEVE_CONTEXT',
+                            state,
+                        });
+                    });
+
+                    socket.on('CREATE_ROOM_SYNCHED_CALLBACK', (state) => {
+                        console.log('CREATE_ROOM_SYNCHED_CALLBACK recu', {
+                            state,
+                        });
+                        sendBack({
+                            type: 'JOINED_CREATED_ROOM',
                             state,
                         });
                     });
@@ -184,6 +195,13 @@ export const createAppMusicPlayerMachine = ({
                 creatingRoom: {
                     invoke: {
                         src: (_context, event) => (sendBack) => {
+                            //Handle global external transitions
+                            if (
+                                event.type === 'JOINED_CREATED_ROOM' ||
+                                event.type === 'ROOM_IS_READY'
+                            )
+                                return;
+
                             if (event.type !== 'CREATE_ROOM') {
                                 throw new Error(
                                     'Service must be called in reaction to CREATE_ROOM event',
@@ -196,16 +214,7 @@ export const createAppMusicPlayerMachine = ({
                                 initialTracksIDs,
                             };
 
-                            socket.emit('CREATE_ROOM', payload, (state) => {
-                                console.log(
-                                    'callback de premier niveau',
-                                    state,
-                                );
-                                sendBack({
-                                    type: 'JOINED_ROOM',
-                                    state,
-                                });
-                            });
+                            socket.emit('CREATE_ROOM', payload);
                         },
                     },
 
@@ -213,15 +222,21 @@ export const createAppMusicPlayerMachine = ({
                     states: {
                         connectingToRoom: {
                             on: {
-                                JOINED_ROOM: {
+                                JOINED_CREATED_ROOM: {
                                     target: 'roomIsNotReady',
                                     actions: 'assignMergeNewState',
                                 },
                             },
                         },
 
-                        //Waiting for ROOM_IS_READY at the uppest scope
-                        roomIsNotReady: {},
+                        roomIsNotReady: {
+                            on: {
+                                ROOM_IS_READY: {
+                                    target: 'roomIsReady',
+                                    actions: 'assignMergeNewState',
+                                },
+                            },
+                        },
 
                         roomIsReady: {
                             type: 'final',
@@ -399,6 +414,10 @@ export const createAppMusicPlayerMachine = ({
                     target: 'connectedToRoom',
                     actions: 'assignMergeNewState',
                 },
+                JOINED_CREATED_ROOM: {
+                    target: 'creatingRoom.roomIsNotReady',
+                    actions: 'assignMergeNewState',
+                },
                 ROOM_IS_READY: {
                     target: 'creatingRoom.roomIsReady',
                     actions: 'assignMergeNewState',
@@ -410,6 +429,7 @@ export const createAppMusicPlayerMachine = ({
                 assignMergeNewState: assign((context, event) => {
                     console.log('MERGE ASSIGN FROM event.type = ' + event.type);
                     if (
+                        event.type !== 'JOINED_CREATED_ROOM' &&
                         event.type !== 'JOINED_ROOM' &&
                         event.type !== 'RETRIEVE_CONTEXT' &&
                         event.type !== 'ROOM_IS_READY'

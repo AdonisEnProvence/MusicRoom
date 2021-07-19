@@ -46,8 +46,8 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
         ],
     };
 
-    serverSocket.on('CREATE_ROOM', (payload, cb) => {
-        cb({
+    serverSocket.on('CREATE_ROOM', (payload) => {
+        serverSocket.emit('CREATE_ROOM_SYNCHED_CALLBACK', {
             ...state,
             tracks: null,
             currentTrack: null,
@@ -108,7 +108,6 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
     /**
      * Check that room is not ready
      * And button disabled
-     * Also verifying that we can find default currentTrack
      */
 
     const musicPlayerMini = getByTestId('music-player-mini');
@@ -151,6 +150,8 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
         /pause.*video/i,
     );
     expect(pauseButton).toBeTruthy();
+    expect(pauseButton).not.toBeDisabled();
+
     const nonZeroCurrentTime = within(musicPlayerFullScreen).getByLabelText(
         /elapsed/i,
     );

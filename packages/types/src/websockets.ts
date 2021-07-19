@@ -41,10 +41,7 @@ export interface ChatClientToServerEvents {
 }
 
 export interface RoomClientToServerEvents {
-    CREATE_ROOM: (
-        args: RoomClientToServerCreate,
-        callback: (state: MtvWorkflowState) => void,
-    ) => void;
+    CREATE_ROOM: (args: RoomClientToServerCreate) => void;
     JOIN_ROOM: (args: RoomClientToServerJoin) => void;
     ACTION_PLAY: () => void;
     GET_CONTEXT: () => void;
@@ -53,6 +50,7 @@ export interface RoomClientToServerEvents {
 }
 
 export interface RoomServerToClientEvents {
+    CREATE_ROOM_SYNCHED_CALLBACK: (state: MtvWorkflowState) => void;
     RETRIEVE_CONTEXT: (state: MtvWorkflowState) => void;
     ACTION_PLAY_CALLBACK: () => void;
     ACTION_PAUSE_CALLBACK: () => void;

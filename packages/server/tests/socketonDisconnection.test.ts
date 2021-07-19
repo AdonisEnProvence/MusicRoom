@@ -105,10 +105,15 @@ test.group('Rooms life cycle', (group) => {
         assert.equal((await Device.query().where('user_id', userID)).length, 0);
     });
 
-    test('User creates a room, receives acknowledgement, on user disconnection, it should removes the room from database', async (assert) => {
+    test.only('User creates a room, receives acknowledgement, on user disconnection, it should removes the room from database', async (assert) => {
         const userID = datatype.uuid();
         const socket = await createUserAndGetSocket(userID);
         const receivedEvents: string[] = [];
+
+        socket.once('CREATE_ROOM_SYNCHED_CALLBACK', () => {
+            receivedEvents.push('CREATE_ROOM_SYNCHED_CALLBACK');
+        });
+
         socket.once('CREATE_ROOM_CALLBACK', () => {
             receivedEvents.push('CREATE_ROOM_CALLBACK');
         });
@@ -159,18 +164,17 @@ test.group('Rooms life cycle', (group) => {
          * Expecting it to be in database
          * Also looking for the CREATE_ROOM_CALLBACK event
          */
-        socket.emit(
-            'CREATE_ROOM',
-            { name: roomName, initialTracksIDs: [] },
-            () => {
-                return;
-            },
-        );
+        socket.emit('CREATE_ROOM', { name: roomName, initialTracksIDs: [] });
         await sleep();
         await sleep();
         const roomBefore = await MtvRoom.findBy('creator', userID);
         assert.isNotNull(roomBefore);
-        assert.equal(receivedEvents[0], 'CREATE_ROOM_CALLBACK');
+        //As sinon mocks the whole thing synchrounously we cannot trust the order
+        assert.notEqual(
+            receivedEvents.indexOf('CREATE_ROOM_SYNCHED_CALLBACK'),
+            -1,
+        );
+        assert.notEqual(receivedEvents.indexOf('CREATE_ROOM_CALLBACK'), -1);
 
         /**
          * Emit disconnect
@@ -212,13 +216,7 @@ test.group('Rooms life cycle', (group) => {
         /**
          * Emit CREATE_ROOM
          */
-        socket.emit(
-            'CREATE_ROOM',
-            { name: roomName, initialTracksIDs: [] },
-            () => {
-                return;
-            },
-        );
+        socket.emit('CREATE_ROOM', { name: roomName, initialTracksIDs: [] });
         await sleep();
 
         if (roomID === undefined) throw new Error('roomID is undefined');
@@ -307,16 +305,10 @@ test.group('Rooms life cycle', (group) => {
             throw new Error('DeviceA nor DeviceB is/are undefined');
         assert.equal(deviceA.socketID, userA.socket.id);
         assert.equal(deviceB.userID, userB.userID);
-        userA.socket.emit(
-            'CREATE_ROOM',
-            {
-                name: roomName,
-                initialTracksIDs: [],
-            },
-            () => {
-                return;
-            },
-        );
+        userA.socket.emit('CREATE_ROOM', {
+            name: roomName,
+            initialTracksIDs: [],
+        });
         await sleep();
 
         /**
@@ -436,16 +428,10 @@ test.group('Rooms life cycle', (group) => {
          * Fisrt creatorUser creates a room
          */
         const creatorUser = await createUserAndGetSocket(creatorID);
-        creatorUser.emit(
-            'CREATE_ROOM',
-            {
-                name: random.word(),
-                initialTracksIDs: [datatype.uuid()],
-            },
-            () => {
-                return;
-            },
-        );
+        creatorUser.emit('CREATE_ROOM', {
+            name: random.word(),
+            initialTracksIDs: [datatype.uuid()],
+        });
         await sleep();
         const createdRoom = await MtvRoom.findBy('creator', creatorID);
         assert.isNotNull(createdRoom);
@@ -518,16 +504,10 @@ test.group('Rooms life cycle', (group) => {
         const socketA = await createUserAndGetSocket(userID);
         const socketB = await createSocketConnection(userID);
         assert.equal((await Device.all()).length, 2);
-        socketA.emit(
-            'CREATE_ROOM',
-            {
-                name: roomName,
-                initialTracksIDs: [datatype.uuid()],
-            },
-            () => {
-                return;
-            },
-        );
+        socketA.emit('CREATE_ROOM', {
+            name: roomName,
+            initialTracksIDs: [datatype.uuid()],
+        });
         await sleep();
         assert.isNotNull(await MtvRoom.findBy('creator', userID));
 
@@ -599,16 +579,10 @@ test.group('Rooms life cycle', (group) => {
         /**
          * User connects one device, then creates a room from it
          */
-        socketA.emit(
-            'CREATE_ROOM',
-            {
-                name: roomName,
-                initialTracksIDs: [datatype.uuid()],
-            },
-            () => {
-                return;
-            },
-        );
+        socketA.emit('CREATE_ROOM', {
+            name: roomName,
+            initialTracksIDs: [datatype.uuid()],
+        });
         await sleep();
 
         /**

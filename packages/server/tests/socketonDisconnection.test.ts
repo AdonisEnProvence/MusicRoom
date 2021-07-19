@@ -656,9 +656,8 @@ test.group('Rooms life cycle', (group) => {
 
     test('It should send back the socket related mtv room context', async (assert) => {
         /**
-         * Create a user that is member of a mtv room.
-         * We want this user to send a GO_TO_NEXT_TRACK event and assert
-         * that the method that forwards the event is correctly called.
+         * Manually create and associate room to user and socket to user
+         * Then emit a GET_CONTEXT and verify that the test achieves to it
          */
         const userID = datatype.uuid();
         const socket = await createUserAndGetSocket(userID);

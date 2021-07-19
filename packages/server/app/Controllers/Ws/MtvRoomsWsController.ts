@@ -29,12 +29,24 @@ type Credentials = RoomID & UserID;
 
 async function joinEveryUserDevicesToRoom(user: User, roomID: string) {
     await user.load('devices');
-    await Promise.all(
+    const devicesAttempts = await Promise.all(
         user.devices.map(async (device) => {
-            console.log('connecting device ', device.socketID);
-            await Ws.adapter().remoteJoin(device.socketID, roomID);
+            try {
+                console.log('connecting device ', device.socketID);
+                await Ws.adapter().remoteJoin(device.socketID, roomID);
+                return device.socketID;
+            } catch (e) {
+                console.error(e);
+                return undefined;
+            }
         }),
     );
+    const couldntJoinAtLeastOneDevice = devicesAttempts.every(
+        (el) => el === undefined,
+    );
+
+    if (couldntJoinAtLeastOneDevice)
+        throw new Error(`couldn't join for any device for user ${user.uuid}`);
 }
 
 export default class MtvRoomsWsController {

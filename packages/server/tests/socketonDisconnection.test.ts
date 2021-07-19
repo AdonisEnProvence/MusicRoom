@@ -105,7 +105,7 @@ test.group('Rooms life cycle', (group) => {
         assert.equal((await Device.query().where('user_id', userID)).length, 0);
     });
 
-    test.only('User creates a room, receives acknowledgement, on user disconnection, it should removes the room from database', async (assert) => {
+    test('User creates a room, receives acknowledgement, on user disconnection, it should removes the room from database', async (assert) => {
         const userID = datatype.uuid();
         const socket = await createUserAndGetSocket(userID);
         const receivedEvents: string[] = [];

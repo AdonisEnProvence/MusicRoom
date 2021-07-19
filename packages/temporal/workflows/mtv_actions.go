@@ -9,14 +9,21 @@ import (
 
 func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 	return func(c brainy.Context, e brainy.Event) error {
+		ctx := c.(*MtvRoomMachineContext)
 		event := e.(MtvRoomInitialTracksFetchedEvent)
+
 		internalState.Tracks = event.Tracks
 
 		if tracksCount := len(event.Tracks); tracksCount > 0 {
 			currentTrack := internalState.Tracks[0]
 			internalState.CurrentTrack = shared.CurrentTrack{
 				TrackMetadata: currentTrack,
-				Elapsed:       time.Second * 0,
+				Elapsed:       0,
+			}
+			ctx.Timer = shared.MtvRoomTimer{
+				State:         shared.MtvRoomTimerStateIdle,
+				Elapsed:       0,
+				TotalDuration: currentTrack.Duration,
 			}
 
 			if tracksCount == 1 {
@@ -25,6 +32,12 @@ func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 			} else {
 				internalState.Tracks = internalState.Tracks[1:]
 				internalState.TracksIDsList = internalState.TracksIDsList[1:]
+			}
+		} else {
+			ctx.Timer = shared.MtvRoomTimer{
+				State:         shared.MtvRoomTimerStateIdle,
+				Elapsed:       0,
+				TotalDuration: 0,
 			}
 		}
 

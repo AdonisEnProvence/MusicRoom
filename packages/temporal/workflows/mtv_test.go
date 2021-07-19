@@ -129,6 +129,10 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 		switch trackTimerActivityCalls {
 		case 0:
+			s.Equal(shared.MtvRoomTimerStateIdle, timerState.State)
+			s.Equal(time.Duration(0), timerState.Elapsed)
+			s.Equal(firstTrackDuration, timerState.TotalDuration)
+
 			return shared.MtvRoomTimer{
 				State:         shared.MtvRoomTimerStatePending,
 				Elapsed:       firstTrackDurationFirstThird,
@@ -136,6 +140,10 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 			}, nil
 
 		case 1:
+			s.Equal(shared.MtvRoomTimerStatePending, timerState.State)
+			s.Equal(firstTrackDurationFirstThird, timerState.Elapsed)
+			s.Equal(firstTrackDuration, timerState.TotalDuration)
+
 			return shared.MtvRoomTimer{
 				State:         shared.MtvRoomTimerStateFinished,
 				Elapsed:       firstTrackDuration,
@@ -143,6 +151,10 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 			}, nil
 
 		case 2:
+			s.Equal(shared.MtvRoomTimerStateIdle, timerState.State)
+			s.Equal(time.Duration(0), timerState.Elapsed)
+			s.Equal(secondTrackDuration, timerState.TotalDuration)
+
 			return shared.MtvRoomTimer{
 				State:         shared.MtvRoomTimerStateFinished,
 				Elapsed:       secondTrackDuration,
@@ -455,6 +467,10 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 
 		switch trackTimerActivityCalls {
 		case 0:
+			s.Equal(shared.MtvRoomTimerStateIdle, timerState.State)
+			s.Equal(time.Duration(0), timerState.Elapsed)
+			s.Equal(secondTrackDuration, timerState.TotalDuration)
+
 			return shared.MtvRoomTimer{
 				State:         shared.MtvRoomTimerStateFinished,
 				Elapsed:       secondTrackDuration,

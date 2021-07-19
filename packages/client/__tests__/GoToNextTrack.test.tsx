@@ -27,20 +27,17 @@ test(`When the user clicks on next track button, it should play the next track, 
 
     const roomCreatorUserID = datatype.uuid();
     serverSocket.emit('RETRIEVE_CONTEXT', {
-        context: {
-            name: random.words(),
-            roomID: datatype.uuid(),
-            playing: false,
-            roomCreatorUserID,
-            users: [roomCreatorUserID],
-            currentTrack: {
-                ...tracksList[0],
-                elapsed: 0,
-            },
-            tracks: [],
-            tracksIDsList: null,
-            waitingRoomID: undefined,
+        name: random.words(),
+        roomID: datatype.uuid(),
+        playing: false,
+        roomCreatorUserID,
+        users: [roomCreatorUserID],
+        currentTrack: {
+            ...tracksList[0],
+            elapsed: 0,
         },
+        tracks: [],
+        tracksIDsList: null,
     });
 
     /**

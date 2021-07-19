@@ -220,14 +220,8 @@ export const createAppMusicPlayerMachine = ({
                             },
                         },
 
-                        roomIsNotReady: {
-                            on: {
-                                ROOM_IS_READY: {
-                                    target: 'roomIsReady',
-                                    actions: 'assignMergeNewState',
-                                },
-                            },
-                        },
+                        //Waiting for ROOM_IS_READY at the uppest scope
+                        roomIsNotReady: {},
 
                         roomIsReady: {
                             type: 'final',

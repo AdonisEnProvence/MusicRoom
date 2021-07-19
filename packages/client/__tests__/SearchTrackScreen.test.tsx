@@ -150,7 +150,7 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
         /pause.*video/i,
     );
     expect(pauseButton).toBeTruthy();
-    expect(pauseButton).not.toBeDisabled();
+    expect(pauseButton).toBeEnabled();
 
     const nonZeroCurrentTime = within(musicPlayerFullScreen).getByLabelText(
         /elapsed/i,

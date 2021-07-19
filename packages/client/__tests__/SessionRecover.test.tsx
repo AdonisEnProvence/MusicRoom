@@ -46,7 +46,7 @@ test(`It should display the music player corresponding to the injected state on 
         ],
     };
 
-    const { getAllByText, getByTestId, debug, findByA11yState } = render(
+    const { getAllByText, getByTestId, findByA11yState } = render(
         <NavigationContainer>
             <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
         </NavigationContainer>,
@@ -67,7 +67,6 @@ test(`It should display the music player corresponding to the injected state on 
 
     await waitForTimeout(1_000);
 
-    debug();
     const musicPlayerMini = getByTestId('music-player-mini');
     expect(musicPlayerMini).toBeTruthy();
 
@@ -106,7 +105,7 @@ test(`It should display the music player corresponding to the injected state on 
         /play.*video/i,
     );
     expect(pauseButton).toBeTruthy();
-    expect(pauseButton).not.toBeDisabled();
+    expect(pauseButton).toBeEnabled();
 });
 
 test(`It should display the music player corresponding to the injected state on both RETRIEVE_CONTEXT server socket event`, async () => {
@@ -136,7 +135,7 @@ test(`It should display the music player corresponding to the injected state on 
         ],
     };
 
-    const { getAllByText, getByTestId, debug, findByA11yState } = render(
+    const { getAllByText, getByTestId, findByA11yState } = render(
         <NavigationContainer>
             <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
         </NavigationContainer>,
@@ -153,7 +152,6 @@ test(`It should display the music player corresponding to the injected state on 
 
     await waitForTimeout(1_000);
 
-    debug();
     const musicPlayerMini = getByTestId('music-player-mini');
     expect(musicPlayerMini).toBeTruthy();
 
@@ -165,7 +163,7 @@ test(`It should display the music player corresponding to the injected state on 
     const miniPlayerPlayButton =
         within(musicPlayerMini).getByLabelText(/play.*video/i);
     expect(miniPlayerPlayButton).toBeTruthy();
-    expect(miniPlayerPlayButton).not.toBeDisabled();
+    expect(miniPlayerPlayButton).toBeEnabled();
 
     fireEvent.press(miniPlayerRoomName);
 
@@ -178,7 +176,7 @@ test(`It should display the music player corresponding to the injected state on 
         /play.*video/i,
     );
     expect(playButton).toBeTruthy();
-    expect(playButton).not.toBeDisabled();
+    expect(playButton).toBeEnabled();
 
     expect(
         within(musicPlayerFullScreen).getByText(fakeTrack.title),

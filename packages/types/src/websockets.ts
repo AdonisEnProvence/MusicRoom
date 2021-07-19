@@ -53,7 +53,7 @@ export interface RoomClientToServerEvents {
 }
 
 export interface RoomServerToClientEvents {
-    RETRIEVE_CONTEXT: (args: RoomServerToClientRetrieveContext) => void;
+    RETRIEVE_CONTEXT: (state: MtvWorkflowState) => void;
     ACTION_PLAY_CALLBACK: () => void;
     ACTION_PAUSE_CALLBACK: () => void;
     CREATE_ROOM_CALLBACK: (state: MtvWorkflowState) => void;

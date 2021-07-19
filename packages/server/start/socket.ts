@@ -72,10 +72,8 @@ Ws.io.on('connection', async (socket) => {
                     );
                 }
 
-                const context = await MtvRoomsWsController.onGetState(
-                    mtvRoomID,
-                );
-                socket.emit('RETRIEVE_CONTEXT', { context });
+                const state = await MtvRoomsWsController.onGetState(mtvRoomID);
+                socket.emit('RETRIEVE_CONTEXT', state);
             } catch (e) {
                 console.error(e);
             }

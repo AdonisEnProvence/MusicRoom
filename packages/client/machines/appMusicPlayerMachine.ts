@@ -78,11 +78,11 @@ export const createAppMusicPlayerMachine = ({
             invoke: {
                 id: 'socketConnection',
                 src: (_context, _event) => (sendBack, onReceive) => {
-                    socket.on('RETRIEVE_CONTEXT', ({ context }) => {
+                    socket.on('RETRIEVE_CONTEXT', (state) => {
                         console.log('RETRIEVE_CONTEXT');
                         sendBack({
                             type: 'RETRIEVE_CONTEXT',
-                            state: context,
+                            state,
                         });
                     });
 

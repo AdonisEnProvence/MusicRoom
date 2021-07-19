@@ -1,4 +1,3 @@
-import { AppMusicPlayerMachineContext } from './appMusicPlayerMachine';
 import { MtvWorkflowState } from './mtv';
 
 export interface ChatMessage {
@@ -31,10 +30,6 @@ export interface Track {
     name: string;
     artistName: string;
 }
-
-export type RoomServerToClientRetrieveContext = {
-    context: AppMusicPlayerMachineContext;
-};
 
 export interface ChatClientToServerEvents {
     NEW_MESSAGE: (args: ChatClientToServerNewMessageArgs) => void;

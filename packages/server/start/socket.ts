@@ -53,7 +53,6 @@ Ws.io.on('connection', async (socket) => {
                         initialTracksIDs: payload.initialTracksIDs,
                     },
                 });
-                SocketLifecycle.getConnectedSocketToRoom(raw.workflowID, true);
                 Ws.io
                     .to(raw.workflowID)
                     .emit('CREATE_ROOM_SYNCHED_CALLBACK', raw.state);

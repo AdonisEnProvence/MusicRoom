@@ -405,6 +405,10 @@ export const createAppMusicPlayerMachine = ({
                     target: 'connectedToRoom',
                     actions: 'assignMergeNewState',
                 },
+                ROOM_IS_READY: {
+                    target: 'creatingRoom.roomIsReady',
+                    actions: 'assignMergeNewState',
+                },
             },
         },
         {

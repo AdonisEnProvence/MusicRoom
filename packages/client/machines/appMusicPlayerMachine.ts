@@ -1,8 +1,4 @@
-import {
-    AppMusicPlayerMachineContext,
-    MtvWorkflowState,
-    RoomClientToServerCreate,
-} from '@musicroom/types';
+import { MtvWorkflowState, RoomClientToServerCreate } from '@musicroom/types';
 import {
     assign,
     createMachine,
@@ -12,6 +8,11 @@ import {
     StateMachine,
 } from 'xstate';
 import { SocketClient } from '../hooks/useSocket';
+
+export interface AppMusicPlayerMachineContext extends MtvWorkflowState {
+    waitingRoomID?: string;
+    autoplay?: boolean;
+}
 
 export type AppMusicPlayerMachineState = State<
     AppMusicPlayerMachineContext,
@@ -65,6 +66,7 @@ const rawContext: AppMusicPlayerMachineContext = {
     currentTrack: null,
     tracksIDsList: null,
     waitingRoomID: undefined,
+    autoplay: undefined,
 };
 
 export const createAppMusicPlayerMachine = ({
@@ -277,6 +279,7 @@ export const createAppMusicPlayerMachine = ({
 
                 connectedToRoom: {
                     initial: 'waitingForPlayerToBeSet',
+
                     tags: 'roomIsReady',
 
                     states: {
@@ -302,10 +305,33 @@ export const createAppMusicPlayerMachine = ({
                             },
 
                             on: {
-                                LOADED_TRACK_DURATION: {
-                                    target: 'activatedPlayer',
-                                    actions: 'assignDurationToContext',
-                                },
+                                // Conditionnaly go to activatedPlayer.pause or activatedPlayer.play
+                                // based on whether we want to directly play the track or not.
+                                //
+                                // Should we extract connectedToRoom state in a separate machine?
+                                LOADED_TRACK_DURATION: [
+                                    {
+                                        target: 'activatedPlayer.play',
+
+                                        cond: ({ autoplay }) =>
+                                            autoplay === true,
+
+                                        actions: [
+                                            'assignDurationToContext',
+
+                                            assign((context) => ({
+                                                ...context,
+                                                autoplay: false,
+                                            })),
+                                        ],
+                                    },
+
+                                    {
+                                        target: 'activatedPlayer.pause',
+
+                                        actions: 'assignDurationToContext',
+                                    },
+                                ],
                             },
                         },
 
@@ -390,10 +416,41 @@ export const createAppMusicPlayerMachine = ({
                                     target: 'activatedPlayer.pause',
                                 },
 
-                                PLAY_CALLBACK: {
-                                    target: 'activatedPlayer.play',
-                                    actions: 'assignMergeNewState',
-                                },
+                                PLAY_CALLBACK: [
+                                    {
+                                        target: 'waitingForTrackToLoad',
+
+                                        cond: (
+                                            { currentTrack },
+                                            {
+                                                state: {
+                                                    currentTrack:
+                                                        currentTrackToBeSet,
+                                                },
+                                            },
+                                        ) => {
+                                            const isDifferentCurrentTrack =
+                                                currentTrack?.id !==
+                                                currentTrackToBeSet?.id;
+
+                                            return isDifferentCurrentTrack;
+                                        },
+
+                                        actions: [
+                                            'assignMergeNewState',
+
+                                            assign((context) => ({
+                                                ...context,
+                                                autoplay: true,
+                                            })),
+                                        ],
+                                    },
+
+                                    {
+                                        target: 'activatedPlayer.play',
+                                        actions: 'assignMergeNewState',
+                                    },
+                                ],
 
                                 GO_TO_NEXT_TRACK: {
                                     actions: forwardTo('socketConnection'),

@@ -22,7 +22,6 @@
  * @packageDocumentation
  */
 
-export * from './appMusicPlayerMachine';
 export * from './http';
 export * from './mtv';
 export * from './server-to-temporal';

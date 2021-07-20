@@ -1,11 +1,12 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { datatype, random } from 'faker';
 import React from 'react';
+import { MtvWorkflowState } from '@musicroom/types';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { db } from '../tests/data';
-import { fireEvent, render, within } from '../tests/tests-utils';
+import { fireEvent, render, waitFor, within } from '../tests/tests-utils';
 
 function noop() {
     return undefined;
@@ -13,6 +14,32 @@ function noop() {
 
 test(`When the user clicks on next track button, it should play the next track, if there is one`, async () => {
     const tracksList = [db.tracksMetadata.create(), db.tracksMetadata.create()];
+
+    const roomCreatorUserID = datatype.uuid();
+    const initialState: MtvWorkflowState = {
+        name: random.words(),
+        roomID: datatype.uuid(),
+        playing: false,
+        roomCreatorUserID,
+        users: [roomCreatorUserID],
+        currentTrack: {
+            ...tracksList[0],
+            elapsed: 0,
+        },
+        tracks: tracksList.slice(1),
+        tracksIDsList: null,
+    };
+
+    serverSocket.on('GO_TO_NEXT_TRACK', () => {
+        serverSocket.emit('ACTION_PLAY_CALLBACK', {
+            ...initialState,
+            currentTrack: {
+                ...tracksList[1],
+                elapsed: 0,
+            },
+            tracks: tracksList.slice(2),
+        });
+    });
 
     const { getAllByText, getByTestId, findByA11yState } = render(
         <NavigationContainer
@@ -25,20 +52,7 @@ test(`When the user clicks on next track button, it should play the next track, 
         </NavigationContainer>,
     );
 
-    const roomCreatorUserID = datatype.uuid();
-    serverSocket.emit('RETRIEVE_CONTEXT', {
-        name: random.words(),
-        roomID: datatype.uuid(),
-        playing: false,
-        roomCreatorUserID,
-        users: [roomCreatorUserID],
-        currentTrack: {
-            ...tracksList[0],
-            elapsed: 0,
-        },
-        tracks: [],
-        tracksIDsList: null,
-    });
+    serverSocket.emit('RETRIEVE_CONTEXT', initialState);
 
     /**
      * Firstly expecting to be on the home
@@ -61,6 +75,10 @@ test(`When the user clicks on next track button, it should play the next track, 
     expect(
         within(musicPlayerFullScreen).getByText(tracksList[0].title),
     ).toBeTruthy();
+    const firstTrackDurationTime = within(musicPlayerFullScreen).getByLabelText(
+        /minutes duration/i,
+    );
+    expect(firstTrackDurationTime).not.toHaveTextContent('00:00');
 
     const nextTrackButton = within(musicPlayerFullScreen).getByLabelText(
         /play.*next.*track/i,
@@ -68,4 +86,28 @@ test(`When the user clicks on next track button, it should play the next track, 
     expect(nextTrackButton).toBeTruthy();
 
     fireEvent.press(nextTrackButton);
+
+    expect(
+        await within(musicPlayerFullScreen).findByText(tracksList[1].title),
+    ).toBeTruthy();
+    const secondTrackDurationTime = within(
+        musicPlayerFullScreen,
+    ).getByLabelText(/minutes.*duration/i);
+    expect(secondTrackDurationTime).not.toHaveTextContent('00:00');
+    const pauseButton = within(musicPlayerFullScreen).getByLabelText(
+        /pause.*video/i,
+    );
+    expect(pauseButton).toBeTruthy();
+    expect(pauseButton).toBeEnabled();
+
+    /**
+     * Wait for the video player to load
+     */
+    await waitFor(() => {
+        const secondTrackElapsedTime = within(
+            musicPlayerFullScreen,
+        ).getByLabelText(/minutes.*elapsed/i);
+
+        expect(secondTrackElapsedTime).not.toHaveTextContent('00:00');
+    });
 });

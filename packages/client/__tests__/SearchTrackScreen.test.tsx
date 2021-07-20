@@ -1,7 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { datatype, name, random } from 'faker';
 import React from 'react';
-import { AppMusicPlayerMachineContext } from '../../types/dist';
+import { AppMusicPlayerMachineContext } from '../machines/appMusicPlayerMachine';
 import { RootNavigator } from '../navigation';
 import { serverSocket } from '../services/websockets';
 import { db } from '../tests/data';

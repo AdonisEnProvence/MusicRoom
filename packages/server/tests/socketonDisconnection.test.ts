@@ -5,11 +5,11 @@ import {
     MtvWorkflowState,
 } from '@musicroom/types';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
-import { joinEveryUserDevicesToRoom } from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
+import UserService from 'App/Services/UserService';
 import Ws from 'App/Services/Ws';
 import { datatype, name, random } from 'faker';
 import test from 'japa';
@@ -387,38 +387,47 @@ test.group('Rooms life cycle', (group) => {
         const creatorID = datatype.uuid();
         const roomName = random.word();
         let userCouldEmitAnExclusiveRoomSignal = false;
+        let state: MtvWorkflowState | undefined;
 
         /** Mocks */
         sinon
             .stub(ServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
+                state = {
+                    tracksIDsList: null,
+                    currentTrack: null,
+                    roomID: workflowID,
+                    roomCreatorUserID: datatype.uuid(),
+                    tracks: [
+                        {
+                            id: datatype.uuid(),
+                            artistName: name.findName(),
+                            duration: 42000,
+                            title: random.words(3),
+                        },
+                    ],
+                    playing: false,
+                    name: roomName,
+                    users: [creatorID],
+                };
+
                 return {
                     runID: datatype.uuid(),
                     workflowID: workflowID,
-                    state: {
-                        tracksIDsList: null,
-                        currentTrack: null,
-                        roomID: workflowID,
-                        roomCreatorUserID: datatype.uuid(),
-                        tracks: [
-                            {
-                                id: datatype.uuid(),
-                                artistName: name.findName(),
-                                duration: 42000,
-                                title: random.words(3),
-                            },
-                        ],
-                        playing: false,
-                        name: roomName,
-                        users: [creatorID],
-                    },
+                    state,
                 };
             });
+
         sinon
             .stub(ServerToTemporalController, 'joinWorkflow')
             .callsFake(async () => {
+                if (state === undefined) throw new Error('State is undefined');
+                await supertest(BASE_URL)
+                    .post('/temporal/join')
+                    .send({ state, joiningUserID: userID });
                 return;
             });
+
         sinon.stub(ServerToTemporalController, 'play').callsFake(async () => {
             userCouldEmitAnExclusiveRoomSignal = true;
             return;
@@ -441,12 +450,22 @@ test.group('Rooms life cycle', (group) => {
         /**
          * JoiningUser connects 2 socket and joins the createdRoom with one
          */
+        const receivedEvents: string[] = [];
         const joiningUser = {
             socketA: await createUserAndGetSocket(userID),
             socketB: await createSocketConnection(userID),
         };
+        Object.values(joiningUser).forEach((socket, i) =>
+            socket.once('JOIN_ROOM_CALLBACK', () => {
+                receivedEvents.push(`JOIN_ROOM_CALLBACK_${i}`);
+            }),
+        );
         joiningUser.socketA.emit('JOIN_ROOM', { roomID: createdRoom.uuid });
         await sleep();
+        await sleep();
+        console.log(receivedEvents);
+        assert.notEqual(receivedEvents.indexOf('JOIN_ROOM_CALLBACK_0'), -1);
+        assert.notEqual(receivedEvents.indexOf('JOIN_ROOM_CALLBACK_1'), -1);
 
         /**
          * JoiningUser emit an ACTION_PLAY with the other socket connection

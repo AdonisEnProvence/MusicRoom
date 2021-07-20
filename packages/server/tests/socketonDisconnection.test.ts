@@ -696,7 +696,7 @@ test.group('Rooms life cycle', (group) => {
         user.related('devices').saveMany(devices);
 
         try {
-            await joinEveryUserDevicesToRoom(user, roomID);
+            await UserService.joinEveryUserDevicesToRoom(user, roomID);
         } catch ({ message }) {
             assert.equal(
                 message,
@@ -704,4 +704,32 @@ test.group('Rooms life cycle', (group) => {
             );
         }
     }).timeout(10_000);
+
+    test('It should send server socket event to the client', async (assert) => {
+        const userID = datatype.uuid();
+        const socket = await createUserAndGetSocket(userID);
+        const state: MtvWorkflowState = {
+            currentTrack: null,
+            name: random.word(),
+            playing: false,
+            roomCreatorUserID: userID,
+            roomID: datatype.uuid(),
+            tracks: null,
+            tracksIDsList: null,
+            users: [userID],
+        };
+        const receivedEvents: string[] = [];
+
+        socket.once('CREATE_ROOM_CALLBACK', (payload) => {
+            assert.deepEqual(payload, state);
+            receivedEvents.push('CREATE_ROOM_CALLBACK');
+        });
+
+        UserService.EmitEventInSocket(socket.id, 'CREATE_ROOM_CALLBACK', [
+            state,
+        ]);
+
+        await sleep();
+        assert.notEqual(receivedEvents.indexOf('CREATE_ROOM_CALLBACK'), -1);
+    });
 });

@@ -7,6 +7,7 @@ import {
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
+import UserService from 'App/Services/UserService';
 import Ws from 'App/Services/Ws';
 import { randomUUID } from 'crypto';
 import { Socket } from 'socket.io';
@@ -82,11 +83,10 @@ export default class MtvRoomsWsController {
     }: WsControllerMethodArgs<Credentials>): Promise<void> {
         const { roomID, userID } = payload;
         const room = await MtvRoom.findOrFail(roomID);
-        const joiningUser = await User.findOrFail(payload.userID);
+
         const roomDoesntExistInAnyNodes = !(await Ws.adapter().allRooms()).has(
             roomID,
         );
-
         if (roomDoesntExistInAnyNodes) {
             throw new Error(
                 'Room does not exist in any socket io server instance ' +
@@ -100,13 +100,6 @@ export default class MtvRoomsWsController {
             room.runID,
             userID,
         );
-
-        await joinEveryUserDevicesToRoom(joiningUser, roomID);
-
-        joiningUser.mtvRoomID = roomID;
-        await joiningUser.save();
-        await joiningUser.related('mtvRoom').associate(room);
-        console.log('in array', await Ws.adapter().sockets(new Set([roomID])));
     }
 
     public static async onPause({

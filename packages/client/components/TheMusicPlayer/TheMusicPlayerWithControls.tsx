@@ -90,7 +90,7 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
 
                             <Typo
                                 sx={{ fontSize: 'xs', color: 'greyLighter' }}
-                                accessibilityLabel={`${formattedElapsedTime} minutes duration`}
+                                accessibilityLabel={`${formattedTotalDuration} minutes duration`}
                             >
                                 {formattedTotalDuration}
                             </Typo>

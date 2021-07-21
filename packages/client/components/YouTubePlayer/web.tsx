@@ -1,8 +1,10 @@
-import React from 'react';
-import { useRef } from 'react';
-import { useImperativeHandle } from 'react';
-import { useEffect } from 'react';
-import { forwardRef } from 'react';
+import React, {
+    useState,
+    useRef,
+    useImperativeHandle,
+    useEffect,
+    forwardRef,
+} from 'react';
 import YouTube, { Options } from 'react-youtube';
 import { PlayerComponent, PlayerProps, PlayerRef } from './contract';
 import { YoutubeIframePlayer } from './youtube-iframe';
@@ -34,6 +36,32 @@ const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
                 return Promise.resolve(currentTime);
             },
         }));
+
+        /**
+         * We want to call onReady function once each time a new video id is set.
+         * We do not want to call it for the first video id.
+         *
+         * It mimics the behaviour of react-native-youtube-iframe.
+         * react-youtube executes onReady prop only once and is always ready,
+         * event when we switch to another video.
+         */
+        const [firstVideoID] = useState(videoId);
+        const previousVideoIDs = useRef<string[]>([]);
+        useEffect(() => {
+            const isFirstVideoID = videoId === firstVideoID;
+            if (isFirstVideoID) {
+                return;
+            }
+
+            const isAlreadyInPreviousVideoIDsList =
+                previousVideoIDs.current.includes(videoId);
+            if (isAlreadyInPreviousVideoIDsList) {
+                return;
+            }
+
+            previousVideoIDs.current.push(videoId);
+            onReady?.();
+        }, [firstVideoID, onReady, videoId]);
 
         useEffect(() => {
             if (playing === true) {

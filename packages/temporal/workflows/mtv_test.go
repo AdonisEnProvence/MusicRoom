@@ -581,6 +581,167 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
+func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrackThatEnded() {
+	var (
+		fakeWorkflowID        = faker.UUIDHyphenated()
+		fakeRoomCreatorUserID = faker.UUIDHyphenated()
+	)
+	firstTrackDuration := generateRandomDuration()
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   firstTrackDuration,
+		},
+	}
+
+	tracksIDs := []string{tracks[0].ID}
+	params := shared.MtvRoomParameters{
+		RoomID:               fakeWorkflowID,
+		RoomCreatorUserID:    fakeRoomCreatorUserID,
+		RoomName:             faker.Word(),
+		InitialUsers:         []string{fakeRoomCreatorUserID},
+		InitialTracksIDsList: tracksIDs,
+	}
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.PlayActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Times(1)
+	s.env.OnActivity(
+		activities.PauseActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Times(2)
+
+	trackTimerActivityCalls := 0
+	s.env.OnActivity(
+		activities.TrackTimerActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(func(ctx context.Context, timerState shared.MtvRoomTimer) (shared.MtvRoomTimer, error) {
+		defer func() {
+			trackTimerActivityCalls++
+		}()
+
+		switch trackTimerActivityCalls {
+		case 0:
+			s.Equal(shared.MtvRoomTimerStateIdle, timerState.State)
+			s.Equal(time.Duration(0), timerState.Elapsed)
+			s.Equal(firstTrackDuration, timerState.TotalDuration)
+
+			return shared.MtvRoomTimer{
+				State:         shared.MtvRoomTimerStatePending,
+				Elapsed:       firstTrackDuration,
+				TotalDuration: firstTrackDuration,
+			}, nil
+
+		default:
+			return shared.MtvRoomTimer{}, errors.New("no timer to return for this call")
+		}
+	}).Times(1)
+
+	initialStateQueryDelay := 1 * time.Second
+	s.env.RegisterDelayedCallback(func() {
+		var mtvState shared.MtvRoomExposedState
+
+		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
+		s.NoError(err)
+
+		err = res.Get(&mtvState)
+		s.NoError(err)
+
+		s.False(mtvState.Playing)
+	}, initialStateQueryDelay)
+
+	firstPlaySignalDelay := initialStateQueryDelay + 1*time.Second
+	s.env.RegisterDelayedCallback(func() {
+		playSignal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
+
+		s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
+	}, firstPlaySignalDelay)
+
+	secondStateQueryAfterTotalTrackDuration := firstPlaySignalDelay + firstTrackDuration
+	s.env.RegisterDelayedCallback(func() {
+		var mtvState shared.MtvRoomExposedState
+
+		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
+		s.NoError(err)
+
+		err = res.Get(&mtvState)
+		s.NoError(err)
+
+		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
+			CurrentTrack: shared.CurrentTrack{
+				TrackMetadata: shared.TrackMetadata{
+					ID:         tracks[0].ID,
+					ArtistName: tracks[0].ArtistName,
+					Title:      tracks[0].Title,
+					Duration:   0,
+				},
+				Elapsed: 0,
+			},
+			Duration: firstTrackDuration.Milliseconds(),
+			Elapsed:  firstTrackDuration.Milliseconds(),
+		}
+
+		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
+	}, secondStateQueryAfterTotalTrackDuration)
+
+	secondPlaySignalDelay := secondStateQueryAfterTotalTrackDuration + 1*time.Second
+	s.env.RegisterDelayedCallback(func() {
+		playSignal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
+
+		s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
+	}, secondPlaySignalDelay)
+
+	thirdStateQueryAfterSecondPlaySignal := firstPlaySignalDelay + firstTrackDuration
+	s.env.RegisterDelayedCallback(func() {
+		var mtvState shared.MtvRoomExposedState
+
+		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
+		s.NoError(err)
+
+		err = res.Get(&mtvState)
+		s.NoError(err)
+
+		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
+			CurrentTrack: shared.CurrentTrack{
+				TrackMetadata: shared.TrackMetadata{
+					ID:         tracks[0].ID,
+					ArtistName: tracks[0].ArtistName,
+					Title:      tracks[0].Title,
+					Duration:   0,
+				},
+				Elapsed: 0,
+			},
+			Duration: firstTrackDuration.Milliseconds(),
+			Elapsed:  firstTrackDuration.Milliseconds(),
+		}
+
+		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
+	}, thirdStateQueryAfterSecondPlaySignal)
+
+	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
 func TestUnitTestSuite(t *testing.T) {
 	suite.Run(t, new(UnitTestSuite))
 }

@@ -247,7 +247,11 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				},
 
 				On: brainy.Events{
-					MtvRoomPlayEvent: MtvRoomPlayingState,
+					MtvRoomPlayEvent: brainy.Transition{
+						Target: MtvRoomPlayingState,
+
+						Cond: canPlayCurrentTrack(&internalState),
+					},
 				},
 			},
 

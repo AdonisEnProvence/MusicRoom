@@ -37,19 +37,6 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
         const appMusicPlayerMachine = createAppMusicPlayerMachine({ socket });
         const [state, send] = useMachine(appMusicPlayerMachine, {
             services: {
-                getTrackDuration: () => async (sendBack) => {
-                    try {
-                        const duration = await fetchMusicPlayerTotalDuration();
-
-                        sendBack({
-                            type: 'LOADED_TRACK_DURATION',
-                            duration,
-                        });
-                    } catch (err) {
-                        console.error(err);
-                    }
-                },
-
                 pollTrackElapsedTime: () => (sendBack) => {
                     const INTERVAL = 200;
                     // eslint-disable-next-line @typescript-eslint/no-misused-promises

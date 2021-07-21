@@ -58,7 +58,7 @@
     "react-youtube": "^7.13.1",
     "socket.io-client": "^4.1.2",
     "urlcat": "^2.0.4",
-    "xstate": "^4.19.2",
+    "xstate": "^4.23.0",
     "xstate-codegen": "^0.3.0",
     "zod": "^1.11.17"
   },

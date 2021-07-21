@@ -300,39 +300,28 @@ export const createAppMusicPlayerMachine = ({
                         },
 
                         loadingTrackDuration: {
-                            invoke: {
-                                src: 'getTrackDuration',
-                            },
+                            always: [
+                                {
+                                    target: 'activatedPlayer.play',
 
-                            on: {
-                                // Conditionnaly go to activatedPlayer.pause or activatedPlayer.play
-                                // based on whether we want to directly play the track or not.
-                                //
-                                // Should we extract connectedToRoom state in a separate machine?
-                                LOADED_TRACK_DURATION: [
-                                    {
-                                        target: 'activatedPlayer.play',
+                                    cond: ({ autoplay }) => autoplay === true,
 
-                                        cond: ({ autoplay }) =>
-                                            autoplay === true,
+                                    actions: [
+                                        'assignDurationToContext',
 
-                                        actions: [
-                                            'assignDurationToContext',
+                                        assign((context) => ({
+                                            ...context,
+                                            autoplay: false,
+                                        })),
+                                    ],
+                                },
 
-                                            assign((context) => ({
-                                                ...context,
-                                                autoplay: false,
-                                            })),
-                                        ],
-                                    },
+                                {
+                                    target: 'activatedPlayer.pause',
 
-                                    {
-                                        target: 'activatedPlayer.pause',
-
-                                        actions: 'assignDurationToContext',
-                                    },
-                                ],
-                            },
+                                    actions: 'assignDurationToContext',
+                                },
+                            ],
                         },
 
                         activatedPlayer: {
@@ -536,6 +525,11 @@ export const createAppMusicPlayerMachine = ({
                     const currentTrack = context.currentTrack;
                     if (!currentTrack)
                         throw new Error('currentTrack is undefined');
+
+                    console.log(
+                        'duration to assign to context',
+                        event.duration,
+                    );
 
                     return {
                         ...context,

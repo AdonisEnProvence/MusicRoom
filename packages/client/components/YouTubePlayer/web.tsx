@@ -1,5 +1,4 @@
 import React, {
-    useState,
     useRef,
     useImperativeHandle,
     useEffect,
@@ -8,6 +7,19 @@ import React, {
 import YouTube, { Options } from 'react-youtube';
 import { PlayerComponent, PlayerProps, PlayerRef } from './contract';
 import { YoutubeIframePlayer } from './youtube-iframe';
+
+function getYoutubePlayerState(
+    id: typeof YouTube.PlayerState[keyof typeof YouTube.PlayerState],
+): keyof typeof YouTube.PlayerState {
+    const matchingState = Object.entries(YouTube.PlayerState).find(
+        ([, stateId]) => stateId === id,
+    );
+    if (matchingState === undefined) {
+        throw new Error(`Could not find any match for the id: ${id}`);
+    }
+
+    return matchingState[0] as keyof typeof YouTube.PlayerState;
+}
 
 const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
     ({ width, height, videoId, playing, onReady }, ref) => {
@@ -37,31 +49,19 @@ const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
             },
         }));
 
-        /**
-         * We want to call onReady function once each time a new video id is set.
-         * We do not want to call it for the first video id.
-         *
-         * It mimics the behaviour of react-native-youtube-iframe.
-         * react-youtube executes onReady prop only once and is always ready,
-         * event when we switch to another video.
-         */
-        const [firstVideoID] = useState(videoId);
-        const previousVideoIDs = useRef<string[]>([]);
-        useEffect(() => {
-            const isFirstVideoID = videoId === firstVideoID;
-            if (isFirstVideoID) {
-                return;
-            }
+        function handlePlayerStateChange({
+            data,
+        }: {
+            data: typeof YouTube.PlayerState[keyof typeof YouTube.PlayerState];
+        }) {
+            const playerState = getYoutubePlayerState(data);
 
-            const isAlreadyInPreviousVideoIDsList =
-                previousVideoIDs.current.includes(videoId);
-            if (isAlreadyInPreviousVideoIDsList) {
-                return;
+            switch (playerState) {
+                case 'CUED': {
+                    onReady?.();
+                }
             }
-
-            previousVideoIDs.current.push(videoId);
-            onReady?.();
-        }, [firstVideoID, onReady, videoId]);
+        }
 
         useEffect(() => {
             if (playing === true) {
@@ -74,6 +74,11 @@ const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
         const playerOptions: Options = {
             height: String(height),
             width: width !== undefined ? String(width) : '100%',
+            playerVars: {
+                autoplay: 0,
+                controls: 0,
+                rel: 0,
+            },
         };
 
         function setPlayerRef(ref: YouTube) {
@@ -92,6 +97,7 @@ const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
                 onReady={() => {
                     onReady?.();
                 }}
+                onStateChange={handlePlayerStateChange}
             />
         );
     },

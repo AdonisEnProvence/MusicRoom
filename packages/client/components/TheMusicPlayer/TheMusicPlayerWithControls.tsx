@@ -112,9 +112,9 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
                     variant="prominent"
                     adjustIconHorizontally={2}
                     disabled={controlDisabled}
-                    accessibilityLabel={`${
+                    accessibilityLabel={
                         isPlaying ? 'Pause the video' : 'Play the video'
-                    }`}
+                    }
                     onPress={onPlayingToggle}
                 />
 

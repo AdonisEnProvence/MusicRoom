@@ -25,9 +25,16 @@ func PauseActivity(_ context.Context, roomID string) error {
 	return err
 }
 
-func PlayActivity(_ context.Context, roomID string) error {
-	url := ADONIS_ENDPOINT + "/temporal/play/" + url.QueryEscape(roomID)
-	_, err := http.Get(url)
+func PlayActivity(_ context.Context, state shared.MtvRoomExposedState) error {
+	requestBody := state
+
+	marshaledBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	url := ADONIS_ENDPOINT + "/temporal/play"
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
 }

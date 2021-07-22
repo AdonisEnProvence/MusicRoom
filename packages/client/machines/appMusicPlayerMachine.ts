@@ -1,8 +1,4 @@
-import {
-    AppMusicPlayerMachineContext,
-    MtvWorkflowState,
-    RoomClientToServerCreate,
-} from '@musicroom/types';
+import { MtvWorkflowState, RoomClientToServerCreate } from '@musicroom/types';
 import {
     assign,
     createMachine,
@@ -12,6 +8,11 @@ import {
     StateMachine,
 } from 'xstate';
 import { SocketClient } from '../hooks/useSocket';
+
+export interface AppMusicPlayerMachineContext extends MtvWorkflowState {
+    waitingRoomID?: string;
+    autoplay?: boolean;
+}
 
 export type AppMusicPlayerMachineState = State<
     AppMusicPlayerMachineContext,
@@ -31,10 +32,6 @@ export type AppMusicPlayerMachineEvent =
     | { type: 'MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET' }
     | { type: 'TRACK_HAS_LOADED' }
     | {
-          type: 'LOADED_TRACK_DURATION';
-          duration: number;
-      }
-    | {
           type: 'UPDATE_CURRENT_TRACK_ELAPSED_TIME';
           elapsedTime: number;
       }
@@ -43,7 +40,7 @@ export type AppMusicPlayerMachineEvent =
           params: { status: 'play' | 'pause' };
       }
     | { type: 'GO_TO_NEXT_TRACK' }
-    | { type: 'PLAY_CALLBACK' }
+    | { type: 'PLAY_CALLBACK'; state: MtvWorkflowState }
     | { type: 'FORCED_DISCONNECTION' }
     | {
           type: 'RETRIEVE_CONTEXT';
@@ -65,6 +62,7 @@ const rawContext: AppMusicPlayerMachineContext = {
     currentTrack: null,
     tracksIDsList: null,
     waitingRoomID: undefined,
+    autoplay: undefined,
 };
 
 export const createAppMusicPlayerMachine = ({
@@ -112,9 +110,10 @@ export const createAppMusicPlayerMachine = ({
                         });
                     });
 
-                    socket.on('ACTION_PLAY_CALLBACK', () => {
+                    socket.on('ACTION_PLAY_CALLBACK', (state) => {
                         sendBack({
                             type: 'PLAY_CALLBACK',
+                            state,
                         });
                     });
 
@@ -276,6 +275,7 @@ export const createAppMusicPlayerMachine = ({
 
                 connectedToRoom: {
                     initial: 'waitingForPlayerToBeSet',
+
                     tags: 'roomIsReady',
 
                     states: {
@@ -296,16 +296,24 @@ export const createAppMusicPlayerMachine = ({
                         },
 
                         loadingTrackDuration: {
-                            invoke: {
-                                src: 'getTrackDuration',
-                            },
+                            always: [
+                                {
+                                    target: 'activatedPlayer.play',
 
-                            on: {
-                                LOADED_TRACK_DURATION: {
-                                    target: 'activatedPlayer',
-                                    actions: 'assignDurationToContext',
+                                    cond: ({ autoplay }) => autoplay === true,
+
+                                    actions: [
+                                        assign((context) => ({
+                                            ...context,
+                                            autoplay: false,
+                                        })),
+                                    ],
                                 },
-                            },
+
+                                {
+                                    target: 'activatedPlayer.pause',
+                                },
+                            ],
                         },
 
                         activatedPlayer: {
@@ -362,7 +370,7 @@ export const createAppMusicPlayerMachine = ({
 
                                         waitingServerAcknowledgement: {
                                             entry: send(
-                                                (context, _event) => ({
+                                                (_context, _event) => ({
                                                     type: 'PLAY_PAUSE_TOGGLE',
                                                     params: {
                                                         status: 'play',
@@ -383,14 +391,47 @@ export const createAppMusicPlayerMachine = ({
                                     },
                                 },
                             },
+
                             on: {
                                 PAUSE_CALLBACK: {
                                     target: 'activatedPlayer.pause',
                                 },
 
-                                PLAY_CALLBACK: {
-                                    target: 'activatedPlayer.play',
-                                },
+                                PLAY_CALLBACK: [
+                                    {
+                                        target: 'waitingForTrackToLoad',
+
+                                        cond: (
+                                            { currentTrack },
+                                            {
+                                                state: {
+                                                    currentTrack:
+                                                        currentTrackToBeSet,
+                                                },
+                                            },
+                                        ) => {
+                                            const isDifferentCurrentTrack =
+                                                currentTrack?.id !==
+                                                currentTrackToBeSet?.id;
+
+                                            return isDifferentCurrentTrack;
+                                        },
+
+                                        actions: [
+                                            'assignMergeNewState',
+
+                                            assign((context) => ({
+                                                ...context,
+                                                autoplay: true,
+                                            })),
+                                        ],
+                                    },
+
+                                    {
+                                        target: 'activatedPlayer.play',
+                                        actions: 'assignMergeNewState',
+                                    },
+                                ],
 
                                 GO_TO_NEXT_TRACK: {
                                     actions: forwardTo('socketConnection'),
@@ -409,6 +450,7 @@ export const createAppMusicPlayerMachine = ({
                     },
                 },
             },
+
             on: {
                 RETRIEVE_CONTEXT: {
                     target: 'connectedToRoom',
@@ -432,7 +474,8 @@ export const createAppMusicPlayerMachine = ({
                         event.type !== 'JOINED_CREATED_ROOM' &&
                         event.type !== 'JOINED_ROOM' &&
                         event.type !== 'RETRIEVE_CONTEXT' &&
-                        event.type !== 'ROOM_IS_READY'
+                        event.type !== 'ROOM_IS_READY' &&
+                        event.type !== 'PLAY_CALLBACK'
                     ) {
                         return context;
                     }
@@ -462,24 +505,6 @@ export const createAppMusicPlayerMachine = ({
                         currentTrack: {
                             ...currentTrack,
                             elapsed: event.elapsedTime,
-                        },
-                    };
-                }),
-
-                assignDurationToContext: assign((context, event) => {
-                    if (event.type !== 'LOADED_TRACK_DURATION') {
-                        return context;
-                    }
-
-                    const currentTrack = context.currentTrack;
-                    if (!currentTrack)
-                        throw new Error('currentTrack is undefined');
-
-                    return {
-                        ...context,
-                        currentTrack: {
-                            ...currentTrack,
-                            duration: event.duration,
                         },
                     };
                 }),

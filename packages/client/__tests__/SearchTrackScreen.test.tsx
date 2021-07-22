@@ -1,7 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { datatype, name, random } from 'faker';
 import React from 'react';
-import { AppMusicPlayerMachineContext } from '../../types/dist';
+import { AppMusicPlayerMachineContext } from '../machines/appMusicPlayerMachine';
 import { RootNavigator } from '../navigation';
 import { serverSocket } from '../services/websockets';
 import { db } from '../tests/data';
@@ -46,7 +46,7 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
         ],
     };
 
-    serverSocket.on('CREATE_ROOM', (payload) => {
+    serverSocket.on('CREATE_ROOM', () => {
         serverSocket.emit('CREATE_ROOM_SYNCHED_CALLBACK', {
             ...state,
             tracks: null,
@@ -59,7 +59,7 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
     });
 
     serverSocket.on('ACTION_PLAY', () => {
-        serverSocket.emit('ACTION_PLAY_CALLBACK');
+        serverSocket.emit('ACTION_PLAY_CALLBACK', state);
     });
 
     const {

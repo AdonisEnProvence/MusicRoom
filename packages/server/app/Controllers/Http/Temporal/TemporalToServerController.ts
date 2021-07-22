@@ -10,9 +10,12 @@ export default class TemporalToServerController {
     }
 
     public play({ request }: HttpContextContract): void {
-        const roomID = decodeURIComponent(request.param('roomID'));
+        const state = MtvWorkflowState.parse(request.body());
+        const roomID = state.roomID;
 
-        Ws.io.to(roomID).emit('ACTION_PLAY_CALLBACK');
+        console.log('received play from temporal', state);
+
+        Ws.io.to(roomID).emit('ACTION_PLAY_CALLBACK', state);
     }
 
     public async mtvCreationAcknowledgement({

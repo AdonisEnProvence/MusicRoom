@@ -31,7 +31,7 @@ Route.post(
     'Temporal/TemporalToServerController.mtvCreationAcknowledgement',
 );
 
-Route.get('/temporal/play/:roomID', 'Temporal/TemporalToServerController.play');
+Route.post('/temporal/play', 'Temporal/TemporalToServerController.play');
 
 Route.get(
     '/temporal/pause/:roomID',

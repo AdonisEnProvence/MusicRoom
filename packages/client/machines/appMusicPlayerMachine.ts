@@ -32,10 +32,6 @@ export type AppMusicPlayerMachineEvent =
     | { type: 'MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET' }
     | { type: 'TRACK_HAS_LOADED' }
     | {
-          type: 'LOADED_TRACK_DURATION';
-          duration: number;
-      }
-    | {
           type: 'UPDATE_CURRENT_TRACK_ELAPSED_TIME';
           elapsedTime: number;
       }
@@ -307,8 +303,6 @@ export const createAppMusicPlayerMachine = ({
                                     cond: ({ autoplay }) => autoplay === true,
 
                                     actions: [
-                                        'assignDurationToContext',
-
                                         assign((context) => ({
                                             ...context,
                                             autoplay: false,
@@ -318,8 +312,6 @@ export const createAppMusicPlayerMachine = ({
 
                                 {
                                     target: 'activatedPlayer.pause',
-
-                                    actions: 'assignDurationToContext',
                                 },
                             ],
                         },
@@ -513,29 +505,6 @@ export const createAppMusicPlayerMachine = ({
                         currentTrack: {
                             ...currentTrack,
                             elapsed: event.elapsedTime,
-                        },
-                    };
-                }),
-
-                assignDurationToContext: assign((context, event) => {
-                    if (event.type !== 'LOADED_TRACK_DURATION') {
-                        return context;
-                    }
-
-                    const currentTrack = context.currentTrack;
-                    if (!currentTrack)
-                        throw new Error('currentTrack is undefined');
-
-                    console.log(
-                        'duration to assign to context',
-                        event.duration,
-                    );
-
-                    return {
-                        ...context,
-                        currentTrack: {
-                            ...currentTrack,
-                            duration: event.duration,
                         },
                     };
                 }),

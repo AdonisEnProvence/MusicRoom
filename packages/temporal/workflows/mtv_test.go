@@ -1,8 +1,6 @@
 package workflows_test
 
 import (
-	"context"
-	"errors"
 	"math/rand"
 	"testing"
 	"time"
@@ -117,55 +115,6 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		mock.Anything,
 	).Return(nil).Times(3)
 
-	trackTimerActivityCalls := 0
-	s.env.OnActivity(
-		activities.TrackTimerActivity,
-		mock.Anything,
-		mock.Anything,
-	).Return(func(ctx context.Context, timerState shared.MtvRoomTimer) (shared.MtvRoomTimer, error) {
-		defer func() {
-			trackTimerActivityCalls++
-		}()
-
-		switch trackTimerActivityCalls {
-		case 0:
-			s.Equal(shared.MtvRoomTimerStateIdle, timerState.State)
-			s.Equal(time.Duration(0), timerState.Elapsed)
-			s.Equal(firstTrackDuration, timerState.TotalDuration)
-
-			return shared.MtvRoomTimer{
-				State:         shared.MtvRoomTimerStatePending,
-				Elapsed:       firstTrackDurationFirstThird,
-				TotalDuration: firstTrackDuration,
-			}, nil
-
-		case 1:
-			s.Equal(shared.MtvRoomTimerStatePending, timerState.State)
-			s.Equal(firstTrackDurationFirstThird, timerState.Elapsed)
-			s.Equal(firstTrackDuration, timerState.TotalDuration)
-
-			return shared.MtvRoomTimer{
-				State:         shared.MtvRoomTimerStateFinished,
-				Elapsed:       firstTrackDuration,
-				TotalDuration: firstTrackDuration,
-			}, nil
-
-		case 2:
-			s.Equal(shared.MtvRoomTimerStateIdle, timerState.State)
-			s.Equal(time.Duration(0), timerState.Elapsed)
-			s.Equal(secondTrackDuration, timerState.TotalDuration)
-
-			return shared.MtvRoomTimer{
-				State:         shared.MtvRoomTimerStateFinished,
-				Elapsed:       secondTrackDuration,
-				TotalDuration: secondTrackDuration,
-			}, nil
-
-		default:
-			return shared.MtvRoomTimer{}, errors.New("no timer to return for this call")
-		}
-	}).Times(3)
-
 	// 2. We expect the first track to do not be played until we want it to be.
 	initialStateQueryDelay := 1 * time.Second
 	s.env.RegisterDelayedCallback(func() {
@@ -192,6 +141,13 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 	// such an event can be sent to the state machine without throwing an error.
 	firstPauseSignalDelay := firstPlaySignalDelay + 1*time.Millisecond + firstTrackDurationFirstThird
 	s.env.RegisterDelayedCallback(func() {
+
+		// As temporal has it's own time notion, uses auto fire timer to speed up tests execution
+		// We need to manually wait for the expected elapsed track delta
+		// In this way time.now() will work as we expect
+		timer1 := time.NewTimer(firstTrackDurationFirstThird)
+		<-timer1.C
+
 		pauseSignal := shared.NewPauseSignal(shared.NewPauseSignalArgs{})
 
 		s.env.SignalWorkflow(shared.SignalChannelName, pauseSignal)
@@ -199,6 +155,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 	// 5. We want the first track to be the current one.
 	secondStateQueryAfterTotalTrackDuration := firstPauseSignalDelay + firstTrackDuration
+
 	s.env.RegisterDelayedCallback(func() {
 		var mtvState shared.MtvRoomExposedState
 

@@ -77,7 +77,7 @@ func JoinActivity(ctx context.Context, state shared.MtvRoomExposedState, joining
 func TrackTimerActivity(ctx context.Context, timerState shared.MtvRoomTimer) (shared.MtvRoomTimer, error) {
 	timerStartTime := time.Now()
 	durationBeforeTrackEnd := timerState.TotalDuration - timerState.Elapsed
-	timer := time.NewTimer(durationBeforeTrackEnd) //40 sec
+	timer := time.NewTimer(durationBeforeTrackEnd)
 	twoSecondsDuration := 2 * time.Second
 
 	for {

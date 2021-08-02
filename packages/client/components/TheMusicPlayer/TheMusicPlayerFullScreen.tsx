@@ -1,6 +1,6 @@
 import { Text, View } from 'dripsy';
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sender } from 'xstate';
 import { createModel } from 'xstate/lib/model';
@@ -82,17 +82,31 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     type: 'GO_TO_TRACKS',
                 });
             },
-            component: () => (
-                <View sx={{ marginBottom: 'xl' }}>
-                    {context.tracks?.map(({ id, title, artistName }) => (
-                        <View key={id}>
-                            <Text sx={{ color: 'white' }}>
-                                {title} | {artistName}
-                            </Text>
-                        </View>
-                    ))}
-                </View>
-            ),
+            component: () =>
+                context.tracks !== null ? (
+                    <FlatList
+                        data={[
+                            ...context.tracks,
+                            ...context.tracks,
+                            ...context.tracks,
+                            ...context.tracks,
+                            ...context.tracks,
+                            ...context.tracks,
+                            ...context.tracks,
+                        ]}
+                        renderItem={({ item: { id, title, artistName } }) => (
+                            <View>
+                                <Text sx={{ color: 'white' }}>
+                                    {title} | {artistName}
+                                </Text>
+                            </View>
+                        )}
+                        keyExtractor={(_, index) => String(index)}
+                        contentContainerStyle={{}}
+                    />
+                ) : (
+                    <Text>Lol</Text>
+                ),
         },
         {
             text: 'Chat',
@@ -161,7 +175,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     onNextTrackPress={handleNextTrackPress}
                 />
 
-                <View sx={{ marginTop: 'l' }}>
+                <View sx={{ marginTop: 'l', flex: 1 }}>
                     <View
                         sx={{
                             flexDirection: 'row',

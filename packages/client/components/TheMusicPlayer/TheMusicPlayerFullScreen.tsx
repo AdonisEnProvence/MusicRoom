@@ -1,7 +1,10 @@
 import { Text, View } from 'dripsy';
 import React from 'react';
+import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sender } from 'xstate';
+import { createModel } from 'xstate/lib/model';
+import { useMachine } from '@xstate/react';
 import {
     AppMusicPlayerMachineEvent,
     AppMusicPlayerMachineState,
@@ -18,6 +21,47 @@ type TheMusicPlayerFullScreenProps = {
     setPlayerRef: (ref: MusicPlayerRef) => void;
 };
 
+const fullscreenPlayerTabsMachineModel = createModel(
+    {},
+    {
+        events: {
+            GO_TO_TRACKS: () => ({}),
+
+            GO_TO_CHAT: () => ({}),
+        },
+    },
+);
+
+const fullscreenPlayerTabsMachine =
+    fullscreenPlayerTabsMachineModel.createMachine({
+        initial: 'tracks',
+
+        states: {
+            tracks: {
+                on: {
+                    GO_TO_CHAT: {
+                        target: 'chat',
+                    },
+                },
+            },
+
+            chat: {
+                on: {
+                    GO_TO_TRACKS: {
+                        target: 'tracks',
+                    },
+                },
+            },
+        },
+    });
+
+interface Tab {
+    text: string;
+    selected: boolean;
+    onPress: () => void;
+    component: () => React.ReactElement;
+}
+
 const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     machineState,
     dismissFullScreenPlayer,
@@ -28,6 +72,43 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     const insets = useSafeAreaInsets();
     const isPlaying = machineState.hasTag('playerOnPlay');
     const roomIsReady = machineState.hasTag('roomIsReady');
+    const [tabsState, tabsSend] = useMachine(fullscreenPlayerTabsMachine);
+    const tabs: Tab[] = [
+        {
+            text: 'Tracks',
+            selected: tabsState.matches('tracks'),
+            onPress: () => {
+                tabsSend({
+                    type: 'GO_TO_TRACKS',
+                });
+            },
+            component: () => (
+                <View sx={{ marginBottom: 'xl' }}>
+                    {context.tracks?.map(({ id, title, artistName }) => (
+                        <View key={id}>
+                            <Text sx={{ color: 'white' }}>
+                                {title} | {artistName}
+                            </Text>
+                        </View>
+                    ))}
+                </View>
+            ),
+        },
+        {
+            text: 'Chat',
+            selected: tabsState.matches('chat'),
+            onPress: () => {
+                tabsSend({
+                    type: 'GO_TO_CHAT',
+                });
+            },
+            component: () => <Text sx={{ color: 'white' }}>Hello</Text>,
+        },
+    ];
+    const selectedTab = tabs.find(({ selected }) => selected === true);
+    if (selectedTab === undefined) {
+        throw new Error('Exactly one tab must be selected');
+    }
 
     function handleTrackReady() {
         sendToMachine({
@@ -80,15 +161,42 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     onNextTrackPress={handleNextTrackPress}
                 />
 
-                <View sx={{ marginBottom: 'xl' }}>
-                    {context.tracks &&
-                        context.tracks.map(({ id, title, artistName }) => (
-                            <View key={id}>
-                                <Text sx={{ color: 'white' }}>
-                                    {title} {artistName}
-                                </Text>
-                            </View>
+                <View sx={{ marginTop: 'l' }}>
+                    <View
+                        sx={{
+                            flexDirection: 'row',
+                            borderRadius: 's',
+                            backgroundColor: 'greyLighter',
+                            padding: 'xs',
+
+                            marginBottom: 'l',
+                        }}
+                    >
+                        {tabs.map(({ text, selected, onPress }) => (
+                            <TouchableOpacity
+                                onPress={onPress}
+                                key={text}
+                                style={{ flex: 1 }}
+                            >
+                                <View
+                                    sx={{
+                                        padding: 'xs',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        borderRadius: 's',
+
+                                        backgroundColor: selected
+                                            ? 'white'
+                                            : 'transparent',
+                                    }}
+                                >
+                                    <Text sx={{ fontSize: 'm' }}>{text}</Text>
+                                </View>
+                            </TouchableOpacity>
                         ))}
+                    </View>
+
+                    <selectedTab.component />
                 </View>
             </AppScreenContainer>
         </AppScreen>

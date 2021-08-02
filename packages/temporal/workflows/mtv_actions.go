@@ -45,11 +45,11 @@ func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 	}
 }
 
-func assignNextTrackIfAvailable(internalState *MtvRoomInternalState) brainy.Action {
+func assignNextTracK(internalState *MtvRoomInternalState) brainy.Action {
+
 	return func(c brainy.Context, e brainy.Event) error {
 		ctx := c.(*MtvRoomMachineContext)
 
-		tracksCount := len(internalState.Tracks)
 		internalState.CurrentTrack = shared.CurrentTrack{
 			TrackMetadata: internalState.Tracks[0],
 			Elapsed:       time.Second * 0,
@@ -60,13 +60,8 @@ func assignNextTrackIfAvailable(internalState *MtvRoomInternalState) brainy.Acti
 			TotalDuration: internalState.CurrentTrack.Duration,
 		}
 
-		if tracksCount == 1 {
-			internalState.Tracks = []shared.TrackMetadata{}
-			internalState.TracksIDsList = []string{}
-		} else {
-			internalState.Tracks = internalState.Tracks[1:]
-			internalState.TracksIDsList = internalState.TracksIDsList[1:]
-		}
+		internalState.Tracks = internalState.Tracks[1:]
+		internalState.TracksIDsList = internalState.TracksIDsList[1:]
 
 		return nil
 	}

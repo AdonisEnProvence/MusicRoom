@@ -9,6 +9,7 @@ import (
 	"github.com/Devessier/brainy"
 
 	"github.com/mitchellh/mapstructure"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -67,6 +68,7 @@ func (s *MtvRoomInternalState) AddUser(userID string) {
 type MtvRoomMachineContext struct {
 	Timer       shared.MtvRoomTimer
 	CancelTimer func()
+	CreatedAt   time.Time
 }
 
 const (
@@ -104,6 +106,8 @@ type MtvRoomInitialTracksFetchedEvent struct {
 }
 
 func NewMtvRoomTimerExpirationEvent(t shared.MtvRoomTimer) MtvRoomTimerExpirationEvent {
+	fmt.Printf("MAMAN \n%+v\n", t)
+
 	return MtvRoomTimerExpirationEvent{
 		EventWithType: brainy.EventWithType{
 			Event: MtvRoomTimerExpiredEvent,
@@ -169,14 +173,16 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 		fetchedInitialTracksFuture workflow.Future
 	)
 
-	internalState.Machine, err = brainy.NewMachine(brainy.StateNode{
-		Context: &MtvRoomMachineContext{
-			Timer: shared.MtvRoomTimer{
-				State:         shared.MtvRoomTimerStateIdle,
-				Elapsed:       0,
-				TotalDuration: internalState.CurrentTrack.Duration,
-			},
+	myContext := &MtvRoomMachineContext{
+		Timer: shared.MtvRoomTimer{
+			State:         shared.MtvRoomTimerStateIdle,
+			Elapsed:       0,
+			TotalDuration: internalState.CurrentTrack.Duration,
 		},
+	}
+
+	internalState.Machine, err = brainy.NewMachine(brainy.StateNode{
+		Context: myContext,
 
 		Initial: MtvRoomFetchInitialTracks,
 
@@ -264,22 +270,17 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							brainy.ActionFn(
 								func(c brainy.Context, e brainy.Event) error {
 									timerContext := c.(*MtvRoomMachineContext)
+									childCtx, cancelHandler := workflow.WithCancel(ctx)
+									timerContext.CancelTimer = cancelHandler
 
-									childCtx, cancel := workflow.WithCancel(ctx)
-									timerContext.CancelTimer = cancel
+									encoded := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+										return time.Now()
+									})
+									var tmp time.Time
 
-									ao := workflow.ActivityOptions{
-										StartToCloseTimeout: internalState.CurrentTrack.Duration * 2,
-										HeartbeatTimeout:    5 * time.Second,
-										WaitForCancellation: true,
-									}
-									childCtx = workflow.WithActivityOptions(childCtx, ao)
-
-									timerExpirationFuture = workflow.ExecuteActivity(
-										childCtx,
-										activities.TrackTimerActivity,
-										timerContext.Timer,
-									)
+									encoded.Get(&tmp)
+									timerContext.CreatedAt = tmp
+									timerExpirationFuture = workflow.NewTimer(childCtx, timerContext.Timer.TotalDuration-timerContext.Timer.Elapsed)
 
 									return nil
 								},
@@ -318,6 +319,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 										currentTrackEnded := timerExpirationEvent.Timer.State == shared.MtvRoomTimerStateFinished
 										hasReachedTracksListEnd := len(internalState.Tracks) == 0
 
+										fmt.Printf("sortie 1111111111111111111 \n%+v\n", currentTrackEnded && hasReachedTracksListEnd)
 										return currentTrackEnded && hasReachedTracksListEnd
 									},
 
@@ -343,6 +345,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 										timerExpirationEvent := e.(MtvRoomTimerExpirationEvent)
 										currentTrackEnded := timerExpirationEvent.Timer.State == shared.MtvRoomTimerStateFinished
 
+										fmt.Printf("sortie 222222222222222222222222 \n%+v\n", currentTrackEnded)
 										return currentTrackEnded
 									},
 
@@ -350,7 +353,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 									Actions: brainy.Actions{
 										brainy.ActionFn(
-											assignNextTrackIfAvailable(&internalState),
+											assignNextTracK(&internalState),
 										),
 									},
 								},
@@ -361,12 +364,12 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									Actions: brainy.Actions{
 										brainy.ActionFn(
 											func(c brainy.Context, e brainy.Event) error {
+												fmt.Printf("sortie 3333333333333333333333333333333333333333333333333333")
 												ctx := c.(*MtvRoomMachineContext)
 												event := e.(MtvRoomTimerExpirationEvent)
 
 												ctx.Timer = event.Timer
 												internalState.CurrentTrack.Elapsed = event.Timer.Elapsed
-
 												return nil
 											},
 										),
@@ -378,16 +381,15 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								Actions: brainy.Actions{
 									brainy.ActionFn(
 										func(c brainy.Context, e brainy.Event) error {
-											ctx := c.(*MtvRoomMachineContext)
+											timerContext := c.(*MtvRoomMachineContext)
 
-											if cancel := ctx.CancelTimer; cancel != nil {
+											if cancel := timerContext.CancelTimer; cancel != nil {
 												cancel()
 											}
 
 											return nil
 										},
 									),
-									brainy.Send(MtvRoomGoToPausedEvent),
 								},
 							},
 						},
@@ -440,7 +442,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 				Actions: brainy.Actions{
 					brainy.ActionFn(
-						assignNextTrackIfAvailable(&internalState),
+						assignNextTracK(&internalState),
 					),
 				},
 			},
@@ -515,15 +517,41 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 		if timerExpirationFuture != nil {
 			selector.AddFuture(timerExpirationFuture, func(f workflow.Future) {
+				var timerActivityResult shared.MtvRoomTimer
 				timerExpirationFuture = nil
 
-				var timerActivityResult shared.MtvRoomTimer
+				fmt.Println("======================================")
 
-				if err := f.Get(ctx, &timerActivityResult); err != nil {
-					logger.Error("error occured in timer activity", err)
+				err := f.Get(ctx, nil)
+				hasBeenCanceled := temporal.IsCanceledError(err)
+				fmt.Println(f.Get(ctx, nil))
 
-					return
+				if hasBeenCanceled {
+					encoded := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+						return time.Now()
+					})
+					var now time.Time
+					encoded.Get(&now)
+					fmt.Printf("%+v\n", now)
+					fmt.Printf("VERSUS\n")
+					fmt.Printf("%+v\n", myContext.CreatedAt)
+
+					timerActivityResult = shared.MtvRoomTimer{
+						Elapsed:       now.Sub(myContext.CreatedAt),
+						State:         shared.MtvRoomTimerStatePending,
+						TotalDuration: myContext.Timer.TotalDuration,
+					}
+				} else {
+					timerActivityResult = shared.MtvRoomTimer{
+						Elapsed:       myContext.Timer.TotalDuration,
+						State:         shared.MtvRoomTimerStateFinished,
+						TotalDuration: myContext.Timer.TotalDuration,
+					}
 				}
+				fmt.Printf("%+v\n", timerActivityResult)
+				fmt.Printf("%+v\n", internalState.Machine.UnsafeCurrent().Value())
+
+				fmt.Println("======================================")
 
 				internalState.Machine.Send(
 					NewMtvRoomTimerExpirationEvent(timerActivityResult),

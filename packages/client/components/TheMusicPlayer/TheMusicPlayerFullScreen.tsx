@@ -181,7 +181,14 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     onNextTrackPress={handleNextTrackPress}
                 />
 
-                <View sx={{ marginTop: 'l', flexGrow: 1, flexShrink: 0 }}>
+                <View
+                    sx={{
+                        marginTop: 'l',
+                        flexGrow: 1,
+                        flexShrink: 0,
+                        marginBottom: insets.bottom,
+                    }}
+                >
                     <View
                         sx={{
                             flexDirection: 'row',

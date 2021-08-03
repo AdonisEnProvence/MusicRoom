@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"go.temporal.io/sdk/activity"
@@ -72,39 +71,6 @@ func JoinActivity(ctx context.Context, state shared.MtvRoomExposedState, joining
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
-}
-
-func TrackTimerActivity(ctx context.Context, timerState shared.MtvRoomTimer) (shared.MtvRoomTimer, error) {
-	timerStartTime := time.Now()
-	durationBeforeTrackEnd := timerState.TotalDuration - timerState.Elapsed
-	timer := time.NewTimer(durationBeforeTrackEnd)
-	twoSecondsDuration := 2 * time.Second
-
-	for {
-		heartbeatTimer := time.NewTimer(twoSecondsDuration)
-		select {
-		case <-timer.C:
-			// timer ended
-			timerState.State = shared.MtvRoomTimerStateFinished
-			timerState.Elapsed = timerState.TotalDuration
-
-			return timerState, nil
-
-		case <-ctx.Done():
-			// context was canceled
-			cancelationTime := time.Now()
-			elapsedTimeSinceTimerStart := cancelationTime.Sub(timerStartTime)
-
-			timerState.State = shared.MtvRoomTimerStatePending
-			timerState.Elapsed += elapsedTimeSinceTimerStart
-
-			return timerState, nil
-		case <-heartbeatTimer.C:
-
-			// heartbeat timer ended, going again in the loop
-			RecordHeartbeatWrapper(ctx, "status-timer-report-to-workflow")
-		}
-	}
 }
 
 type RecordHeartbeatWrapperType func(ctx context.Context, details ...interface{})

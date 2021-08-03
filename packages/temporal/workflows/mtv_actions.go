@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/AdonisEnProvence/MusicRoom/shared"
@@ -17,12 +18,13 @@ func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 		if tracksCount := len(event.Tracks); tracksCount > 0 {
 			currentTrack := internalState.Tracks[0]
 			internalState.CurrentTrack = shared.CurrentTrack{
-				TrackMetadata: currentTrack,
-				Elapsed:       0,
+				TrackMetadata:  currentTrack,
+				StartedOn:      time.Time{},
+				AlreadyElapsed: 0,
 			}
 			ctx.Timer = shared.MtvRoomTimer{
 				State:         shared.MtvRoomTimerStateIdle,
-				Elapsed:       0,
+				CreatedOn:     time.Time{},
 				TotalDuration: currentTrack.Duration,
 			}
 
@@ -36,7 +38,7 @@ func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 		} else {
 			ctx.Timer = shared.MtvRoomTimer{
 				State:         shared.MtvRoomTimerStateIdle,
-				Elapsed:       0,
+				CreatedOn:     time.Time{},
 				TotalDuration: 0,
 			}
 		}
@@ -48,21 +50,28 @@ func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 func assignNextTracK(internalState *MtvRoomInternalState) brainy.Action {
 
 	return func(c brainy.Context, e brainy.Event) error {
-		ctx := c.(*MtvRoomMachineContext)
-
+		machineContext := c.(*MtvRoomMachineContext)
+		fmt.Printf("****************\n")
+		fmt.Printf("%+v\n", internalState.Tracks)
+		fmt.Printf("%+v\n", internalState.TracksIDsList)
+		fmt.Printf("----------------\n")
 		internalState.CurrentTrack = shared.CurrentTrack{
-			TrackMetadata: internalState.Tracks[0],
-			Elapsed:       time.Second * 0,
+			TrackMetadata:  internalState.Tracks[0],
+			StartedOn:      time.Time{},
+			AlreadyElapsed: 0,
 		}
-		ctx.Timer = shared.MtvRoomTimer{
+		machineContext.Timer = shared.MtvRoomTimer{
 			State:         shared.MtvRoomTimerStateIdle,
-			Elapsed:       time.Second * 0,
+			CreatedOn:     time.Time{},
 			TotalDuration: internalState.CurrentTrack.Duration,
 		}
 
 		internalState.Tracks = internalState.Tracks[1:]
 		internalState.TracksIDsList = internalState.TracksIDsList[1:]
 
+		fmt.Printf("%+v\n", internalState.Tracks)
+		fmt.Printf("%+v\n", internalState.TracksIDsList)
+		fmt.Printf("****************\n")
 		return nil
 	}
 }

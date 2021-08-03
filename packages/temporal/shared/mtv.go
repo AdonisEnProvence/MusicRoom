@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -13,9 +14,9 @@ const (
 )
 
 type MtvRoomTimer struct {
-	State         MtvRoomTimerState
-	Elapsed       time.Duration
+	State         MtvRoomTimerState //THIS ATM is only used in the expiration event not in the real machine context it's alway idle
 	TotalDuration time.Duration
+	CreatedOn     time.Time
 }
 
 const ControlTaskQueue = "CONTROL_TASK_QUEUE"
@@ -48,7 +49,8 @@ func (t TrackMetadata) Export() ExposedTrackMetadata {
 type CurrentTrack struct {
 	TrackMetadata
 
-	Elapsed time.Duration `json:"elapsed"`
+	StartedOn      time.Time
+	AlreadyElapsed time.Duration
 }
 
 type ExposedCurrentTrack struct {
@@ -58,11 +60,15 @@ type ExposedCurrentTrack struct {
 	Elapsed  int64 `json:"elapsed"`
 }
 
-func (c CurrentTrack) Export() ExposedCurrentTrack {
+func (c CurrentTrack) Export(elapsed time.Duration) ExposedCurrentTrack {
+	copy := c
+	copy.StartedOn = time.Time{}
+	copy.AlreadyElapsed = 0
+	fmt.Printf("ICI MEC : %d\n", elapsed.Milliseconds())
 	return ExposedCurrentTrack{
-		CurrentTrack: c,
+		CurrentTrack: copy,
 		Duration:     c.Duration.Milliseconds(),
-		Elapsed:      c.Elapsed.Milliseconds(),
+		Elapsed:      elapsed.Milliseconds(),
 	}
 }
 

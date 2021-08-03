@@ -13,6 +13,7 @@ import { AppScreen, AppScreenContainer, Typo } from '../kit';
 import AppModalHeader from '../kit/AppModalHeader';
 import { MusicPlayerRef } from './Player';
 import TheMusicPlayerWithControls from './TheMusicPlayerWithControls';
+import MusicPlayerFullScreenTracksListItem from './MusicPlayerFullScreenTracksListItem';
 
 type TheMusicPlayerFullScreenProps = {
     machineState: AppMusicPlayerMachineState;
@@ -100,12 +101,17 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                             ...context.tracks,
                             ...context.tracks,
                         ]}
-                        renderItem={({ item: { title, artistName } }) => (
-                            <View>
-                                <Text sx={{ color: 'white' }}>
-                                    {title} | {artistName}
-                                </Text>
-                            </View>
+                        renderItem={({
+                            item: { title, artistName },
+                            index,
+                        }) => (
+                            <MusicPlayerFullScreenTracksListItem
+                                index={index + 1}
+                                title={title}
+                                artistName={artistName}
+                                score={51}
+                                minimumScore={50}
+                            />
                         )}
                         keyExtractor={(_, index) => String(index)}
                         style={{ flex: 1 }}

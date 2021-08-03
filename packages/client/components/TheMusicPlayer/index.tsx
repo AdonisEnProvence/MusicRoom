@@ -1,7 +1,6 @@
 import { useBackHandler } from '@react-native-community/hooks';
-import { useSx, View } from 'dripsy';
+import { View } from 'dripsy';
 import React from 'react';
-import { TouchableWithoutFeedback } from 'react-native';
 import { useMusicPlayer } from '../../contexts/MusicPlayerContext';
 import TheMusicPlayerFullScreen from './TheMusicPlayerFullScreen';
 import TheMusicPlayerMini from './TheMusicPlayerMini';
@@ -16,7 +15,6 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
     setIsFullScren,
 }) => {
     const MINI_PLAYER_HEIGHT = 52;
-    const sx = useSx();
     const { state, sendToMachine, setPlayerRef } = useMusicPlayer();
     const isInRoom = state.context.roomID !== '';
     function openPlayerInFullScreen() {
@@ -35,50 +33,49 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
     });
 
     return (
-        <TouchableWithoutFeedback onPress={openPlayerInFullScreen}>
-            <View
-                style={sx({
-                    backgroundColor: 'greyLight',
-                    borderBottomColor: 'black',
-                    borderBottomWidth: 1,
-                    position: isFullScreen ? 'absolute' : 'relative',
-                    top: isFullScreen ? -1 * MINI_PLAYER_HEIGHT : 0,
-                    bottom: 0,
-                    right: 0,
-                    left: 0,
-                    zIndex: 20,
-                })}
-            >
-                <TheMusicPlayerMini
-                    machineState={state}
-                    sendToMachine={sendToMachine}
-                    height={MINI_PLAYER_HEIGHT}
-                />
+        <View
+            sx={{
+                backgroundColor: 'greyLight',
+                borderBottomColor: 'black',
+                borderBottomWidth: 1,
+                position: isFullScreen ? 'absolute' : 'relative',
+                top: isFullScreen ? -1 * MINI_PLAYER_HEIGHT : 0,
+                bottom: 0,
+                right: 0,
+                left: 0,
+                zIndex: 20,
+            }}
+        >
+            <TheMusicPlayerMini
+                machineState={state}
+                sendToMachine={sendToMachine}
+                height={MINI_PLAYER_HEIGHT}
+                onPress={openPlayerInFullScreen}
+            />
 
-                {isInRoom && (
-                    <View
-                        accessibilityState={{
-                            expanded: isFullScreen === true,
+            {isInRoom && (
+                <View
+                    accessibilityState={{
+                        expanded: isFullScreen === true,
+                    }}
+                    style={{
+                        flex: 1,
+                        position: !isFullScreen ? 'absolute' : 'relative',
+                        bottom: !isFullScreen ? '100%' : undefined,
+                        right: !isFullScreen ? '100%' : undefined,
+                    }}
+                >
+                    <TheMusicPlayerFullScreen
+                        dismissFullScreenPlayer={() => {
+                            setIsFullScren(false);
                         }}
-                        style={{
-                            flex: 1,
-                            position: !isFullScreen ? 'absolute' : 'relative',
-                            bottom: !isFullScreen ? '100%' : undefined,
-                            right: !isFullScreen ? '100%' : undefined,
-                        }}
-                    >
-                        <TheMusicPlayerFullScreen
-                            dismissFullScreenPlayer={() => {
-                                setIsFullScren(false);
-                            }}
-                            sendToMachine={sendToMachine}
-                            machineState={state}
-                            setPlayerRef={setPlayerRef}
-                        />
-                    </View>
-                )}
-            </View>
-        </TouchableWithoutFeedback>
+                        sendToMachine={sendToMachine}
+                        machineState={state}
+                        setPlayerRef={setPlayerRef}
+                    />
+                </View>
+            )}
+        </View>
     );
 };
 

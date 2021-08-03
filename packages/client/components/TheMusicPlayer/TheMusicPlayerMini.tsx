@@ -1,5 +1,6 @@
 import { View } from 'dripsy';
 import React from 'react';
+import { TouchableWithoutFeedback } from 'react-native';
 import { Sender } from 'xstate';
 import {
     AppMusicPlayerMachineEvent,
@@ -12,12 +13,14 @@ type TheMusicPlayerMiniProps = {
     height: number;
     machineState: AppMusicPlayerMachineState;
     sendToMachine: Sender<AppMusicPlayerMachineEvent>;
+    onPress: () => void;
 };
 
 const TheMusicPlayerMini: React.FC<TheMusicPlayerMiniProps> = ({
     machineState,
     height,
     sendToMachine,
+    onPress,
 }) => {
     const { context } = machineState;
     const { currentTrack } = context;
@@ -38,46 +41,48 @@ const TheMusicPlayerMini: React.FC<TheMusicPlayerMiniProps> = ({
             : 'Track-Artist';
 
     return (
-        <View
-            testID="music-player-mini"
-            sx={{
-                height,
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingLeft: 'l',
-                paddingRight: 'l',
-            }}
-        >
+        <TouchableWithoutFeedback onPress={onPress}>
             <View
+                testID="music-player-mini"
                 sx={{
-                    flex: 1,
-                    justifyContent: 'center',
-                    marginRight: 'xl',
+                    height,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingLeft: 'l',
+                    paddingRight: 'l',
                 }}
             >
-                <Typo numberOfLines={1} sx={{ fontSize: 's' }}>
-                    {firstLine}
-                </Typo>
-
-                <Typo
-                    numberOfLines={1}
-                    sx={{ fontSize: 'xs', color: 'greyLighter' }}
+                <View
+                    sx={{
+                        flex: 1,
+                        justifyContent: 'center',
+                        marginRight: 'xl',
+                    }}
                 >
-                    {secondLine}
-                </Typo>
-            </View>
+                    <Typo numberOfLines={1} sx={{ fontSize: 's' }}>
+                        {firstLine}
+                    </Typo>
 
-            <MusicPlayerControlButton
-                iconName={isPlaying ? 'pause' : 'play'}
-                variant="normal"
-                adjustIconHorizontally={2}
-                disabled={!roomIsReady}
-                accessibilityLabel={
-                    isPlaying ? 'Pause the video' : 'Play the video'
-                }
-                onPress={handlePlayPauseToggle}
-            />
-        </View>
+                    <Typo
+                        numberOfLines={1}
+                        sx={{ fontSize: 'xs', color: 'greyLighter' }}
+                    >
+                        {secondLine}
+                    </Typo>
+                </View>
+
+                <MusicPlayerControlButton
+                    iconName={isPlaying ? 'pause' : 'play'}
+                    variant="normal"
+                    adjustIconHorizontally={2}
+                    disabled={!roomIsReady}
+                    accessibilityLabel={
+                        isPlaying ? 'Pause the video' : 'Play the video'
+                    }
+                    onPress={handlePlayPauseToggle}
+                />
+            </View>
+        </TouchableWithoutFeedback>
     );
 };
 

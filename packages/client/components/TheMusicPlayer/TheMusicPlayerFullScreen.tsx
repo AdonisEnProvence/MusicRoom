@@ -93,8 +93,14 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                             ...context.tracks,
                             ...context.tracks,
                             ...context.tracks,
+                            ...context.tracks,
+                            ...context.tracks,
+                            ...context.tracks,
+                            ...context.tracks,
+                            ...context.tracks,
+                            ...context.tracks,
                         ]}
-                        renderItem={({ item: { id, title, artistName } }) => (
+                        renderItem={({ item: { title, artistName } }) => (
                             <View>
                                 <Text sx={{ color: 'white' }}>
                                     {title} | {artistName}
@@ -102,7 +108,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                             </View>
                         )}
                         keyExtractor={(_, index) => String(index)}
-                        contentContainerStyle={{}}
+                        style={{ flex: 1 }}
                     />
                 ) : (
                     <Text>Lol</Text>
@@ -175,7 +181,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     onNextTrackPress={handleNextTrackPress}
                 />
 
-                <View sx={{ marginTop: 'l', flex: 1 }}>
+                <View sx={{ marginTop: 'l', flexGrow: 1, flexShrink: 0 }}>
                     <View
                         sx={{
                             flexDirection: 'row',

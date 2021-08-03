@@ -198,14 +198,12 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     <View
                         sx={{
                             flexDirection: 'row',
-                            borderRadius: 's',
-                            backgroundColor: 'greyLighter',
                             padding: 'xs',
 
                             marginBottom: 'l',
                         }}
                     >
-                        {tabs.map(({ text, selected, onPress }) => (
+                        {tabs.map(({ text, selected, onPress }, index) => (
                             <TouchableOpacity
                                 onPress={onPress}
                                 key={text}
@@ -213,17 +211,29 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                             >
                                 <View
                                     sx={{
-                                        padding: 'xs',
+                                        padding: 's',
                                         justifyContent: 'center',
                                         alignItems: 'center',
                                         borderRadius: 's',
 
                                         backgroundColor: selected
-                                            ? 'white'
-                                            : 'transparent',
+                                            ? 'greyLighter'
+                                            : 'greyLight',
+
+                                        marginRight:
+                                            index < tabs.length - 1
+                                                ? 'm'
+                                                : undefined,
                                     }}
                                 >
-                                    <Text sx={{ fontSize: 'm' }}>{text}</Text>
+                                    <Text
+                                        sx={{
+                                            fontSize: 's',
+                                            color: 'white',
+                                        }}
+                                    >
+                                        {text}
+                                    </Text>
                                 </View>
                             </TouchableOpacity>
                         ))}

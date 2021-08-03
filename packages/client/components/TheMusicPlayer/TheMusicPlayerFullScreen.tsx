@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sender } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { useMachine } from '@xstate/react';
+import { Ionicons } from '@expo/vector-icons';
 import {
     AppMusicPlayerMachineEvent,
     AppMusicPlayerMachineState,
@@ -85,37 +86,77 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
             },
             component: () =>
                 context.tracks !== null ? (
-                    <FlatList
-                        data={[
-                            ...context.tracks,
-                            ...context.tracks,
-                            ...context.tracks,
-                            ...context.tracks,
-                            ...context.tracks,
-                            ...context.tracks,
-                            ...context.tracks,
-                            ...context.tracks,
-                            ...context.tracks,
-                            ...context.tracks,
-                            ...context.tracks,
-                            ...context.tracks,
-                            ...context.tracks,
-                        ]}
-                        renderItem={({
-                            item: { title, artistName },
-                            index,
-                        }) => (
-                            <MusicPlayerFullScreenTracksListItem
-                                index={index + 1}
-                                title={title}
-                                artistName={artistName}
-                                score={51}
-                                minimumScore={50}
-                            />
-                        )}
-                        keyExtractor={(_, index) => String(index)}
-                        style={{ flex: 1 }}
-                    />
+                    <View sx={{ flex: 1 }}>
+                        <FlatList
+                            data={[
+                                ...context.tracks,
+                                ...context.tracks,
+                                ...context.tracks,
+                                ...context.tracks,
+                                ...context.tracks,
+                                ...context.tracks,
+                                ...context.tracks,
+                                ...context.tracks,
+                                ...context.tracks,
+                                ...context.tracks,
+                                ...context.tracks,
+                                ...context.tracks,
+                                ...context.tracks,
+                            ]}
+                            renderItem={({
+                                item: { title, artistName },
+                                index,
+                            }) => (
+                                <MusicPlayerFullScreenTracksListItem
+                                    index={index + 1}
+                                    title={title}
+                                    artistName={artistName}
+                                    score={51}
+                                    minimumScore={50}
+                                />
+                            )}
+                            keyExtractor={(_, index) => String(index)}
+                            style={{ flex: 1 }}
+                        />
+
+                        <TouchableOpacity>
+                            <View
+                                sx={{
+                                    position: 'absolute',
+                                    right: 0,
+                                    bottom: 0,
+                                    borderRadius: 'full',
+                                    backgroundColor: 'secondary',
+                                    width: 48,
+                                    height: 48,
+                                    margin: 'm',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+
+                                    // Copy pasted from https://ethercreative.github.io/react-native-shadow-generator/
+                                    shadowColor: '#000',
+                                    shadowOffset: {
+                                        width: 0,
+                                        height: 2,
+                                    },
+                                    shadowOpacity: 0.25,
+                                    shadowRadius: 3.84,
+
+                                    elevation: 5,
+                                }}
+                            >
+                                <Ionicons
+                                    name="add"
+                                    size={32}
+                                    color="white"
+                                    style={{
+                                        // Necessary to center the icon visually
+                                        right: -1,
+                                    }}
+                                />
+                            </View>
+                        </TouchableOpacity>
+                    </View>
                 ) : (
                     <Text>Lol</Text>
                 ),

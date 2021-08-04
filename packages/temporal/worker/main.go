@@ -27,7 +27,6 @@ func main() {
 	w.RegisterActivity(activities.JoinActivity)
 	w.RegisterActivity(activities.CreationAcknowledgementActivity)
 	w.RegisterActivity(activities.FetchTracksInformationActivity)
-	w.RegisterActivity(activities.TrackTimerActivity)
 	// Start listening to the Task Queue
 	err = w.Run(worker.InterruptCh())
 	if err != nil {

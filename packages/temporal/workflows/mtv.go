@@ -47,7 +47,7 @@ func (s *MtvRoomInternalState) Export(machineContext *MtvRoomMachineContext) sha
 		elapsed := s.CurrentTrack.AlreadyElapsed
 
 		dateIsNotZero := !machineContext.Timer.CreatedOn.IsZero()
-		fmt.Printf("About to export %d %t %+v %t", elapsed, dateIsNotZero, machineContext.Timer, isPlaying)
+		fmt.Printf("About to export %d %t %+v %t\n", elapsed, dateIsNotZero, machineContext.Timer, isPlaying)
 		if dateIsNotZero && isPlaying {
 			tmp := now.Sub(machineContext.Timer.CreatedOn)
 			elapsed += tmp

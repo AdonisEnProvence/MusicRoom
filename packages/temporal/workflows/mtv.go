@@ -43,7 +43,7 @@ func (s *MtvRoomInternalState) Export(machineContext *MtvRoomMachineContext) sha
 
 	var currentTrackToExport *shared.ExposedCurrentTrack = nil
 	if s.CurrentTrack.ID != "" {
-		now := time.Now()
+		now := TimeWrapper()
 		elapsed := s.CurrentTrack.AlreadyElapsed
 
 		dateIsNotZero := !machineContext.Timer.CreatedOn.IsZero()
@@ -119,7 +119,7 @@ func GetElapsed(ctx workflow.Context, previous time.Time) time.Duration {
 		return 0
 	}
 	encoded := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return time.Now()
+		return TimeWrapper()
 	})
 	var now time.Time
 
@@ -293,13 +293,12 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 						OnEntry: brainy.Actions{
 							brainy.ActionFn(
 								func(c brainy.Context, e brainy.Event) error {
-									fmt.Printf("NEW TIMER FOR %+v", internalState.CurrentTrack)
-									timerContext := c.(*MtvRoomMachineContext)
+									machineContext := c.(*MtvRoomMachineContext)
 									childCtx, cancelHandler := workflow.WithCancel(ctx)
-									timerContext.CancelTimer = cancelHandler
+									machineContext.CancelTimer = cancelHandler
 
 									encoded := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-										return time.Now()
+										return TimeWrapper()
 									})
 									var createdOn time.Time
 
@@ -643,4 +642,11 @@ func acknowledgeRoomCreation(ctx workflow.Context, state shared.MtvRoomExposedSt
 	}
 
 	return nil
+}
+
+type TimeWrapperType func() time.Time
+
+var TimeWrapper TimeWrapperType = func() time.Time {
+	fmt.Printf("PEPITO")
+	return time.Now()
 }

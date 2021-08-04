@@ -1,4 +1,4 @@
-package workflows_test
+package workflows
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
-	"github.com/AdonisEnProvence/MusicRoom/workflows"
+	"github.com/AdonisEnProvence/MusicRoom/workflows/mocks"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/mock"
@@ -75,6 +75,27 @@ func emitPauseSignal(s *UnitTestSuite, timerBefore time.Duration) {
 	s.env.SignalWorkflow(shared.SignalChannelName, pauseSignal)
 }
 
+func InitTimeMock() (func(toAdd time.Duration) time.Time, func()) {
+	now := time.Now()
+	oldImplem := TimeWrapper
+	timeMock := new(mocks.TimeWrapperType)
+	tmp := timeMock.On("Execute")
+	tmp.Return(now)
+	TimeWrapper = timeMock.Execute
+
+	return func(toAdd time.Duration) time.Time {
+			now = now.Add(toAdd)
+			tmp.Return(now)
+
+			fmt.Println(">>>>>>>>>>>>>>>")
+			fmt.Printf("Now update received now = %+v\n", now)
+			fmt.Println("<<<<<<<<<<<<<<<")
+			return now
+		}, func() {
+			TimeWrapper = oldImplem
+		}
+}
+
 // Test_PlayThenPauseTrack scenario:
 //
 // 1. We instantiate a mtv room workflow with two initial tracks.
@@ -113,6 +134,10 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 	firstTrackDuration := generateRandomDuration()
 	firstTrackDurationFirstThird := firstTrackDuration / 3
 	secondTrackDuration := generateRandomDuration()
+	addToNextTimeNowMock, resetMock := InitTimeMock()
+
+	defer resetMock()
+
 	defaultDuration := 1 * time.Millisecond
 	msDelta := 50.00
 
@@ -173,7 +198,8 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 	firstPauseSignal := initialStateQueryDelay + firstTrackDurationFirstThird
 	s.env.RegisterDelayedCallback(func() {
-		emitPauseSignal(s, firstTrackDurationFirstThird)
+		addToNextTimeNowMock(firstTrackDurationFirstThird)
+		emitPauseSignal(s)
 	}, firstPauseSignal)
 
 	verifyThirdDurationElapsed := firstPauseSignal + defaultDuration

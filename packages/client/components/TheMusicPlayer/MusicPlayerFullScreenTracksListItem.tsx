@@ -10,66 +10,48 @@ interface MusicPlayerFullScreenTracksListItemProps {
 }
 
 const MusicPlayerFullScreenTracksListItem: React.FC<MusicPlayerFullScreenTracksListItemProps> =
-    ({ index, title, artistName, score, minimumScore }) => {
+    ({ title, artistName, score, minimumScore }) => {
         return (
-            <View sx={{ flexDirection: 'row', marginBottom: 'm' }}>
-                <View
-                    sx={{
-                        justifyContent: 'center',
-                        flexBasis: 'm',
-                    }}
-                >
+            <View
+                sx={{
+                    flex: 1,
+                    padding: 'm',
+                    backgroundColor: 'greyLight',
+                    borderRadius: 's',
+                    flexDirection: 'row',
+
+                    marginBottom: 'm',
+                }}
+            >
+                <View sx={{ flex: 1 }}>
+                    <Text
+                        sx={{
+                            color: 'white',
+                            marginBottom: 'xs',
+                        }}
+                    >
+                        {title}
+                    </Text>
+
                     <Text
                         sx={{
                             color: 'greyLighter',
-                            textAlign: 'right',
+                            fontSize: 'xxs',
                         }}
                     >
-                        {index}
+                        {artistName}
                     </Text>
                 </View>
 
                 <View
                     sx={{
-                        flex: 1,
-                        padding: 'm',
-                        backgroundColor: 'greyLight',
-                        borderRadius: 's',
-                        flexDirection: 'row',
-
-                        marginLeft: 'l',
+                        justifyContent: 'center',
+                        paddingLeft: 's',
                     }}
                 >
-                    <View sx={{ flex: 1 }}>
-                        <Text
-                            sx={{
-                                color: 'white',
-                                marginBottom: 'xs',
-                            }}
-                        >
-                            {title}
-                        </Text>
-
-                        <Text
-                            sx={{
-                                color: 'greyLighter',
-                                fontSize: 'xxs',
-                            }}
-                        >
-                            {artistName}
-                        </Text>
-                    </View>
-
-                    <View
-                        sx={{
-                            justifyContent: 'center',
-                            paddingLeft: 's',
-                        }}
-                    >
-                        <Text sx={{ color: 'greyLighter' }}>
-                            {score}/{minimumScore}
-                        </Text>
-                    </View>
+                    <Text sx={{ color: 'greyLighter' }}>
+                        {score}/{minimumScore}
+                    </Text>
                 </View>
             </View>
         );

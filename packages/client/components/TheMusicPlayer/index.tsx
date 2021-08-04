@@ -60,9 +60,10 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
                     }}
                     style={{
                         flex: 1,
-                        position: !isFullScreen ? 'absolute' : 'relative',
-                        bottom: !isFullScreen ? '100%' : undefined,
-                        right: !isFullScreen ? '100%' : undefined,
+                        position: isFullScreen ? 'relative' : 'absolute',
+                        bottom: isFullScreen ? undefined : '100%',
+                        right: isFullScreen ? undefined : '100%',
+                        width: '100%',
                     }}
                 >
                     <TheMusicPlayerFullScreen

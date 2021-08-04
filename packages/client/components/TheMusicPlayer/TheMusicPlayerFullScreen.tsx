@@ -61,8 +61,50 @@ interface Tab {
     text: string;
     selected: boolean;
     onPress: () => void;
-    component: () => React.ReactElement;
+    component: () => React.ReactElement | null;
 }
+
+const AddSongButton: React.FC = () => {
+    return (
+        <TouchableOpacity>
+            <View
+                sx={{
+                    position: 'absolute',
+                    right: 0,
+                    bottom: 0,
+                    borderRadius: 'full',
+                    backgroundColor: 'secondary',
+                    width: 48,
+                    height: 48,
+                    margin: 'm',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+
+                    // Copy pasted from https://ethercreative.github.io/react-native-shadow-generator/
+                    shadowColor: '#000',
+                    shadowOffset: {
+                        width: 0,
+                        height: 2,
+                    },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 3.84,
+
+                    elevation: 5,
+                }}
+            >
+                <Ionicons
+                    name="add"
+                    size={32}
+                    color="white"
+                    style={{
+                        // Necessary to center the icon visually
+                        right: -1,
+                    }}
+                />
+            </View>
+        </TouchableOpacity>
+    );
+};
 
 const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     machineState,
@@ -88,21 +130,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                 context.tracks !== null ? (
                     <View sx={{ flex: 1 }}>
                         <FlatList
-                            data={[
-                                ...context.tracks,
-                                ...context.tracks,
-                                ...context.tracks,
-                                ...context.tracks,
-                                ...context.tracks,
-                                ...context.tracks,
-                                ...context.tracks,
-                                ...context.tracks,
-                                ...context.tracks,
-                                ...context.tracks,
-                                ...context.tracks,
-                                ...context.tracks,
-                                ...context.tracks,
-                            ]}
+                            data={context.tracks}
                             renderItem={({
                                 item: { title, artistName },
                                 index,
@@ -119,47 +147,9 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                             style={{ flex: 1 }}
                         />
 
-                        <TouchableOpacity>
-                            <View
-                                sx={{
-                                    position: 'absolute',
-                                    right: 0,
-                                    bottom: 0,
-                                    borderRadius: 'full',
-                                    backgroundColor: 'secondary',
-                                    width: 48,
-                                    height: 48,
-                                    margin: 'm',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-
-                                    // Copy pasted from https://ethercreative.github.io/react-native-shadow-generator/
-                                    shadowColor: '#000',
-                                    shadowOffset: {
-                                        width: 0,
-                                        height: 2,
-                                    },
-                                    shadowOpacity: 0.25,
-                                    shadowRadius: 3.84,
-
-                                    elevation: 5,
-                                }}
-                            >
-                                <Ionicons
-                                    name="add"
-                                    size={32}
-                                    color="white"
-                                    style={{
-                                        // Necessary to center the icon visually
-                                        right: -1,
-                                    }}
-                                />
-                            </View>
-                        </TouchableOpacity>
+                        <AddSongButton />
                     </View>
-                ) : (
-                    <Text>Lol</Text>
-                ),
+                ) : null,
         },
         {
             text: 'Chat',
@@ -169,7 +159,9 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     type: 'GO_TO_CHAT',
                 });
             },
-            component: () => <Text sx={{ color: 'white' }}>Hello</Text>,
+            component: () => (
+                <Text sx={{ color: 'white' }}>Welcome to our great Chat</Text>
+            ),
         },
     ];
     const selectedTab = tabs.find(({ selected }) => selected === true);

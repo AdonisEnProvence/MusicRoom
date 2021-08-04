@@ -25,6 +25,7 @@ export const GLOBAL_THEME_CONSTANTS = {
         l: 3,
     },
     fontSizes: {
+        xxs: 12,
         xs: 14,
         s: 16,
         m: 20,
@@ -47,6 +48,9 @@ export function useTheme(): UseThemeReturn {
             ...palette,
         },
         ...GLOBAL_THEME_CONSTANTS,
+        sizes: {
+            m: 24,
+        },
     };
 
     const toggleColorScheme = () => {

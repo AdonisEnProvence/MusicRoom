@@ -51,10 +51,7 @@ func assignNextTracK(internalState *MtvRoomInternalState) brainy.Action {
 
 	return func(c brainy.Context, e brainy.Event) error {
 		machineContext := c.(*MtvRoomMachineContext)
-		fmt.Printf("****************\n")
-		fmt.Printf("%+v\n", internalState.Tracks)
-		fmt.Printf("%+v\n", internalState.TracksIDsList)
-		fmt.Printf("----------------\n")
+
 		internalState.CurrentTrack = shared.CurrentTrack{
 			TrackMetadata:  internalState.Tracks[0],
 			StartedOn:      time.Time{},
@@ -69,9 +66,7 @@ func assignNextTracK(internalState *MtvRoomInternalState) brainy.Action {
 		internalState.Tracks = internalState.Tracks[1:]
 		internalState.TracksIDsList = internalState.TracksIDsList[1:]
 
-		fmt.Printf("%+v\n", internalState.Tracks)
-		fmt.Printf("%+v\n", internalState.TracksIDsList)
-		fmt.Printf("****************\n")
+		fmt.Printf("\n Assigned next track\n")
 		return nil
 	}
 }

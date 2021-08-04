@@ -47,9 +47,11 @@ func (s *MtvRoomInternalState) Export(machineContext *MtvRoomMachineContext) sha
 		elapsed := s.CurrentTrack.AlreadyElapsed
 
 		dateIsNotZero := !machineContext.Timer.CreatedOn.IsZero()
-		fmt.Printf("About to export %d %t %+v", elapsed, dateIsNotZero, machineContext.Timer)
+		fmt.Printf("About to export %d %t %+v %t", elapsed, dateIsNotZero, machineContext.Timer, isPlaying)
 		if dateIsNotZero && isPlaying {
-			elapsed += now.Sub(machineContext.Timer.CreatedOn)
+			tmp := now.Sub(machineContext.Timer.CreatedOn)
+			elapsed += tmp
+			fmt.Printf("\nNeed to update elapsed because currently playing + %d for %d with now = %+v\n", tmp, elapsed, now)
 		}
 
 		tmp := s.CurrentTrack.Export(elapsed)
@@ -124,6 +126,8 @@ func GetElapsed(ctx workflow.Context, previous time.Time) time.Duration {
 	var now time.Time
 
 	encoded.Get(&now)
+	fmt.Printf("\nGET ELAPSED CALLED\n now = %+v \n %+v\n", now, now.Sub(previous))
+
 	return now.Sub(previous)
 }
 
@@ -304,11 +308,17 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 									encoded.Get(&createdOn)
 									// elapsed := GetElapsed(ctx, timerContext.Timer.CreatedOn)
-									totalDuration := timerContext.Timer.TotalDuration - internalState.CurrentTrack.AlreadyElapsed
+									totalDuration := machineContext.Timer.TotalDuration - internalState.CurrentTrack.AlreadyElapsed
 
-									timerContext.Timer.CreatedOn = createdOn
-									timerContext.Timer.TotalDuration = totalDuration
-									// timerContext.Timer.State = shared.MtvRoomTimerStateIdle
+									machineContext.Timer.CreatedOn = createdOn
+									machineContext.Timer.TotalDuration = totalDuration
+									machineContext.Timer.State = shared.MtvRoomTimerStateIdle
+
+									fmt.Println("-----------------NEW TIMER FOR-----------------")
+									fmt.Printf("%+v\n", internalState.CurrentTrack)
+									fmt.Printf("%+v\n", machineContext.Timer)
+									fmt.Println("-----------------------------------------------")
+
 									timerExpirationFuture = workflow.NewTimer(childCtx, totalDuration)
 
 									return nil
@@ -348,9 +358,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 										currentTrackEnded := timerExpirationEvent.Timer.State == shared.MtvRoomTimerStateFinished
 										hasReachedTracksListEnd := len(internalState.Tracks) == 0
 
-										fmt.Printf("sortie 1111111111111111111 \n%t,%t,%d\n", currentTrackEnded, hasReachedTracksListEnd, len(internalState.Tracks))
-										fmt.Printf("%+v\n", internalState.Tracks)
-
 										return currentTrackEnded && hasReachedTracksListEnd
 									},
 
@@ -359,6 +366,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									Actions: brainy.Actions{
 										brainy.ActionFn(
 											func(c brainy.Context, e brainy.Event) error {
+												fmt.Println("__NO MORE TRACKS__")
 												event := e.(MtvRoomTimerExpirationEvent)
 
 												elapsed := GetElapsed(ctx, event.Timer.CreatedOn)
@@ -376,7 +384,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 										timerExpirationEvent := e.(MtvRoomTimerExpirationEvent)
 										currentTrackEnded := timerExpirationEvent.Timer.State == shared.MtvRoomTimerStateFinished
 
-										fmt.Printf("sortie 222222222222222222222222 \n%+v\n", currentTrackEnded)
+										if currentTrackEnded {
+											fmt.Println("__TRACK IS FINISHED GOING TO THE NEXT ONE__")
+										}
+
 										return currentTrackEnded
 									},
 
@@ -396,14 +407,14 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									Actions: brainy.Actions{
 										brainy.ActionFn(
 											func(c brainy.Context, e brainy.Event) error {
-												fmt.Printf("sortie 3333333333333333333333333333333333333333333333333333")
+												fmt.Println("__CURRENT TRACK TIMER HAS BEEN CANCELED__")
 												event := e.(MtvRoomTimerExpirationEvent)
 
 												elapsed := GetElapsed(ctx, event.Timer.CreatedOn)
 												internalState.CurrentTrack.StartedOn = time.Time{}
-												fmt.Printf("AVANT\n%+v\n", internalState.CurrentTrack)
 												internalState.CurrentTrack.AlreadyElapsed += elapsed
-												fmt.Printf("APRES\n%+v\n", internalState.CurrentTrack)
+												fmt.Printf("has been played before last timer = %d for a total of = %d\n", elapsed, internalState.CurrentTrack.AlreadyElapsed)
+												fmt.Println("__________________________________________")
 
 												return nil
 											},
@@ -556,20 +567,14 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				var timerActivityResult shared.MtvRoomTimer
 				timerExpirationFuture = nil
 
-				fmt.Println("======================================")
+				fmt.Println("=================TIMER ENDED=====================")
 
 				err := f.Get(ctx, nil)
 				hasBeenCanceled := temporal.IsCanceledError(err)
-				fmt.Println(f.Get(ctx, nil))
-
-				encoded := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-					return time.Now()
-				})
-				var now time.Time
-				encoded.Get(&now)
-				fmt.Printf("%+v\n", now)
-				fmt.Printf("VERSUS\n")
-				fmt.Printf("%+v\n", myContext.Timer.CreatedOn)
+				fmt.Printf("canceled = %t\n", hasBeenCanceled)
+				fmt.Printf("Was createdOn = %+v\n", myContext.Timer)
+				fmt.Printf("CurrentTrack = %+v\n", internalState.CurrentTrack)
+				fmt.Printf("Now = %+v\n", TimeWrapper())
 
 				if hasBeenCanceled {
 					timerActivityResult = shared.MtvRoomTimer{
@@ -584,9 +589,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 						CreatedOn:     myContext.Timer.CreatedOn,
 					}
 					myContext.Timer = defaultTimer
+					myContext.CancelTimer = nil
 				}
-				fmt.Printf("%+v\n", timerActivityResult)
-				fmt.Printf("%+v\n", internalState.Machine.UnsafeCurrent().Value())
 
 				fmt.Println("======================================")
 

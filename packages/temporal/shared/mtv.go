@@ -1,7 +1,6 @@
 package shared
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -64,7 +63,6 @@ func (c CurrentTrack) Export(elapsed time.Duration) ExposedCurrentTrack {
 	copy := c
 	copy.StartedOn = time.Time{}
 	copy.AlreadyElapsed = 0
-	fmt.Printf("ICI MEC : %d\n", elapsed.Milliseconds())
 	return ExposedCurrentTrack{
 		CurrentTrack: copy,
 		Duration:     c.Duration.Milliseconds(),

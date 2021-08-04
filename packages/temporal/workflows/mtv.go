@@ -370,6 +370,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 												event := e.(MtvRoomTimerExpirationEvent)
 
 												elapsed := GetElapsed(ctx, event.Timer.CreatedOn)
+												fmt.Printf("\n currentTrack = %+v\n", internalState.CurrentTrack)
+												fmt.Printf("\n elapsed to add = %+v\n", elapsed)
 												internalState.CurrentTrack.StartedOn = time.Time{}
 												internalState.CurrentTrack.AlreadyElapsed += elapsed
 

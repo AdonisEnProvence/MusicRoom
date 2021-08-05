@@ -369,11 +369,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 												fmt.Println("__NO MORE TRACKS__")
 												event := e.(MtvRoomTimerExpirationEvent)
 
-												elapsed := GetElapsed(ctx, event.Timer.CreatedOn)
 												fmt.Printf("\n currentTrack = %+v\n", internalState.CurrentTrack)
-												fmt.Printf("\n elapsed to add = %+v\n", elapsed)
+												fmt.Printf("\n currentTrack = %+v\n", event.Timer.TotalDuration)
 												internalState.CurrentTrack.StartedOn = time.Time{}
-												internalState.CurrentTrack.AlreadyElapsed += elapsed
+												internalState.CurrentTrack.AlreadyElapsed += event.Timer.TotalDuration
 
 												return nil
 											},

@@ -148,6 +148,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 	first := defaultDuration
 	temporalTemporality += first
 	s.env.RegisterDelayedCallback(func() {
+		addToNextTimeNowMock(first)
 		mtvState := getMtvState(s)
 		s.False(mtvState.Playing)
 
@@ -264,36 +265,12 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, temporalTemporality)
 
-	eighth := secondTrackDuration / 2
-	temporalTemporality += eighth
-	s.env.RegisterDelayedCallback(func() {
-		addToNextTimeNowMock(eighth)
-		mtvState := getMtvState(s)
-		fmt.Println("*******NO MORE TRACK******")
-		fmt.Printf("We should find the second track with an elapsed at TOTALDURATION\n%+v\n", mtvState.CurrentTrack)
-		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
-			CurrentTrack: shared.CurrentTrack{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracks[1].ID,
-					ArtistName: tracks[1].ArtistName,
-					Title:      tracks[1].Title,
-					Duration:   0,
-				},
-				AlreadyElapsed: 0,
-				StartedOn:      time.Time{},
-			},
-			Duration: secondTrackDuration.Milliseconds(),
-			Elapsed:  0, //see expectedElapsed
-		}
-
-		expectedElapsed := secondTrackDuration.Milliseconds()
-		s.InDelta(expectedElapsed, mtvState.CurrentTrack.Elapsed, msDelta)
-		mtvState.CurrentTrack.Elapsed = 0
-		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
-
-	}, temporalTemporality)
-
-	nineth := defaultDuration
+	// Remark when temporal fired the secondTrackDuration timer the timeMock wasn't sync with
+	// the temporal temporality. It still works because when a timer ends with increment the
+	// alreadyElapsed with the timer total duration
+	// If not we should have put a registerDelayedCallback just at secondTrackDuration to update
+	// time mock return value
+	nineth := secondTrackDuration/2 + defaultDuration
 	temporalTemporality += nineth
 	s.env.RegisterDelayedCallback(func() {
 		addToNextTimeNowMock(nineth)

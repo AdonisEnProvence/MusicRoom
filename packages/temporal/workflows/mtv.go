@@ -326,6 +326,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							),
 							brainy.ActionFn(
 								func(c brainy.Context, e brainy.Event) error {
+									machineContext := c.(*MtvRoomMachineContext)
 									options := workflow.ActivityOptions{
 										ScheduleToStartTimeout: time.Minute,
 										StartToCloseTimeout:    time.Minute,
@@ -335,7 +336,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									workflow.ExecuteActivity(
 										ctx,
 										activities.PlayActivity,
-										internalState.Export(),
+										internalState.Export(machineContext),
 									)
 
 									return nil

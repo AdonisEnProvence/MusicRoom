@@ -48,8 +48,8 @@ func (t TrackMetadata) Export() ExposedTrackMetadata {
 type CurrentTrack struct {
 	TrackMetadata
 
-	StartedOn      time.Time
-	AlreadyElapsed time.Duration
+	StartedOn      time.Time     `json:"-"`
+	AlreadyElapsed time.Duration `json:"-"`
 }
 
 type ExposedCurrentTrack struct {

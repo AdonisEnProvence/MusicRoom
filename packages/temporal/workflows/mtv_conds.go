@@ -1,6 +1,10 @@
 package workflows
 
-import "github.com/Devessier/brainy"
+import (
+	"fmt"
+
+	"github.com/Devessier/brainy"
+)
 
 func hasNextTrackToPlay(internalState *MtvRoomInternalState) brainy.Cond {
 	return func(c brainy.Context, e brainy.Event) bool {
@@ -12,12 +16,14 @@ func hasNextTrackToPlay(internalState *MtvRoomInternalState) brainy.Cond {
 
 func canPlayCurrentTrack(internalState *MtvRoomInternalState) brainy.Cond {
 	return func(c brainy.Context, e brainy.Event) bool {
-		hasReachedEndOfCurrentTrack := internalState.CurrentTrack.AlreadyElapsed == internalState.CurrentTrack.Duration
 		hasNextTrackToPlay := len(internalState.Tracks) > 0
 		hasNoNextTrackToPlay := !hasNextTrackToPlay
+
+		hasReachedEndOfCurrentTrack := internalState.CurrentTrack.AlreadyElapsed == internalState.CurrentTrack.Duration
+
 		canNotPlayCurrentTrack := hasReachedEndOfCurrentTrack && hasNoNextTrackToPlay
 		canPlayCurrentTrack := !canNotPlayCurrentTrack
-
+		fmt.Println("-------------COND FOR PLAY IS ", canPlayCurrentTrack)
 		return canPlayCurrentTrack
 	}
 }

@@ -513,8 +513,11 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 			switch routeSignal.Route {
 			case shared.SignalRoutePlay:
 				var message shared.PlaySignal
-
+				fmt.Println("-------------FOR LOOP receieved a PLAY SIGNAL")
+				fmt.Printf("\n------------- %+v\n", internalState.Machine.Current().Value())
+				// fmt.Printf("\n-------------VLA MON ETAT %+v\n", internalState.)
 				if err := mapstructure.Decode(signal, &message); err != nil {
+					fmt.Printf("\n-------------CA A CHIER FRERO %+v\n", err)
 					logger.Error("Invalid signal type %v", err)
 					return
 				}

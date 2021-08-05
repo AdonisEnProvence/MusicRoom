@@ -104,10 +104,6 @@ export const createAppMusicPlayerMachine = ({
                     });
 
                     socket.on('JOIN_ROOM_CALLBACK', (state) => {
-                        console.log(
-                            'JE M APPELLE HENRI ET JE REJOINS TA ROOM',
-                            state,
-                        );
                         sendBack({
                             type: 'JOINED_ROOM',
                             state,

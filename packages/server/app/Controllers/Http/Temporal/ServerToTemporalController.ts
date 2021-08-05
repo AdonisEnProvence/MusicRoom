@@ -46,13 +46,6 @@ export default class ServerToTemporalController {
             initialTracksIDs,
         };
 
-        const res = await got
-            .put(url, {
-                json: requestBody,
-                responseType: 'json',
-            })
-            .json();
-        console.log(res);
         return CreateWorkflowResponse.parse(
             await got
                 .put(url, {
@@ -80,7 +73,6 @@ export default class ServerToTemporalController {
         userID: string,
     ): Promise<void> {
         try {
-            console.log('ADONIS SEND JOIN WORKFLOW TO TEMPORAL');
             const url = urlcat(TEMPORAL_ENDPOINT, '/join/:workflowID/:runID', {
                 workflowID,
                 runID,
@@ -148,8 +140,7 @@ export default class ServerToTemporalController {
             });
 
             const res = await got.get(url).json();
-            console.log('MOI JE SUIS UN PETIT POISSON');
-            console.log(res);
+
             return MtvWorkflowState.parse(res);
         } catch (e) {
             console.error(e);

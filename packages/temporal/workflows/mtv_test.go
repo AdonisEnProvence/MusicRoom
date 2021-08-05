@@ -111,7 +111,6 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 	defer resetMock()
 
 	defaultDuration := 1 * time.Millisecond
-	msDelta := 01.00
 
 	tracks := []shared.TrackMetadata{
 		{
@@ -188,15 +187,12 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 				StartedOn:      time.Time{},
 			},
 			Duration: firstTrackDuration.Milliseconds(),
-			Elapsed:  0, //see expectedElapsed
+			Elapsed:  firstTrackDurationFirstThird.Milliseconds(),
 		}
 		mtvState := s.getMtvState()
 		fmt.Printf("We should find the first third elapsed for the first track\n%+v\n", mtvState.CurrentTrack)
 
 		s.False(mtvState.Playing)
-		expectedElapsed := firstTrackDurationFirstThird.Milliseconds()
-		s.InDelta(expectedElapsed, mtvState.CurrentTrack.Elapsed, msDelta)
-		mtvState.CurrentTrack.Elapsed = 0
 		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 
 	}, third)
@@ -208,6 +204,9 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		s.emitPlaySignal()
 	}, fourth)
 
+	// Important
+	// Here we want to update the timeMock before the new timer for the second track
+	// Then between this step and the next one the elapsed will incr by defaultDuration
 	fifth := firstTrackDurationFirstThird + firstTrackDurationFirstThird
 	registerDelayedCallbackWrapper(func() {
 	}, fifth)
@@ -229,12 +228,9 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 				StartedOn:      time.Time{},
 			},
 			Duration: secondTrackDuration.Milliseconds(),
-			Elapsed:  0, //see expectedElapsed
+			Elapsed:  1, //Why 1 ? see comment above
 		}
 
-		expectedElapsed := 0
-		s.InDelta(expectedElapsed, mtvState.CurrentTrack.Elapsed, msDelta)
-		mtvState.CurrentTrack.Elapsed = 0
 		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, sixth)
 
@@ -255,12 +251,9 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 				StartedOn:      time.Time{},
 			},
 			Duration: secondTrackDuration.Milliseconds(),
-			Elapsed:  0, //see expectedElapsed
+			Elapsed:  (secondTrackDuration / 2).Milliseconds(),
 		}
 
-		expectedElapsed := (secondTrackDuration / 2).Milliseconds()
-		s.InDelta(expectedElapsed, mtvState.CurrentTrack.Elapsed, msDelta)
-		mtvState.CurrentTrack.Elapsed = 0
 		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, seventh)
 
@@ -275,7 +268,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState()
 		expectedElapsed := secondTrackDuration.Milliseconds()
-		s.InDelta(expectedElapsed, mtvState.CurrentTrack.Elapsed, msDelta)
+		s.Equal(expectedElapsed, mtvState.CurrentTrack.Elapsed)
 	}, nineth)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)

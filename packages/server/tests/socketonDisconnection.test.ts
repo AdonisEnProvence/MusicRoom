@@ -255,6 +255,7 @@ test.group('Rooms life cycle', (group) => {
             userB.receivedEvents.push('FORCED_DISCONNECTION');
         });
         const roomName = random.word();
+        let state: undefined | MtvWorkflowState;
 
         /** Mocks */
         sinon
@@ -265,31 +266,36 @@ test.group('Rooms life cycle', (group) => {
         sinon
             .stub(ServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
+                state = {
+                    roomID: workflowID,
+                    roomCreatorUserID: userA.userID,
+                    playing: false,
+                    name: roomName,
+                    users: [userA.userID],
+                    currentTrack: null,
+                    tracksIDsList: null,
+                    tracks: [
+                        {
+                            id: datatype.uuid(),
+                            artistName: name.findName(),
+                            duration: 42000,
+                            title: random.words(3),
+                        },
+                    ],
+                };
                 return {
                     runID: datatype.uuid(),
                     workflowID,
-                    state: {
-                        roomID: workflowID,
-                        roomCreatorUserID: userA.userID,
-                        playing: false,
-                        name: roomName,
-                        users: [userA.userID],
-                        currentTrack: null,
-                        tracksIDsList: null,
-                        tracks: [
-                            {
-                                id: datatype.uuid(),
-                                artistName: name.findName(),
-                                duration: 42000,
-                                title: random.words(3),
-                            },
-                        ],
-                    },
+                    state,
                 };
             });
         sinon
             .stub(ServerToTemporalController, 'joinWorkflow')
             .callsFake(async () => {
+                if (state === undefined) throw new Error('State is undefined');
+                await supertest(BASE_URL)
+                    .post('/temporal/join')
+                    .send({ state, joiningUserID: userB.userID });
                 return;
             });
         /** ***** */
@@ -570,11 +576,6 @@ test.group('Rooms life cycle', (group) => {
                         ],
                     },
                 };
-            });
-        sinon
-            .stub(ServerToTemporalController, 'joinWorkflow')
-            .callsFake(async () => {
-                return;
             });
         sinon
             .stub(ServerToTemporalController, 'getState')

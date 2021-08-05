@@ -49,8 +49,8 @@ export default class TemporalToServerController {
         await UserService.joinEveryUserDevicesToRoom(joiningUser, roomID);
 
         joiningUser.mtvRoomID = roomID;
-        await joiningUser.save();
         await joiningUser.related('mtvRoom').associate(mtvRoom);
+        await joiningUser.save();
 
         await UserService.EmitEventInEveryDeviceUser(
             joiningUserID,

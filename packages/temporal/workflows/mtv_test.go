@@ -58,25 +58,34 @@ func emitPauseSignal(s *UnitTestSuite) {
 	s.env.SignalWorkflow(shared.SignalChannelName, pauseSignal)
 }
 
-func InitTimeMock() (func(toAdd time.Duration) time.Time, func()) {
+func (s *UnitTestSuite) _initTestEnv() (func(), func(callback func(), temporalTemporality time.Duration)) {
+	var temporalTemporality time.Duration
 	now := time.Now()
 	oldImplem := TimeWrapper
 	timeMock := new(mocks.TimeWrapperType)
-	tmp := timeMock.On("Execute")
-	tmp.Return(now)
+	timeMockExecute := timeMock.On("Execute")
+	timeMockExecute.Return(now)
 	TimeWrapper = timeMock.Execute
 
-	return func(toAdd time.Duration) time.Time {
-			now = now.Add(toAdd)
-			tmp.Return(now)
+	addToNextTimeNowMock := func(toAdd time.Duration) time.Time {
+		now = now.Add(toAdd)
+		timeMockExecute.Return(now)
 
-			fmt.Println(">>>>>>>>>>>>>>>")
-			fmt.Printf("Now update received = %+v\n", toAdd.Seconds())
-			fmt.Printf("now = %+v\n", now)
-			fmt.Println("<<<<<<<<<<<<<<<")
-			return now
-		}, func() {
+		fmt.Println(">>>>>>>>>>>>>>>")
+		fmt.Printf("Now update received = %+v\n", toAdd.Seconds())
+		fmt.Printf("now = %+v\n", now)
+		fmt.Println("<<<<<<<<<<<<<<<")
+		return now
+	}
+
+	return func() {
 			TimeWrapper = oldImplem
+		}, func(callback func(), durationToAdd time.Duration) {
+			temporalTemporality += durationToAdd
+			s.env.RegisterDelayedCallback(func() {
+				addToNextTimeNowMock(durationToAdd)
+				callback()
+			}, temporalTemporality)
 		}
 }
 
@@ -90,7 +99,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 	firstTrackDuration := generateRandomDuration()
 	firstTrackDurationFirstThird := firstTrackDuration / 3
 	secondTrackDuration := generateRandomDuration()
-	addToNextTimeNowMock, resetMock := InitTimeMock()
+	resetMock, registerDelayedCallbackWrapper := s._initTestEnv()
 
 	defer resetMock()
 
@@ -143,31 +152,22 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		mock.Anything,
 	).Return(nil).Times(3)
 
-	var temporalTemporality time.Duration
-
 	first := defaultDuration
-	temporalTemporality += first
-	s.env.RegisterDelayedCallback(func() {
-		addToNextTimeNowMock(first)
+	registerDelayedCallbackWrapper(func() {
 		mtvState := getMtvState(s)
 		s.False(mtvState.Playing)
 
 		emitPlaySignal(s)
-		addToNextTimeNowMock(first)
-	}, temporalTemporality)
+	}, first)
 
 	second := firstTrackDurationFirstThird
-	temporalTemporality += second
-	s.env.RegisterDelayedCallback(func() {
+	registerDelayedCallbackWrapper(func() {
 		fmt.Printf("\nMA MAMAN C EST LA PLUS BELLE DES MAMANS %+v\n", second)
-		addToNextTimeNowMock(second)
 		emitPauseSignal(s)
-	}, temporalTemporality)
+	}, second)
 
 	third := defaultDuration
-	temporalTemporality += third
-	s.env.RegisterDelayedCallback(func() {
-		addToNextTimeNowMock(third)
+	registerDelayedCallbackWrapper(func() {
 		fmt.Println("*********VERIFICATION FIRST THIRD TIER ELAPSED*********")
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
@@ -192,27 +192,21 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		mtvState.CurrentTrack.Elapsed = 0
 		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 
-	}, temporalTemporality)
+	}, third)
 
 	fourth := defaultDuration
-	temporalTemporality += fourth
 	//Play alone because the signal is sent as last from registerDelayedCallback
-	s.env.RegisterDelayedCallback(func() {
+	registerDelayedCallbackWrapper(func() {
 		fmt.Println("*********VERIFICATION 3/3 first track*********")
 		emitPlaySignal(s)
-		addToNextTimeNowMock(fourth)
-	}, temporalTemporality)
+	}, fourth)
 
 	fifth := firstTrackDurationFirstThird + firstTrackDurationFirstThird
-	temporalTemporality += fifth
-	s.env.RegisterDelayedCallback(func() {
-		addToNextTimeNowMock(fifth)
-	}, temporalTemporality)
+	registerDelayedCallbackWrapper(func() {
+	}, fifth)
 
 	sixth := defaultDuration
-	temporalTemporality += sixth
-	s.env.RegisterDelayedCallback(func() {
-		addToNextTimeNowMock(sixth)
+	registerDelayedCallbackWrapper(func() {
 		mtvState := getMtvState(s)
 		fmt.Printf("We should find the second track with an elapsed at 0\n%+v\n", mtvState.CurrentTrack)
 
@@ -235,12 +229,10 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		s.InDelta(expectedElapsed, mtvState.CurrentTrack.Elapsed, msDelta)
 		mtvState.CurrentTrack.Elapsed = 0
 		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
-	}, temporalTemporality)
+	}, sixth)
 
 	seventh := secondTrackDuration/2 - defaultDuration
-	temporalTemporality += seventh
-	s.env.RegisterDelayedCallback(func() {
-		addToNextTimeNowMock(seventh)
+	registerDelayedCallbackWrapper(func() {
 		mtvState := getMtvState(s)
 		fmt.Printf("We should find the second track with an elapsed at TOTALDURATION\n%+v\n", mtvState.CurrentTrack)
 
@@ -263,21 +255,21 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		s.InDelta(expectedElapsed, mtvState.CurrentTrack.Elapsed, msDelta)
 		mtvState.CurrentTrack.Elapsed = 0
 		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
-	}, temporalTemporality)
+	}, seventh)
 
-	// Remark when temporal fired the secondTrackDuration timer the timeMock wasn't sync with
+	//Temporal triggers his workflow.newTimer depending on the temporalTemporality
+
+	// Remark: when temporal fires the secondTrackDuration timer the timeMock wasn't sync with
 	// the temporal temporality. It still works because when a timer ends with increment the
 	// alreadyElapsed with the timer total duration
 	// If not we should have put a registerDelayedCallback just at secondTrackDuration to update
 	// time mock return value
 	nineth := secondTrackDuration/2 + defaultDuration
-	temporalTemporality += nineth
-	s.env.RegisterDelayedCallback(func() {
-		addToNextTimeNowMock(nineth)
+	registerDelayedCallbackWrapper(func() {
 		mtvState := getMtvState(s)
 		expectedElapsed := secondTrackDuration.Milliseconds()
 		s.InDelta(expectedElapsed, mtvState.CurrentTrack.Elapsed, msDelta)
-	}, temporalTemporality)
+	}, nineth)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
 

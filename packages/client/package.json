@@ -15,9 +15,10 @@
     "build:tsc": "scripty",
     "lint": "yarn eslint . --ext ts,tsx --fix",
     "generate:xstate": "xstate-codegen machines/*.ts",
-    "postinstall": "expo-yarn-workspaces postinstall",
+    "postinstall": "expo-yarn-workspaces postinstall && yarn install:react-youtube",
     "test": "jest --coverage",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "install:react-youtube": "cd ../../node_modules/react-youtube && yarn && yarn compile"
   },
   "jest": {
     "preset": "jest-expo"
@@ -55,7 +56,7 @@
     "react-native-web-webview": "^1.0.2",
     "react-native-webview": "11.2.3",
     "react-native-youtube-iframe": "^2.1.0",
-    "react-youtube": "^7.13.1",
+    "react-youtube": "https://github.com/Devessier/react-youtube.git",
     "socket.io-client": "^4.1.2",
     "urlcat": "^2.0.4",
     "xstate": "^4.23.0",
@@ -72,6 +73,7 @@
     "@types/faker": "^5.5.6",
     "@types/react": "~17.0.8",
     "@types/react-native": "~0.64.8",
+    "@types/youtube-player": "^5.5.4",
     "babel-plugin-inline-dotenv": "^1.6.0",
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "expo-yarn-workspaces": "^1.5.1",
@@ -80,7 +82,8 @@
     "metro-config": "^0.59.0",
     "msw": "^0.29.0",
     "node-fetch": "^2.6.1",
-    "typescript": "^4.3.2"
+    "typescript": "^4.3.2",
+    "youtube-player": "^5.5.2"
   },
   "scripty": {
     "path": "../../scripts/packages"

@@ -17,8 +17,8 @@ const AppScreenContainer: React.FC<AppScreenContainerProps> = ({
                 flex: 1,
 
                 // Enable vertical scrolling on tablets and desktops.
-                overflowY:
-                    scrollable === true ? [undefined, 'auto'] : undefined,
+                overflow:
+                    scrollable === true ? [undefined, 'scroll'] : undefined,
             }}
         >
             {children}

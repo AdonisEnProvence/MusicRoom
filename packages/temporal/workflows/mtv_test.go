@@ -168,6 +168,8 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 	second := firstTrackDurationFirstThird
 	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState()
+		s.True(mtvState.Playing)
 		fmt.Printf("\nMA MAMAN C EST LA PLUS BELLE DES MAMANS %+v\n", second)
 		s.emitPauseSignal()
 	}, second)

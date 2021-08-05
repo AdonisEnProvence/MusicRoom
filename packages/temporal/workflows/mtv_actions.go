@@ -1,7 +1,6 @@
 package workflows
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/AdonisEnProvence/MusicRoom/shared"
@@ -66,7 +65,6 @@ func assignNextTracK(internalState *MtvRoomInternalState) brainy.Action {
 		internalState.Tracks = internalState.Tracks[1:]
 		internalState.TracksIDsList = internalState.TracksIDsList[1:]
 
-		fmt.Printf("\n Assigned next track\n")
 		return nil
 	}
 }

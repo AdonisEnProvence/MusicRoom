@@ -33,7 +33,7 @@ func (s *UnitTestSuite) AfterTest(suiteName, testName string) {
 }
 
 //Should those be methods ? no risk for conflicts ?
-func getMtvState(s *UnitTestSuite) shared.MtvRoomExposedState {
+func (s *UnitTestSuite) getMtvState() shared.MtvRoomExposedState {
 	var mtvState shared.MtvRoomExposedState
 
 	res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
@@ -45,20 +45,27 @@ func getMtvState(s *UnitTestSuite) shared.MtvRoomExposedState {
 	return mtvState
 }
 
-func emitPlaySignal(s *UnitTestSuite) {
+func (s *UnitTestSuite) emitPlaySignal() {
 	fmt.Println("-----EMIT PLAY CALLED IN TEST-----")
 	playSignal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
 	s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
 }
 
-func emitPauseSignal(s *UnitTestSuite) {
+func (s *UnitTestSuite) emitPauseSignal() {
 	fmt.Println("-----EMIT PAUSED CALLED IN TEST-----")
 	pauseSignal := shared.NewPauseSignal(shared.NewPauseSignalArgs{})
 
 	s.env.SignalWorkflow(shared.SignalChannelName, pauseSignal)
 }
 
-func (s *UnitTestSuite) _initTestEnv() (func(), func(callback func(), temporalTemporality time.Duration)) {
+func (s *UnitTestSuite) emitGoToNextTrackSignal() {
+	fmt.Println("-----EMIT GO TO NEXT TRACK IN TEST-----")
+	goToNextTrackSignal := shared.NewGoToNexTrackSignal()
+
+	s.env.SignalWorkflow(shared.SignalChannelName, goToNextTrackSignal)
+}
+
+func (s *UnitTestSuite) initTestEnv() (func(), func(callback func(), durationToAdd time.Duration)) {
 	var temporalTemporality time.Duration
 	now := time.Now()
 	oldImplem := TimeWrapper
@@ -99,7 +106,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 	firstTrackDuration := generateRandomDuration()
 	firstTrackDurationFirstThird := firstTrackDuration / 3
 	secondTrackDuration := generateRandomDuration()
-	resetMock, registerDelayedCallbackWrapper := s._initTestEnv()
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 
 	defer resetMock()
 
@@ -154,16 +161,16 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 	first := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		mtvState := getMtvState(s)
+		mtvState := s.getMtvState()
 		s.False(mtvState.Playing)
 
-		emitPlaySignal(s)
+		s.emitPlaySignal()
 	}, first)
 
 	second := firstTrackDurationFirstThird
 	registerDelayedCallbackWrapper(func() {
 		fmt.Printf("\nMA MAMAN C EST LA PLUS BELLE DES MAMANS %+v\n", second)
-		emitPauseSignal(s)
+		s.emitPauseSignal()
 	}, second)
 
 	third := defaultDuration
@@ -183,7 +190,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 			Duration: firstTrackDuration.Milliseconds(),
 			Elapsed:  0, //see expectedElapsed
 		}
-		mtvState := getMtvState(s)
+		mtvState := s.getMtvState()
 		fmt.Printf("We should find the first third elapsed for the first track\n%+v\n", mtvState.CurrentTrack)
 
 		s.False(mtvState.Playing)
@@ -198,7 +205,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 	//Play alone because the signal is sent as last from registerDelayedCallback
 	registerDelayedCallbackWrapper(func() {
 		fmt.Println("*********VERIFICATION 3/3 first track*********")
-		emitPlaySignal(s)
+		s.emitPlaySignal()
 	}, fourth)
 
 	fifth := firstTrackDurationFirstThird + firstTrackDurationFirstThird
@@ -207,7 +214,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 	sixth := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		mtvState := getMtvState(s)
+		mtvState := s.getMtvState()
 		fmt.Printf("We should find the second track with an elapsed at 0\n%+v\n", mtvState.CurrentTrack)
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
@@ -233,7 +240,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 	seventh := secondTrackDuration/2 - defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		mtvState := getMtvState(s)
+		mtvState := s.getMtvState()
 		fmt.Printf("We should find the second track with an elapsed at TOTALDURATION\n%+v\n", mtvState.CurrentTrack)
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
@@ -266,7 +273,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 	// time mock return value
 	nineth := secondTrackDuration/2 + defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		mtvState := getMtvState(s)
+		mtvState := s.getMtvState()
 		expectedElapsed := secondTrackDuration.Milliseconds()
 		s.InDelta(expectedElapsed, mtvState.CurrentTrack.Elapsed, msDelta)
 	}, nineth)
@@ -360,7 +367,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		s.Len(mtvState.Users, 2)
 	}, 3*time.Second)
 
-	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, params)
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
 
 	s.True(s.env.IsWorkflowCompleted())
 	err := s.env.GetWorkflowError()
@@ -368,24 +375,25 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 }
 
 // Test_GoToNextTrack scenario:
-//
+
 // 1. We set up a Mtv Room with 2 initial tracks.
 // By default the room will be in paused state, waiting
 // for someone to play it.
-//
+
 // 2. We send a GoToNextTrack signal.
-//
+
 // 3. We expect the second track to have been played
 // and to be the current track, although it has ended.
-//
+
 // 4. We send another GoToNextTrack signal.
-//
+
 // 5. We expect the second initial track to still be
 // the current one.
 func (s *UnitTestSuite) Test_GoToNextTrack() {
 	var (
 		fakeWorkflowID        = faker.UUIDHyphenated()
 		fakeRoomCreatorUserID = faker.UUIDHyphenated()
+		defaultDuration       = 1 * time.Millisecond
 	)
 
 	tracks := []shared.TrackMetadata{
@@ -411,6 +419,9 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		InitialTracksIDsList: tracksIDs,
 	}
 	secondTrackDuration := tracks[1].Duration
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
 
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
@@ -433,69 +444,27 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		mock.Anything,
 	).Return(nil).Times(2)
 
-	trackTimerActivityCalls := 0
-	s.env.OnActivity(
-		activities.TrackTimerActivity,
-		mock.Anything,
-		mock.Anything,
-	).Return(func(ctx context.Context, timerState shared.MtvRoomTimer) (shared.MtvRoomTimer, error) {
-		defer func() {
-			trackTimerActivityCalls++
-		}()
-
-		switch trackTimerActivityCalls {
-		case 0:
-			s.Equal(shared.MtvRoomTimerStateIdle, timerState.State)
-			s.Equal(time.Duration(0), timerState.Elapsed)
-			s.Equal(secondTrackDuration, timerState.TotalDuration)
-
-			return shared.MtvRoomTimer{
-				State:         shared.MtvRoomTimerStateFinished,
-				Elapsed:       secondTrackDuration,
-				TotalDuration: secondTrackDuration,
-			}, nil
-
-		default:
-			return shared.MtvRoomTimer{}, errors.New("no timer to return for this call")
-		}
-	}).Once()
-
 	// 1. We expect the room to be paused by default.
-	initialStateQueryDelay := 1 * time.Second
-	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomExposedState
-
-		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
-		s.NoError(err)
-
-		err = res.Get(&mtvState)
-		s.NoError(err)
+	initialStateQueryDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState()
 
 		s.False(mtvState.Playing)
 	}, initialStateQueryDelay)
 
 	// 2. Send the first GoToNextTrack signal.
-	firstGoToNextTrackSignal := initialStateQueryDelay + 1*time.Second
-	s.env.RegisterDelayedCallback(func() {
-		goToNextTrackSignal := shared.NewGoToNexTrackSignal()
-
-		s.env.SignalWorkflow(shared.SignalChannelName, goToNextTrackSignal)
+	firstGoToNextTrackSignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitGoToNextTrackSignal()
 	}, firstGoToNextTrackSignal)
 
 	// 3. We expect the second initial track to be the current one
 	// and the room to be not in playing state anymore.
-	secondStateQueryAfterSecondTrackTotalDuration := firstGoToNextTrackSignal + secondTrackDuration
-	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomExposedState
-
-		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
-		s.NoError(err)
-
-		err = res.Get(&mtvState)
-		s.NoError(err)
+	secondStateQueryAfterSecondTrackTotalDuration := secondTrackDuration + defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState()
 
 		s.False(mtvState.Playing)
-
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
 				TrackMetadata: shared.TrackMetadata{
@@ -504,7 +473,8 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 					Title:      tracks[1].Title,
 					Duration:   0,
 				},
-				Elapsed: 0,
+				AlreadyElapsed: 0,
+				StartedOn:      time.Time{},
 			},
 			Duration: tracks[1].Duration.Milliseconds(),
 			Elapsed:  tracks[1].Duration.Milliseconds(),
@@ -514,24 +484,16 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 	}, secondStateQueryAfterSecondTrackTotalDuration)
 
 	// 4. Send the second GoToNextTrack signal.
-	secondGoToNextTrackSignal := secondStateQueryAfterSecondTrackTotalDuration + 1*time.Second
-	s.env.RegisterDelayedCallback(func() {
-		goToNextTrackSignal := shared.NewGoToNexTrackSignal()
-
-		s.env.SignalWorkflow(shared.SignalChannelName, goToNextTrackSignal)
+	secondGoToNextTrackSignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitGoToNextTrackSignal()
 	}, secondGoToNextTrackSignal)
 
 	// 5. We expect the second initial track to still be the current one
 	// after we tried to go to the next track.
-	thirdStateQueryAfterTryingToGoToNextTrack := firstGoToNextTrackSignal + secondTrackDuration
-	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomExposedState
-
-		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
-		s.NoError(err)
-
-		err = res.Get(&mtvState)
-		s.NoError(err)
+	thirdStateQueryAfterTryingToGoToNextTrack := defaultDuration * 200
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState()
 
 		s.False(mtvState.Playing)
 
@@ -543,16 +505,18 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 					Title:      tracks[1].Title,
 					Duration:   0,
 				},
-				Elapsed: 0,
+				AlreadyElapsed: 0,
+				StartedOn:      time.Time{},
 			},
 			Duration: tracks[1].Duration.Milliseconds(),
 			Elapsed:  tracks[1].Duration.Milliseconds(),
 		}
 
+		fmt.Printf("\n\nCE QUE JE VEUX DANS LA VIE C EST DE L EAU FRAICHE ET DES AMIS\n %+v\n\n", mtvState.CurrentTrack)
 		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, thirdStateQueryAfterTryingToGoToNextTrack)
 
-	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, params)
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
 
 	s.True(s.env.IsWorkflowCompleted())
 	err := s.env.GetWorkflowError()
@@ -725,5 +689,7 @@ func TestUnitTestSuite(t *testing.T) {
 }
 
 func generateRandomDuration() time.Duration {
-	return time.Minute*time.Duration(rand.Intn(10)) + time.Second*time.Duration(rand.Intn(59))
+	min := 10
+	max := 20
+	return time.Second * time.Duration(rand.Intn(max-min)+min)
 }

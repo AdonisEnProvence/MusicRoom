@@ -547,6 +547,10 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 		InitialUsers:         []string{fakeRoomCreatorUserID},
 		InitialTracksIDsList: tracksIDs,
 	}
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+	defaultDuration := 1 * time.Millisecond
+
+	defer resetMock()
 
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
@@ -569,62 +573,17 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 		mock.Anything,
 	).Return(nil).Times(2)
 
-	trackTimerActivityCalls := 0
-	s.env.OnActivity(
-		activities.TrackTimerActivity,
-		mock.Anything,
-		mock.Anything,
-	).Return(func(ctx context.Context, timerState shared.MtvRoomTimer) (shared.MtvRoomTimer, error) {
-		defer func() {
-			trackTimerActivityCalls++
-		}()
-
-		switch trackTimerActivityCalls {
-		case 0:
-			s.Equal(shared.MtvRoomTimerStateIdle, timerState.State)
-			s.Equal(time.Duration(0), timerState.Elapsed)
-			s.Equal(firstTrackDuration, timerState.TotalDuration)
-
-			return shared.MtvRoomTimer{
-				State:         shared.MtvRoomTimerStatePending,
-				Elapsed:       firstTrackDuration,
-				TotalDuration: firstTrackDuration,
-			}, nil
-
-		default:
-			return shared.MtvRoomTimer{}, errors.New("no timer to return for this call")
-		}
-	}).Times(1)
-
-	initialStateQueryDelay := 1 * time.Second
-	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomExposedState
-
-		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
-		s.NoError(err)
-
-		err = res.Get(&mtvState)
-		s.NoError(err)
+	initialStateQueryDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState()
 
 		s.False(mtvState.Playing)
+		s.emitPlaySignal()
 	}, initialStateQueryDelay)
 
-	firstPlaySignalDelay := initialStateQueryDelay + 1*time.Second
-	s.env.RegisterDelayedCallback(func() {
-		playSignal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
-
-		s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
-	}, firstPlaySignalDelay)
-
-	secondStateQueryAfterTotalTrackDuration := firstPlaySignalDelay + firstTrackDuration
-	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomExposedState
-
-		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
-		s.NoError(err)
-
-		err = res.Get(&mtvState)
-		s.NoError(err)
+	secondStateQueryAfterTotalTrackDuration := firstTrackDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState()
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
@@ -634,7 +593,8 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 					Title:      tracks[0].Title,
 					Duration:   0,
 				},
-				Elapsed: 0,
+				AlreadyElapsed: 0,
+				StartedOn:      time.Time{},
 			},
 			Duration: firstTrackDuration.Milliseconds(),
 			Elapsed:  firstTrackDuration.Milliseconds(),
@@ -643,22 +603,14 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, secondStateQueryAfterTotalTrackDuration)
 
-	secondPlaySignalDelay := secondStateQueryAfterTotalTrackDuration + 1*time.Second
-	s.env.RegisterDelayedCallback(func() {
-		playSignal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
-
-		s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
+	secondPlaySignalDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitPlaySignal()
 	}, secondPlaySignalDelay)
 
-	thirdStateQueryAfterSecondPlaySignal := firstPlaySignalDelay + firstTrackDuration
-	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomExposedState
-
-		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
-		s.NoError(err)
-
-		err = res.Get(&mtvState)
-		s.NoError(err)
+	thirdStateQueryAfterSecondPlaySignal := firstTrackDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState()
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
@@ -668,7 +620,8 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 					Title:      tracks[0].Title,
 					Duration:   0,
 				},
-				Elapsed: 0,
+				AlreadyElapsed: 0,
+				StartedOn:      time.Time{},
 			},
 			Duration: firstTrackDuration.Milliseconds(),
 			Elapsed:  firstTrackDuration.Milliseconds(),
@@ -677,7 +630,7 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, thirdStateQueryAfterSecondPlaySignal)
 
-	s.env.ExecuteWorkflow(workflows.MtvRoomWorkflow, params)
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
 
 	s.True(s.env.IsWorkflowCompleted())
 	err := s.env.GetWorkflowError()

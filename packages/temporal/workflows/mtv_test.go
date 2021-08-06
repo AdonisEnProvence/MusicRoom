@@ -370,18 +370,18 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 }
 
 // Test_GoToNextTrack scenario:
-
+//
 // 1. We set up a Mtv Room with 2 initial tracks.
 // By default the room will be in paused state, waiting
 // for someone to play it.
-
+//
 // 2. We send a GoToNextTrack signal.
-
+//
 // 3. We expect the second track to have been played
 // and to be the current track, although it has ended.
-
+//
 // 4. We send another GoToNextTrack signal.
-
+//
 // 5. We expect the second initial track to still be
 // the current one.
 func (s *UnitTestSuite) Test_GoToNextTrack() {

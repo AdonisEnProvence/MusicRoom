@@ -1,10 +1,10 @@
 import '@testing-library/jest-native';
-import { cleanup } from './services/websockets';
-import { server } from './tests/server/test-server';
 import {
     YoutubeIframeProps,
     YoutubeIframeRef,
 } from 'react-native-youtube-iframe';
+import { cleanup } from './services/websockets';
+import { server } from './tests/server/test-server';
 
 jest.setTimeout(20_000);
 
@@ -23,10 +23,15 @@ jest.mock('react-native-youtube-iframe', () => {
     return React.forwardRef(
         (props: YoutubeIframeProps, ref: YoutubeIframeRef) => {
             const [createdAt] = useState(new Date());
-            const [duration] = useState(randomIntFromInterval(0, 360));
+            const [duration, setDuration] = useState(
+                randomIntFromInterval(0, 360),
+            );
 
             useImperativeHandle(ref, () => ({
                 getDuration: () => Promise.resolve(duration),
+                seekTo: (seconds: number, allowSeekAhead: boolean) => {
+                    setDuration(seconds);
+                },
                 getCurrentTime: () => {
                     const currentDate = new Date();
                     const millisecondsDiff =

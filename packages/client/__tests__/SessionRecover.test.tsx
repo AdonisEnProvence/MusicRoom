@@ -1,7 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { datatype, name, random } from 'faker';
 import React from 'react';
-import { AppMusicPlayerMachineContext } from '../machines/appMusicPlayerMachine';
+import { MtvWorkflowState } from '../../types/dist';
 import { RootNavigator } from '../navigation';
 import { serverSocket } from '../services/websockets';
 import { db } from '../tests/data';
@@ -22,7 +22,7 @@ function waitForTimeout(ms: number): Promise<void> {
 test(`It should display the music player corresponding to the injected state on both CREATED_ROOM server socket callbacks`, async () => {
     const fakeTrack = db.tracks.create();
     const roomName = random.words();
-    const state: AppMusicPlayerMachineContext = {
+    const state: MtvWorkflowState = {
         roomID: datatype.uuid(),
         name: roomName,
         playing: false,
@@ -111,7 +111,7 @@ test(`It should display the music player corresponding to the injected state on 
 test(`It should display the music player corresponding to the injected state on both RETRIEVE_CONTEXT server socket event`, async () => {
     const fakeTrack = db.tracks.create();
     const roomName = random.words();
-    const state: AppMusicPlayerMachineContext = {
+    const state: MtvWorkflowState = {
         roomID: datatype.uuid(),
         name: roomName,
         playing: false,

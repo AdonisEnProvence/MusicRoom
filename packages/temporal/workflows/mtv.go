@@ -25,6 +25,8 @@ type MtvRoomInternalState struct {
 	Timer         shared.MtvRoomTimer
 }
 
+//TODO REMOVE STARTEDON PROPS FROM CURRENTTRACK
+
 func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 	s.initialParams = params
 
@@ -43,7 +45,9 @@ func (s *MtvRoomInternalState) Export() shared.MtvRoomExposedState {
 		now := TimeWrapper()
 		elapsed := s.CurrentTrack.AlreadyElapsed
 
-		dateIsNotZero := s.Timer.CreatedOn.IsZero()
+		dateIsZero := s.Timer.CreatedOn.IsZero()
+		dateIsNotZero := !dateIsZero
+
 		if dateIsNotZero && s.Playing {
 			tmp := now.Sub(s.Timer.CreatedOn)
 			elapsed += tmp
@@ -289,10 +293,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									fmt.Println("-------------ENTERED PLAYING STATE")
 									childCtx, cancelTimerHandler := workflow.WithCancel(ctx)
 
+									var createdOn time.Time
 									encoded := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
 										return TimeWrapper()
 									})
-									var createdOn time.Time
 
 									encoded.Get(&createdOn)
 									// elapsed := GetElapsed(ctx, timerContext.Timer.CreatedOn)

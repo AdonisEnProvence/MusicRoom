@@ -4,18 +4,17 @@ import (
 	"time"
 )
 
-type MtvRoomTimerState string
+type MtvRoomTimerExpiredReason string
 
 const (
-	MtvRoomTimerStateIdle     MtvRoomTimerState = "idle"
-	MtvRoomTimerStatePending  MtvRoomTimerState = "pending"
-	MtvRoomTimerStateFinished MtvRoomTimerState = "finished"
+	MtvRoomTimerExpiredReasonCanceled MtvRoomTimerExpiredReason = "canceled"
+	MtvRoomTimerExpiredReasonFinished MtvRoomTimerExpiredReason = "finished"
 )
 
 type MtvRoomTimer struct {
-	State         MtvRoomTimerState //THIS ATM is only used in the expiration event not in the real machine context it's alway idle
-	TotalDuration time.Duration
-	CreatedOn     time.Time
+	Duration  time.Duration
+	Cancel    func()
+	CreatedOn time.Time
 }
 
 const ControlTaskQueue = "CONTROL_TASK_QUEUE"

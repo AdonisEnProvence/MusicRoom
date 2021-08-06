@@ -9,7 +9,6 @@ import (
 
 func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 	return func(c brainy.Context, e brainy.Event) error {
-		ctx := c.(*MtvRoomMachineContext)
 		event := e.(MtvRoomInitialTracksFetchedEvent)
 
 		internalState.Tracks = event.Tracks
@@ -21,10 +20,10 @@ func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 				StartedOn:      time.Time{},
 				AlreadyElapsed: 0,
 			}
-			ctx.Timer = shared.MtvRoomTimer{
-				State:         shared.MtvRoomTimerStateIdle,
-				CreatedOn:     time.Time{},
-				TotalDuration: currentTrack.Duration,
+			internalState.Timer = shared.MtvRoomTimer{
+				CreatedOn: time.Time{},
+				Duration:  currentTrack.Duration,
+				Cancel:    nil,
 			}
 
 			if tracksCount == 1 {
@@ -35,10 +34,10 @@ func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 				internalState.TracksIDsList = internalState.TracksIDsList[1:]
 			}
 		} else {
-			ctx.Timer = shared.MtvRoomTimer{
-				State:         shared.MtvRoomTimerStateIdle,
-				CreatedOn:     time.Time{},
-				TotalDuration: 0,
+			internalState.Timer = shared.MtvRoomTimer{
+				CreatedOn: time.Time{},
+				Duration:  0,
+				Cancel:    nil,
 			}
 		}
 
@@ -49,17 +48,16 @@ func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 func assignNextTrack(internalState *MtvRoomInternalState) brainy.Action {
 
 	return func(c brainy.Context, e brainy.Event) error {
-		machineContext := c.(*MtvRoomMachineContext)
 
 		internalState.CurrentTrack = shared.CurrentTrack{
 			TrackMetadata:  internalState.Tracks[0],
 			StartedOn:      time.Time{},
 			AlreadyElapsed: 0,
 		}
-		machineContext.Timer = shared.MtvRoomTimer{
-			State:         shared.MtvRoomTimerStateIdle,
-			CreatedOn:     time.Time{},
-			TotalDuration: internalState.CurrentTrack.Duration,
+		internalState.Timer = shared.MtvRoomTimer{
+			CreatedOn: time.Time{},
+			Duration:  internalState.CurrentTrack.Duration,
+			Cancel:    nil,
 		}
 
 		internalState.Tracks = internalState.Tracks[1:]

@@ -557,28 +557,28 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					Duration:  internalState.Timer.Duration,
 					CreatedOn: internalState.Timer.CreatedOn,
 				}
-				fmt.Println("=================TIMER ENDED=====================")
 
 				err := f.Get(ctx, nil)
 				hasBeenCanceled := temporal.IsCanceledError(err)
+
+				fmt.Println("=================TIMER ENDED=====================")
 				fmt.Printf("canceled = %t\n", hasBeenCanceled)
 				fmt.Printf("Was createdOn = %+v\n", internalState.Timer)
 				fmt.Printf("CurrentTrack = %+v\n", internalState.CurrentTrack)
 				fmt.Printf("Now = %+v\n", TimeWrapper())
+				fmt.Println("======================================")
 
 				if hasBeenCanceled {
 					reason = shared.MtvRoomTimerExpiredReasonCanceled
 				} else {
 					reason = shared.MtvRoomTimerExpiredReasonFinished
-					internalState.Timer = shared.MtvRoomTimer{
-						Cancel:    nil,
-						Duration:  0,
-						CreatedOn: time.Time{},
-					}
 				}
 
-				fmt.Println("======================================")
-
+				internalState.Timer = shared.MtvRoomTimer{
+					Cancel:    nil,
+					Duration:  0,
+					CreatedOn: time.Time{},
+				}
 				internalState.Machine.Send(
 					NewMtvRoomTimerExpirationEvent(timerCopy, reason),
 				)

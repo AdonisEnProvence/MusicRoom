@@ -286,15 +286,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 				Initial: MtvRoomPlayingLauchingTimerState,
 
-				OnEntry: brainy.Actions{
-					brainy.ActionFn(
-						func(c brainy.Context, e brainy.Event) error {
-							internalState.Playing = true
-							return nil
-						},
-					),
-				},
-
 				OnExit: brainy.Actions{
 					brainy.ActionFn(
 						func(c brainy.Context, e brainy.Event) error {
@@ -352,6 +343,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 										activities.PlayActivity,
 										internalState.Export(machineContext),
 									)
+									internalState.Playing = true
 
 									return nil
 								},
@@ -439,9 +431,9 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								Actions: brainy.Actions{
 									brainy.ActionFn(
 										func(c brainy.Context, e brainy.Event) error {
-											timerContext := c.(*MtvRoomMachineContext)
+											machineContext := c.(*MtvRoomMachineContext)
 
-											if cancel := timerContext.CancelTimer; cancel != nil {
+											if cancel := machineContext.CancelTimer; cancel != nil {
 												cancel()
 											}
 

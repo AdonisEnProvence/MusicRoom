@@ -1,20 +1,20 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useMachine } from '@xstate/react';
 import { Text, View } from 'dripsy';
 import React from 'react';
-import { TouchableOpacity, FlatList } from 'react-native';
+import { FlatList, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sender } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { useMachine } from '@xstate/react';
-import { Ionicons } from '@expo/vector-icons';
 import {
     AppMusicPlayerMachineEvent,
     AppMusicPlayerMachineState,
 } from '../../machines/appMusicPlayerMachine';
 import { AppScreen, AppScreenContainer, Typo } from '../kit';
 import AppModalHeader from '../kit/AppModalHeader';
+import MusicPlayerFullScreenTracksListItem from './MusicPlayerFullScreenTracksListItem';
 import { MusicPlayerRef } from './Player';
 import TheMusicPlayerWithControls from './TheMusicPlayerWithControls';
-import MusicPlayerFullScreenTracksListItem from './MusicPlayerFullScreenTracksListItem';
 
 type TheMusicPlayerFullScreenProps = {
     machineState: AppMusicPlayerMachineState;
@@ -219,6 +219,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     }}
                 >
                     <TheMusicPlayerWithControls
+                        progressElapsedTime={context.progressElapsedTime}
                         currentTrack={context.currentTrack}
                         setPlayerRef={setPlayerRef}
                         isPlaying={isPlaying}

@@ -12,6 +12,7 @@ import { SocketClient } from '../hooks/useSocket';
 export interface AppMusicPlayerMachineContext extends MtvWorkflowState {
     waitingRoomID?: string;
     autoplay?: boolean;
+    progressElapsedTime: number;
 }
 
 export type AppMusicPlayerMachineState = State<
@@ -63,6 +64,7 @@ const rawContext: AppMusicPlayerMachineContext = {
     tracksIDsList: null,
     waitingRoomID: undefined,
     autoplay: undefined,
+    progressElapsedTime: 0,
 };
 
 export const createAppMusicPlayerMachine = ({
@@ -268,7 +270,14 @@ export const createAppMusicPlayerMachine = ({
                                     event.state.roomID === context.waitingRoomID
                                 );
                             },
-                            actions: 'assignMergeNewState',
+                            actions: [
+                                'assignMergeNewState',
+
+                                assign((context) => ({
+                                    ...context,
+                                    autoplay: context.playing,
+                                })),
+                            ],
                         },
                     },
                 },
@@ -483,6 +492,7 @@ export const createAppMusicPlayerMachine = ({
                     return {
                         ...context,
                         ...event.state,
+                        progressElapsedTime: event.state.currentTrack?.elapsed,
                     };
                 }),
 
@@ -502,10 +512,7 @@ export const createAppMusicPlayerMachine = ({
 
                     return {
                         ...context,
-                        currentTrack: {
-                            ...currentTrack,
-                            elapsed: event.elapsedTime,
-                        },
+                        progressElapsedTime: event.elapsedTime,
                     };
                 }),
             },

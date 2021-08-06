@@ -5,6 +5,7 @@ export interface PlayerProps {
     width?: number;
     videoId: string;
     playing: boolean;
+    seekToInSeconds: number;
     onReady?: () => void;
 }
 

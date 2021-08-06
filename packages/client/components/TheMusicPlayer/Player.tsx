@@ -8,6 +8,7 @@ type MusicPlayerProps = {
     videoId: string;
     videoState: 'playing' | 'stopped';
     playerHeight: number;
+    seekToInSeconds: number;
     setPlayerRef: (playerRef: MusicPlayerRef) => void;
     onTrackReady: () => void;
 };
@@ -22,11 +23,13 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
     playerHeight,
     setPlayerRef,
     onTrackReady,
+    seekToInSeconds,
 }) => {
     return (
         <Pressable onPress={noop} onLongPress={noop}>
             <View pointerEvents="none">
                 <YouTubePlayer
+                    seekToInSeconds={seekToInSeconds}
                     ref={setPlayerRef}
                     height={playerHeight}
                     playing={videoState === 'playing'}

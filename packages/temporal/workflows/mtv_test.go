@@ -32,6 +32,7 @@ func (s *UnitTestSuite) AfterTest(suiteName, testName string) {
 	s.env.AssertExpectations(s.T())
 }
 
+//Should those be methods ? no risk for conflicts ?
 func (s *UnitTestSuite) getMtvState() shared.MtvRoomExposedState {
 	var mtvState shared.MtvRoomExposedState
 
@@ -157,22 +158,23 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		mock.Anything,
 	).Return(nil).Times(3)
 
-	checkThatRoomIsNotPlaying := defaultDuration
+	first := defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState()
 		s.False(mtvState.Playing)
 
 		s.emitPlaySignal()
-	}, checkThatRoomIsNotPlaying)
+	}, first)
 
-	emitPlay := firstTrackDurationFirstThird
+	second := firstTrackDurationFirstThird
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState()
 		s.True(mtvState.Playing)
+		fmt.Printf("\nMA MAMAN C EST LA PLUS BELLE DES MAMANS %+v\n", second)
 		s.emitPauseSignal()
-	}, emitPlay)
+	}, second)
 
-	checkThatOneThirdFirstTrackElapsed := defaultDuration
+	third := defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		fmt.Println("*********VERIFICATION FIRST THIRD TIER ELAPSED*********")
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
@@ -195,22 +197,23 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		s.False(mtvState.Playing)
 		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 
-	}, checkThatOneThirdFirstTrackElapsed)
+	}, third)
 
-	secondEmitPlaySignal := defaultDuration
+	fourth := defaultDuration
 	//Play alone because the signal is sent as last from registerDelayedCallback
 	registerDelayedCallbackWrapper(func() {
 		fmt.Println("*********VERIFICATION 3/3 first track*********")
 		s.emitPlaySignal()
-	}, secondEmitPlaySignal)
+	}, fourth)
 
 	// Important
 	// Here we want to update the timeMock before the new timer for the second track
-	updateTimeMockForTimerExpiration := firstTrackDurationFirstThird + firstTrackDurationFirstThird
+	// Then between this step and the next one the elapsed will incr by defaultDuration
+	fifth := firstTrackDurationFirstThird + firstTrackDurationFirstThird
 	registerDelayedCallbackWrapper(func() {
-	}, updateTimeMockForTimerExpiration)
+	}, fifth)
 
-	checkThatSecondTrackIsCurrentTrack := defaultDuration + defaultDuration
+	sixth := defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState()
 		fmt.Printf("We should find the second track with an elapsed at 0\n%+v\n", mtvState.CurrentTrack)
@@ -227,13 +230,13 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 				StartedOn:      time.Time{},
 			},
 			Duration: secondTrackDuration.Milliseconds(),
-			Elapsed:  0,
+			Elapsed:  1, //Why 1 ? see comment above
 		}
 
 		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
-	}, checkThatSecondTrackIsCurrentTrack)
+	}, sixth)
 
-	checkThatSecondTrackTotalDurationElapsed := secondTrackDuration
+	seventh := secondTrackDuration/2 - defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState()
 		fmt.Printf("We should find the second track with an elapsed at TOTALDURATION\n%+v\n", mtvState.CurrentTrack)
@@ -250,11 +253,11 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 				StartedOn:      time.Time{},
 			},
 			Duration: secondTrackDuration.Milliseconds(),
-			Elapsed:  secondTrackDuration.Milliseconds(),
+			Elapsed:  (secondTrackDuration / 2).Milliseconds(),
 		}
 
 		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
-	}, checkThatSecondTrackTotalDurationElapsed)
+	}, seventh)
 
 	//Temporal triggers his workflow.newTimer depending on the temporalTemporality
 
@@ -263,12 +266,12 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 	// alreadyElapsed with the timer total duration
 	// If not we should have put a registerDelayedCallback just at secondTrackDuration to update
 	// time mock return value
-	verifyStateMachineIsFreezed := secondTrackDuration/2 + defaultDuration
+	nineth := secondTrackDuration/2 + defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState()
 		expectedElapsed := secondTrackDuration.Milliseconds()
 		s.Equal(expectedElapsed, mtvState.CurrentTrack.Elapsed)
-	}, verifyStateMachineIsFreezed)
+	}, nineth)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
 
@@ -573,7 +576,7 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 		s.emitPlaySignal()
 	}, initialStateQueryDelay)
 
-	secondStateQueryAfterTotalTrackDuration := firstTrackDuration + defaultDuration
+	secondStateQueryAfterTotalTrackDuration := firstTrackDuration
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState()
 

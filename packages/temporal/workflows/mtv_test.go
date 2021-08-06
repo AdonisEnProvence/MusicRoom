@@ -51,6 +51,15 @@ func (s *UnitTestSuite) emitPlaySignal() {
 	s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
 }
 
+func (s *UnitTestSuite) emitJoinSignal(userID string) {
+	fmt.Println("-----EMIT JOIN CALLED IN TEST-----")
+	signal := shared.NewJoinSignal(shared.NewJoinSignalArgs{
+		UserID: userID,
+	})
+
+	s.env.SignalWorkflow(shared.SignalChannelName, signal)
+}
+
 func (s *UnitTestSuite) emitPauseSignal() {
 	fmt.Println("-----EMIT PAUSED CALLED IN TEST-----")
 	pauseSignal := shared.NewPauseSignal(shared.NewPauseSignalArgs{})
@@ -295,12 +304,14 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		fakeUserID            = faker.UUIDHyphenated()
 	)
 
+	firstTrackDuration := generateRandomDuration()
+
 	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   generateRandomDuration(),
+			Duration:   firstTrackDuration,
 		},
 	}
 	tracksIDs := []string{tracks[0].ID}
@@ -311,6 +322,10 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		InitialUsers:         []string{fakeRoomCreatorUserID},
 		InitialTracksIDsList: tracksIDs,
 	}
+	defaultDuration := 1 * time.Millisecond
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
 
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
@@ -329,37 +344,49 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		fakeUserID,
 	).Return(nil).Once()
 
-	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomExposedState
+	checkOnlyOneUser := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState()
 
-		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
-		s.NoError(err)
-
-		err = res.Get(&mtvState)
-		s.NoError(err)
-
+		s.False(mtvState.Playing)
 		s.Len(mtvState.Users, 1)
-	}, 1*time.Second)
+	}, checkOnlyOneUser)
 
-	s.env.RegisterDelayedCallback(func() {
-		signal := shared.NewJoinSignal(shared.NewJoinSignalArgs{
-			UserID: fakeUserID,
-		})
+	secondUserJoins := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitJoinSignal(fakeUserID)
+	}, secondUserJoins)
 
-		s.env.SignalWorkflow(shared.SignalChannelName, signal)
-	}, 2*time.Second)
-
-	s.env.RegisterDelayedCallback(func() {
-		var mtvState shared.MtvRoomExposedState
-
-		res, err := s.env.QueryWorkflow(shared.MtvGetStateQuery)
-		s.NoError(err)
-
-		err = res.Get(&mtvState)
-		s.NoError(err)
+	checkTwoUsersThenEmitPlay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState()
 
 		s.Len(mtvState.Users, 2)
-	}, 3*time.Second)
+		s.emitPlaySignal()
+	}, checkTwoUsersThenEmitPlay)
+
+	emitPauseSignal := firstTrackDuration - 200*defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState()
+		fmt.Printf("\n\n\n =)))))))))))))))) SALUT =))))))))))))))) \n %+v \n\n\n", mtvState.CurrentTrack)
+
+		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
+			CurrentTrack: shared.CurrentTrack{
+				TrackMetadata: shared.TrackMetadata{
+					ID:         tracks[0].ID,
+					ArtistName: tracks[0].ArtistName,
+					Title:      tracks[0].Title,
+					Duration:   0,
+				},
+				AlreadyElapsed: 0,
+				StartedOn:      time.Time{},
+			},
+			Duration: firstTrackDuration.Milliseconds(),
+			Elapsed:  (firstTrackDuration - 200*defaultDuration).Milliseconds(),
+		}
+
+		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
+	}, emitPauseSignal)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
 

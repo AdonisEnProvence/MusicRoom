@@ -21,6 +21,7 @@ type MtvRoomInternalState struct {
 	TracksIDsList []string
 	CurrentTrack  shared.CurrentTrack
 	Tracks        []shared.TrackMetadata
+	Playing       bool
 }
 
 func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
@@ -31,14 +32,6 @@ func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 }
 
 func (s *MtvRoomInternalState) Export(machineContext *MtvRoomMachineContext) shared.MtvRoomExposedState {
-	isPlaying := false
-	if machine := s.Machine; machine != nil {
-		isPlaying = machine.UnsafeCurrent().Matches(MtvRoomPlayingState)
-	} else {
-		fmt.Println("LES PATATES SONT CHAUDES ", isPlaying)
-	}
-	fmt.Println("AM I PLAYING WITH DEV MIND ", isPlaying)
-
 	exposedTracks := make([]shared.ExposedTrackMetadata, 0, len(s.Tracks))
 	for _, v := range s.Tracks {
 		exposedTracks = append(exposedTracks, v.Export())
@@ -50,7 +43,7 @@ func (s *MtvRoomInternalState) Export(machineContext *MtvRoomMachineContext) sha
 		elapsed := s.CurrentTrack.AlreadyElapsed
 
 		dateIsNotZero := !machineContext.Timer.CreatedOn.IsZero()
-		if dateIsNotZero && isPlaying {
+		if dateIsNotZero && s.Playing {
 			tmp := now.Sub(machineContext.Timer.CreatedOn)
 			elapsed += tmp
 		}
@@ -62,7 +55,7 @@ func (s *MtvRoomInternalState) Export(machineContext *MtvRoomMachineContext) sha
 	exposedState := shared.MtvRoomExposedState{
 		RoomID:            s.initialParams.RoomID,
 		RoomCreatorUserID: s.initialParams.RoomCreatorUserID,
-		Playing:           isPlaying,
+		Playing:           s.Playing,
 		RoomName:          s.initialParams.RoomName,
 		Users:             s.Users,
 		TracksIDsList:     s.TracksIDsList,
@@ -290,13 +283,33 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 			},
 
 			MtvRoomPlayingState: &brainy.StateNode{
+
 				Initial: MtvRoomPlayingLauchingTimerState,
+
+				OnEntry: brainy.Actions{
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+							internalState.Playing = true
+							return nil
+						},
+					),
+				},
+
+				OnExit: brainy.Actions{
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+							internalState.Playing = false
+							return nil
+						},
+					),
+				},
 
 				States: brainy.StateNodes{
 					MtvRoomPlayingLauchingTimerState: &brainy.StateNode{
 						OnEntry: brainy.Actions{
 							brainy.ActionFn(
 								func(c brainy.Context, e brainy.Event) error {
+
 									fmt.Println("-------------ENTERED PLAYING STATE")
 									machineContext := c.(*MtvRoomMachineContext)
 									childCtx, cancelHandler := workflow.WithCancel(ctx)

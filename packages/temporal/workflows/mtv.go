@@ -313,7 +313,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 									encoded.Get(&createdOn)
 									// elapsed := GetElapsed(ctx, timerContext.Timer.CreatedOn)
-									totalDuration := machineContext.Timer.TotalDuration - internalState.CurrentTrack.AlreadyElapsed
+									totalDuration := internalState.CurrentTrack.Duration - internalState.CurrentTrack.AlreadyElapsed
 
 									machineContext.Timer.CreatedOn = createdOn
 									machineContext.Timer.TotalDuration = totalDuration

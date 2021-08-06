@@ -11,7 +11,6 @@ import { SocketClient } from '../hooks/useSocket';
 
 export interface AppMusicPlayerMachineContext extends MtvWorkflowState {
     waitingRoomID?: string;
-    autoplay?: boolean;
     progressElapsedTime: number;
 }
 
@@ -63,7 +62,6 @@ const rawContext: AppMusicPlayerMachineContext = {
     currentTrack: null,
     tracksIDsList: null,
     waitingRoomID: undefined,
-    autoplay: undefined,
     progressElapsedTime: 0,
 };
 
@@ -113,6 +111,7 @@ export const createAppMusicPlayerMachine = ({
                     });
 
                     socket.on('ACTION_PLAY_CALLBACK', (state) => {
+                        console.log('ACTION_PLAY_CALLBACK', state);
                         sendBack({
                             type: 'PLAY_CALLBACK',
                             state,
@@ -270,14 +269,7 @@ export const createAppMusicPlayerMachine = ({
                                     event.state.roomID === context.waitingRoomID
                                 );
                             },
-                            actions: [
-                                'assignMergeNewState',
-
-                                assign((context) => ({
-                                    ...context,
-                                    autoplay: context.playing,
-                                })),
-                            ],
+                            actions: 'assignMergeNewState',
                         },
                     },
                 },
@@ -307,16 +299,8 @@ export const createAppMusicPlayerMachine = ({
                         loadingTrackDuration: {
                             always: [
                                 {
+                                    cond: ({ playing }) => playing === true,
                                     target: 'activatedPlayer.play',
-
-                                    cond: ({ autoplay }) => autoplay === true,
-
-                                    actions: [
-                                        assign((context) => ({
-                                            ...context,
-                                            autoplay: false,
-                                        })),
-                                    ],
                                 },
 
                                 {
@@ -426,14 +410,7 @@ export const createAppMusicPlayerMachine = ({
                                             return isDifferentCurrentTrack;
                                         },
 
-                                        actions: [
-                                            'assignMergeNewState',
-
-                                            assign((context) => ({
-                                                ...context,
-                                                autoplay: true,
-                                            })),
-                                        ],
+                                        actions: 'assignMergeNewState',
                                     },
 
                                     {

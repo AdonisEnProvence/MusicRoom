@@ -46,7 +46,7 @@ func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 	}
 }
 
-func assignNextTracK(internalState *MtvRoomInternalState) brainy.Action {
+func assignNextTrack(internalState *MtvRoomInternalState) brainy.Action {
 
 	return func(c brainy.Context, e brainy.Event) error {
 		machineContext := c.(*MtvRoomMachineContext)

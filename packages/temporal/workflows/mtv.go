@@ -34,7 +34,10 @@ func (s *MtvRoomInternalState) Export(machineContext *MtvRoomMachineContext) sha
 	isPlaying := false
 	if machine := s.Machine; machine != nil {
 		isPlaying = machine.UnsafeCurrent().Matches(MtvRoomPlayingState)
+	} else {
+		fmt.Println("LES PATATES SONT CHAUDES ", isPlaying)
 	}
+	fmt.Println("AM I PLAYING WITH DEV MIND ", isPlaying)
 
 	exposedTracks := make([]shared.ExposedTrackMetadata, 0, len(s.Tracks))
 	for _, v := range s.Tracks {
@@ -393,7 +396,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 									Actions: brainy.Actions{
 										brainy.ActionFn(
-											assignNextTracK(&internalState),
+											assignNextTrack(&internalState),
 										),
 									},
 								},
@@ -485,7 +488,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 				Actions: brainy.Actions{
 					brainy.ActionFn(
-						assignNextTracK(&internalState),
+						assignNextTrack(&internalState),
 					),
 				},
 			},

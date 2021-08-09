@@ -38,7 +38,7 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
     const controlDisabled = !roomIsReady;
 
     return (
-        <View sx={{ flex: 1 }} onLayout={onContainerLayout}>
+        <View onLayout={onContainerLayout}>
             {currentTrack && (
                 <>
                     <MusicPlayer

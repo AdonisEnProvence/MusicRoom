@@ -4,9 +4,10 @@ import React, {
     useEffect,
     forwardRef,
 } from 'react';
+import { View } from 'dripsy';
 import YouTube, { Options } from 'react-youtube';
 import { PlayerComponent, PlayerProps, PlayerRef } from './contract';
-import { YoutubeIframePlayer } from './youtube-iframe';
+import { YouTubePlayer } from 'youtube-player/dist/types';
 
 function getYoutubePlayerState(
     id: typeof YouTube.PlayerState[keyof typeof YouTube.PlayerState],
@@ -22,8 +23,8 @@ function getYoutubePlayerState(
 }
 
 const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
-    ({ width, height, videoId, playing, onReady }, ref) => {
-        const playerRef = useRef<YoutubeIframePlayer>();
+    ({ videoId, playing, onReady }, ref) => {
+        const playerRef = useRef<YouTubePlayer>();
 
         useImperativeHandle(ref, () => ({
             getDuration() {
@@ -72,8 +73,8 @@ const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
         }, [playing, playerRef]);
 
         const playerOptions: Options = {
-            height: String(height),
-            width: width !== undefined ? String(width) : '100%',
+            height: '100%',
+            width: '100%',
             playerVars: {
                 autoplay: 0,
                 controls: 0,
@@ -86,19 +87,34 @@ const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
                 return;
             }
 
-            playerRef.current = ref.getInternalPlayer() as YoutubeIframePlayer;
+            playerRef.current = ref.getInternalPlayer();
         }
 
         return (
-            <YouTube
-                ref={setPlayerRef}
-                videoId={videoId}
-                opts={playerOptions}
-                onReady={() => {
-                    onReady?.();
+            <View
+                sx={{
+                    overflow: 'hidden',
+                    paddingTop: '56.25%',
+                    position: 'relative',
                 }}
-                onStateChange={handlePlayerStateChange}
-            />
+            >
+                <YouTube
+                    ref={setPlayerRef}
+                    videoId={videoId}
+                    opts={playerOptions}
+                    onReady={() => {
+                        onReady?.();
+                    }}
+                    onStateChange={handlePlayerStateChange}
+                    containerStyle={{
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        height: '100%',
+                        width: '100%',
+                    }}
+                />
+            </View>
         );
     },
 );

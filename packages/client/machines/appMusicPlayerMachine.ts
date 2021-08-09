@@ -42,6 +42,7 @@ export type AppMusicPlayerMachineEvent =
     | { type: 'GO_TO_NEXT_TRACK' }
     | { type: 'PLAY_CALLBACK'; state: MtvWorkflowState }
     | { type: 'FORCED_DISCONNECTION' }
+    | { type: 'FOCUS_READY' }
     | {
           type: 'RETRIEVE_CONTEXT';
           state: MtvWorkflowState;
@@ -157,9 +158,25 @@ export const createAppMusicPlayerMachine = ({
 
             context: rawContext,
 
-            initial: 'waitingJoiningRoom',
+            initial: 'waitingForFocusPage',
 
             states: {
+                /**
+                 * As the youtube player won't autoplay is the page is not focus on the web
+                 * we need to wait for the user's focus before asking for stored context
+                 */
+                waitingForFocusPage: {
+                    invoke: {
+                        src: 'listenForFocus',
+                    },
+
+                    on: {
+                        FOCUS_READY: {
+                            target: 'waitingJoiningRoom',
+                        },
+                    },
+                },
+
                 waitingJoiningRoom: {
                     invoke: {
                         src: (_context) => () => {

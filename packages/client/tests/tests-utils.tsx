@@ -1,10 +1,10 @@
-import React from 'react';
 import {
+    render as rtlRender,
     RenderAPI,
     RenderOptions,
-    render as rtlRender,
 } from '@testing-library/react-native';
 import { DripsyProvider } from 'dripsy';
+import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { MusicPlayerContextProvider } from '../contexts/MusicPlayerContext';
 import { useSocket } from '../hooks/useSocket';
@@ -26,7 +26,11 @@ const AllTheProviders: React.FC = ({ children }) => {
                     insets: { top: 0, left: 0, right: 0, bottom: 0 },
                 }}
             >
-                <MusicPlayerContextProvider socket={socket}>
+                <MusicPlayerContextProvider
+                    // eslint-disable-next-line @typescript-eslint/no-empty-function
+                    setDisplayModal={(bool) => {}}
+                    socket={socket}
+                >
                     {children}
                 </MusicPlayerContextProvider>
             </SafeAreaProvider>

@@ -102,19 +102,6 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
             });
         }
 
-        async function fetchMusicPlayerTotalDuration(): Promise<number> {
-            const player = playerRef.current;
-            if (player === null) {
-                throw new Error(
-                    'playerRef is null, the reference has not been set correctly',
-                );
-            }
-
-            const elapsedTime: number = await player.getDuration();
-
-            return elapsedTime * 1000;
-        }
-
         async function fetchMusicPlayerElapsedTime(): Promise<number> {
             const player = playerRef.current;
             if (player === null) {

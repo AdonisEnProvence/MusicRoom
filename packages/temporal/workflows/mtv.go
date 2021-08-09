@@ -326,12 +326,18 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									}
 									ctx = workflow.WithActivityOptions(ctx, options)
 
+									// To do not corrupt the elapsed on a paused room but also set as playing true
+									// a previously paused room after a go to next track event
+									// we need to mutate and update the internalState after the internalState.Export()
+									exposedInternalState := internalState.Export()
+									exposedInternalState.Playing = true
+									internalState.Playing = true
+
 									workflow.ExecuteActivity(
 										ctx,
 										activities.PlayActivity,
-										internalState.Export(),
+										exposedInternalState,
 									)
-									internalState.Playing = true
 
 									return nil
 								},

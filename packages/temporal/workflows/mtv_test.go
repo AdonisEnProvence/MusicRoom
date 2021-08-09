@@ -403,8 +403,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 //
 // 2. We send a GoToNextTrack signal.
 //
-// 3. We expect the second track to have been played
-// and to be the current track, although it has ended.
+// 3. We expect the second track to be the current track.
 //
 // 4. We send another GoToNextTrack signal.
 //
@@ -439,7 +438,7 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		InitialUsers:         []string{fakeRoomCreatorUserID},
 		InitialTracksIDsList: tracksIDs,
 	}
-	secondTrackDuration := tracks[1].Duration
+	// secondTrackDuration := tracks[1].Duration
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 
 	defer resetMock()
@@ -480,12 +479,12 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 	}, firstGoToNextTrackSignal)
 
 	// 3. We expect the second initial track to be the current one
-	// and the room to be not in playing state anymore.
-	secondStateQueryAfterSecondTrackTotalDuration := secondTrackDuration + defaultDuration
+	// and the room to be playing.
+	verifyThatGoNextTrackWorked := defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState()
 
-		s.False(mtvState.Playing)
+		s.True(mtvState.Playing)
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
 				TrackMetadata: shared.TrackMetadata{
@@ -498,11 +497,11 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 				StartedOn:      time.Time{},
 			},
 			Duration: tracks[1].Duration.Milliseconds(),
-			Elapsed:  tracks[1].Duration.Milliseconds(),
+			Elapsed:  1,
 		}
 
 		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
-	}, secondStateQueryAfterSecondTrackTotalDuration)
+	}, verifyThatGoNextTrackWorked)
 
 	// 4. Send the second GoToNextTrack signal.
 	secondGoToNextTrackSignal := defaultDuration
@@ -510,13 +509,13 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		s.emitGoToNextTrackSignal()
 	}, secondGoToNextTrackSignal)
 
-	// 5. We expect the second initial track to still be the current one
+	// 5. We expect the second initial track to still be the current one playing one
 	// after we tried to go to the next track.
-	thirdStateQueryAfterTryingToGoToNextTrack := defaultDuration * 200
+	verifyThatGoToNextTrackDidntWork := defaultDuration * 200
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState()
 
-		s.False(mtvState.Playing)
+		s.True(mtvState.Playing)
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
@@ -530,12 +529,11 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 				StartedOn:      time.Time{},
 			},
 			Duration: tracks[1].Duration.Milliseconds(),
-			Elapsed:  tracks[1].Duration.Milliseconds(),
+			Elapsed:  (defaultDuration * 202).Milliseconds(),
 		}
 
-		fmt.Printf("\n\nCE QUE JE VEUX DANS LA VIE C EST DE L EAU FRAICHE ET DES AMIS\n %+v\n\n", mtvState.CurrentTrack)
 		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
-	}, thirdStateQueryAfterTryingToGoToNextTrack)
+	}, verifyThatGoToNextTrackDidntWork)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
 

@@ -7,10 +7,17 @@ import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { db } from '../tests/data';
 import { fireEvent, render, waitFor, within } from '../tests/tests-utils';
-import { waitForTimeout } from './SearchTrackScreen.test';
 
 function noop() {
     return undefined;
+}
+
+function waitForTimeout(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve();
+        }, ms);
+    });
 }
 
 test(`When the user clicks on next track button, it should play the next track, if there is one`, async () => {

@@ -8,7 +8,6 @@ import (
 	"net/url"
 
 	"github.com/AdonisEnProvence/MusicRoom/shared"
-	"go.temporal.io/sdk/activity"
 )
 
 func PingActivity(_ context.Context) error {
@@ -72,7 +71,3 @@ func JoinActivity(ctx context.Context, state shared.MtvRoomExposedState, joining
 
 	return err
 }
-
-type RecordHeartbeatWrapperType func(ctx context.Context, details ...interface{})
-
-var RecordHeartbeatWrapper RecordHeartbeatWrapperType = activity.RecordHeartbeat

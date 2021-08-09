@@ -6,17 +6,10 @@ import { RootNavigator } from '../navigation';
 import { serverSocket } from '../services/websockets';
 import { db } from '../tests/data';
 import { fireEvent, render, within } from '../tests/tests-utils';
+import { waitForTimeout } from './SearchTrackScreen.test';
 
 function noop() {
     return undefined;
-}
-
-function waitForTimeout(ms: number): Promise<void> {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve();
-        }, ms);
-    });
 }
 
 test(`It should display the music player corresponding to the injected state on both CREATED_ROOM server socket callbacks`, async () => {

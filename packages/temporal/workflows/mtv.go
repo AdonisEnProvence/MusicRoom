@@ -49,8 +49,7 @@ func (s *MtvRoomInternalState) Export() shared.MtvRoomExposedState {
 		dateIsNotZero := !dateIsZero
 
 		if dateIsNotZero && s.Playing {
-			tmp := now.Sub(s.Timer.CreatedOn)
-			elapsed += tmp
+			elapsed += now.Sub(s.Timer.CreatedOn)
 		}
 
 		tmp := s.CurrentTrack.Export(elapsed)
@@ -174,6 +173,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 		ctx,
 		shared.MtvGetStateQuery,
 		func(input []byte) (shared.MtvRoomExposedState, error) {
+			// Here we do not use workflow.sideEffect for at least two reasons:
+			// 1- we cannot use workflow.sideEffect in the getState queryHandler
+			// 2- we never update our internalState depending on internalState.Export() results
+			// this data aims to be sent to adonis.
 			exposedState := internalState.Export()
 
 			return exposedState, nil
@@ -250,7 +253,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							}
 							ctx = workflow.WithActivityOptions(ctx, options)
 
-							//BAAAAD WE SHOULD SET THE TIMER BEFORE HERE WE LOOSE SOME TIME
 							workflow.ExecuteActivity(
 								ctx,
 								activities.PauseActivity,
@@ -297,9 +299,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									encoded := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
 										return TimeWrapper()
 									})
-
 									encoded.Get(&createdOn)
-									// elapsed := GetElapsed(ctx, timerContext.Timer.CreatedOn)
+
 									totalDuration := internalState.CurrentTrack.Duration - internalState.CurrentTrack.AlreadyElapsed
 
 									internalState.Timer = shared.MtvRoomTimer{
@@ -326,8 +327,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									}
 									ctx = workflow.WithActivityOptions(ctx, options)
 
-									// To do not corrupt the elapsed on a paused room but also set as playing true
-									// a previously paused room after a go to next track event
+									// To do not corrupt the elapsed on a paused room with the freshly created timer
+									// but also set as playing true a previously paused room after a go to next track event
 									// we need to mutate and update the internalState after the internalState.Export()
 									exposedInternalState := internalState.Export()
 									exposedInternalState.Playing = true

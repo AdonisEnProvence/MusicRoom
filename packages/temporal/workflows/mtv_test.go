@@ -32,7 +32,6 @@ func (s *UnitTestSuite) AfterTest(suiteName, testName string) {
 	s.env.AssertExpectations(s.T())
 }
 
-//Should those be methods ? no risk for conflicts ?
 func (s *UnitTestSuite) getMtvState() shared.MtvRoomExposedState {
 	var mtvState shared.MtvRoomExposedState
 
@@ -135,7 +134,6 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 			Duration:   secondTrackDuration,
 		},
 	}
-	fmt.Printf("%+v\n", tracks)
 
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
 	params := shared.MtvRoomParameters{
@@ -175,12 +173,12 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		s.emitPlaySignal()
 	}, checkThatRoomIsNotPlaying)
 
-	emitPlay := firstTrackDurationFirstThird
+	emitPause := firstTrackDurationFirstThird
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState()
 		s.True(mtvState.Playing)
 		s.emitPauseSignal()
-	}, emitPlay)
+	}, emitPause)
 
 	checkThatOneThirdFirstTrackElapsed := defaultDuration
 	registerDelayedCallbackWrapper(func() {

@@ -257,9 +257,5 @@ test(`It should display the already elapsed track duration and player should be 
         /elapsed/i,
     );
     expect(nonZeroCurrentTime).toBeTruthy();
-    try {
-        expect(nonZeroCurrentTime).toHaveTextContent('01:43');
-    } catch (e) {
-        expect(nonZeroCurrentTime).toHaveTextContent('01:42');
-    }
+    expect(nonZeroCurrentTime).toHaveTextContent(/01:4\d/);
 });

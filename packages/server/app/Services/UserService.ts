@@ -1,5 +1,5 @@
+import { AllServerToClientEvents } from '@musicroom/types';
 import User from 'App/Models/User';
-import { AllServerToClientEvents } from '../../../types/dist';
 import Ws from './Ws';
 
 export default class UserService {

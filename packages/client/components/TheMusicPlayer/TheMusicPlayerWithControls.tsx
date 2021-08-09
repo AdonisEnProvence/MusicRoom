@@ -1,7 +1,7 @@
+import { CurrentTrack } from '@musicroom/types';
 import Slider from '@react-native-community/slider';
 import { View } from 'dripsy';
 import React from 'react';
-import { CurrentTrack } from '../../../types/dist';
 import { useFormatMilliSeconds } from '../../hooks/useFormatMilliSeconds';
 import { useLayout } from '../../hooks/useLayout';
 import { Typo } from '../kit';

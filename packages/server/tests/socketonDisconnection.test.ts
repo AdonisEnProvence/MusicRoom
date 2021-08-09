@@ -745,7 +745,7 @@ test.group('Rooms life cycle', (group) => {
             receivedEvents.push('CREATE_ROOM_CALLBACK');
         });
 
-        UserService.EmitEventInSocket(socket.id, 'CREATE_ROOM_CALLBACK', [
+        UserService.emitEventInSocket(socket.id, 'CREATE_ROOM_CALLBACK', [
             state,
         ]);
 

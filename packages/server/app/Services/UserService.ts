@@ -30,7 +30,7 @@ export default class UserService {
             );
     }
 
-    public static async EmitEventInEveryDeviceUser<
+    public static async emitEventInEveryDeviceUser<
         Event extends keyof AllServerToClientEvents,
         Args extends Parameters<AllServerToClientEvents[Event]>,
     >(userID: string, event: Event, args: Args): Promise<void> {
@@ -39,11 +39,11 @@ export default class UserService {
         if (!user.devices) return;
 
         user.devices.forEach((device) =>
-            this.EmitEventInSocket(device.socketID, event, args),
+            this.emitEventInSocket(device.socketID, event, args),
         );
     }
 
-    public static EmitEventInSocket<
+    public static emitEventInSocket<
         Event extends keyof AllServerToClientEvents,
         Args extends Parameters<AllServerToClientEvents[Event]>,
     >(socketID: string, event: Event, args: Args): void {

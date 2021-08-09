@@ -52,7 +52,7 @@ export default class TemporalToServerController {
         await joiningUser.related('mtvRoom').associate(mtvRoom);
         await joiningUser.save();
 
-        await UserService.EmitEventInEveryDeviceUser(
+        await UserService.emitEventInEveryDeviceUser(
             joiningUserID,
             'JOIN_ROOM_CALLBACK',
             [state],

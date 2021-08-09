@@ -11,7 +11,7 @@ import { SocketClient } from '../hooks/useSocket';
 
 export interface AppMusicPlayerMachineContext extends MtvWorkflowState {
     waitingRoomID?: string;
-    autoplay?: boolean;
+    progressElapsedTime: number;
 }
 
 export type AppMusicPlayerMachineState = State<
@@ -42,6 +42,7 @@ export type AppMusicPlayerMachineEvent =
     | { type: 'GO_TO_NEXT_TRACK' }
     | { type: 'PLAY_CALLBACK'; state: MtvWorkflowState }
     | { type: 'FORCED_DISCONNECTION' }
+    | { type: 'FOCUS_READY' }
     | {
           type: 'RETRIEVE_CONTEXT';
           state: MtvWorkflowState;
@@ -62,7 +63,7 @@ const rawContext: AppMusicPlayerMachineContext = {
     currentTrack: null,
     tracksIDsList: null,
     waitingRoomID: undefined,
-    autoplay: undefined,
+    progressElapsedTime: 0,
 };
 
 export const createAppMusicPlayerMachine = ({
@@ -111,6 +112,7 @@ export const createAppMusicPlayerMachine = ({
                     });
 
                     socket.on('ACTION_PLAY_CALLBACK', (state) => {
+                        console.log('ACTION_PLAY_CALLBACK', state);
                         sendBack({
                             type: 'PLAY_CALLBACK',
                             state,
@@ -156,9 +158,25 @@ export const createAppMusicPlayerMachine = ({
 
             context: rawContext,
 
-            initial: 'waitingJoiningRoom',
+            initial: 'waitingForFocusPage',
 
             states: {
+                /**
+                 * As the youtube player won't autoplay is the page is not focus on the web
+                 * we need to wait for the user's focus before asking for stored context
+                 */
+                waitingForFocusPage: {
+                    invoke: {
+                        src: 'listenForFocus',
+                    },
+
+                    on: {
+                        FOCUS_READY: {
+                            target: 'waitingJoiningRoom',
+                        },
+                    },
+                },
+
                 waitingJoiningRoom: {
                     invoke: {
                         src: (_context) => () => {
@@ -298,16 +316,8 @@ export const createAppMusicPlayerMachine = ({
                         loadingTrackDuration: {
                             always: [
                                 {
+                                    cond: ({ playing }) => playing === true,
                                     target: 'activatedPlayer.play',
-
-                                    cond: ({ autoplay }) => autoplay === true,
-
-                                    actions: [
-                                        assign((context) => ({
-                                            ...context,
-                                            autoplay: false,
-                                        })),
-                                    ],
                                 },
 
                                 {
@@ -417,14 +427,7 @@ export const createAppMusicPlayerMachine = ({
                                             return isDifferentCurrentTrack;
                                         },
 
-                                        actions: [
-                                            'assignMergeNewState',
-
-                                            assign((context) => ({
-                                                ...context,
-                                                autoplay: true,
-                                            })),
-                                        ],
+                                        actions: 'assignMergeNewState',
                                     },
 
                                     {
@@ -483,6 +486,7 @@ export const createAppMusicPlayerMachine = ({
                     return {
                         ...context,
                         ...event.state,
+                        progressElapsedTime: event.state.currentTrack?.elapsed,
                     };
                 }),
 
@@ -502,10 +506,7 @@ export const createAppMusicPlayerMachine = ({
 
                     return {
                         ...context,
-                        currentTrack: {
-                            ...currentTrack,
-                            elapsed: event.elapsedTime,
-                        },
+                        progressElapsedTime: event.elapsedTime,
                     };
                 }),
             },

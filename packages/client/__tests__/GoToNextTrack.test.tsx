@@ -1,7 +1,7 @@
+import { MtvWorkflowState } from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
 import { datatype, random } from 'faker';
 import React from 'react';
-import { MtvWorkflowState } from '@musicroom/types';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
@@ -10,6 +10,14 @@ import { fireEvent, render, waitFor, within } from '../tests/tests-utils';
 
 function noop() {
     return undefined;
+}
+
+function waitForTimeout(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve();
+        }, ms);
+    });
 }
 
 test(`When the user clicks on next track button, it should play the next track, if there is one`, async () => {
@@ -33,6 +41,7 @@ test(`When the user clicks on next track button, it should play the next track, 
     serverSocket.on('GO_TO_NEXT_TRACK', () => {
         serverSocket.emit('ACTION_PLAY_CALLBACK', {
             ...initialState,
+            playing: true,
             currentTrack: {
                 ...tracksList[1],
                 elapsed: 0,
@@ -87,6 +96,8 @@ test(`When the user clicks on next track button, it should play the next track, 
 
     fireEvent.press(nextTrackButton);
 
+    await waitForTimeout(1_000);
+
     expect(
         await within(musicPlayerFullScreen).findByText(tracksList[1].title),
     ).toBeTruthy();
@@ -94,6 +105,7 @@ test(`When the user clicks on next track button, it should play the next track, 
         musicPlayerFullScreen,
     ).getByLabelText(/minutes.*duration/i);
     expect(secondTrackDurationTime).not.toHaveTextContent('00:00');
+
     const pauseButton = within(musicPlayerFullScreen).getByLabelText(
         /pause.*video/i,
     );

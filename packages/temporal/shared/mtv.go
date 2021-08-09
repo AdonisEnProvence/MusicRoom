@@ -4,18 +4,17 @@ import (
 	"time"
 )
 
-type MtvRoomTimerState string
+type MtvRoomTimerExpiredReason string
 
 const (
-	MtvRoomTimerStateIdle     MtvRoomTimerState = "idle"
-	MtvRoomTimerStatePending  MtvRoomTimerState = "pending"
-	MtvRoomTimerStateFinished MtvRoomTimerState = "finished"
+	MtvRoomTimerExpiredReasonCanceled MtvRoomTimerExpiredReason = "canceled"
+	MtvRoomTimerExpiredReasonFinished MtvRoomTimerExpiredReason = "finished"
 )
 
 type MtvRoomTimer struct {
-	State         MtvRoomTimerState
-	Elapsed       time.Duration
-	TotalDuration time.Duration
+	Duration  time.Duration
+	Cancel    func()
+	CreatedOn time.Time
 }
 
 const ControlTaskQueue = "CONTROL_TASK_QUEUE"
@@ -48,7 +47,8 @@ func (t TrackMetadata) Export() ExposedTrackMetadata {
 type CurrentTrack struct {
 	TrackMetadata
 
-	Elapsed time.Duration `json:"elapsed"`
+	StartedOn      time.Time     `json:"-"`
+	AlreadyElapsed time.Duration `json:"-"`
 }
 
 type ExposedCurrentTrack struct {
@@ -58,11 +58,14 @@ type ExposedCurrentTrack struct {
 	Elapsed  int64 `json:"elapsed"`
 }
 
-func (c CurrentTrack) Export() ExposedCurrentTrack {
+func (c CurrentTrack) Export(elapsed time.Duration) ExposedCurrentTrack {
+	copy := c
+	copy.StartedOn = time.Time{}
+	copy.AlreadyElapsed = 0
 	return ExposedCurrentTrack{
-		CurrentTrack: c,
+		CurrentTrack: copy,
 		Duration:     c.Duration.Milliseconds(),
-		Elapsed:      c.Elapsed.Milliseconds(),
+		Elapsed:      elapsed.Milliseconds(),
 	}
 }
 

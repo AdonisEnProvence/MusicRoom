@@ -1,7 +1,7 @@
+import { CurrentTrack } from '@musicroom/types';
 import Slider from '@react-native-community/slider';
 import { View } from 'dripsy';
 import React from 'react';
-import { CurrentTrack } from '../../../types/dist';
 import { useFormatMilliSeconds } from '../../hooks/useFormatMilliSeconds';
 import { useLayout } from '../../hooks/useLayout';
 import { Typo } from '../kit';
@@ -9,6 +9,7 @@ import MusicPlayerControlButton from './MusicPlayerControlButton';
 import MusicPlayer, { MusicPlayerRef } from './Player';
 
 type TheMusicPlayerWithControlsProps = {
+    progressElapsedTime: number;
     currentTrack: CurrentTrack | null;
     isPlaying: boolean;
     roomIsReady: boolean;
@@ -21,6 +22,7 @@ type TheMusicPlayerWithControlsProps = {
 const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
     currentTrack,
     isPlaying,
+    progressElapsedTime,
     roomIsReady,
     onTrackReady,
     onPlayingToggle,
@@ -30,7 +32,7 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
     const [{ width: containerWidth }, onContainerLayout] = useLayout();
     const playerHeight = (containerWidth * 9) / 16;
     const formattedElapsedTime = useFormatMilliSeconds(
-        currentTrack?.elapsed || 0,
+        progressElapsedTime || 0,
     );
     const formattedTotalDuration = useFormatMilliSeconds(
         currentTrack?.duration || 0,
@@ -42,6 +44,7 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
             {currentTrack && (
                 <>
                     <MusicPlayer
+                        seekToInSeconds={currentTrack.elapsed / 1000}
                         setPlayerRef={setPlayerRef}
                         videoId={currentTrack.id}
                         videoState={isPlaying ? 'playing' : 'stopped'}
@@ -69,7 +72,7 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
                     <View sx={{ marginTop: 'm' }}>
                         <Slider
                             disabled
-                            value={currentTrack.elapsed}
+                            value={progressElapsedTime}
                             minimumValue={0}
                             maximumValue={currentTrack.duration}
                             minimumTrackTintColor="white"

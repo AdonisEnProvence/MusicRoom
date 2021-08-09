@@ -1,8 +1,8 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Devessier/brainy v0.0.10 h1:WtFkiyMXMdlSmltkfXwQEfLdLL/Z6yRBhL9aKqOwRso=
-github.com/Devessier/brainy v0.0.10/go.mod h1:8tGYMsQmAbkw8Wv5wMJrHLEU02c494VX4Ys9nRFouJA=
+github.com/Devessier/brainy v0.0.11 h1:NgsWY9KibS35qNuHa/tn5aH6mfft78HbXZnDwgWOnjI=
+github.com/Devessier/brainy v0.0.11/go.mod h1:8tGYMsQmAbkw8Wv5wMJrHLEU02c494VX4Ys9nRFouJA=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/bojanz/httpx v0.0.0-20201111190843-d1cf01c49b2e h1:ta63AKr1LlBpEDB5zMk2uDgAdpkFpypfaywDvIp5PmI=
 github.com/bojanz/httpx v0.0.0-20201111190843-d1cf01c49b2e/go.mod h1:CmIVARSG6JaD9lvVI2Y0Jur5UvpndDJTcSOmgMdMqSQ=
@@ -86,8 +86,6 @@ github.com/gorilla/mux v1.8.0/go.mod h1:DVbg23sWSpFRCP0SfiEN6jmj59UnW/n46BH5rLB7
 github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 h1:+9834+KizmvFV7pXQGSXQTsaWhq2GjuNUt0aUU0YBYw=
 github.com/grpc-ecosystem/go-grpc-middleware v1.3.0/go.mod h1:z0ButlSOZa5vEBq9m2m2hlwIgKw+rp3sdCBRoJY+30Y=
 github.com/grpc-ecosystem/grpc-gateway v1.16.0/go.mod h1:BDjrQk3hbvj6Nolgz8mAMFbcEtjT1g+wF4CSlocrBnw=
-github.com/joho/godotenv v1.3.0 h1:Zjp+RcGpHhGlrMbJzXTrZZPrWj+1vfm90La1wgB6Bhc=
-github.com/joho/godotenv v1.3.0/go.mod h1:7hK45KPybAkOC6peb+G5yklZfMxEjkZhHbwpqxOKXbg=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=

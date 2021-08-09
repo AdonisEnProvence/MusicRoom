@@ -9,7 +9,6 @@ import (
 
 func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 	return func(c brainy.Context, e brainy.Event) error {
-		ctx := c.(*MtvRoomMachineContext)
 		event := e.(MtvRoomInitialTracksFetchedEvent)
 
 		internalState.Tracks = event.Tracks
@@ -17,13 +16,14 @@ func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 		if tracksCount := len(event.Tracks); tracksCount > 0 {
 			currentTrack := internalState.Tracks[0]
 			internalState.CurrentTrack = shared.CurrentTrack{
-				TrackMetadata: currentTrack,
-				Elapsed:       0,
+				TrackMetadata:  currentTrack,
+				StartedOn:      time.Time{},
+				AlreadyElapsed: 0,
 			}
-			ctx.Timer = shared.MtvRoomTimer{
-				State:         shared.MtvRoomTimerStateIdle,
-				Elapsed:       0,
-				TotalDuration: currentTrack.Duration,
+			internalState.Timer = shared.MtvRoomTimer{
+				CreatedOn: time.Time{},
+				Duration:  currentTrack.Duration,
+				Cancel:    nil,
 			}
 
 			if tracksCount == 1 {
@@ -34,10 +34,10 @@ func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 				internalState.TracksIDsList = internalState.TracksIDsList[1:]
 			}
 		} else {
-			ctx.Timer = shared.MtvRoomTimer{
-				State:         shared.MtvRoomTimerStateIdle,
-				Elapsed:       0,
-				TotalDuration: 0,
+			internalState.Timer = shared.MtvRoomTimer{
+				CreatedOn: time.Time{},
+				Duration:  0,
+				Cancel:    nil,
 			}
 		}
 
@@ -45,28 +45,23 @@ func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 	}
 }
 
-func assignNextTrackIfAvailable(internalState *MtvRoomInternalState) brainy.Action {
+func assignNextTrack(internalState *MtvRoomInternalState) brainy.Action {
+
 	return func(c brainy.Context, e brainy.Event) error {
-		ctx := c.(*MtvRoomMachineContext)
 
-		tracksCount := len(internalState.Tracks)
 		internalState.CurrentTrack = shared.CurrentTrack{
-			TrackMetadata: internalState.Tracks[0],
-			Elapsed:       time.Second * 0,
+			TrackMetadata:  internalState.Tracks[0],
+			StartedOn:      time.Time{},
+			AlreadyElapsed: 0,
 		}
-		ctx.Timer = shared.MtvRoomTimer{
-			State:         shared.MtvRoomTimerStateIdle,
-			Elapsed:       time.Second * 0,
-			TotalDuration: internalState.CurrentTrack.Duration,
+		internalState.Timer = shared.MtvRoomTimer{
+			CreatedOn: time.Time{},
+			Duration:  internalState.CurrentTrack.Duration,
+			Cancel:    nil,
 		}
 
-		if tracksCount == 1 {
-			internalState.Tracks = []shared.TrackMetadata{}
-			internalState.TracksIDsList = []string{}
-		} else {
-			internalState.Tracks = internalState.Tracks[1:]
-			internalState.TracksIDsList = internalState.TracksIDsList[1:]
-		}
+		internalState.Tracks = internalState.Tracks[1:]
+		internalState.TracksIDsList = internalState.TracksIDsList[1:]
 
 		return nil
 	}

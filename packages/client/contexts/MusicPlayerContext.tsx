@@ -1,5 +1,6 @@
 import { useMachine } from '@xstate/react';
 import React, { useContext, useRef } from 'react';
+import { Platform } from 'react-native';
 import { Sender } from 'xstate';
 import { MusicPlayerRef } from '../components/TheMusicPlayer/Player';
 import {
@@ -26,17 +27,40 @@ const MusicPlayerContext = React.createContext<
 
 type MusicPlayerContextProviderProps = {
     socket: Socket;
+    setDisplayModal: (display: boolean) => void;
 };
 
 // TODO: See if we need to optimize the performances
 export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProps> =
-    ({ socket, children }) => {
+    ({ socket, setDisplayModal, children }) => {
         const playerRef = useRef<MusicPlayerRef | null>(null);
         const { isFullScreen, setIsFullScreen, toggleIsFullScreen } =
             useMusicPlayerToggleFullScreen(false);
+
         const appMusicPlayerMachine = createAppMusicPlayerMachine({ socket });
         const [state, send] = useMachine(appMusicPlayerMachine, {
             services: {
+                listenForFocus: () => (sendBack) => {
+                    const listener = () => {
+                        console.log('SENDING FOCUS READY');
+                        sendBack('FOCUS_READY');
+                    };
+
+                    //Can't be using always props in state machine as invoke is called before it
+                    if (Platform.OS !== 'web') {
+                        listener();
+                        return;
+                    }
+
+                    document.addEventListener('click', listener);
+                    setDisplayModal(true);
+
+                    return () => {
+                        console.log('___CLEANUP___');
+                        document.removeEventListener('click', listener);
+                        setDisplayModal(false);
+                    };
+                },
                 pollTrackElapsedTime: () => (sendBack) => {
                     const INTERVAL = 200;
                     // eslint-disable-next-line @typescript-eslint/no-misused-promises

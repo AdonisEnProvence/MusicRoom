@@ -1,7 +1,7 @@
+import { MtvWorkflowState } from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
 import { datatype, name, random } from 'faker';
 import React from 'react';
-import { AppMusicPlayerMachineContext } from '../machines/appMusicPlayerMachine';
 import { RootNavigator } from '../navigation';
 import { serverSocket } from '../services/websockets';
 import { db } from '../tests/data';
@@ -22,7 +22,7 @@ function waitForTimeout(ms: number): Promise<void> {
 test(`Goes to Search a Track screen, searches a track, sees search results, presses a song and listens to it`, async () => {
     const fakeTrack = db.tracks.create();
     const roomName = random.words();
-    const state: AppMusicPlayerMachineContext = {
+    const state: MtvWorkflowState = {
         roomID: datatype.uuid(),
         name: roomName,
         playing: false,

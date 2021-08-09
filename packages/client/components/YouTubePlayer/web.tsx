@@ -1,13 +1,13 @@
-import React, {
-    useRef,
-    useImperativeHandle,
-    useEffect,
-    forwardRef,
-} from 'react';
 import { View } from 'dripsy';
+import React, {
+    forwardRef,
+    useEffect,
+    useImperativeHandle,
+    useRef,
+} from 'react';
 import YouTube, { Options } from 'react-youtube';
-import { PlayerComponent, PlayerProps, PlayerRef } from './contract';
 import { YouTubePlayer } from 'youtube-player/dist/types';
+import { PlayerComponent, PlayerProps, PlayerRef } from './contract';
 
 function getYoutubePlayerState(
     id: typeof YouTube.PlayerState[keyof typeof YouTube.PlayerState],
@@ -23,7 +23,7 @@ function getYoutubePlayerState(
 }
 
 const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
-    ({ videoId, playing, onReady }, ref) => {
+    ({ videoId, playing, onReady, seekToInSeconds }, ref) => {
         const playerRef = useRef<YouTubePlayer>();
 
         useImperativeHandle(ref, () => ({
@@ -65,12 +65,13 @@ const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
         }
 
         useEffect(() => {
+            playerRef.current?.seekTo(seekToInSeconds, true);
             if (playing === true) {
                 playerRef.current?.playVideo();
             } else {
                 playerRef.current?.pauseVideo();
             }
-        }, [playing, playerRef]);
+        }, [playing, playerRef, seekToInSeconds]);
 
         const playerOptions: Options = {
             height: '100%',

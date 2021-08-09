@@ -1,10 +1,10 @@
 import '@testing-library/jest-native';
-import { cleanup } from './services/websockets';
-import { server } from './tests/server/test-server';
 import {
     YoutubeIframeProps,
     YoutubeIframeRef,
 } from 'react-native-youtube-iframe';
+import { cleanup } from './services/websockets';
+import { server } from './tests/server/test-server';
 
 jest.setTimeout(20_000);
 
@@ -23,17 +23,24 @@ jest.mock('react-native-youtube-iframe', () => {
     return React.forwardRef(
         (props: YoutubeIframeProps, ref: YoutubeIframeRef) => {
             const [createdAt] = useState(new Date());
-            const [duration] = useState(randomIntFromInterval(0, 360));
+            const [durationSeconds] = useState(randomIntFromInterval(200, 360));
+            const [alreadyElapsed, setAlreadyElapsed] = useState(0);
 
             useImperativeHandle(ref, () => ({
-                getDuration: () => Promise.resolve(duration),
+                getDuration: () => Promise.resolve(durationSeconds),
+                seekTo: (seconds: number, allowSeekAhead: boolean) => {
+                    setAlreadyElapsed(seconds);
+                },
                 getCurrentTime: () => {
                     const currentDate = new Date();
                     const millisecondsDiff =
                         Number(currentDate) - Number(createdAt);
-                    const secondsDiff = millisecondsDiff / 1000;
+                    const elapsedSeconds =
+                        millisecondsDiff / 1000 + (alreadyElapsed as number);
 
-                    return Promise.resolve(Math.min(secondsDiff, duration));
+                    return Promise.resolve(
+                        Math.min(elapsedSeconds, durationSeconds),
+                    );
                 },
             }));
 

@@ -1,13 +1,19 @@
-import React from 'react';
-import { useRef } from 'react';
-import { useImperativeHandle } from 'react';
-import { forwardRef } from 'react';
+import React, {
+    forwardRef,
+    useEffect,
+    useImperativeHandle,
+    useRef,
+} from 'react';
 import YoutubePlayer, { YoutubeIframeRef } from 'react-native-youtube-iframe';
 import { PlayerComponent, PlayerProps, PlayerRef } from './contract';
 
 const NativePlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
-    ({ width, height, videoId, playing, onReady }, ref) => {
+    ({ width, height, videoId, playing, onReady, seekToInSeconds }, ref) => {
         const playerRef = useRef<YoutubeIframeRef>(null);
+
+        useEffect(() => {
+            playerRef.current?.seekTo(seekToInSeconds, true);
+        }, [playerRef, seekToInSeconds, playing]);
 
         useImperativeHandle(ref, () => ({
             async getDuration() {

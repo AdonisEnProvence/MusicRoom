@@ -18,10 +18,15 @@ const SuggestTrackResultsModal: React.FC<SearchTrackResultsScreenProps> = ({
 
     // TODO: implement what to do when a track has been pressed
     function handleTrackPress(trackId: string) {
-        return undefined;
+        exitModal();
     }
 
     function handleGoBack() {
+        navigation.goBack();
+    }
+
+    function exitModal() {
+        navigation.popToTop();
         navigation.goBack();
     }
 

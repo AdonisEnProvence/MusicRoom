@@ -27,7 +27,6 @@ export const UserContextProvider: React.FC<UserContextProviderProps> = ({
 }) => {
     const appMusicPlayerMachine = createUserMachine({ socket });
     const [state, send] = useMachine(appMusicPlayerMachine);
-    console.log('CE QUE JE VEUX VOIR', state.context);
     return (
         <UserContext.Provider
             value={{

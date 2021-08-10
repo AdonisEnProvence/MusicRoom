@@ -33,14 +33,43 @@ type TypedTestSocket = Socket<AllServerToClientEvents, AllClientToServerEvents>;
 
 let socketsConnections: TypedTestSocket[] = [];
 
+type AvailableBrowsersMocks = 'Firefox' | 'Chrome' | 'Safari';
+
 async function createSocketConnection(
     userID: string,
+    deviceName?: string,
+    browser?: AvailableBrowsersMocks,
     requiredEventListeners?: (socket: TypedTestSocket) => void,
 ): Promise<TypedTestSocket> {
+    const query: { [key: string]: string } = {
+        userID,
+    };
+    if (deviceName) query.deviceName = deviceName;
+
+    const extraHeaders: { [key: string]: string } = {};
+    if (browser !== undefined) {
+        switch (browser) {
+            case 'Chrome':
+                extraHeaders[
+                    'user-agent'
+                ] = `Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.116 Safari/537.36`;
+                break;
+            case 'Firefox':
+                extraHeaders[
+                    'user-agent'
+                ] = `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0`;
+                break;
+            case 'Safari':
+                extraHeaders[
+                    'user-agent'
+                ] = `Mozilla/5.0 (Macintosh; Intel Mac OS X 11_5_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Safari/605.1.15`;
+                break;
+        }
+    }
+
     const socket = io(BASE_URL, {
-        query: {
-            userID,
-        },
+        query,
+        extraHeaders,
     });
     socketsConnections.push(socket);
     if (requiredEventListeners) requiredEventListeners(socket);
@@ -50,12 +79,14 @@ async function createSocketConnection(
 
 async function createUserAndGetSocket(
     userID: string,
+    deviceName?: string,
+    browser?: AvailableBrowsersMocks,
 ): Promise<TypedTestSocket> {
     await User.create({
         uuid: userID,
         nickname: random.word(),
     });
-    return await createSocketConnection(userID);
+    return await createSocketConnection(userID, deviceName, browser);
 }
 
 async function disconnectSocket(socket: TypedTestSocket): Promise<void> {
@@ -705,11 +736,13 @@ test.group('Rooms life cycle', (group) => {
                 userID: userID,
                 uuid: datatype.uuid(),
                 socketID: datatype.uuid(),
+                name: random.word(),
             },
             {
                 userID: userID,
                 uuid: datatype.uuid(),
                 socketID: datatype.uuid(),
+                name: random.word(),
             },
         ]);
 
@@ -725,7 +758,7 @@ test.group('Rooms life cycle', (group) => {
         }
     }).timeout(10_000);
 
-    test('It should send server socket event to the client', async (assert) => {
+    test('It should send server socket event to the client via the UserService.emitEventInSocket', async (assert) => {
         const userID = datatype.uuid();
         const socket = await createUserAndGetSocket(userID);
         const state: MtvWorkflowState = {
@@ -751,5 +784,59 @@ test.group('Rooms life cycle', (group) => {
 
         await sleep();
         assert.notEqual(receivedEvents.indexOf('CREATE_ROOM_CALLBACK'), -1);
+    });
+
+    test('It should send to every user socket instance the CONNECTED_DEVICES_UPDATE socket event on device co/dc', async (assert) => {
+        const userID = datatype.uuid();
+        const socketA = {
+            socket: await createUserAndGetSocket(userID),
+            receivedEvents: [] as string[],
+        };
+
+        socketA.socket.once('CONNECTED_DEVICES_UPDATE', (devices) => {
+            assert.equal(2, devices.length);
+            socketA.receivedEvents.push('CONNECTED_DEVICES_UPDATE');
+        });
+
+        const socketB = {
+            socket: await createSocketConnection(userID),
+            receivedEvents: [] as string[],
+        };
+
+        socketA.socket.once('CONNECTED_DEVICES_UPDATE', (devices) => {
+            assert.equal(1, devices.length);
+            socketA.receivedEvents.push('CONNECTED_DEVICES_UPDATE');
+        });
+
+        await disconnectSocket(socketB.socket);
+
+        assert.equal(2, socketA.receivedEvents.length);
+    });
+
+    test('It should send back the user connected device list', async (assert) => {
+        const userID = datatype.uuid();
+        const deviceNameA = random.word();
+
+        const socketA = await createUserAndGetSocket(userID, deviceNameA);
+        let callbackHasBeenCalled = false;
+        await createSocketConnection(userID, undefined, 'Safari');
+
+        socketA.emit('GET_CONNECTED_DEVICES', ({ devices }) => {
+            assert.equal(2, devices.length);
+
+            assert.notEqual(
+                -1,
+                devices.findIndex((d) => d.name === deviceNameA),
+            );
+            assert.notEqual(
+                -1,
+                devices.findIndex((d) => d.name === 'Web Player (Safari)'),
+            );
+
+            callbackHasBeenCalled = true;
+        });
+
+        await sleep();
+        assert.isTrue(callbackHasBeenCalled);
     });
 });

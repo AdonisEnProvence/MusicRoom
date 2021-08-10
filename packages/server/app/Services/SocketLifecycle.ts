@@ -3,8 +3,18 @@ import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
 import { TypedSocket } from 'start/socket';
+import UserAgentParser from 'ua-parser-js';
 import UserService from './UserService';
 import Ws from './Ws';
+
+function generateCustomDeviceNameFromWebBrowserUserAgent(
+    userAgent: string,
+): string {
+    const ua = UserAgentParser(userAgent);
+    const browser = ua.browser.name;
+
+    return `Web Player (${browser ?? 'Unkown browser'})`;
+}
 
 export default class SocketLifecycle {
     /**
@@ -45,11 +55,18 @@ export default class SocketLifecycle {
 
         const userAgent = socket.request.headers['user-agent'];
 
-        if (deviceName === undefined) {
-            deviceName = userAgent;
+        if (userAgent === undefined) {
+            throw new Error('user agent should not be null');
         }
 
         const deviceOwner = await User.findOrFail(queryUserID);
+
+        if (deviceName === undefined) {
+            await deviceOwner.load('devices');
+            deviceName =
+                generateCustomDeviceNameFromWebBrowserUserAgent(userAgent);
+        }
+
         const newDevice = await Device.create({
             socketID: socket.id,
             userID: queryUserID,

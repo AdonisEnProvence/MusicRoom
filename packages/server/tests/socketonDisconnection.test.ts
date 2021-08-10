@@ -824,13 +824,10 @@ test.group('Rooms life cycle', (group) => {
         socketA.emit('GET_CONNECTED_DEVICES', ({ devices }) => {
             assert.equal(2, devices.length);
 
-            assert.notEqual(
-                -1,
-                devices.findIndex((d) => d.name === deviceNameA),
-            );
-            assert.notEqual(
-                -1,
-                devices.findIndex((d) => d.name === 'Web Player (Safari)'),
+            assert.isTrue(devices.some((d) => d.name === deviceNameA));
+
+            assert.isTrue(
+                devices.some((d) => d.name === 'Web Player (Safari)'),
             );
 
             callbackHasBeenCalled = true;

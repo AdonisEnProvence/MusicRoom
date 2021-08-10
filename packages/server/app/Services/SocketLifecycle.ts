@@ -62,7 +62,6 @@ export default class SocketLifecycle {
         const deviceOwner = await User.findOrFail(queryUserID);
 
         if (deviceName === undefined) {
-            await deviceOwner.load('devices');
             deviceName =
                 generateCustomDeviceNameFromWebBrowserUserAgent(userAgent);
         }

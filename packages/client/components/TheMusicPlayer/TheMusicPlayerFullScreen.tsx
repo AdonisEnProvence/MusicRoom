@@ -13,10 +13,10 @@ import {
 import { AppUserMachineState } from '../../machines/appUserMachine';
 import { AppScreen, AppScreenContainer, Typo } from '../kit';
 import AppModalHeader from '../kit/AppModalHeader';
-import MusicPlayerFullScreenTracksListItem from './MusicPlayerFullScreenTracksListItem';
 import { MusicPlayerRef } from './Player';
 import TheMusicPlayerWithControls from './TheMusicPlayerWithControls';
 import { useNavigation } from '@react-navigation/native';
+import TrackListItemWithScore from '../Track/TrackListItemWithScore';
 
 type TheMusicPlayerFullScreenProps = {
     machineState: AppMusicPlayerMachineState;
@@ -151,7 +151,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                                 item: { title, artistName },
                                 index,
                             }) => (
-                                <MusicPlayerFullScreenTracksListItem
+                                <TrackListItemWithScore
                                     index={index + 1}
                                     title={title}
                                     artistName={artistName}

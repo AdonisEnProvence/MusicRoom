@@ -4,11 +4,10 @@ import {
     AppScreen,
     AppScreenContainer,
     AppScreenHeader,
-    MSFlatList,
 } from '../components/kit';
-import TrackPreview from '../components/search/TrackPreview';
 import { SearchTrackResultsScreenProps } from '../types';
-import { SearchedTrack } from '../machines/searchTrackMachine';
+import { FlatList } from 'react-native';
+import TrackListItem from '../components/Track/TrackListItem';
 
 const SuggestTrackResultsModal: React.FC<SearchTrackResultsScreenProps> = ({
     route,
@@ -36,12 +35,19 @@ const SuggestTrackResultsModal: React.FC<SearchTrackResultsScreenProps> = ({
             />
 
             <AppScreenContainer>
-                <MSFlatList<SearchedTrack>
-                    onPress={(item) => {
-                        handleTrackPress(item.id);
-                    }}
+                <FlatList
                     data={tracks}
-                    Item={(item) => <TrackPreview track={item} />}
+                    renderItem={({ item: { id, title }, index }) => (
+                        <TrackListItem
+                            index={index + 1}
+                            title={title}
+                            artistName="Benjamin Biolay"
+                            onPress={() => {
+                                handleTrackPress(id);
+                            }}
+                        />
+                    )}
+                    keyExtractor={(_, index) => String(index)}
                 />
             </AppScreenContainer>
         </AppScreen>

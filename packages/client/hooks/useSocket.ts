@@ -2,6 +2,7 @@ import {
     AllClientToServerEvents,
     AllServerToClientEvents,
 } from '@musicroom/types';
+import * as Device from 'expo-device';
 import { useMemo } from 'react';
 import { Platform } from 'react-native';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
@@ -12,16 +13,24 @@ export type SocketClient = Socket<
     AllClientToServerEvents
 >;
 
+interface IoConnectionQuery {
+    [key: string]: string;
+}
+
 export function useSocket(): SocketClient {
-    const socket: SocketClient = useMemo(
-        () =>
-            io(SERVER_ENDPOINT, {
-                query: {
-                    userID: getFakeUserID(),
-                },
-            }),
-        [],
-    );
+    const socket: SocketClient = useMemo(() => {
+        const deviceName = Device.deviceName;
+        const query: IoConnectionQuery = {
+            userID: getFakeUserID(),
+        };
+        if (deviceName !== null) {
+            query.deviceName = deviceName;
+        }
+
+        return io(SERVER_ENDPOINT, {
+            query,
+        });
+    }, []);
 
     return socket;
 }

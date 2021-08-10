@@ -73,7 +73,7 @@ export default class UserService {
 
         return user.devices.map((device) => ({
             deviceID: device.uuid,
-            name: device.userAgent as string, //TODO this is a workaround, just update the device model to store a name
+            name: device.name,
         }));
     }
 }

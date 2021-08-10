@@ -29,17 +29,32 @@ export default class SocketLifecycle {
      */
     public static async registerDevice(socket: TypedSocket): Promise<void> {
         const queryUserID = socket.handshake.query['userID'];
+        let deviceName = socket.handshake.query['deviceName'];
 
         console.log(`registering a device for user ${queryUserID}`);
         if (!queryUserID || typeof queryUserID !== 'string') {
             throw new Error('Empty or invalid user token');
         }
+
+        if (
+            typeof deviceName !== 'string' &&
+            typeof deviceName !== 'undefined'
+        ) {
+            throw new Error('Invalid device name');
+        }
+
         const userAgent = socket.request.headers['user-agent'];
+
+        if (deviceName === undefined) {
+            deviceName = userAgent;
+        }
+
         const deviceOwner = await User.findOrFail(queryUserID);
         const newDevice = await Device.create({
             socketID: socket.id,
             userID: queryUserID,
             userAgent,
+            name: deviceName,
         });
         await newDevice.related('user').associate(deviceOwner);
         if (deviceOwner.mtvRoomID) {

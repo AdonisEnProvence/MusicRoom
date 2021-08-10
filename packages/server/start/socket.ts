@@ -6,6 +6,7 @@ import ChatController from 'App/Controllers/Ws/ChatController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
+import UserService from 'App/Services/UserService';
 import Ws from 'App/Services/Ws';
 import { Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
@@ -32,6 +33,25 @@ Ws.io.on('connection', async (socket) => {
         /// CHAT ///
         socket.on('NEW_MESSAGE', (payload) => {
             ChatController.onWriteMessage({ socket, payload });
+        });
+        /// //// ///
+
+        /// USER ///
+        socket.on('GET_CONNECTED_DEVICES', async (callback) => {
+            try {
+                const { userID } =
+                    await SocketLifecycle.getSocketConnectionCredentials(
+                        socket,
+                    );
+
+                const devices = await UserService.getUserConnectedDevices(
+                    userID,
+                );
+
+                callback({ devices });
+            } catch (e) {
+                console.error(e);
+            }
         });
         /// //// ///
 
@@ -63,7 +83,6 @@ Ws.io.on('connection', async (socket) => {
 
         socket.on('GET_CONTEXT', async () => {
             try {
-                //TODO CHECK AUTH, socket id is in mtvRoom
                 const { mtvRoomID } =
                     await SocketLifecycle.getSocketConnectionCredentials(
                         socket,
@@ -166,10 +185,13 @@ Ws.io.on('connection', async (socket) => {
                 console.error(err);
             }
         });
+        /// //// ///
 
         socket.on('disconnecting', async () => {
             try {
-                await SocketLifecycle.checkForMtvRoomDeletion(socket);
+                await SocketLifecycle.deleteDeviceAndCheckForMtvRoomDeletion(
+                    socket,
+                );
             } catch (e) {
                 console.error('Error on socket.on(disconnecting)', e);
             }

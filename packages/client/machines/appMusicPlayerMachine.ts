@@ -1,4 +1,7 @@
-import { MtvWorkflowState, RoomClientToServerCreate } from '@musicroom/types';
+import {
+    MtvRoomClientToServerCreate,
+    MtvWorkflowState,
+} from '@musicroom/types';
 import {
     assign,
     createMachine,
@@ -226,7 +229,7 @@ export const createAppMusicPlayerMachine = ({
                             }
 
                             const { roomName, initialTracksIDs } = event;
-                            const payload: RoomClientToServerCreate = {
+                            const payload: MtvRoomClientToServerCreate = {
                                 name: roomName,
                                 initialTracksIDs,
                             };

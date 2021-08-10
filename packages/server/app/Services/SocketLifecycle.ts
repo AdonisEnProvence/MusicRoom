@@ -3,7 +3,18 @@ import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
 import { TypedSocket } from 'start/socket';
+import UserAgentParser from 'ua-parser-js';
+import UserService from './UserService';
 import Ws from './Ws';
+
+function generateCustomDeviceNameFromWebBrowserUserAgent(
+    userAgent: string,
+): string {
+    const ua = UserAgentParser(userAgent);
+    const browser = ua.browser.name;
+
+    return `Web Player (${browser ?? 'Unkown browser'})`;
+}
 
 export default class SocketLifecycle {
     /**
@@ -28,17 +39,38 @@ export default class SocketLifecycle {
      */
     public static async registerDevice(socket: TypedSocket): Promise<void> {
         const queryUserID = socket.handshake.query['userID'];
+        let deviceName = socket.handshake.query['deviceName'];
 
         console.log(`registering a device for user ${queryUserID}`);
         if (!queryUserID || typeof queryUserID !== 'string') {
             throw new Error('Empty or invalid user token');
         }
+
+        if (
+            typeof deviceName !== 'string' &&
+            typeof deviceName !== 'undefined'
+        ) {
+            throw new Error('Invalid device name');
+        }
+
         const userAgent = socket.request.headers['user-agent'];
+
+        if (userAgent === undefined) {
+            throw new Error('user agent should not be null');
+        }
+
         const deviceOwner = await User.findOrFail(queryUserID);
+
+        if (deviceName === undefined) {
+            deviceName =
+                generateCustomDeviceNameFromWebBrowserUserAgent(userAgent);
+        }
+
         const newDevice = await Device.create({
             socketID: socket.id,
             userID: queryUserID,
             userAgent,
+            name: deviceName,
         });
         await newDevice.related('user').associate(deviceOwner);
         if (deviceOwner.mtvRoomID) {
@@ -47,24 +79,23 @@ export default class SocketLifecycle {
             );
             await this.syncMtvRoomContext(socket, deviceOwner.mtvRoomID);
         }
+        await UserService.emitConnectedDevicesUpdateToEveryUserDevices(
+            deviceOwner.uuid,
+        );
     }
 
-    public static async checkForMtvRoomDeletion(
+    public static async deleteDeviceAndCheckForMtvRoomDeletion(
         socket: TypedSocket,
     ): Promise<void> {
         console.log('_'.repeat(10));
         const device = await Device.findByOrFail('socket_id', socket.id);
-        console.log(
-            `LOOSING CONNECTION SOCKETID=${socket.id} USER=${device.userID}`,
-        );
+        const userID = device.userID;
+        console.log(`LOOSING CONNECTION SOCKETID=${socket.id} USER=${userID}`);
         /**
          *  Manage owned MTVRoom max 1 per user
          */
-        const room = await MtvRoom.findBy('creator', device.userID);
-        const allUserDevices = await Device.query().where(
-            'user_id',
-            device.userID,
-        );
+        const room = await MtvRoom.findBy('creator', userID);
+        const allUserDevices = await Device.query().where('user_id', userID);
         console.log(
             `User ${room ? 'owns a room' : 'do not own a room'} and has ${
                 allUserDevices.length
@@ -88,6 +119,7 @@ export default class SocketLifecycle {
          *  Remove device from pg
          */
         await device.delete();
+        await UserService.emitConnectedDevicesUpdateToEveryUserDevices(userID);
         console.log('='.repeat(10));
     }
 

@@ -1,8 +1,8 @@
 import {
     CreateWorkflowResponse,
+    MtvRoomClientToServerCreate,
+    MtvRoomClientToServerEvents,
     MtvWorkflowState,
-    RoomClientToServerCreate,
-    RoomClientToServerEvents,
 } from '@musicroom/types';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
@@ -14,7 +14,7 @@ import { Socket } from 'socket.io';
 import ServerToTemporalController from '../Http/Temporal/ServerToTemporalController';
 
 interface WsControllerMethodArgs<Payload> {
-    socket: Socket<RoomClientToServerEvents>; //RoomServerToClientEvents
+    socket: Socket<MtvRoomClientToServerEvents>;
     payload: Payload;
 }
 
@@ -32,7 +32,7 @@ export default class MtvRoomsWsController {
     public static async onCreate({
         payload,
     }: WsControllerMethodArgs<
-        RoomClientToServerCreate & UserID
+        MtvRoomClientToServerCreate & UserID
     >): Promise<CreateWorkflowResponse> {
         const roomID = randomUUID();
         const room = new MtvRoom();

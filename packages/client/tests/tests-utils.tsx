@@ -7,6 +7,7 @@ import { DripsyProvider } from 'dripsy';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { MusicPlayerContextProvider } from '../contexts/MusicPlayerContext';
+import { UserContextProvider } from '../contexts/UserContext';
 import { useSocket } from '../hooks/useSocket';
 import { useTheme } from '../hooks/useTheme';
 import { ServerSocket, serverSocket } from '../services/websockets';
@@ -26,13 +27,15 @@ const AllTheProviders: React.FC = ({ children }) => {
                     insets: { top: 0, left: 0, right: 0, bottom: 0 },
                 }}
             >
-                <MusicPlayerContextProvider
-                    // eslint-disable-next-line @typescript-eslint/no-empty-function
-                    setDisplayModal={(bool) => {}}
-                    socket={socket}
-                >
-                    {children}
-                </MusicPlayerContextProvider>
+                <UserContextProvider socket={socket}>
+                    <MusicPlayerContextProvider
+                        // eslint-disable-next-line @typescript-eslint/no-empty-function
+                        setDisplayModal={(bool) => {}}
+                        socket={socket}
+                    >
+                        {children}
+                    </MusicPlayerContextProvider>
+                </UserContextProvider>
             </SafeAreaProvider>
         </DripsyProvider>
     );

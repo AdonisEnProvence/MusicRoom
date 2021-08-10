@@ -1,4 +1,4 @@
-import { AllServerToClientEvents } from '@musicroom/types';
+import { AllServerToClientEvents, UserDevice } from '@musicroom/types';
 import User from 'App/Models/User';
 import Ws from './Ws';
 
@@ -30,6 +30,17 @@ export default class UserService {
             );
     }
 
+    public static async emitConnectedDevicesUpdateToEveryUserDevices(
+        userID: string,
+    ): Promise<void> {
+        const devices = await this.getUserConnectedDevices(userID);
+        await this.emitEventInEveryDeviceUser(
+            userID,
+            'CONNECTED_DEVICES_UPDATE',
+            [devices],
+        );
+    }
+
     public static async emitEventInEveryDeviceUser<
         Event extends keyof AllServerToClientEvents,
         Args extends Parameters<AllServerToClientEvents[Event]>,
@@ -48,5 +59,21 @@ export default class UserService {
         Args extends Parameters<AllServerToClientEvents[Event]>,
     >(socketID: string, event: Event, args: Args): void {
         Ws.io.to(socketID).emit(event, ...args);
+    }
+
+    public static async getUserConnectedDevices(
+        userID: string,
+    ): Promise<UserDevice[]> {
+        const user = await User.findOrFail(userID);
+
+        await user.load('devices');
+
+        if (user.devices === null)
+            throw new Error(`user should have at least one device connected`);
+
+        return user.devices.map((device) => ({
+            deviceID: device.uuid,
+            name: device.name,
+        }));
     }
 }

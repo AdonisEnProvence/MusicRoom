@@ -27,6 +27,9 @@ export default class Device extends BaseModel {
     @column()
     public userAgent?: string;
 
+    @column()
+    public name: string;
+
     @column.dateTime({ autoCreate: true })
     public createdAt: DateTime;
 

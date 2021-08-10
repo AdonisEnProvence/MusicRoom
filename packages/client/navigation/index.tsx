@@ -12,7 +12,13 @@ import { AlertScreen } from '../screens/AlertScreen';
 import ChatScreen from '../screens/ChatScreen';
 import MusicTrackVoteSearchScreen from '../screens/MusicTrackVoteSearchScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-import { RootStackParamList } from '../types';
+import SuggestTrackModal from '../screens/SuggestTrackModal';
+import SuggestTrackResultsModal from '../screens/SuggestTrackResultsModal';
+import {
+    MainStackParamList,
+    RootStackParamList,
+    SuggestTrackStackParamList,
+} from '../types';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
@@ -51,21 +57,66 @@ const Navigation: React.FC<ColorModeProps> = ({
 
 // A root stack navigator is often used for displaying modals on top of all other content
 // Read more here: https://reactnavigation.org/docs/modal
-const Stack = createStackNavigator<RootStackParamList>();
+const RootStack = createStackNavigator<RootStackParamList>();
+const MainStack = createStackNavigator<MainStackParamList>();
+const SuggestTrackStack = createStackNavigator<SuggestTrackStackParamList>();
 
-export const RootNavigator: React.FC<ColorModeProps> = ({
+export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
+    const style = navigationStyle(colorScheme);
+
+    return (
+        <RootStack.Navigator
+            initialRouteName="Main"
+            mode="modal"
+            screenOptions={{ ...style }}
+        >
+            <RootStack.Screen
+                name="Main"
+                component={MainNavigator}
+                options={{ headerShown: false }}
+            />
+
+            <RootStack.Screen
+                name="SuggestTrack"
+                component={SuggestTrackNavigator}
+                options={{ headerShown: false }}
+            />
+        </RootStack.Navigator>
+    );
+};
+
+export const SuggestTrackNavigator: React.FC<ColorModeProps> = ({
+    colorScheme,
+}) => {
+    const style = navigationStyle(colorScheme);
+
+    return (
+        <SuggestTrackStack.Navigator
+            initialRouteName="SuggestTrackModal"
+            screenOptions={{ ...style, headerShown: false }}
+        >
+            <SuggestTrackStack.Screen
+                name="SuggestTrackModal"
+                component={SuggestTrackModal}
+            />
+
+            <SuggestTrackStack.Screen
+                name="SuggestTrackResultsModal"
+                component={SuggestTrackResultsModal}
+            />
+        </SuggestTrackStack.Navigator>
+    );
+};
+
+const MainNavigator: React.FC<ColorModeProps> = ({
     toggleColorScheme,
     colorScheme,
 }) => {
     const style = navigationStyle(colorScheme);
 
     return (
-        <Stack.Navigator
-            initialRouteName="Root"
-            headerMode="screen"
-            screenOptions={{ ...style, headerShown: false }}
-        >
-            <Stack.Screen name="Root">
+        <MainStack.Navigator screenOptions={{ ...style, headerShown: false }}>
+            <MainStack.Screen name="Root">
                 {(props) => (
                     <BottomTabNavigator
                         colorScheme={colorScheme}
@@ -73,20 +124,21 @@ export const RootNavigator: React.FC<ColorModeProps> = ({
                         {...props}
                     />
                 )}
-            </Stack.Screen>
+            </MainStack.Screen>
 
-            <Stack.Screen
+            <MainStack.Screen
                 name="MusicTrackVoteSearch"
                 component={MusicTrackVoteSearchScreen}
                 options={{ title: 'Track Vote Search' }}
             />
 
-            <Stack.Screen
+            <MainStack.Screen
                 name="Chat"
                 component={ChatScreen}
                 options={{ title: 'Chat' }}
             />
-            <Stack.Screen name="Settings" options={{ title: 'Settings' }}>
+
+            <MainStack.Screen name="Settings" options={{ title: 'Settings' }}>
                 {(props) => (
                     <SettingsScreen
                         colorScheme={colorScheme}
@@ -94,10 +146,10 @@ export const RootNavigator: React.FC<ColorModeProps> = ({
                         {...props}
                     />
                 )}
-            </Stack.Screen>
+            </MainStack.Screen>
 
-            <Stack.Screen name="Alert" component={AlertScreen} />
-        </Stack.Navigator>
+            <MainStack.Screen name="Alert" component={AlertScreen} />
+        </MainStack.Navigator>
     );
 };
 

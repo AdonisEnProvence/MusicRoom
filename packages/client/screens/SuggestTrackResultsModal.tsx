@@ -8,6 +8,7 @@ import {
 import { SearchTrackResultsScreenProps } from '../types';
 import { FlatList } from 'react-native';
 import TrackListItem from '../components/Track/TrackListItem';
+import { useSuggestTracks } from '../contexts/MusicPlayerContext';
 
 const SuggestTrackResultsModal: React.FC<SearchTrackResultsScreenProps> = ({
     route,
@@ -15,9 +16,11 @@ const SuggestTrackResultsModal: React.FC<SearchTrackResultsScreenProps> = ({
 }) => {
     const tracks = route.params.tracks;
     const insets = useSafeAreaInsets();
+    const suggestTracks = useSuggestTracks();
 
-    // TODO: implement what to do when a track has been pressed
     function handleTrackPress(trackId: string) {
+        suggestTracks([trackId]);
+
         exitModal();
     }
 

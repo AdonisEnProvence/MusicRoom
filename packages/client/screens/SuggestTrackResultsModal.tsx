@@ -37,11 +37,14 @@ const SuggestTrackResultsModal: React.FC<SearchTrackResultsScreenProps> = ({
             <AppScreenContainer>
                 <FlatList
                     data={tracks}
-                    renderItem={({ item: { id, title }, index }) => (
+                    renderItem={({
+                        item: { id, title, artistName },
+                        index,
+                    }) => (
                         <TrackListItem
                             index={index + 1}
                             title={title}
-                            artistName="Benjamin Biolay"
+                            artistName={artistName}
                             onPress={() => {
                                 handleTrackPress(id);
                             }}

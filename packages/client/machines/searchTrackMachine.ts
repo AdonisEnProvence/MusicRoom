@@ -1,45 +1,23 @@
 import urlcat from 'urlcat';
-import { assign, createMachine } from 'xstate';
+import { createModel } from 'xstate/lib/model';
 import * as z from 'zod';
+import { TracksMetadata } from '@musicroom/types';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 
-const SearchedTrack = z.object({
-    id: z.string(),
-    title: z.string(),
-});
-export type SearchedTrack = z.infer<typeof SearchedTrack>;
-
 interface FetchTracksArgs {
     searchQuery: string;
-    tracks?: SearchedTrack[];
+    tracks?: TracksMetadata[];
 }
 
-export const SearchTracksAPIRawResponse = z.object({
-    videos: z.array(
-        z
-            .object({
-                id: z
-                    .object({
-                        videoId: z.string(),
-                    })
-                    .nonstrict(),
-                snippet: z
-                    .object({
-                        title: z.string(),
-                    })
-                    .nonstrict(),
-            })
-            .nonstrict(),
-    ),
-});
+export const SearchTracksAPIRawResponse = TracksMetadata.array().optional();
 export type SearchTracksAPIRawResponse = z.infer<
     typeof SearchTracksAPIRawResponse
 >;
 
 async function fetchTracks({
     searchQuery,
-}: FetchTracksArgs): Promise<SearchedTrack[]> {
+}: FetchTracksArgs): Promise<TracksMetadata[] | undefined> {
     const url = urlcat(SERVER_ENDPOINT, '/search/track/:searchQuery', {
         searchQuery,
     });
@@ -48,31 +26,36 @@ async function fetchTracks({
         throw new Error('Could not get tracks');
     }
 
-    const { videos } = SearchTracksAPIRawResponse.parse(await response.json());
+    const tracksMetadata = SearchTracksAPIRawResponse.parse(
+        await response.json(),
+    );
 
-    return videos.map(({ id: { videoId: id }, snippet: { title } }) => ({
-        id,
-        title,
-    }));
+    return tracksMetadata;
 }
 
-interface SearchTrackContext {
-    tracks: undefined | SearchedTrack[];
-}
-
-type SearchTrackEvent =
-    | { type: 'FETCHED_TRACKS'; tracks: SearchedTrack[] }
-    | { type: 'FAILED_FETCHING_TRACKS' }
-    | { type: 'SUBMITTED'; searchQuery: string };
-
-export const searchTrackMachine = createMachine<
-    SearchTrackContext,
-    SearchTrackEvent
->(
+const searchTrackModel = createModel(
     {
-        context: {
-            tracks: undefined,
+        tracks: undefined as TracksMetadata[] | undefined,
+    },
+    {
+        events: {
+            FETCHED_TRACKS: (tracks: TracksMetadata[]) => ({ tracks }),
+            FAILED_FETCHING_TRACKS: () => ({}),
+            SUBMITTED: (searchQuery: string) => ({ searchQuery }),
         },
+    },
+);
+
+const assignTracksToContext = searchTrackModel.assign(
+    {
+        tracks: (_context, event) => event.tracks,
+    },
+    'FETCHED_TRACKS',
+);
+
+export const searchTrackMachine = searchTrackModel.createMachine(
+    {
+        context: searchTrackModel.initialContext,
 
         initial: 'idle',
 
@@ -97,8 +80,9 @@ export const searchTrackMachine = createMachine<
 
                 on: {
                     FETCHED_TRACKS: {
-                        actions: 'assignTracksToContext',
                         target: 'fetchedTracks',
+
+                        actions: assignTracksToContext,
                     },
 
                     FAILED_FETCHING_TRACKS: {
@@ -115,19 +99,6 @@ export const searchTrackMachine = createMachine<
         },
     },
     {
-        actions: {
-            assignTracksToContext: assign((context, event) => {
-                if (event.type !== 'FETCHED_TRACKS') {
-                    return context;
-                }
-
-                return {
-                    ...context,
-                    tracks: event.tracks,
-                };
-            }),
-        },
-
         services: {
             fetchTracks: (_context, event) => async (sendBack, _onReceive) => {
                 if (event.type !== 'SUBMITTED') {

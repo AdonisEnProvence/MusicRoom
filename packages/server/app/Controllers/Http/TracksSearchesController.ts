@@ -1,6 +1,7 @@
 import Env from '@ioc:Adonis/Core/Env';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
-import { google, youtube_v3 } from 'googleapis';
+import { google } from 'googleapis';
+import { TracksMetadata } from '@musicroom/types';
 
 const youtube = google.youtube({
     version: 'v3',
@@ -8,9 +9,9 @@ const youtube = google.youtube({
 });
 
 export default class TracksSearchesController {
-    public async searchTrackName({ request }: HttpContextContract): Promise<{
-        videos: youtube_v3.Schema$SearchResult[] | undefined;
-    }> {
+    public async searchTrackName({
+        request,
+    }: HttpContextContract): Promise<TracksMetadata[] | undefined> {
         const params = request.params();
         const query = decodeURIComponent(params.query);
 
@@ -24,9 +25,39 @@ export default class TracksSearchesController {
             safeSearch: 'moderate',
             type: ['video'],
             videoCaption: 'any',
+            // TODO: do we really want this limit?
             videoDuration: 'short', //less than 4 minutes
         });
 
-        return { videos };
+        const tracksMetadata: TracksMetadata[] | undefined = videos
+            ?.map(({ id, snippet }) => {
+                if (id === undefined || snippet === undefined) {
+                    return undefined;
+                }
+
+                const { videoId } = id;
+                const { title, channelTitle, publishedAt } = snippet;
+
+                if (
+                    typeof videoId !== 'string' ||
+                    typeof title !== 'string' ||
+                    typeof channelTitle !== 'string' ||
+                    typeof publishedAt !== 'string'
+                ) {
+                    return undefined;
+                }
+
+                const trackMetadata = {
+                    id: videoId,
+                    title,
+                    artistName: channelTitle,
+                    duration: 0,
+                };
+
+                return trackMetadata;
+            })
+            .filter(TracksMetadata.check.bind(TracksMetadata));
+
+        return tracksMetadata;
     }
 }

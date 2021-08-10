@@ -3,6 +3,7 @@ import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
 import { TypedSocket } from 'start/socket';
+import UserService from './UserService';
 import Ws from './Ws';
 
 export default class SocketLifecycle {
@@ -47,24 +48,23 @@ export default class SocketLifecycle {
             );
             await this.syncMtvRoomContext(socket, deviceOwner.mtvRoomID);
         }
+        await UserService.emitConnectedDevicesUpdateToEveryUserDevices(
+            deviceOwner.uuid,
+        );
     }
 
-    public static async checkForMtvRoomDeletion(
+    public static async deleteDeviceAndCheckForMtvRoomDeletion(
         socket: TypedSocket,
     ): Promise<void> {
         console.log('_'.repeat(10));
         const device = await Device.findByOrFail('socket_id', socket.id);
-        console.log(
-            `LOOSING CONNECTION SOCKETID=${socket.id} USER=${device.userID}`,
-        );
+        const userID = device.userID;
+        console.log(`LOOSING CONNECTION SOCKETID=${socket.id} USER=${userID}`);
         /**
          *  Manage owned MTVRoom max 1 per user
          */
-        const room = await MtvRoom.findBy('creator', device.userID);
-        const allUserDevices = await Device.query().where(
-            'user_id',
-            device.userID,
-        );
+        const room = await MtvRoom.findBy('creator', userID);
+        const allUserDevices = await Device.query().where('user_id', userID);
         console.log(
             `User ${room ? 'owns a room' : 'do not own a room'} and has ${
                 allUserDevices.length
@@ -88,6 +88,7 @@ export default class SocketLifecycle {
          *  Remove device from pg
          */
         await device.delete();
+        await UserService.emitConnectedDevicesUpdateToEveryUserDevices(userID);
         console.log('='.repeat(10));
     }
 

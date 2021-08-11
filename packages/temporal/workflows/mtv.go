@@ -605,6 +605,12 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					return
 				}
 
+				//Do we have an other solution ?
+				if message.UserID == "" || message.DeviceID == "" {
+					logger.Error("Empty fields in message %v", message)
+					return
+				}
+
 				user := shared.InternalStateUser{
 					UserID:   message.UserID,
 					DeviceID: message.DeviceID,
@@ -630,6 +636,11 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				fmt.Println("*********Signal handler**********")
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
+					return
+				}
+
+				if message.UserID == "" || message.DeviceID == "" {
+					logger.Error("Empty fields in message %v", message)
 					return
 				}
 

@@ -299,7 +299,8 @@ func UnescapeRoomIDAndRundID(workflowID, runID string) (UnescapeRoomIDAndRundIDR
 }
 
 type JoinRoomHandlerBody struct {
-	UserID string
+	UserID   string `json:"userID"`
+	DeviceID string `json:"deviceID"`
 }
 
 func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
@@ -319,7 +320,8 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	workflowID := unescapedData.worflowID
 	runID := unescapedData.runID
 	signal := shared.NewJoinSignal(shared.NewJoinSignalArgs{
-		UserID: body.UserID,
+		UserID:   body.UserID,
+		DeviceID: body.DeviceID,
 	})
 
 	err = temporal.SignalWorkflow(context.Background(), workflowID, runID, shared.SignalChannelName, signal)

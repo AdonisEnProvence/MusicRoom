@@ -353,8 +353,8 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		activities.JoinActivity,
 		mock.Anything,
 		mock.Anything,
-		fakeUserID,
-	).Return(nil).Once()
+		mock.Anything,
+	).Return(nil).Times(2)
 
 	checkOnlyOneUser := defaultDuration
 	registerDelayedCallbackWrapper(func() {
@@ -375,6 +375,34 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 	registerDelayedCallbackWrapper(func() {
 		s.emitJoinSignal(fakeUserID, shouldNotBeRegisterDeviceID)
 	}, tryDuplicateOrOverrrideTheUser)
+
+	emptyDeviceID := defaultDuration
+	randomUserID := faker.UUIDHyphenated()
+	registerDelayedCallbackWrapper(func() {
+		s.emitJoinSignal(randomUserID, "")
+	}, emptyDeviceID)
+
+	checkForEmptyDeviceIDInfo := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(randomUserID)
+
+		s.Equal(2, mtvState.UsersLength)
+		s.Empty(mtvState.UserRelatedInformations)
+	}, checkForEmptyDeviceIDInfo)
+
+	emptyUserID := defaultDuration
+	randomDeviceID := faker.UUIDHyphenated()
+	registerDelayedCallbackWrapper(func() {
+		s.emitJoinSignal("", randomDeviceID)
+	}, emptyUserID)
+
+	checkForEmptyUserIDInfo := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState("")
+
+		s.Equal(2, mtvState.UsersLength)
+		s.Empty(mtvState.UserRelatedInformations)
+	}, checkForEmptyUserIDInfo)
 
 	checkTwoUsersThenEmitPlay := defaultDuration
 	registerDelayedCallbackWrapper(func() {
@@ -521,6 +549,11 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 	registerDelayedCallbackWrapper(func() {
 		s.emitChangeUserEmittingDevice(params.RoomCreatorUserID, secondCreatorDeviceID)
 	}, changeCreatorDeviceID)
+
+	changeDeviceIDWithEmptyString := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitChangeUserEmittingDevice(params.RoomCreatorUserID, "")
+	}, changeDeviceIDWithEmptyString)
 
 	checkThatCreatorDeviceIDChanged := defaultDuration
 	registerDelayedCallbackWrapper(func() {

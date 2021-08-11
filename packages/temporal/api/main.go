@@ -52,7 +52,7 @@ func main() {
 	r.Handle("/create/{workflowID}", http.HandlerFunc(CreateRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/join/{workflowID}/{runID}", http.HandlerFunc(JoinRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/change-user-emitting-device", http.HandlerFunc(ChangeUserEmittingDeviceHandler)).Methods(http.MethodPut)
-	r.Handle("/state/{workflowID}/{runID}", http.HandlerFunc(GetStateHandler)).Methods(http.MethodGet)
+	r.Handle("/state", http.HandlerFunc(GetStateHandler)).Methods(http.MethodGet)
 	r.Handle("/go-to-next-track", http.HandlerFunc(GoToNextTrackHandler)).Methods(http.MethodPut)
 	r.Handle("/terminate/{workflowID}/{runID}", http.HandlerFunc(TerminateWorkflowHandler)).Methods(http.MethodGet)
 
@@ -334,16 +334,24 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
+type GetStateBody struct {
+	WorkflowID string `json:"workflowID"`
+	UserID     string `json:"userID,omitempty"`
+	RunID      string `json:"runID"`
+}
+
+//TO DO ASK FOR A USERID IN THE BODY
 func GetStateHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	unescaped, err := UnescapeRoomIDAndRundID(vars["workflowID"], vars["runID"])
+	var body GetStateBody
+
+	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		WriteError(w, err)
 		return
 	}
-	workflowID := unescaped.worflowID
-	runID := unescaped.runID
-	response, err := temporal.QueryWorkflow(context.Background(), workflowID, runID, shared.MtvGetStateQuery)
+	fmt.Printf("\n ________________GETSTATE Getting body = %+v\n", body)
+
+	response, err := temporal.QueryWorkflow(context.Background(), body.WorkflowID, body.RunID, shared.MtvGetStateQuery, body.UserID)
 	if err != nil {
 		WriteError(w, err)
 		return

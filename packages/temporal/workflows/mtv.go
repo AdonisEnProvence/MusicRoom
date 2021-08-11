@@ -25,8 +25,6 @@ type MtvRoomInternalState struct {
 	Timer         shared.MtvRoomTimer
 }
 
-//TODO REMOVE STARTEDON PROPS FROM CURRENTTRACK
-
 func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 	s.initialParams = params
 
@@ -36,7 +34,7 @@ func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 	s.TracksIDsList = params.InitialTracksIDsList
 }
 
-func (s *MtvRoomInternalState) Export() shared.MtvRoomExposedState {
+func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExposedState {
 	exposedTracks := make([]shared.ExposedTrackMetadata, 0, len(s.Tracks))
 	for _, v := range s.Tracks {
 		exposedTracks = append(exposedTracks, v.Export())
@@ -63,21 +61,34 @@ func (s *MtvRoomInternalState) Export() shared.MtvRoomExposedState {
 		RoomCreatorUserID: s.initialParams.RoomCreatorUserID,
 		Playing:           s.Playing,
 		RoomName:          s.initialParams.RoomName,
-		Users:             s.Users,
 		TracksIDsList:     s.TracksIDsList,
 		CurrentTrack:      currentTrackToExport,
 		Tracks:            exposedTracks,
+		UsersLength:       len(s.Users),
+	}
+
+	if userInformations, ok := s.Users[RelatedUserID]; RelatedUserID != "" && ok {
+		exposedState.UserRelatedInformations = userInformations
 	}
 
 	return exposedState
 }
 
 func (s *MtvRoomInternalState) AddUser(user shared.InternalStateUser) {
-	s.Users[user.UserID] = &user
+	//Do not override user if already exist
+	if _, ok := s.Users[user.UserID]; !ok {
+		s.Users[user.UserID] = &user
+	} else {
+		fmt.Printf("\n User %s already existing in s.Users\n", user.UserID)
+	}
 }
 
 func (s *MtvRoomInternalState) UpdateUserDeviceID(user shared.InternalStateUser) {
-	s.Users[user.UserID].DeviceID = user.DeviceID
+	if _, ok := s.Users[user.UserID]; ok {
+		s.Users[user.UserID].DeviceID = user.DeviceID
+	} else {
+		fmt.Printf("\n User %s not found in s.Users\n", user.UserID)
+	}
 }
 
 const (
@@ -197,12 +208,12 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 	if err := workflow.SetQueryHandler(
 		ctx,
 		shared.MtvGetStateQuery,
-		func(input []byte) (shared.MtvRoomExposedState, error) {
+		func(userID string) (shared.MtvRoomExposedState, error) {
 			// Here we do not use workflow.sideEffect for at least two reasons:
 			// 1- we cannot use workflow.sideEffect in the getState queryHandler
 			// 2- we never update our internalState depending on internalState.Export() results
 			// this data aims to be sent to adonis.
-			exposedState := internalState.Export()
+			exposedState := internalState.Export(userID)
 
 			return exposedState, nil
 		},
@@ -256,7 +267,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							),
 							brainy.ActionFn(
 								func(c brainy.Context, e brainy.Event) error {
-									if err := acknowledgeRoomCreation(ctx, internalState.Export()); err != nil {
+									if err := acknowledgeRoomCreation(ctx, internalState.Export(shared.NoRelatedUserID)); err != nil {
 										workflowFatalError = err
 									}
 
@@ -355,7 +366,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									// To do not corrupt the elapsed on a paused room with the freshly created timer
 									// but also set as playing true a previously paused room after a go to next track event
 									// we need to mutate and update the internalState after the internalState.Export()
-									exposedInternalState := internalState.Export()
+									exposedInternalState := internalState.Export(shared.NoRelatedUserID)
 									exposedInternalState.Playing = true
 									internalState.Playing = true
 
@@ -396,7 +407,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 												fmt.Println("__NO MORE TRACKS__")
 												event := e.(MtvRoomTimerExpirationEvent)
 
-												internalState.CurrentTrack.StartedOn = time.Time{}
 												internalState.CurrentTrack.AlreadyElapsed += event.Timer.Duration
 
 												return nil
@@ -437,7 +447,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 												event := e.(MtvRoomTimerExpirationEvent)
 
 												elapsed := GetElapsed(ctx, event.Timer.CreatedOn)
-												internalState.CurrentTrack.StartedOn = time.Time{}
 												internalState.CurrentTrack.AlreadyElapsed += elapsed
 
 												return nil
@@ -514,7 +523,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							workflow.ExecuteActivity(
 								ctx,
 								activities.JoinActivity,
-								internalState.Export(),
+								internalState.Export(event.User.UserID),
 								event.User.UserID,
 							)
 

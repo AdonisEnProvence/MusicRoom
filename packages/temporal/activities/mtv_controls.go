@@ -71,3 +71,23 @@ func JoinActivity(ctx context.Context, state shared.MtvRoomExposedState, joining
 
 	return err
 }
+
+type mtvChangeUserEmittingDeviceRequestBody struct {
+	State shared.MtvRoomExposedState `json:"state"`
+}
+
+func ChangeUserEmittingDeviceActivity(ctx context.Context, state shared.MtvRoomExposedState) error {
+	requestBody := mtvChangeUserEmittingDeviceRequestBody{
+		State: state,
+	}
+
+	marshaledBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	url := ADONIS_ENDPOINT + "/temporal/change-user-emitting-device"
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+
+	return err
+}

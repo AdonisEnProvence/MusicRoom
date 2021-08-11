@@ -499,6 +499,17 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								DeviceID: event.DeviceID,
 							}
 							internalState.UpdateUserDeviceID(user)
+
+							options := workflow.ActivityOptions{
+								ScheduleToStartTimeout: time.Minute,
+								StartToCloseTimeout:    time.Minute,
+							}
+							ctx = workflow.WithActivityOptions(ctx, options)
+							workflow.ExecuteActivity(
+								ctx,
+								activities.ChangeUserEmittingDeviceActivity,
+								internalState.Export(event.UserID),
+							)
 							return nil
 						},
 					),

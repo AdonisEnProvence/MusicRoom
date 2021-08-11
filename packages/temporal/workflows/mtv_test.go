@@ -449,6 +449,11 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 		mock.Anything,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
+		activities.ChangeUserEmittingDeviceActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
 		activities.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,

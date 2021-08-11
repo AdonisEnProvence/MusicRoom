@@ -17,7 +17,7 @@ type MtvRoomInternalState struct {
 	initialParams shared.MtvRoomParameters
 
 	Machine       *brainy.Machine
-	Users         []string
+	Users         map[string]*shared.InternalStateUser
 	TracksIDsList []string
 	CurrentTrack  shared.CurrentTrack
 	Tracks        []shared.TrackMetadata
@@ -30,6 +30,8 @@ type MtvRoomInternalState struct {
 func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 	s.initialParams = params
 
+	//InitialUsers now unused
+	s.Users = make(map[string]*shared.InternalStateUser)
 	s.Users = params.InitialUsers
 	s.TracksIDsList = params.InitialTracksIDsList
 }
@@ -70,8 +72,12 @@ func (s *MtvRoomInternalState) Export() shared.MtvRoomExposedState {
 	return exposedState
 }
 
-func (s *MtvRoomInternalState) AddUser(userID string) {
-	s.Users = append(s.Users, userID)
+func (s *MtvRoomInternalState) AddUser(user shared.InternalStateUser) {
+	s.Users[user.UserID] = &user
+}
+
+func (s *MtvRoomInternalState) UpdateUserDeviceID(user shared.InternalStateUser) {
+	s.Users[user.UserID].DeviceID = user.DeviceID
 }
 
 const (
@@ -85,15 +91,16 @@ const (
 	MtvRoomPlayingWaitingTimerEndState brainy.StateType = "waiting-timer-end"
 	MtvRoomPlayingTimeoutExpiredState  brainy.StateType = "timeout-expired"
 
-	MtvRoomPlayEvent            brainy.EventType = "PLAY"
-	MtvRoomPauseEvent           brainy.EventType = "PAUSE"
-	MtvRoomTimerLaunchedEvent   brainy.EventType = "TIMER_LAUNCHED"
-	MtvRoomTimerExpiredEvent    brainy.EventType = "TIMER_EXPIRED"
-	MtvRoomInitialTracksFetched brainy.EventType = "INITIAL_TRACKS_FETCHED"
-	MtvRoomIsReady              brainy.EventType = "MTV_ROOM_IS_READY"
-	MtvRoomGoToPausedEvent      brainy.EventType = "GO_TO_PAUSED"
-	MtvRoomAddUserEvent         brainy.EventType = "ADD_USER"
-	MtvRoomGoToNextTrackEvent   brainy.EventType = "GO_TO_NEXT_TRACK"
+	MtvRoomPlayEvent                brainy.EventType = "PLAY"
+	MtvRoomPauseEvent               brainy.EventType = "PAUSE"
+	MtvRoomTimerLaunchedEvent       brainy.EventType = "TIMER_LAUNCHED"
+	MtvRoomTimerExpiredEvent        brainy.EventType = "TIMER_EXPIRED"
+	MtvRoomInitialTracksFetched     brainy.EventType = "INITIAL_TRACKS_FETCHED"
+	MtvRoomIsReady                  brainy.EventType = "MTV_ROOM_IS_READY"
+	MtvRoomGoToPausedEvent          brainy.EventType = "GO_TO_PAUSED"
+	MtvRoomAddUserEvent             brainy.EventType = "ADD_USER"
+	MtvRoomGoToNextTrackEvent       brainy.EventType = "GO_TO_NEXT_TRACK"
+	MtvRoomChangeUserEmittingDevice brainy.EventType = "CHANGE_USER_EMITTING_DEVICE"
 )
 
 type MtvRoomTimerExpirationEvent struct {
@@ -146,16 +153,34 @@ func NewMtvRoomInitialTracksFetchedEvent(tracks []shared.TrackMetadata) MtvRoomI
 type MtvRoomUserJoiningRoomEvent struct {
 	brainy.EventWithType
 
-	UserID string
+	User shared.InternalStateUser
 }
 
-func NewMtvRoomUserJoiningRoomEvent(userID string) MtvRoomUserJoiningRoomEvent {
+func NewMtvRoomUserJoiningRoomEvent(user shared.InternalStateUser) MtvRoomUserJoiningRoomEvent {
 	return MtvRoomUserJoiningRoomEvent{
 		EventWithType: brainy.EventWithType{
 			Event: MtvRoomAddUserEvent,
 		},
 
-		UserID: userID,
+		User: user,
+	}
+}
+
+type MtvRoomChangeUserEmittingDeviceEvent struct {
+	brainy.EventWithType
+
+	UserID   string
+	DeviceID string
+}
+
+func NewMtvRoomChangeUserEmittingDeviceEvent(userID string, deviceID string) MtvRoomChangeUserEmittingDeviceEvent {
+	return MtvRoomChangeUserEmittingDeviceEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MtvRoomChangeUserEmittingDevice,
+		},
+
+		UserID:   userID,
+		DeviceID: deviceID,
 	}
 }
 
@@ -453,13 +478,33 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 		},
 
 		On: brainy.Events{
+
+			MtvRoomChangeUserEmittingDevice: brainy.Transition{
+				Actions: brainy.Actions{
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+							event := e.(MtvRoomChangeUserEmittingDeviceEvent)
+
+							user := shared.InternalStateUser{
+								UserID:   event.UserID,
+								DeviceID: event.DeviceID,
+							}
+							internalState.UpdateUserDeviceID(user)
+							return nil
+						},
+					),
+				},
+			},
+
+			// Isn't risky to listen those events while we're in the state `MtvRoomFetchInitialTracks` ?
+			// Shall we create a intermediate state between ? something like `workflowIsReady` ?
 			MtvRoomAddUserEvent: brainy.Transition{
 				Actions: brainy.Actions{
 					brainy.ActionFn(
 						func(c brainy.Context, e brainy.Event) error {
 							event := e.(MtvRoomUserJoiningRoomEvent)
 
-							internalState.AddUser(event.UserID)
+							internalState.AddUser(event.User)
 
 							options := workflow.ActivityOptions{
 								ScheduleToStartTimeout: time.Minute,
@@ -470,7 +515,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								ctx,
 								activities.JoinActivity,
 								internalState.Export(),
-								event.UserID,
+								event.User.UserID,
 							)
 
 							return nil
@@ -540,8 +585,13 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					return
 				}
 
+				user := shared.InternalStateUser{
+					UserID:   message.UserID,
+					DeviceID: message.DeviceID,
+				}
+
 				internalState.Machine.Send(
-					NewMtvRoomUserJoiningRoomEvent(message.UserID),
+					NewMtvRoomUserJoiningRoomEvent(user),
 				)
 
 			case shared.SignalRouteGoToNextTrack:
@@ -553,6 +603,19 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				}
 
 				internalState.Machine.Send(MtvRoomGoToNextTrackEvent)
+
+			case shared.SignalRouteChangeUserEmittingDevice:
+				var message shared.ChangeUserEmittingDeviceSignal
+
+				fmt.Println("*********Signal handler**********")
+				if err := mapstructure.Decode(signal, &message); err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
+
+				internalState.Machine.Send(
+					NewMtvRoomChangeUserEmittingDeviceEvent(message.UserID, message.DeviceID),
+				)
 
 			case shared.SignalRouteTerminate:
 				terminated = true

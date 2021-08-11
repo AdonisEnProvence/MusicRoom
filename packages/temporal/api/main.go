@@ -51,6 +51,7 @@ func main() {
 	r.Handle("/control/{workflowID}/{runID}/pause", http.HandlerFunc(PauseHandler)).Methods(http.MethodPut)
 	r.Handle("/create/{workflowID}", http.HandlerFunc(CreateRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/join/{workflowID}/{runID}", http.HandlerFunc(JoinRoomHandler)).Methods(http.MethodPut)
+	r.Handle("/change-user-emitting-device", http.HandlerFunc(ChangeUserEmittingDeviceHandler)).Methods(http.MethodPut)
 	r.Handle("/state/{workflowID}/{runID}", http.HandlerFunc(GetStateHandler)).Methods(http.MethodGet)
 	r.Handle("/go-to-next-track", http.HandlerFunc(GoToNextTrackHandler)).Methods(http.MethodPut)
 	r.Handle("/terminate/{workflowID}/{runID}", http.HandlerFunc(TerminateWorkflowHandler)).Methods(http.MethodGet)
@@ -123,6 +124,48 @@ func GoToNextTrackHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
+type ChangeUserEmittingDeviceRequestBody struct {
+	WorkflowID string `json:"workflowID"`
+	RunID      string `json:"runID"`
+	UserID     string `json:"userID"`
+	DeviceID   string `json:"deviceID"`
+}
+
+func ChangeUserEmittingDeviceHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var body ChangeUserEmittingDeviceRequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	args := shared.ChangeUserEmittingDeviceSignalArgs{
+		UserID:   body.UserID,
+		DeviceID: body.DeviceID,
+	}
+	changeUserEmittingDeviceSignal := shared.NewChangeUserEmittingDeviceSignal(args)
+
+	fmt.Println("**********ChangeUserEmittingDeviceHandler**********")
+
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		body.RunID,
+		shared.SignalChannelName,
+		changeUserEmittingDeviceSignal,
+	); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	res := make(map[string]interface{})
+	res["ok"] = 1
+	json.NewEncoder(w).Encode(res)
+}
+
 func TerminateWorkflowHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Control called")
 	vars := mux.Vars(r)
@@ -165,6 +208,7 @@ func PauseHandler(w http.ResponseWriter, r *http.Request) {
 
 type CreateRoomRequestBody struct {
 	UserID           string   `json:"userID"`
+	DeviceID         string   `json:"deviceID"`
 	Name             string   `json:"roomName"`
 	InitialTracksIDs []string `json:"initialTracksIDs"`
 }
@@ -204,11 +248,18 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		"H3s1mt7aFlc",
 	}
 	initialTracksIDsList := append(body.InitialTracksIDs, seedTracksIDs...)
+
+	initialUsers := make(map[string]*shared.InternalStateUser)
+	initialUsers[body.UserID] = &shared.InternalStateUser{
+		UserID:   body.UserID,
+		DeviceID: body.DeviceID,
+	}
+
 	params := shared.MtvRoomParameters{
 		RoomID:               workflowID,
 		RoomCreatorUserID:    body.UserID,
 		RoomName:             body.Name,
-		InitialUsers:         []string{body.UserID},
+		InitialUsers:         initialUsers,
 		InitialTracksIDsList: initialTracksIDsList,
 	}
 

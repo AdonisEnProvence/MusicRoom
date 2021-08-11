@@ -50,7 +50,7 @@ func main() {
 	r.Handle("/control/{workflowID}/{runID}/play", http.HandlerFunc(PlayHandler)).Methods(http.MethodPut)
 	r.Handle("/control/{workflowID}/{runID}/pause", http.HandlerFunc(PauseHandler)).Methods(http.MethodPut)
 	r.Handle("/create/{workflowID}", http.HandlerFunc(CreateRoomHandler)).Methods(http.MethodPut)
-	r.Handle("/join/{workflowID}/{runID}", http.HandlerFunc(JoinRoomHandler)).Methods(http.MethodPut)
+	r.Handle("/join", http.HandlerFunc(JoinRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/change-user-emitting-device", http.HandlerFunc(ChangeUserEmittingDeviceHandler)).Methods(http.MethodPut)
 	r.Handle("/state", http.HandlerFunc(GetStateHandler)).Methods(http.MethodGet)
 	r.Handle("/go-to-next-track", http.HandlerFunc(GoToNextTrackHandler)).Methods(http.MethodPut)
@@ -221,6 +221,7 @@ type CreateRoomResponse struct {
 
 func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Create called")
+	defer r.Body.Close()
 
 	vars := mux.Vars(r)
 	var body CreateRoomRequestBody
@@ -299,32 +300,28 @@ func UnescapeRoomIDAndRundID(workflowID, runID string) (UnescapeRoomIDAndRundIDR
 }
 
 type JoinRoomHandlerBody struct {
-	UserID   string `json:"userID"`
-	DeviceID string `json:"deviceID"`
+	UserID     string `json:"userID"`
+	DeviceID   string `json:"deviceID"`
+	WorkflowID string `json:"workflowID"`
+	RunID      string `json:"runID"`
 }
 
 func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
+	defer r.Body.Close()
+
 	var body JoinRoomHandlerBody
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		WriteError(w, err)
 		return
 	}
-	unescapedData, err := UnescapeRoomIDAndRundID(vars["workflowID"], vars["runID"])
-	if err != nil {
-		WriteError(w, err)
-		return
-	}
 
-	workflowID := unescapedData.worflowID
-	runID := unescapedData.runID
 	signal := shared.NewJoinSignal(shared.NewJoinSignalArgs{
 		UserID:   body.UserID,
 		DeviceID: body.DeviceID,
 	})
 
-	err = temporal.SignalWorkflow(context.Background(), workflowID, runID, shared.SignalChannelName, signal)
+	err = temporal.SignalWorkflow(context.Background(), body.WorkflowID, body.RunID, shared.SignalChannelName, signal)
 	if err != nil {
 		WriteError(w, err)
 		return
@@ -342,8 +339,9 @@ type GetStateBody struct {
 	RunID      string `json:"runID"`
 }
 
-//TO DO ASK FOR A USERID IN THE BODY
 func GetStateHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
 	var body GetStateBody
 
 	err := json.NewDecoder(r.Body).Decode(&body)

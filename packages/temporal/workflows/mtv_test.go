@@ -370,6 +370,12 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		s.emitJoinSignal(fakeUserID, fakeDeviceID)
 	}, secondUserJoins)
 
+	shouldNotBeRegisterDeviceID := faker.UUIDHyphenated()
+	tryDuplicateOrOverrrideTheUser := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitJoinSignal(fakeUserID, shouldNotBeRegisterDeviceID)
+	}, tryDuplicateOrOverrrideTheUser)
+
 	checkTwoUsersThenEmitPlay := defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(fakeUserID)
@@ -380,6 +386,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 			DeviceID: fakeDeviceID,
 		}
 
+		s.NotEqual(shouldNotBeRegisterDeviceID, mtvState.UserRelatedInformations.DeviceID)
 		s.Equal(expectedInternalStateUser, mtvState.UserRelatedInformations)
 		s.emitPlaySignal()
 	}, checkTwoUsersThenEmitPlay)

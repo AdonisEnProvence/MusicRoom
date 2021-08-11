@@ -60,6 +60,16 @@ func (s *UnitTestSuite) emitJoinSignal(userID string, deviceID string) {
 	s.env.SignalWorkflow(shared.SignalChannelName, signal)
 }
 
+func (s *UnitTestSuite) emitChangeUserEmittingDevice(userID string, deviceID string) {
+	fmt.Println("-----EMIT CHANGE USER EMITTING DEVICE CALLED IN TEST-----")
+	signal := shared.NewChangeUserEmittingDeviceSignal(shared.ChangeUserEmittingDeviceSignalArgs{
+		UserID:   userID,
+		DeviceID: deviceID,
+	})
+
+	s.env.SignalWorkflow(shared.SignalChannelName, signal)
+}
+
 func (s *UnitTestSuite) emitPauseSignal() {
 	fmt.Println("-----EMIT PAUSED CALLED IN TEST-----")
 	pauseSignal := shared.NewPauseSignal(shared.NewPauseSignalArgs{})
@@ -105,7 +115,7 @@ func (s *UnitTestSuite) initTestEnv() (func(), func(callback func(), durationToA
 		}
 }
 
-func getWokflowInitParams(tracksIDs []string) shared.MtvRoomParameters {
+func getWokflowInitParams(tracksIDs []string) (shared.MtvRoomParameters, string) {
 	var (
 		fakeWorkflowID          = faker.UUIDHyphenated()
 		fakeRoomCreatorUserID   = faker.UUIDHyphenated()
@@ -124,7 +134,7 @@ func getWokflowInitParams(tracksIDs []string) shared.MtvRoomParameters {
 		RoomName:             faker.Word(),
 		InitialUsers:         initialUsers,
 		InitialTracksIDsList: tracksIDs,
-	}
+	}, fakeRoomCreatorDeviceID
 }
 
 // Test_PlayThenPauseTrack scenario:
@@ -155,7 +165,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 	}
 
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
-	params := getWokflowInitParams(tracksIDs)
+	params, _ := getWokflowInitParams(tracksIDs)
 
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
@@ -322,7 +332,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		},
 	}
 	tracksIDs := []string{tracks[0].ID}
-	params := getWokflowInitParams(tracksIDs)
+	params, _ := getWokflowInitParams(tracksIDs)
 
 	defaultDuration := 1 * time.Millisecond
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
@@ -402,6 +412,139 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
+func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
+	var (
+		fakeUserID   = faker.UUIDHyphenated()
+		fakeDeviceID = faker.UUIDHyphenated()
+	)
+
+	firstTrackDuration := generateRandomDuration()
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   firstTrackDuration,
+		},
+	}
+	tracksIDs := []string{tracks[0].ID}
+	params, creatorDeviceID := getWokflowInitParams(tracksIDs)
+
+	defaultDuration := 1 * time.Millisecond
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.JoinActivity,
+		mock.Anything,
+		mock.Anything,
+		fakeUserID,
+	).Return(nil).Once()
+
+	checkCreateUserRelatedInformation := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		expectedInternalStateUser := &shared.InternalStateUser{
+			UserID:   params.RoomCreatorUserID,
+			DeviceID: creatorDeviceID,
+		}
+
+		s.Equal(1, mtvState.UsersLength)
+		s.False(mtvState.Playing)
+		s.Equal(expectedInternalStateUser, mtvState.UserRelatedInformations)
+	}, checkCreateUserRelatedInformation)
+
+	checkUnkownUserIDUserRelatedInformation := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(faker.UUIDHyphenated())
+
+		s.Equal(1, mtvState.UsersLength)
+		s.False(mtvState.Playing)
+		s.Empty(mtvState.UserRelatedInformations)
+	}, checkUnkownUserIDUserRelatedInformation)
+
+	checkEmptyUserIDRelatedInformation := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState("")
+
+		s.Equal(1, mtvState.UsersLength)
+		s.False(mtvState.Playing)
+		s.Empty(mtvState.UserRelatedInformations)
+	}, checkEmptyUserIDRelatedInformation)
+
+	emitJoin := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitJoinSignal(fakeUserID, fakeDeviceID)
+	}, emitJoin)
+
+	checkLatestUserRelatedInformation := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(fakeUserID)
+
+		expectedInternalStateUser := &shared.InternalStateUser{
+			UserID:   fakeUserID,
+			DeviceID: fakeDeviceID,
+		}
+
+		s.Equal(2, mtvState.UsersLength)
+		s.False(mtvState.Playing)
+		s.Equal(expectedInternalStateUser, mtvState.UserRelatedInformations)
+	}, checkLatestUserRelatedInformation)
+
+	secondCreatorDeviceID := faker.UUIDHyphenated()
+	changeCreatorDeviceID := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitChangeUserEmittingDevice(params.RoomCreatorUserID, secondCreatorDeviceID)
+	}, changeCreatorDeviceID)
+
+	checkThatCreatorDeviceIDChanged := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		expectedInternalStateUser := &shared.InternalStateUser{
+			UserID:   params.RoomCreatorUserID,
+			DeviceID: secondCreatorDeviceID,
+		}
+
+		s.Equal(2, mtvState.UsersLength)
+		s.False(mtvState.Playing)
+		s.Equal(expectedInternalStateUser, mtvState.UserRelatedInformations)
+	}, checkThatCreatorDeviceIDChanged)
+
+	verifyThatTheOtherUserDidntChange := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(fakeUserID)
+
+		expectedInternalStateUser := &shared.InternalStateUser{
+			UserID:   fakeUserID,
+			DeviceID: fakeDeviceID,
+		}
+
+		s.Equal(2, mtvState.UsersLength)
+		s.False(mtvState.Playing)
+		s.Equal(expectedInternalStateUser, mtvState.UserRelatedInformations)
+	}, verifyThatTheOtherUserDidntChange)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
 // Test_GoToNextTrack scenario:
 //
 // 1. We set up a Mtv Room with 2 initial tracks.
@@ -436,7 +579,7 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		},
 	}
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
-	params := getWokflowInitParams(tracksIDs)
+	params, _ := getWokflowInitParams(tracksIDs)
 
 	// secondTrackDuration := tracks[1].Duration
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
@@ -553,7 +696,7 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 	}
 
 	tracksIDs := []string{tracks[0].ID}
-	params := getWokflowInitParams(tracksIDs)
+	params, _ := getWokflowInitParams(tracksIDs)
 
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 	defaultDuration := 1 * time.Millisecond

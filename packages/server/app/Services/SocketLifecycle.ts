@@ -109,7 +109,7 @@ export default class SocketLifecycle {
         const hasNoMoreDevice = allUserDevices.length <= 1;
         if (room !== null && hasNoMoreDevice) {
             console.log(room.uuid);
-            await MtvRoomsWsController.onTerminate(room.uuid);
+            await MtvRoomsWsController.onTerminate({ roomID: room.uuid });
             console.log('ABOUT TO EMIT');
             Ws.io.in(room.uuid).emit('FORCED_DISCONNECTION');
             await this.deleteRoom(room.uuid);
@@ -157,7 +157,7 @@ export default class SocketLifecycle {
 
     public static async getSocketConnectionCredentials(
         socket: TypedSocket,
-    ): Promise<{ mtvRoomID?: string; userID: string }> {
+    ): Promise<{ mtvRoomID?: string; userID: string; deviceID: string }> {
         const device = await Device.findByOrFail('socket_id', socket.id);
         await device.load('user');
         if (device.user === null) {
@@ -186,6 +186,7 @@ export default class SocketLifecycle {
         return {
             userID,
             mtvRoomID,
+            deviceID: device.uuid,
         };
     }
 }

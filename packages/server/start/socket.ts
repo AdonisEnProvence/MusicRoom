@@ -58,7 +58,7 @@ Ws.io.on('connection', async (socket) => {
         /// ROOM ///
         socket.on('CREATE_ROOM', async (payload) => {
             try {
-                const { userID } =
+                const { userID, deviceID } =
                     await SocketLifecycle.getSocketConnectionCredentials(
                         socket,
                     );
@@ -66,12 +66,10 @@ Ws.io.on('connection', async (socket) => {
                     throw new Error('CREATE_ROOM failed name should be empty');
                 }
                 const raw = await MtvRoomsWsController.onCreate({
-                    socket,
-                    payload: {
-                        name: payload.name,
-                        userID,
-                        initialTracksIDs: payload.initialTracksIDs,
-                    },
+                    name: payload.name,
+                    userID,
+                    initialTracksIDs: payload.initialTracksIDs,
+                    deviceID,
                 });
                 Ws.io
                     .to(raw.workflowID)
@@ -83,7 +81,7 @@ Ws.io.on('connection', async (socket) => {
 
         socket.on('GET_CONTEXT', async () => {
             try {
-                const { mtvRoomID } =
+                const { mtvRoomID, userID } =
                     await SocketLifecycle.getSocketConnectionCredentials(
                         socket,
                     );
@@ -93,7 +91,10 @@ Ws.io.on('connection', async (socket) => {
                     );
                 }
 
-                const state = await MtvRoomsWsController.onGetState(mtvRoomID);
+                const state = await MtvRoomsWsController.onGetState({
+                    roomID: mtvRoomID,
+                    userID,
+                });
                 socket.emit('RETRIEVE_CONTEXT', state);
             } catch (e) {
                 console.error(e);
@@ -105,16 +106,14 @@ Ws.io.on('connection', async (socket) => {
                 if (!args.roomID) {
                     throw new Error('JOIN_ROOM failed roomID is empty');
                 }
-                const { userID } =
+                const { userID, deviceID } =
                     await SocketLifecycle.getSocketConnectionCredentials(
                         socket,
                     );
                 await MtvRoomsWsController.onJoin({
-                    socket,
-                    payload: {
-                        roomID: args.roomID,
-                        userID,
-                    },
+                    roomID: args.roomID,
+                    userID,
+                    deviceID,
                 });
             } catch (e) {
                 console.error(e);
@@ -132,10 +131,7 @@ Ws.io.on('connection', async (socket) => {
                     throw new Error('ACTION_PLAY failed room not found');
                 }
                 await MtvRoomsWsController.onPlay({
-                    socket,
-                    payload: {
-                        roomID: mtvRoomID,
-                    },
+                    roomID: mtvRoomID,
                 });
             } catch (e) {
                 console.error(e);
@@ -152,10 +148,7 @@ Ws.io.on('connection', async (socket) => {
                     throw new Error('ACTION_PLAY failed room not found');
                 }
                 await MtvRoomsWsController.onPause({
-                    socket,
-                    payload: {
-                        roomID: mtvRoomID,
-                    },
+                    roomID: mtvRoomID,
                 });
             } catch (e) {
                 console.error(e);
@@ -176,10 +169,7 @@ Ws.io.on('connection', async (socket) => {
                 }
 
                 await MtvRoomsWsController.onGoToNextTrack({
-                    payload: {
-                        roomID: mtvRoomID,
-                    },
-                    socket,
+                    roomID: mtvRoomID,
                 });
             } catch (err) {
                 console.error(err);

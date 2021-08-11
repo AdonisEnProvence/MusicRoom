@@ -5,21 +5,18 @@ import urlcat from 'urlcat';
 
 const TEMPORAL_ENDPOINT = Env.get('TEMPORAL_ENDPOINT');
 
+interface TemporalCreateMtvWorkflowBody {
+    roomName: string;
+    userID: string;
+    deviceID: string;
+    initialTracksIDs: string[];
+}
+
 interface TemporalCreateMtvWorkflowArgs {
     workflowID: string;
     roomName: string;
     userID: string;
-    initialTracksIDs: string[];
-}
-
-interface TemporalMtvWorkflowGetStateArgs {
-    workflowID: string;
-    runID: string;
-}
-
-interface TemporalCreateMtvWorkflowBody {
-    roomName: string;
-    userID: string;
+    deviceID: string;
     initialTracksIDs: string[];
 }
 
@@ -28,7 +25,23 @@ interface TemporalBaseArgs {
     workflowID: string;
 }
 
-interface TemporalGoToNextTrackArgs extends TemporalBaseArgs {}
+interface TemporalMtvJoinWorklowArgs extends TemporalBaseArgs {
+    deviceID: string;
+    userID: string;
+}
+
+interface TemporalMtvChangeUserEmittingDeviceArgs extends TemporalBaseArgs {
+    deviceID: string;
+    userID: string;
+}
+
+interface TemporalMtvGoToNextTrackArgs extends TemporalBaseArgs {}
+interface TemporalMtvPauseArgs extends TemporalBaseArgs {}
+interface TemporalMtvPlayArgs extends TemporalBaseArgs {}
+interface TemporalMtvGetStateArgs extends TemporalBaseArgs {
+    userID?: string;
+}
+interface TemporalMtvTerminateWorkflowArgs extends TemporalBaseArgs {}
 
 export default class ServerToTemporalController {
     public static async createMtvWorkflow({
@@ -36,30 +49,32 @@ export default class ServerToTemporalController {
         roomName,
         userID,
         initialTracksIDs,
+        deviceID,
     }: TemporalCreateMtvWorkflowArgs): Promise<CreateWorkflowResponse> {
         const url = urlcat(TEMPORAL_ENDPOINT, '/create/:workflowID', {
             workflowID,
         });
-        const requestBody: TemporalCreateMtvWorkflowBody = {
+        const body: TemporalCreateMtvWorkflowBody = {
             roomName,
             userID,
             initialTracksIDs,
+            deviceID,
         };
 
         return CreateWorkflowResponse.parse(
             await got
                 .put(url, {
-                    json: requestBody,
+                    json: body,
                     responseType: 'json',
                 })
                 .json(),
         );
     }
 
-    public static async terminateWorkflow(
-        workflowID: string,
-        runID: string,
-    ): Promise<void> {
+    public static async terminateWorkflow({
+        workflowID,
+        runID,
+    }: TemporalMtvTerminateWorkflowArgs): Promise<void> {
         const url = urlcat(TEMPORAL_ENDPOINT, '/terminate/:workflowID/:runID', {
             workflowID,
             runID,
@@ -67,19 +82,20 @@ export default class ServerToTemporalController {
         await got.get(url);
     }
 
-    public static async joinWorkflow(
-        workflowID: string,
-        runID: string,
-        userID: string,
-    ): Promise<void> {
+    public static async joinWorkflow({
+        workflowID,
+        runID,
+        userID,
+        deviceID,
+    }: TemporalMtvJoinWorklowArgs): Promise<void> {
         try {
-            const url = urlcat(TEMPORAL_ENDPOINT, '/join/:workflowID/:runID', {
-                workflowID,
-                runID,
-            });
+            const url = urlcat(TEMPORAL_ENDPOINT, '/join');
             await got.put(url, {
                 json: {
                     userID,
+                    deviceID,
+                    runID,
+                    workflowID,
                 },
                 responseType: 'json',
             });
@@ -89,10 +105,10 @@ export default class ServerToTemporalController {
         }
     }
 
-    public static async pause(
-        workflowID: string,
-        runID: string,
-    ): Promise<void> {
+    public static async pause({
+        workflowID,
+        runID,
+    }: TemporalMtvPauseArgs): Promise<void> {
         try {
             const url = urlcat(
                 TEMPORAL_ENDPOINT,
@@ -110,7 +126,10 @@ export default class ServerToTemporalController {
         }
     }
 
-    public static async play(workflowID: string, runID: string): Promise<void> {
+    public static async play({
+        workflowID,
+        runID,
+    }: TemporalMtvPlayArgs): Promise<void> {
         try {
             const url = urlcat(
                 TEMPORAL_ENDPOINT,
@@ -132,11 +151,13 @@ export default class ServerToTemporalController {
     public static async getState({
         workflowID,
         runID,
-    }: TemporalMtvWorkflowGetStateArgs): Promise<MtvWorkflowState> {
+        userID,
+    }: TemporalMtvGetStateArgs): Promise<MtvWorkflowState> {
         try {
             const url = urlcat(TEMPORAL_ENDPOINT, '/state/:workflowID/:runID', {
                 workflowID,
                 runID,
+                userID,
             });
 
             const res = await got.get(url).json();
@@ -151,7 +172,7 @@ export default class ServerToTemporalController {
     public static async goToNextTrack({
         workflowID,
         runID,
-    }: TemporalGoToNextTrackArgs): Promise<void> {
+    }: TemporalMtvGoToNextTrackArgs): Promise<void> {
         const url = urlcat(TEMPORAL_ENDPOINT, '/go-to-next-track');
 
         await got.put(url, {
@@ -160,5 +181,33 @@ export default class ServerToTemporalController {
                 runID,
             },
         });
+    }
+
+    public static async ChangeUserEmittingDevice({
+        deviceID,
+        runID,
+        userID,
+        workflowID,
+    }: TemporalMtvChangeUserEmittingDeviceArgs): Promise<void> {
+        try {
+            const url = urlcat(
+                TEMPORAL_ENDPOINT,
+                '/change-user-emitting-device',
+            );
+            await got.put(url, {
+                json: {
+                    userID,
+                    deviceID,
+                    runID,
+                    workflowID,
+                },
+                responseType: 'json',
+            });
+        } catch (e) {
+            console.error(e);
+            throw new Error(
+                'Failed to change user emitting device ' + workflowID,
+            );
+        }
     }
 }

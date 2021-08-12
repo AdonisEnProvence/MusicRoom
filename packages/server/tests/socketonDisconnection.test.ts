@@ -165,7 +165,11 @@ test.group('Rooms life cycle', (group) => {
                     roomCreatorUserID: userID,
                     playing: false,
                     name: roomName,
-                    users: [userID],
+                    userRelatedInformation: {
+                        userID,
+                        emittingDeviceID: datatype.uuid(),
+                    },
+                    usersLength: 1,
                     tracks: [
                         {
                             id: datatype.uuid(),
@@ -302,7 +306,11 @@ test.group('Rooms life cycle', (group) => {
                     roomCreatorUserID: userA.userID,
                     playing: false,
                     name: roomName,
-                    users: [userA.userID],
+                    userRelatedInformation: {
+                        emittingDeviceID: datatype.uuid(),
+                        userID: userA.userID,
+                    },
+                    usersLength: 1,
                     currentTrack: null,
                     tracksIDsList: null,
                     tracks: [
@@ -322,8 +330,13 @@ test.group('Rooms life cycle', (group) => {
             });
         sinon
             .stub(ServerToTemporalController, 'joinWorkflow')
-            .callsFake(async () => {
+            .callsFake(async ({ userID }) => {
                 if (state === undefined) throw new Error('State is undefined');
+                state.usersLength++;
+                state.userRelatedInformation = {
+                    userID,
+                    emittingDeviceID: datatype.uuid(),
+                };
                 await supertest(BASE_URL)
                     .post('/temporal/join')
                     .send({ state, joiningUserID: userB.userID });
@@ -445,7 +458,11 @@ test.group('Rooms life cycle', (group) => {
                     ],
                     playing: false,
                     name: roomName,
-                    users: [creatorID],
+                    userRelatedInformation: {
+                        userID: creatorID,
+                        emittingDeviceID: datatype.uuid(),
+                    },
+                    usersLength: 1,
                 };
 
                 return {
@@ -531,7 +548,11 @@ test.group('Rooms life cycle', (group) => {
                         name: roomName,
                         tracksIDsList: null,
                         currentTrack: null,
-                        users: [userID],
+                        userRelatedInformation: {
+                            userID,
+                            emittingDeviceID: datatype.uuid(),
+                        },
+                        usersLength: 1,
                         tracks: [
                             {
                                 id: datatype.uuid(),
@@ -578,45 +599,58 @@ test.group('Rooms life cycle', (group) => {
     });
 
     test('New user socket connection should join previously joined/created room', async (assert) => {
-        const userID = datatype.uuid();
+        const creatorUserID = datatype.uuid();
         const roomName = random.word();
-        const socketA = await createUserAndGetSocket(userID);
+        const socketA = await createUserAndGetSocket(creatorUserID);
         let userCouldEmitAnExclusiveRoomSignal = false;
         /** Mocks */
         sinon
             .stub(ServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
+                const creator = datatype.uuid();
+                const state: MtvWorkflowState = {
+                    roomID: workflowID,
+                    roomCreatorUserID: creatorUserID,
+                    playing: false,
+                    name: roomName,
+                    tracksIDsList: null,
+                    usersLength: 1,
+                    currentTrack: null,
+                    userRelatedInformation: {
+                        userID: creator,
+                        emittingDeviceID: datatype.uuid(),
+                    },
+                    tracks: [
+                        {
+                            id: datatype.uuid(),
+                            artistName: name.findName(),
+                            duration: 42000,
+                            title: random.words(3),
+                        },
+                    ],
+                };
+
                 return {
                     runID: datatype.uuid(),
                     workflowID,
-                    state: {
-                        roomID: workflowID,
-                        roomCreatorUserID: datatype.uuid(),
-                        playing: false,
-                        name: roomName,
-                        tracksIDsList: null,
-                        currentTrack: null,
-                        users: [userID],
-                        tracks: [
-                            {
-                                id: datatype.uuid(),
-                                artistName: name.findName(),
-                                duration: 42000,
-                                title: random.words(3),
-                            },
-                        ],
-                    },
+                    state,
                 };
             });
         sinon
             .stub(ServerToTemporalController, 'getState')
-            .callsFake(async ({ workflowID }) => {
+            .callsFake(async ({ workflowID, userID }) => {
                 return {
                     name: roomName,
-                    roomCreatorUserID: userID,
+                    roomCreatorUserID: creatorUserID,
                     playing: false,
                     roomID: workflowID,
-                    users: [userID],
+                    usersLength: 1,
+                    userRelatedInformation: userID
+                        ? {
+                              userID,
+                              emittingDeviceID: datatype.uuid(),
+                          }
+                        : null,
                     currentTrack: null,
                     tracksIDsList: null,
                     tracks: null,
@@ -643,7 +677,7 @@ test.group('Rooms life cycle', (group) => {
          * He also receives the mtvRoom's context
          */
         const socketB = {
-            socket: await createSocketConnection(userID),
+            socket: await createSocketConnection(creatorUserID),
         };
 
         socketB.socket.emit('ACTION_PLAY');
@@ -709,10 +743,12 @@ test.group('Rooms life cycle', (group) => {
                     currentTrack: null,
                     name: random.word(),
                     playing: false,
+
                     roomCreatorUserID: userID,
                     tracks: null,
                     tracksIDsList: null,
-                    users: [userID],
+                    userRelatedInformation: null,
+                    usersLength: 1,
                 };
             });
 
@@ -769,7 +805,8 @@ test.group('Rooms life cycle', (group) => {
             roomID: datatype.uuid(),
             tracks: null,
             tracksIDsList: null,
-            users: [userID],
+            usersLength: 1,
+            userRelatedInformation: null,
         };
         const receivedEvents: string[] = [];
 

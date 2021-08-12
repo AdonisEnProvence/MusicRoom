@@ -43,6 +43,12 @@ export default class TemporalToServerController {
         );
         const { roomID } = state;
 
+        if (state.userRelatedInformation === null) {
+            throw new Error(
+                'userRelatedInformation on temporal join callback should not be null',
+            );
+        }
+
         const joiningUser = await User.findOrFail(joiningUserID);
         const mtvRoom = await MtvRoom.findOrFail(roomID);
 
@@ -64,13 +70,13 @@ export default class TemporalToServerController {
     }: HttpContextContract): Promise<void> {
         const state = MtvWorkflowState.parse(request.body());
 
-        if (state.UserRelatedInformation === null)
+        if (state.userRelatedInformation === null)
             throw new Error(
                 'Error on temporal response for mtvChangeUserEmittingDeviceAcknowledgement userRelatedInformations shouldnt be null',
             );
 
         await UserService.emitEventInEveryDeviceUser(
-            state.UserRelatedInformation.userID,
+            state.userRelatedInformation.userID,
             'CHANGE_EMITTING_DEVICE_CALLBACK',
             [state],
         );

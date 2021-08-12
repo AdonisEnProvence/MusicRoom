@@ -24,7 +24,7 @@ export const MtvWorkflowState = z.object({
     roomCreatorUserID: z.string().uuid(),
     playing: z.boolean(),
     name: z.string(),
-    UserRelatedInformation: UserRelatedInformation.nullable(),
+    userRelatedInformation: UserRelatedInformation.nullable(),
     usersLength: z.number(),
     currentTrack: CurrentTrack.nullable(),
     tracksIDsList: z.string().array().nullable(),

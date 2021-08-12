@@ -58,4 +58,21 @@ export default class TemporalToServerController {
             [state],
         );
     }
+
+    public async mtvChangeUserEmittingDeviceAcknowledgement({
+        request,
+    }: HttpContextContract): Promise<void> {
+        const state = MtvWorkflowState.parse(request.body());
+
+        if (state.UserRelatedInformation === null)
+            throw new Error(
+                'Error on temporal response for mtvChangeUserEmittingDeviceAcknowledgement userRelatedInformations shouldnt be null',
+            );
+
+        await UserService.emitEventInEveryDeviceUser(
+            state.UserRelatedInformation.userID,
+            'CHANGE_EMITTING_DEVICE_CALLBACK',
+            [state],
+        );
+    }
 }

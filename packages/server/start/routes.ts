@@ -26,6 +26,8 @@ Route.post('/search/rooms', 'MtvRoomsHttpController.listAllRooms');
 
 Route.get('/ping', () => console.log('pong'));
 
+/// Temporal Routes ///
+
 Route.post(
     '/temporal/mtv-creation-acknowledgement',
     'Temporal/TemporalToServerController.mtvCreationAcknowledgement',
@@ -39,6 +41,13 @@ Route.get(
 );
 
 Route.post('/temporal/join', 'Temporal/TemporalToServerController.join');
+
+Route.post(
+    '/temporal/change-user-emitting-device',
+    'Temporal/TemporalToServerController.mtvChangeUserEmittingDeviceAcknowledgement',
+);
+
+/// //////// ////// ///
 
 Route.get('/', () => {
     return { hello: 'world' };

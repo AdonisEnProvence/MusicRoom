@@ -35,6 +35,7 @@ interface OnPlayArgs extends RoomID {}
 interface OnTerminateArgs extends RoomID {}
 interface OnGetStateArgs extends RoomID, UserID {}
 interface OnGoToNextTrackArgs extends RoomID {}
+interface OnChangeEmittingDeviceArgs extends RoomID, DeviceID, UserID {}
 
 export default class MtvRoomsWsController {
     public static async onCreate({
@@ -165,6 +166,21 @@ export default class MtvRoomsWsController {
         await ServerToTemporalController.goToNextTrack({
             workflowID: roomID,
             runID,
+        });
+    }
+
+    public static async OnChangeEmittingDevice({
+        deviceID,
+        roomID,
+        userID,
+    }: OnChangeEmittingDeviceArgs): Promise<void> {
+        const { runID } = await MtvRoom.findOrFail(roomID);
+
+        await ServerToTemporalController.ChangeUserEmittingDevice({
+            workflowID: roomID,
+            runID,
+            deviceID,
+            userID,
         });
     }
 }

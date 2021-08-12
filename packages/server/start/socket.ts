@@ -19,6 +19,8 @@ export type TypedSocket = Socket<
     DefaultEventsMap
 >;
 
+//TODO we should be using zod to parse every payload coming from the client
+
 Ws.io.on('connection', async (socket) => {
     try {
         ChatController.onConnect({ socket, payload: undefined });
@@ -170,6 +172,49 @@ Ws.io.on('connection', async (socket) => {
 
                 await MtvRoomsWsController.onGoToNextTrack({
                     roomID: mtvRoomID,
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        socket.on('CHANGE_EMITTING_DEVICE', async ({ newEmittingDeviceID }) => {
+            try {
+                const { userID, mtvRoomID } =
+                    await SocketLifecycle.getSocketConnectionCredentials(
+                        socket,
+                    );
+
+                if (!mtvRoomID) {
+                    throw new Error(
+                        'Error on CHANGE_EMITTING_DEVICE cannot change emitting device if user is not in a mtvRoom',
+                    );
+                }
+
+                const newEmittingDevice = await Device.findOrFail(
+                    newEmittingDeviceID,
+                );
+
+                await newEmittingDevice.load('user');
+                if (!newEmittingDevice.user) {
+                    throw new Error(
+                        'newEmittingDevice.user should not be empty',
+                    );
+                }
+
+                const userIsNotTheNewDeviceOwner =
+                    newEmittingDevice.user.uuid !== userID;
+
+                if (userIsNotTheNewDeviceOwner) {
+                    throw new Error(
+                        `device: ${newEmittingDeviceID} does not belongs to userID: ${userID}`,
+                    );
+                }
+
+                await MtvRoomsWsController.OnChangeEmittingDevice({
+                    deviceID: newEmittingDeviceID,
+                    roomID: mtvRoomID,
+                    userID: userID,
                 });
             } catch (err) {
                 console.error(err);

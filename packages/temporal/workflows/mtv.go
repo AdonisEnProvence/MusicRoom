@@ -67,8 +67,8 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 		UsersLength:       len(s.Users),
 	}
 
-	if userInformations, ok := s.Users[RelatedUserID]; RelatedUserID != "" && ok {
-		exposedState.UserRelatedInformations = userInformations
+	if userInformation, ok := s.Users[RelatedUserID]; RelatedUserID != "" && ok {
+		exposedState.UserRelatedInformation = userInformation
 	}
 
 	return exposedState
@@ -84,8 +84,8 @@ func (s *MtvRoomInternalState) AddUser(user shared.InternalStateUser) {
 }
 
 func (s *MtvRoomInternalState) UpdateUserDeviceID(user shared.InternalStateUser) {
-	if _, ok := s.Users[user.UserID]; ok {
-		s.Users[user.UserID].DeviceID = user.DeviceID
+	if val, ok := s.Users[user.UserID]; ok {
+		val.DeviceID = user.DeviceID
 	} else {
 		fmt.Printf("\n User %s not found in s.Users\n", user.UserID)
 	}

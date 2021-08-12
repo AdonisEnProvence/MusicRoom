@@ -69,8 +69,8 @@ func (c CurrentTrack) Export(elapsed time.Duration) ExposedCurrentTrack {
 }
 
 type InternalStateUser struct {
-	UserID   string
-	DeviceID string
+	UserID   string `json:"userID"`
+	DeviceID string `json:"emittingDeviceID"`
 }
 
 type MtvRoomParameters struct {
@@ -83,25 +83,25 @@ type MtvRoomParameters struct {
 
 func (p MtvRoomParameters) Export() MtvRoomExposedState {
 	return MtvRoomExposedState{
-		RoomID:                  p.RoomID,
-		Playing:                 false,
-		RoomCreatorUserID:       p.RoomCreatorUserID,
-		RoomName:                p.RoomName,
-		UserRelatedInformations: p.InitialUsers[p.RoomCreatorUserID],
-		TracksIDsList:           p.InitialTracksIDsList,
+		RoomID:                 p.RoomID,
+		Playing:                false,
+		RoomCreatorUserID:      p.RoomCreatorUserID,
+		RoomName:               p.RoomName,
+		UserRelatedInformation: p.InitialUsers[p.RoomCreatorUserID],
+		TracksIDsList:          p.InitialTracksIDsList,
 	}
 }
 
 type MtvRoomExposedState struct {
-	RoomID                  string                 `json:"roomID"`
-	RoomCreatorUserID       string                 `json:"roomCreatorUserID"`
-	Playing                 bool                   `json:"playing"`
-	RoomName                string                 `json:"name"`
-	UserRelatedInformations *InternalStateUser     `json:"users,omitempty"`
-	TracksIDsList           []string               `json:"tracksIDsList"`
-	CurrentTrack            *ExposedCurrentTrack   `json:"currentTrack"`
-	Tracks                  []ExposedTrackMetadata `json:"tracks"`
-	UsersLength             int                    `json:"usersLength"`
+	RoomID                 string                 `json:"roomID"`
+	RoomCreatorUserID      string                 `json:"roomCreatorUserID"`
+	Playing                bool                   `json:"playing"`
+	RoomName               string                 `json:"name"`
+	UserRelatedInformation *InternalStateUser     `json:"userRelatedInformation,omitempty"`
+	TracksIDsList          []string               `json:"tracksIDsList"`
+	CurrentTrack           *ExposedCurrentTrack   `json:"currentTrack"`
+	Tracks                 []ExposedTrackMetadata `json:"tracks"`
+	UsersLength            int                    `json:"usersLength"`
 }
 
 type SignalRoute string

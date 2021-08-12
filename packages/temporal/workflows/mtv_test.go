@@ -360,7 +360,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState("")
 
-		s.Empty(mtvState.UserRelatedInformations)
+		s.Empty(mtvState.UserRelatedInformation)
 		s.False(mtvState.Playing)
 		s.Equal(1, mtvState.UsersLength)
 	}, checkOnlyOneUser)
@@ -387,7 +387,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		mtvState := s.getMtvState(randomUserID)
 
 		s.Equal(2, mtvState.UsersLength)
-		s.Empty(mtvState.UserRelatedInformations)
+		s.Empty(mtvState.UserRelatedInformation)
 	}, checkForEmptyDeviceIDInfo)
 
 	emptyUserID := defaultDuration
@@ -401,7 +401,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		mtvState := s.getMtvState("")
 
 		s.Equal(2, mtvState.UsersLength)
-		s.Empty(mtvState.UserRelatedInformations)
+		s.Empty(mtvState.UserRelatedInformation)
 	}, checkForEmptyUserIDInfo)
 
 	checkTwoUsersThenEmitPlay := defaultDuration
@@ -414,8 +414,8 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 			DeviceID: fakeDeviceID,
 		}
 
-		s.NotEqual(shouldNotBeRegisterDeviceID, mtvState.UserRelatedInformations.DeviceID)
-		s.Equal(expectedInternalStateUser, mtvState.UserRelatedInformations)
+		s.NotEqual(shouldNotBeRegisterDeviceID, mtvState.UserRelatedInformation.DeviceID)
+		s.Equal(expectedInternalStateUser, mtvState.UserRelatedInformation)
 		s.emitPlaySignal()
 	}, checkTwoUsersThenEmitPlay)
 
@@ -504,7 +504,7 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 
 		s.Equal(1, mtvState.UsersLength)
 		s.False(mtvState.Playing)
-		s.Equal(expectedInternalStateUser, mtvState.UserRelatedInformations)
+		s.Equal(expectedInternalStateUser, mtvState.UserRelatedInformation)
 	}, checkCreateUserRelatedInformation)
 
 	checkUnkownUserIDUserRelatedInformation := defaultDuration
@@ -513,7 +513,7 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 
 		s.Equal(1, mtvState.UsersLength)
 		s.False(mtvState.Playing)
-		s.Empty(mtvState.UserRelatedInformations)
+		s.Empty(mtvState.UserRelatedInformation)
 	}, checkUnkownUserIDUserRelatedInformation)
 
 	checkEmptyUserIDRelatedInformation := defaultDuration
@@ -522,7 +522,7 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 
 		s.Equal(1, mtvState.UsersLength)
 		s.False(mtvState.Playing)
-		s.Empty(mtvState.UserRelatedInformations)
+		s.Empty(mtvState.UserRelatedInformation)
 	}, checkEmptyUserIDRelatedInformation)
 
 	emitJoin := defaultDuration
@@ -541,7 +541,7 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 
 		s.Equal(2, mtvState.UsersLength)
 		s.False(mtvState.Playing)
-		s.Equal(expectedInternalStateUser, mtvState.UserRelatedInformations)
+		s.Equal(expectedInternalStateUser, mtvState.UserRelatedInformation)
 	}, checkLatestUserRelatedInformation)
 
 	secondCreatorDeviceID := faker.UUIDHyphenated()
@@ -566,7 +566,7 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 
 		s.Equal(2, mtvState.UsersLength)
 		s.False(mtvState.Playing)
-		s.Equal(expectedInternalStateUser, mtvState.UserRelatedInformations)
+		s.Equal(expectedInternalStateUser, mtvState.UserRelatedInformation)
 	}, checkThatCreatorDeviceIDChanged)
 
 	verifyThatTheOtherUserDidntChange := defaultDuration
@@ -580,7 +580,7 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 
 		s.Equal(2, mtvState.UsersLength)
 		s.False(mtvState.Playing)
-		s.Equal(expectedInternalStateUser, mtvState.UserRelatedInformations)
+		s.Equal(expectedInternalStateUser, mtvState.UserRelatedInformation)
 	}, verifyThatTheOtherUserDidntChange)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)

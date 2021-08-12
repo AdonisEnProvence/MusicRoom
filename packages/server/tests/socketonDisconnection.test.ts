@@ -3,6 +3,7 @@ import {
     AllClientToServerEvents,
     AllServerToClientEvents,
     MtvWorkflowState,
+    UserRelatedInformation,
 } from '@musicroom/types';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import Device from 'App/Models/Device';
@@ -872,5 +873,179 @@ test.group('Rooms life cycle', (group) => {
 
         await sleep();
         assert.isTrue(callbackHasBeenCalled);
+    });
+
+    test('It should change user emitting device', async (assert) => {
+        const userID = datatype.uuid();
+
+        sinon
+            .stub(ServerToTemporalController, 'ChangeUserEmittingDevice')
+            .callsFake(async ({ deviceID, workflowID }) => {
+                const state: MtvWorkflowState = {
+                    currentTrack: null,
+                    name: random.word(),
+                    playing: false,
+                    roomCreatorUserID: userID,
+                    roomID: workflowID,
+                    tracks: null,
+                    tracksIDsList: null,
+                    userRelatedInformation: {
+                        userID: userID,
+                        emittingDeviceID: deviceID,
+                    },
+                    usersLength: 1,
+                };
+
+                await supertest(BASE_URL)
+                    .post('/temporal/change-user-emitting-device')
+                    .send(state);
+                return;
+            });
+
+        const socket = {
+            socket: await createUserAndGetSocket(userID),
+            receivedEvents: [] as string[],
+        };
+        const mtvRoom = await MtvRoom.create({
+            uuid: datatype.uuid(),
+            runID: datatype.uuid(),
+            creator: userID,
+        });
+        const creatorUser = await User.findOrFail(userID);
+        await creatorUser.related('mtvRoom').associate(mtvRoom);
+        await Ws.adapter().remoteJoin(socket.socket.id, mtvRoom.uuid);
+
+        const socketB = {
+            socket: await createSocketConnection(userID),
+            receivedEvents: [] as string[],
+        };
+        await Ws.adapter().remoteJoin(socketB.socket.id, mtvRoom.uuid);
+
+        const deviceB = await Device.findBy('socket_id', socketB.socket.id);
+
+        assert.isNotNull(deviceB);
+        if (deviceB === null) {
+            throw new Error('device should not be null');
+        }
+
+        socketB.socket.once(
+            'CHANGE_EMITTING_DEVICE_CALLBACK',
+            ({ userRelatedInformation }) => {
+                const expectedUserRelatedInformation: UserRelatedInformation | null =
+                    {
+                        userID: userID,
+                        emittingDeviceID: deviceB.uuid,
+                    };
+
+                assert.isNotNull(userRelatedInformation);
+                if (userRelatedInformation === null)
+                    throw new Error(
+                        'UserRelatedInformation should not be null there',
+                    );
+
+                assert.deepEqual(
+                    userRelatedInformation,
+                    expectedUserRelatedInformation,
+                );
+                socketB.receivedEvents.push('CHANGE_EMITTING_DEVICE_CALLBACK');
+            },
+        );
+
+        socket.socket.once(
+            'CHANGE_EMITTING_DEVICE_CALLBACK',
+            ({ userRelatedInformation }) => {
+                const expectedUserRelatedInformation = {
+                    userID: userID,
+                    emittingDeviceID: deviceB?.uuid,
+                };
+
+                assert.deepEqual(
+                    userRelatedInformation,
+                    expectedUserRelatedInformation,
+                );
+                socket.receivedEvents.push('CHANGE_EMITTING_DEVICE_CALLBACK');
+            },
+        );
+
+        socket.socket.emit('CHANGE_EMITTING_DEVICE', {
+            newEmittingDeviceID: deviceB.uuid,
+        });
+        await sleep();
+
+        assert.equal(socketB.receivedEvents.length, 1);
+        assert.equal(socket.receivedEvents.length, 1);
+    });
+
+    test('It should fail change user emitting device as user is not in a mtvRoom', async (assert) => {
+        const userID = datatype.uuid();
+
+        const socket = {
+            socket: await createUserAndGetSocket(userID),
+            receivedEvents: [] as string[],
+        };
+        const socketB = {
+            socket: await createSocketConnection(userID),
+            receivedEvents: [] as string[],
+        };
+        const deviceB = await Device.findBy('socket_id', socketB.socket.id);
+
+        assert.isNotNull(deviceB);
+        if (deviceB === null) {
+            throw new Error('device should not be null');
+        }
+
+        let hasNeverBeenCalled = true;
+
+        socketB.socket.once('CHANGE_EMITTING_DEVICE_CALLBACK', () => {
+            hasNeverBeenCalled = false;
+        });
+
+        socket.socket.once('CHANGE_EMITTING_DEVICE_CALLBACK', () => {
+            hasNeverBeenCalled = false;
+        });
+
+        socket.socket.emit('CHANGE_EMITTING_DEVICE', {
+            newEmittingDeviceID: deviceB.uuid,
+        });
+        await sleep();
+
+        assert.isTrue(hasNeverBeenCalled);
+    });
+
+    test('It should fail change user emitting device as user is not the newEmittingDevice owner', async (assert) => {
+        const userID = datatype.uuid();
+        const secondUserID = datatype.uuid();
+
+        const socket = {
+            socket: await createUserAndGetSocket(userID),
+            receivedEvents: [] as string[],
+        };
+        const socketB = {
+            socket: await createUserAndGetSocket(secondUserID),
+            receivedEvents: [] as string[],
+        };
+        const deviceB = await Device.findBy('socket_id', socketB.socket.id);
+
+        assert.isNotNull(deviceB);
+        if (deviceB === null) {
+            throw new Error('device should not be null');
+        }
+
+        let hasNeverBeenCalled = true;
+
+        socketB.socket.once('CHANGE_EMITTING_DEVICE_CALLBACK', () => {
+            hasNeverBeenCalled = false;
+        });
+
+        socket.socket.once('CHANGE_EMITTING_DEVICE_CALLBACK', () => {
+            hasNeverBeenCalled = false;
+        });
+
+        socket.socket.emit('CHANGE_EMITTING_DEVICE', {
+            newEmittingDeviceID: deviceB.uuid,
+        });
+        await sleep();
+
+        assert.isTrue(hasNeverBeenCalled);
     });
 });

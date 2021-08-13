@@ -1,6 +1,7 @@
 import {
     AllClientToServerEvents,
     AllServerToClientEvents,
+    UserDevice,
 } from '@musicroom/types';
 import ChatController from 'App/Controllers/Ws/ChatController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
@@ -39,7 +40,7 @@ Ws.io.on('connection', async (socket) => {
         /// //// ///
 
         /// USER ///
-        socket.on('GET_CONNECTED_DEVICES', async (callback) => {
+        socket.on('GET_CONNECTED_DEVICES_AND_DEVICE_ID', async (callback) => {
             try {
                 const { userID } =
                     await SocketLifecycle.getSocketConnectionCredentials(
@@ -49,8 +50,24 @@ Ws.io.on('connection', async (socket) => {
                 const devices = await UserService.getUserConnectedDevices(
                     userID,
                 );
+                const formattedDevices: UserDevice[] = devices.map(
+                    (device) => ({
+                        deviceID: device.uuid,
+                        name: device.name,
+                    }),
+                );
+                const currDevice = devices.find(
+                    (device) => device.socketID === socket.id,
+                );
 
-                callback({ devices });
+                if (currDevice === undefined) {
+                    throw new Error('currDeviceID should not be undefined');
+                }
+
+                callback({
+                    devices: formattedDevices,
+                    currDeviceID: currDevice.uuid,
+                });
             } catch (e) {
                 console.error(e);
             }
@@ -180,6 +197,7 @@ Ws.io.on('connection', async (socket) => {
 
         socket.on('CHANGE_EMITTING_DEVICE', async ({ newEmittingDeviceID }) => {
             try {
+                console.log('RECEIVED CHANGE EMITTING DEVICE FORM CLIENT');
                 const { userID, mtvRoomID } =
                     await SocketLifecycle.getSocketConnectionCredentials(
                         socket,
@@ -210,6 +228,9 @@ Ws.io.on('connection', async (socket) => {
                         `device: ${newEmittingDeviceID} does not belongs to userID: ${userID}`,
                     );
                 }
+                console.log(
+                    'RECEIVED CHANGE EMITTING DEVICE FORM CLIENT EVERYTHING IS OK',
+                );
 
                 await MtvRoomsWsController.OnChangeEmittingDevice({
                     deviceID: newEmittingDeviceID,

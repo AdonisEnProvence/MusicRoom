@@ -4,8 +4,8 @@ export type UserDevice = {
 };
 
 export interface UserClientToServerEvents {
-    GET_CONNECTED_DEVICES: (
-        cb: (payload: { devices: UserDevice[] }) => void,
+    GET_CONNECTED_DEVICES_AND_DEVICE_ID: (
+        cb: (payload: { devices: UserDevice[]; currDeviceID: string }) => void,
     ) => void;
 }
 

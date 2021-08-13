@@ -267,7 +267,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							),
 							brainy.ActionFn(
 								func(c brainy.Context, e brainy.Event) error {
-									if err := acknowledgeRoomCreation(ctx, internalState.Export(shared.NoRelatedUserID)); err != nil {
+									if err := acknowledgeRoomCreation(ctx, internalState.Export(internalState.initialParams.RoomCreatorUserID)); err != nil {
 										workflowFatalError = err
 									}
 

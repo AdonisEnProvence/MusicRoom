@@ -23,7 +23,7 @@ function getYoutubePlayerState(
 }
 
 const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
-    ({ videoId, playing, onReady, seekToInSeconds }, ref) => {
+    ({ videoId, playing, onReady, seekToInSeconds, mute }, ref) => {
         const playerRef = useRef<YouTubePlayer>();
 
         useImperativeHandle(ref, () => ({
@@ -71,7 +71,16 @@ const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
             } else {
                 playerRef.current?.pauseVideo();
             }
-        }, [playing, playerRef, seekToInSeconds]);
+            if (mute) {
+                playerRef.current?.mute();
+            } else if (
+                mute === false &&
+                playerRef.current &&
+                playerRef.current.isMuted()
+            ) {
+                playerRef.current?.unMute();
+            }
+        }, [playing, playerRef, seekToInSeconds, mute]);
 
         const playerOptions: Options = {
             height: '100%',

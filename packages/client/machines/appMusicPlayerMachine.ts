@@ -43,9 +43,11 @@ export type AppMusicPlayerMachineEvent =
           params: { status: 'play' | 'pause' };
       }
     | { type: 'GO_TO_NEXT_TRACK' }
+    | { type: 'CHANGE_EMITTING_DEVICE'; deviceID: string }
     | { type: 'PLAY_CALLBACK'; state: MtvWorkflowState }
     | { type: 'FORCED_DISCONNECTION' }
     | { type: 'FOCUS_READY' }
+    | { type: 'CHANGE_EMITTING_DEVICE_CALLBACK'; state: MtvWorkflowState }
     | {
           type: 'RETRIEVE_CONTEXT';
           state: MtvWorkflowState;
@@ -62,7 +64,8 @@ const rawContext: AppMusicPlayerMachineContext = {
     roomCreatorUserID: '',
     roomID: '',
     tracks: null,
-    users: [],
+    userRelatedInformation: null,
+    usersLength: 0,
     currentTrack: null,
     tracksIDsList: null,
     waitingRoomID: undefined,
@@ -95,6 +98,17 @@ export const createAppMusicPlayerMachine = ({
                         });
                         sendBack({
                             type: 'JOINED_CREATED_ROOM',
+                            state,
+                        });
+                    });
+
+                    socket.on('CHANGE_EMITTING_DEVICE_CALLBACK', (state) => {
+                        console.log('CHANGE_EMITTING_DEVICE_CALLBACK recu', {
+                            state,
+                        });
+
+                        sendBack({
+                            type: 'CHANGE_EMITTING_DEVICE_CALLBACK',
                             state,
                         });
                     });
@@ -152,6 +166,18 @@ export const createAppMusicPlayerMachine = ({
                             case 'GO_TO_NEXT_TRACK': {
                                 socket.emit('GO_TO_NEXT_TRACK');
 
+                                break;
+                            }
+
+                            case 'CHANGE_EMITTING_DEVICE': {
+                                console.log(
+                                    'CHANGE EMITTING DEVICE ABOUT TO BE EMIT WITH PARAMS ',
+                                    e.params,
+                                );
+
+                                socket.emit('CHANGE_EMITTING_DEVICE', {
+                                    newEmittingDeviceID: e.params.deviceID,
+                                });
                                 break;
                             }
                         }
@@ -453,6 +479,49 @@ export const createAppMusicPlayerMachine = ({
                         },
 
                         JOIN_ROOM: { target: 'joiningRoom' },
+
+                        CHANGE_EMITTING_DEVICE: {
+                            cond: (
+                                { userRelatedInformation },
+                                { deviceID },
+                            ) => {
+                                if (userRelatedInformation !== null) {
+                                    const pickedDeviceIsNotEmitting =
+                                        userRelatedInformation.emittingDeviceID !==
+                                        deviceID;
+
+                                    return pickedDeviceIsNotEmitting;
+                                }
+                                return false;
+                            },
+                            actions: send(
+                                (_context, event) => ({
+                                    type: 'CHANGE_EMITTING_DEVICE',
+                                    params: {
+                                        deviceID: event.deviceID,
+                                    },
+                                }),
+                                {
+                                    to: 'socketConnection',
+                                },
+                            ),
+                        },
+
+                        CHANGE_EMITTING_DEVICE_CALLBACK: {
+                            cond: ({ userRelatedInformation }) => {
+                                const userRelatedInformationIsNotNull =
+                                    userRelatedInformation !== null;
+
+                                if (userRelatedInformationIsNotNull == false) {
+                                    console.error(
+                                        'UserRelatedInformation should not be null',
+                                    );
+                                }
+
+                                return userRelatedInformationIsNotNull;
+                            },
+                            actions: `assignMergeNewState`,
+                        },
                     },
                 },
             },
@@ -475,7 +544,6 @@ export const createAppMusicPlayerMachine = ({
         {
             actions: {
                 assignMergeNewState: assign((context, event) => {
-                    console.log('MERGE ASSIGN FROM event.type = ' + event.type);
                     if (
                         event.type !== 'JOINED_CREATED_ROOM' &&
                         event.type !== 'JOINED_ROOM' &&
@@ -485,11 +553,22 @@ export const createAppMusicPlayerMachine = ({
                     ) {
                         return context;
                     }
+                    console.log(
+                        'MERGE ASSIGN FROM event.type = ' + event.type,
+                        event.state,
+                    );
+                    let userRelatedInformationUpdate =
+                        context.userRelatedInformation;
+                    if (event.state.userRelatedInformation !== null) {
+                        userRelatedInformationUpdate =
+                            event.state.userRelatedInformation;
+                    }
 
                     return {
                         ...context,
                         ...event.state,
                         progressElapsedTime: event.state.currentTrack?.elapsed,
+                        userRelatedInformation: userRelatedInformationUpdate,
                     };
                 }),
 

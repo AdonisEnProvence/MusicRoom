@@ -2,6 +2,7 @@ import { useBackHandler } from '@react-native-community/hooks';
 import { View } from 'dripsy';
 import React from 'react';
 import { useMusicPlayer } from '../../contexts/MusicPlayerContext';
+import { useUserContext } from '../../contexts/UserContext';
 import TheMusicPlayerFullScreen from './TheMusicPlayerFullScreen';
 import TheMusicPlayerMini from './TheMusicPlayerMini';
 
@@ -16,6 +17,8 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
 }) => {
     const MINI_PLAYER_HEIGHT = 52;
     const { state, sendToMachine, setPlayerRef } = useMusicPlayer();
+    const { state: userState } = useUserContext();
+
     const isInRoom = state.context.roomID !== '';
     function openPlayerInFullScreen() {
         if (isInRoom === true) {
@@ -70,6 +73,7 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
                         dismissFullScreenPlayer={() => {
                             setIsFullScren(false);
                         }}
+                        userState={userState}
                         sendToMachine={sendToMachine}
                         machineState={state}
                         setPlayerRef={setPlayerRef}

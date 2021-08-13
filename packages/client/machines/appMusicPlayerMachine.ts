@@ -512,7 +512,7 @@ export const createAppMusicPlayerMachine = ({
                                 const userRelatedInformationIsNotNull =
                                     userRelatedInformation !== null;
 
-                                if (userRelatedInformationIsNotNull == false) {
+                                if (userRelatedInformationIsNotNull === false) {
                                     console.error(
                                         'UserRelatedInformation should not be null',
                                     );
@@ -549,7 +549,8 @@ export const createAppMusicPlayerMachine = ({
                         event.type !== 'JOINED_ROOM' &&
                         event.type !== 'RETRIEVE_CONTEXT' &&
                         event.type !== 'ROOM_IS_READY' &&
-                        event.type !== 'PLAY_CALLBACK'
+                        event.type !== 'PLAY_CALLBACK' &&
+                        event.type !== 'CHANGE_EMITTING_DEVICE_CALLBACK'
                     ) {
                         return context;
                     }

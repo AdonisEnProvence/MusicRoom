@@ -30,5 +30,12 @@ export const MtvWorkflowState = z.object({
     tracksIDsList: z.string().array().nullable(),
     tracks: z.array(TracksMetadata).nullable(),
 });
-
 export type MtvWorkflowState = z.infer<typeof MtvWorkflowState>;
+
+export const MtvWorkflowStateWithUserRelatedInformation =
+    MtvWorkflowState.extend({
+        userRelatedInformation: UserRelatedInformation,
+    });
+export type MtvWorkflowStateWithUserRelatedInformation = z.infer<
+    typeof MtvWorkflowStateWithUserRelatedInformation
+>;

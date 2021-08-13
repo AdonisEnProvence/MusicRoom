@@ -154,13 +154,17 @@ export default class ServerToTemporalController {
         userID,
     }: TemporalMtvGetStateArgs): Promise<MtvWorkflowState> {
         try {
-            const url = urlcat(TEMPORAL_ENDPOINT, '/state/:workflowID/:runID', {
-                workflowID,
-                runID,
-                userID,
-            });
+            const url = urlcat(TEMPORAL_ENDPOINT, '/state');
 
-            const res = await got.get(url).json();
+            const res = await got
+                .put(url, {
+                    json: {
+                        workflowID,
+                        runID,
+                        userID,
+                    },
+                })
+                .json();
 
             return MtvWorkflowState.parse(res);
         } catch (e) {

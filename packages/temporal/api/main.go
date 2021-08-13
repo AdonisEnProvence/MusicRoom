@@ -52,7 +52,7 @@ func main() {
 	r.Handle("/create/{workflowID}", http.HandlerFunc(CreateRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/join", http.HandlerFunc(JoinRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/change-user-emitting-device", http.HandlerFunc(ChangeUserEmittingDeviceHandler)).Methods(http.MethodPut)
-	r.Handle("/state", http.HandlerFunc(GetStateHandler)).Methods(http.MethodGet)
+	r.Handle("/state", http.HandlerFunc(GetStateHandler)).Methods(http.MethodPut)
 	r.Handle("/go-to-next-track", http.HandlerFunc(GoToNextTrackHandler)).Methods(http.MethodPut)
 	r.Handle("/terminate/{workflowID}/{runID}", http.HandlerFunc(TerminateWorkflowHandler)).Methods(http.MethodGet)
 

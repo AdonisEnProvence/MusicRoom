@@ -74,10 +74,12 @@ const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
             if (mute) {
                 console.log('MUTEEEEEEEEEEEEEEEEEEEEEEEEEEEEEee');
                 playerRef.current?.setVolume(0);
+                playerRef.current?.mute();
             } else if (mute === false) {
                 console.log(
                     'UUUUUUUUUUUUUUUUUUUUUUUUUUUNNNNNNNNNNNNNNNNNNNNNNMMMMMMMMMMMMMMUUUUUUUUUUUUUUUUUUUTTTTTTTTTTEEEEEEEEEe',
                 );
+                playerRef.current?.unMute();
                 playerRef.current?.setVolume(100);
             }
         }, [playing, playerRef, seekToInSeconds, mute]);

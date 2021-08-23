@@ -90,6 +90,10 @@ export const createUserMachine = ({
                         return context;
                     }
 
+                    if (event.params.currDeviceID === undefined) {
+                        return context;
+                    }
+
                     return {
                         ...context,
                         currDeviceID: event.params.currDeviceID,

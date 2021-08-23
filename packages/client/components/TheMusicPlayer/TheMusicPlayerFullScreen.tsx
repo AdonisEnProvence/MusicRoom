@@ -170,36 +170,33 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
             component: () => (
                 <View>
                     <Text sx={{ color: 'white' }}>
-                        Welcome to our great Chat
+                        Welcome to our great Chat You have{' '}
+                        {userContext.devices.length} connected devices
                     </Text>
                     {userContext.devices.length > 0 && (
                         <FlatList
                             data={userContext.devices}
                             renderItem={({ item: { deviceID, name } }) => (
-                                <TouchableOpacity
+                                <Text
                                     onPress={() => {
                                         sendToMachine({
                                             type: 'CHANGE_EMITTING_DEVICE',
                                             deviceID,
                                         });
                                     }}
+                                    sx={{
+                                        color: 'white',
+                                    }}
                                 >
-                                    <Text
-                                        sx={{
-                                            color: 'white',
-                                        }}
-                                    >
-                                        {name}{' '}
-                                        {deviceID ===
-                                        context.userRelatedInformation
-                                            ?.emittingDeviceID
-                                            ? 'EMITTING'
-                                            : ''}
-                                    </Text>
-                                </TouchableOpacity>
+                                    {name}{' '}
+                                    {deviceID ===
+                                    context.userRelatedInformation
+                                        ?.emittingDeviceID
+                                        ? 'EMITTING'
+                                        : ''}
+                                </Text>
                             )}
                             keyExtractor={(_, index) => String(index)}
-                            style={{ flex: 1 }}
                         />
                     )}
                 </View>

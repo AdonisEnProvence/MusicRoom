@@ -41,7 +41,6 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
     );
     const controlDisabled = !roomIsReady;
     const muteDevice = isDeviceEmitting === false;
-    console.log(muteDevice);
     return (
         <View onLayout={onContainerLayout}>
             {currentTrack && (

@@ -26,14 +26,19 @@ test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it 
      * Retrieve context to have the appMusicPlayerMachine directly
      * in state connectedToRoom
      */
+    const userID = datatype.uuid();
     serverSocket.emit('RETRIEVE_CONTEXT', {
         roomID: datatype.uuid(),
         name: random.word(),
         playing: false,
-        users: [],
+        usersLength: 1,
+        userRelatedInformation: {
+            emittingDeviceID: datatype.uuid(),
+            userID,
+        },
         currentTrack: null,
         tracksIDsList: null,
-        roomCreatorUserID: datatype.uuid(),
+        roomCreatorUserID: userID,
         tracks: [
             {
                 id: datatype.uuid(),

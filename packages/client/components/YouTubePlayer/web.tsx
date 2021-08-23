@@ -71,18 +71,19 @@ const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
             } else {
                 playerRef.current?.pauseVideo();
             }
+        }, [playing, playerRef, seekToInSeconds]);
+
+        useEffect(() => {
             if (mute) {
-                console.log('MUTEEEEEEEEEEEEEEEEEEEEEEEEEEEEEee');
+                console.log('Mute');
                 playerRef.current?.setVolume(0);
                 playerRef.current?.mute();
-            } else if (mute === false) {
-                console.log(
-                    'UUUUUUUUUUUUUUUUUUUUUUUUUUUNNNNNNNNNNNNNNNNNNNNNNMMMMMMMMMMMMMMUUUUUUUUUUUUUUUUUUUTTTTTTTTTTEEEEEEEEEe',
-                );
+            } else {
+                console.log('UnMute');
                 playerRef.current?.unMute();
                 playerRef.current?.setVolume(100);
             }
-        }, [playing, playerRef, seekToInSeconds, mute]);
+        }, [mute]);
 
         const playerOptions: Options = {
             height: '100%',

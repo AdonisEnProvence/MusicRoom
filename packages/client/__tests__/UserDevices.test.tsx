@@ -69,7 +69,7 @@ After clicking on one not emitting it should set the clicked one as emitting
         });
     });
 
-    const { getByText, getByTestId, findByA11yState } = render(
+    const { findByText, getByTestId, getByText, findByA11yState } = render(
         <NavigationContainer
             ref={navigationRef}
             onReady={() => {
@@ -104,33 +104,26 @@ After clicking on one not emitting it should set the clicked one as emitting
     const goChatButton = within(musicPlayerFullScreen).getByText(/Chat/i);
     expect(goChatButton).toBeTruthy();
     fireEvent.press(goChatButton);
-    await waitForTimeout(1000);
+
+    expect(await findByText(/Welcome.*Chat/i)).toBeTruthy();
 
     expect(
-        await getByText(new RegExp(`Welcome to our great Chat`)),
-    ).toBeTruthy();
-    expect(
-        await getByText(
-            new RegExp(`You have ${userDevices.length} connected devices`),
-        ),
+        getByText(new RegExp(`${userDevices.length} connected devices`)),
     ).toBeTruthy();
 
-    await Promise.all(
-        userDevices.map(async (device) => {
-            const isEmittingDevice =
-                state.userRelatedInformation.emittingDeviceID ===
-                device.deviceID;
-            let expectedDeviceName = device.name;
+    userDevices.forEach((device) => {
+        const isEmittingDevice =
+            state.userRelatedInformation.emittingDeviceID === device.deviceID;
+        let expectedDeviceName = device.name;
 
-            if (isEmittingDevice) expectedDeviceName += ' EMITTING';
+        if (isEmittingDevice) expectedDeviceName += ' EMITTING';
 
-            const listedMacthingDevice = await within(
-                musicPlayerFullScreen,
-            ).getByText(new RegExp(expectedDeviceName));
+        const listedMatchingDevice = within(musicPlayerFullScreen).getByText(
+            new RegExp(expectedDeviceName),
+        );
 
-            expect(listedMacthingDevice).toBeTruthy();
-        }),
-    );
+        expect(listedMatchingDevice).toBeTruthy();
+    });
 
     /**
      * Press on a not emitting device
@@ -138,16 +131,15 @@ After clicking on one not emitting it should set the clicked one as emitting
      */
 
     const lastDevice = userDevices.slice(-1)[0];
-    const lastDeviceElement = await within(musicPlayerFullScreen).getByText(
+    const lastDeviceElement = within(musicPlayerFullScreen).getByText(
         new RegExp(lastDevice.name),
     );
     expect(lastDeviceElement).toBeTruthy();
 
     fireEvent.press(lastDeviceElement);
-    await waitForTimeout(1000);
 
     expect(
-        await within(musicPlayerFullScreen).getByText(
+        await within(musicPlayerFullScreen).findByText(
             new RegExp(lastDevice.name + ' EMITTING'),
         ),
     ).toBeTruthy();

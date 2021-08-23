@@ -22,6 +22,7 @@ const ControlTaskQueue = "CONTROL_TASK_QUEUE"
 var (
 	SignalChannelName = "control"
 	MtvGetStateQuery  = "getState"
+	NoRelatedUserID   = ""
 )
 
 type TrackMetadata struct {
@@ -47,7 +48,6 @@ func (t TrackMetadata) Export() ExposedTrackMetadata {
 type CurrentTrack struct {
 	TrackMetadata
 
-	StartedOn      time.Time     `json:"-"`
 	AlreadyElapsed time.Duration `json:"-"`
 }
 
@@ -60,7 +60,6 @@ type ExposedCurrentTrack struct {
 
 func (c CurrentTrack) Export(elapsed time.Duration) ExposedCurrentTrack {
 	copy := c
-	copy.StartedOn = time.Time{}
 	copy.AlreadyElapsed = 0
 	return ExposedCurrentTrack{
 		CurrentTrack: copy,
@@ -69,44 +68,51 @@ func (c CurrentTrack) Export(elapsed time.Duration) ExposedCurrentTrack {
 	}
 }
 
+type InternalStateUser struct {
+	UserID   string `json:"userID"`
+	DeviceID string `json:"emittingDeviceID"`
+}
+
 type MtvRoomParameters struct {
 	RoomID               string
 	RoomCreatorUserID    string
 	RoomName             string
-	InitialUsers         []string
+	InitialUsers         map[string]*InternalStateUser
 	InitialTracksIDsList []string
 }
 
 func (p MtvRoomParameters) Export() MtvRoomExposedState {
 	return MtvRoomExposedState{
-		RoomID:            p.RoomID,
-		Playing:           false,
-		RoomCreatorUserID: p.RoomCreatorUserID,
-		RoomName:          p.RoomName,
-		Users:             p.InitialUsers,
-		TracksIDsList:     p.InitialTracksIDsList,
+		RoomID:                 p.RoomID,
+		Playing:                false,
+		RoomCreatorUserID:      p.RoomCreatorUserID,
+		RoomName:               p.RoomName,
+		UserRelatedInformation: p.InitialUsers[p.RoomCreatorUserID],
+		TracksIDsList:          p.InitialTracksIDsList,
 	}
 }
 
 type MtvRoomExposedState struct {
-	RoomID            string                 `json:"roomID"`
-	RoomCreatorUserID string                 `json:"roomCreatorUserID"`
-	Playing           bool                   `json:"playing"`
-	RoomName          string                 `json:"name"`
-	Users             []string               `json:"users"`
-	TracksIDsList     []string               `json:"tracksIDsList"`
-	CurrentTrack      *ExposedCurrentTrack   `json:"currentTrack"`
-	Tracks            []ExposedTrackMetadata `json:"tracks"`
+	RoomID                 string                 `json:"roomID"`
+	RoomCreatorUserID      string                 `json:"roomCreatorUserID"`
+	Playing                bool                   `json:"playing"`
+	RoomName               string                 `json:"name"`
+	UserRelatedInformation *InternalStateUser     `json:"userRelatedInformation"`
+	TracksIDsList          []string               `json:"tracksIDsList"`
+	CurrentTrack           *ExposedCurrentTrack   `json:"currentTrack"`
+	Tracks                 []ExposedTrackMetadata `json:"tracks"`
+	UsersLength            int                    `json:"usersLength"`
 }
 
 type SignalRoute string
 
 const (
-	SignalRoutePlay          = "play"
-	SignalRoutePause         = "pause"
-	SignalRouteJoin          = "join"
-	SignalRouteTerminate     = "terminate"
-	SignalRouteGoToNextTrack = "go-to-next-track"
+	SignalRoutePlay                     = "play"
+	SignalRoutePause                    = "pause"
+	SignalRouteJoin                     = "join"
+	SignalRouteTerminate                = "terminate"
+	SignalRouteGoToNextTrack            = "go-to-next-track"
+	SignalRouteChangeUserEmittingDevice = "change-user-emitting-device"
 )
 
 type GenericRouteSignal struct {
@@ -140,18 +146,21 @@ func NewPauseSignal(args NewPauseSignalArgs) PauseSignal {
 }
 
 type JoinSignal struct {
-	Route  SignalRoute
-	UserID string
+	Route    SignalRoute
+	UserID   string
+	DeviceID string
 }
 
 type NewJoinSignalArgs struct {
-	UserID string
+	UserID   string
+	DeviceID string
 }
 
 func NewJoinSignal(args NewJoinSignalArgs) JoinSignal {
 	return JoinSignal{
-		Route:  SignalRouteJoin,
-		UserID: args.UserID,
+		Route:    SignalRouteJoin,
+		UserID:   args.UserID,
+		DeviceID: args.DeviceID,
 	}
 }
 
@@ -174,5 +183,24 @@ type GoToNextTrackSignal struct {
 func NewGoToNexTrackSignal() GoToNextTrackSignal {
 	return GoToNextTrackSignal{
 		Route: SignalRouteGoToNextTrack,
+	}
+}
+
+type ChangeUserEmittingDeviceSignal struct {
+	Route    SignalRoute
+	UserID   string
+	DeviceID string
+}
+
+type ChangeUserEmittingDeviceSignalArgs struct {
+	UserID   string
+	DeviceID string
+}
+
+func NewChangeUserEmittingDeviceSignal(args ChangeUserEmittingDeviceSignalArgs) ChangeUserEmittingDeviceSignal {
+	return ChangeUserEmittingDeviceSignal{
+		Route:    SignalRouteChangeUserEmittingDevice,
+		UserID:   args.UserID,
+		DeviceID: args.DeviceID,
 	}
 }

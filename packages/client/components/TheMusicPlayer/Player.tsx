@@ -9,6 +9,7 @@ type MusicPlayerProps = {
     videoState: 'playing' | 'stopped';
     playerHeight: number;
     seekToInSeconds: number;
+    mute: boolean;
     setPlayerRef: (playerRef: MusicPlayerRef) => void;
     onTrackReady: () => void;
 };
@@ -24,6 +25,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
     setPlayerRef,
     onTrackReady,
     seekToInSeconds,
+    mute,
 }) => {
     return (
         <Pressable onPress={noop} onLongPress={noop}>
@@ -35,6 +37,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
                     playing={videoState === 'playing'}
                     videoId={videoId}
                     onReady={onTrackReady}
+                    mute={mute}
                 />
             </View>
         </Pressable>

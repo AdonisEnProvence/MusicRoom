@@ -1,4 +1,5 @@
 import { AllServerToClientEvents, UserDevice } from '@musicroom/types';
+import Device from 'App/Models/Device';
 import User from 'App/Models/User';
 import Ws from './Ws';
 
@@ -34,10 +35,15 @@ export default class UserService {
         userID: string,
     ): Promise<void> {
         const devices = await this.getUserConnectedDevices(userID);
+        const formattedDevices: UserDevice[] = devices.map((device) => ({
+            deviceID: device.uuid,
+            name: device.name,
+        }));
+
         await this.emitEventInEveryDeviceUser(
             userID,
             'CONNECTED_DEVICES_UPDATE',
-            [devices],
+            [formattedDevices],
         );
     }
 
@@ -63,7 +69,7 @@ export default class UserService {
 
     public static async getUserConnectedDevices(
         userID: string,
-    ): Promise<UserDevice[]> {
+    ): Promise<Device[]> {
         const user = await User.findOrFail(userID);
 
         await user.load('devices');
@@ -71,9 +77,6 @@ export default class UserService {
         if (user.devices === null)
             throw new Error(`user should have at least one device connected`);
 
-        return user.devices.map((device) => ({
-            deviceID: device.uuid,
-            name: device.name,
-        }));
+        return user.devices;
     }
 }

@@ -29,7 +29,11 @@ test(`When the user clicks on next track button, it should play the next track, 
         roomID: datatype.uuid(),
         playing: false,
         roomCreatorUserID,
-        users: [roomCreatorUserID],
+        usersLength: 1,
+        userRelatedInformation: {
+            emittingDeviceID: datatype.uuid(),
+            userID: roomCreatorUserID,
+        },
         currentTrack: {
             ...tracksList[0],
             elapsed: 0,

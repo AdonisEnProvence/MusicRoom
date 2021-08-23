@@ -11,6 +11,7 @@ import MusicPlayer, { MusicPlayerRef } from './Player';
 type TheMusicPlayerWithControlsProps = {
     progressElapsedTime: number;
     currentTrack: CurrentTrack | null;
+    isDeviceEmitting: boolean;
     isPlaying: boolean;
     roomIsReady: boolean;
     onTrackReady: () => void;
@@ -22,6 +23,7 @@ type TheMusicPlayerWithControlsProps = {
 const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
     currentTrack,
     isPlaying,
+    isDeviceEmitting,
     progressElapsedTime,
     roomIsReady,
     onTrackReady,
@@ -38,12 +40,13 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
         currentTrack?.duration || 0,
     );
     const controlDisabled = !roomIsReady;
-
+    const muteDevice = isDeviceEmitting === false;
     return (
         <View onLayout={onContainerLayout}>
             {currentTrack && (
                 <>
                     <MusicPlayer
+                        mute={muteDevice}
                         seekToInSeconds={currentTrack.elapsed / 1000}
                         setPlayerRef={setPlayerRef}
                         videoId={currentTrack.id}

@@ -22,11 +22,16 @@ function waitForTimeout(ms: number): Promise<void> {
 test(`It should display the music player corresponding to the injected state on both CREATED_ROOM server socket callbacks`, async () => {
     const fakeTrack = db.tracks.create();
     const roomName = random.words();
+    const userID = datatype.uuid();
     const state: MtvWorkflowState = {
         roomID: datatype.uuid(),
         name: roomName,
         playing: false,
-        users: [],
+        usersLength: 1,
+        userRelatedInformation: {
+            emittingDeviceID: datatype.uuid(),
+            userID,
+        },
         tracksIDsList: null,
         roomCreatorUserID: datatype.uuid(),
         currentTrack: {
@@ -111,13 +116,18 @@ test(`It should display the music player corresponding to the injected state on 
 test(`It should display the music player corresponding to the injected state on both RETRIEVE_CONTEXT server socket event`, async () => {
     const fakeTrack = db.tracks.create();
     const roomName = random.words();
+    const userID = datatype.uuid();
     const state: MtvWorkflowState = {
         roomID: datatype.uuid(),
         name: roomName,
         playing: false,
-        users: [],
+        usersLength: 1,
+        userRelatedInformation: {
+            emittingDeviceID: datatype.uuid(),
+            userID,
+        },
         tracksIDsList: null,
-        roomCreatorUserID: datatype.uuid(),
+        roomCreatorUserID: userID,
         currentTrack: {
             artistName: random.word(),
             id: datatype.uuid(),
@@ -186,13 +196,18 @@ test(`It should display the music player corresponding to the injected state on 
 test(`It should display the already elapsed track duration and player should be playing`, async () => {
     const fakeTrack = db.tracks.create();
     const roomName = random.words();
+    const userID = datatype.uuid();
     const state: MtvWorkflowState = {
         roomID: datatype.uuid(),
         name: roomName,
         playing: true,
-        users: [],
+        usersLength: 1,
+        userRelatedInformation: {
+            emittingDeviceID: datatype.uuid(),
+            userID,
+        },
         tracksIDsList: null,
-        roomCreatorUserID: datatype.uuid(),
+        roomCreatorUserID: userID,
         currentTrack: {
             artistName: random.word(),
             id: datatype.uuid(),

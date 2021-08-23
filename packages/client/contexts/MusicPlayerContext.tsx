@@ -61,8 +61,9 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
                         setDisplayModal(false);
                     };
                 },
+
                 pollTrackElapsedTime: () => (sendBack) => {
-                    const INTERVAL = 200;
+                    const INTERVAL = 1000;
                     // eslint-disable-next-line @typescript-eslint/no-misused-promises
                     const timerId = setInterval(async () => {
                         try {

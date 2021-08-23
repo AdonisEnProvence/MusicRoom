@@ -3,6 +3,8 @@ import {
     AllClientToServerEvents,
     AllServerToClientEvents,
     MtvWorkflowState,
+    MtvWorkflowStateWithUserRelatedInformation,
+    UserRelatedInformation,
 } from '@musicroom/types';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import Device from 'App/Models/Device';
@@ -160,12 +162,16 @@ test.group('Rooms life cycle', (group) => {
         sinon
             .stub(ServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
-                const state: MtvWorkflowState = {
+                const state: MtvWorkflowStateWithUserRelatedInformation = {
                     roomID: workflowID, //workflowID === roomID
                     roomCreatorUserID: userID,
                     playing: false,
                     name: roomName,
-                    users: [userID],
+                    userRelatedInformation: {
+                        userID,
+                        emittingDeviceID: datatype.uuid(),
+                    },
+                    usersLength: 1,
                     tracks: [
                         {
                             id: datatype.uuid(),
@@ -286,7 +292,7 @@ test.group('Rooms life cycle', (group) => {
             userB.receivedEvents.push('FORCED_DISCONNECTION');
         });
         const roomName = random.word();
-        let state: undefined | MtvWorkflowState;
+        let state: undefined | MtvWorkflowStateWithUserRelatedInformation;
 
         /** Mocks */
         sinon
@@ -302,7 +308,11 @@ test.group('Rooms life cycle', (group) => {
                     roomCreatorUserID: userA.userID,
                     playing: false,
                     name: roomName,
-                    users: [userA.userID],
+                    userRelatedInformation: {
+                        emittingDeviceID: datatype.uuid(),
+                        userID: userA.userID,
+                    },
+                    usersLength: 1,
                     currentTrack: null,
                     tracksIDsList: null,
                     tracks: [
@@ -322,8 +332,13 @@ test.group('Rooms life cycle', (group) => {
             });
         sinon
             .stub(ServerToTemporalController, 'joinWorkflow')
-            .callsFake(async () => {
+            .callsFake(async ({ userID }) => {
                 if (state === undefined) throw new Error('State is undefined');
+                state.usersLength++;
+                state.userRelatedInformation = {
+                    userID,
+                    emittingDeviceID: datatype.uuid(),
+                };
                 await supertest(BASE_URL)
                     .post('/temporal/join')
                     .send({ state, joiningUserID: userB.userID });
@@ -424,7 +439,7 @@ test.group('Rooms life cycle', (group) => {
         const creatorID = datatype.uuid();
         const roomName = random.word();
         let userCouldEmitAnExclusiveRoomSignal = false;
-        let state: MtvWorkflowState | undefined;
+        let state: MtvWorkflowStateWithUserRelatedInformation | undefined;
 
         /** Mocks */
         sinon
@@ -445,7 +460,11 @@ test.group('Rooms life cycle', (group) => {
                     ],
                     playing: false,
                     name: roomName,
-                    users: [creatorID],
+                    userRelatedInformation: {
+                        userID: creatorID,
+                        emittingDeviceID: datatype.uuid(),
+                    },
+                    usersLength: 1,
                 };
 
                 return {
@@ -531,7 +550,11 @@ test.group('Rooms life cycle', (group) => {
                         name: roomName,
                         tracksIDsList: null,
                         currentTrack: null,
-                        users: [userID],
+                        userRelatedInformation: {
+                            userID,
+                            emittingDeviceID: datatype.uuid(),
+                        },
+                        usersLength: 1,
                         tracks: [
                             {
                                 id: datatype.uuid(),
@@ -578,45 +601,58 @@ test.group('Rooms life cycle', (group) => {
     });
 
     test('New user socket connection should join previously joined/created room', async (assert) => {
-        const userID = datatype.uuid();
+        const creatorUserID = datatype.uuid();
         const roomName = random.word();
-        const socketA = await createUserAndGetSocket(userID);
+        const socketA = await createUserAndGetSocket(creatorUserID);
         let userCouldEmitAnExclusiveRoomSignal = false;
         /** Mocks */
         sinon
             .stub(ServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
+                const creator = datatype.uuid();
+                const state: MtvWorkflowStateWithUserRelatedInformation = {
+                    roomID: workflowID,
+                    roomCreatorUserID: creatorUserID,
+                    playing: false,
+                    name: roomName,
+                    tracksIDsList: null,
+                    usersLength: 1,
+                    currentTrack: null,
+                    userRelatedInformation: {
+                        userID: creator,
+                        emittingDeviceID: datatype.uuid(),
+                    },
+                    tracks: [
+                        {
+                            id: datatype.uuid(),
+                            artistName: name.findName(),
+                            duration: 42000,
+                            title: random.words(3),
+                        },
+                    ],
+                };
+
                 return {
                     runID: datatype.uuid(),
                     workflowID,
-                    state: {
-                        roomID: workflowID,
-                        roomCreatorUserID: datatype.uuid(),
-                        playing: false,
-                        name: roomName,
-                        tracksIDsList: null,
-                        currentTrack: null,
-                        users: [userID],
-                        tracks: [
-                            {
-                                id: datatype.uuid(),
-                                artistName: name.findName(),
-                                duration: 42000,
-                                title: random.words(3),
-                            },
-                        ],
-                    },
+                    state,
                 };
             });
         sinon
             .stub(ServerToTemporalController, 'getState')
-            .callsFake(async ({ workflowID }) => {
+            .callsFake(async ({ workflowID, userID }) => {
                 return {
                     name: roomName,
-                    roomCreatorUserID: userID,
+                    roomCreatorUserID: creatorUserID,
                     playing: false,
                     roomID: workflowID,
-                    users: [userID],
+                    usersLength: 1,
+                    userRelatedInformation: userID
+                        ? {
+                              userID,
+                              emittingDeviceID: datatype.uuid(),
+                          }
+                        : null,
                     currentTrack: null,
                     tracksIDsList: null,
                     tracks: null,
@@ -643,7 +679,7 @@ test.group('Rooms life cycle', (group) => {
          * He also receives the mtvRoom's context
          */
         const socketB = {
-            socket: await createSocketConnection(userID),
+            socket: await createSocketConnection(creatorUserID),
         };
 
         socketB.socket.emit('ACTION_PLAY');
@@ -709,10 +745,12 @@ test.group('Rooms life cycle', (group) => {
                     currentTrack: null,
                     name: random.word(),
                     playing: false,
+
                     roomCreatorUserID: userID,
                     tracks: null,
                     tracksIDsList: null,
-                    users: [userID],
+                    userRelatedInformation: null,
+                    usersLength: 1,
                 };
             });
 
@@ -769,7 +807,8 @@ test.group('Rooms life cycle', (group) => {
             roomID: datatype.uuid(),
             tracks: null,
             tracksIDsList: null,
-            users: [userID],
+            usersLength: 1,
+            userRelatedInformation: null,
         };
         const receivedEvents: string[] = [];
 
@@ -818,22 +857,206 @@ test.group('Rooms life cycle', (group) => {
         const deviceNameA = random.word();
 
         const socketA = await createUserAndGetSocket(userID, deviceNameA);
+
+        const deviceA = await Device.findBy('socket_id', socketA.id);
+        assert.isNotNull(deviceA);
+        if (deviceA === null) throw new Error('DeviceA should not be null');
+
         let callbackHasBeenCalled = false;
         await createSocketConnection(userID, undefined, 'Safari');
 
-        socketA.emit('GET_CONNECTED_DEVICES', ({ devices }) => {
-            assert.equal(2, devices.length);
+        socketA.emit(
+            'GET_CONNECTED_DEVICES_AND_DEVICE_ID',
+            ({ devices, currDeviceID }) => {
+                assert.equal(deviceA.uuid, currDeviceID);
 
-            assert.isTrue(devices.some((d) => d.name === deviceNameA));
+                assert.equal(2, devices.length);
 
-            assert.isTrue(
-                devices.some((d) => d.name === 'Web Player (Safari)'),
-            );
+                assert.isTrue(devices.some((d) => d.name === deviceNameA));
 
-            callbackHasBeenCalled = true;
-        });
+                assert.isTrue(
+                    devices.some((d) => d.name === 'Web Player (Safari)'),
+                );
+
+                callbackHasBeenCalled = true;
+            },
+        );
 
         await sleep();
         assert.isTrue(callbackHasBeenCalled);
+    });
+
+    test('It should change user emitting device', async (assert) => {
+        const userID = datatype.uuid();
+
+        sinon
+            .stub(ServerToTemporalController, 'changeUserEmittingDevice')
+            .callsFake(async ({ deviceID, workflowID }) => {
+                const state: MtvWorkflowState = {
+                    currentTrack: null,
+                    name: random.word(),
+                    playing: false,
+                    roomCreatorUserID: userID,
+                    roomID: workflowID,
+                    tracks: null,
+                    tracksIDsList: null,
+                    userRelatedInformation: {
+                        userID: userID,
+                        emittingDeviceID: deviceID,
+                    },
+                    usersLength: 1,
+                };
+
+                await supertest(BASE_URL)
+                    .post('/temporal/change-user-emitting-device')
+                    .send(state);
+                return;
+            });
+
+        const socket = {
+            socket: await createUserAndGetSocket(userID),
+            receivedEvents: [] as string[],
+        };
+        const mtvRoom = await MtvRoom.create({
+            uuid: datatype.uuid(),
+            runID: datatype.uuid(),
+            creator: userID,
+        });
+        const creatorUser = await User.findOrFail(userID);
+        await creatorUser.related('mtvRoom').associate(mtvRoom);
+        await Ws.adapter().remoteJoin(socket.socket.id, mtvRoom.uuid);
+
+        const socketB = {
+            socket: await createSocketConnection(userID),
+            receivedEvents: [] as string[],
+        };
+        await Ws.adapter().remoteJoin(socketB.socket.id, mtvRoom.uuid);
+
+        const deviceB = await Device.findBy('socket_id', socketB.socket.id);
+
+        assert.isNotNull(deviceB);
+        if (deviceB === null) {
+            throw new Error('device should not be null');
+        }
+
+        socketB.socket.once(
+            'CHANGE_EMITTING_DEVICE_CALLBACK',
+            ({ userRelatedInformation }) => {
+                const expectedUserRelatedInformation: UserRelatedInformation | null =
+                    {
+                        userID: userID,
+                        emittingDeviceID: deviceB.uuid,
+                    };
+
+                assert.isNotNull(userRelatedInformation);
+                if (userRelatedInformation === null)
+                    throw new Error(
+                        'UserRelatedInformation should not be null there',
+                    );
+
+                assert.deepEqual(
+                    userRelatedInformation,
+                    expectedUserRelatedInformation,
+                );
+                socketB.receivedEvents.push('CHANGE_EMITTING_DEVICE_CALLBACK');
+            },
+        );
+
+        socket.socket.once(
+            'CHANGE_EMITTING_DEVICE_CALLBACK',
+            ({ userRelatedInformation }) => {
+                const expectedUserRelatedInformation = {
+                    userID: userID,
+                    emittingDeviceID: deviceB?.uuid,
+                };
+
+                assert.deepEqual(
+                    userRelatedInformation,
+                    expectedUserRelatedInformation,
+                );
+                socket.receivedEvents.push('CHANGE_EMITTING_DEVICE_CALLBACK');
+            },
+        );
+
+        socket.socket.emit('CHANGE_EMITTING_DEVICE', {
+            newEmittingDeviceID: deviceB.uuid,
+        });
+        await sleep();
+
+        assert.equal(socketB.receivedEvents.length, 1);
+        assert.equal(socket.receivedEvents.length, 1);
+    });
+
+    test('It should fail change user emitting device as user is not in a mtvRoom', async (assert) => {
+        const userID = datatype.uuid();
+
+        const socket = {
+            socket: await createUserAndGetSocket(userID),
+            receivedEvents: [] as string[],
+        };
+        const socketB = {
+            socket: await createSocketConnection(userID),
+            receivedEvents: [] as string[],
+        };
+        const deviceB = await Device.findBy('socket_id', socketB.socket.id);
+
+        assert.isNotNull(deviceB);
+        if (deviceB === null) {
+            throw new Error('device should not be null');
+        }
+
+        let hasNeverBeenCalled = true;
+
+        socketB.socket.once('CHANGE_EMITTING_DEVICE_CALLBACK', () => {
+            hasNeverBeenCalled = false;
+        });
+
+        socket.socket.once('CHANGE_EMITTING_DEVICE_CALLBACK', () => {
+            hasNeverBeenCalled = false;
+        });
+
+        socket.socket.emit('CHANGE_EMITTING_DEVICE', {
+            newEmittingDeviceID: deviceB.uuid,
+        });
+        await sleep();
+
+        assert.isTrue(hasNeverBeenCalled);
+    });
+
+    test('It should fail change user emitting device as user is not the newEmittingDevice owner', async (assert) => {
+        const userID = datatype.uuid();
+        const secondUserID = datatype.uuid();
+
+        const socket = {
+            socket: await createUserAndGetSocket(userID),
+            receivedEvents: [] as string[],
+        };
+        const socketB = {
+            socket: await createUserAndGetSocket(secondUserID),
+            receivedEvents: [] as string[],
+        };
+        const deviceB = await Device.findBy('socket_id', socketB.socket.id);
+
+        assert.isNotNull(deviceB);
+        if (deviceB === null) {
+            throw new Error('device should not be null');
+        }
+
+        let hasNeverBeenCalled = true;
+
+        socketB.socket.once('CHANGE_EMITTING_DEVICE_CALLBACK', () => {
+            hasNeverBeenCalled = false;
+        });
+
+        socket.socket.once('CHANGE_EMITTING_DEVICE_CALLBACK', () => {
+            hasNeverBeenCalled = false;
+        });
+
+        socket.socket.emit('CHANGE_EMITTING_DEVICE', {
+            newEmittingDeviceID: deviceB.uuid,
+        });
+        await sleep();
+
+        assert.isTrue(hasNeverBeenCalled);
     });
 });

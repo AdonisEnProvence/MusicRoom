@@ -1,7 +1,6 @@
 import {
     CreateWorkflowResponse,
     MtvRoomClientToServerCreate,
-    MtvRoomClientToServerEvents,
     MtvWorkflowState,
 } from '@musicroom/types';
 import MtvRoom from 'App/Models/MtvRoom';
@@ -10,13 +9,12 @@ import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
 import Ws from 'App/Services/Ws';
 import { randomUUID } from 'crypto';
-import { Socket } from 'socket.io';
 import ServerToTemporalController from '../Http/Temporal/ServerToTemporalController';
 
-interface WsControllerMethodArgs<Payload> {
-    socket: Socket<MtvRoomClientToServerEvents>;
-    payload: Payload;
-}
+// interface WsControllerMethodArgs<Payload> {
+//     socket: Socket<MtvRoomClientToServerEvents>;
+//     payload: Payload;
+// }
 
 interface UserID {
     userID: string;
@@ -26,41 +24,54 @@ interface RoomID {
     roomID: string;
 }
 
-type Credentials = RoomID & UserID;
+interface DeviceID {
+    deviceID: string;
+}
+
+interface OnCreateArgs extends UserID, MtvRoomClientToServerCreate, DeviceID {}
+interface OnJoinArgs extends UserID, RoomID, DeviceID {}
+interface OnPauseArgs extends RoomID {}
+interface OnPlayArgs extends RoomID {}
+interface OnTerminateArgs extends RoomID {}
+interface OnGetStateArgs extends RoomID, UserID {}
+interface OnGoToNextTrackArgs extends RoomID {}
+interface OnChangeEmittingDeviceArgs extends RoomID, DeviceID, UserID {}
 
 export default class MtvRoomsWsController {
     public static async onCreate({
-        payload,
-    }: WsControllerMethodArgs<
-        MtvRoomClientToServerCreate & UserID
-    >): Promise<CreateWorkflowResponse> {
+        initialTracksIDs,
+        name,
+        userID,
+        deviceID,
+    }: OnCreateArgs): Promise<CreateWorkflowResponse> {
         const roomID = randomUUID();
         const room = new MtvRoom();
         let roomHasBeenSaved = false;
-        console.log(`USER ${payload.userID} CREATE_ROOM ${roomID}`);
+        console.log(`USER ${userID} CREATE_ROOM ${roomID}`);
 
         /**
          * We need to create the room before the workflow
          * because we don't know if temporal will answer faster
          * than adonis will execute this function
          */
-        const roomCreator = await User.findOrFail(payload.userID);
+        const roomCreator = await User.findOrFail(userID);
         await UserService.joinEveryUserDevicesToRoom(roomCreator, roomID);
 
         try {
             const temporalResponse =
                 await ServerToTemporalController.createMtvWorkflow({
                     workflowID: roomID,
-                    roomName: payload.name,
-                    userID: payload.userID,
-                    initialTracksIDs: payload.initialTracksIDs,
+                    roomName: name,
+                    userID: userID,
+                    initialTracksIDs: initialTracksIDs,
+                    deviceID,
                 });
 
             await room
                 .fill({
                     uuid: roomID,
                     runID: temporalResponse.runID,
-                    creator: payload.userID,
+                    creator: userID,
                 })
                 .save();
             roomHasBeenSaved = true;
@@ -79,9 +90,10 @@ export default class MtvRoomsWsController {
     }
 
     public static async onJoin({
-        payload,
-    }: WsControllerMethodArgs<Credentials>): Promise<void> {
-        const { roomID, userID } = payload;
+        userID,
+        roomID,
+        deviceID,
+    }: OnJoinArgs): Promise<void> {
         const room = await MtvRoom.findOrFail(roomID);
 
         const roomDoesntExistInAnyNodes = !(await Ws.adapter().allRooms()).has(
@@ -94,32 +106,25 @@ export default class MtvRoomsWsController {
             );
         }
 
-        console.log(`USER ${payload.userID} JOINS ${roomID}`);
-        await ServerToTemporalController.joinWorkflow(
-            roomID,
-            room.runID,
+        console.log(`USER ${userID} JOINS ${roomID}`);
+        await ServerToTemporalController.joinWorkflow({
+            workflowID: roomID,
+            runID: room.runID,
             userID,
-        );
+            deviceID,
+        });
     }
 
-    public static async onPause({
-        socket,
-        payload,
-    }: WsControllerMethodArgs<RoomID>): Promise<void> {
-        const { roomID } = payload;
-        console.log(`PAUSE ${roomID} with ${socket.id}`);
+    public static async onPause({ roomID }: OnPauseArgs): Promise<void> {
+        console.log(`PAUSE ${roomID}`);
         const { runID } = await MtvRoom.findOrFail(roomID);
-        await ServerToTemporalController.pause(roomID, runID);
+        await ServerToTemporalController.pause({ workflowID: roomID, runID });
     }
 
-    public static async onPlay({
-        socket,
-        payload,
-    }: WsControllerMethodArgs<RoomID>): Promise<void> {
-        const { roomID } = payload;
-        console.log(`PLAY ${payload.roomID} with ${socket.id}`);
+    public static async onPlay({ roomID }: OnPlayArgs): Promise<void> {
+        console.log(`PLAY ${roomID} `);
         const { runID } = await MtvRoom.findOrFail(roomID);
-        await ServerToTemporalController.play(roomID, runID);
+        await ServerToTemporalController.play({ workflowID: roomID, runID });
     }
 
     /**
@@ -129,29 +134,53 @@ export default class MtvRoomsWsController {
      *
      * See https://github.com/AdonisEnProvence/MusicRoom/issues/49
      */
-    public static async onTerminate(roomID: string): Promise<void> {
+    public static async onTerminate({
+        roomID,
+    }: OnTerminateArgs): Promise<void> {
         console.log(`TERMINATE ${roomID}`);
         const room = await MtvRoom.findOrFail(roomID);
-        await ServerToTemporalController.terminateWorkflow(roomID, room.runID);
+        await ServerToTemporalController.terminateWorkflow({
+            workflowID: roomID,
+            runID: room.runID,
+        });
         await room.delete();
     }
 
-    public static async onGetState(roomID: string): Promise<MtvWorkflowState> {
+    public static async onGetState({
+        roomID,
+        userID,
+    }: OnGetStateArgs): Promise<MtvWorkflowState> {
         const room = await MtvRoom.findOrFail(roomID);
         return await ServerToTemporalController.getState({
             workflowID: roomID,
             runID: room.runID,
+            userID,
         });
     }
 
     public static async onGoToNextTrack({
-        payload: { roomID },
-    }: WsControllerMethodArgs<RoomID>): Promise<void> {
+        roomID,
+    }: OnGoToNextTrackArgs): Promise<void> {
         const { runID } = await MtvRoom.findOrFail(roomID);
 
         await ServerToTemporalController.goToNextTrack({
             workflowID: roomID,
             runID,
+        });
+    }
+
+    public static async OnChangeEmittingDevice({
+        deviceID,
+        roomID,
+        userID,
+    }: OnChangeEmittingDeviceArgs): Promise<void> {
+        const { runID } = await MtvRoom.findOrFail(roomID);
+
+        await ServerToTemporalController.changeUserEmittingDevice({
+            workflowID: roomID,
+            runID,
+            deviceID,
+            userID,
         });
     }
 }

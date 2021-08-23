@@ -40,6 +40,10 @@ export interface Track {
     artistName: string;
 }
 
+export interface MtvRoomClientToServerChangeUserEmittingDevice {
+    newEmittingDeviceID: string;
+}
+
 export interface MtvRoomClientToServerEvents {
     CREATE_ROOM: (args: MtvRoomClientToServerCreate) => void;
     JOIN_ROOM: (args: MtvRoomClientToServerJoin) => void;
@@ -47,6 +51,9 @@ export interface MtvRoomClientToServerEvents {
     GET_CONTEXT: () => void;
     ACTION_PAUSE: () => void;
     GO_TO_NEXT_TRACK: () => void;
+    CHANGE_EMITTING_DEVICE: (
+        args: MtvRoomClientToServerChangeUserEmittingDevice,
+    ) => void;
 }
 
 export interface MtvRoomServerToClientEvents {
@@ -57,4 +64,5 @@ export interface MtvRoomServerToClientEvents {
     CREATE_ROOM_CALLBACK: (state: MtvWorkflowState) => void;
     FORCED_DISCONNECTION: () => void;
     JOIN_ROOM_CALLBACK: (state: MtvWorkflowState) => void;
+    CHANGE_EMITTING_DEVICE_CALLBACK: (state: MtvWorkflowState) => void;
 }

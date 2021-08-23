@@ -17,15 +17,13 @@ type MtvRoomInternalState struct {
 	initialParams shared.MtvRoomParameters
 
 	Machine       *brainy.Machine
-	Users         []string
+	Users         map[string]*shared.InternalStateUser
 	TracksIDsList []string
 	CurrentTrack  shared.CurrentTrack
 	Tracks        []shared.TrackMetadata
 	Playing       bool
 	Timer         shared.MtvRoomTimer
 }
-
-//TODO REMOVE STARTEDON PROPS FROM CURRENTTRACK
 
 func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 	s.initialParams = params
@@ -34,7 +32,7 @@ func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 	s.TracksIDsList = params.InitialTracksIDsList
 }
 
-func (s *MtvRoomInternalState) Export() shared.MtvRoomExposedState {
+func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExposedState {
 	exposedTracks := make([]shared.ExposedTrackMetadata, 0, len(s.Tracks))
 	for _, v := range s.Tracks {
 		exposedTracks = append(exposedTracks, v.Export())
@@ -61,17 +59,34 @@ func (s *MtvRoomInternalState) Export() shared.MtvRoomExposedState {
 		RoomCreatorUserID: s.initialParams.RoomCreatorUserID,
 		Playing:           s.Playing,
 		RoomName:          s.initialParams.RoomName,
-		Users:             s.Users,
 		TracksIDsList:     s.TracksIDsList,
 		CurrentTrack:      currentTrackToExport,
 		Tracks:            exposedTracks,
+		UsersLength:       len(s.Users),
+	}
+
+	if userInformation, ok := s.Users[RelatedUserID]; RelatedUserID != shared.NoRelatedUserID && ok {
+		exposedState.UserRelatedInformation = userInformation
 	}
 
 	return exposedState
 }
 
-func (s *MtvRoomInternalState) AddUser(userID string) {
-	s.Users = append(s.Users, userID)
+func (s *MtvRoomInternalState) AddUser(user shared.InternalStateUser) {
+	//Do not override user if already exist
+	if _, ok := s.Users[user.UserID]; !ok {
+		s.Users[user.UserID] = &user
+	} else {
+		fmt.Printf("\n User %s already existing in s.Users\n", user.UserID)
+	}
+}
+
+func (s *MtvRoomInternalState) UpdateUserDeviceID(user shared.InternalStateUser) {
+	if val, ok := s.Users[user.UserID]; ok {
+		val.DeviceID = user.DeviceID
+	} else {
+		fmt.Printf("\n User %s not found in s.Users\n", user.UserID)
+	}
 }
 
 const (
@@ -85,15 +100,16 @@ const (
 	MtvRoomPlayingWaitingTimerEndState brainy.StateType = "waiting-timer-end"
 	MtvRoomPlayingTimeoutExpiredState  brainy.StateType = "timeout-expired"
 
-	MtvRoomPlayEvent            brainy.EventType = "PLAY"
-	MtvRoomPauseEvent           brainy.EventType = "PAUSE"
-	MtvRoomTimerLaunchedEvent   brainy.EventType = "TIMER_LAUNCHED"
-	MtvRoomTimerExpiredEvent    brainy.EventType = "TIMER_EXPIRED"
-	MtvRoomInitialTracksFetched brainy.EventType = "INITIAL_TRACKS_FETCHED"
-	MtvRoomIsReady              brainy.EventType = "MTV_ROOM_IS_READY"
-	MtvRoomGoToPausedEvent      brainy.EventType = "GO_TO_PAUSED"
-	MtvRoomAddUserEvent         brainy.EventType = "ADD_USER"
-	MtvRoomGoToNextTrackEvent   brainy.EventType = "GO_TO_NEXT_TRACK"
+	MtvRoomPlayEvent                brainy.EventType = "PLAY"
+	MtvRoomPauseEvent               brainy.EventType = "PAUSE"
+	MtvRoomTimerLaunchedEvent       brainy.EventType = "TIMER_LAUNCHED"
+	MtvRoomTimerExpiredEvent        brainy.EventType = "TIMER_EXPIRED"
+	MtvRoomInitialTracksFetched     brainy.EventType = "INITIAL_TRACKS_FETCHED"
+	MtvRoomIsReady                  brainy.EventType = "MTV_ROOM_IS_READY"
+	MtvRoomGoToPausedEvent          brainy.EventType = "GO_TO_PAUSED"
+	MtvRoomAddUserEvent             brainy.EventType = "ADD_USER"
+	MtvRoomGoToNextTrackEvent       brainy.EventType = "GO_TO_NEXT_TRACK"
+	MtvRoomChangeUserEmittingDevice brainy.EventType = "CHANGE_USER_EMITTING_DEVICE"
 )
 
 type MtvRoomTimerExpirationEvent struct {
@@ -146,16 +162,34 @@ func NewMtvRoomInitialTracksFetchedEvent(tracks []shared.TrackMetadata) MtvRoomI
 type MtvRoomUserJoiningRoomEvent struct {
 	brainy.EventWithType
 
-	UserID string
+	User shared.InternalStateUser
 }
 
-func NewMtvRoomUserJoiningRoomEvent(userID string) MtvRoomUserJoiningRoomEvent {
+func NewMtvRoomUserJoiningRoomEvent(user shared.InternalStateUser) MtvRoomUserJoiningRoomEvent {
 	return MtvRoomUserJoiningRoomEvent{
 		EventWithType: brainy.EventWithType{
 			Event: MtvRoomAddUserEvent,
 		},
 
-		UserID: userID,
+		User: user,
+	}
+}
+
+type MtvRoomChangeUserEmittingDeviceEvent struct {
+	brainy.EventWithType
+
+	UserID   string
+	DeviceID string
+}
+
+func NewMtvRoomChangeUserEmittingDeviceEvent(userID string, deviceID string) MtvRoomChangeUserEmittingDeviceEvent {
+	return MtvRoomChangeUserEmittingDeviceEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MtvRoomChangeUserEmittingDevice,
+		},
+
+		UserID:   userID,
+		DeviceID: deviceID,
 	}
 }
 
@@ -172,12 +206,12 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 	if err := workflow.SetQueryHandler(
 		ctx,
 		shared.MtvGetStateQuery,
-		func(input []byte) (shared.MtvRoomExposedState, error) {
+		func(userID string) (shared.MtvRoomExposedState, error) {
 			// Here we do not use workflow.sideEffect for at least two reasons:
 			// 1- we cannot use workflow.sideEffect in the getState queryHandler
 			// 2- we never update our internalState depending on internalState.Export() results
 			// this data aims to be sent to adonis.
-			exposedState := internalState.Export()
+			exposedState := internalState.Export(userID)
 
 			return exposedState, nil
 		},
@@ -231,7 +265,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							),
 							brainy.ActionFn(
 								func(c brainy.Context, e brainy.Event) error {
-									if err := acknowledgeRoomCreation(ctx, internalState.Export()); err != nil {
+									if err := acknowledgeRoomCreation(ctx, internalState.Export(internalState.initialParams.RoomCreatorUserID)); err != nil {
 										workflowFatalError = err
 									}
 
@@ -330,7 +364,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									// To do not corrupt the elapsed on a paused room with the freshly created timer
 									// but also set as playing true a previously paused room after a go to next track event
 									// we need to mutate and update the internalState after the internalState.Export()
-									exposedInternalState := internalState.Export()
+									exposedInternalState := internalState.Export(shared.NoRelatedUserID)
 									exposedInternalState.Playing = true
 									internalState.Playing = true
 
@@ -371,7 +405,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 												fmt.Println("__NO MORE TRACKS__")
 												event := e.(MtvRoomTimerExpirationEvent)
 
-												internalState.CurrentTrack.StartedOn = time.Time{}
 												internalState.CurrentTrack.AlreadyElapsed += event.Timer.Duration
 
 												return nil
@@ -412,7 +445,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 												event := e.(MtvRoomTimerExpirationEvent)
 
 												elapsed := GetElapsed(ctx, event.Timer.CreatedOn)
-												internalState.CurrentTrack.StartedOn = time.Time{}
 												internalState.CurrentTrack.AlreadyElapsed += elapsed
 
 												return nil
@@ -453,13 +485,44 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 		},
 
 		On: brainy.Events{
+
+			MtvRoomChangeUserEmittingDevice: brainy.Transition{
+				Actions: brainy.Actions{
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+							event := e.(MtvRoomChangeUserEmittingDeviceEvent)
+
+							user := shared.InternalStateUser{
+								UserID:   event.UserID,
+								DeviceID: event.DeviceID,
+							}
+							internalState.UpdateUserDeviceID(user)
+
+							options := workflow.ActivityOptions{
+								ScheduleToStartTimeout: time.Minute,
+								StartToCloseTimeout:    time.Minute,
+							}
+							ctx = workflow.WithActivityOptions(ctx, options)
+							workflow.ExecuteActivity(
+								ctx,
+								activities.ChangeUserEmittingDeviceActivity,
+								internalState.Export(event.UserID),
+							)
+							return nil
+						},
+					),
+				},
+			},
+
+			// Isn't risky to listen those events while we're in the state `MtvRoomFetchInitialTracks` ?
+			// Shall we create a intermediate state between ? something like `workflowIsReady` ?
 			MtvRoomAddUserEvent: brainy.Transition{
 				Actions: brainy.Actions{
 					brainy.ActionFn(
 						func(c brainy.Context, e brainy.Event) error {
 							event := e.(MtvRoomUserJoiningRoomEvent)
 
-							internalState.AddUser(event.UserID)
+							internalState.AddUser(event.User)
 
 							options := workflow.ActivityOptions{
 								ScheduleToStartTimeout: time.Minute,
@@ -469,8 +532,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							workflow.ExecuteActivity(
 								ctx,
 								activities.JoinActivity,
-								internalState.Export(),
-								event.UserID,
+								internalState.Export(event.User.UserID),
+								event.User.UserID,
 							)
 
 							return nil
@@ -540,8 +603,19 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					return
 				}
 
+				//Do we have an other solution ?
+				if message.UserID == "" || message.DeviceID == "" {
+					logger.Error("Empty fields in message %v", message)
+					return
+				}
+
+				user := shared.InternalStateUser{
+					UserID:   message.UserID,
+					DeviceID: message.DeviceID,
+				}
+
 				internalState.Machine.Send(
-					NewMtvRoomUserJoiningRoomEvent(message.UserID),
+					NewMtvRoomUserJoiningRoomEvent(user),
 				)
 
 			case shared.SignalRouteGoToNextTrack:
@@ -553,6 +627,24 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				}
 
 				internalState.Machine.Send(MtvRoomGoToNextTrackEvent)
+
+			case shared.SignalRouteChangeUserEmittingDevice:
+				var message shared.ChangeUserEmittingDeviceSignal
+
+				fmt.Println("*********Signal handler**********")
+				if err := mapstructure.Decode(signal, &message); err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
+
+				if message.UserID == "" || message.DeviceID == "" {
+					logger.Error("Empty fields in message %v", message)
+					return
+				}
+
+				internalState.Machine.Send(
+					NewMtvRoomChangeUserEmittingDeviceEvent(message.UserID, message.DeviceID),
+				)
 
 			case shared.SignalRouteTerminate:
 				terminated = true

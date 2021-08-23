@@ -10,6 +10,7 @@ import {
     AppMusicPlayerMachineEvent,
     AppMusicPlayerMachineState,
 } from '../../machines/appMusicPlayerMachine';
+import { AppUserMachineState } from '../../machines/appUserMachine';
 import { AppScreen, AppScreenContainer, Typo } from '../kit';
 import AppModalHeader from '../kit/AppModalHeader';
 import MusicPlayerFullScreenTracksListItem from './MusicPlayerFullScreenTracksListItem';
@@ -21,6 +22,7 @@ type TheMusicPlayerFullScreenProps = {
     dismissFullScreenPlayer: () => void;
     sendToMachine: Sender<AppMusicPlayerMachineEvent>;
     setPlayerRef: (ref: MusicPlayerRef) => void;
+    userState: AppUserMachineState;
 };
 
 const fullscreenPlayerTabsMachineModel = createModel(
@@ -111,8 +113,14 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     dismissFullScreenPlayer,
     sendToMachine,
     setPlayerRef,
+    userState,
 }) => {
     const context = machineState.context;
+    const userContext = userState.context;
+    const isDeviceEmitting =
+        context.userRelatedInformation !== null &&
+        userContext.currDeviceID ===
+            context.userRelatedInformation.emittingDeviceID;
     const insets = useSafeAreaInsets();
     const isPlaying = machineState.hasTag('playerOnPlay');
     const roomIsReady = machineState.hasTag('roomIsReady');
@@ -160,7 +168,38 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                 });
             },
             component: () => (
-                <Text sx={{ color: 'white' }}>Welcome to our great Chat</Text>
+                <View>
+                    <Text sx={{ color: 'white' }}>
+                        Welcome to our great Chat You have{' '}
+                        {userContext.devices.length} connected devices
+                    </Text>
+                    {userContext.devices.length > 0 && (
+                        <FlatList
+                            data={userContext.devices}
+                            renderItem={({ item: { deviceID, name } }) => (
+                                <Text
+                                    onPress={() => {
+                                        sendToMachine({
+                                            type: 'CHANGE_EMITTING_DEVICE',
+                                            deviceID,
+                                        });
+                                    }}
+                                    sx={{
+                                        color: 'white',
+                                    }}
+                                >
+                                    {name}{' '}
+                                    {deviceID ===
+                                    context.userRelatedInformation
+                                        ?.emittingDeviceID
+                                        ? 'EMITTING'
+                                        : ''}
+                                </Text>
+                            )}
+                            keyExtractor={(_, index) => String(index)}
+                        />
+                    )}
+                </View>
             ),
         },
     ];
@@ -203,7 +242,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                                 marginTop: 'xs',
                             }}
                         >
-                            {context.users.length} Listeners
+                            {context.usersLength} Listeners
                         </Typo>
                     </View>
                 )}
@@ -219,6 +258,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     }}
                 >
                     <TheMusicPlayerWithControls
+                        isDeviceEmitting={isDeviceEmitting}
                         progressElapsedTime={context.progressElapsedTime}
                         currentTrack={context.currentTrack}
                         setPlayerRef={setPlayerRef}

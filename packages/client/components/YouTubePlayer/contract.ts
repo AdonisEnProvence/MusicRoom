@@ -6,6 +6,7 @@ export interface PlayerProps {
     videoId: string;
     playing: boolean;
     seekToInSeconds: number;
+    mute: boolean;
     onReady?: () => void;
 }
 

@@ -17,7 +17,6 @@ func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 			currentTrack := internalState.Tracks[0]
 			internalState.CurrentTrack = shared.CurrentTrack{
 				TrackMetadata:  currentTrack,
-				StartedOn:      time.Time{},
 				AlreadyElapsed: 0,
 			}
 			internalState.Timer = shared.MtvRoomTimer{
@@ -51,7 +50,6 @@ func assignNextTrack(internalState *MtvRoomInternalState) brainy.Action {
 
 		internalState.CurrentTrack = shared.CurrentTrack{
 			TrackMetadata:  internalState.Tracks[0],
-			StartedOn:      time.Time{},
 			AlreadyElapsed: 0,
 		}
 		internalState.Timer = shared.MtvRoomTimer{

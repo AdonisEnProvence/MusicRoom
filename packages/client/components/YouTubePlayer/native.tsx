@@ -8,7 +8,10 @@ import YoutubePlayer, { YoutubeIframeRef } from 'react-native-youtube-iframe';
 import { PlayerComponent, PlayerProps, PlayerRef } from './contract';
 
 const NativePlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
-    ({ width, height, videoId, playing, onReady, seekToInSeconds }, ref) => {
+    (
+        { width, height, videoId, playing, onReady, seekToInSeconds, mute },
+        ref,
+    ) => {
         const playerRef = useRef<YoutubeIframeRef>(null);
 
         useEffect(() => {
@@ -46,6 +49,7 @@ const NativePlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
                 height={height}
                 width={width}
                 play={playing}
+                mute={mute}
                 //FIX for android see https://stackoverflow.com/questions/63171131/when-rendering-iframes-with-html-android-crashes-while-navigating-back-to-s
                 webViewStyle={{ opacity: 0.99 }}
                 onReady={onReady}

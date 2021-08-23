@@ -1,6 +1,7 @@
 import {
     AllClientToServerEvents,
     AllServerToClientEvents,
+    UserDevice,
 } from '@musicroom/types';
 import ChatController from 'App/Controllers/Ws/ChatController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
@@ -18,6 +19,8 @@ export type TypedSocket = Socket<
     AllServerToClientEvents,
     DefaultEventsMap
 >;
+
+//TODO we should be using zod to parse every payload coming from the client
 
 Ws.io.on('connection', async (socket) => {
     try {
@@ -37,7 +40,7 @@ Ws.io.on('connection', async (socket) => {
         /// //// ///
 
         /// USER ///
-        socket.on('GET_CONNECTED_DEVICES', async (callback) => {
+        socket.on('GET_CONNECTED_DEVICES_AND_DEVICE_ID', async (callback) => {
             try {
                 const { userID } =
                     await SocketLifecycle.getSocketConnectionCredentials(
@@ -47,8 +50,24 @@ Ws.io.on('connection', async (socket) => {
                 const devices = await UserService.getUserConnectedDevices(
                     userID,
                 );
+                const formattedDevices: UserDevice[] = devices.map(
+                    (device) => ({
+                        deviceID: device.uuid,
+                        name: device.name,
+                    }),
+                );
+                const currDevice = devices.find(
+                    (device) => device.socketID === socket.id,
+                );
 
-                callback({ devices });
+                if (currDevice === undefined) {
+                    throw new Error('currDeviceID should not be undefined');
+                }
+
+                callback({
+                    devices: formattedDevices,
+                    currDeviceID: currDevice.uuid,
+                });
             } catch (e) {
                 console.error(e);
             }
@@ -58,7 +77,7 @@ Ws.io.on('connection', async (socket) => {
         /// ROOM ///
         socket.on('CREATE_ROOM', async (payload) => {
             try {
-                const { userID } =
+                const { userID, deviceID } =
                     await SocketLifecycle.getSocketConnectionCredentials(
                         socket,
                     );
@@ -66,12 +85,10 @@ Ws.io.on('connection', async (socket) => {
                     throw new Error('CREATE_ROOM failed name should be empty');
                 }
                 const raw = await MtvRoomsWsController.onCreate({
-                    socket,
-                    payload: {
-                        name: payload.name,
-                        userID,
-                        initialTracksIDs: payload.initialTracksIDs,
-                    },
+                    name: payload.name,
+                    userID,
+                    initialTracksIDs: payload.initialTracksIDs,
+                    deviceID,
                 });
                 Ws.io
                     .to(raw.workflowID)
@@ -83,7 +100,7 @@ Ws.io.on('connection', async (socket) => {
 
         socket.on('GET_CONTEXT', async () => {
             try {
-                const { mtvRoomID } =
+                const { mtvRoomID, userID } =
                     await SocketLifecycle.getSocketConnectionCredentials(
                         socket,
                     );
@@ -93,7 +110,10 @@ Ws.io.on('connection', async (socket) => {
                     );
                 }
 
-                const state = await MtvRoomsWsController.onGetState(mtvRoomID);
+                const state = await MtvRoomsWsController.onGetState({
+                    roomID: mtvRoomID,
+                    userID,
+                });
                 socket.emit('RETRIEVE_CONTEXT', state);
             } catch (e) {
                 console.error(e);
@@ -105,16 +125,14 @@ Ws.io.on('connection', async (socket) => {
                 if (!args.roomID) {
                     throw new Error('JOIN_ROOM failed roomID is empty');
                 }
-                const { userID } =
+                const { userID, deviceID } =
                     await SocketLifecycle.getSocketConnectionCredentials(
                         socket,
                     );
                 await MtvRoomsWsController.onJoin({
-                    socket,
-                    payload: {
-                        roomID: args.roomID,
-                        userID,
-                    },
+                    roomID: args.roomID,
+                    userID,
+                    deviceID,
                 });
             } catch (e) {
                 console.error(e);
@@ -132,10 +150,7 @@ Ws.io.on('connection', async (socket) => {
                     throw new Error('ACTION_PLAY failed room not found');
                 }
                 await MtvRoomsWsController.onPlay({
-                    socket,
-                    payload: {
-                        roomID: mtvRoomID,
-                    },
+                    roomID: mtvRoomID,
                 });
             } catch (e) {
                 console.error(e);
@@ -152,10 +167,7 @@ Ws.io.on('connection', async (socket) => {
                     throw new Error('ACTION_PLAY failed room not found');
                 }
                 await MtvRoomsWsController.onPause({
-                    socket,
-                    payload: {
-                        roomID: mtvRoomID,
-                    },
+                    roomID: mtvRoomID,
                 });
             } catch (e) {
                 console.error(e);
@@ -176,10 +188,54 @@ Ws.io.on('connection', async (socket) => {
                 }
 
                 await MtvRoomsWsController.onGoToNextTrack({
-                    payload: {
-                        roomID: mtvRoomID,
-                    },
-                    socket,
+                    roomID: mtvRoomID,
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        socket.on('CHANGE_EMITTING_DEVICE', async ({ newEmittingDeviceID }) => {
+            try {
+                console.log('RECEIVED CHANGE EMITTING DEVICE FORM CLIENT');
+                const { userID, mtvRoomID } =
+                    await SocketLifecycle.getSocketConnectionCredentials(
+                        socket,
+                    );
+
+                if (!mtvRoomID) {
+                    throw new Error(
+                        'Error on CHANGE_EMITTING_DEVICE cannot change emitting device if user is not in a mtvRoom',
+                    );
+                }
+
+                const newEmittingDevice = await Device.findOrFail(
+                    newEmittingDeviceID,
+                );
+
+                await newEmittingDevice.load('user');
+                if (!newEmittingDevice.user) {
+                    throw new Error(
+                        'newEmittingDevice.user should not be empty',
+                    );
+                }
+
+                const userIsNotTheNewDeviceOwner =
+                    newEmittingDevice.user.uuid !== userID;
+
+                if (userIsNotTheNewDeviceOwner) {
+                    throw new Error(
+                        `device: ${newEmittingDeviceID} does not belongs to userID: ${userID}`,
+                    );
+                }
+                console.log(
+                    'RECEIVED CHANGE EMITTING DEVICE FORM CLIENT EVERYTHING IS OK',
+                );
+
+                await MtvRoomsWsController.OnChangeEmittingDevice({
+                    deviceID: newEmittingDeviceID,
+                    roomID: mtvRoomID,
+                    userID: userID,
                 });
             } catch (err) {
                 console.error(err);

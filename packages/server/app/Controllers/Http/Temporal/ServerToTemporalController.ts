@@ -187,7 +187,7 @@ export default class ServerToTemporalController {
         });
     }
 
-    public static async ChangeUserEmittingDevice({
+    public static async changeUserEmittingDevice({
         deviceID,
         runID,
         userID,

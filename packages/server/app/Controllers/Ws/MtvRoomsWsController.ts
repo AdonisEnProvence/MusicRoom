@@ -176,7 +176,7 @@ export default class MtvRoomsWsController {
     }: OnChangeEmittingDeviceArgs): Promise<void> {
         const { runID } = await MtvRoom.findOrFail(roomID);
 
-        await ServerToTemporalController.ChangeUserEmittingDevice({
+        await ServerToTemporalController.changeUserEmittingDevice({
             workflowID: roomID,
             runID,
             deviceID,

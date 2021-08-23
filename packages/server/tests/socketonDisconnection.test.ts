@@ -890,7 +890,7 @@ test.group('Rooms life cycle', (group) => {
         const userID = datatype.uuid();
 
         sinon
-            .stub(ServerToTemporalController, 'ChangeUserEmittingDevice')
+            .stub(ServerToTemporalController, 'changeUserEmittingDevice')
             .callsFake(async ({ deviceID, workflowID }) => {
                 const state: MtvWorkflowState = {
                     currentTrack: null,

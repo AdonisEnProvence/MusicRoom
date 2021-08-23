@@ -3,6 +3,7 @@ import {
     AllClientToServerEvents,
     AllServerToClientEvents,
     MtvWorkflowState,
+    MtvWorkflowStateWithUserRelatedInformation,
     UserRelatedInformation,
 } from '@musicroom/types';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
@@ -161,7 +162,7 @@ test.group('Rooms life cycle', (group) => {
         sinon
             .stub(ServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
-                const state: MtvWorkflowState = {
+                const state: MtvWorkflowStateWithUserRelatedInformation = {
                     roomID: workflowID, //workflowID === roomID
                     roomCreatorUserID: userID,
                     playing: false,
@@ -291,7 +292,7 @@ test.group('Rooms life cycle', (group) => {
             userB.receivedEvents.push('FORCED_DISCONNECTION');
         });
         const roomName = random.word();
-        let state: undefined | MtvWorkflowState;
+        let state: undefined | MtvWorkflowStateWithUserRelatedInformation;
 
         /** Mocks */
         sinon
@@ -438,7 +439,7 @@ test.group('Rooms life cycle', (group) => {
         const creatorID = datatype.uuid();
         const roomName = random.word();
         let userCouldEmitAnExclusiveRoomSignal = false;
-        let state: MtvWorkflowState | undefined;
+        let state: MtvWorkflowStateWithUserRelatedInformation | undefined;
 
         /** Mocks */
         sinon
@@ -609,7 +610,7 @@ test.group('Rooms life cycle', (group) => {
             .stub(ServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
                 const creator = datatype.uuid();
-                const state: MtvWorkflowState = {
+                const state: MtvWorkflowStateWithUserRelatedInformation = {
                     roomID: workflowID,
                     roomCreatorUserID: creatorUserID,
                     playing: false,
@@ -856,20 +857,30 @@ test.group('Rooms life cycle', (group) => {
         const deviceNameA = random.word();
 
         const socketA = await createUserAndGetSocket(userID, deviceNameA);
+
+        const deviceA = await Device.findBy('socket_id', socketA.id);
+        assert.isNotNull(deviceA);
+        if (deviceA === null) throw new Error('DeviceA should not be null');
+
         let callbackHasBeenCalled = false;
         await createSocketConnection(userID, undefined, 'Safari');
 
-        socketA.emit('GET_CONNECTED_DEVICES', ({ devices }) => {
-            assert.equal(2, devices.length);
+        socketA.emit(
+            'GET_CONNECTED_DEVICES_AND_DEVICE_ID',
+            ({ devices, currDeviceID }) => {
+                assert.equal(deviceA.uuid, currDeviceID);
 
-            assert.isTrue(devices.some((d) => d.name === deviceNameA));
+                assert.equal(2, devices.length);
 
-            assert.isTrue(
-                devices.some((d) => d.name === 'Web Player (Safari)'),
-            );
+                assert.isTrue(devices.some((d) => d.name === deviceNameA));
 
-            callbackHasBeenCalled = true;
-        });
+                assert.isTrue(
+                    devices.some((d) => d.name === 'Web Player (Safari)'),
+                );
+
+                callbackHasBeenCalled = true;
+            },
+        );
 
         await sleep();
         assert.isTrue(callbackHasBeenCalled);

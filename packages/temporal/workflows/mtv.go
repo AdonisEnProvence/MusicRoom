@@ -28,8 +28,6 @@ type MtvRoomInternalState struct {
 func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 	s.initialParams = params
 
-	//InitialUsers now unused
-	s.Users = make(map[string]*shared.InternalStateUser)
 	s.Users = params.InitialUsers
 	s.TracksIDsList = params.InitialTracksIDsList
 }
@@ -67,7 +65,7 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 		UsersLength:       len(s.Users),
 	}
 
-	if userInformation, ok := s.Users[RelatedUserID]; RelatedUserID != "" && ok {
+	if userInformation, ok := s.Users[RelatedUserID]; RelatedUserID != shared.NoRelatedUserID && ok {
 		exposedState.UserRelatedInformation = userInformation
 	}
 

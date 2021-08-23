@@ -190,7 +190,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 	checkThatRoomIsNotPlaying := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		mtvState := s.getMtvState("")
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
 		s.False(mtvState.Playing)
 
 		s.emitPlaySignal()
@@ -198,7 +198,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 	emitPause := firstTrackDurationFirstThird
 	registerDelayedCallbackWrapper(func() {
-		mtvState := s.getMtvState("")
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
 		s.True(mtvState.Playing)
 		s.emitPauseSignal()
 	}, emitPause)
@@ -219,7 +219,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 			Duration: firstTrackDuration.Milliseconds(),
 			Elapsed:  firstTrackDurationFirstThird.Milliseconds(),
 		}
-		mtvState := s.getMtvState("")
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
 		fmt.Printf("We should find the first third elapsed for the first track\n%+v\n", mtvState.CurrentTrack)
 
 		s.False(mtvState.Playing)
@@ -243,7 +243,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 	sixth := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		mtvState := s.getMtvState("")
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
 		fmt.Printf("We should find the second track with an elapsed at 0\n%+v\n", mtvState.CurrentTrack)
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
@@ -265,7 +265,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 	checkThatSecondTrackHalfTotalDurationElapsed := secondTrackDuration/2 - defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		mtvState := s.getMtvState("")
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
 		fmt.Printf("We should find the second track with an elapsed at half second track total duration\n%+v\n", mtvState.CurrentTrack)
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
@@ -294,7 +294,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 	// time mock return value
 	verifyStateMachineIsFreezed := secondTrackDuration/2 + defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		mtvState := s.getMtvState("")
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
 		expectedElapsed := secondTrackDuration.Milliseconds()
 		s.Equal(expectedElapsed, mtvState.CurrentTrack.Elapsed)
 	}, verifyStateMachineIsFreezed)
@@ -358,7 +358,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 
 	checkOnlyOneUser := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		mtvState := s.getMtvState("")
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
 		s.Empty(mtvState.UserRelatedInformation)
 		s.False(mtvState.Playing)
@@ -398,7 +398,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 
 	checkForEmptyUserIDInfo := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		mtvState := s.getMtvState("")
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
 		s.Equal(2, mtvState.UsersLength)
 		s.Empty(mtvState.UserRelatedInformation)
@@ -421,7 +421,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 
 	emitPauseSignal := firstTrackDuration - 200*defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		mtvState := s.getMtvState("")
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
@@ -518,7 +518,7 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 
 	checkEmptyUserIDRelatedInformation := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		mtvState := s.getMtvState("")
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
 		s.Equal(1, mtvState.UsersLength)
 		s.False(mtvState.Playing)
@@ -655,7 +655,7 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 	// 1. We expect the room to be paused by default.
 	initialStateQueryDelay := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		mtvState := s.getMtvState("")
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
 		s.False(mtvState.Playing)
 	}, initialStateQueryDelay)
@@ -670,7 +670,7 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 	// and the room to be playing.
 	verifyThatGoNextTrackWorked := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		mtvState := s.getMtvState("")
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
 		s.True(mtvState.Playing)
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
@@ -700,7 +700,7 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 	// after we tried to go to the next track.
 	verifyThatGoToNextTrackDidntWork := defaultDuration * 200
 	registerDelayedCallbackWrapper(func() {
-		mtvState := s.getMtvState("")
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
 		s.True(mtvState.Playing)
 
@@ -771,7 +771,7 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 
 	initialStateQueryDelay := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		mtvState := s.getMtvState("")
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
 		s.False(mtvState.Playing)
 		s.emitPlaySignal()
@@ -779,7 +779,7 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 
 	secondStateQueryAfterTotalTrackDuration := firstTrackDuration
 	registerDelayedCallbackWrapper(func() {
-		mtvState := s.getMtvState("")
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
@@ -805,7 +805,7 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 
 	thirdStateQueryAfterSecondPlaySignal := firstTrackDuration
 	registerDelayedCallbackWrapper(func() {
-		mtvState := s.getMtvState("")
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{

@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useMachine } from '@xstate/react';
-import { Text, View } from 'dripsy';
+import { Text, useSx, View } from 'dripsy';
 import React from 'react';
 import { FlatList, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,10 +14,9 @@ import {
 import { AppUserMachineState } from '../../machines/appUserMachine';
 import { AppScreen, AppScreenContainer, Typo } from '../kit';
 import AppModalHeader from '../kit/AppModalHeader';
+import TrackListItemWithScore from '../Track/TrackListItemWithScore';
 import { MusicPlayerRef } from './Player';
 import TheMusicPlayerWithControls from './TheMusicPlayerWithControls';
-import { useNavigation } from '@react-navigation/native';
-import TrackListItemWithScore from '../Track/TrackListItemWithScore';
 
 type TheMusicPlayerFullScreenProps = {
     machineState: AppMusicPlayerMachineState;
@@ -72,46 +72,44 @@ interface AddSongButtonProps {
 }
 
 const AddSongButton: React.FC<AddSongButtonProps> = ({ onPress }) => {
+    const sx = useSx();
     return (
         <TouchableOpacity
-            accessibilityLabel="Suggest a track"
+            style={sx({
+                position: 'absolute',
+                right: 0,
+                bottom: 0,
+                borderRadius: 'full',
+                backgroundColor: 'secondary',
+                width: 48,
+                height: 48,
+                margin: 'm',
+                justifyContent: 'center',
+                alignItems: 'center',
+
+                // Copy pasted from https://ethercreative.github.io/react-native-shadow-generator/
+                shadowColor: '#000',
+                shadowOffset: {
+                    width: 0,
+                    height: 2,
+                },
+                shadowOpacity: 0.25,
+                shadowRadius: 3.84,
+
+                elevation: 5,
+            })}
             onPress={onPress}
         >
-            <View
-                sx={{
-                    position: 'absolute',
-                    right: 0,
-                    bottom: 0,
-                    borderRadius: 'full',
-                    backgroundColor: 'secondary',
-                    width: 48,
-                    height: 48,
-                    margin: 'm',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-
-                    // Copy pasted from https://ethercreative.github.io/react-native-shadow-generator/
-                    shadowColor: '#000',
-                    shadowOffset: {
-                        width: 0,
-                        height: 2,
-                    },
-                    shadowOpacity: 0.25,
-                    shadowRadius: 3.84,
-
-                    elevation: 5,
+            <Ionicons
+                accessibilityLabel="Suggest a track"
+                name="add"
+                size={32}
+                color="white"
+                style={{
+                    // Necessary to center the icon visually
+                    right: -1,
                 }}
-            >
-                <Ionicons
-                    name="add"
-                    size={32}
-                    color="white"
-                    style={{
-                        // Necessary to center the icon visually
-                        right: -1,
-                    }}
-                />
-            </View>
+            />
         </TouchableOpacity>
     );
 };

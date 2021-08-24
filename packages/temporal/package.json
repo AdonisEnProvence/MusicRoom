@@ -8,12 +8,13 @@
         "yarn": "1.22.10"
     },
     "scripts": {
-        "dev": "nodemon --signal SIGTERM --ext go --exec env PORT=3000 ADONIS_ENDPOINT='http://localhost:3333' go run api/main.go",
-        "worker": "nodemon --signal SIGTERM --ext go --exec godotenv -f ./.env env PORT=3000 ADONIS_ENDPOINT='http://localhost:3333' go run worker/main.go",
+        "dev": "nodemon --signal SIGTERM --ext go --exec env-cmd go run api/main.go",
+        "worker": "nodemon --signal SIGTERM --ext go --exec env-cmd go run worker/main.go",
         "temporal": "cd docker-compose && docker-compose up -d",
         "test": "go test ./..."
     },
     "devDependencies": {
+        "env-cmd": "^10.1.0",
         "nodemon": "^2.0.7"
     }
 }

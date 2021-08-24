@@ -67,10 +67,6 @@ test(`When the user clicks on next track button, it should play the next track, 
 
     serverSocket.emit('RETRIEVE_CONTEXT', initialState);
 
-    /**
-     * Firstly expecting to be on the home
-     * And then click on GO TO MUSIC TRACK VOTE button
-     */
     expect(getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
     const musicPlayerMini = getByTestId('music-player-mini');

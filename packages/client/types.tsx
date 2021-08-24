@@ -9,7 +9,7 @@ import {
     RouteProp,
 } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { SearchedTrack } from './machines/searchTrackMachine';
+import { TracksMetadata } from '@musicroom/types';
 
 export type NavigateFromRefParams = {
     Alert: AlertParams;
@@ -33,6 +33,17 @@ export type SearchTracksParamsList = {
 };
 
 export type RootStackParamList = {
+    Main: NavigatorScreenParams<MainStackParamList>;
+
+    SuggestTrack: NavigatorScreenParams<SuggestTrackStackParamList>;
+};
+
+export type SuggestTrackStackParamList = {
+    SuggestTrackModal: undefined;
+    SuggestTrackResultsModal: SearchTracksResultsParams;
+};
+
+export type MainStackParamList = {
     Root: NavigatorScreenParams<BottomTabNavigatorParamList>;
 
     MusicTrackVoteSearch: undefined;
@@ -52,7 +63,7 @@ interface MusicTrackVoteParams {
     roomId: string;
 }
 interface SearchTracksResultsParams {
-    tracks: SearchedTrack[];
+    tracks?: TracksMetadata[];
 }
 
 /**
@@ -63,29 +74,63 @@ interface SearchTracksResultsParams {
  * Otherwise the type safety will be disabled.
  */
 
+export type SuggestTrackModalProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'SuggestTrack'>,
+        StackNavigationProp<SuggestTrackStackParamList, 'SuggestTrackModal'>
+    >;
+    route: RouteProp<SuggestTrackStackParamList, 'SuggestTrackModal'>;
+};
+
+export type SuggestTrackResultsModalProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'SuggestTrack'>,
+        StackNavigationProp<
+            SuggestTrackStackParamList,
+            'SuggestTrackResultsModal'
+        >
+    >;
+    route: RouteProp<SuggestTrackStackParamList, 'SuggestTrackResultsModal'>;
+};
+
 export type MusicTrackVoteSearchScreenProps = {
-    navigation: StackNavigationProp<RootStackParamList, 'MusicTrackVoteSearch'>;
-    route: RouteProp<RootStackParamList, 'MusicTrackVoteSearch'>;
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'Main'>,
+        StackNavigationProp<MainStackParamList, 'MusicTrackVoteSearch'>
+    >;
+    route: RouteProp<MainStackParamList, 'MusicTrackVoteSearch'>;
 };
 
 export type ChatScreenProps = {
-    navigation: StackNavigationProp<RootStackParamList, 'Chat'>;
-    route: RouteProp<RootStackParamList, 'Chat'>;
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'Main'>,
+        StackNavigationProp<MainStackParamList, 'Chat'>
+    >;
+    route: RouteProp<MainStackParamList, 'Chat'>;
 };
 
 export type SettingsScreenProps = {
-    navigation: StackNavigationProp<RootStackParamList, 'Settings'>;
-    route: RouteProp<RootStackParamList, 'Settings'>;
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'Main'>,
+        StackNavigationProp<MainStackParamList, 'Settings'>
+    >;
+    route: RouteProp<MainStackParamList, 'Settings'>;
 };
 
 export type AlertScreenProps = {
-    navigation: StackNavigationProp<RootStackParamList, 'Alert'>;
-    route: RouteProp<RootStackParamList, 'Alert'>;
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'Main'>,
+        StackNavigationProp<MainStackParamList, 'Alert'>
+    >;
+    route: RouteProp<MainStackParamList, 'Alert'>;
 };
 
 export type HomeTabProps = {
     navigation: CompositeNavigationProp<
-        StackNavigationProp<RootStackParamList, 'Root'>,
+        CompositeNavigationProp<
+            StackNavigationProp<RootStackParamList, 'Main'>,
+            StackNavigationProp<MainStackParamList, 'Root'>
+        >,
         BottomTabNavigationProp<BottomTabNavigatorParamList, 'Home'>
     >;
     route: RouteProp<BottomTabNavigatorParamList, 'Home'>;
@@ -93,7 +138,10 @@ export type HomeTabProps = {
 
 export type SearchTabProps = {
     navigation: CompositeNavigationProp<
-        StackNavigationProp<RootStackParamList, 'Root'>,
+        CompositeNavigationProp<
+            StackNavigationProp<RootStackParamList, 'Main'>,
+            StackNavigationProp<MainStackParamList, 'Root'>
+        >,
         BottomTabNavigationProp<BottomTabNavigatorParamList, 'Search'>
     >;
     route: RouteProp<BottomTabNavigatorParamList, 'Search'>;
@@ -101,7 +149,10 @@ export type SearchTabProps = {
 
 export type HomeTabHomeScreenScreenProps = {
     navigation: CompositeNavigationProp<
-        StackNavigationProp<RootStackParamList, 'Root'>,
+        CompositeNavigationProp<
+            StackNavigationProp<RootStackParamList, 'Main'>,
+            StackNavigationProp<MainStackParamList, 'Root'>
+        >,
         CompositeNavigationProp<
             BottomTabNavigationProp<BottomTabNavigatorParamList, 'Home'>,
             StackNavigationProp<HomeParamsList, 'HomeScreen'>
@@ -112,7 +163,10 @@ export type HomeTabHomeScreenScreenProps = {
 
 export type SearchTabSearchTracksScreenProps = {
     navigation: CompositeNavigationProp<
-        StackNavigationProp<RootStackParamList, 'Root'>,
+        CompositeNavigationProp<
+            StackNavigationProp<RootStackParamList, 'Main'>,
+            StackNavigationProp<MainStackParamList, 'Root'>
+        >,
         CompositeNavigationProp<
             BottomTabNavigationProp<BottomTabNavigatorParamList, 'Search'>,
             StackNavigationProp<SearchTracksParamsList, 'SearchTracks'>
@@ -123,7 +177,10 @@ export type SearchTabSearchTracksScreenProps = {
 
 export type SearchTrackResultsScreenProps = {
     navigation: CompositeNavigationProp<
-        StackNavigationProp<RootStackParamList, 'Root'>,
+        CompositeNavigationProp<
+            StackNavigationProp<RootStackParamList, 'Main'>,
+            StackNavigationProp<MainStackParamList, 'Root'>
+        >,
         CompositeNavigationProp<
             BottomTabNavigationProp<BottomTabNavigatorParamList, 'Search'>,
             StackNavigationProp<SearchTracksParamsList, 'SearchTrackResults'>

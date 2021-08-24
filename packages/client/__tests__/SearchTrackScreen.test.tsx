@@ -5,19 +5,14 @@ import React from 'react';
 import { RootNavigator } from '../navigation';
 import { serverSocket } from '../services/websockets';
 import { db } from '../tests/data';
-import { fireEvent, render, waitFor, within } from '../tests/tests-utils';
-
-function noop() {
-    return undefined;
-}
-
-function waitForTimeout(ms: number): Promise<void> {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve();
-        }, ms);
-    });
-}
+import {
+    fireEvent,
+    render,
+    waitFor,
+    within,
+    waitForTimeout,
+    noop,
+} from '../tests/tests-utils';
 
 test(`Goes to Search a Track screen, searches a track, sees search results, presses a song and listens to it`, async () => {
     const fakeTrack = db.tracks.create();

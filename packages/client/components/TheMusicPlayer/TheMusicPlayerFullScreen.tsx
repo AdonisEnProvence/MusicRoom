@@ -13,9 +13,10 @@ import {
 import { AppUserMachineState } from '../../machines/appUserMachine';
 import { AppScreen, AppScreenContainer, Typo } from '../kit';
 import AppModalHeader from '../kit/AppModalHeader';
-import MusicPlayerFullScreenTracksListItem from './MusicPlayerFullScreenTracksListItem';
 import { MusicPlayerRef } from './Player';
 import TheMusicPlayerWithControls from './TheMusicPlayerWithControls';
+import { useNavigation } from '@react-navigation/native';
+import TrackListItemWithScore from '../Track/TrackListItemWithScore';
 
 type TheMusicPlayerFullScreenProps = {
     machineState: AppMusicPlayerMachineState;
@@ -66,9 +67,16 @@ interface Tab {
     component: () => React.ReactElement | null;
 }
 
-const AddSongButton: React.FC = () => {
+interface AddSongButtonProps {
+    onPress: () => void;
+}
+
+const AddSongButton: React.FC<AddSongButtonProps> = ({ onPress }) => {
     return (
-        <TouchableOpacity>
+        <TouchableOpacity
+            accessibilityLabel="Suggest a track"
+            onPress={onPress}
+        >
             <View
                 sx={{
                     position: 'absolute',
@@ -115,6 +123,9 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     setPlayerRef,
     userState,
 }) => {
+    // TODO: replace the hook by a prop
+    const navigation = useNavigation();
+
     const context = machineState.context;
     const userContext = userState.context;
     const isDeviceEmitting =
@@ -143,7 +154,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                                 item: { title, artistName },
                                 index,
                             }) => (
-                                <MusicPlayerFullScreenTracksListItem
+                                <TrackListItemWithScore
                                     index={index + 1}
                                     title={title}
                                     artistName={artistName}
@@ -155,7 +166,11 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                             style={{ flex: 1 }}
                         />
 
-                        <AddSongButton />
+                        <AddSongButton
+                            onPress={() => {
+                                navigation.navigate('SuggestTrack');
+                            }}
+                        />
                     </View>
                 ) : null,
         },

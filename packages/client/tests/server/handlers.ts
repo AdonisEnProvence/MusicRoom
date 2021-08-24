@@ -1,4 +1,5 @@
 import { rest } from 'msw';
+import { TracksMetadata } from '@musicroom/types';
 
 import { SERVER_ENDPOINT } from '../../constants/Endpoints';
 import { SearchTracksAPIRawResponse } from '../../machines/searchTrackMachine';
@@ -18,14 +19,7 @@ export const handlers = [
                 },
             });
 
-            return res(
-                ctx.json({
-                    videos: tracks.map(({ id, title }) => ({
-                        id: { videoId: id },
-                        snippet: { title },
-                    })),
-                }),
-            );
+            return res(ctx.json(tracks as TracksMetadata[] | undefined));
         },
     ),
 ];

@@ -5,6 +5,8 @@ export const db = factory({
     tracks: {
         id: primaryKey(() => datatype.uuid()),
         title: () => random.words(3),
+        artistName: () => name.findName(),
+        duration: () => datatype.number(),
     },
 
     tracksMetadata: {

@@ -35,6 +35,15 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                         navigation.navigate('Chat');
                     }}
                 />
+
+                <Button
+                    title="Suggest track modal"
+                    onPress={() => {
+                        navigation.navigate('SuggestTrack', {
+                            screen: 'SuggestTrackModal',
+                        });
+                    }}
+                />
             </AppScreenContainer>
         </AppScreen>
     );

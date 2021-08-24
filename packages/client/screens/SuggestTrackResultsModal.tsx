@@ -6,28 +6,41 @@ import {
     AppScreenHeader,
 } from '../components/kit';
 import { SearchTrackResultsScreenProps } from '../types';
-import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import { FlatList } from 'react-native';
 import TrackListItem from '../components/Track/TrackListItem';
+import { useSuggestTracks } from '../contexts/MusicPlayerContext';
 
-const SearchTracksResultsScreen: React.FC<SearchTrackResultsScreenProps> = ({
+const SuggestTrackResultsModal: React.FC<SearchTrackResultsScreenProps> = ({
     route,
+    navigation,
 }) => {
     const tracks = route.params.tracks;
     const insets = useSafeAreaInsets();
-    const { sendToMachine } = useMusicPlayer();
+    const suggestTracks = useSuggestTracks();
 
     function handleTrackPress(trackId: string) {
-        sendToMachine({
-            type: 'CREATE_ROOM',
-            roomName: trackId,
-            initialTracksIDs: [trackId],
-        });
+        suggestTracks([trackId]);
+
+        exitModal();
+    }
+
+    function handleGoBack() {
+        navigation.goBack();
+    }
+
+    function exitModal() {
+        navigation.popToTop();
+        navigation.goBack();
     }
 
     return (
         <AppScreen>
-            <AppScreenHeader title="Results" insetTop={insets.top} />
+            <AppScreenHeader
+                title="Results"
+                insetTop={insets.top}
+                canGoBack
+                goBack={handleGoBack}
+            />
 
             <AppScreenContainer>
                 <FlatList
@@ -52,4 +65,4 @@ const SearchTracksResultsScreen: React.FC<SearchTrackResultsScreenProps> = ({
     );
 };
 
-export default SearchTracksResultsScreen;
+export default SuggestTrackResultsModal;

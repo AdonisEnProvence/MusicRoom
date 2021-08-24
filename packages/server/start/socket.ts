@@ -232,7 +232,7 @@ Ws.io.on('connection', async (socket) => {
                     'RECEIVED CHANGE EMITTING DEVICE FORM CLIENT EVERYTHING IS OK',
                 );
 
-                await MtvRoomsWsController.OnChangeEmittingDevice({
+                await MtvRoomsWsController.onChangeEmittingDevice({
                     deviceID: newEmittingDeviceID,
                     roomID: mtvRoomID,
                     userID: userID,
@@ -246,7 +246,7 @@ Ws.io.on('connection', async (socket) => {
         socket.on('disconnecting', async () => {
             try {
                 await SocketLifecycle.deleteDeviceAndCheckForMtvRoomDeletion(
-                    socket,
+                    socket.id,
                 );
             } catch (e) {
                 console.error('Error on socket.on(disconnecting)', e);

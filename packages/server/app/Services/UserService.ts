@@ -79,4 +79,25 @@ export default class UserService {
 
         return user.devices;
     }
+
+    public static async getUserCurrentlyEmittingDevice(
+        userID: string,
+    ): Promise<Device | undefined> {
+        const previouslyEmittingDevices = await Device.query()
+            .where('user_id', userID)
+            .where('is_emitting', true);
+
+        if (previouslyEmittingDevices.length > 1) {
+            throw new Error(
+                `User emitting device is corrupted he has previously ${previouslyEmittingDevices.length} emitting devices ${userID}`,
+            );
+        } else if (previouslyEmittingDevices.length === 0) {
+            console.log(
+                'user might not be in mtvRoom or device could be deleted',
+            );
+            return undefined;
+        }
+
+        return previouslyEmittingDevices[0];
+    }
 }

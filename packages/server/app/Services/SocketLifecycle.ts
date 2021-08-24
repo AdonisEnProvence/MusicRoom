@@ -1,6 +1,5 @@
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
-import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
 import { TypedSocket } from 'start/socket';
 import UserAgentParser from 'ua-parser-js';
@@ -85,40 +84,103 @@ export default class SocketLifecycle {
     }
 
     public static async deleteDeviceAndCheckForMtvRoomDeletion(
-        socket: TypedSocket,
+        socketID: string,
     ): Promise<void> {
         console.log('_'.repeat(10));
-        const device = await Device.findByOrFail('socket_id', socket.id);
-        const userID = device.userID;
-        console.log(`LOOSING CONNECTION SOCKETID=${socket.id} USER=${userID}`);
+        const disconnectingDevice = await Device.findByOrFail(
+            'socket_id',
+            socketID,
+        );
+        const userID = disconnectingDevice.userID;
+
+        await disconnectingDevice.load('user');
+        if (disconnectingDevice.user === null) {
+            throw new Error('Device must have a related user');
+        }
+
+        const disconnectingDeviceOwner = disconnectingDevice.user;
+        await disconnectingDeviceOwner.load('mtvRoom');
+        const joinedRoom = disconnectingDeviceOwner.mtvRoom;
+
+        console.log(`LOOSING CONNECTION SOCKETID=${socketID} USER=${userID}`);
+
         /**
          *  Manage owned MTVRoom max 1 per user
          */
-        const room = await MtvRoom.findBy('creator', userID);
         const allUserDevices = await Device.query().where('user_id', userID);
-        console.log(
-            `User ${room ? 'owns a room' : 'do not own a room'} and has ${
-                allUserDevices.length
-            } connected`,
-        );
 
         /**
          *  Kill the room if the creator doesn't have any other session alive on other device
          *  All sessions room's connections are synchronized, if device is in pg the room connection is alive
          */
-        const hasNoMoreDevice = allUserDevices.length <= 1;
-        if (room !== null && hasNoMoreDevice) {
-            console.log(room.uuid);
-            await MtvRoomsWsController.onTerminate({ roomID: room.uuid });
-            console.log('ABOUT TO EMIT');
-            Ws.io.in(room.uuid).emit('FORCED_DISCONNECTION');
-            await this.deleteRoom(room.uuid);
+        const disconnectingDeviceIsThelastConnectedDevice =
+            allUserDevices.length <= 1;
+
+        const userIsTheCreator =
+            joinedRoom !== null ? joinedRoom.creator === userID : false;
+
+        console.log(
+            `User ${
+                userIsTheCreator ? 'owns a room' : 'do not own a room'
+            } and has ${allUserDevices.length} connected`,
+        );
+
+        /**
+         * If disconnecting user was a mtv room owner
+         * Send a terminate workflow to temporal
+         */
+        if (
+            userIsTheCreator &&
+            disconnectingDeviceIsThelastConnectedDevice &&
+            joinedRoom !== null
+        ) {
+            try {
+                const ownedRoom = joinedRoom;
+
+                console.log(
+                    `Sending terminate signal to temporal for room ${ownedRoom.uuid}`,
+                );
+                await MtvRoomsWsController.onTerminate({
+                    roomID: ownedRoom.uuid,
+                });
+
+                Ws.io.in(ownedRoom.uuid).emit('FORCED_DISCONNECTION');
+                await this.deleteRoom(ownedRoom.uuid);
+            } catch (e) {
+                console.error(
+                    `Couldnt terminate workflow on owner disconnection ${userID} room: ${joinedRoom.uuid} workflow is still alive in temporal but removed from database`,
+                    e,
+                );
+            }
+        } else if (
+            joinedRoom !== null &&
+            disconnectingDeviceIsThelastConnectedDevice === false &&
+            disconnectingDevice.isEmitting
+        ) {
+            try {
+                //Need to set a new emitting device
+                const availableDevices = allUserDevices.filter(
+                    (device) => device.uuid !== disconnectingDevice.uuid,
+                );
+                const newEmittingDevice = availableDevices[0];
+
+                await MtvRoomsWsController.onChangeEmittingDevice({
+                    deviceID: newEmittingDevice.uuid,
+                    roomID: joinedRoom.uuid,
+                    userID,
+                });
+            } catch (e) {
+                console.error(
+                    `Couldnt set a new emitting device for disconnecting user ${userID}`,
+                    e,
+                );
+            }
         }
 
         /**
          *  Remove device from pg
          */
-        await device.delete();
+        await disconnectingDevice.delete();
         await UserService.emitConnectedDevicesUpdateToEveryUserDevices(userID);
         console.log('='.repeat(10));
     }

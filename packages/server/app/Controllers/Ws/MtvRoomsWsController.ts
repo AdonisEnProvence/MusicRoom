@@ -169,7 +169,7 @@ export default class MtvRoomsWsController {
         });
     }
 
-    public static async OnChangeEmittingDevice({
+    public static async onChangeEmittingDevice({
         deviceID,
         roomID,
         userID,

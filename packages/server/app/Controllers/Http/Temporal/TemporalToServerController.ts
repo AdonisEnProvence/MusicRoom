@@ -1,5 +1,6 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import { MtvWorkflowState } from '@musicroom/types';
+import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
 import UserService from 'App/Services/UserService';
@@ -70,10 +71,33 @@ export default class TemporalToServerController {
     }: HttpContextContract): Promise<void> {
         const state = MtvWorkflowState.parse(request.body());
 
-        if (state.userRelatedInformation === null)
+        if (state.userRelatedInformation === null) {
             throw new Error(
                 'Error on temporal response for mtvChangeUserEmittingDeviceAcknowledgement userRelatedInformations shouldnt be null',
             );
+        }
+
+        const previouslyEmittingDevices = await Device.query()
+            .where('user_id', state.userRelatedInformation?.userID)
+            .where('is_emitting', true);
+        if (
+            previouslyEmittingDevices.length > 1 ||
+            previouslyEmittingDevices.length === 0
+        ) {
+            throw new Error(
+                `User emitting device is corrupted he has previously ${previouslyEmittingDevices.length} emitting devices ${state.userRelatedInformation.userID}`,
+            );
+        }
+
+        const previouslyEmittingDevice = previouslyEmittingDevices[0];
+        previouslyEmittingDevice.isEmitting = false;
+        await previouslyEmittingDevice.save();
+
+        const emittingDevice = await Device.findOrFail(
+            state.userRelatedInformation.emittingDeviceID,
+        );
+        emittingDevice.isEmitting = true;
+        await emittingDevice.save();
 
         await UserService.emitEventInEveryDeviceUser(
             state.userRelatedInformation.userID,

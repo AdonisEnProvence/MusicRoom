@@ -917,6 +917,10 @@ test.group('Rooms life cycle', (group) => {
             socket: await createUserAndGetSocket(userID),
             receivedEvents: [] as string[],
         };
+
+        /**
+         * Mocking a mtvRoom in the databse
+         */
         const mtvRoom = await MtvRoom.create({
             uuid: datatype.uuid(),
             runID: datatype.uuid(),
@@ -925,6 +929,14 @@ test.group('Rooms life cycle', (group) => {
         const creatorUser = await User.findOrFail(userID);
         await creatorUser.related('mtvRoom').associate(mtvRoom);
         await Ws.adapter().remoteJoin(socket.socket.id, mtvRoom.uuid);
+        const deviceA = await Device.findBy('socket_id', socket.socket.id);
+
+        assert.isNotNull(deviceA);
+        if (deviceA === null) {
+            throw new Error('device should not be null');
+        }
+        deviceA.isEmitting = true;
+        await deviceA.save();
 
         const socketB = {
             socket: await createSocketConnection(userID),
@@ -933,7 +945,6 @@ test.group('Rooms life cycle', (group) => {
         await Ws.adapter().remoteJoin(socketB.socket.id, mtvRoom.uuid);
 
         const deviceB = await Device.findBy('socket_id', socketB.socket.id);
-
         assert.isNotNull(deviceB);
         if (deviceB === null) {
             throw new Error('device should not be null');
@@ -967,7 +978,7 @@ test.group('Rooms life cycle', (group) => {
             ({ userRelatedInformation }) => {
                 const expectedUserRelatedInformation = {
                     userID: userID,
-                    emittingDeviceID: deviceB?.uuid,
+                    emittingDeviceID: deviceB.uuid,
                 };
 
                 assert.deepEqual(
@@ -983,12 +994,41 @@ test.group('Rooms life cycle', (group) => {
         });
         await sleep();
 
+        await deviceA.refresh();
+        await deviceB.refresh();
+
+        assert.equal(deviceA.isEmitting, false);
+        assert.equal(deviceB.isEmitting, true);
         assert.equal(socketB.receivedEvents.length, 1);
         assert.equal(socket.receivedEvents.length, 1);
     });
 
     test('It should fail change user emitting device as user is not in a mtvRoom', async (assert) => {
         const userID = datatype.uuid();
+
+        sinon
+            .stub(ServerToTemporalController, 'changeUserEmittingDevice')
+            .callsFake(async ({ deviceID, workflowID }) => {
+                const state: MtvWorkflowState = {
+                    currentTrack: null,
+                    name: random.word(),
+                    playing: false,
+                    roomCreatorUserID: userID,
+                    roomID: workflowID,
+                    tracks: null,
+                    tracksIDsList: null,
+                    userRelatedInformation: {
+                        userID: userID,
+                        emittingDeviceID: deviceID,
+                    },
+                    usersLength: 1,
+                };
+
+                await supertest(BASE_URL)
+                    .post('/temporal/change-user-emitting-device')
+                    .send(state);
+                return;
+            });
 
         const socket = {
             socket: await createUserAndGetSocket(userID),
@@ -1026,6 +1066,30 @@ test.group('Rooms life cycle', (group) => {
     test('It should fail change user emitting device as user is not the newEmittingDevice owner', async (assert) => {
         const userID = datatype.uuid();
         const secondUserID = datatype.uuid();
+
+        sinon
+            .stub(ServerToTemporalController, 'changeUserEmittingDevice')
+            .callsFake(async ({ deviceID, workflowID }) => {
+                const state: MtvWorkflowState = {
+                    currentTrack: null,
+                    name: random.word(),
+                    playing: false,
+                    roomCreatorUserID: userID,
+                    roomID: workflowID,
+                    tracks: null,
+                    tracksIDsList: null,
+                    userRelatedInformation: {
+                        userID: userID,
+                        emittingDeviceID: deviceID,
+                    },
+                    usersLength: 1,
+                };
+
+                await supertest(BASE_URL)
+                    .post('/temporal/change-user-emitting-device')
+                    .send(state);
+                return;
+            });
 
         const socket = {
             socket: await createUserAndGetSocket(userID),

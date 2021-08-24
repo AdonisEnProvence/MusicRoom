@@ -25,7 +25,11 @@ test(`A user can suggest tracks to play`, async () => {
         roomID: datatype.uuid(),
         playing: false,
         roomCreatorUserID,
-        users: [roomCreatorUserID],
+        userRelatedInformation: {
+            emittingDeviceID: datatype.uuid(),
+            userID: roomCreatorUserID,
+        },
+        usersLength: 1,
         currentTrack: {
             ...tracksList[0],
             elapsed: 0,

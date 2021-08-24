@@ -73,7 +73,10 @@ interface AddSongButtonProps {
 
 const AddSongButton: React.FC<AddSongButtonProps> = ({ onPress }) => {
     return (
-        <TouchableOpacity onPress={onPress}>
+        <TouchableOpacity
+            accessibilityLabel="Suggest a track"
+            onPress={onPress}
+        >
             <View
                 sx={{
                     position: 'absolute',

@@ -10,12 +10,13 @@ import {
     fireEvent,
     render,
     waitFor,
+    waitForElementToBeRemoved,
     within,
-    waitForTimeout,
     noop,
 } from '../tests/tests-utils';
 
-test(`When the user clicks on next track button, it should play the next track, if there is one`, async () => {
+test(`A user can suggest tracks to play`, async () => {
+    const fakeTrack = db.tracks.create();
     const tracksList = [db.tracksMetadata.create(), db.tracksMetadata.create()];
 
     const roomCreatorUserID = datatype.uuid();
@@ -24,11 +25,7 @@ test(`When the user clicks on next track button, it should play the next track, 
         roomID: datatype.uuid(),
         playing: false,
         roomCreatorUserID,
-        usersLength: 1,
-        userRelatedInformation: {
-            emittingDeviceID: datatype.uuid(),
-            userID: roomCreatorUserID,
-        },
+        users: [roomCreatorUserID],
         currentTrack: {
             ...tracksList[0],
             elapsed: 0,
@@ -49,7 +46,17 @@ test(`When the user clicks on next track button, it should play the next track, 
         });
     });
 
-    const { getAllByText, getByTestId, findByA11yState } = render(
+    serverSocket.on('GET_CONTEXT', () => {
+        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    });
+
+    const {
+        getAllByText,
+        getByText,
+        getByTestId,
+        findByA11yState,
+        findByPlaceholderText,
+    } = render(
         <NavigationContainer
             ref={navigationRef}
             onReady={() => {
@@ -59,8 +66,6 @@ test(`When the user clicks on next track button, it should play the next track, 
             <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
         </NavigationContainer>,
     );
-
-    serverSocket.emit('RETRIEVE_CONTEXT', initialState);
 
     expect(getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -79,42 +84,44 @@ test(`When the user clicks on next track button, it should play the next track, 
     expect(
         within(musicPlayerFullScreen).getByText(tracksList[0].title),
     ).toBeTruthy();
-    const firstTrackDurationTime = within(musicPlayerFullScreen).getByLabelText(
-        /minutes duration/i,
+
+    const tracksTab = within(musicPlayerFullScreen).getByText(/tracks/i);
+    expect(tracksTab).toBeTruthy();
+
+    const firstNextTrackToPlay = within(musicPlayerFullScreen).getByText(
+        tracksList[1].title,
     );
-    expect(firstTrackDurationTime).not.toHaveTextContent('00:00');
+    expect(firstNextTrackToPlay).toBeTruthy();
 
-    const nextTrackButton = within(musicPlayerFullScreen).getByLabelText(
-        /play.*next.*track/i,
+    const suggestATrackButton = within(musicPlayerFullScreen).getByLabelText(
+        /suggest.*track/i,
     );
-    expect(nextTrackButton).toBeTruthy();
+    expect(suggestATrackButton).toBeTruthy();
 
-    fireEvent.press(nextTrackButton);
+    fireEvent.press(suggestATrackButton);
 
-    await waitForTimeout(1_000);
+    const searchTrackTextField = await findByPlaceholderText(/search.*track/i);
+    expect(searchTrackTextField).toBeTruthy();
 
-    expect(
-        await within(musicPlayerFullScreen).findByText(tracksList[1].title),
-    ).toBeTruthy();
-    const secondTrackDurationTime = within(
-        musicPlayerFullScreen,
-    ).getByLabelText(/minutes.*duration/i);
-    expect(secondTrackDurationTime).not.toHaveTextContent('00:00');
+    fireEvent(searchTrackTextField, 'focus');
+    fireEvent.changeText(searchTrackTextField, fakeTrack.title.slice(0, 3));
+    fireEvent(searchTrackTextField, 'submitEditing');
 
-    const pauseButton = within(musicPlayerFullScreen).getByLabelText(
-        /pause.*video/i,
-    );
-    expect(pauseButton).toBeTruthy();
-    expect(pauseButton).toBeEnabled();
-
-    /**
-     * Wait for the video player to load
-     */
     await waitFor(() => {
-        const secondTrackElapsedTime = within(
-            musicPlayerFullScreen,
-        ).getByLabelText(/minutes.*elapsed/i);
-
-        expect(secondTrackElapsedTime).not.toHaveTextContent('00:00');
+        const resultsPageHeader = getByText(/results/i);
+        expect(resultsPageHeader).toBeTruthy();
     });
+
+    const trackToSuggest = getByText(fakeTrack.title);
+    expect(trackToSuggest).toBeTruthy();
+
+    fireEvent.press(trackToSuggest);
+
+    await waitForElementToBeRemoved(() => getByText(/results/i));
+
+    // TODO: decomment when it will have been implemented
+    // const suggestedTrack = await within(musicPlayerFullScreen).findByText(
+    //     fakeTrack.title,
+    // );
+    // expect(suggestedTrack).toBeTruthy();
 });

@@ -4,11 +4,7 @@ import React from 'react';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
-import { fireEvent, render } from '../tests/tests-utils';
-
-function noop() {
-    return undefined;
-}
+import { fireEvent, render, noop } from '../tests/tests-utils';
 
 test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it when clicking on dismiss button`, async () => {
     const { getByText, getAllByText, findByText } = render(

@@ -5,19 +5,13 @@ import React from 'react';
 import { RootNavigator } from '../navigation';
 import { serverSocket } from '../services/websockets';
 import { db } from '../tests/data';
-import { fireEvent, render, within } from '../tests/tests-utils';
-
-function noop() {
-    return undefined;
-}
-
-function waitForTimeout(ms: number): Promise<void> {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve();
-        }, ms);
-    });
-}
+import {
+    fireEvent,
+    render,
+    within,
+    waitForTimeout,
+    noop,
+} from '../tests/tests-utils';
 
 test(`It should display the music player corresponding to the injected state on both CREATED_ROOM server socket callbacks`, async () => {
     const fakeTrack = db.tracks.create();

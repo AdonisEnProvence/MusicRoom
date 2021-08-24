@@ -831,6 +831,92 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
+func (s *UnitTestSuite) Test_CanSuggestTracks() {
+	firstTrackDuration := generateRandomDuration()
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   firstTrackDuration,
+		},
+	}
+	tracksIDs := []string{tracks[0].ID}
+	tracksIDsToSuggest := []string{
+		faker.UUIDHyphenated(),
+		faker.UUIDHyphenated(),
+	}
+	duplicateTrackIDToSuggest := tracksIDsToSuggest[0]
+	params, _ := getWokflowInitParams(tracksIDs)
+
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+	defaultDuration := 1 * time.Millisecond
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
+	firstSuggestTracksSignalDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		suggestTracksSignal := shared.NewSuggestTracksSignal(shared.SuggestTracksSignalArgs{
+			TracksToSuggest: tracksIDsToSuggest,
+		})
+
+		s.env.SignalWorkflow(shared.SignalChannelName, suggestTracksSignal)
+	}, firstSuggestTracksSignalDelay)
+
+	assertSuggestedTracksHaveBeenAcceptedDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		exposedSuggestedTracksIDs := make([]string, 0, len(mtvState.SuggestedTracks))
+		for _, suggestedTrack := range mtvState.SuggestedTracks {
+			exposedSuggestedTracksIDs = append(exposedSuggestedTracksIDs, suggestedTrack.ID)
+		}
+
+		s.Empty(mtvState.Tracks)
+		s.Equal(tracksIDsToSuggest, exposedSuggestedTracksIDs)
+	}, assertSuggestedTracksHaveBeenAcceptedDelay)
+
+	secondSuggestTracksSignalDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		suggestTracksSignal := shared.NewSuggestTracksSignal(shared.SuggestTracksSignalArgs{
+			TracksToSuggest: []string{duplicateTrackIDToSuggest},
+		})
+
+		s.env.SignalWorkflow(shared.SignalChannelName, suggestTracksSignal)
+	}, secondSuggestTracksSignalDelay)
+
+	assertDuplicateSuggestedTrackHasNotBeenAcceptedDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		exposedSuggestedTracksIDs := make([]string, 0, len(mtvState.SuggestedTracks))
+		for _, suggestedTrack := range mtvState.SuggestedTracks {
+			exposedSuggestedTracksIDs = append(exposedSuggestedTracksIDs, suggestedTrack.ID)
+		}
+
+		s.Empty(mtvState.Tracks)
+		s.Equal(tracksIDsToSuggest, exposedSuggestedTracksIDs)
+	}, assertDuplicateSuggestedTrackHasNotBeenAcceptedDelay)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
 func TestUnitTestSuite(t *testing.T) {
 	suite.Run(t, new(UnitTestSuite))
 }

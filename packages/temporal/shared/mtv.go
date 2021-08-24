@@ -32,17 +32,61 @@ type TrackMetadata struct {
 	Duration   time.Duration `json:"duration"`
 }
 
-type ExposedTrackMetadata struct {
-	TrackMetadata
-
-	Duration int64 `json:"duration"`
-}
-
 func (t TrackMetadata) Export() ExposedTrackMetadata {
 	return ExposedTrackMetadata{
 		TrackMetadata: t,
 		Duration:      t.Duration.Milliseconds(),
 	}
+}
+
+type SuggestedTracksMetadataSet struct {
+	suggestedTrack []SuggestedTrackMetadata
+}
+
+func (s *SuggestedTracksMetadataSet) Has(suggestedTrackID string) bool {
+	for _, suggestedTrack := range s.suggestedTrack {
+		if suggestedTrack.ID == suggestedTrackID {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (s *SuggestedTracksMetadataSet) Add(suggestedTracks []SuggestedTrackMetadata) {
+	for _, suggestedTrack := range suggestedTracks {
+		if isDuplicate := s.Has(suggestedTrack.ID); isDuplicate {
+			continue
+		}
+
+		s.suggestedTrack = append(s.suggestedTrack, suggestedTrack)
+	}
+}
+
+func (s *SuggestedTracksMetadataSet) Values() []SuggestedTrackMetadata {
+	return s.suggestedTrack[:]
+}
+
+type SuggestedTrackMetadata struct {
+	TrackMetadata
+
+	Score uint `json:"score"`
+}
+
+func (t SuggestedTrackMetadata) Export() ExposedSuggestedTrackMetadata {
+	return ExposedSuggestedTrackMetadata{
+		SuggestedTrackMetadata: t,
+	}
+}
+
+type ExposedSuggestedTrackMetadata struct {
+	SuggestedTrackMetadata
+}
+
+type ExposedTrackMetadata struct {
+	TrackMetadata
+
+	Duration int64 `json:"duration"`
 }
 
 type CurrentTrack struct {
@@ -93,15 +137,16 @@ func (p MtvRoomParameters) Export() MtvRoomExposedState {
 }
 
 type MtvRoomExposedState struct {
-	RoomID                 string                 `json:"roomID"`
-	RoomCreatorUserID      string                 `json:"roomCreatorUserID"`
-	Playing                bool                   `json:"playing"`
-	RoomName               string                 `json:"name"`
-	UserRelatedInformation *InternalStateUser     `json:"userRelatedInformation"`
-	TracksIDsList          []string               `json:"tracksIDsList"`
-	CurrentTrack           *ExposedCurrentTrack   `json:"currentTrack"`
-	Tracks                 []ExposedTrackMetadata `json:"tracks"`
-	UsersLength            int                    `json:"usersLength"`
+	RoomID                 string                          `json:"roomID"`
+	RoomCreatorUserID      string                          `json:"roomCreatorUserID"`
+	Playing                bool                            `json:"playing"`
+	RoomName               string                          `json:"name"`
+	UserRelatedInformation *InternalStateUser              `json:"userRelatedInformation"`
+	TracksIDsList          []string                        `json:"tracksIDsList"`
+	CurrentTrack           *ExposedCurrentTrack            `json:"currentTrack"`
+	Tracks                 []ExposedTrackMetadata          `json:"tracks"`
+	SuggestedTracks        []ExposedSuggestedTrackMetadata `json:"suggestedTracks"`
+	UsersLength            int                             `json:"usersLength"`
 }
 
 type SignalRoute string
@@ -113,6 +158,7 @@ const (
 	SignalRouteTerminate                = "terminate"
 	SignalRouteGoToNextTrack            = "go-to-next-track"
 	SignalRouteChangeUserEmittingDevice = "change-user-emitting-device"
+	SignalRouteSuggestTracks            = "suggest-tracks"
 )
 
 type GenericRouteSignal struct {
@@ -202,5 +248,21 @@ func NewChangeUserEmittingDeviceSignal(args ChangeUserEmittingDeviceSignalArgs) 
 		Route:    SignalRouteChangeUserEmittingDevice,
 		UserID:   args.UserID,
 		DeviceID: args.DeviceID,
+	}
+}
+
+type SuggestTracksSignal struct {
+	Route           SignalRoute
+	TracksToSuggest []string
+}
+
+type SuggestTracksSignalArgs struct {
+	TracksToSuggest []string
+}
+
+func NewSuggestTracksSignal(args SuggestTracksSignalArgs) SuggestTracksSignal {
+	return SuggestTracksSignal{
+		Route:           SignalRouteSuggestTracks,
+		TracksToSuggest: args.TracksToSuggest,
 	}
 }

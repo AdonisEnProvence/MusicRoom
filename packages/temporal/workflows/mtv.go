@@ -16,13 +16,14 @@ import (
 type MtvRoomInternalState struct {
 	initialParams shared.MtvRoomParameters
 
-	Machine       *brainy.Machine
-	Users         map[string]*shared.InternalStateUser
-	TracksIDsList []string
-	CurrentTrack  shared.CurrentTrack
-	Tracks        []shared.TrackMetadata
-	Playing       bool
-	Timer         shared.MtvRoomTimer
+	Machine         *brainy.Machine
+	Users           map[string]*shared.InternalStateUser
+	TracksIDsList   []string
+	CurrentTrack    shared.CurrentTrack
+	Tracks          []shared.TrackMetadata
+	SuggestedTracks shared.SuggestedTracksMetadataSet
+	Playing         bool
+	Timer           shared.MtvRoomTimer
 }
 
 func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
@@ -34,8 +35,14 @@ func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 
 func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExposedState {
 	exposedTracks := make([]shared.ExposedTrackMetadata, 0, len(s.Tracks))
-	for _, v := range s.Tracks {
-		exposedTracks = append(exposedTracks, v.Export())
+	for _, track := range s.Tracks {
+		exposedTracks = append(exposedTracks, track.Export())
+	}
+
+	suggestedTracks := s.SuggestedTracks.Values()
+	exposedSuggestedTracks := make([]shared.ExposedSuggestedTrackMetadata, 0, len(suggestedTracks))
+	for _, suggestedTrack := range suggestedTracks {
+		exposedSuggestedTracks = append(exposedSuggestedTracks, suggestedTrack.Export())
 	}
 
 	var currentTrackToExport *shared.ExposedCurrentTrack = nil
@@ -62,6 +69,7 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 		TracksIDsList:     s.TracksIDsList,
 		CurrentTrack:      currentTrackToExport,
 		Tracks:            exposedTracks,
+		SuggestedTracks:   exposedSuggestedTracks,
 		UsersLength:       len(s.Users),
 	}
 
@@ -110,6 +118,7 @@ const (
 	MtvRoomAddUserEvent             brainy.EventType = "ADD_USER"
 	MtvRoomGoToNextTrackEvent       brainy.EventType = "GO_TO_NEXT_TRACK"
 	MtvRoomChangeUserEmittingDevice brainy.EventType = "CHANGE_USER_EMITTING_DEVICE"
+	MtvRoomSuggestTracks            brainy.EventType = "SUGGEST_TRACKS"
 )
 
 type MtvRoomTimerExpirationEvent struct {
@@ -190,6 +199,22 @@ func NewMtvRoomChangeUserEmittingDeviceEvent(userID string, deviceID string) Mtv
 
 		UserID:   userID,
 		DeviceID: deviceID,
+	}
+}
+
+type MtvRoomSuggestTracksEvent struct {
+	brainy.EventWithType
+
+	TracksToSuggest []string
+}
+
+func NewMtvRoomSuggestTracksEvent(tracksToSuggest []string) MtvRoomSuggestTracksEvent {
+	return MtvRoomSuggestTracksEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MtvRoomSuggestTracks,
+		},
+
+		TracksToSuggest: tracksToSuggest,
 	}
 }
 
@@ -485,7 +510,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 		},
 
 		On: brainy.Events{
-
 			MtvRoomChangeUserEmittingDevice: brainy.Transition{
 				Actions: brainy.Actions{
 					brainy.ActionFn(
@@ -550,6 +574,30 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				Actions: brainy.Actions{
 					brainy.ActionFn(
 						assignNextTrack(&internalState),
+					),
+				},
+			},
+
+			MtvRoomSuggestTracks: brainy.Transition{
+				Actions: brainy.Actions{
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+							event := e.(MtvRoomSuggestTracksEvent)
+
+							// TODO: Replace with a real fetching of tracks metadata
+							suggestedTracksMetadata := make([]shared.SuggestedTrackMetadata, 0, len(event.TracksToSuggest))
+							for _, suggestTrack := range event.TracksToSuggest {
+								suggestedTracksMetadata = append(suggestedTracksMetadata, shared.SuggestedTrackMetadata{
+									TrackMetadata: shared.TrackMetadata{
+										ID: suggestTrack,
+									},
+								})
+							}
+
+							internalState.SuggestedTracks.Add(suggestedTracksMetadata)
+
+							return nil
+						},
 					),
 				},
 			},
@@ -631,7 +679,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 			case shared.SignalRouteChangeUserEmittingDevice:
 				var message shared.ChangeUserEmittingDeviceSignal
 
-				fmt.Println("*********Signal handler**********")
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
@@ -644,6 +691,18 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 				internalState.Machine.Send(
 					NewMtvRoomChangeUserEmittingDeviceEvent(message.UserID, message.DeviceID),
+				)
+
+			case shared.SignalRouteSuggestTracks:
+				var message shared.SuggestTracksSignal
+
+				if err := mapstructure.Decode(signal, &message); err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
+
+				internalState.Machine.Send(
+					NewMtvRoomSuggestTracksEvent(message.TracksToSuggest),
 				)
 
 			case shared.SignalRouteTerminate:

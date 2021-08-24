@@ -245,8 +245,17 @@ Ws.io.on('connection', async (socket) => {
 
         socket.on('disconnecting', async () => {
             try {
+                const deviceMightNotBeInTheInstance = true;
+                const { userID, mtvRoomID } =
+                    await SocketLifecycle.getSocketConnectionCredentials(
+                        socket,
+                        deviceMightNotBeInTheInstance,
+                    );
+
                 await SocketLifecycle.deleteDeviceAndCheckForMtvRoomDeletion(
-                    socket,
+                    userID,
+                    mtvRoomID,
+                    socket.id,
                 );
             } catch (e) {
                 console.error('Error on socket.on(disconnecting)', e);

@@ -886,7 +886,8 @@ test.group('Rooms life cycle', (group) => {
         assert.isTrue(callbackHasBeenCalled);
     });
 
-    test('It should change user emitting device', async (assert) => {
+    test(`It should change user emitting device
+    After a socket disconnection, it should automatically assign a new emitting device`, async (assert) => {
         const userID = datatype.uuid();
 
         sinon
@@ -1001,14 +1002,38 @@ test.group('Rooms life cycle', (group) => {
         assert.equal(deviceB.isEmitting, true);
         assert.equal(socketB.receivedEvents.length, 1);
         assert.equal(socket.receivedEvents.length, 1);
+
+        //Test emitting device eviction auto switch
+        let receivedChangeEmittingDeviceThroughEviction = false;
+
+        socket.socket.once(
+            'CHANGE_EMITTING_DEVICE_CALLBACK',
+            ({ userRelatedInformation }) => {
+                assert.isNotNull(userRelatedInformation);
+                if (userRelatedInformation === null)
+                    throw new Error('userRelatedInformations is null');
+                assert.equal(
+                    userRelatedInformation.emittingDeviceID,
+                    deviceA.uuid,
+                );
+                receivedChangeEmittingDeviceThroughEviction = true;
+            },
+        );
+
+        await disconnectSocket(socketB.socket);
+        await sleep();
+
+        assert.isTrue(receivedChangeEmittingDeviceThroughEviction);
+        await deviceA.refresh();
+        assert.isTrue(deviceA.isEmitting);
     });
 
-    test('It should fail change user emitting device as user is not in a mtvRoom', async (assert) => {
+    test(`It should fail change user emitting device as user is not in a mtvRoom`, async (assert) => {
         const userID = datatype.uuid();
-
         sinon
             .stub(ServerToTemporalController, 'changeUserEmittingDevice')
             .callsFake(async ({ deviceID, workflowID }) => {
+                console.log('SALUT JE SUIS LE MOCK');
                 const state: MtvWorkflowState = {
                     currentTrack: null,
                     name: random.word(),
@@ -1048,10 +1073,12 @@ test.group('Rooms life cycle', (group) => {
         let hasNeverBeenCalled = true;
 
         socketB.socket.once('CHANGE_EMITTING_DEVICE_CALLBACK', () => {
+            assert.isTrue(false);
             hasNeverBeenCalled = false;
         });
 
         socket.socket.once('CHANGE_EMITTING_DEVICE_CALLBACK', () => {
+            assert.isTrue(false);
             hasNeverBeenCalled = false;
         });
 

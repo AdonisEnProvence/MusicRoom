@@ -77,21 +77,18 @@ export default class TemporalToServerController {
             );
         }
 
-        const previouslyEmittingDevices = await Device.query()
-            .where('user_id', state.userRelatedInformation?.userID)
-            .where('is_emitting', true);
-        if (
-            previouslyEmittingDevices.length > 1 ||
-            previouslyEmittingDevices.length === 0
-        ) {
-            throw new Error(
-                `User emitting device is corrupted he has previously ${previouslyEmittingDevices.length} emitting devices ${state.userRelatedInformation.userID}`,
+        const previouslyEmittingDevice =
+            await UserService.getUserCurrentlyEmittingDevice(
+                state.userRelatedInformation.userID,
             );
+        if (previouslyEmittingDevice !== undefined) {
+            /**
+             * This case won't occurs when an emitting device gets disconnected
+             * At the contrary it will on basic emitting device switch
+             */
+            previouslyEmittingDevice.isEmitting = false;
+            await previouslyEmittingDevice.save();
         }
-
-        const previouslyEmittingDevice = previouslyEmittingDevices[0];
-        previouslyEmittingDevice.isEmitting = false;
-        await previouslyEmittingDevice.save();
 
         const emittingDevice = await Device.findOrFail(
             state.userRelatedInformation.emittingDeviceID,

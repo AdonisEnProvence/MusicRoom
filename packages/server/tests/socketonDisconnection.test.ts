@@ -401,11 +401,14 @@ test.group('Rooms life cycle', (group) => {
             socketA: await createUserAndGetSocket(userID),
             socketB: await createSocketConnection(userID),
         };
-        await MtvRoom.create({
+        const mtvRoom = await MtvRoom.create({
             uuid: datatype.uuid(),
             runID: datatype.uuid(),
             creator: userID,
         });
+        const myUser = await User.find(userID);
+        if (myUser === null) throw new Error('myUser is null');
+        myUser.related('mtvRoom').associate(mtvRoom);
 
         /** Mocks */
         sinon

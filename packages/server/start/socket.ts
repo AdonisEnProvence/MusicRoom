@@ -245,16 +245,7 @@ Ws.io.on('connection', async (socket) => {
 
         socket.on('disconnecting', async () => {
             try {
-                const deviceMightNotBeInTheInstance = true;
-                const { userID, mtvRoomID } =
-                    await SocketLifecycle.getSocketConnectionCredentials(
-                        socket,
-                        deviceMightNotBeInTheInstance,
-                    );
-
                 await SocketLifecycle.deleteDeviceAndCheckForMtvRoomDeletion(
-                    userID,
-                    mtvRoomID,
                     socket.id,
                 );
             } catch (e) {

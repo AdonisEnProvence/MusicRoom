@@ -1,6 +1,5 @@
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
-import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
 import { TypedSocket } from 'start/socket';
 import UserAgentParser from 'ua-parser-js';
@@ -85,8 +84,6 @@ export default class SocketLifecycle {
     }
 
     public static async deleteDeviceAndCheckForMtvRoomDeletion(
-        userID: string,
-        joinedMtvRoomID: string | undefined,
         socketID: string,
     ): Promise<void> {
         console.log('_'.repeat(10));
@@ -94,15 +91,22 @@ export default class SocketLifecycle {
             'socket_id',
             socketID,
         );
+        const userID = disconnectingDevice.userID;
+
+        await disconnectingDevice.load('user');
+        if (disconnectingDevice.user === null) {
+            throw new Error('Device must have a related user');
+        }
+
+        const disconnectingDeviceOwner = disconnectingDevice.user;
+        await disconnectingDeviceOwner.load('mtvRoom');
+        const joinedRoom = disconnectingDeviceOwner.mtvRoom;
+
         console.log(`LOOSING CONNECTION SOCKETID=${socketID} USER=${userID}`);
 
         /**
          *  Manage owned MTVRoom max 1 per user
          */
-        const joinedRoom =
-            joinedMtvRoomID !== undefined
-                ? await MtvRoom.find(joinedMtvRoomID)
-                : null;
         const allUserDevices = await Device.query().where('user_id', userID);
 
         /**
@@ -111,9 +115,9 @@ export default class SocketLifecycle {
          */
         const disconnectingDeviceIsThelastConnectedDevice =
             allUserDevices.length <= 1;
-        const userIsTheCreator = joinedRoom
-            ? joinedRoom.creator === userID
-            : false;
+
+        const userIsTheCreator =
+            joinedRoom !== null ? joinedRoom.creator === userID : false;
 
         console.log(
             `User ${
@@ -128,7 +132,7 @@ export default class SocketLifecycle {
         if (
             userIsTheCreator &&
             disconnectingDeviceIsThelastConnectedDevice &&
-            joinedRoom
+            joinedRoom !== null
         ) {
             try {
                 const ownedRoom = joinedRoom;
@@ -149,7 +153,7 @@ export default class SocketLifecycle {
                 );
             }
         } else if (
-            joinedRoom &&
+            joinedRoom !== null &&
             disconnectingDeviceIsThelastConnectedDevice === false &&
             disconnectingDevice.isEmitting
         ) {
@@ -215,7 +219,6 @@ export default class SocketLifecycle {
 
     public static async getSocketConnectionCredentials(
         socket: TypedSocket,
-        deviceMightNotBeInTheSocketInstance?: boolean, //used for e.g disconnecting device
     ): Promise<{ mtvRoomID?: string; userID: string; deviceID: string }> {
         const device = await Device.findByOrFail('socket_id', socket.id);
         await device.load('user');
@@ -235,10 +238,7 @@ export default class SocketLifecycle {
         if (mtvRoomID !== undefined) {
             const connectedSocketsInRoomID =
                 await this.getConnectedSocketToRoom(mtvRoomID);
-            if (
-                !deviceMightNotBeInTheSocketInstance &&
-                !connectedSocketsInRoomID.has(socket.id)
-            ) {
+            if (!connectedSocketsInRoomID.has(socket.id)) {
                 throw new Error(
                     'Device should appears in the socket io room too, sync error',
                 );

@@ -164,7 +164,7 @@ export default class SocketLifecycle {
                 );
                 const newEmittingDevice = availableDevices[0];
 
-                await MtvRoomsWsController.OnChangeEmittingDevice({
+                await MtvRoomsWsController.onChangeEmittingDevice({
                     deviceID: newEmittingDevice.uuid,
                     roomID: joinedRoom.uuid,
                     userID,

@@ -232,7 +232,7 @@ Ws.io.on('connection', async (socket) => {
                     'RECEIVED CHANGE EMITTING DEVICE FORM CLIENT EVERYTHING IS OK',
                 );
 
-                await MtvRoomsWsController.OnChangeEmittingDevice({
+                await MtvRoomsWsController.onChangeEmittingDevice({
                     deviceID: newEmittingDeviceID,
                     roomID: mtvRoomID,
                     userID: userID,

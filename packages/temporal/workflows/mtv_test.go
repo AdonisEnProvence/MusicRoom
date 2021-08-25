@@ -899,6 +899,11 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.SuggestedTracksListChangedActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
 
 	firstSuggestTracksSignalDelay := defaultDuration
 	registerDelayedCallbackWrapper(func() {

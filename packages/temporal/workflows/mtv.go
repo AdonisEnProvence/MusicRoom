@@ -307,7 +307,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							),
 							brainy.ActionFn(
 								func(c brainy.Context, e brainy.Event) error {
-									if err := acknowledgeRoomCreation(ctx, internalState.Export(internalState.initialParams.RoomCreatorUserID)); err != nil {
+									if err := acknowledgeRoomCreation(
+										ctx,
+										internalState.Export(internalState.initialParams.RoomCreatorUserID),
+									); err != nil {
 										workflowFatalError = err
 									}
 
@@ -654,6 +657,23 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							return nil
 						},
 					),
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+							options := workflow.ActivityOptions{
+								ScheduleToStartTimeout: time.Minute,
+								StartToCloseTimeout:    time.Minute,
+							}
+							ctx = workflow.WithActivityOptions(ctx, options)
+
+							workflow.ExecuteActivity(
+								ctx,
+								activities.SuggestedTracksListChangedActivity,
+								internalState.Export(internalState.initialParams.RoomCreatorUserID),
+							)
+
+							return nil
+						},
+					),
 				},
 			},
 		},
@@ -870,6 +890,4 @@ func acknowledgeRoomCreation(ctx workflow.Context, state shared.MtvRoomExposedSt
 
 type TimeWrapperType func() time.Time
 
-var TimeWrapper TimeWrapperType = func() time.Time {
-	return time.Now()
-}
+var TimeWrapper TimeWrapperType = time.Now

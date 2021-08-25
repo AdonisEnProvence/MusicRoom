@@ -600,7 +600,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 							acceptedSuggestedTracksIDs := make([]string, 0, len(event.TracksToSuggest))
 							for _, suggestedTrack := range event.TracksToSuggest {
-								if isDuplicate := internalState.SuggestedTracks.Has(suggestedTrack); isDuplicate {
+								isDuplicateFromTracksList := internalState.Tracks.Has(suggestedTrack)
+								isDuplicateFromSuggestedTracks := internalState.SuggestedTracks.Has(suggestedTrack)
+								isDuplicate := isDuplicateFromTracksList || isDuplicateFromSuggestedTracks
+								if isDuplicate {
 									continue
 								}
 
@@ -644,6 +647,9 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 								internalState.SuggestedTracks.Add(suggestedTrackInformation)
 							}
+
+							// Ensure there are no duplicates between the suggested tracks and the tracks list.
+							internalState.SuggestedTracks = internalState.SuggestedTracks.Difference(internalState.Tracks)
 
 							return nil
 						},

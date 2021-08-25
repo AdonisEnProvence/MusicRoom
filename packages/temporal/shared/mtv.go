@@ -78,6 +78,18 @@ func (s *TracksMetadataWithScoreSet) Add(tracks ...TrackMetadataWithScore) {
 	}
 }
 
+func (s *TracksMetadataWithScoreSet) Delete(trackID string) bool {
+	for index, track := range s.tracks {
+		if isMatching := track.ID == trackID; isMatching {
+			s.tracks = append(s.tracks[:index], s.tracks[index+1:]...)
+
+			return true
+		}
+	}
+
+	return false
+}
+
 func (s *TracksMetadataWithScoreSet) Values() []TrackMetadataWithScore {
 	return s.tracks[:]
 }
@@ -99,6 +111,20 @@ func (s *TracksMetadataWithScoreSet) Shift() (TrackMetadataWithScore, bool) {
 	}
 
 	return firstElement, true
+}
+
+// Difference returns a new TracksMetadataWithScoreSet with all the elements from
+// s set that do not exist in toCompare set.
+func (s *TracksMetadataWithScoreSet) Difference(toCompare TracksMetadataWithScoreSet) TracksMetadataWithScoreSet {
+	var newSet TracksMetadataWithScoreSet
+
+	newSet.Add(s.tracks...)
+
+	for _, track := range toCompare.Values() {
+		newSet.Delete(track.ID)
+	}
+
+	return newSet
 }
 
 type TrackMetadataWithScoreWithDuration struct {

@@ -163,14 +163,13 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 			Duration:   secondTrackDuration,
 		},
 	}
-
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
 	params, _ := getWokflowInitParams(tracksIDs)
 
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
 		mock.Anything,
-		mock.Anything,
+		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
 		activities.CreationAcknowledgementActivity,
@@ -354,7 +353,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
 		mock.Anything,
-		mock.Anything,
+		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
 		activities.CreationAcknowledgementActivity,
@@ -491,7 +490,7 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
 		mock.Anything,
-		mock.Anything,
+		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
 		activities.ChangeUserEmittingDeviceActivity,
@@ -651,7 +650,7 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
 		mock.Anything,
-		mock.Anything,
+		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
 		activities.CreationAcknowledgementActivity,
@@ -766,7 +765,6 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 			Duration:   firstTrackDuration,
 		},
 	}
-
 	tracksIDs := []string{tracks[0].ID}
 	params, _ := getWokflowInitParams(tracksIDs)
 
@@ -778,7 +776,7 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
 		mock.Anything,
-		mock.Anything,
+		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
 		activities.CreationAcknowledgementActivity,
@@ -869,17 +867,21 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 }
 
 func (s *UnitTestSuite) Test_CanSuggestTracks() {
-	firstTrackDuration := random.GenerateRandomDuration()
-
 	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   firstTrackDuration,
+			Duration:   random.GenerateRandomDuration(),
+		},
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
 		},
 	}
-	tracksIDs := []string{tracks[0].ID}
+	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
 	tracksIDsToSuggest := []string{
 		faker.UUIDHyphenated(),
 		faker.UUIDHyphenated(),
@@ -922,13 +924,13 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
 		mock.Anything,
-		mock.Anything,
+		tracksIDs,
 	).Return(tracks, nil).Once()
 	// Mock suggested and accepted tracks information fetching
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
 		mock.Anything,
-		mock.Anything,
+		tracksIDsToSuggest,
 	).Return(tracksToSuggestMetadata, nil).Once()
 
 	s.env.OnActivity(
@@ -955,7 +957,7 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
-		s.Empty(mtvState.Tracks)
+		s.Len(mtvState.Tracks, 1)
 		s.Equal(tracksToSuggestExposedMetadata, mtvState.SuggestedTracks)
 	}, assertSuggestedTracksHaveBeenAcceptedDelay)
 
@@ -972,9 +974,28 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
-		s.Empty(mtvState.Tracks)
+		s.Len(mtvState.Tracks, 1)
 		s.Equal(tracksToSuggestExposedMetadata, mtvState.SuggestedTracks)
 	}, assertDuplicateSuggestedTrackHasNotBeenAcceptedDelay)
+
+	thirdSuggestTracksSignalDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		idOfTrackInTracksList := tracks[1].ID
+
+		suggestTracksSignal := shared.NewSuggestTracksSignal(shared.SuggestTracksSignalArgs{
+			TracksToSuggest: []string{idOfTrackInTracksList},
+		})
+
+		s.env.SignalWorkflow(shared.SignalChannelName, suggestTracksSignal)
+	}, thirdSuggestTracksSignalDelay)
+
+	assertDuplicateFromTracksListSuggestedTrackHasNotBeenAcceptedDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		s.Len(mtvState.Tracks, 1)
+		s.Equal(tracksToSuggestExposedMetadata, mtvState.SuggestedTracks)
+	}, assertDuplicateFromTracksListSuggestedTrackHasNotBeenAcceptedDelay)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
 

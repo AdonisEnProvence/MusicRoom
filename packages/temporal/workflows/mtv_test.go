@@ -2,11 +2,11 @@ package workflows
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
 	"time"
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
+	"github.com/AdonisEnProvence/MusicRoom/random"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/AdonisEnProvence/MusicRoom/workflows/mocks"
 
@@ -140,9 +140,9 @@ func getWokflowInitParams(tracksIDs []string) (shared.MtvRoomParameters, string)
 // Test_PlayThenPauseTrack scenario:
 // TODO redict the scenario
 func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
-	firstTrackDuration := generateRandomDuration()
+	firstTrackDuration := random.GenerateRandomDuration()
 	firstTrackDurationFirstThird := firstTrackDuration / 3
-	secondTrackDuration := generateRandomDuration()
+	secondTrackDuration := random.GenerateRandomDuration()
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 
 	defer resetMock()
@@ -333,7 +333,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		fakeDeviceID = faker.UUIDHyphenated()
 	)
 
-	firstTrackDuration := generateRandomDuration()
+	firstTrackDuration := random.GenerateRandomDuration()
 
 	tracks := []shared.TrackMetadata{
 		{
@@ -470,7 +470,7 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 		fakeDeviceID = faker.UUIDHyphenated()
 	)
 
-	firstTrackDuration := generateRandomDuration()
+	firstTrackDuration := random.GenerateRandomDuration()
 
 	tracks := []shared.TrackMetadata{
 		{
@@ -631,13 +631,13 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   generateRandomDuration(),
+			Duration:   random.GenerateRandomDuration(),
 		},
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   generateRandomDuration(),
+			Duration:   random.GenerateRandomDuration(),
 		},
 	}
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
@@ -756,7 +756,7 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 }
 
 func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrackThatEnded() {
-	firstTrackDuration := generateRandomDuration()
+	firstTrackDuration := random.GenerateRandomDuration()
 
 	tracks := []shared.TrackMetadata{
 		{
@@ -869,7 +869,7 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 }
 
 func (s *UnitTestSuite) Test_CanSuggestTracks() {
-	firstTrackDuration := generateRandomDuration()
+	firstTrackDuration := random.GenerateRandomDuration()
 
 	tracks := []shared.TrackMetadata{
 		{
@@ -889,13 +889,13 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 			ID:         tracksIDsToSuggest[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   generateRandomDuration(),
+			Duration:   random.GenerateRandomDuration(),
 		},
 		{
 			ID:         tracksIDsToSuggest[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   generateRandomDuration(),
+			Duration:   random.GenerateRandomDuration(),
 		},
 	}
 	tracksToSuggestExposedMetadata := []shared.TrackMetadataWithScore{
@@ -985,10 +985,4 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 
 func TestUnitTestSuite(t *testing.T) {
 	suite.Run(t, new(UnitTestSuite))
-}
-
-func generateRandomDuration() time.Duration {
-	min := 10
-	max := 20
-	return time.Second * time.Duration(rand.Intn(max-min)+min)
 }

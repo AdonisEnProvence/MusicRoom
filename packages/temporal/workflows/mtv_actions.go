@@ -11,26 +11,28 @@ func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 	return func(c brainy.Context, e brainy.Event) error {
 		event := e.(MtvRoomInitialTracksFetchedEvent)
 
-		internalState.Tracks = event.Tracks
+		internalState.Tracks.Clear()
+		for _, fetchedTrack := range event.Tracks {
+			trackWithScore := shared.TrackMetadataWithScore{
+				TrackMetadata: fetchedTrack,
+
+				Score: 0,
+			}
+
+			internalState.Tracks.Add(trackWithScore)
+		}
 
 		if tracksCount := len(event.Tracks); tracksCount > 0 {
-			currentTrack := internalState.Tracks[0]
+			currentTrack, _ := internalState.Tracks.Shift()
+
 			internalState.CurrentTrack = shared.CurrentTrack{
-				TrackMetadata:  currentTrack,
-				AlreadyElapsed: 0,
+				TrackMetadataWithScore: currentTrack,
+				AlreadyElapsed:         0,
 			}
 			internalState.Timer = shared.MtvRoomTimer{
 				CreatedOn: time.Time{},
 				Duration:  currentTrack.Duration,
 				Cancel:    nil,
-			}
-
-			if tracksCount == 1 {
-				internalState.Tracks = []shared.TrackMetadata{}
-				internalState.TracksIDsList = []string{}
-			} else {
-				internalState.Tracks = internalState.Tracks[1:]
-				internalState.TracksIDsList = internalState.TracksIDsList[1:]
 			}
 		} else {
 			internalState.Timer = shared.MtvRoomTimer{
@@ -47,19 +49,17 @@ func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 func assignNextTrack(internalState *MtvRoomInternalState) brainy.Action {
 
 	return func(c brainy.Context, e brainy.Event) error {
+		firstTrack, _ := internalState.Tracks.Shift()
 
 		internalState.CurrentTrack = shared.CurrentTrack{
-			TrackMetadata:  internalState.Tracks[0],
-			AlreadyElapsed: 0,
+			TrackMetadataWithScore: firstTrack,
+			AlreadyElapsed:         0,
 		}
 		internalState.Timer = shared.MtvRoomTimer{
 			CreatedOn: time.Time{},
 			Duration:  internalState.CurrentTrack.Duration,
 			Cancel:    nil,
 		}
-
-		internalState.Tracks = internalState.Tracks[1:]
-		internalState.TracksIDsList = internalState.TracksIDsList[1:]
 
 		return nil
 	}

@@ -208,11 +208,15 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		fmt.Println("*********VERIFICATION FIRST THIRD TIER ELAPSED*********")
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracks[0].ID,
-					ArtistName: tracks[0].ArtistName,
-					Title:      tracks[0].Title,
-					Duration:   0,
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[0].ID,
+						ArtistName: tracks[0].ArtistName,
+						Title:      tracks[0].Title,
+						Duration:   0,
+					},
+
+					Score: 0,
 				},
 				AlreadyElapsed: 0,
 			},
@@ -248,11 +252,15 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracks[1].ID,
-					ArtistName: tracks[1].ArtistName,
-					Title:      tracks[1].Title,
-					Duration:   0,
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						ArtistName: tracks[1].ArtistName,
+						Title:      tracks[1].Title,
+						Duration:   0,
+					},
+
+					Score: 0,
 				},
 				AlreadyElapsed: 0,
 			},
@@ -270,11 +278,15 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracks[1].ID,
-					ArtistName: tracks[1].ArtistName,
-					Title:      tracks[1].Title,
-					Duration:   0,
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						ArtistName: tracks[1].ArtistName,
+						Title:      tracks[1].Title,
+						Duration:   0,
+					},
+
+					Score: 0,
 				},
 				AlreadyElapsed: 0,
 			},
@@ -425,12 +437,17 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracks[0].ID,
-					ArtistName: tracks[0].ArtistName,
-					Title:      tracks[0].Title,
-					Duration:   0,
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[0].ID,
+						ArtistName: tracks[0].ArtistName,
+						Title:      tracks[0].Title,
+						Duration:   0,
+					},
+
+					Score: 0,
 				},
+
 				AlreadyElapsed: 0,
 			},
 			Duration: firstTrackDuration.Milliseconds(),
@@ -675,12 +692,17 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		s.True(mtvState.Playing)
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracks[1].ID,
-					ArtistName: tracks[1].ArtistName,
-					Title:      tracks[1].Title,
-					Duration:   0,
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						ArtistName: tracks[1].ArtistName,
+						Title:      tracks[1].Title,
+						Duration:   0,
+					},
+
+					Score: 0,
 				},
+
 				AlreadyElapsed: 0,
 			},
 			Duration: tracks[1].Duration.Milliseconds(),
@@ -706,12 +728,17 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracks[1].ID,
-					ArtistName: tracks[1].ArtistName,
-					Title:      tracks[1].Title,
-					Duration:   0,
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						ArtistName: tracks[1].ArtistName,
+						Title:      tracks[1].Title,
+						Duration:   0,
+					},
+
+					Score: 0,
 				},
+
 				AlreadyElapsed: 0,
 			},
 			Duration: tracks[1].Duration.Milliseconds(),
@@ -783,12 +810,17 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracks[0].ID,
-					ArtistName: tracks[0].ArtistName,
-					Title:      tracks[0].Title,
-					Duration:   0,
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[0].ID,
+						ArtistName: tracks[0].ArtistName,
+						Title:      tracks[0].Title,
+						Duration:   0,
+					},
+
+					Score: 0,
 				},
+
 				AlreadyElapsed: 0,
 			},
 			Duration: firstTrackDuration.Milliseconds(),
@@ -809,12 +841,17 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracks[0].ID,
-					ArtistName: tracks[0].ArtistName,
-					Title:      tracks[0].Title,
-					Duration:   0,
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[0].ID,
+						ArtistName: tracks[0].ArtistName,
+						Title:      tracks[0].Title,
+						Duration:   0,
+					},
+
+					Score: 0,
 				},
+
 				AlreadyElapsed: 0,
 			},
 			Duration: firstTrackDuration.Milliseconds(),
@@ -861,7 +898,7 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 			Duration:   generateRandomDuration(),
 		},
 	}
-	tracksToSuggestExposedMetadata := []shared.ExposedSuggestedTrackMetadata{
+	tracksToSuggestExposedMetadata := []shared.TrackMetadataWithScore{
 		{
 			TrackMetadata: tracksToSuggestMetadata[0],
 

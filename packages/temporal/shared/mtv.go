@@ -32,20 +32,35 @@ type TrackMetadata struct {
 	Duration   time.Duration `json:"duration"`
 }
 
-func (t TrackMetadata) Export() ExposedTrackMetadata {
-	return ExposedTrackMetadata{
-		TrackMetadata: t,
-		Duration:      t.Duration.Milliseconds(),
+type TrackMetadataWithScore struct {
+	TrackMetadata
+
+	Score uint `json:"score"`
+}
+
+func (t TrackMetadataWithScore) WithMillisecondsDuration() TrackMetadataWithScoreWithDuration {
+	return TrackMetadataWithScoreWithDuration{
+		TrackMetadataWithScore: t,
+
+		Duration: t.Duration.Milliseconds(),
 	}
 }
 
-type SuggestedTracksMetadataSet struct {
-	suggestedTrack []SuggestedTrackMetadata
+type TracksMetadataWithScoreSet struct {
+	tracks []TrackMetadataWithScore
 }
 
-func (s *SuggestedTracksMetadataSet) Has(suggestedTrackID string) bool {
-	for _, suggestedTrack := range s.suggestedTrack {
-		if suggestedTrack.ID == suggestedTrackID {
+func (s *TracksMetadataWithScoreSet) Clear() {
+	s.tracks = []TrackMetadataWithScore{}
+}
+
+func (s *TracksMetadataWithScoreSet) Len() int {
+	return len(s.tracks)
+}
+
+func (s *TracksMetadataWithScoreSet) Has(trackID string) bool {
+	for _, track := range s.tracks {
+		if track.ID == trackID {
 			return true
 		}
 	}
@@ -53,40 +68,47 @@ func (s *SuggestedTracksMetadataSet) Has(suggestedTrackID string) bool {
 	return false
 }
 
-func (s *SuggestedTracksMetadataSet) Add(suggestedTracks ...SuggestedTrackMetadata) {
-	for _, suggestedTrack := range suggestedTracks {
-		if isDuplicate := s.Has(suggestedTrack.ID); isDuplicate {
+func (s *TracksMetadataWithScoreSet) Add(tracks ...TrackMetadataWithScore) {
+	for _, track := range tracks {
+		if isDuplicate := s.Has(track.ID); isDuplicate {
 			continue
 		}
 
-		s.suggestedTrack = append(s.suggestedTrack, suggestedTrack)
+		s.tracks = append(s.tracks, track)
 	}
 }
 
-func (s *SuggestedTracksMetadataSet) Values() []SuggestedTrackMetadata {
-	return s.suggestedTrack[:]
+func (s *TracksMetadataWithScoreSet) Values() []TrackMetadataWithScore {
+	return s.tracks[:]
 }
 
-type SuggestedTrackMetadata struct {
-	TrackMetadata
+// Shift removes the first element from the set and returns it as well as true.
+// If the set was empty, it returns an empty TrackMetadataWithScore and false.
+func (s *TracksMetadataWithScoreSet) Shift() (TrackMetadataWithScore, bool) {
+	tracksCount := s.Len()
+	if noElement := tracksCount == 0; noElement {
+		return TrackMetadataWithScore{}, false
+	}
 
-	Score uint `json:"score"`
+	firstElement := s.tracks[0]
+
+	if tracksCount == 1 {
+		s.Clear()
+	} else {
+		s.tracks = s.tracks[1:]
+	}
+
+	return firstElement, true
 }
 
-func (t SuggestedTrackMetadata) Export() ExposedSuggestedTrackMetadata {
-	return ExposedSuggestedTrackMetadata(t)
-}
-
-type ExposedSuggestedTrackMetadata SuggestedTrackMetadata
-
-type ExposedTrackMetadata struct {
-	TrackMetadata
+type TrackMetadataWithScoreWithDuration struct {
+	TrackMetadataWithScore
 
 	Duration int64 `json:"duration"`
 }
 
 type CurrentTrack struct {
-	TrackMetadata
+	TrackMetadataWithScore
 
 	AlreadyElapsed time.Duration `json:"-"`
 }
@@ -128,21 +150,19 @@ func (p MtvRoomParameters) Export() MtvRoomExposedState {
 		RoomCreatorUserID:      p.RoomCreatorUserID,
 		RoomName:               p.RoomName,
 		UserRelatedInformation: p.InitialUsers[p.RoomCreatorUserID],
-		TracksIDsList:          p.InitialTracksIDsList,
 	}
 }
 
 type MtvRoomExposedState struct {
-	RoomID                 string                          `json:"roomID"`
-	RoomCreatorUserID      string                          `json:"roomCreatorUserID"`
-	Playing                bool                            `json:"playing"`
-	RoomName               string                          `json:"name"`
-	UserRelatedInformation *InternalStateUser              `json:"userRelatedInformation"`
-	TracksIDsList          []string                        `json:"tracksIDsList"`
-	CurrentTrack           *ExposedCurrentTrack            `json:"currentTrack"`
-	Tracks                 []ExposedTrackMetadata          `json:"tracks"`
-	SuggestedTracks        []ExposedSuggestedTrackMetadata `json:"suggestedTracks"`
-	UsersLength            int                             `json:"usersLength"`
+	RoomID                 string                               `json:"roomID"`
+	RoomCreatorUserID      string                               `json:"roomCreatorUserID"`
+	Playing                bool                                 `json:"playing"`
+	RoomName               string                               `json:"name"`
+	UserRelatedInformation *InternalStateUser                   `json:"userRelatedInformation"`
+	CurrentTrack           *ExposedCurrentTrack                 `json:"currentTrack"`
+	Tracks                 []TrackMetadataWithScoreWithDuration `json:"tracks"`
+	SuggestedTracks        []TrackMetadataWithScore             `json:"suggestedTracks"`
+	UsersLength            int                                  `json:"usersLength"`
 }
 
 type SignalRoute string

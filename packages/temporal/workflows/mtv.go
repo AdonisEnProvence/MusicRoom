@@ -18,10 +18,9 @@ type MtvRoomInternalState struct {
 
 	Machine         *brainy.Machine
 	Users           map[string]*shared.InternalStateUser
-	TracksIDsList   []string
 	CurrentTrack    shared.CurrentTrack
-	Tracks          []shared.TrackMetadata
-	SuggestedTracks shared.SuggestedTracksMetadataSet
+	Tracks          shared.TracksMetadataWithScoreSet
+	SuggestedTracks shared.TracksMetadataWithScoreSet
 	Playing         bool
 	Timer           shared.MtvRoomTimer
 }
@@ -30,20 +29,16 @@ func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 	s.initialParams = params
 
 	s.Users = params.InitialUsers
-	s.TracksIDsList = params.InitialTracksIDsList
 }
 
 func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExposedState {
-	exposedTracks := make([]shared.ExposedTrackMetadata, 0, len(s.Tracks))
-	for _, track := range s.Tracks {
-		exposedTracks = append(exposedTracks, track.Export())
+	tracks := s.Tracks.Values()
+	exposedTracks := make([]shared.TrackMetadataWithScoreWithDuration, 0, len(tracks))
+	for _, track := range tracks {
+		exposedTracks = append(exposedTracks, track.WithMillisecondsDuration())
 	}
 
 	suggestedTracks := s.SuggestedTracks.Values()
-	exposedSuggestedTracks := make([]shared.ExposedSuggestedTrackMetadata, 0, len(suggestedTracks))
-	for _, suggestedTrack := range suggestedTracks {
-		exposedSuggestedTracks = append(exposedSuggestedTracks, suggestedTrack.Export())
-	}
 
 	var currentTrackToExport *shared.ExposedCurrentTrack = nil
 	if s.CurrentTrack.ID != "" {
@@ -66,10 +61,9 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 		RoomCreatorUserID: s.initialParams.RoomCreatorUserID,
 		Playing:           s.Playing,
 		RoomName:          s.initialParams.RoomName,
-		TracksIDsList:     s.TracksIDsList,
 		CurrentTrack:      currentTrackToExport,
 		Tracks:            exposedTracks,
-		SuggestedTracks:   exposedSuggestedTracks,
+		SuggestedTracks:   suggestedTracks,
 		UsersLength:       len(s.Users),
 	}
 
@@ -289,7 +283,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							fetchedInitialTracksFuture = workflow.ExecuteActivity(
 								ctx,
 								activities.FetchTracksInformationActivity,
-								internalState.TracksIDsList,
+								internalState.initialParams.InitialTracksIDsList,
 							)
 
 							return nil
@@ -437,7 +431,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									Cond: func(c brainy.Context, e brainy.Event) bool {
 										timerExpirationEvent := e.(MtvRoomTimerExpirationEvent)
 										currentTrackEnded := timerExpirationEvent.Reason == shared.MtvRoomTimerExpiredReasonFinished
-										hasReachedTracksListEnd := len(internalState.Tracks) == 0
+										hasReachedTracksListEnd := internalState.Tracks.Len() == 0
 
 										return currentTrackEnded && hasReachedTracksListEnd
 									},
@@ -641,18 +635,15 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 						func(c brainy.Context, e brainy.Event) error {
 							event := e.(MtvRoomSuggestedTracksFetchedEvent)
 
-							suggestedTracksInformation := make([]shared.SuggestedTrackMetadata, 0, len(event.SuggestedTracksInformation))
 							for _, trackInformation := range event.SuggestedTracksInformation {
-								suggestedTrackInformation := shared.SuggestedTrackMetadata{
+								suggestedTrackInformation := shared.TrackMetadataWithScore{
 									TrackMetadata: trackInformation,
 
 									Score: 0,
 								}
 
-								suggestedTracksInformation = append(suggestedTracksInformation, suggestedTrackInformation)
+								internalState.SuggestedTracks.Add(suggestedTrackInformation)
 							}
-
-							internalState.SuggestedTracks.Add(suggestedTracksInformation...)
 
 							return nil
 						},

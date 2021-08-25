@@ -7,7 +7,6 @@ import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
-import Ws from 'App/Services/Ws';
 import { randomUUID } from 'crypto';
 import ServerToTemporalController from '../Http/Temporal/ServerToTemporalController';
 
@@ -20,6 +19,10 @@ interface UserID {
     userID: string;
 }
 
+interface UserArgs {
+    user: User;
+}
+
 interface RoomID {
     roomID: string;
 }
@@ -29,7 +32,12 @@ interface DeviceID {
 }
 
 interface OnCreateArgs extends UserID, MtvRoomClientToServerCreate, DeviceID {}
-interface OnJoinArgs extends UserID, RoomID, DeviceID {}
+interface OnJoinArgs extends UserID, DeviceID {
+    joiningRoom: MtvRoom;
+}
+interface OnLeaveArgs extends UserArgs {
+    leavingRoomID: string;
+}
 interface OnPauseArgs extends RoomID {}
 interface OnPlayArgs extends RoomID {}
 interface OnTerminateArgs extends RoomID {}
@@ -91,28 +99,41 @@ export default class MtvRoomsWsController {
 
     public static async onJoin({
         userID,
-        roomID,
+        joiningRoom: { runID, uuid: roomID },
         deviceID,
     }: OnJoinArgs): Promise<void> {
-        const room = await MtvRoom.findOrFail(roomID);
-
-        const roomDoesntExistInAnyNodes = !(await Ws.adapter().allRooms()).has(
-            roomID,
-        );
-        if (roomDoesntExistInAnyNodes) {
-            throw new Error(
-                'Room does not exist in any socket io server instance ' +
-                    roomID,
-            );
-        }
-
         console.log(`USER ${userID} JOINS ${roomID}`);
+
         await ServerToTemporalController.joinWorkflow({
             workflowID: roomID,
-            runID: room.runID,
+            runID: runID,
             userID,
             deviceID,
         });
+    }
+
+    public static async onLeave({
+        user: { uuid: userID },
+        leavingRoomID,
+    }: OnLeaveArgs): Promise<void> {
+        console.log(`USER ${userID} LEAVES ${leavingRoomID}`);
+        const leavingRoom = await MtvRoom.findOrFail(leavingRoomID);
+        const { creator, runID } = leavingRoom;
+
+        /**
+         * If the leaving user is the room creator we need
+         * to terminate the workflow and forced disconnect
+         * every remaining users
+         */
+        if (userID === creator) {
+            await SocketLifecycle.ownerLeavesRoom(leavingRoom);
+        } else {
+            await ServerToTemporalController.leaveWorkflow({
+                workflowID: leavingRoomID,
+                runID: runID,
+                userID,
+            });
+        }
     }
 
     public static async onPause({ roomID }: OnPauseArgs): Promise<void> {

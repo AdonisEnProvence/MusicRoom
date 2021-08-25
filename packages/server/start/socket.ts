@@ -42,10 +42,11 @@ Ws.io.on('connection', async (socket) => {
         /// USER ///
         socket.on('GET_CONNECTED_DEVICES_AND_DEVICE_ID', async (callback) => {
             try {
-                const { userID } =
-                    await SocketLifecycle.getSocketConnectionCredentials(
-                        socket,
-                    );
+                const {
+                    user: { uuid: userID },
+                } = await SocketLifecycle.getSocketConnectionCredentials(
+                    socket,
+                );
 
                 const devices = await UserService.getUserConnectedDevices(
                     userID,
@@ -77,10 +78,12 @@ Ws.io.on('connection', async (socket) => {
         /// ROOM ///
         socket.on('CREATE_ROOM', async (payload) => {
             try {
-                const { userID, deviceID } =
-                    await SocketLifecycle.getSocketConnectionCredentials(
-                        socket,
-                    );
+                const {
+                    user: { uuid: userID },
+                    deviceID,
+                } = await SocketLifecycle.getSocketConnectionCredentials(
+                    socket,
+                );
                 if (!payload.name) {
                     throw new Error('CREATE_ROOM failed name should be empty');
                 }
@@ -100,10 +103,12 @@ Ws.io.on('connection', async (socket) => {
 
         socket.on('GET_CONTEXT', async () => {
             try {
-                const { mtvRoomID, userID } =
-                    await SocketLifecycle.getSocketConnectionCredentials(
-                        socket,
-                    );
+                const {
+                    mtvRoomID,
+                    user: { uuid: userID },
+                } = await SocketLifecycle.getSocketConnectionCredentials(
+                    socket,
+                );
                 if (mtvRoomID === undefined) {
                     throw new Error(
                         "GET_CONTEXT failed user doesn't have a mtvRoom",
@@ -120,19 +125,69 @@ Ws.io.on('connection', async (socket) => {
             }
         });
 
-        socket.on('JOIN_ROOM', async (args) => {
+        socket.on('JOIN_ROOM', async ({ roomID }) => {
             try {
-                if (!args.roomID) {
+                if (!roomID) {
                     throw new Error('JOIN_ROOM failed roomID is empty');
                 }
-                const { userID, deviceID } =
+
+                const joiningRoom = await SocketLifecycle.doesRoomExist(roomID);
+                if (joiningRoom === null) {
+                    throw new Error(
+                        `Join failed given roomID does not match with any room ${roomID}`,
+                    );
+                }
+
+                const { user, deviceID, mtvRoomID } =
                     await SocketLifecycle.getSocketConnectionCredentials(
                         socket,
                     );
+
+                /**
+                 * Checking if user needs to leave previous
+                 * mtv room before joining new one
+                 * If the leave fails the join won't
+                 * achieve
+                 */
+                if (mtvRoomID !== undefined) {
+                    await MtvRoomsWsController.onLeave({
+                        user,
+                        leavingRoomID: mtvRoomID,
+                    });
+                }
+
                 await MtvRoomsWsController.onJoin({
-                    roomID: args.roomID,
-                    userID,
+                    joiningRoom,
+                    userID: user.uuid,
                     deviceID,
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        });
+
+        socket.on('LEAVE_ROOM', async () => {
+            try {
+                const { user, mtvRoomID } =
+                    await SocketLifecycle.getSocketConnectionCredentials(
+                        socket,
+                    );
+
+                /**
+                 * Remark: no need to verify if room exists such as for the join event
+                 * As when a room get evicted it will remove the foreignKey in the user model
+                 * Then if mtvRoomID is defined in the User model it means the room is listed
+                 * in base
+                 */
+                if (mtvRoomID === undefined) {
+                    throw new Error(
+                        `Leave fails user is not related to any mtv room ${user.uuid}`,
+                    );
+                }
+
+                await MtvRoomsWsController.onLeave({
+                    user,
+                    leavingRoomID: mtvRoomID,
                 });
             } catch (e) {
                 console.error(e);
@@ -198,10 +253,12 @@ Ws.io.on('connection', async (socket) => {
         socket.on('CHANGE_EMITTING_DEVICE', async ({ newEmittingDeviceID }) => {
             try {
                 console.log('RECEIVED CHANGE EMITTING DEVICE FORM CLIENT');
-                const { userID, mtvRoomID } =
-                    await SocketLifecycle.getSocketConnectionCredentials(
-                        socket,
-                    );
+                const {
+                    user: { uuid: userID },
+                    mtvRoomID,
+                } = await SocketLifecycle.getSocketConnectionCredentials(
+                    socket,
+                );
 
                 if (!mtvRoomID) {
                     throw new Error(

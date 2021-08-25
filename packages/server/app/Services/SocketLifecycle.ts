@@ -3,6 +3,7 @@ import Device from 'App/Models/Device';
 import User from 'App/Models/User';
 import { TypedSocket } from 'start/socket';
 import UserAgentParser from 'ua-parser-js';
+import MtvRoom from '../Models/MtvRoom';
 import UserService from './UserService';
 import Ws from './Ws';
 
@@ -27,6 +28,30 @@ export default class SocketLifecycle {
     ): Promise<void> {
         const adapter = Ws.adapter();
         await adapter.remoteJoin(socket.id, mtvRoomID);
+    }
+
+    public static async doesRoomExist(roomID: string): Promise<MtvRoom | null> {
+        // const userID = user.uuid;
+
+        const room = await MtvRoom.find(roomID);
+        const roomExist = room !== null;
+        const joiningRoomDoesntExistInAnySocketNodes = !(
+            await Ws.adapter().allRooms()
+        ).has(roomID);
+
+        /**
+         * If a room is listed in database
+         * It must be listed in one socket node as
+         * a socket io room else it's a corrupted room
+         */
+        if (roomExist && joiningRoomDoesntExistInAnySocketNodes) {
+            throw new Error(
+                'Room exist in database but does not exist in any socket io server instance ' +
+                    roomID,
+            );
+        }
+
+        return room;
     }
 
     /**
@@ -134,24 +159,7 @@ export default class SocketLifecycle {
             disconnectingDeviceIsThelastConnectedDevice &&
             joinedRoom !== null
         ) {
-            try {
-                const ownedRoom = joinedRoom;
-
-                console.log(
-                    `Sending terminate signal to temporal for room ${ownedRoom.uuid}`,
-                );
-                await MtvRoomsWsController.onTerminate({
-                    roomID: ownedRoom.uuid,
-                });
-
-                Ws.io.in(ownedRoom.uuid).emit('FORCED_DISCONNECTION');
-                await this.deleteRoom(ownedRoom.uuid);
-            } catch (e) {
-                console.error(
-                    `Couldnt terminate workflow on owner disconnection ${userID} room: ${joinedRoom.uuid} workflow is still alive in temporal but removed from database`,
-                    e,
-                );
-            }
+            await this.ownerLeavesRoom(joinedRoom);
         } else if (
             joinedRoom !== null &&
             disconnectingDeviceIsThelastConnectedDevice === false &&
@@ -212,14 +220,21 @@ export default class SocketLifecycle {
 
         await Promise.all(
             [...connectedSockets].map(
-                async (socketID) => await adapter.remoteLeave(socketID, roomID),
+                async (socketID) =>
+                    await adapter
+                        .remoteLeave(socketID, roomID)
+                        .catch(() =>
+                            console.error(
+                                `socket ${socketID} couldn't leave room ${roomID}`,
+                            ),
+                        ),
             ),
         );
     }
 
     public static async getSocketConnectionCredentials(
         socket: TypedSocket,
-    ): Promise<{ mtvRoomID?: string; userID: string; deviceID: string }> {
+    ): Promise<{ mtvRoomID?: string; user: User; deviceID: string }> {
         const device = await Device.findByOrFail('socket_id', socket.id);
         await device.load('user');
         if (device.user === null) {
@@ -227,7 +242,7 @@ export default class SocketLifecycle {
                 `Device should always have a user relationship deviceID = ${device.uuid}`,
             );
         }
-        const userID = device.user.uuid;
+        const user = device.user;
         const mtvRoomID = device.user.mtvRoomID ?? undefined;
 
         /**
@@ -246,9 +261,28 @@ export default class SocketLifecycle {
         }
 
         return {
-            userID,
+            user,
             mtvRoomID,
             deviceID: device.uuid,
         };
+    }
+
+    public static async ownerLeavesRoom(ownedRoom: MtvRoom): Promise<void> {
+        try {
+            console.log(
+                `Sending terminate signal to temporal for room ${ownedRoom.uuid}`,
+            );
+            await MtvRoomsWsController.onTerminate({
+                roomID: ownedRoom.uuid,
+            });
+
+            Ws.io.in(ownedRoom.uuid).emit('FORCED_DISCONNECTION');
+            await this.deleteRoom(ownedRoom.uuid);
+        } catch (e) {
+            console.error(
+                `Couldnt terminate workflow on owner disconnection ${ownedRoom.creator} room: ${ownedRoom.uuid} workflow is still alive in temporal but removed from database`,
+                e,
+            );
+        }
     }
 }

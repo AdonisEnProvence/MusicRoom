@@ -47,6 +47,7 @@ export interface MtvRoomClientToServerChangeUserEmittingDevice {
 export interface MtvRoomClientToServerEvents {
     CREATE_ROOM: (args: MtvRoomClientToServerCreate) => void;
     JOIN_ROOM: (args: MtvRoomClientToServerJoin) => void;
+    LEAVE_ROOM: () => void;
     ACTION_PLAY: () => void;
     GET_CONTEXT: () => void;
     ACTION_PAUSE: () => void;

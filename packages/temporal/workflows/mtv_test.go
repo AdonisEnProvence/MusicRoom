@@ -847,6 +847,32 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 		faker.UUIDHyphenated(),
 		faker.UUIDHyphenated(),
 	}
+	tracksToSuggestMetadata := []shared.TrackMetadata{
+		{
+			ID:         tracksIDsToSuggest[0],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   generateRandomDuration(),
+		},
+		{
+			ID:         tracksIDsToSuggest[1],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   generateRandomDuration(),
+		},
+	}
+	tracksToSuggestExposedMetadata := []shared.ExposedSuggestedTrackMetadata{
+		{
+			TrackMetadata: tracksToSuggestMetadata[0],
+
+			Score: 0,
+		},
+		{
+			TrackMetadata: tracksToSuggestMetadata[1],
+
+			Score: 0,
+		},
+	}
 	duplicateTrackIDToSuggest := tracksIDsToSuggest[0]
 	params, _ := getWokflowInitParams(tracksIDs)
 
@@ -855,11 +881,19 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 
 	defer resetMock()
 
+	// Mock first tracks information fetching
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(tracks, nil).Once()
+	// Mock suggested and accepted tracks information fetching
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(tracksToSuggestMetadata, nil).Once()
+
 	s.env.OnActivity(
 		activities.CreationAcknowledgementActivity,
 		mock.Anything,
@@ -879,13 +913,8 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
-		exposedSuggestedTracksIDs := make([]string, 0, len(mtvState.SuggestedTracks))
-		for _, suggestedTrack := range mtvState.SuggestedTracks {
-			exposedSuggestedTracksIDs = append(exposedSuggestedTracksIDs, suggestedTrack.ID)
-		}
-
 		s.Empty(mtvState.Tracks)
-		s.Equal(tracksIDsToSuggest, exposedSuggestedTracksIDs)
+		s.Equal(tracksToSuggestExposedMetadata, mtvState.SuggestedTracks)
 	}, assertSuggestedTracksHaveBeenAcceptedDelay)
 
 	secondSuggestTracksSignalDelay := defaultDuration
@@ -901,13 +930,8 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
-		exposedSuggestedTracksIDs := make([]string, 0, len(mtvState.SuggestedTracks))
-		for _, suggestedTrack := range mtvState.SuggestedTracks {
-			exposedSuggestedTracksIDs = append(exposedSuggestedTracksIDs, suggestedTrack.ID)
-		}
-
 		s.Empty(mtvState.Tracks)
-		s.Equal(tracksIDsToSuggest, exposedSuggestedTracksIDs)
+		s.Equal(tracksToSuggestExposedMetadata, mtvState.SuggestedTracks)
 	}, assertDuplicateSuggestedTrackHasNotBeenAcceptedDelay)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)

@@ -53,7 +53,7 @@ func (s *SuggestedTracksMetadataSet) Has(suggestedTrackID string) bool {
 	return false
 }
 
-func (s *SuggestedTracksMetadataSet) Add(suggestedTracks []SuggestedTrackMetadata) {
+func (s *SuggestedTracksMetadataSet) Add(suggestedTracks ...SuggestedTrackMetadata) {
 	for _, suggestedTrack := range suggestedTracks {
 		if isDuplicate := s.Has(suggestedTrack.ID); isDuplicate {
 			continue
@@ -74,14 +74,10 @@ type SuggestedTrackMetadata struct {
 }
 
 func (t SuggestedTrackMetadata) Export() ExposedSuggestedTrackMetadata {
-	return ExposedSuggestedTrackMetadata{
-		SuggestedTrackMetadata: t,
-	}
+	return ExposedSuggestedTrackMetadata(t)
 }
 
-type ExposedSuggestedTrackMetadata struct {
-	SuggestedTrackMetadata
-}
+type ExposedSuggestedTrackMetadata SuggestedTrackMetadata
 
 type ExposedTrackMetadata struct {
 	TrackMetadata

@@ -12,7 +12,6 @@ import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
-import Ws from 'App/Services/Ws';
 import { datatype, name, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
@@ -79,15 +78,36 @@ async function createSocketConnection(
     return socket;
 }
 
-async function createUserAndGetSocket(
-    userID: string,
-    deviceName?: string,
-    browser?: AvailableBrowsersMocks,
-): Promise<TypedTestSocket> {
-    await User.create({
+interface CreateUserAndGetSocketArgs {
+    userID: string;
+    deviceName?: string;
+    browser?: AvailableBrowsersMocks;
+    mtvRoomIDToAssociate?: string;
+}
+
+async function createUserAndGetSocket({
+    userID,
+    deviceName,
+    browser,
+    mtvRoomIDToAssociate,
+}: CreateUserAndGetSocketArgs): Promise<TypedTestSocket> {
+    const createdUser = await User.create({
         uuid: userID,
         nickname: random.word(),
     });
+    if (mtvRoomIDToAssociate !== undefined) {
+        let mtvRoomToAssociate = await MtvRoom.find(mtvRoomIDToAssociate);
+
+        if (mtvRoomToAssociate === null) {
+            mtvRoomToAssociate = await MtvRoom.create({
+                uuid: mtvRoomIDToAssociate,
+                runID: datatype.uuid(),
+                creator: createdUser.uuid,
+            });
+        }
+        await createdUser.related('mtvRoom').associate(mtvRoomToAssociate);
+    }
+    //No need to remoteJoin the created socket as SocketLifeCycle.registerDevice will do it for us
     return await createSocketConnection(userID, deviceName, browser);
 }
 
@@ -121,7 +141,7 @@ test.group('Rooms life cycle', (group) => {
 
     test('On user socket connection, it should register his device in db, on disconnection removes it from db', async (assert) => {
         const userID = datatype.uuid();
-        const socket = await createUserAndGetSocket(userID);
+        const socket = await createUserAndGetSocket({ userID });
 
         /**
          * Check if only 1 device for given userID is well registered in database
@@ -141,7 +161,7 @@ test.group('Rooms life cycle', (group) => {
 
     test('User creates a room, receives acknowledgement, on user disconnection, it should removes the room from database', async (assert) => {
         const userID = datatype.uuid();
-        const socket = await createUserAndGetSocket(userID);
+        const socket = await createUserAndGetSocket({ userID });
         const receivedEvents: string[] = [];
 
         socket.once('CREATE_ROOM_SYNCHED_CALLBACK', () => {
@@ -225,7 +245,7 @@ test.group('Rooms life cycle', (group) => {
 
     test('It should handle a temporal onCreate error', async (assert) => {
         const userID = datatype.uuid();
-        const socket = await createUserAndGetSocket(userID);
+        const socket = await createUserAndGetSocket({ userID });
         let roomID: undefined | string;
         const receivedEvents: string[] = [];
         socket.once('CREATE_ROOM_CALLBACK', () => {
@@ -281,13 +301,17 @@ test.group('Rooms life cycle', (group) => {
         console.log(userIDS);
         const userA = {
             userID: userIDS[0],
-            socket: await createUserAndGetSocket(userIDS[0]),
+            socket: await createUserAndGetSocket({ userID: userIDS[0] }),
+            receivedEvents: [] as string[],
         };
         const userB = {
             userID: userIDS[1],
-            socket: await createUserAndGetSocket(userIDS[1]),
+            socket: await createUserAndGetSocket({ userID: userIDS[1] }),
             receivedEvents: [] as string[],
         };
+        userA.socket.once('FORCED_DISCONNECTION', () => {
+            userA.receivedEvents.push('FORCED_DISCONNECTION');
+        });
         userB.socket.once('FORCED_DISCONNECTION', () => {
             userB.receivedEvents.push('FORCED_DISCONNECTION');
         });
@@ -390,6 +414,7 @@ test.group('Rooms life cycle', (group) => {
          * If UserB device is in db
          */
         assert.isNull(await MtvRoom.findBy('creator', userA.userID));
+        assert.equal(userA.receivedEvents.length, 0);
         assert.equal(userB.receivedEvents[0], 'FORCED_DISCONNECTION');
         assert.isNotNull(await Device.findBy('user_id', userB.userID));
         await disconnectSocket(userB.socket);
@@ -397,18 +422,15 @@ test.group('Rooms life cycle', (group) => {
 
     test('It should not remove room from database, as creator has more than one device/session alive', async (assert) => {
         const userID = datatype.uuid();
+
+        const mtvRoomIDToAssociate = datatype.uuid();
         const user = {
-            socketA: await createUserAndGetSocket(userID),
+            socketA: await createUserAndGetSocket({
+                userID,
+                mtvRoomIDToAssociate,
+            }),
             socketB: await createSocketConnection(userID),
         };
-        const mtvRoom = await MtvRoom.create({
-            uuid: datatype.uuid(),
-            runID: datatype.uuid(),
-            creator: userID,
-        });
-        const myUser = await User.find(userID);
-        if (myUser === null) throw new Error('myUser is null');
-        myUser.related('mtvRoom').associate(mtvRoom);
 
         /** Mocks */
         sinon
@@ -496,7 +518,7 @@ test.group('Rooms life cycle', (group) => {
         /**
          * Fisrt creatorUser creates a room
          */
-        const creatorUser = await createUserAndGetSocket(creatorID);
+        const creatorUser = await createUserAndGetSocket({ userID: creatorID });
         creatorUser.emit('CREATE_ROOM', {
             name: random.word(),
             initialTracksIDs: [datatype.uuid()],
@@ -511,7 +533,7 @@ test.group('Rooms life cycle', (group) => {
          */
         const receivedEvents: string[] = [];
         const joiningUser = {
-            socketA: await createUserAndGetSocket(userID),
+            socketA: await createUserAndGetSocket({ userID }),
             socketB: await createSocketConnection(userID),
         };
         Object.values(joiningUser).forEach((socket, i) =>
@@ -584,7 +606,7 @@ test.group('Rooms life cycle', (group) => {
         /**
          * User connects two devices then create a room from one
          */
-        const socketA = await createUserAndGetSocket(userID);
+        const socketA = await createUserAndGetSocket({ userID });
         const socketB = await createSocketConnection(userID);
         assert.equal((await Device.all()).length, 2);
         socketA.emit('CREATE_ROOM', {
@@ -606,7 +628,7 @@ test.group('Rooms life cycle', (group) => {
     test('New user socket connection should join previously joined/created room', async (assert) => {
         const creatorUserID = datatype.uuid();
         const roomName = random.word();
-        const socketA = await createUserAndGetSocket(creatorUserID);
+        const socketA = await createUserAndGetSocket({ userID: creatorUserID });
         let userCouldEmitAnExclusiveRoomSignal = false;
         /** Mocks */
         sinon
@@ -698,15 +720,12 @@ test.group('Rooms life cycle', (group) => {
          * that the method that forwards the event is correctly called.
          */
         const userID = datatype.uuid();
-        const socket = await createUserAndGetSocket(userID);
-        const mtvRoom = await MtvRoom.create({
-            uuid: datatype.uuid(),
-            runID: datatype.uuid(),
-            creator: userID,
+
+        const mtvRoomIDToAssociate = datatype.uuid();
+        const socket = await createUserAndGetSocket({
+            userID,
+            mtvRoomIDToAssociate,
         });
-        const creatorUser = await User.findOrFail(userID);
-        await creatorUser.related('mtvRoom').associate(mtvRoom);
-        await Ws.adapter().remoteJoin(socket.id, mtvRoom.uuid);
 
         const goToNextTrackStub = sinon
             .stub(ServerToTemporalController, 'goToNextTrack')
@@ -725,26 +744,23 @@ test.group('Rooms life cycle', (group) => {
          * Then emit a GET_CONTEXT and verify that the test achieves to it
          */
         const userID = datatype.uuid();
-        const socket = await createUserAndGetSocket(userID);
+        const mtvRoomIDToAssociate = datatype.uuid();
+        const socket = await createUserAndGetSocket({
+            userID,
+            mtvRoomIDToAssociate,
+        });
+        assert.equal(1, (await MtvRoom.all()).length);
         const receivedEvents: string[] = [];
+
         socket.once('RETRIEVE_CONTEXT', () => {
             receivedEvents.push('RETRIEVE_CONTEXT');
         });
-        const roomID = datatype.uuid();
-        const mtvRoom = await MtvRoom.create({
-            uuid: roomID,
-            runID: datatype.uuid(),
-            creator: userID,
-        });
-        const creatorUser = await User.findOrFail(userID);
-        await creatorUser.related('mtvRoom').associate(mtvRoom);
-        await Ws.adapter().remoteJoin(socket.id, mtvRoom.uuid);
 
         sinon
             .stub(ServerToTemporalController, 'getState')
             .callsFake(async () => {
                 return {
-                    roomID,
+                    roomID: mtvRoomIDToAssociate,
                     currentTrack: null,
                     name: random.word(),
                     playing: false,
@@ -801,7 +817,7 @@ test.group('Rooms life cycle', (group) => {
 
     test('It should send server socket event to the client via the UserService.emitEventInSocket', async (assert) => {
         const userID = datatype.uuid();
-        const socket = await createUserAndGetSocket(userID);
+        const socket = await createUserAndGetSocket({ userID });
         const state: MtvWorkflowState = {
             currentTrack: null,
             name: random.word(),
@@ -831,7 +847,7 @@ test.group('Rooms life cycle', (group) => {
     test('It should send to every user socket instance the CONNECTED_DEVICES_UPDATE socket event on device co/dc', async (assert) => {
         const userID = datatype.uuid();
         const socketA = {
-            socket: await createUserAndGetSocket(userID),
+            socket: await createUserAndGetSocket({ userID }),
             receivedEvents: [] as string[],
         };
 
@@ -859,7 +875,10 @@ test.group('Rooms life cycle', (group) => {
         const userID = datatype.uuid();
         const deviceNameA = random.word();
 
-        const socketA = await createUserAndGetSocket(userID, deviceNameA);
+        const socketA = await createUserAndGetSocket({
+            userID,
+            deviceName: deviceNameA,
+        });
 
         const deviceA = await Device.findBy('socket_id', socketA.id);
         assert.isNotNull(deviceA);
@@ -917,24 +936,20 @@ test.group('Rooms life cycle', (group) => {
                 return;
             });
 
-        const socket = {
-            socket: await createUserAndGetSocket(userID),
-            receivedEvents: [] as string[],
-        };
-
         /**
          * Mocking a mtvRoom in the databse
          */
-        const mtvRoom = await MtvRoom.create({
-            uuid: datatype.uuid(),
-            runID: datatype.uuid(),
-            creator: userID,
-        });
-        const creatorUser = await User.findOrFail(userID);
-        await creatorUser.related('mtvRoom').associate(mtvRoom);
-        await Ws.adapter().remoteJoin(socket.socket.id, mtvRoom.uuid);
-        const deviceA = await Device.findBy('socket_id', socket.socket.id);
 
+        const mtvRoomIDToAssociate = datatype.uuid();
+        const socket = {
+            socket: await createUserAndGetSocket({
+                userID,
+                mtvRoomIDToAssociate,
+            }),
+            receivedEvents: [] as string[],
+        };
+
+        const deviceA = await Device.findBy('socket_id', socket.socket.id);
         assert.isNotNull(deviceA);
         if (deviceA === null) {
             throw new Error('device should not be null');
@@ -946,7 +961,6 @@ test.group('Rooms life cycle', (group) => {
             socket: await createSocketConnection(userID),
             receivedEvents: [] as string[],
         };
-        await Ws.adapter().remoteJoin(socketB.socket.id, mtvRoom.uuid);
 
         const deviceB = await Device.findBy('socket_id', socketB.socket.id);
         assert.isNotNull(deviceB);
@@ -1059,7 +1073,7 @@ test.group('Rooms life cycle', (group) => {
             });
 
         const socket = {
-            socket: await createUserAndGetSocket(userID),
+            socket: await createUserAndGetSocket({ userID }),
             receivedEvents: [] as string[],
         };
         const socketB = {
@@ -1122,11 +1136,11 @@ test.group('Rooms life cycle', (group) => {
             });
 
         const socket = {
-            socket: await createUserAndGetSocket(userID),
+            socket: await createUserAndGetSocket({ userID }),
             receivedEvents: [] as string[],
         };
         const socketB = {
-            socket: await createUserAndGetSocket(secondUserID),
+            socket: await createUserAndGetSocket({ userID: secondUserID }),
             receivedEvents: [] as string[],
         };
         const deviceB = await Device.findBy('socket_id', socketB.socket.id);

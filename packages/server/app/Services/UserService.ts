@@ -12,7 +12,7 @@ export default class UserService {
         const devicesAttempts = await Promise.all(
             user.devices.map(async (device) => {
                 try {
-                    console.log('connecting device ', device.socketID);
+                    console.log('remote join device ', device.socketID);
                     await Ws.adapter().remoteJoin(device.socketID, roomID);
                     return device.socketID;
                 } catch (e) {
@@ -25,10 +25,28 @@ export default class UserService {
             (el) => el === undefined,
         );
 
-        if (couldntJoinAtLeastOneDevice)
+        if (couldntJoinAtLeastOneDevice) {
             throw new Error(
                 `couldn't join for any device for user ${user.uuid}`,
             );
+        }
+    }
+
+    public static async leaveEveryUserDevicesFromRoom(
+        user: User,
+        roomID: string,
+    ): Promise<void> {
+        await user.load('devices');
+        await Promise.all(
+            user.devices.map(async (device) => {
+                try {
+                    console.log('remote leave device ', device.socketID);
+                    await Ws.adapter().remoteLeave(device.socketID, roomID);
+                } catch (e) {
+                    console.error(e);
+                }
+            }),
+        );
     }
 
     public static async emitConnectedDevicesUpdateToEveryUserDevices(

@@ -1,3 +1,4 @@
+import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
 import User from 'App/Models/User';
@@ -125,7 +126,7 @@ export default class SocketLifecycle {
 
         const disconnectingDeviceOwner = disconnectingDevice.user;
         await disconnectingDeviceOwner.load('mtvRoom');
-        const joinedRoom = disconnectingDeviceOwner.mtvRoom;
+        const relatedMtvRoom = disconnectingDeviceOwner.mtvRoom;
 
         console.log(`LOOSING CONNECTION SOCKETID=${socketID} USER=${userID}`);
 
@@ -142,7 +143,7 @@ export default class SocketLifecycle {
             allUserDevices.length <= 1;
 
         const userIsTheCreator =
-            joinedRoom !== null ? joinedRoom.creator === userID : false;
+            relatedMtvRoom !== null ? relatedMtvRoom.creator === userID : false;
 
         console.log(
             `User ${
@@ -154,19 +155,27 @@ export default class SocketLifecycle {
          * If disconnecting user was a mtv room owner
          * Send a terminate workflow to temporal
          */
+        //TODO send signal leave if user is just a member that has no more device
+
         if (
-            userIsTheCreator &&
             disconnectingDeviceIsThelastConnectedDevice &&
-            joinedRoom !== null
+            relatedMtvRoom !== null
         ) {
-            await this.ownerLeavesRoom(joinedRoom);
-        } else if (
-            joinedRoom !== null &&
-            disconnectingDeviceIsThelastConnectedDevice === false &&
-            disconnectingDevice.isEmitting
-        ) {
+            if (userIsTheCreator) {
+                await this.ownerLeavesRoom(relatedMtvRoom);
+            } else {
+                await ServerToTemporalController.leaveWorkflow({
+                    workflowID: relatedMtvRoom.uuid,
+                    runID: relatedMtvRoom.runID,
+                    userID,
+                });
+            }
+        } else if (relatedMtvRoom !== null && disconnectingDevice.isEmitting) {
+            /**
+             * If the getting evicted device was the emitting one
+             * we need to set a new as emitting
+             */
             try {
-                //Need to set a new emitting device
                 const availableDevices = allUserDevices.filter(
                     (device) => device.uuid !== disconnectingDevice.uuid,
                 );
@@ -174,7 +183,7 @@ export default class SocketLifecycle {
 
                 await MtvRoomsWsController.onChangeEmittingDevice({
                     deviceID: newEmittingDevice.uuid,
-                    roomID: joinedRoom.uuid,
+                    roomID: relatedMtvRoom.uuid,
                     userID,
                 });
             } catch (e) {

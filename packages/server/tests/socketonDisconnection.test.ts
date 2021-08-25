@@ -1167,4 +1167,392 @@ test.group('Rooms life cycle', (group) => {
 
         assert.isTrue(hasNeverBeenCalled);
     });
+
+    test(`It should make a user leave the room after he emits a LEAVE_ROOM client socket event
+    leaving user devices should not receive any leavedMtvRoom related socket event
+    If the creator does the same it should send FORCED_DISCONNECTION to every remaining users in the room`, async (assert) => {
+        const userID = datatype.uuid();
+        const userBID = datatype.uuid();
+        const userCID = datatype.uuid();
+
+        sinon
+            .stub(ServerToTemporalController, 'terminateWorkflow')
+            .callsFake(async () => {
+                return;
+            });
+        sinon
+            .stub(ServerToTemporalController, 'leaveWorkflow')
+            .callsFake(async ({ workflowID }) => {
+                const state: MtvWorkflowState = {
+                    currentTrack: null,
+                    name: random.word(),
+                    playing: false,
+                    roomCreatorUserID: userID,
+                    roomID: workflowID,
+                    tracks: null,
+                    tracksIDsList: null,
+                    userRelatedInformation: null,
+                    usersLength: 2,
+                };
+
+                console.log('*'.repeat(100));
+
+                await supertest(BASE_URL)
+                    .post('/temporal/user-length-update')
+                    .send(state);
+                return;
+            });
+
+        /**
+         * Mocking a mtvRoom in the databse
+         */
+        const mtvRoomIDToAssociate = datatype.uuid();
+        const socket = {
+            socket: await createUserAndGetSocket({
+                userID,
+                mtvRoomIDToAssociate,
+            }),
+            socketB: await createSocketConnection(userID),
+            receivedEvents: [] as string[],
+        };
+
+        const socketB = {
+            socket: await createUserAndGetSocket({
+                userID: userBID,
+                mtvRoomIDToAssociate,
+            }),
+            receivedEvents: [] as string[],
+        };
+
+        const socketC = {
+            socket: await createUserAndGetSocket({
+                userID: userCID,
+                mtvRoomIDToAssociate,
+            }),
+            socketB: await createSocketConnection(userCID),
+            receivedEvents: [] as string[],
+        };
+
+        // CREATOR //
+        socket.socket.once('USER_LENGTH_UPDATE', () => {
+            socket.receivedEvents.push('USER_LENGTH_UPDATE');
+        });
+
+        socket.socketB.once('USER_LENGTH_UPDATE', () => {
+            socket.receivedEvents.push('USER_LENGTH_UPDATE');
+        });
+
+        // USER B
+        socketB.socket.once('USER_LENGTH_UPDATE', () => {
+            socketB.receivedEvents.push('USER_LENGTH_UPDATE');
+        });
+
+        // USER C
+        socketC.socket.once('USER_LENGTH_UPDATE', () => {
+            /**
+             * This is the disconnecting one, in this way it should not receive
+             * any event
+             */
+            assert.isTrue(false);
+        });
+
+        socketC.socketB.once('USER_LENGTH_UPDATE', () => {
+            /**
+             * This is the disconnecting one, in this way it should not receive
+             * any event
+             */
+            assert.isTrue(false);
+        });
+
+        /**
+         * Emit leave_room with socket C
+         * Expect B and socket to receive USER_LENGTH_UDPATE
+         * server socket event
+         */
+        socketC.socket.emit('LEAVE_ROOM');
+        await sleep();
+
+        assert.equal(socket.receivedEvents.length, 2);
+        assert.equal(socketB.receivedEvents.length, 1);
+
+        let connectedSocketsToRoom =
+            await SocketLifecycle.getConnectedSocketToRoom(
+                mtvRoomIDToAssociate,
+            );
+        assert.isFalse(connectedSocketsToRoom.has(socketC.socket.id));
+
+        const leavingUser = await User.findOrFail(userCID);
+        await leavingUser.load('mtvRoom');
+
+        assert.isNull(leavingUser.mtvRoom);
+
+        /**
+         * Now same with the creator
+         * We expect remaining user to receive a FORCED_DISCONNECTION event
+         */
+
+        //CREATOR
+        socket.socket.once('FORCED_DISCONNECTION', () => {
+            assert.isTrue(false);
+        });
+
+        socket.socket.once('FORCED_DISCONNECTION', () => {
+            assert.isTrue(false);
+        });
+
+        //USER B
+        socketB.socket.once('FORCED_DISCONNECTION', () => {
+            socketB.receivedEvents.push('FORCED_DISCONNECTION');
+        });
+
+        //USER C
+        socketC.socket.once('FORCED_DISCONNECTION', () => {
+            assert.isTrue(false);
+        });
+
+        socketC.socketB.once('USER_LENGTH_UPDATE', () => {
+            assert.isTrue(false);
+        });
+
+        /**
+         * Creator leaves the room
+         */
+        socket.socket.emit('LEAVE_ROOM');
+        await sleep();
+
+        assert.equal(socket.receivedEvents.length, 2);
+        console.log(socketB.receivedEvents);
+        assert.equal(socketB.receivedEvents.length, 2);
+        assert.notEqual(
+            socketB.receivedEvents.indexOf('FORCED_DISCONNECTION'),
+            -1,
+        );
+
+        connectedSocketsToRoom = await SocketLifecycle.getConnectedSocketToRoom(
+            mtvRoomIDToAssociate,
+        );
+        assert.isFalse(connectedSocketsToRoom.has(socketC.socket.id));
+
+        const leavingCreator = await User.findOrFail(userCID);
+        await leavingCreator.load('mtvRoom');
+
+        assert.isNull(leavingUser.mtvRoom);
+        assert.isNull(await MtvRoom.find(mtvRoomIDToAssociate));
+    });
+
+    test.skip(`It should make a user leave the room after he joins a new one
+    leaving user devices should not receive any leavedMtvRoom related socket event`, async (assert) => {
+        const userID = datatype.uuid();
+        const userBID = datatype.uuid();
+        const userCID = datatype.uuid();
+
+        sinon
+            .stub(ServerToTemporalController, 'leaveWorkflow')
+            .callsFake(async ({ workflowID }) => {
+                const state: MtvWorkflowState = {
+                    currentTrack: null,
+                    name: random.word(),
+                    playing: false,
+                    roomCreatorUserID: userID,
+                    roomID: workflowID,
+                    tracks: null,
+                    tracksIDsList: null,
+                    userRelatedInformation: null,
+                    usersLength: 2,
+                };
+
+                console.log('*'.repeat(100));
+
+                await supertest(BASE_URL)
+                    .post('/temporal/user-length-update')
+                    .send(state);
+                return;
+            });
+
+        /**
+         * Mocking a mtvRoom in the databse
+         */
+        const mtvRoomIDToAssociate = datatype.uuid();
+        const socket = {
+            socket: await createUserAndGetSocket({
+                userID,
+                mtvRoomIDToAssociate,
+            }),
+            receivedEvents: [] as string[],
+        };
+
+        const socketB = {
+            socket: await createUserAndGetSocket({
+                userID: userBID,
+                mtvRoomIDToAssociate,
+            }),
+            receivedEvents: [] as string[],
+        };
+
+        const socketC = {
+            socket: await createUserAndGetSocket({
+                userID: userCID,
+                mtvRoomIDToAssociate,
+            }),
+            socketB: await createSocketConnection(userCID),
+            receivedEvents: [] as string[],
+        };
+
+        socket.socket.once('USER_LENGTH_UPDATE', () => {
+            socket.receivedEvents.push('USER_LENGTH_UPDATE');
+        });
+
+        socketB.socket.once('USER_LENGTH_UPDATE', () => {
+            socketB.receivedEvents.push('USER_LENGTH_UPDATE');
+        });
+
+        socketC.socket.once('USER_LENGTH_UPDATE', () => {
+            /**
+             * This is the disconnecting one, in this way it should not receive
+             * any event
+             */
+            assert.isTrue(false);
+            socketC.receivedEvents.push('USER_LENGTH_UPDATE');
+        });
+
+        socketC.socketB.once('USER_LENGTH_UPDATE', () => {
+            /**
+             * This is the disconnecting one, in this way it should not receive
+             * any event
+             */
+            assert.isTrue(false);
+            socketC.receivedEvents.push('USER_LENGTH_UPDATE');
+        });
+
+        /**
+         * Emit leave_room with socket C
+         * Expect B and socket to receive USER_LENGTH_UDPATE
+         * server socket event
+         */
+        socketC.socket.emit('LEAVE_ROOM');
+        await sleep();
+
+        assert.equal(socket.receivedEvents.length, 1);
+        assert.equal(socketB.receivedEvents.length, 1);
+        assert.equal(socketC.receivedEvents.length, 0);
+
+        const connectedSocketsToRoom =
+            await SocketLifecycle.getConnectedSocketToRoom(
+                mtvRoomIDToAssociate,
+            );
+        assert.isFalse(connectedSocketsToRoom.has(socketC.socket.id));
+
+        const leavingUser = await User.findOrFail(userCID);
+        await leavingUser.load('mtvRoom');
+
+        assert.isNull(leavingUser.mtvRoom);
+    });
+
+    test.skip(`It should make a user leave the room after all his devices gets disconnected
+    leaving user devices should not receive any leavedMtvRoom related socket event`, async (assert) => {
+        const userID = datatype.uuid();
+        const userBID = datatype.uuid();
+        const userCID = datatype.uuid();
+
+        sinon
+            .stub(ServerToTemporalController, 'leaveWorkflow')
+            .callsFake(async ({ workflowID }) => {
+                const state: MtvWorkflowState = {
+                    currentTrack: null,
+                    name: random.word(),
+                    playing: false,
+                    roomCreatorUserID: userID,
+                    roomID: workflowID,
+                    tracks: null,
+                    tracksIDsList: null,
+                    userRelatedInformation: null,
+                    usersLength: 2,
+                };
+
+                console.log('*'.repeat(100));
+
+                await supertest(BASE_URL)
+                    .post('/temporal/user-length-update')
+                    .send(state);
+                return;
+            });
+
+        /**
+         * Mocking a mtvRoom in the databse
+         */
+        const mtvRoomIDToAssociate = datatype.uuid();
+        const socket = {
+            socket: await createUserAndGetSocket({
+                userID,
+                mtvRoomIDToAssociate,
+            }),
+            receivedEvents: [] as string[],
+        };
+
+        const socketB = {
+            socket: await createUserAndGetSocket({
+                userID: userBID,
+                mtvRoomIDToAssociate,
+            }),
+            receivedEvents: [] as string[],
+        };
+
+        const socketC = {
+            socket: await createUserAndGetSocket({
+                userID: userCID,
+                mtvRoomIDToAssociate,
+            }),
+            socketB: await createSocketConnection(userCID),
+            receivedEvents: [] as string[],
+        };
+
+        socket.socket.once('USER_LENGTH_UPDATE', () => {
+            socket.receivedEvents.push('USER_LENGTH_UPDATE');
+        });
+
+        socketB.socket.once('USER_LENGTH_UPDATE', () => {
+            socketB.receivedEvents.push('USER_LENGTH_UPDATE');
+        });
+
+        socketC.socket.once('USER_LENGTH_UPDATE', () => {
+            /**
+             * This is the disconnecting one, in this way it should not receive
+             * any event
+             */
+            assert.isTrue(false);
+            socketC.receivedEvents.push('USER_LENGTH_UPDATE');
+        });
+
+        socketC.socketB.once('USER_LENGTH_UPDATE', () => {
+            /**
+             * This is the disconnecting one, in this way it should not receive
+             * any event
+             */
+            assert.isTrue(false);
+            socketC.receivedEvents.push('USER_LENGTH_UPDATE');
+        });
+
+        /**
+         * Emit leave_room with socket C
+         * Expect B and socket to receive USER_LENGTH_UDPATE
+         * server socket event
+         */
+        socketC.socket.emit('LEAVE_ROOM');
+        await sleep();
+
+        assert.equal(socket.receivedEvents.length, 1);
+        assert.equal(socketB.receivedEvents.length, 1);
+        assert.equal(socketC.receivedEvents.length, 0);
+
+        const connectedSocketsToRoom =
+            await SocketLifecycle.getConnectedSocketToRoom(
+                mtvRoomIDToAssociate,
+            );
+        assert.isFalse(connectedSocketsToRoom.has(socketC.socket.id));
+
+        const leavingUser = await User.findOrFail(userCID);
+        await leavingUser.load('mtvRoom');
+
+        assert.isNull(leavingUser.mtvRoom);
+    });
 });

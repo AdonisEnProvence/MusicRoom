@@ -113,19 +113,30 @@ export default class MtvRoomsWsController {
     }
 
     public static async onLeave({
-        user: { uuid: userID },
+        user,
         leavingRoomID,
     }: OnLeaveArgs): Promise<void> {
+        const { uuid: userID } = user;
         console.log(`USER ${userID} LEAVES ${leavingRoomID}`);
+
         const leavingRoom = await MtvRoom.findOrFail(leavingRoomID);
         const { creator, runID } = leavingRoom;
+
+        /**
+         * No matter if the leaving user was creator or not
+         * We need to disconnect every of his device from the room socket io instance
+         * And to dissociate his relationship with the mtvRoom
+         */
+        await UserService.leaveEveryUserDevicesFromRoom(user, leavingRoomID);
+        await user.related('mtvRoom').dissociate();
 
         /**
          * If the leaving user is the room creator we need
          * to terminate the workflow and forced disconnect
          * every remaining users
          */
-        if (userID === creator) {
+        const leavingUserIsTheCreator = userID === creator;
+        if (leavingUserIsTheCreator) {
             await SocketLifecycle.ownerLeavesRoom(leavingRoom);
         } else {
             await ServerToTemporalController.leaveWorkflow({
@@ -160,11 +171,11 @@ export default class MtvRoomsWsController {
     }: OnTerminateArgs): Promise<void> {
         console.log(`TERMINATE ${roomID}`);
         const room = await MtvRoom.findOrFail(roomID);
+        await room.delete();
         await ServerToTemporalController.terminateWorkflow({
             workflowID: roomID,
             runID: room.runID,
         });
-        await room.delete();
     }
 
     public static async onGetState({

@@ -58,6 +58,7 @@ export interface MtvRoomClientToServerEvents {
 }
 
 export interface MtvRoomServerToClientEvents {
+    USER_LENGTH_UPDATE: (state: MtvWorkflowState) => void;
     CREATE_ROOM_SYNCHED_CALLBACK: (state: MtvWorkflowState) => void;
     RETRIEVE_CONTEXT: (state: MtvWorkflowState) => void;
     ACTION_PLAY_CALLBACK: (state: MtvWorkflowState) => void;

@@ -58,7 +58,7 @@ func LeaveActivity(ctx context.Context, state shared.MtvRoomExposedState) error 
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/leave"
+	url := ADONIS_ENDPOINT + "/temporal/user-length-update"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err

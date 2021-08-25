@@ -30,6 +30,15 @@ export default class TemporalToServerController {
         Ws.io.to(roomID).emit('ACTION_PLAY_CALLBACK', state);
     }
 
+    public userLengthUpdate({ request }: HttpContextContract): void {
+        const state = MtvWorkflowState.parse(request.body());
+        const roomID = state.roomID;
+
+        console.log('received userLengthUpdate from temporal', state);
+
+        Ws.io.to(roomID).emit('USER_LENGTH_UPDATE', state);
+    }
+
     public async mtvCreationAcknowledgement({
         request,
     }: HttpContextContract): Promise<void> {

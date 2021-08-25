@@ -47,6 +47,11 @@ Route.post(
     'Temporal/TemporalToServerController.mtvChangeUserEmittingDeviceAcknowledgement',
 );
 
+Route.post(
+    'temporal/user-length-update',
+    'Temporal/TemporalToServerController.userLengthUpdate',
+);
+
 /// //////// ////// ///
 
 Route.get('/', () => {

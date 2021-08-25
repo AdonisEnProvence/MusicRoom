@@ -197,6 +197,7 @@ const (
 	SignalRoutePlay                     = "play"
 	SignalRoutePause                    = "pause"
 	SignalRouteJoin                     = "join"
+	SignalRouteLeave                    = "leave"
 	SignalRouteTerminate                = "terminate"
 	SignalRouteGoToNextTrack            = "go-to-next-track"
 	SignalRouteChangeUserEmittingDevice = "change-user-emitting-device"
@@ -230,6 +231,22 @@ type NewPauseSignalArgs struct {
 func NewPauseSignal(args NewPauseSignalArgs) PauseSignal {
 	return PauseSignal{
 		Route: SignalRoutePause,
+	}
+}
+
+type LeaveSignal struct {
+	Route  SignalRoute
+	UserID string
+}
+
+type NewLeaveSignalArgs struct {
+	UserID string
+}
+
+func NewLeaveSignal(args NewLeaveSignalArgs) JoinSignal {
+	return JoinSignal{
+		Route:  SignalRouteLeave,
+		UserID: args.UserID,
 	}
 }
 

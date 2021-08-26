@@ -50,7 +50,7 @@ export default class UserService {
         await Promise.all(
             user.devices.map(async (device) => {
                 try {
-                    if (connectedSocketsToRoom.has(device.uuid)) {
+                    if (connectedSocketsToRoom.has(device.socketID)) {
                         console.log('remote leave device ', device.socketID);
                         await Ws.adapter().remoteLeave(device.socketID, roomID);
                     }

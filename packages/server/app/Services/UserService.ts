@@ -1,6 +1,7 @@
 import { AllServerToClientEvents, UserDevice } from '@musicroom/types';
 import Device from 'App/Models/Device';
 import User from 'App/Models/User';
+import SocketLifecycle from './SocketLifecycle';
 import Ws from './Ws';
 
 export default class UserService {
@@ -12,7 +13,7 @@ export default class UserService {
         const devicesAttempts = await Promise.all(
             user.devices.map(async (device) => {
                 try {
-                    console.log('connecting device ', device.socketID);
+                    console.log('remote join device ', device.socketID);
                     await Ws.adapter().remoteJoin(device.socketID, roomID);
                     return device.socketID;
                 } catch (e) {
@@ -25,10 +26,39 @@ export default class UserService {
             (el) => el === undefined,
         );
 
-        if (couldntJoinAtLeastOneDevice)
+        if (couldntJoinAtLeastOneDevice) {
             throw new Error(
                 `couldn't join for any device for user ${user.uuid}`,
             );
+        }
+    }
+
+    /**
+     * This function will disconnect user's found devices from
+     * the given roomID socket io room instance
+     * @param user User's devices to disconnect
+     * @param roomID roomID to leave
+     */
+    public static async leaveEveryUserDevicesFromRoom(
+        user: User,
+        roomID: string,
+    ): Promise<void> {
+        const connectedSocketsToRoom =
+            await SocketLifecycle.getConnectedSocketToRoom(roomID);
+
+        await user.load('devices');
+        await Promise.all(
+            user.devices.map(async (device) => {
+                try {
+                    if (connectedSocketsToRoom.has(device.socketID)) {
+                        console.log('remote leave device ', device.socketID);
+                        await Ws.adapter().remoteLeave(device.socketID, roomID);
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            }),
+        );
     }
 
     public static async emitConnectedDevicesUpdateToEveryUserDevices(

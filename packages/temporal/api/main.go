@@ -51,6 +51,7 @@ func main() {
 	r.Handle("/control/{workflowID}/{runID}/pause", http.HandlerFunc(PauseHandler)).Methods(http.MethodPut)
 	r.Handle("/create/{workflowID}", http.HandlerFunc(CreateRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/join", http.HandlerFunc(JoinRoomHandler)).Methods(http.MethodPut)
+	r.Handle("/leave", http.HandlerFunc(LeaveRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/change-user-emitting-device", http.HandlerFunc(ChangeUserEmittingDeviceHandler)).Methods(http.MethodPut)
 	r.Handle("/state", http.HandlerFunc(GetStateHandler)).Methods(http.MethodPut)
 	r.Handle("/go-to-next-track", http.HandlerFunc(GoToNextTrackHandler)).Methods(http.MethodPut)
@@ -297,6 +298,38 @@ func UnescapeRoomIDAndRundID(workflowID, runID string) (UnescapeRoomIDAndRundIDR
 		workflowID,
 		runID,
 	}, nil
+}
+
+type LeaveRoomHandlerBody struct {
+	UserID     string `json:"userID"`
+	WorkflowID string `json:"workflowID"`
+	RunID      string `json:"runID"`
+}
+
+func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var body JoinRoomHandlerBody
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	signal := shared.NewLeaveSignal(shared.NewLeaveSignalArgs{
+		UserID: body.UserID,
+	})
+
+	err = temporal.SignalWorkflow(context.Background(), body.WorkflowID, body.RunID, shared.SignalChannelName, signal)
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	res := make(map[string]interface{})
+	res["ok"] = 1
+	json.NewEncoder(w).Encode(res)
 }
 
 type JoinRoomHandlerBody struct {

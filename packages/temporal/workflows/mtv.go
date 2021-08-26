@@ -83,6 +83,15 @@ func (s *MtvRoomInternalState) AddUser(user shared.InternalStateUser) {
 	}
 }
 
+func (s *MtvRoomInternalState) RemoveUser(userID string) bool {
+	if _, ok := s.Users[userID]; ok {
+		delete(s.Users, userID)
+		return true
+	}
+	fmt.Printf("\n Couldnt find User %s \n", userID)
+	return false
+}
+
 func (s *MtvRoomInternalState) UpdateUserDeviceID(user shared.InternalStateUser) {
 	if val, ok := s.Users[user.UserID]; ok {
 		val.DeviceID = user.DeviceID
@@ -110,6 +119,7 @@ const (
 	MtvRoomIsReady                  brainy.EventType = "MTV_ROOM_IS_READY"
 	MtvRoomGoToPausedEvent          brainy.EventType = "GO_TO_PAUSED"
 	MtvRoomAddUserEvent             brainy.EventType = "ADD_USER"
+	MtvRoomRemoveUserEvent          brainy.EventType = "REMOVE_USER"
 	MtvRoomGoToNextTrackEvent       brainy.EventType = "GO_TO_NEXT_TRACK"
 	MtvRoomChangeUserEmittingDevice brainy.EventType = "CHANGE_USER_EMITTING_DEVICE"
 	MtvRoomSuggestTracks            brainy.EventType = "SUGGEST_TRACKS"
@@ -160,6 +170,22 @@ func NewMtvRoomInitialTracksFetchedEvent(tracks []shared.TrackMetadata) MtvRoomI
 			Event: MtvRoomInitialTracksFetched,
 		},
 		Tracks: tracks,
+	}
+}
+
+type MtvRoomUserLeavingRoomEvent struct {
+	brainy.EventWithType
+
+	UserID string
+}
+
+func NewMtvRoomUserLeavingRoomEvent(userID string) MtvRoomUserLeavingRoomEvent {
+	return MtvRoomUserLeavingRoomEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MtvRoomRemoveUserEvent,
+		},
+
+		UserID: userID,
 	}
 }
 
@@ -567,12 +593,47 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								StartToCloseTimeout:    time.Minute,
 							}
 							ctx = workflow.WithActivityOptions(ctx, options)
+
 							workflow.ExecuteActivity(
 								ctx,
 								activities.JoinActivity,
 								internalState.Export(event.User.UserID),
 								event.User.UserID,
 							)
+
+							workflow.ExecuteActivity(
+								ctx,
+								activities.UserLengthUpdateActivity,
+								internalState.Export(shared.NoRelatedUserID),
+							)
+
+							return nil
+						},
+					),
+				},
+			},
+
+			MtvRoomRemoveUserEvent: brainy.Transition{
+				Actions: brainy.Actions{
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+							event := e.(MtvRoomUserLeavingRoomEvent)
+
+							success := internalState.RemoveUser(event.UserID)
+
+							if success {
+								options := workflow.ActivityOptions{
+									ScheduleToStartTimeout: time.Minute,
+									StartToCloseTimeout:    time.Minute,
+								}
+								ctx = workflow.WithActivityOptions(ctx, options)
+
+								workflow.ExecuteActivity(
+									ctx,
+									activities.UserLengthUpdateActivity,
+									internalState.Export(shared.NoRelatedUserID),
+								)
+							}
 
 							return nil
 						},
@@ -728,7 +789,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					return
 				}
 
-				//Do we have an other solution ?
+				//Use validator
 				if message.UserID == "" || message.DeviceID == "" {
 					logger.Error("Empty fields in message %v", message)
 					return
@@ -780,6 +841,24 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 				internalState.Machine.Send(
 					NewMtvRoomSuggestTracksEvent(message.TracksToSuggest),
+				)
+
+			case shared.SignalRouteLeave:
+				var message shared.LeaveSignal
+
+				if err := mapstructure.Decode(signal, &message); err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
+
+				//Use validator
+				if message.UserID == "" {
+					logger.Error("Empty fields in message %v", message)
+					return
+				}
+
+				internalState.Machine.Send(
+					NewMtvRoomUserLeavingRoomEvent(message.UserID),
 				)
 
 			case shared.SignalRouteTerminate:

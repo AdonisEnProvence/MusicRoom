@@ -67,6 +67,15 @@ func (s *UnitTestSuite) emitJoinSignal(userID string, deviceID string) {
 	s.env.SignalWorkflow(shared.SignalChannelName, signal)
 }
 
+func (s *UnitTestSuite) emitLeaveSignal(userID string) {
+	fmt.Println("-----EMIT LEAVE CALLED IN TEST-----")
+	signal := shared.NewLeaveSignal(shared.NewLeaveSignalArgs{
+		UserID: userID,
+	})
+
+	s.env.SignalWorkflow(shared.SignalChannelName, signal)
+}
+
 func (s *UnitTestSuite) emitChangeUserEmittingDevice(userID string, deviceID string) {
 	fmt.Println("-----EMIT CHANGE USER EMITTING DEVICE CALLED IN TEST-----")
 	signal := shared.NewChangeUserEmittingDeviceSignal(shared.ChangeUserEmittingDeviceSignalArgs{
@@ -370,6 +379,11 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 	s.env.OnActivity(
 		activities.JoinActivity,
 		mock.Anything,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Times(2)
+	s.env.OnActivity(
+		activities.UserLengthUpdateActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Times(2)
@@ -753,6 +767,108 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 
 		s.Equal(&expectedExposedCurrentTrack, mtvState.CurrentTrack)
 	}, verifyThatGoToNextTrackDidntWork)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *UnitTestSuite) Test_UserLeaveRoom() {
+	var (
+		defaultDuration = 1 * time.Millisecond
+		joiningUserID   = faker.UUIDHyphenated()
+	)
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
+	params, _ := getWokflowInitParams(tracksIDs)
+
+	// secondTrackDuration := tracks[1].Duration
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.UserLengthUpdateActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Times(2)
+
+	// 1. We expect the room to be paused by default and contains one user (the creator).
+	initialStateQueryDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		s.False(mtvState.Playing)
+		s.Equal(1, mtvState.UsersLength)
+	}, initialStateQueryDelay)
+
+	// 2. We send a join signal for a user
+	emitJoinSignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitJoinSignal(joiningUserID, faker.UUIDHyphenated())
+	}, emitJoinSignal)
+
+	// 3. check user joined
+	checkUserJoined := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		s.Equal(2, mtvState.UsersLength)
+	}, checkUserJoined)
+
+	// 4. the creator leaves the room
+	creatorLeavesRoom := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitLeaveSignal(params.RoomCreatorUserID)
+	}, creatorLeavesRoom)
+
+	// 5. check user length
+	creatorLeavedTheRoom := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		s.Equal(1, mtvState.UsersLength)
+	}, creatorLeavedTheRoom)
+
+	// 6. unkown user emit leave
+	unkwonUserEmitLeave := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitLeaveSignal(faker.UUIDHyphenated())
+	}, unkwonUserEmitLeave)
+
+	// 7. check it didn't work
+	checkItDidntWork := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		s.Equal(1, mtvState.UsersLength)
+	}, checkItDidntWork)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
 

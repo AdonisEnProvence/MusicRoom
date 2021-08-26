@@ -3,6 +3,7 @@ import Device from 'App/Models/Device';
 import User from 'App/Models/User';
 import { TypedSocket } from 'start/socket';
 import UserAgentParser from 'ua-parser-js';
+import MtvRoom from '../Models/MtvRoom';
 import UserService from './UserService';
 import Ws from './Ws';
 
@@ -27,6 +28,30 @@ export default class SocketLifecycle {
     ): Promise<void> {
         const adapter = Ws.adapter();
         await adapter.remoteJoin(socket.id, mtvRoomID);
+    }
+
+    public static async doesRoomExist(roomID: string): Promise<MtvRoom | null> {
+        // const userID = user.uuid;
+
+        const room = await MtvRoom.find(roomID);
+        const roomExist = room !== null;
+        const joiningRoomDoesntExistInAnySocketNodes = !(
+            await Ws.adapter().allRooms()
+        ).has(roomID);
+
+        /**
+         * If a room is listed in database
+         * It must be listed in one socket node as
+         * a socket io room else it's a corrupted room
+         */
+        if (roomExist && joiningRoomDoesntExistInAnySocketNodes) {
+            throw new Error(
+                'Room exist in database but does not exist in any socket io server instance ' +
+                    roomID,
+            );
+        }
+
+        return room;
     }
 
     /**
@@ -100,7 +125,7 @@ export default class SocketLifecycle {
 
         const disconnectingDeviceOwner = disconnectingDevice.user;
         await disconnectingDeviceOwner.load('mtvRoom');
-        const joinedRoom = disconnectingDeviceOwner.mtvRoom;
+        const relatedMtvRoom = disconnectingDeviceOwner.mtvRoom;
 
         console.log(`LOOSING CONNECTION SOCKETID=${socketID} USER=${userID}`);
 
@@ -116,49 +141,29 @@ export default class SocketLifecycle {
         const disconnectingDeviceIsThelastConnectedDevice =
             allUserDevices.length <= 1;
 
-        const userIsTheCreator =
-            joinedRoom !== null ? joinedRoom.creator === userID : false;
-
         console.log(
-            `User ${
-                userIsTheCreator ? 'owns a room' : 'do not own a room'
-            } and has ${allUserDevices.length} connected`,
+            `User is disconnecting has ${allUserDevices.length} connected`,
         );
 
         /**
          * If disconnecting user was a mtv room owner
          * Send a terminate workflow to temporal
          */
+
         if (
-            userIsTheCreator &&
             disconnectingDeviceIsThelastConnectedDevice &&
-            joinedRoom !== null
+            relatedMtvRoom !== null
         ) {
+            await MtvRoomsWsController.onLeave({
+                user: disconnectingDeviceOwner,
+                leavingRoomID: relatedMtvRoom.uuid,
+            });
+        } else if (relatedMtvRoom !== null && disconnectingDevice.isEmitting) {
+            /**
+             * If the getting evicted device was the emitting one
+             * we need to set a new as emitting
+             */
             try {
-                const ownedRoom = joinedRoom;
-
-                console.log(
-                    `Sending terminate signal to temporal for room ${ownedRoom.uuid}`,
-                );
-                await MtvRoomsWsController.onTerminate({
-                    roomID: ownedRoom.uuid,
-                });
-
-                Ws.io.in(ownedRoom.uuid).emit('FORCED_DISCONNECTION');
-                await this.deleteRoom(ownedRoom.uuid);
-            } catch (e) {
-                console.error(
-                    `Couldnt terminate workflow on owner disconnection ${userID} room: ${joinedRoom.uuid} workflow is still alive in temporal but removed from database`,
-                    e,
-                );
-            }
-        } else if (
-            joinedRoom !== null &&
-            disconnectingDeviceIsThelastConnectedDevice === false &&
-            disconnectingDevice.isEmitting
-        ) {
-            try {
-                //Need to set a new emitting device
                 const availableDevices = allUserDevices.filter(
                     (device) => device.uuid !== disconnectingDevice.uuid,
                 );
@@ -166,7 +171,7 @@ export default class SocketLifecycle {
 
                 await MtvRoomsWsController.onChangeEmittingDevice({
                     deviceID: newEmittingDevice.uuid,
-                    roomID: joinedRoom.uuid,
+                    roomID: relatedMtvRoom.uuid,
                     userID,
                 });
             } catch (e) {
@@ -200,10 +205,10 @@ export default class SocketLifecycle {
     }
 
     /**
-     * Disconnect every connected sockets to roomID
+     * Disconnect every connected sockets in roomID
      * @param roomID room about to be deleted
      */
-    public static async deleteRoom(roomID: string): Promise<void> {
+    public static async deleteSocketIoRoom(roomID: string): Promise<void> {
         const adapter = Ws.adapter();
         const connectedSockets = await this.getConnectedSocketToRoom(roomID);
         console.log(
@@ -212,14 +217,21 @@ export default class SocketLifecycle {
 
         await Promise.all(
             [...connectedSockets].map(
-                async (socketID) => await adapter.remoteLeave(socketID, roomID),
+                async (socketID) =>
+                    await adapter
+                        .remoteLeave(socketID, roomID)
+                        .catch(() =>
+                            console.error(
+                                `socket ${socketID} couldn't leave room ${roomID}`,
+                            ),
+                        ),
             ),
         );
     }
 
     public static async getSocketConnectionCredentials(
         socket: TypedSocket,
-    ): Promise<{ mtvRoomID?: string; userID: string; deviceID: string }> {
+    ): Promise<{ mtvRoomID?: string; user: User; deviceID: string }> {
         const device = await Device.findByOrFail('socket_id', socket.id);
         await device.load('user');
         if (device.user === null) {
@@ -227,7 +239,7 @@ export default class SocketLifecycle {
                 `Device should always have a user relationship deviceID = ${device.uuid}`,
             );
         }
-        const userID = device.user.uuid;
+        const user = device.user;
         const mtvRoomID = device.user.mtvRoomID ?? undefined;
 
         /**
@@ -246,9 +258,30 @@ export default class SocketLifecycle {
         }
 
         return {
-            userID,
+            user,
             mtvRoomID,
             deviceID: device.uuid,
         };
+    }
+
+    public static async ownerLeavesRoom(ownedRoom: MtvRoom): Promise<void> {
+        try {
+            console.log(
+                `Sending terminate signal to temporal for room ${ownedRoom.uuid}`,
+            );
+            await MtvRoomsWsController.onTerminate({
+                roomID: ownedRoom.uuid,
+                runID: ownedRoom.runID,
+            });
+            await ownedRoom.delete();
+
+            Ws.io.in(ownedRoom.uuid).emit('FORCED_DISCONNECTION');
+            await this.deleteSocketIoRoom(ownedRoom.uuid);
+        } catch (e) {
+            console.error(
+                `Couldnt terminate workflow on owner disconnection ${ownedRoom.creator} room: ${ownedRoom.uuid} workflow is still alive in temporal but removed from database`,
+                e,
+            );
+        }
     }
 }

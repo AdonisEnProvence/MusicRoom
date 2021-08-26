@@ -35,13 +35,18 @@ interface TemporalMtvChangeUserEmittingDeviceArgs extends TemporalBaseArgs {
     userID: string;
 }
 
+interface TemporalMtvLeaveWorkflowArgs extends TemporalBaseArgs {
+    userID: string;
+}
+
 interface TemporalMtvGoToNextTrackArgs extends TemporalBaseArgs {}
 interface TemporalMtvPauseArgs extends TemporalBaseArgs {}
 interface TemporalMtvPlayArgs extends TemporalBaseArgs {}
+interface TemporalMtvTerminateWorkflowArgs extends TemporalBaseArgs {}
+
 interface TemporalMtvGetStateArgs extends TemporalBaseArgs {
     userID?: string;
 }
-interface TemporalMtvTerminateWorkflowArgs extends TemporalBaseArgs {}
 
 export default class ServerToTemporalController {
     public static async createMtvWorkflow({
@@ -102,6 +107,27 @@ export default class ServerToTemporalController {
         } catch (e) {
             console.error(e);
             throw new Error('Failed to join temporal workflow ' + workflowID);
+        }
+    }
+
+    public static async leaveWorkflow({
+        workflowID,
+        runID,
+        userID,
+    }: TemporalMtvLeaveWorkflowArgs): Promise<void> {
+        try {
+            const url = urlcat(TEMPORAL_ENDPOINT, '/leave');
+            await got.put(url, {
+                json: {
+                    userID,
+                    runID,
+                    workflowID,
+                },
+                responseType: 'json',
+            });
+        } catch (e) {
+            console.error(e);
+            throw new Error('Failed to leave temporal workflow ' + workflowID);
         }
     }
 

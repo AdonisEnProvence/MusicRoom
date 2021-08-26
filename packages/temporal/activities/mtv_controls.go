@@ -50,6 +50,20 @@ func CreationAcknowledgementActivity(_ context.Context, state shared.MtvRoomExpo
 	return err
 }
 
+// As we removed a user we need to send back the new UserLength value to every others clients
+// Calculated in the internalState.Export()
+func UserLengthUpdateActivity(ctx context.Context, state shared.MtvRoomExposedState) error {
+	marshaledBody, err := json.Marshal(state)
+	if err != nil {
+		return err
+	}
+
+	url := ADONIS_ENDPOINT + "/temporal/user-length-update"
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+
+	return err
+}
+
 type mtvJoinCallbackRequestBody struct {
 	State         shared.MtvRoomExposedState `json:"state"`
 	JoiningUserID string                     `json:"joiningUserID"`

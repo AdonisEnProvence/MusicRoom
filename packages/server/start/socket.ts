@@ -138,21 +138,28 @@ Ws.io.on('connection', async (socket) => {
                     );
                 }
 
-                const { user, deviceID, mtvRoomID } =
-                    await SocketLifecycle.getSocketConnectionCredentials(
-                        socket,
-                    );
+                const {
+                    user,
+                    deviceID,
+                    mtvRoomID: currMtvRoomID,
+                } = await SocketLifecycle.getSocketConnectionCredentials(
+                    socket,
+                );
 
+                console.log(`JOIN SIGNAL RECEIVE FOR USER ${user.uuid}`);
                 /**
                  * Checking if user needs to leave previous
                  * mtv room before joining new one
                  * If the leave fails the join won't
                  * achieve
                  */
-                if (mtvRoomID !== undefined) {
+                if (currMtvRoomID !== undefined) {
+                    console.log(
+                        `User needs to leave current room before joining new one`,
+                    );
                     await MtvRoomsWsController.onLeave({
                         user,
-                        leavingRoomID: mtvRoomID,
+                        leavingRoomID: currMtvRoomID,
                     });
                 }
 

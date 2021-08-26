@@ -136,6 +136,7 @@ export default class MtvRoomsWsController {
          * every remaining users
          */
         const leavingUserIsTheCreator = userID === creator;
+        console.log('LEAVING USER IS THE CREATOR ', leavingUserIsTheCreator);
         if (leavingUserIsTheCreator) {
             await SocketLifecycle.ownerLeavesRoom(leavingRoom);
         } else {

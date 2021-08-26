@@ -459,7 +459,7 @@ test.group('Rooms life cycle', (group) => {
          */
         assert.isNull(await MtvRoom.findBy('creator', userID));
     });
-    test.only(`It should creates a room, and it should join room for every user's session/device after one emits JOIN_ROOM
+    test(`It should creates a room, and it should join room for every user's session/device after one emits JOIN_ROOM
     It should send USER_LENGTH_UPDATE to every already existing room members`, async (assert) => {
         const userID = datatype.uuid();
         const creatorID = datatype.uuid();
@@ -1293,6 +1293,7 @@ test.group('Rooms life cycle', (group) => {
                 mtvRoomIDToAssociate,
             );
         assert.isFalse(connectedSocketsToRoom.has(socketC.socket.id));
+        assert.isFalse(connectedSocketsToRoom.has(socketC.socketB.id));
 
         const leavingUser = await User.findOrFail(userCID);
         await leavingUser.load('mtvRoom');
@@ -1333,8 +1334,6 @@ test.group('Rooms life cycle', (group) => {
         socket.socket.emit('LEAVE_ROOM');
         await sleep();
 
-        assert.equal(socket.receivedEvents.length, 2);
-        console.log(socketB.receivedEvents);
         assert.equal(socketB.receivedEvents.length, 2);
         assert.notEqual(
             socketB.receivedEvents.indexOf('FORCED_DISCONNECTION'),
@@ -1344,56 +1343,108 @@ test.group('Rooms life cycle', (group) => {
         connectedSocketsToRoom = await SocketLifecycle.getConnectedSocketToRoom(
             mtvRoomIDToAssociate,
         );
-        assert.isFalse(connectedSocketsToRoom.has(socketC.socket.id));
+        assert.isFalse(connectedSocketsToRoom.has(socket.socket.id));
+        assert.isFalse(connectedSocketsToRoom.has(socket.socketB.id));
 
         const leavingCreator = await User.findOrFail(userCID);
         await leavingCreator.load('mtvRoom');
 
-        assert.isNull(leavingUser.mtvRoom);
+        assert.isNull(leavingCreator.mtvRoom);
         assert.isNull(await MtvRoom.find(mtvRoomIDToAssociate));
     });
 
-    test.skip(`It should make a user leave the room after he joins a new one
-    leaving user devices should not receive any leavedMtvRoom related socket event`, async (assert) => {
-        const userID = datatype.uuid();
+    test(`It should make a user leave the room after he joins a new one
+    leaving user devices should not receive any leavedMtvRoom related socket event
+    If the creator does the same it should send FORCED_DISCONNECTION to every remaining users in the room`, async (assert) => {
+        const userAID = datatype.uuid();
         const userBID = datatype.uuid();
         const userCID = datatype.uuid();
+        const mtvRoomIDToAssociate = datatype.uuid();
+
+        const roomToJoinCreatorID = datatype.uuid();
+        const mtvRoomToJoinID = datatype.uuid();
+
+        let roomToLeaveState: MtvWorkflowState = {
+            currentTrack: null,
+            name: random.word(),
+            playing: false,
+            roomCreatorUserID: userAID,
+            roomID: mtvRoomIDToAssociate,
+            tracks: null,
+            tracksIDsList: null,
+            userRelatedInformation: null,
+            usersLength: 3,
+        };
+
+        const roomToJoinState: MtvWorkflowState = {
+            currentTrack: null,
+            name: random.word(),
+            playing: false,
+            roomCreatorUserID: roomToJoinCreatorID,
+            roomID: mtvRoomToJoinID,
+            tracks: null,
+            tracksIDsList: null,
+            userRelatedInformation: null,
+            usersLength: 1,
+        };
 
         sinon
             .stub(ServerToTemporalController, 'leaveWorkflow')
             .callsFake(async ({ workflowID }) => {
-                const state: MtvWorkflowState = {
-                    currentTrack: null,
-                    name: random.word(),
-                    playing: false,
-                    roomCreatorUserID: userID,
+                roomToLeaveState = {
+                    ...roomToLeaveState,
                     roomID: workflowID,
-                    tracks: null,
-                    tracksIDsList: null,
-                    userRelatedInformation: null,
-                    usersLength: 2,
+                    usersLength: roomToLeaveState.usersLength - 1,
                 };
 
                 console.log('*'.repeat(100));
 
                 await supertest(BASE_URL)
                     .post('/temporal/user-length-update')
-                    .send(state);
+                    .send(roomToLeaveState);
+                return;
+            });
+        sinon
+            .stub(ServerToTemporalController, 'terminateWorkflow')
+            .callsFake(async () => {
+                return;
+            });
+        sinon
+            .stub(ServerToTemporalController, 'joinWorkflow')
+            .callsFake(async ({ userID: relatedUserID }) => {
+                roomToJoinState.usersLength++;
+                roomToJoinState.userRelatedInformation = {
+                    userID: relatedUserID,
+                    emittingDeviceID: datatype.uuid(),
+                };
+                await supertest(BASE_URL).post('/temporal/join').send({
+                    state: roomToJoinState,
+                    joiningUserID: relatedUserID,
+                });
                 return;
             });
 
         /**
          * Mocking a mtvRoom in the databse
          */
-        const mtvRoomIDToAssociate = datatype.uuid();
+
+        //CREATOR
         const socket = {
             socket: await createUserAndGetSocket({
-                userID,
+                userID: userAID,
                 mtvRoomIDToAssociate,
             }),
+            socketB: await createSocketConnection(userAID),
             receivedEvents: [] as string[],
         };
 
+        //ROOM TO JOIN CREATOR
+        await createUserAndGetSocket({
+            userID: roomToJoinCreatorID,
+            mtvRoomIDToAssociate: mtvRoomToJoinID,
+        });
+
+        //USER B
         const socketB = {
             socket: await createUserAndGetSocket({
                 userID: userBID,
@@ -1402,6 +1453,7 @@ test.group('Rooms life cycle', (group) => {
             receivedEvents: [] as string[],
         };
 
+        //USER C
         const socketC = {
             socket: await createUserAndGetSocket({
                 userID: userCID,
@@ -1411,14 +1463,21 @@ test.group('Rooms life cycle', (group) => {
             receivedEvents: [] as string[],
         };
 
+        //CREATOR
         socket.socket.once('USER_LENGTH_UPDATE', () => {
             socket.receivedEvents.push('USER_LENGTH_UPDATE');
         });
 
+        socket.socketB.once('USER_LENGTH_UPDATE', () => {
+            socket.receivedEvents.push('USER_LENGTH_UPDATE');
+        });
+
+        //USER B
         socketB.socket.once('USER_LENGTH_UPDATE', () => {
             socketB.receivedEvents.push('USER_LENGTH_UPDATE');
         });
 
+        //USER C
         socketC.socket.once('USER_LENGTH_UPDATE', () => {
             /**
              * This is the disconnecting one, in this way it should not receive
@@ -1438,134 +1497,75 @@ test.group('Rooms life cycle', (group) => {
         });
 
         /**
-         * Emit leave_room with socket C
+         * Emit join_room with socket C
          * Expect B and socket to receive USER_LENGTH_UDPATE
          * server socket event
          */
-        socketC.socket.emit('LEAVE_ROOM');
+        socketC.socket.emit('JOIN_ROOM', {
+            roomID: mtvRoomToJoinID,
+        });
+        await sleep();
         await sleep();
 
-        assert.equal(socket.receivedEvents.length, 1);
+        assert.equal(socket.receivedEvents.length, 2);
         assert.equal(socketB.receivedEvents.length, 1);
         assert.equal(socketC.receivedEvents.length, 0);
 
-        const connectedSocketsToRoom =
+        let connectedSocketsToRoom =
             await SocketLifecycle.getConnectedSocketToRoom(
                 mtvRoomIDToAssociate,
             );
         assert.isFalse(connectedSocketsToRoom.has(socketC.socket.id));
+        assert.isFalse(connectedSocketsToRoom.has(socketC.socketB.id));
 
         const leavingUser = await User.findOrFail(userCID);
         await leavingUser.load('mtvRoom');
 
-        assert.isNull(leavingUser.mtvRoom);
-    });
-
-    test.skip(`It should make a user leave the room after all his devices gets disconnected
-    leaving user devices should not receive any leavedMtvRoom related socket event`, async (assert) => {
-        const userID = datatype.uuid();
-        const userBID = datatype.uuid();
-        const userCID = datatype.uuid();
-
-        sinon
-            .stub(ServerToTemporalController, 'leaveWorkflow')
-            .callsFake(async ({ workflowID }) => {
-                const state: MtvWorkflowState = {
-                    currentTrack: null,
-                    name: random.word(),
-                    playing: false,
-                    roomCreatorUserID: userID,
-                    roomID: workflowID,
-                    tracks: null,
-                    tracksIDsList: null,
-                    userRelatedInformation: null,
-                    usersLength: 2,
-                };
-
-                console.log('*'.repeat(100));
-
-                await supertest(BASE_URL)
-                    .post('/temporal/user-length-update')
-                    .send(state);
-                return;
-            });
+        assert.equal(mtvRoomToJoinID, leavingUser.mtvRoom.uuid);
 
         /**
-         * Mocking a mtvRoom in the databse
+         * Same with creator
          */
-        const mtvRoomIDToAssociate = datatype.uuid();
-        const socket = {
-            socket: await createUserAndGetSocket({
-                userID,
-                mtvRoomIDToAssociate,
-            }),
-            receivedEvents: [] as string[],
-        };
 
-        const socketB = {
-            socket: await createUserAndGetSocket({
-                userID: userBID,
-                mtvRoomIDToAssociate,
-            }),
-            receivedEvents: [] as string[],
-        };
-
-        const socketC = {
-            socket: await createUserAndGetSocket({
-                userID: userCID,
-                mtvRoomIDToAssociate,
-            }),
-            socketB: await createSocketConnection(userCID),
-            receivedEvents: [] as string[],
-        };
-
-        socket.socket.once('USER_LENGTH_UPDATE', () => {
-            socket.receivedEvents.push('USER_LENGTH_UPDATE');
+        //CREATOR
+        socket.socket.once('FORCED_DISCONNECTION', () => {
+            assert.isTrue(false);
         });
 
+        socket.socketB.once('FORCED_DISCONNECTION', () => {
+            assert.isTrue(false);
+        });
+
+        //USER B
         socketB.socket.once('USER_LENGTH_UPDATE', () => {
-            socketB.receivedEvents.push('USER_LENGTH_UPDATE');
-        });
-
-        socketC.socket.once('USER_LENGTH_UPDATE', () => {
-            /**
-             * This is the disconnecting one, in this way it should not receive
-             * any event
-             */
             assert.isTrue(false);
-            socketC.receivedEvents.push('USER_LENGTH_UPDATE');
         });
 
-        socketC.socketB.once('USER_LENGTH_UPDATE', () => {
-            /**
-             * This is the disconnecting one, in this way it should not receive
-             * any event
-             */
-            assert.isTrue(false);
-            socketC.receivedEvents.push('USER_LENGTH_UPDATE');
+        socketB.socket.once('FORCED_DISCONNECTION', () => {
+            socketB.receivedEvents.push('FORCED_DISCONNECTION');
         });
-
         /**
-         * Emit leave_room with socket C
-         * Expect B and socket to receive USER_LENGTH_UDPATE
-         * server socket event
+         * Creator joins the room
          */
-        socketC.socket.emit('LEAVE_ROOM');
+        socket.socket.emit('JOIN_ROOM', { roomID: mtvRoomToJoinID });
         await sleep();
 
-        assert.equal(socket.receivedEvents.length, 1);
-        assert.equal(socketB.receivedEvents.length, 1);
-        assert.equal(socketC.receivedEvents.length, 0);
+        assert.equal(socketB.receivedEvents.length, 2);
+        assert.notEqual(
+            socketB.receivedEvents.indexOf('FORCED_DISCONNECTION'),
+            -1,
+        );
 
-        const connectedSocketsToRoom =
-            await SocketLifecycle.getConnectedSocketToRoom(
-                mtvRoomIDToAssociate,
-            );
-        assert.isFalse(connectedSocketsToRoom.has(socketC.socket.id));
+        connectedSocketsToRoom = await SocketLifecycle.getConnectedSocketToRoom(
+            mtvRoomIDToAssociate,
+        );
+        assert.isFalse(connectedSocketsToRoom.has(socket.socket.id));
+        assert.isFalse(connectedSocketsToRoom.has(socket.socketB.id));
 
-        const leavingUser = await User.findOrFail(userCID);
-        await leavingUser.load('mtvRoom');
+        const leavingCreator = await User.findOrFail(userCID);
+        await leavingCreator.load('mtvRoom');
 
-        assert.isNull(leavingUser.mtvRoom);
+        assert.isNotNull(leavingCreator.mtvRoom);
+        assert.isNull(await MtvRoom.find(mtvRoomIDToAssociate));
     });
 });

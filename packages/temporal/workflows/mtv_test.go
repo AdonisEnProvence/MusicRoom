@@ -382,6 +382,12 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Times(2)
+	s.env.OnActivity(
+		activities.UserLengthUpdateActivity,
+		mock.Anything,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Times(2)
 
 	checkOnlyOneUser := defaultDuration
 	registerDelayedCallbackWrapper(func() {
@@ -809,7 +815,7 @@ func (s *UnitTestSuite) Test_UserLeaveRoom() {
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.LeaveActivity,
+		activities.UserLengthUpdateActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()

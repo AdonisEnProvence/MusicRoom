@@ -52,7 +52,7 @@ func CreationAcknowledgementActivity(_ context.Context, state shared.MtvRoomExpo
 
 // As we removed a user we need to send back the new UserLength value to every others clients
 // Calculated in the internalState.Export()
-func LeaveActivity(ctx context.Context, state shared.MtvRoomExposedState) error {
+func UserLengthUpdateActivity(ctx context.Context, state shared.MtvRoomExposedState) error {
 	marshaledBody, err := json.Marshal(state)
 	if err != nil {
 		return err

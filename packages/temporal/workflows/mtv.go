@@ -592,11 +592,18 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								StartToCloseTimeout:    time.Minute,
 							}
 							ctx = workflow.WithActivityOptions(ctx, options)
+
 							workflow.ExecuteActivity(
 								ctx,
 								activities.JoinActivity,
 								internalState.Export(event.User.UserID),
 								event.User.UserID,
+							)
+
+							workflow.ExecuteActivity(
+								ctx,
+								activities.UserLengthUpdateActivity,
+								internalState.Export(shared.NoRelatedUserID),
 							)
 
 							return nil
@@ -618,11 +625,11 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								StartToCloseTimeout:    time.Minute,
 							}
 							ctx = workflow.WithActivityOptions(ctx, options)
+
 							workflow.ExecuteActivity(
 								ctx,
-								activities.LeaveActivity,
+								activities.UserLengthUpdateActivity,
 								internalState.Export(shared.NoRelatedUserID),
-								event.UserID,
 							)
 
 							return nil

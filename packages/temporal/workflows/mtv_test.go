@@ -386,7 +386,6 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		activities.UserLengthUpdateActivity,
 		mock.Anything,
 		mock.Anything,
-		mock.Anything,
 	).Return(nil).Times(2)
 
 	checkOnlyOneUser := defaultDuration
@@ -818,7 +817,7 @@ func (s *UnitTestSuite) Test_UserLeaveRoom() {
 		activities.UserLengthUpdateActivity,
 		mock.Anything,
 		mock.Anything,
-	).Return(nil).Once()
+	).Return(nil).Times(2)
 
 	// 1. We expect the room to be paused by default and contains one user (the creator).
 	initialStateQueryDelay := defaultDuration
@@ -856,6 +855,20 @@ func (s *UnitTestSuite) Test_UserLeaveRoom() {
 
 		s.Equal(1, mtvState.UsersLength)
 	}, creatorLeavedTheRoom)
+
+	// 6. unkown user emit leave
+	unkwonUserEmitLeave := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitLeaveSignal(faker.UUIDHyphenated())
+	}, unkwonUserEmitLeave)
+
+	// 7. check it didn't work
+	checkItDidntWork := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		s.Equal(1, mtvState.UsersLength)
+	}, checkItDidntWork)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
 

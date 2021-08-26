@@ -83,12 +83,13 @@ func (s *MtvRoomInternalState) AddUser(user shared.InternalStateUser) {
 	}
 }
 
-func (s *MtvRoomInternalState) RemoveUser(userID string) {
+func (s *MtvRoomInternalState) RemoveUser(userID string) bool {
 	if _, ok := s.Users[userID]; ok {
 		delete(s.Users, userID)
-	} else {
-		fmt.Printf("\n Couldnt find User %s \n", userID)
+		return true
 	}
+	fmt.Printf("\n Couldnt find User %s \n", userID)
+	return false
 }
 
 func (s *MtvRoomInternalState) UpdateUserDeviceID(user shared.InternalStateUser) {
@@ -618,19 +619,21 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 						func(c brainy.Context, e brainy.Event) error {
 							event := e.(MtvRoomUserLeavingRoomEvent)
 
-							internalState.RemoveUser(event.UserID)
+							success := internalState.RemoveUser(event.UserID)
 
-							options := workflow.ActivityOptions{
-								ScheduleToStartTimeout: time.Minute,
-								StartToCloseTimeout:    time.Minute,
+							if success {
+								options := workflow.ActivityOptions{
+									ScheduleToStartTimeout: time.Minute,
+									StartToCloseTimeout:    time.Minute,
+								}
+								ctx = workflow.WithActivityOptions(ctx, options)
+
+								workflow.ExecuteActivity(
+									ctx,
+									activities.UserLengthUpdateActivity,
+									internalState.Export(shared.NoRelatedUserID),
+								)
 							}
-							ctx = workflow.WithActivityOptions(ctx, options)
-
-							workflow.ExecuteActivity(
-								ctx,
-								activities.UserLengthUpdateActivity,
-								internalState.Export(shared.NoRelatedUserID),
-							)
 
 							return nil
 						},

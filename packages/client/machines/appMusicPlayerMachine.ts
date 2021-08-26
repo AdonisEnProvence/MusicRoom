@@ -54,7 +54,8 @@ export type AppMusicPlayerMachineEvent =
           type: 'RETRIEVE_CONTEXT';
           state: MtvWorkflowState;
       }
-    | { type: 'PAUSE_CALLBACK' };
+    | { type: 'PAUSE_CALLBACK' }
+    | { type: 'SUGGEST_TRACKS'; tracksToSuggest: string[] };
 
 interface CreateAppMusicPlayerMachineArgs {
     socket: SocketClient;
@@ -194,6 +195,17 @@ export const createAppMusicPlayerMachine = ({
                                 socket.emit('CHANGE_EMITTING_DEVICE', {
                                     newEmittingDeviceID: e.params.deviceID,
                                 });
+
+                                break;
+                            }
+
+                            case 'SUGGEST_TRACKS': {
+                                const tracksToSuggest = e.tracksToSuggest;
+
+                                socket.emit('SUGGEST_TRACKS', {
+                                    tracksToSuggest,
+                                });
+
                                 break;
                             }
                         }
@@ -589,6 +601,18 @@ export const createAppMusicPlayerMachine = ({
                         ROOM_IS_READY: {
                             target: '.creatingRoom.roomIsReady',
                             actions: 'assignMergeNewState',
+                        },
+
+                        SUGGEST_TRACKS: {
+                            actions: send(
+                                (_context, event) => ({
+                                    type: 'SUGGEST_TRACKS',
+                                    tracksToSuggest: event.tracksToSuggest,
+                                }),
+                                {
+                                    to: 'socketConnection',
+                                },
+                            ),
                         },
                     },
                 },

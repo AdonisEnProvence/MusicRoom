@@ -152,8 +152,10 @@ export function useSuggestTracks(): (tracksIDs: string[]) => void {
     const { sendToMachine } = useMusicPlayer();
 
     function suggestTracks(tracksIDs: string[]) {
-        // TODO: send to the state machine the tracks the user wants to suggest
-        // sendToMachine()
+        sendToMachine({
+            type: 'SUGGEST_TRACKS',
+            tracksToSuggest: tracksIDs,
+        });
     }
 
     return suggestTracks;

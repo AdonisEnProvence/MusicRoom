@@ -54,6 +54,9 @@ test(`A user can suggest tracks to play`, async () => {
         serverSocket.emit('RETRIEVE_CONTEXT', initialState);
     });
 
+    const suggestTracksHandler = jest.fn();
+    serverSocket.on('SUGGEST_TRACKS', suggestTracksHandler);
+
     const {
         getAllByText,
         getByText,
@@ -122,6 +125,8 @@ test(`A user can suggest tracks to play`, async () => {
     fireEvent.press(trackToSuggest);
 
     await waitForElementToBeRemoved(() => getByText(/results/i));
+
+    expect(suggestTracksHandler).toHaveBeenCalledTimes(1);
 
     // TODO: decomment when it will have been implemented
     // const suggestedTrack = await within(musicPlayerFullScreen).findByText(

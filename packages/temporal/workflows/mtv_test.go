@@ -50,6 +50,13 @@ func (s *UnitTestSuite) emitPlaySignal() {
 	s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
 }
 
+func (s *UnitTestSuite) emitSuggestTrackSignal(args shared.SuggestTracksSignalArgs) {
+	fmt.Println("-----EMIT SUGGEST TRACK CALLED IN TEST-----")
+	suggestTracksSignal := shared.NewSuggestTracksSignal(args)
+
+	s.env.SignalWorkflow(shared.SignalChannelName, suggestTracksSignal)
+}
+
 func (s *UnitTestSuite) emitJoinSignal(userID string, deviceID string) {
 	fmt.Println("-----EMIT JOIN CALLED IN TEST-----")
 	signal := shared.NewJoinSignal(shared.NewJoinSignalArgs{
@@ -946,11 +953,9 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 
 	firstSuggestTracksSignalDelay := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		suggestTracksSignal := shared.NewSuggestTracksSignal(shared.SuggestTracksSignalArgs{
+		s.emitSuggestTrackSignal(shared.SuggestTracksSignalArgs{
 			TracksToSuggest: tracksIDsToSuggest,
 		})
-
-		s.env.SignalWorkflow(shared.SignalChannelName, suggestTracksSignal)
 	}, firstSuggestTracksSignalDelay)
 
 	assertSuggestedTracksHaveBeenAcceptedDelay := defaultDuration
@@ -963,11 +968,9 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 
 	secondSuggestTracksSignalDelay := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		suggestTracksSignal := shared.NewSuggestTracksSignal(shared.SuggestTracksSignalArgs{
+		s.emitSuggestTrackSignal(shared.SuggestTracksSignalArgs{
 			TracksToSuggest: []string{duplicateTrackIDToSuggest},
 		})
-
-		s.env.SignalWorkflow(shared.SignalChannelName, suggestTracksSignal)
 	}, secondSuggestTracksSignalDelay)
 
 	assertDuplicateSuggestedTrackHasNotBeenAcceptedDelay := defaultDuration
@@ -982,11 +985,9 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 	registerDelayedCallbackWrapper(func() {
 		idOfTrackInTracksList := tracks[1].ID
 
-		suggestTracksSignal := shared.NewSuggestTracksSignal(shared.SuggestTracksSignalArgs{
+		s.emitSuggestTrackSignal(shared.SuggestTracksSignalArgs{
 			TracksToSuggest: []string{idOfTrackInTracksList},
 		})
-
-		s.env.SignalWorkflow(shared.SignalChannelName, suggestTracksSignal)
 	}, thirdSuggestTracksSignalDelay)
 
 	assertDuplicateFromTracksListSuggestedTrackHasNotBeenAcceptedDelay := defaultDuration

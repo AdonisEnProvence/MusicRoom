@@ -10,11 +10,6 @@ import UserService from 'App/Services/UserService';
 import { randomUUID } from 'crypto';
 import ServerToTemporalController from '../Http/Temporal/ServerToTemporalController';
 
-// interface WsControllerMethodArgs<Payload> {
-//     socket: Socket<MtvRoomClientToServerEvents>;
-//     payload: Payload;
-// }
-
 interface UserID {
     userID: string;
 }
@@ -48,6 +43,9 @@ interface OnTerminateArgs extends RoomID, RunID {}
 interface OnGetStateArgs extends RoomID, UserID {}
 interface OnGoToNextTrackArgs extends RoomID {}
 interface OnChangeEmittingDeviceArgs extends RoomID, DeviceID, UserID {}
+interface OnSuggestTracksArgs extends RoomID {
+    tracksToSuggest: string[];
+}
 
 export default class MtvRoomsWsController {
     public static async onCreate({
@@ -217,6 +215,19 @@ export default class MtvRoomsWsController {
             runID,
             deviceID,
             userID,
+        });
+    }
+
+    public static async onTracksSuggestion({
+        roomID,
+        tracksToSuggest,
+    }: OnSuggestTracksArgs): Promise<void> {
+        const { runID } = await MtvRoom.findOrFail(roomID);
+
+        await ServerToTemporalController.suggestTracks({
+            workflowID: roomID,
+            runID,
+            tracksToSuggest,
         });
     }
 }

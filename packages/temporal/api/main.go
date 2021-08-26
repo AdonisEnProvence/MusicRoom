@@ -55,6 +55,7 @@ func main() {
 	r.Handle("/change-user-emitting-device", http.HandlerFunc(ChangeUserEmittingDeviceHandler)).Methods(http.MethodPut)
 	r.Handle("/state", http.HandlerFunc(GetStateHandler)).Methods(http.MethodPut)
 	r.Handle("/go-to-next-track", http.HandlerFunc(GoToNextTrackHandler)).Methods(http.MethodPut)
+	r.Handle("/suggest-tracks", http.HandlerFunc(SuggestTracksHandler)).Methods(http.MethodPut)
 	r.Handle("/terminate/{workflowID}/{runID}", http.HandlerFunc(TerminateWorkflowHandler)).Methods(http.MethodGet)
 
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
@@ -156,6 +157,43 @@ func ChangeUserEmittingDeviceHandler(w http.ResponseWriter, r *http.Request) {
 		body.RunID,
 		shared.SignalChannelName,
 		changeUserEmittingDeviceSignal,
+	); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	res := make(map[string]interface{})
+	res["ok"] = 1
+	json.NewEncoder(w).Encode(res)
+}
+
+type SuggestTracksRequestBody struct {
+	WorkflowID string `json:"workflowID"`
+	RunID      string `json:"runID"`
+
+	TracksToSuggest []string `json:"tracksToSuggest"`
+}
+
+func SuggestTracksHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var body SuggestTracksRequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	suggestTracksSignal := shared.NewSuggestTracksSignal(shared.SuggestTracksSignalArgs{
+		TracksToSuggest: body.TracksToSuggest,
+	})
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		body.RunID,
+		shared.SignalChannelName,
+		suggestTracksSignal,
 	); err != nil {
 		WriteError(w, err)
 		return

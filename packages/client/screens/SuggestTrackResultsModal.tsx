@@ -9,6 +9,7 @@ import { SearchTrackResultsScreenProps } from '../types';
 import { FlatList } from 'react-native';
 import TrackListItem from '../components/Track/TrackListItem';
 import { useSuggestTracks } from '../contexts/MusicPlayerContext';
+import { View } from 'dripsy';
 
 const SuggestTrackResultsModal: React.FC<SearchTrackResultsScreenProps> = ({
     route,
@@ -49,14 +50,20 @@ const SuggestTrackResultsModal: React.FC<SearchTrackResultsScreenProps> = ({
                         item: { id, title, artistName },
                         index,
                     }) => (
-                        <TrackListItem
-                            index={index + 1}
-                            title={title}
-                            artistName={artistName}
-                            onPress={() => {
-                                handleTrackPress(id);
+                        <View
+                            sx={{
+                                marginBottom: 'm',
                             }}
-                        />
+                        >
+                            <TrackListItem
+                                index={index + 1}
+                                title={title}
+                                artistName={artistName}
+                                onPress={() => {
+                                    handleTrackPress(id);
+                                }}
+                            />
+                        </View>
                     )}
                     keyExtractor={(_, index) => String(index)}
                 />

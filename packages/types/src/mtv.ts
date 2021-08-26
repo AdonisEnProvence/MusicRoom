@@ -26,18 +26,17 @@ export const UserRelatedInformation = z.object({
 });
 export type UserRelatedInformation = z.infer<typeof UserRelatedInformation>;
 
-export const MtvWorkflowState = z
-    .object({
-        roomID: z.string().uuid(),
-        roomCreatorUserID: z.string().uuid(),
-        playing: z.boolean(),
-        name: z.string(),
-        userRelatedInformation: UserRelatedInformation.nullable(),
-        usersLength: z.number(),
-        currentTrack: CurrentTrack.nullable(),
-        tracks: z.array(TrackMetadataWithScore).nullable(),
-    })
-    .nonstrict();
+export const MtvWorkflowState = z.object({
+    roomID: z.string().uuid(),
+    roomCreatorUserID: z.string().uuid(),
+    playing: z.boolean(),
+    name: z.string(),
+    userRelatedInformation: UserRelatedInformation.nullable(),
+    usersLength: z.number(),
+    currentTrack: CurrentTrack.nullable(),
+    tracks: z.array(TrackMetadataWithScore).nullable(),
+    suggestedTracks: z.array(TrackMetadataWithScore).nullable(),
+});
 export type MtvWorkflowState = z.infer<typeof MtvWorkflowState>;
 
 export const MtvWorkflowStateWithUserRelatedInformation =

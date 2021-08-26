@@ -9,6 +9,7 @@ import { SearchTrackResultsScreenProps } from '../types';
 import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import { FlatList } from 'react-native';
 import TrackListItem from '../components/Track/TrackListItem';
+import { View } from 'dripsy';
 
 const SearchTracksResultsScreen: React.FC<SearchTrackResultsScreenProps> = ({
     route,
@@ -36,14 +37,20 @@ const SearchTracksResultsScreen: React.FC<SearchTrackResultsScreenProps> = ({
                         item: { id, title, artistName },
                         index,
                     }) => (
-                        <TrackListItem
-                            index={index + 1}
-                            title={title}
-                            artistName={artistName}
-                            onPress={() => {
-                                handleTrackPress(id);
+                        <View
+                            sx={{
+                                marginBottom: 'm',
                             }}
-                        />
+                        >
+                            <TrackListItem
+                                index={index + 1}
+                                title={title}
+                                artistName={artistName}
+                                onPress={() => {
+                                    handleTrackPress(id);
+                                }}
+                            />
+                        </View>
                     )}
                     keyExtractor={(_, index) => String(index)}
                 />

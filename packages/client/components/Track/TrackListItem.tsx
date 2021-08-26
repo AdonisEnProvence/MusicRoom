@@ -24,8 +24,6 @@ const TrackListItem: React.FC<TrackListItemProps> = ({
                 backgroundColor: 'greyLight',
                 borderRadius: 's',
                 flexDirection: 'row',
-
-                marginBottom: 'm',
             }}
         >
             <TouchableOpacity onPress={onPress} style={{ flex: 1 }}>

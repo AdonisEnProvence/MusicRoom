@@ -68,6 +68,7 @@ const rawContext: AppMusicPlayerMachineContext = {
     roomCreatorUserID: '',
     roomID: '',
     tracks: null,
+    suggestedTracks: null,
     userRelatedInformation: null,
     usersLength: 0,
     currentTrack: null,

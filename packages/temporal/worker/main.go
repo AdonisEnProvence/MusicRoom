@@ -20,7 +20,9 @@ func main() {
 	defer c.Close()
 	// This worker hosts both Worker and Activity functions
 	w := worker.New(c, shared.ControlTaskQueue, worker.Options{})
+
 	w.RegisterWorkflow(workflows.MtvRoomWorkflow)
+
 	w.RegisterActivity(activities.PingActivity)
 	w.RegisterActivity(activities.PlayActivity)
 	w.RegisterActivity(activities.PauseActivity)
@@ -29,6 +31,8 @@ func main() {
 	w.RegisterActivity(activities.FetchTracksInformationActivity)
 	w.RegisterActivity(activities.UserLengthUpdateActivity)
 	w.RegisterActivity(activities.ChangeUserEmittingDeviceActivity)
+	w.RegisterActivity(activities.SuggestedTracksListChangedActivity)
+
 	// Start listening to the Task Queue
 	err = w.Run(worker.InterruptCh())
 	if err != nil {

@@ -629,7 +629,8 @@ export const createAppMusicPlayerMachine = ({
                         event.type !== 'ROOM_IS_READY' &&
                         event.type !== 'PLAY_CALLBACK' &&
                         event.type !== 'CHANGE_EMITTING_DEVICE_CALLBACK' &&
-                        event.type !== 'USER_LENGTH_UPDATE'
+                        event.type !== 'USER_LENGTH_UPDATE' &&
+                        event.type !== 'SUGGEST_TRACKS_CALLBACK'
                     ) {
                         return context;
                     }

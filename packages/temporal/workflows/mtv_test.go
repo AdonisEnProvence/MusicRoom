@@ -787,13 +787,13 @@ func (s *UnitTestSuite) Test_UserLeaveRoom() {
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   generateRandomDuration(),
+			Duration:   random.GenerateRandomDuration(),
 		},
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   generateRandomDuration(),
+			Duration:   random.GenerateRandomDuration(),
 		},
 	}
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID}

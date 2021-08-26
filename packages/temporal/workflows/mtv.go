@@ -843,6 +843,11 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 			case shared.SignalRouteLeave:
 				var message shared.LeaveSignal
 
+				if err := mapstructure.Decode(signal, &message); err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
+
 				//Use validator
 				if message.UserID == "" {
 					logger.Error("Empty fields in message %v", message)

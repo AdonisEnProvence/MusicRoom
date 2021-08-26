@@ -1,6 +1,6 @@
 import * as z from 'zod';
 
-const Milliseconds = z.number().positive();
+const Milliseconds = z.number().nonnegative();
 
 export const TrackMetadata = z.object({
     id: z.string(),

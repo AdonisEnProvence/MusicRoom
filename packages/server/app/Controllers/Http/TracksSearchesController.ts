@@ -47,7 +47,7 @@ export default class TracksSearchesController {
                     return undefined;
                 }
 
-                const trackMetadata = {
+                const trackMetadata: TrackMetadata = {
                     id: videoId,
                     title,
                     artistName: channelTitle,

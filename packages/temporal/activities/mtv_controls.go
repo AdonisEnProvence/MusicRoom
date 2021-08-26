@@ -85,3 +85,17 @@ func ChangeUserEmittingDeviceActivity(ctx context.Context, state shared.MtvRoomE
 
 	return err
 }
+
+func SuggestedTracksListChangedActivity(ctx context.Context, state shared.MtvRoomExposedState) error {
+	requestBody := state
+
+	marshaledBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	url := ADONIS_ENDPOINT + "/temporal/suggested-tracks-list-changed"
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+
+	return err
+}

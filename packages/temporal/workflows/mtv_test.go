@@ -2,11 +2,11 @@ package workflows
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
 	"time"
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
+	"github.com/AdonisEnProvence/MusicRoom/random"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/AdonisEnProvence/MusicRoom/workflows/mocks"
 
@@ -48,6 +48,13 @@ func (s *UnitTestSuite) emitPlaySignal() {
 	fmt.Println("-----EMIT PLAY CALLED IN TEST-----")
 	playSignal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
 	s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
+}
+
+func (s *UnitTestSuite) emitSuggestTrackSignal(args shared.SuggestTracksSignalArgs) {
+	fmt.Println("-----EMIT SUGGEST TRACK CALLED IN TEST-----")
+	suggestTracksSignal := shared.NewSuggestTracksSignal(args)
+
+	s.env.SignalWorkflow(shared.SignalChannelName, suggestTracksSignal)
 }
 
 func (s *UnitTestSuite) emitJoinSignal(userID string, deviceID string) {
@@ -140,9 +147,9 @@ func getWokflowInitParams(tracksIDs []string) (shared.MtvRoomParameters, string)
 // Test_PlayThenPauseTrack scenario:
 // TODO redict the scenario
 func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
-	firstTrackDuration := generateRandomDuration()
+	firstTrackDuration := random.GenerateRandomDuration()
 	firstTrackDurationFirstThird := firstTrackDuration / 3
-	secondTrackDuration := generateRandomDuration()
+	secondTrackDuration := random.GenerateRandomDuration()
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 
 	defer resetMock()
@@ -163,14 +170,13 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 			Duration:   secondTrackDuration,
 		},
 	}
-
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
 	params, _ := getWokflowInitParams(tracksIDs)
 
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
 		mock.Anything,
-		mock.Anything,
+		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
 		activities.CreationAcknowledgementActivity,
@@ -208,11 +214,15 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		fmt.Println("*********VERIFICATION FIRST THIRD TIER ELAPSED*********")
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracks[0].ID,
-					ArtistName: tracks[0].ArtistName,
-					Title:      tracks[0].Title,
-					Duration:   0,
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[0].ID,
+						ArtistName: tracks[0].ArtistName,
+						Title:      tracks[0].Title,
+						Duration:   0,
+					},
+
+					Score: 0,
 				},
 				AlreadyElapsed: 0,
 			},
@@ -248,11 +258,15 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracks[1].ID,
-					ArtistName: tracks[1].ArtistName,
-					Title:      tracks[1].Title,
-					Duration:   0,
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						ArtistName: tracks[1].ArtistName,
+						Title:      tracks[1].Title,
+						Duration:   0,
+					},
+
+					Score: 0,
 				},
 				AlreadyElapsed: 0,
 			},
@@ -270,11 +284,15 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracks[1].ID,
-					ArtistName: tracks[1].ArtistName,
-					Title:      tracks[1].Title,
-					Duration:   0,
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						ArtistName: tracks[1].ArtistName,
+						Title:      tracks[1].Title,
+						Duration:   0,
+					},
+
+					Score: 0,
 				},
 				AlreadyElapsed: 0,
 			},
@@ -321,7 +339,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		fakeDeviceID = faker.UUIDHyphenated()
 	)
 
-	firstTrackDuration := generateRandomDuration()
+	firstTrackDuration := random.GenerateRandomDuration()
 
 	tracks := []shared.TrackMetadata{
 		{
@@ -342,7 +360,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
 		mock.Anything,
-		mock.Anything,
+		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
 		activities.CreationAcknowledgementActivity,
@@ -425,12 +443,17 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracks[0].ID,
-					ArtistName: tracks[0].ArtistName,
-					Title:      tracks[0].Title,
-					Duration:   0,
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[0].ID,
+						ArtistName: tracks[0].ArtistName,
+						Title:      tracks[0].Title,
+						Duration:   0,
+					},
+
+					Score: 0,
 				},
+
 				AlreadyElapsed: 0,
 			},
 			Duration: firstTrackDuration.Milliseconds(),
@@ -453,7 +476,7 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 		fakeDeviceID = faker.UUIDHyphenated()
 	)
 
-	firstTrackDuration := generateRandomDuration()
+	firstTrackDuration := random.GenerateRandomDuration()
 
 	tracks := []shared.TrackMetadata{
 		{
@@ -474,7 +497,7 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
 		mock.Anything,
-		mock.Anything,
+		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
 		activities.ChangeUserEmittingDeviceActivity,
@@ -614,13 +637,13 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   generateRandomDuration(),
+			Duration:   random.GenerateRandomDuration(),
 		},
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   generateRandomDuration(),
+			Duration:   random.GenerateRandomDuration(),
 		},
 	}
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
@@ -634,7 +657,7 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
 		mock.Anything,
-		mock.Anything,
+		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
 		activities.CreationAcknowledgementActivity,
@@ -675,12 +698,17 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		s.True(mtvState.Playing)
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracks[1].ID,
-					ArtistName: tracks[1].ArtistName,
-					Title:      tracks[1].Title,
-					Duration:   0,
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						ArtistName: tracks[1].ArtistName,
+						Title:      tracks[1].Title,
+						Duration:   0,
+					},
+
+					Score: 0,
 				},
+
 				AlreadyElapsed: 0,
 			},
 			Duration: tracks[1].Duration.Milliseconds(),
@@ -706,12 +734,17 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracks[1].ID,
-					ArtistName: tracks[1].ArtistName,
-					Title:      tracks[1].Title,
-					Duration:   0,
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						ArtistName: tracks[1].ArtistName,
+						Title:      tracks[1].Title,
+						Duration:   0,
+					},
+
+					Score: 0,
 				},
+
 				AlreadyElapsed: 0,
 			},
 			Duration: tracks[1].Duration.Milliseconds(),
@@ -729,7 +762,7 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 }
 
 func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrackThatEnded() {
-	firstTrackDuration := generateRandomDuration()
+	firstTrackDuration := random.GenerateRandomDuration()
 
 	tracks := []shared.TrackMetadata{
 		{
@@ -739,7 +772,6 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 			Duration:   firstTrackDuration,
 		},
 	}
-
 	tracksIDs := []string{tracks[0].ID}
 	params, _ := getWokflowInitParams(tracksIDs)
 
@@ -751,7 +783,7 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
 		mock.Anything,
-		mock.Anything,
+		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
 		activities.CreationAcknowledgementActivity,
@@ -783,12 +815,17 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracks[0].ID,
-					ArtistName: tracks[0].ArtistName,
-					Title:      tracks[0].Title,
-					Duration:   0,
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[0].ID,
+						ArtistName: tracks[0].ArtistName,
+						Title:      tracks[0].Title,
+						Duration:   0,
+					},
+
+					Score: 0,
 				},
+
 				AlreadyElapsed: 0,
 			},
 			Duration: firstTrackDuration.Milliseconds(),
@@ -809,12 +846,17 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 
 		expectedExposedCurrentTrack := shared.ExposedCurrentTrack{
 			CurrentTrack: shared.CurrentTrack{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracks[0].ID,
-					ArtistName: tracks[0].ArtistName,
-					Title:      tracks[0].Title,
-					Duration:   0,
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[0].ID,
+						ArtistName: tracks[0].ArtistName,
+						Title:      tracks[0].Title,
+						Duration:   0,
+					},
+
+					Score: 0,
 				},
+
 				AlreadyElapsed: 0,
 			},
 			Duration: firstTrackDuration.Milliseconds(),
@@ -831,12 +873,138 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
-func TestUnitTestSuite(t *testing.T) {
-	suite.Run(t, new(UnitTestSuite))
+func (s *UnitTestSuite) Test_CanSuggestTracks() {
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
+	tracksIDsToSuggest := []string{
+		faker.UUIDHyphenated(),
+		faker.UUIDHyphenated(),
+	}
+	tracksToSuggestMetadata := []shared.TrackMetadata{
+		{
+			ID:         tracksIDsToSuggest[0],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+		{
+			ID:         tracksIDsToSuggest[1],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	tracksToSuggestExposedMetadata := []shared.TrackMetadataWithScore{
+		{
+			TrackMetadata: tracksToSuggestMetadata[0],
+
+			Score: 0,
+		},
+		{
+			TrackMetadata: tracksToSuggestMetadata[1],
+
+			Score: 0,
+		},
+	}
+	duplicateTrackIDToSuggest := tracksIDsToSuggest[0]
+	params, _ := getWokflowInitParams(tracksIDs)
+
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+	defaultDuration := 1 * time.Millisecond
+
+	defer resetMock()
+
+	// Mock first tracks information fetching
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	// Mock suggested and accepted tracks information fetching
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDsToSuggest,
+	).Return(tracksToSuggestMetadata, nil).Once()
+
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.SuggestedTracksListChangedActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
+	firstSuggestTracksSignalDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitSuggestTrackSignal(shared.SuggestTracksSignalArgs{
+			TracksToSuggest: tracksIDsToSuggest,
+		})
+	}, firstSuggestTracksSignalDelay)
+
+	assertSuggestedTracksHaveBeenAcceptedDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		s.Len(mtvState.Tracks, 1)
+		s.Equal(tracksToSuggestExposedMetadata, mtvState.SuggestedTracks)
+	}, assertSuggestedTracksHaveBeenAcceptedDelay)
+
+	secondSuggestTracksSignalDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitSuggestTrackSignal(shared.SuggestTracksSignalArgs{
+			TracksToSuggest: []string{duplicateTrackIDToSuggest},
+		})
+	}, secondSuggestTracksSignalDelay)
+
+	assertDuplicateSuggestedTrackHasNotBeenAcceptedDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		s.Len(mtvState.Tracks, 1)
+		s.Equal(tracksToSuggestExposedMetadata, mtvState.SuggestedTracks)
+	}, assertDuplicateSuggestedTrackHasNotBeenAcceptedDelay)
+
+	thirdSuggestTracksSignalDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		idOfTrackInTracksList := tracks[1].ID
+
+		s.emitSuggestTrackSignal(shared.SuggestTracksSignalArgs{
+			TracksToSuggest: []string{idOfTrackInTracksList},
+		})
+	}, thirdSuggestTracksSignalDelay)
+
+	assertDuplicateFromTracksListSuggestedTrackHasNotBeenAcceptedDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		s.Len(mtvState.Tracks, 1)
+		s.Equal(tracksToSuggestExposedMetadata, mtvState.SuggestedTracks)
+	}, assertDuplicateFromTracksListSuggestedTrackHasNotBeenAcceptedDelay)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
-func generateRandomDuration() time.Duration {
-	min := 10
-	max := 20
-	return time.Second * time.Duration(rand.Intn(max-min)+min)
+func TestUnitTestSuite(t *testing.T) {
+	suite.Run(t, new(UnitTestSuite))
 }

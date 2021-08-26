@@ -32,21 +32,109 @@ type TrackMetadata struct {
 	Duration   time.Duration `json:"duration"`
 }
 
-type ExposedTrackMetadata struct {
+type TrackMetadataWithScore struct {
 	TrackMetadata
+
+	Score uint `json:"score"`
+}
+
+func (t TrackMetadataWithScore) WithMillisecondsDuration() TrackMetadataWithScoreWithDuration {
+	return TrackMetadataWithScoreWithDuration{
+		TrackMetadataWithScore: t,
+
+		Duration: t.Duration.Milliseconds(),
+	}
+}
+
+type TracksMetadataWithScoreSet struct {
+	tracks []TrackMetadataWithScore
+}
+
+func (s *TracksMetadataWithScoreSet) Clear() {
+	s.tracks = []TrackMetadataWithScore{}
+}
+
+func (s *TracksMetadataWithScoreSet) Len() int {
+	return len(s.tracks)
+}
+
+func (s *TracksMetadataWithScoreSet) Has(trackID string) bool {
+	for _, track := range s.tracks {
+		if track.ID == trackID {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (s *TracksMetadataWithScoreSet) Add(tracks ...TrackMetadataWithScore) {
+	for _, track := range tracks {
+		if isDuplicate := s.Has(track.ID); isDuplicate {
+			continue
+		}
+
+		s.tracks = append(s.tracks, track)
+	}
+}
+
+func (s *TracksMetadataWithScoreSet) Delete(trackID string) bool {
+	for index, track := range s.tracks {
+		if isMatching := track.ID == trackID; isMatching {
+			s.tracks = append(s.tracks[:index], s.tracks[index+1:]...)
+
+			return true
+		}
+	}
+
+	return false
+}
+
+func (s *TracksMetadataWithScoreSet) Values() []TrackMetadataWithScore {
+	return s.tracks[:]
+}
+
+// Shift removes the first element from the set and returns it as well as true.
+// If the set was empty, it returns an empty TrackMetadataWithScore and false.
+func (s *TracksMetadataWithScoreSet) Shift() (TrackMetadataWithScore, bool) {
+	tracksCount := s.Len()
+	if noElement := tracksCount == 0; noElement {
+		return TrackMetadataWithScore{}, false
+	}
+
+	firstElement := s.tracks[0]
+
+	if tracksCount == 1 {
+		s.Clear()
+	} else {
+		s.tracks = s.tracks[1:]
+	}
+
+	return firstElement, true
+}
+
+// Difference returns a new TracksMetadataWithScoreSet with all the elements from
+// s set that do not exist in toCompare set.
+func (s *TracksMetadataWithScoreSet) Difference(toCompare TracksMetadataWithScoreSet) TracksMetadataWithScoreSet {
+	var newSet TracksMetadataWithScoreSet
+
+	newSet.Add(s.tracks...)
+
+	for _, track := range toCompare.Values() {
+		newSet.Delete(track.ID)
+	}
+
+	return newSet
+}
+
+type TrackMetadataWithScoreWithDuration struct {
+	TrackMetadataWithScore
 
 	Duration int64 `json:"duration"`
 }
 
-func (t TrackMetadata) Export() ExposedTrackMetadata {
-	return ExposedTrackMetadata{
-		TrackMetadata: t,
-		Duration:      t.Duration.Milliseconds(),
-	}
-}
-
 type CurrentTrack struct {
-	TrackMetadata
+	TrackMetadataWithScore
 
 	AlreadyElapsed time.Duration `json:"-"`
 }
@@ -88,20 +176,19 @@ func (p MtvRoomParameters) Export() MtvRoomExposedState {
 		RoomCreatorUserID:      p.RoomCreatorUserID,
 		RoomName:               p.RoomName,
 		UserRelatedInformation: p.InitialUsers[p.RoomCreatorUserID],
-		TracksIDsList:          p.InitialTracksIDsList,
 	}
 }
 
 type MtvRoomExposedState struct {
-	RoomID                 string                 `json:"roomID"`
-	RoomCreatorUserID      string                 `json:"roomCreatorUserID"`
-	Playing                bool                   `json:"playing"`
-	RoomName               string                 `json:"name"`
-	UserRelatedInformation *InternalStateUser     `json:"userRelatedInformation"`
-	TracksIDsList          []string               `json:"tracksIDsList"`
-	CurrentTrack           *ExposedCurrentTrack   `json:"currentTrack"`
-	Tracks                 []ExposedTrackMetadata `json:"tracks"`
-	UsersLength            int                    `json:"usersLength"`
+	RoomID                 string                               `json:"roomID"`
+	RoomCreatorUserID      string                               `json:"roomCreatorUserID"`
+	Playing                bool                                 `json:"playing"`
+	RoomName               string                               `json:"name"`
+	UserRelatedInformation *InternalStateUser                   `json:"userRelatedInformation"`
+	CurrentTrack           *ExposedCurrentTrack                 `json:"currentTrack"`
+	Tracks                 []TrackMetadataWithScoreWithDuration `json:"tracks"`
+	SuggestedTracks        []TrackMetadataWithScore             `json:"suggestedTracks"`
+	UsersLength            int                                  `json:"usersLength"`
 }
 
 type SignalRoute string
@@ -113,6 +200,7 @@ const (
 	SignalRouteTerminate                = "terminate"
 	SignalRouteGoToNextTrack            = "go-to-next-track"
 	SignalRouteChangeUserEmittingDevice = "change-user-emitting-device"
+	SignalRouteSuggestTracks            = "suggest-tracks"
 )
 
 type GenericRouteSignal struct {
@@ -202,5 +290,21 @@ func NewChangeUserEmittingDeviceSignal(args ChangeUserEmittingDeviceSignalArgs) 
 		Route:    SignalRouteChangeUserEmittingDevice,
 		UserID:   args.UserID,
 		DeviceID: args.DeviceID,
+	}
+}
+
+type SuggestTracksSignal struct {
+	Route           SignalRoute
+	TracksToSuggest []string
+}
+
+type SuggestTracksSignalArgs struct {
+	TracksToSuggest []string
+}
+
+func NewSuggestTracksSignal(args SuggestTracksSignalArgs) SuggestTracksSignal {
+	return SuggestTracksSignal{
+		Route:           SignalRouteSuggestTracks,
+		TracksToSuggest: args.TracksToSuggest,
 	}
 }

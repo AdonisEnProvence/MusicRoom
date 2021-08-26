@@ -7,7 +7,7 @@ import (
 	"github.com/Devessier/brainy"
 )
 
-func assignFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
+func assignInitialFetchedTracks(internalState *MtvRoomInternalState) brainy.Action {
 	return func(c brainy.Context, e brainy.Event) error {
 		event := e.(MtvRoomInitialTracksFetchedEvent)
 

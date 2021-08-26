@@ -1,4 +1,3 @@
-import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
 import User from 'App/Models/User';
@@ -155,21 +154,15 @@ export default class SocketLifecycle {
          * If disconnecting user was a mtv room owner
          * Send a terminate workflow to temporal
          */
-        //TODO send signal leave if user is just a member that has no more device
 
         if (
             disconnectingDeviceIsThelastConnectedDevice &&
             relatedMtvRoom !== null
         ) {
-            if (userIsTheCreator) {
-                await this.ownerLeavesRoom(relatedMtvRoom);
-            } else {
-                await ServerToTemporalController.leaveWorkflow({
-                    workflowID: relatedMtvRoom.uuid,
-                    runID: relatedMtvRoom.runID,
-                    userID,
-                });
-            }
+            await MtvRoomsWsController.onLeave({
+                user: disconnectingDeviceOwner,
+                leavingRoomID: relatedMtvRoom.uuid,
+            });
         } else if (relatedMtvRoom !== null && disconnectingDevice.isEmitting) {
             /**
              * If the getting evicted device was the emitting one

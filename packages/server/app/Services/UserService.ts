@@ -1,6 +1,7 @@
 import { AllServerToClientEvents, UserDevice } from '@musicroom/types';
 import Device from 'App/Models/Device';
 import User from 'App/Models/User';
+import SocketLifecycle from './SocketLifecycle';
 import Ws from './Ws';
 
 export default class UserService {
@@ -32,16 +33,27 @@ export default class UserService {
         }
     }
 
+    /**
+     * This function will disconnect user's found devices from
+     * the given roomID socket io room instance
+     * @param user User's devices to disconnect
+     * @param roomID roomID to leave
+     */
     public static async leaveEveryUserDevicesFromRoom(
         user: User,
         roomID: string,
     ): Promise<void> {
+        const connectedSocketsToRoom =
+            await SocketLifecycle.getConnectedSocketToRoom(roomID);
+
         await user.load('devices');
         await Promise.all(
             user.devices.map(async (device) => {
                 try {
-                    console.log('remote leave device ', device.socketID);
-                    await Ws.adapter().remoteLeave(device.socketID, roomID);
+                    if (connectedSocketsToRoom.has(device.uuid)) {
+                        console.log('remote leave device ', device.socketID);
+                        await Ws.adapter().remoteLeave(device.socketID, roomID);
+                    }
                 } catch (e) {
                     console.error(e);
                 }

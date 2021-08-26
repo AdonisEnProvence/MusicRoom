@@ -55,7 +55,8 @@ export type AppMusicPlayerMachineEvent =
           state: MtvWorkflowState;
       }
     | { type: 'PAUSE_CALLBACK' }
-    | { type: 'SUGGEST_TRACKS'; tracksToSuggest: string[] };
+    | { type: 'SUGGEST_TRACKS'; tracksToSuggest: string[] }
+    | { type: 'SUGGEST_TRACKS_CALLBACK'; state: MtvWorkflowState };
 
 interface CreateAppMusicPlayerMachineArgs {
     socket: SocketClient;
@@ -87,7 +88,6 @@ export const createAppMusicPlayerMachine = ({
                 id: 'socketConnection',
                 src: (_context, _event) => (sendBack, onReceive) => {
                     socket.on('RETRIEVE_CONTEXT', (state) => {
-                        console.log('RETRIEVE_CONTEXT');
                         sendBack({
                             type: 'RETRIEVE_CONTEXT',
                             state,
@@ -103,9 +103,6 @@ export const createAppMusicPlayerMachine = ({
                     });
 
                     socket.on('CREATE_ROOM_SYNCHED_CALLBACK', (state) => {
-                        console.log('CREATE_ROOM_SYNCHED_CALLBACK recu', {
-                            state,
-                        });
                         sendBack({
                             type: 'JOINED_CREATED_ROOM',
                             state,
@@ -113,10 +110,6 @@ export const createAppMusicPlayerMachine = ({
                     });
 
                     socket.on('CHANGE_EMITTING_DEVICE_CALLBACK', (state) => {
-                        console.log('CHANGE_EMITTING_DEVICE_CALLBACK recu', {
-                            state,
-                        });
-
                         sendBack({
                             type: 'CHANGE_EMITTING_DEVICE_CALLBACK',
                             state,
@@ -124,7 +117,6 @@ export const createAppMusicPlayerMachine = ({
                     });
 
                     socket.on('CREATE_ROOM_CALLBACK', (state) => {
-                        console.log('CREATE_ROOM_CALLBACK recu', { state });
                         sendBack({
                             type: 'ROOM_IS_READY',
                             state,
@@ -139,7 +131,6 @@ export const createAppMusicPlayerMachine = ({
                     });
 
                     socket.on('ACTION_PLAY_CALLBACK', (state) => {
-                        console.log('ACTION_PLAY_CALLBACK', state);
                         sendBack({
                             type: 'PLAY_CALLBACK',
                             state,
@@ -152,8 +143,14 @@ export const createAppMusicPlayerMachine = ({
                         });
                     });
 
+                    socket.on('SUGGEST_TRACKS_CALLBACK', (state) => {
+                        sendBack({
+                            type: 'SUGGEST_TRACKS_CALLBACK',
+                            state,
+                        });
+                    });
+
                     socket.on('FORCED_DISCONNECTION', () => {
-                        console.log('RECEIVED FORCED DISCONNECTION');
                         sendBack({
                             type: 'FORCED_DISCONNECTION',
                         });
@@ -612,6 +609,10 @@ export const createAppMusicPlayerMachine = ({
                                     to: 'socketConnection',
                                 },
                             ),
+                        },
+
+                        SUGGEST_TRACKS_CALLBACK: {
+                            actions: 'assignMergeNewState',
                         },
                     },
                 },

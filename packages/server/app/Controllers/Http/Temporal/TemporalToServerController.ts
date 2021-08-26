@@ -111,4 +111,13 @@ export default class TemporalToServerController {
             [state],
         );
     }
+
+    public broadcastSuggestedTracksListUpdate({
+        request,
+    }: HttpContextContract): void {
+        const state = MtvWorkflowState.parse(request.body());
+        const roomID = state.roomID;
+
+        Ws.io.to(roomID).emit('SUGGEST_TRACKS_CALLBACK', state);
+    }
 }

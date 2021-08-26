@@ -50,6 +50,11 @@ Route.post(
 Route.post(
     'temporal/user-length-update',
     'Temporal/TemporalToServerController.userLengthUpdate',
+)
+
+Route.post(
+    '/temporal/suggested-tracks-list-changed',
+    'Temporal/TemporalToServerController.broadcastSuggestedTracksListUpdate',
 );
 
 /// //////// ////// ///

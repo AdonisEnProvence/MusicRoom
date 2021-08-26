@@ -70,7 +70,6 @@ const rawContext: AppMusicPlayerMachineContext = {
     userRelatedInformation: null,
     usersLength: 0,
     currentTrack: null,
-    tracksIDsList: null,
     waitingRoomID: undefined,
     progressElapsedTime: 0,
 };

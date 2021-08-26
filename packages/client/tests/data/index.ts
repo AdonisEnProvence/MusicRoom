@@ -14,5 +14,6 @@ export const db = factory({
         artistName: () => name.title(),
         duration: () => 42000,
         title: () => random.words(),
+        score: () => datatype.number(),
     },
 });

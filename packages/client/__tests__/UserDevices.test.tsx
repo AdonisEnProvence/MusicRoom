@@ -32,7 +32,6 @@ After clicking on one not emitting it should set the clicked one as emitting
             userID,
         },
         currentTrack: null,
-        tracksIDsList: null,
         roomCreatorUserID: userID,
         tracks: [
             {
@@ -40,6 +39,7 @@ After clicking on one not emitting it should set the clicked one as emitting
                 artistName: name.findName(),
                 duration: 42000,
                 title: random.words(3),
+                score: datatype.number(),
             },
         ],
     };

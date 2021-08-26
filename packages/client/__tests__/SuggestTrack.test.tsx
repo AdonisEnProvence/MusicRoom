@@ -35,7 +35,6 @@ test(`A user can suggest tracks to play`, async () => {
             elapsed: 0,
         },
         tracks: tracksList.slice(1),
-        tracksIDsList: null,
     };
 
     serverSocket.on('GO_TO_NEXT_TRACK', () => {

@@ -33,7 +33,6 @@ test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it 
             userID,
         },
         currentTrack: null,
-        tracksIDsList: null,
         roomCreatorUserID: userID,
         tracks: [
             {
@@ -41,6 +40,7 @@ test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it 
                 artistName: name.findName(),
                 duration: 42000,
                 title: random.words(3),
+                score: datatype.number(),
             },
         ],
     });

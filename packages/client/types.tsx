@@ -9,7 +9,7 @@ import {
     RouteProp,
 } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { TracksMetadata } from '@musicroom/types';
+import { TrackMetadata } from '@musicroom/types';
 
 export type NavigateFromRefParams = {
     Alert: AlertParams;
@@ -63,7 +63,7 @@ interface MusicTrackVoteParams {
     roomId: string;
 }
 interface SearchTracksResultsParams {
-    tracks?: TracksMetadata[];
+    tracks?: TrackMetadata[];
 }
 
 /**

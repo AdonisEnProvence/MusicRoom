@@ -459,7 +459,8 @@ test.group('Rooms life cycle', (group) => {
          */
         assert.isNull(await MtvRoom.findBy('creator', userID));
     });
-    test("It should creates a room, and it should join room for every user's session/device after one emits JOIN_ROOM", async (assert) => {
+    test.only(`It should creates a room, and it should join room for every user's session/device after one emits JOIN_ROOM
+    It should send USER_LENGTH_UPDATE to every already existing room members`, async (assert) => {
         const userID = datatype.uuid();
         const creatorID = datatype.uuid();
         const roomName = random.word();
@@ -503,6 +504,13 @@ test.group('Rooms life cycle', (group) => {
             .stub(ServerToTemporalController, 'joinWorkflow')
             .callsFake(async () => {
                 if (state === undefined) throw new Error('State is undefined');
+                state.usersLength++;
+                await supertest(BASE_URL)
+                    .post('/temporal/user-length-update')
+                    .send({
+                        ...state,
+                        userRelatedInformation: null,
+                    });
                 await supertest(BASE_URL)
                     .post('/temporal/join')
                     .send({ state, joiningUserID: userID });
@@ -519,6 +527,7 @@ test.group('Rooms life cycle', (group) => {
          * Fisrt creatorUser creates a room
          */
         const creatorUser = await createUserAndGetSocket({ userID: creatorID });
+        const creatorReceivedEvents: string[] = [];
         creatorUser.emit('CREATE_ROOM', {
             name: random.word(),
             initialTracksIDs: [datatype.uuid()],
@@ -531,6 +540,10 @@ test.group('Rooms life cycle', (group) => {
         /**
          * JoiningUser connects 2 socket and joins the createdRoom with one
          */
+        creatorUser.once('USER_LENGTH_UPDATE', () => {
+            creatorReceivedEvents.push('USER_LENGTH_UPDATE');
+        });
+
         const receivedEvents: string[] = [];
         const joiningUser = {
             socketA: await createUserAndGetSocket({ userID }),
@@ -543,10 +556,10 @@ test.group('Rooms life cycle', (group) => {
         );
         joiningUser.socketA.emit('JOIN_ROOM', { roomID: createdRoom.uuid });
         await sleep();
-        await sleep();
         console.log(receivedEvents);
         assert.notEqual(receivedEvents.indexOf('JOIN_ROOM_CALLBACK_0'), -1);
         assert.notEqual(receivedEvents.indexOf('JOIN_ROOM_CALLBACK_1'), -1);
+        assert.equal(creatorReceivedEvents.length, 1);
 
         /**
          * JoiningUser emit an ACTION_PLAY with the other socket connection

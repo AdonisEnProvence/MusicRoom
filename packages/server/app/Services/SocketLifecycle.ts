@@ -141,13 +141,8 @@ export default class SocketLifecycle {
         const disconnectingDeviceIsThelastConnectedDevice =
             allUserDevices.length <= 1;
 
-        const userIsTheCreator =
-            relatedMtvRoom !== null ? relatedMtvRoom.creator === userID : false;
-
         console.log(
-            `User ${
-                userIsTheCreator ? 'owns a room' : 'do not own a room'
-            } and has ${allUserDevices.length} connected`,
+            `User is disconnecting has ${allUserDevices.length} connected`,
         );
 
         /**

@@ -228,11 +228,8 @@ test.group('Rooms life cycle', (group) => {
         const roomBefore = await MtvRoom.findBy('creator', userID);
         assert.isNotNull(roomBefore);
         //As sinon mocks the whole thing synchrounously we cannot trust the order
-        assert.notEqual(
-            receivedEvents.indexOf('CREATE_ROOM_SYNCHED_CALLBACK'),
-            -1,
-        );
-        assert.notEqual(receivedEvents.indexOf('CREATE_ROOM_CALLBACK'), -1);
+        assert.isTrue(receivedEvents.includes('CREATE_ROOM_SYNCHED_CALLBACK'));
+        assert.isTrue(receivedEvents.includes('CREATE_ROOM_CALLBACK'));
 
         /**
          * Emit disconnect
@@ -557,8 +554,8 @@ test.group('Rooms life cycle', (group) => {
         joiningUser.socketA.emit('JOIN_ROOM', { roomID: createdRoom.uuid });
         await sleep();
         console.log(receivedEvents);
-        assert.notEqual(receivedEvents.indexOf('JOIN_ROOM_CALLBACK_0'), -1);
-        assert.notEqual(receivedEvents.indexOf('JOIN_ROOM_CALLBACK_1'), -1);
+        assert.isTrue(receivedEvents.includes('JOIN_ROOM_CALLBACK_0'));
+        assert.isTrue(receivedEvents.includes('JOIN_ROOM_CALLBACK_1'));
         assert.equal(creatorReceivedEvents.length, 1);
 
         /**
@@ -854,7 +851,7 @@ test.group('Rooms life cycle', (group) => {
         ]);
 
         await sleep();
-        assert.notEqual(receivedEvents.indexOf('CREATE_ROOM_CALLBACK'), -1);
+        assert.isTrue(receivedEvents.includes('CREATE_ROOM_CALLBACK'));
     });
 
     test('It should send to every user socket instance the CONNECTED_DEVICES_UPDATE socket event on device co/dc', async (assert) => {
@@ -1319,15 +1316,6 @@ test.group('Rooms life cycle', (group) => {
             socketB.receivedEvents.push('FORCED_DISCONNECTION');
         });
 
-        //USER C
-        socketC.socket.once('FORCED_DISCONNECTION', () => {
-            assert.isTrue(false);
-        });
-
-        socketC.socketB.once('USER_LENGTH_UPDATE', () => {
-            assert.isTrue(false);
-        });
-
         /**
          * Creator leaves the room
          */
@@ -1335,10 +1323,7 @@ test.group('Rooms life cycle', (group) => {
         await sleep();
 
         assert.equal(socketB.receivedEvents.length, 2);
-        assert.notEqual(
-            socketB.receivedEvents.indexOf('FORCED_DISCONNECTION'),
-            -1,
-        );
+        assert.isTrue(socketB.receivedEvents.includes('FORCED_DISCONNECTION'));
 
         connectedSocketsToRoom = await SocketLifecycle.getConnectedSocketToRoom(
             mtvRoomIDToAssociate,
@@ -1396,8 +1381,6 @@ test.group('Rooms life cycle', (group) => {
                     roomID: workflowID,
                     usersLength: roomToLeaveState.usersLength - 1,
                 };
-
-                console.log('*'.repeat(100));
 
                 await supertest(BASE_URL)
                     .post('/temporal/user-length-update')
@@ -1484,7 +1467,6 @@ test.group('Rooms life cycle', (group) => {
              * any event
              */
             assert.isTrue(false);
-            socketC.receivedEvents.push('USER_LENGTH_UPDATE');
         });
 
         socketC.socketB.once('USER_LENGTH_UPDATE', () => {
@@ -1493,7 +1475,6 @@ test.group('Rooms life cycle', (group) => {
              * any event
              */
             assert.isTrue(false);
-            socketC.receivedEvents.push('USER_LENGTH_UPDATE');
         });
 
         /**
@@ -1509,7 +1490,6 @@ test.group('Rooms life cycle', (group) => {
 
         assert.equal(socket.receivedEvents.length, 2);
         assert.equal(socketB.receivedEvents.length, 1);
-        assert.equal(socketC.receivedEvents.length, 0);
 
         let connectedSocketsToRoom =
             await SocketLifecycle.getConnectedSocketToRoom(
@@ -1551,10 +1531,7 @@ test.group('Rooms life cycle', (group) => {
         await sleep();
 
         assert.equal(socketB.receivedEvents.length, 2);
-        assert.notEqual(
-            socketB.receivedEvents.indexOf('FORCED_DISCONNECTION'),
-            -1,
-        );
+        assert.isTrue(socketB.receivedEvents.includes('FORCED_DISCONNECTION'));
 
         connectedSocketsToRoom = await SocketLifecycle.getConnectedSocketToRoom(
             mtvRoomIDToAssociate,
@@ -1764,10 +1741,7 @@ test.group('Rooms life cycle', (group) => {
         await disconnectSocket(socket.socketB);
 
         assert.equal(socketB.receivedEvents.length, 2);
-        assert.notEqual(
-            socketB.receivedEvents.indexOf('FORCED_DISCONNECTION'),
-            -1,
-        );
+        assert.isTrue(socketB.receivedEvents.includes('FORCED_DISCONNECTION'));
 
         connectedSocketsToRoom = await SocketLifecycle.getConnectedSocketToRoom(
             mtvRoomIDToAssociate,
@@ -1778,5 +1752,7 @@ test.group('Rooms life cycle', (group) => {
         const leavingCreator = await User.findOrFail(userCID);
         await leavingCreator.load('mtvRoom');
         assert.isNull(leavingCreator.mtvRoom);
+
+        assert.isNull(await MtvRoom.find(mtvRoomIDToAssociate));
     });
 });

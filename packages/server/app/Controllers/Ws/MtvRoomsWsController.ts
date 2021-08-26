@@ -31,6 +31,10 @@ interface DeviceID {
     deviceID: string;
 }
 
+interface RunID {
+    runID: string;
+}
+
 interface OnCreateArgs extends UserID, MtvRoomClientToServerCreate, DeviceID {}
 interface OnJoinArgs extends UserID, DeviceID {
     joiningRoom: MtvRoom;
@@ -40,7 +44,7 @@ interface OnLeaveArgs extends UserArgs {
 }
 interface OnPauseArgs extends RoomID {}
 interface OnPlayArgs extends RoomID {}
-interface OnTerminateArgs extends RoomID {}
+interface OnTerminateArgs extends RoomID, RunID {}
 interface OnGetStateArgs extends RoomID, UserID {}
 interface OnGoToNextTrackArgs extends RoomID {}
 interface OnChangeEmittingDeviceArgs extends RoomID, DeviceID, UserID {}
@@ -90,7 +94,7 @@ export default class MtvRoomsWsController {
 
             return temporalResponse;
         } catch (error) {
-            await SocketLifecycle.deleteRoom(roomID);
+            await SocketLifecycle.deleteSocketIoRoom(roomID);
             if (roomHasBeenSaved) await room.delete();
 
             throw error;
@@ -169,13 +173,12 @@ export default class MtvRoomsWsController {
      */
     public static async onTerminate({
         roomID,
+        runID,
     }: OnTerminateArgs): Promise<void> {
         console.log(`TERMINATE ${roomID}`);
-        const room = await MtvRoom.findOrFail(roomID);
-        await room.delete();
         await ServerToTemporalController.terminateWorkflow({
             workflowID: roomID,
-            runID: room.runID,
+            runID: runID,
         });
     }
 

@@ -210,10 +210,10 @@ export default class SocketLifecycle {
     }
 
     /**
-     * Disconnect every connected sockets to roomID
+     * Disconnect every connected sockets in roomID
      * @param roomID room about to be deleted
      */
-    public static async deleteRoom(roomID: string): Promise<void> {
+    public static async deleteSocketIoRoom(roomID: string): Promise<void> {
         const adapter = Ws.adapter();
         const connectedSockets = await this.getConnectedSocketToRoom(roomID);
         console.log(
@@ -276,10 +276,12 @@ export default class SocketLifecycle {
             );
             await MtvRoomsWsController.onTerminate({
                 roomID: ownedRoom.uuid,
+                runID: ownedRoom.runID,
             });
+            await ownedRoom.delete();
 
             Ws.io.in(ownedRoom.uuid).emit('FORCED_DISCONNECTION');
-            await this.deleteRoom(ownedRoom.uuid);
+            await this.deleteSocketIoRoom(ownedRoom.uuid);
         } catch (e) {
             console.error(
                 `Couldnt terminate workflow on owner disconnection ${ownedRoom.creator} room: ${ownedRoom.uuid} workflow is still alive in temporal but removed from database`,

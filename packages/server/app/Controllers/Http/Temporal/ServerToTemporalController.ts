@@ -46,6 +46,8 @@ interface TemporalMtvTerminateWorkflowArgs extends TemporalBaseArgs {}
 
 interface TemporalMtvSuggestTracksArgs extends TemporalBaseArgs {
     tracksToSuggest: string[];
+    userID: string;
+    deviceID: string;
 }
 interface TemporalMtvGetStateArgs extends TemporalBaseArgs {
     userID?: string;
@@ -248,6 +250,8 @@ export default class ServerToTemporalController {
         workflowID,
         runID,
         tracksToSuggest,
+        userID,
+        deviceID,
     }: TemporalMtvSuggestTracksArgs): Promise<void> {
         const url = urlcat(TEMPORAL_ENDPOINT, '/suggest-tracks');
 
@@ -256,6 +260,8 @@ export default class ServerToTemporalController {
                 workflowID,
                 runID,
                 tracksToSuggest,
+                userID,
+                deviceID,
             },
         });
     }

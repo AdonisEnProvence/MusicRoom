@@ -43,7 +43,7 @@ interface OnTerminateArgs extends RoomID, RunID {}
 interface OnGetStateArgs extends RoomID, UserID {}
 interface OnGoToNextTrackArgs extends RoomID {}
 interface OnChangeEmittingDeviceArgs extends RoomID, DeviceID, UserID {}
-interface OnSuggestTracksArgs extends RoomID {
+interface OnSuggestTracksArgs extends RoomID, DeviceID, UserID {
     tracksToSuggest: string[];
 }
 
@@ -221,6 +221,8 @@ export default class MtvRoomsWsController {
     public static async onTracksSuggestion({
         roomID,
         tracksToSuggest,
+        userID,
+        deviceID,
     }: OnSuggestTracksArgs): Promise<void> {
         const { runID } = await MtvRoom.findOrFail(roomID);
 
@@ -228,6 +230,8 @@ export default class MtvRoomsWsController {
             workflowID: roomID,
             runID,
             tracksToSuggest,
+            userID,
+            deviceID,
         });
     }
 }

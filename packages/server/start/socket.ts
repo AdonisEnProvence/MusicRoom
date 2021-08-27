@@ -323,10 +323,13 @@ Ws.io.on('connection', async (socket) => {
 
         socket.on('SUGGEST_TRACKS', async ({ tracksToSuggest }) => {
             try {
-                const { mtvRoomID } =
-                    await SocketLifecycle.getSocketConnectionCredentials(
-                        socket,
-                    );
+                const {
+                    mtvRoomID,
+                    user: { uuid: userID },
+                    deviceID,
+                } = await SocketLifecycle.getSocketConnectionCredentials(
+                    socket,
+                );
                 if (mtvRoomID === undefined) {
                     throw new Error(
                         'Can not go to the next track, the user is not listening to a mtv room',
@@ -336,6 +339,8 @@ Ws.io.on('connection', async (socket) => {
                 await MtvRoomsWsController.onTracksSuggestion({
                     roomID: mtvRoomID,
                     tracksToSuggest,
+                    userID,
+                    deviceID,
                 });
             } catch (err) {
                 console.error(err);

@@ -217,12 +217,13 @@ export const createAppMusicPlayerMachine = ({
 
                     on: {
                         FOCUS_READY: {
-                            target: 'waitingJoiningRoom',
+                            target: 'waitingForJoinOrCreateRoom',
                         },
                     },
                 },
 
-                waitingJoiningRoom: {
+                waitingForJoinOrCreateRoom: {
+                    entry: 'assignRawContext',
                     invoke: {
                         src: (_context) => () => {
                             /**
@@ -232,31 +233,9 @@ export const createAppMusicPlayerMachine = ({
                             socket.emit('GET_CONTEXT');
                         },
                     },
-                    entry: 'assignRawContext',
-                    on: {
-                        CREATE_ROOM: {
-                            target: 'creatingRoom',
-                        },
-
-                        JOIN_ROOM: {
-                            target: 'joiningRoom',
-                            actions: assign((context, event) => {
-                                if (event.type !== 'JOIN_ROOM') {
-                                    return context;
-                                }
-
-                                return {
-                                    ...context,
-                                    waitingRoomID: event.roomID,
-                                };
-                            }),
-                        },
-                    },
                 },
 
                 creatingRoom: {
-                    entry: 'assignRawContext',
-
                     invoke: {
                         src: (_context, event) => (sendBack) => {
                             //Handle global external transitions
@@ -313,8 +292,6 @@ export const createAppMusicPlayerMachine = ({
                 },
 
                 joiningRoom: {
-                    entry: 'assignRawContext',
-
                     invoke: {
                         src: (_context, event) => (sendBack) => {
                             if (event.type !== 'JOIN_ROOM') {
@@ -492,25 +469,17 @@ export const createAppMusicPlayerMachine = ({
                         },
                     },
 
-                    /**
-                     *                 toggleOffMusicPlayerFullScreen: () => {
-                    setIsFullScreen(false);
-                },
-
-                redirectToHome: () => {
-                    navigateFromRef('HomeScreen');
-                },
-                     */
                     on: {
                         FORCED_DISCONNECTION: {
-                            target: 'waitingJoiningRoom',
-                            actions: ['displayAlertForcedDisconnection'],
+                            target: 'waitingForJoinOrCreateRoom',
+                            actions: [
+                                'assignRawContext',
+                                'displayAlertForcedDisconnection',
+                            ],
                         },
 
-                        JOIN_ROOM: { target: 'joiningRoom' },
-
                         LEAVE_ROOM: {
-                            target: 'waitingJoiningRoom',
+                            target: 'waitingForJoinOrCreateRoom',
                             actions: [
                                 'assignRawContext',
                                 send(
@@ -576,6 +545,25 @@ export const createAppMusicPlayerMachine = ({
             },
 
             on: {
+                JOIN_ROOM: {
+                    target: 'joiningRoom',
+                    actions: assign((context, event) => {
+                        if (event.type !== 'JOIN_ROOM') {
+                            return context;
+                        }
+
+                        return {
+                            ...rawContext,
+                            waitingRoomID: event.roomID,
+                        };
+                    }),
+                },
+
+                CREATE_ROOM: {
+                    target: 'creatingRoom',
+                    actions: 'assignRawContext',
+                },
+
                 RETRIEVE_CONTEXT: {
                     target: 'connectedToRoom',
                     actions: 'assignMergeNewState',
@@ -599,7 +587,8 @@ export const createAppMusicPlayerMachine = ({
                         event.type !== 'RETRIEVE_CONTEXT' &&
                         event.type !== 'ROOM_IS_READY' &&
                         event.type !== 'PLAY_CALLBACK' &&
-                        event.type !== 'CHANGE_EMITTING_DEVICE_CALLBACK'
+                        event.type !== 'CHANGE_EMITTING_DEVICE_CALLBACK' &&
+                        event.type !== 'USER_LENGTH_UPDATE'
                     ) {
                         return context;
                     }

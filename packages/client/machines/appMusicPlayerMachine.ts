@@ -151,6 +151,10 @@ export const createAppMusicPlayerMachine = ({
                         });
                     });
 
+                    socket.on('ACKNOWLEDGE_TRACKS_SUGGESTION', () => {
+                        console.log('acknowledge tracks suggestion!');
+                    });
+
                     socket.on('FORCED_DISCONNECTION', () => {
                         sendBack({
                             type: 'FORCED_DISCONNECTION',

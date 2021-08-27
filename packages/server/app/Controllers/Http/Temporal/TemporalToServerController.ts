@@ -120,4 +120,22 @@ export default class TemporalToServerController {
 
         Ws.io.to(roomID).emit('SUGGEST_TRACKS_CALLBACK', state);
     }
+
+    public async acknowledgeTracksSuggestion({
+        request,
+    }: HttpContextContract): Promise<void> {
+        const AcknowledgeTracksSuggestionRequestBody = z.object({
+            roomID: z.string().uuid(),
+            userID: z.string().uuid(),
+            deviceID: z.string().uuid(),
+        });
+
+        const { deviceID } = AcknowledgeTracksSuggestionRequestBody.parse(
+            request.body(),
+        );
+
+        const device = await Device.findOrFail(deviceID);
+
+        Ws.io.in(device.socketID).emit('ACKNOWLEDGE_TRACKS_SUGGESTION');
+    }
 }

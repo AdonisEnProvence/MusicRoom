@@ -1,4 +1,4 @@
-import { UserDevice } from '@musicroom/types';
+import { MtvWorkflowState, UserDevice } from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
 import { datatype, name, random } from 'faker';
 import React from 'react';
@@ -22,7 +22,7 @@ After clicking on one not emitting it should set the clicked one as emitting
     }));
     const thisDevice = userDevices[0];
     const userID = datatype.uuid();
-    const state = {
+    const state: MtvWorkflowState = {
         roomID: datatype.uuid(),
         name: random.word(),
         playing: false,
@@ -42,6 +42,7 @@ After clicking on one not emitting it should set the clicked one as emitting
                 score: datatype.number(),
             },
         ],
+        suggestedTracks: null,
     };
 
     serverSocket.on('GET_CONNECTED_DEVICES_AND_DEVICE_ID', (cb) => {
@@ -55,7 +56,7 @@ After clicking on one not emitting it should set the clicked one as emitting
         serverSocket.emit('CHANGE_EMITTING_DEVICE_CALLBACK', {
             ...state,
             userRelatedInformation: {
-                ...state.userRelatedInformation,
+                ...state.userRelatedInformation!,
                 emittingDeviceID: newEmittingDeviceID,
             },
         });
@@ -105,7 +106,7 @@ After clicking on one not emitting it should set the clicked one as emitting
 
     userDevices.forEach((device) => {
         const isEmittingDevice =
-            state.userRelatedInformation.emittingDeviceID === device.deviceID;
+            state.userRelatedInformation?.emittingDeviceID === device.deviceID;
         let expectedDeviceName = device.name;
 
         if (isEmittingDevice) expectedDeviceName += ' EMITTING';

@@ -45,6 +45,7 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
                 score: datatype.number(),
             },
         ],
+        suggestedTracks: null,
     };
 
     serverSocket.on('CREATE_ROOM', () => {

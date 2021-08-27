@@ -34,6 +34,7 @@ test(`When the user clicks on next track button, it should play the next track, 
             elapsed: 0,
         },
         tracks: tracksList.slice(1),
+        suggestedTracks: null,
     };
 
     serverSocket.on('GO_TO_NEXT_TRACK', () => {

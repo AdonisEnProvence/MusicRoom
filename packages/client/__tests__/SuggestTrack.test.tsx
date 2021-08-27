@@ -35,6 +35,7 @@ test(`A user can suggest tracks to play`, async () => {
             elapsed: 0,
         },
         tracks: tracksList.slice(1),
+        suggestedTracks: null,
     };
 
     serverSocket.on('GO_TO_NEXT_TRACK', () => {
@@ -53,8 +54,31 @@ test(`A user can suggest tracks to play`, async () => {
         serverSocket.emit('RETRIEVE_CONTEXT', initialState);
     });
 
-    const suggestTracksHandler = jest.fn();
-    serverSocket.on('SUGGEST_TRACKS', suggestTracksHandler);
+    serverSocket.on('SUGGEST_TRACKS', ({ tracksToSuggest }) => {
+        initialState.suggestedTracks = [
+            ...(initialState.suggestedTracks ?? []),
+
+            ...tracksToSuggest.map((trackID) => {
+                const track = db.tracks.findFirst({
+                    where: { id: { equals: trackID } },
+                });
+                if (track === null) {
+                    throw new Error(
+                        `Could not find a track with this id (${trackID}) in tracks database. Check that you called db.tracks.create().`,
+                    );
+                }
+
+                return db.suggestedTracksMetadata.create({
+                    id: trackID,
+                    title: track.title,
+                    artistName: track.artistName,
+                    duration: track.duration,
+                });
+            }),
+        ];
+
+        serverSocket.emit('SUGGEST_TRACKS_CALLBACK', initialState);
+    });
 
     const {
         getAllByText,
@@ -125,11 +149,8 @@ test(`A user can suggest tracks to play`, async () => {
 
     await waitForElementToBeRemoved(() => getByText(/results/i));
 
-    expect(suggestTracksHandler).toHaveBeenCalledTimes(1);
-
-    // TODO: decomment when it will have been implemented
-    // const suggestedTrack = await within(musicPlayerFullScreen).findByText(
-    //     fakeTrack.title,
-    // );
-    // expect(suggestedTrack).toBeTruthy();
+    const suggestedTrack = await within(musicPlayerFullScreen).findByText(
+        fakeTrack.title,
+    );
+    expect(suggestedTrack).toBeTruthy();
 });

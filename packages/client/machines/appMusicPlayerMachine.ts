@@ -15,6 +15,8 @@ import { SocketClient } from '../hooks/useSocket';
 export interface AppMusicPlayerMachineContext extends MtvWorkflowState {
     waitingRoomID?: string;
     progressElapsedTime: number;
+
+    closeSuggestionModal?: () => void;
 }
 
 export type AppMusicPlayerMachineState = State<
@@ -55,8 +57,13 @@ export type AppMusicPlayerMachineEvent =
           state: MtvWorkflowState;
       }
     | { type: 'PAUSE_CALLBACK' }
-    | { type: 'SUGGEST_TRACKS'; tracksToSuggest: string[] }
-    | { type: 'SUGGEST_TRACKS_CALLBACK'; state: MtvWorkflowState };
+    | {
+          type: 'SUGGEST_TRACKS';
+          tracksToSuggest: string[];
+          closeSuggestionModal: () => void;
+      }
+    | { type: 'SUGGEST_TRACKS_CALLBACK'; state: MtvWorkflowState }
+    | { type: 'ACKNOWLEDGE_TRACKS_SUGGESTION' };
 
 interface CreateAppMusicPlayerMachineArgs {
     socket: SocketClient;
@@ -74,6 +81,7 @@ const rawContext: AppMusicPlayerMachineContext = {
     currentTrack: null,
     waitingRoomID: undefined,
     progressElapsedTime: 0,
+    closeSuggestionModal: undefined,
 };
 
 export const createAppMusicPlayerMachine = ({
@@ -152,7 +160,9 @@ export const createAppMusicPlayerMachine = ({
                     });
 
                     socket.on('ACKNOWLEDGE_TRACKS_SUGGESTION', () => {
-                        console.log('acknowledge tracks suggestion!');
+                        sendBack({
+                            type: 'ACKNOWLEDGE_TRACKS_SUGGESTION',
+                        });
                     });
 
                     socket.on('FORCED_DISCONNECTION', () => {
@@ -605,19 +615,34 @@ export const createAppMusicPlayerMachine = ({
                         },
 
                         SUGGEST_TRACKS: {
-                            actions: send(
-                                (_context, event) => ({
-                                    type: 'SUGGEST_TRACKS',
-                                    tracksToSuggest: event.tracksToSuggest,
+                            actions: [
+                                assign({
+                                    closeSuggestionModal: (
+                                        _context,
+                                        { closeSuggestionModal },
+                                    ) => closeSuggestionModal,
                                 }),
-                                {
-                                    to: 'socketConnection',
-                                },
-                            ),
+
+                                send(
+                                    (_context, event) => ({
+                                        type: 'SUGGEST_TRACKS',
+                                        tracksToSuggest: event.tracksToSuggest,
+                                    }),
+                                    {
+                                        to: 'socketConnection',
+                                    },
+                                ),
+                            ],
                         },
 
                         SUGGEST_TRACKS_CALLBACK: {
                             actions: 'assignMergeNewState',
+                        },
+
+                        ACKNOWLEDGE_TRACKS_SUGGESTION: {
+                            actions: ({ closeSuggestionModal }) => {
+                                closeSuggestionModal?.();
+                            },
                         },
                     },
                 },

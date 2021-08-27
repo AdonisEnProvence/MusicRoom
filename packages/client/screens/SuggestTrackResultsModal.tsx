@@ -17,12 +17,10 @@ const SuggestTrackResultsModal: React.FC<SearchTrackResultsScreenProps> = ({
 }) => {
     const tracks = route.params.tracks;
     const insets = useSafeAreaInsets();
-    const suggestTracks = useSuggestTracks();
+    const suggestTracks = useSuggestTracks(exitModal);
 
     function handleTrackPress(trackId: string) {
         suggestTracks([trackId]);
-
-        exitModal();
     }
 
     function handleGoBack() {

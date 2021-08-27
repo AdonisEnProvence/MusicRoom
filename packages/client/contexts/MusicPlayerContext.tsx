@@ -148,13 +148,16 @@ export function useMusicPlayer(): MusicPlayerContextValue {
     return context;
 }
 
-export function useSuggestTracks(): (tracksIDs: string[]) => void {
+export function useSuggestTracks(
+    closeSuggestionModal: () => void,
+): (tracksIDs: string[]) => void {
     const { sendToMachine } = useMusicPlayer();
 
     function suggestTracks(tracksIDs: string[]) {
         sendToMachine({
             type: 'SUGGEST_TRACKS',
             tracksToSuggest: tracksIDs,
+            closeSuggestionModal,
         });
     }
 

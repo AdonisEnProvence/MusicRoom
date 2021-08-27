@@ -1,16 +1,11 @@
+import { UserDevice } from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
 import { datatype, name, random } from 'faker';
 import React from 'react';
-import { UserDevice } from '../../types/dist';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
-import {
-    fireEvent,
-    render,
-    waitForTimeout,
-    within,
-} from '../tests/tests-utils';
+import { fireEvent, render, waitFor, within } from '../tests/tests-utils';
 
 function noop() {
     return undefined;
@@ -53,7 +48,13 @@ He will be redirected to the home and will view the default mini music player
         leaveRoomServerListenerHasBeenCalled = true;
     });
 
-    const { findByText, getByTestId, getAllByText, findByA11yState } = render(
+    const {
+        findByText,
+        getByTestId,
+        getAllByText,
+        findByA11yState,
+        queryAllByA11yState,
+    } = render(
         <NavigationContainer
             ref={navigationRef}
             onReady={() => {
@@ -100,7 +101,10 @@ He will be redirected to the home and will view the default mini music player
     expect(leaveRoomButton).toBeTruthy();
     fireEvent.press(leaveRoomButton);
 
-    await waitForTimeout(1000);
+    await waitFor(() => {
+        const elements = queryAllByA11yState({ expanded: false });
+        expect(elements.length).toBe(0);
+    });
 
     expect(leaveRoomServerListenerHasBeenCalled).toBeTruthy();
     expect(getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);

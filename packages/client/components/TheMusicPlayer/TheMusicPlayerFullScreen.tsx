@@ -33,6 +33,8 @@ const fullscreenPlayerTabsMachineModel = createModel(
             GO_TO_TRACKS: () => ({}),
 
             GO_TO_CHAT: () => ({}),
+
+            GO_TO_SETTINGS: () => ({}),
         },
     },
 );
@@ -47,6 +49,9 @@ const fullscreenPlayerTabsMachine =
                     GO_TO_CHAT: {
                         target: 'chat',
                     },
+                    GO_TO_SETTINGS: {
+                        target: 'settings',
+                    },
                 },
             },
 
@@ -54,6 +59,20 @@ const fullscreenPlayerTabsMachine =
                 on: {
                     GO_TO_TRACKS: {
                         target: 'tracks',
+                    },
+                    GO_TO_SETTINGS: {
+                        target: 'settings',
+                    },
+                },
+            },
+
+            settings: {
+                on: {
+                    GO_TO_TRACKS: {
+                        target: 'tracks',
+                    },
+                    GO_TO_CHAT: {
+                        target: 'chat',
                     },
                 },
             },
@@ -123,7 +142,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
 }) => {
     // TODO: replace the hook by a prop
     const navigation = useNavigation();
-
+    const sx = useSx();
     const context = machineState.context;
     const userContext = userState.context;
     const isDeviceEmitting =
@@ -190,28 +209,62 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                         <FlatList
                             data={userContext.devices}
                             renderItem={({ item: { deviceID, name } }) => (
-                                <Text
+                                <TouchableOpacity
                                     onPress={() => {
                                         sendToMachine({
                                             type: 'CHANGE_EMITTING_DEVICE',
                                             deviceID,
                                         });
                                     }}
-                                    sx={{
-                                        color: 'white',
-                                    }}
                                 >
-                                    {name}{' '}
-                                    {deviceID ===
-                                    context.userRelatedInformation
-                                        ?.emittingDeviceID
-                                        ? 'EMITTING'
-                                        : ''}
-                                </Text>
+                                    <Text
+                                        sx={{
+                                            color: 'white',
+                                        }}
+                                    >
+                                        {name}{' '}
+                                        {deviceID ===
+                                        context.userRelatedInformation
+                                            ?.emittingDeviceID
+                                            ? 'EMITTING'
+                                            : ''}
+                                    </Text>
+                                </TouchableOpacity>
                             )}
                             keyExtractor={(_, index) => String(index)}
                         />
                     )}
+                </View>
+            ),
+        },
+        {
+            text: 'Settings',
+            selected: tabsState.matches('settings'),
+            onPress: () => {
+                tabsSend({
+                    type: 'GO_TO_SETTINGS',
+                });
+            },
+            component: () => (
+                <View>
+                    <Text sx={{ color: 'white' }}>
+                        Welcome to settings tab{' '}
+                    </Text>
+                    <TouchableOpacity
+                        onPress={() => {
+                            sendToMachine({
+                                type: 'LEAVE_ROOM',
+                            });
+                        }}
+                        style={sx({
+                            backgroundColor: '#8B0000',
+                            padding: 'l',
+                            borderRadius: 's',
+                            textAlign: 'center',
+                        })}
+                    >
+                        <Text>LEAVE THE ROOM</Text>
+                    </TouchableOpacity>
                 </View>
             ),
         },

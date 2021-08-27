@@ -85,7 +85,12 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
                 },
             },
             actions: {
-                alertForcedDisconnection: () => {
+                leaveRoomFromLeaveRoomButton: () => {
+                    setIsFullScreen(false);
+                    navigateFromRef('HomeScreen');
+                },
+
+                displayAlertForcedDisconnection: () => {
                     setIsFullScreen(false);
                     navigateFromRef('HomeScreen');
                     navigateFromRef('Alert', {

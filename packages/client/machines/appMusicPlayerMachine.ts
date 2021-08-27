@@ -46,6 +46,8 @@ export type AppMusicPlayerMachineEvent =
     | { type: 'CHANGE_EMITTING_DEVICE'; deviceID: string }
     | { type: 'PLAY_CALLBACK'; state: MtvWorkflowState }
     | { type: 'FORCED_DISCONNECTION' }
+    | { type: 'LEAVE_ROOM' }
+    | { type: 'USER_LENGTH_UPDATE'; state: MtvWorkflowState }
     | { type: 'FOCUS_READY' }
     | { type: 'CHANGE_EMITTING_DEVICE_CALLBACK'; state: MtvWorkflowState }
     | {
@@ -88,6 +90,14 @@ export const createAppMusicPlayerMachine = ({
                         console.log('RETRIEVE_CONTEXT');
                         sendBack({
                             type: 'RETRIEVE_CONTEXT',
+                            state,
+                        });
+                    });
+
+                    socket.on('USER_LENGTH_UPDATE', (state) => {
+                        console.log('USER_LENGTH_UPDATE');
+                        sendBack({
+                            type: 'USER_LENGTH_UPDATE',
                             state,
                         });
                     });
@@ -169,6 +179,12 @@ export const createAppMusicPlayerMachine = ({
                                 break;
                             }
 
+                            case 'LEAVE_ROOM': {
+                                socket.emit('LEAVE_ROOM');
+
+                                break;
+                            }
+
                             case 'CHANGE_EMITTING_DEVICE': {
                                 console.log(
                                     'CHANGE EMITTING DEVICE ABOUT TO BE EMIT WITH PARAMS ',
@@ -239,6 +255,8 @@ export const createAppMusicPlayerMachine = ({
                 },
 
                 creatingRoom: {
+                    entry: 'assignRawContext',
+
                     invoke: {
                         src: (_context, event) => (sendBack) => {
                             //Handle global external transitions
@@ -295,6 +313,8 @@ export const createAppMusicPlayerMachine = ({
                 },
 
                 joiningRoom: {
+                    entry: 'assignRawContext',
+
                     invoke: {
                         src: (_context, event) => (sendBack) => {
                             if (event.type !== 'JOIN_ROOM') {
@@ -472,13 +492,38 @@ export const createAppMusicPlayerMachine = ({
                         },
                     },
 
+                    /**
+                     *                 toggleOffMusicPlayerFullScreen: () => {
+                    setIsFullScreen(false);
+                },
+
+                redirectToHome: () => {
+                    navigateFromRef('HomeScreen');
+                },
+                     */
                     on: {
                         FORCED_DISCONNECTION: {
                             target: 'waitingJoiningRoom',
-                            actions: 'alertForcedDisconnection',
+                            actions: ['displayAlertForcedDisconnection'],
                         },
 
                         JOIN_ROOM: { target: 'joiningRoom' },
+
+                        LEAVE_ROOM: {
+                            target: 'waitingJoiningRoom',
+                            actions: [
+                                'assignRawContext',
+                                send(
+                                    (_context) => ({
+                                        type: 'LEAVE_ROOM',
+                                    }),
+                                    {
+                                        to: 'socketConnection',
+                                    },
+                                ),
+                                'leaveRoomFromLeaveRoomButton',
+                            ],
+                        },
 
                         CHANGE_EMITTING_DEVICE: {
                             cond: (
@@ -505,6 +550,10 @@ export const createAppMusicPlayerMachine = ({
                                     to: 'socketConnection',
                                 },
                             ),
+                        },
+
+                        USER_LENGTH_UPDATE: {
+                            actions: 'assignMergeNewState',
                         },
 
                         CHANGE_EMITTING_DEVICE_CALLBACK: {

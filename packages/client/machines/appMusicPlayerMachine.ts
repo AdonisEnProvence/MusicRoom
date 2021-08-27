@@ -217,364 +217,380 @@ export const createAppMusicPlayerMachine = ({
 
                     on: {
                         FOCUS_READY: {
-                            target: 'waitingForJoinOrCreateRoom',
+                            target: 'pageHasBeenFocused',
                         },
                     },
                 },
 
-                waitingForJoinOrCreateRoom: {
-                    entry: 'assignRawContext',
-                    invoke: {
-                        src: (_context) => () => {
-                            /**
-                             * Looking for other sessions context
-                             * e.g already joined room etc etc
-                             */
-                            socket.emit('GET_CONTEXT');
-                        },
-                    },
-                },
-
-                creatingRoom: {
-                    invoke: {
-                        src: (_context, event) => (sendBack) => {
-                            //Handle global external transitions
-                            if (
-                                event.type === 'JOINED_CREATED_ROOM' ||
-                                event.type === 'ROOM_IS_READY'
-                            )
-                                return;
-
-                            if (event.type !== 'CREATE_ROOM') {
-                                throw new Error(
-                                    'Service must be called in reaction to CREATE_ROOM event',
-                                );
-                            }
-
-                            const { roomName, initialTracksIDs } = event;
-                            const payload: MtvRoomClientToServerCreate = {
-                                name: roomName,
-                                initialTracksIDs,
-                            };
-
-                            socket.emit('CREATE_ROOM', payload);
-                        },
-                    },
-
-                    initial: 'connectingToRoom',
+                pageHasBeenFocused: {
+                    initial: 'waitingForJoinOrCreateRoom',
                     states: {
-                        connectingToRoom: {
+                        waitingForJoinOrCreateRoom: {
+                            entry: 'assignRawContext',
+                            invoke: {
+                                src: (_context) => () => {
+                                    /**
+                                     * Looking for other sessions context
+                                     * e.g already joined room etc etc
+                                     */
+                                    socket.emit('GET_CONTEXT');
+                                },
+                            },
+                        },
+
+                        creatingRoom: {
+                            invoke: {
+                                src: (_context, event) => (sendBack) => {
+                                    //Handle global external transitions
+                                    if (
+                                        event.type === 'JOINED_CREATED_ROOM' ||
+                                        event.type === 'ROOM_IS_READY'
+                                    )
+                                        return;
+
+                                    if (event.type !== 'CREATE_ROOM') {
+                                        throw new Error(
+                                            'Service must be called in reaction to CREATE_ROOM event',
+                                        );
+                                    }
+
+                                    const { roomName, initialTracksIDs } =
+                                        event;
+                                    const payload: MtvRoomClientToServerCreate =
+                                        {
+                                            name: roomName,
+                                            initialTracksIDs,
+                                        };
+
+                                    socket.emit('CREATE_ROOM', payload);
+                                },
+                            },
+
+                            initial: 'connectingToRoom',
+                            states: {
+                                connectingToRoom: {
+                                    on: {
+                                        JOINED_CREATED_ROOM: {
+                                            target: 'roomIsNotReady',
+                                            actions: 'assignMergeNewState',
+                                        },
+                                    },
+                                },
+
+                                roomIsNotReady: {
+                                    on: {
+                                        ROOM_IS_READY: {
+                                            target: 'roomIsReady',
+                                            actions: 'assignMergeNewState',
+                                        },
+                                    },
+                                },
+
+                                roomIsReady: {
+                                    type: 'final',
+                                },
+                            },
+
+                            onDone: {
+                                target: 'connectedToRoom',
+                            },
+                        },
+
+                        joiningRoom: {
+                            invoke: {
+                                src: (_context, event) => (sendBack) => {
+                                    if (event.type !== 'JOIN_ROOM') {
+                                        throw new Error(
+                                            'Service must be called in reaction to JOIN_ROOM event',
+                                        );
+                                    }
+
+                                    socket.emit('JOIN_ROOM', {
+                                        roomID: event.roomID,
+                                    });
+                                },
+                            },
+
                             on: {
-                                JOINED_CREATED_ROOM: {
-                                    target: 'roomIsNotReady',
+                                JOINED_ROOM: {
+                                    target: 'connectedToRoom',
+                                    cond: (context, event) => {
+                                        return (
+                                            event.state.roomID ===
+                                            context.waitingRoomID
+                                        );
+                                    },
                                     actions: 'assignMergeNewState',
                                 },
                             },
                         },
 
-                        roomIsNotReady: {
-                            on: {
-                                ROOM_IS_READY: {
-                                    target: 'roomIsReady',
-                                    actions: 'assignMergeNewState',
-                                },
-                            },
-                        },
+                        connectedToRoom: {
+                            initial: 'waitingForPlayerToBeSet',
 
-                        roomIsReady: {
-                            type: 'final',
-                        },
-                    },
-
-                    onDone: {
-                        target: 'connectedToRoom',
-                    },
-                },
-
-                joiningRoom: {
-                    invoke: {
-                        src: (_context, event) => (sendBack) => {
-                            if (event.type !== 'JOIN_ROOM') {
-                                throw new Error(
-                                    'Service must be called in reaction to JOIN_ROOM event',
-                                );
-                            }
-
-                            socket.emit('JOIN_ROOM', { roomID: event.roomID });
-                        },
-                    },
-
-                    on: {
-                        JOINED_ROOM: {
-                            target: 'connectedToRoom',
-                            cond: (context, event) => {
-                                return (
-                                    event.state.roomID === context.waitingRoomID
-                                );
-                            },
-                            actions: 'assignMergeNewState',
-                        },
-                    },
-                },
-
-                connectedToRoom: {
-                    initial: 'waitingForPlayerToBeSet',
-
-                    tags: 'roomIsReady',
-
-                    states: {
-                        waitingForPlayerToBeSet: {
-                            on: {
-                                MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET: {
-                                    target: 'waitingForTrackToLoad',
-                                },
-                            },
-                        },
-
-                        waitingForTrackToLoad: {
-                            on: {
-                                TRACK_HAS_LOADED: {
-                                    target: 'loadingTrackDuration',
-                                },
-                            },
-                        },
-
-                        loadingTrackDuration: {
-                            always: [
-                                {
-                                    cond: ({ playing }) => playing === true,
-                                    target: 'activatedPlayer.play',
-                                },
-
-                                {
-                                    target: 'activatedPlayer.pause',
-                                },
-                            ],
-                        },
-
-                        activatedPlayer: {
-                            initial: 'pause',
+                            tags: 'roomIsReady',
 
                             states: {
-                                pause: {
-                                    tags: 'playerOnPause',
-
-                                    initial: 'idle',
-
-                                    states: {
-                                        idle: {
-                                            on: {
-                                                PLAY_PAUSE_TOGGLE: {
-                                                    target: 'waitingServerAcknowledgement',
-                                                },
-                                            },
-                                        },
-
-                                        waitingServerAcknowledgement: {
-                                            entry: send(
-                                                (context, _event) => ({
-                                                    type: 'PLAY_PAUSE_TOGGLE',
-                                                    params: {
-                                                        status: 'pause',
-                                                    },
-                                                }),
-                                                {
-                                                    to: 'socketConnection',
-                                                },
-                                            ),
+                                waitingForPlayerToBeSet: {
+                                    on: {
+                                        MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET: {
+                                            target: 'waitingForTrackToLoad',
                                         },
                                     },
                                 },
 
-                                play: {
-                                    tags: 'playerOnPlay',
-
-                                    invoke: {
-                                        src: 'pollTrackElapsedTime',
+                                waitingForTrackToLoad: {
+                                    on: {
+                                        TRACK_HAS_LOADED: {
+                                            target: 'loadingTrackDuration',
+                                        },
                                     },
+                                },
 
-                                    initial: 'idle',
+                                loadingTrackDuration: {
+                                    always: [
+                                        {
+                                            cond: ({ playing }) =>
+                                                playing === true,
+                                            target: 'activatedPlayer.play',
+                                        },
+
+                                        {
+                                            target: 'activatedPlayer.pause',
+                                        },
+                                    ],
+                                },
+
+                                activatedPlayer: {
+                                    initial: 'pause',
 
                                     states: {
-                                        idle: {
-                                            on: {
-                                                PLAY_PAUSE_TOGGLE: {
-                                                    target: 'waitingServerAcknowledgement',
+                                        pause: {
+                                            tags: 'playerOnPause',
+
+                                            initial: 'idle',
+
+                                            states: {
+                                                idle: {
+                                                    on: {
+                                                        PLAY_PAUSE_TOGGLE: {
+                                                            target: 'waitingServerAcknowledgement',
+                                                        },
+                                                    },
+                                                },
+
+                                                waitingServerAcknowledgement: {
+                                                    entry: send(
+                                                        (context, _event) => ({
+                                                            type: 'PLAY_PAUSE_TOGGLE',
+                                                            params: {
+                                                                status: 'pause',
+                                                            },
+                                                        }),
+                                                        {
+                                                            to: 'socketConnection',
+                                                        },
+                                                    ),
                                                 },
                                             },
                                         },
 
-                                        waitingServerAcknowledgement: {
-                                            entry: send(
-                                                (_context, _event) => ({
-                                                    type: 'PLAY_PAUSE_TOGGLE',
-                                                    params: {
-                                                        status: 'play',
+                                        play: {
+                                            tags: 'playerOnPlay',
+
+                                            invoke: {
+                                                src: 'pollTrackElapsedTime',
+                                            },
+
+                                            initial: 'idle',
+
+                                            states: {
+                                                idle: {
+                                                    on: {
+                                                        PLAY_PAUSE_TOGGLE: {
+                                                            target: 'waitingServerAcknowledgement',
+                                                        },
                                                     },
-                                                }),
-                                                {
-                                                    to: 'socketConnection',
                                                 },
-                                            ),
+
+                                                waitingServerAcknowledgement: {
+                                                    entry: send(
+                                                        (_context, _event) => ({
+                                                            type: 'PLAY_PAUSE_TOGGLE',
+                                                            params: {
+                                                                status: 'play',
+                                                            },
+                                                        }),
+                                                        {
+                                                            to: 'socketConnection',
+                                                        },
+                                                    ),
+                                                },
+                                            },
+
+                                            on: {
+                                                UPDATE_CURRENT_TRACK_ELAPSED_TIME:
+                                                    {
+                                                        actions:
+                                                            'assignElapsedTimeToContext',
+                                                    },
+                                            },
                                         },
                                     },
 
                                     on: {
-                                        UPDATE_CURRENT_TRACK_ELAPSED_TIME: {
+                                        PAUSE_CALLBACK: {
+                                            target: 'activatedPlayer.pause',
+                                        },
+
+                                        PLAY_CALLBACK: [
+                                            {
+                                                target: 'waitingForTrackToLoad',
+
+                                                cond: (
+                                                    { currentTrack },
+                                                    {
+                                                        state: {
+                                                            currentTrack:
+                                                                currentTrackToBeSet,
+                                                        },
+                                                    },
+                                                ) => {
+                                                    const isDifferentCurrentTrack =
+                                                        currentTrack?.id !==
+                                                        currentTrackToBeSet?.id;
+
+                                                    return isDifferentCurrentTrack;
+                                                },
+
+                                                actions: 'assignMergeNewState',
+                                            },
+
+                                            {
+                                                target: 'activatedPlayer.play',
+                                                actions: 'assignMergeNewState',
+                                            },
+                                        ],
+
+                                        GO_TO_NEXT_TRACK: {
                                             actions:
-                                                'assignElapsedTimeToContext',
+                                                forwardTo('socketConnection'),
                                         },
                                     },
                                 },
                             },
 
                             on: {
-                                PAUSE_CALLBACK: {
-                                    target: 'activatedPlayer.pause',
+                                FORCED_DISCONNECTION: {
+                                    target: 'waitingForJoinOrCreateRoom',
+                                    actions: [
+                                        'assignRawContext',
+                                        'displayAlertForcedDisconnection',
+                                    ],
                                 },
 
-                                PLAY_CALLBACK: [
-                                    {
-                                        target: 'waitingForTrackToLoad',
-
-                                        cond: (
-                                            { currentTrack },
+                                LEAVE_ROOM: {
+                                    target: 'waitingForJoinOrCreateRoom',
+                                    actions: [
+                                        'assignRawContext',
+                                        send(
+                                            (_context) => ({
+                                                type: 'LEAVE_ROOM',
+                                            }),
                                             {
-                                                state: {
-                                                    currentTrack:
-                                                        currentTrackToBeSet,
-                                                },
+                                                to: 'socketConnection',
                                             },
-                                        ) => {
-                                            const isDifferentCurrentTrack =
-                                                currentTrack?.id !==
-                                                currentTrackToBeSet?.id;
+                                        ),
+                                        'leaveRoomFromLeaveRoomButton',
+                                    ],
+                                },
 
-                                            return isDifferentCurrentTrack;
+                                CHANGE_EMITTING_DEVICE: {
+                                    cond: (
+                                        { userRelatedInformation },
+                                        { deviceID },
+                                    ) => {
+                                        if (userRelatedInformation !== null) {
+                                            const pickedDeviceIsNotEmitting =
+                                                userRelatedInformation.emittingDeviceID !==
+                                                deviceID;
+
+                                            return pickedDeviceIsNotEmitting;
+                                        }
+                                        return false;
+                                    },
+                                    actions: send(
+                                        (_context, event) => ({
+                                            type: 'CHANGE_EMITTING_DEVICE',
+                                            params: {
+                                                deviceID: event.deviceID,
+                                            },
+                                        }),
+                                        {
+                                            to: 'socketConnection',
                                         },
+                                    ),
+                                },
 
-                                        actions: 'assignMergeNewState',
+                                USER_LENGTH_UPDATE: {
+                                    actions: 'assignMergeNewState',
+                                },
+
+                                CHANGE_EMITTING_DEVICE_CALLBACK: {
+                                    cond: ({ userRelatedInformation }) => {
+                                        const userRelatedInformationIsNotNull =
+                                            userRelatedInformation !== null;
+
+                                        if (
+                                            userRelatedInformationIsNotNull ===
+                                            false
+                                        ) {
+                                            console.error(
+                                                'UserRelatedInformation should not be null',
+                                            );
+                                        }
+
+                                        return userRelatedInformationIsNotNull;
                                     },
-
-                                    {
-                                        target: 'activatedPlayer.play',
-                                        actions: 'assignMergeNewState',
-                                    },
-                                ],
-
-                                GO_TO_NEXT_TRACK: {
-                                    actions: forwardTo('socketConnection'),
+                                    actions: `assignMergeNewState`,
                                 },
                             },
                         },
                     },
 
                     on: {
-                        FORCED_DISCONNECTION: {
-                            target: 'waitingForJoinOrCreateRoom',
-                            actions: [
-                                'assignRawContext',
-                                'displayAlertForcedDisconnection',
-                            ],
-                        },
-
-                        LEAVE_ROOM: {
-                            target: 'waitingForJoinOrCreateRoom',
-                            actions: [
-                                'assignRawContext',
-                                send(
-                                    (_context) => ({
-                                        type: 'LEAVE_ROOM',
-                                    }),
-                                    {
-                                        to: 'socketConnection',
-                                    },
-                                ),
-                                'leaveRoomFromLeaveRoomButton',
-                            ],
-                        },
-
-                        CHANGE_EMITTING_DEVICE: {
-                            cond: (
-                                { userRelatedInformation },
-                                { deviceID },
-                            ) => {
-                                if (userRelatedInformation !== null) {
-                                    const pickedDeviceIsNotEmitting =
-                                        userRelatedInformation.emittingDeviceID !==
-                                        deviceID;
-
-                                    return pickedDeviceIsNotEmitting;
+                        JOIN_ROOM: {
+                            target: '.joiningRoom',
+                            actions: assign((context, event) => {
+                                if (event.type !== 'JOIN_ROOM') {
+                                    return context;
                                 }
-                                return false;
-                            },
-                            actions: send(
-                                (_context, event) => ({
-                                    type: 'CHANGE_EMITTING_DEVICE',
-                                    params: {
-                                        deviceID: event.deviceID,
-                                    },
-                                }),
-                                {
-                                    to: 'socketConnection',
-                                },
-                            ),
+
+                                return {
+                                    ...rawContext,
+                                    waitingRoomID: event.roomID,
+                                };
+                            }),
                         },
 
-                        USER_LENGTH_UPDATE: {
+                        CREATE_ROOM: {
+                            target: '.creatingRoom',
+                            actions: 'assignRawContext',
+                        },
+
+                        RETRIEVE_CONTEXT: {
+                            target: '.connectedToRoom',
                             actions: 'assignMergeNewState',
                         },
-
-                        CHANGE_EMITTING_DEVICE_CALLBACK: {
-                            cond: ({ userRelatedInformation }) => {
-                                const userRelatedInformationIsNotNull =
-                                    userRelatedInformation !== null;
-
-                                if (userRelatedInformationIsNotNull === false) {
-                                    console.error(
-                                        'UserRelatedInformation should not be null',
-                                    );
-                                }
-
-                                return userRelatedInformationIsNotNull;
-                            },
-                            actions: `assignMergeNewState`,
+                        JOINED_CREATED_ROOM: {
+                            target: '.creatingRoom.roomIsNotReady',
+                            actions: 'assignMergeNewState',
+                        },
+                        ROOM_IS_READY: {
+                            target: '.creatingRoom.roomIsReady',
+                            actions: 'assignMergeNewState',
                         },
                     },
-                },
-            },
-
-            on: {
-                JOIN_ROOM: {
-                    target: 'joiningRoom',
-                    actions: assign((context, event) => {
-                        if (event.type !== 'JOIN_ROOM') {
-                            return context;
-                        }
-
-                        return {
-                            ...rawContext,
-                            waitingRoomID: event.roomID,
-                        };
-                    }),
-                },
-
-                CREATE_ROOM: {
-                    target: 'creatingRoom',
-                    actions: 'assignRawContext',
-                },
-
-                RETRIEVE_CONTEXT: {
-                    target: 'connectedToRoom',
-                    actions: 'assignMergeNewState',
-                },
-                JOINED_CREATED_ROOM: {
-                    target: 'creatingRoom.roomIsNotReady',
-                    actions: 'assignMergeNewState',
-                },
-                ROOM_IS_READY: {
-                    target: 'creatingRoom.roomIsReady',
-                    actions: 'assignMergeNewState',
                 },
             },
         },

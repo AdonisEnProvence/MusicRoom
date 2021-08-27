@@ -93,8 +93,6 @@ Ws.io.on('connection', async (socket) => {
                 /**
                  * Checking if user needs to leave previous
                  * mtv room before creating new one
-                 * If the leave fails the create won't
-                 * achieve
                  */
                 if (currMtvRoomID !== undefined) {
                     console.log(
@@ -169,8 +167,6 @@ Ws.io.on('connection', async (socket) => {
                 /**
                  * Checking if user needs to leave previous
                  * mtv room before joining new one
-                 * If the leave fails the join won't
-                 * achieve
                  */
                 if (currMtvRoomID !== undefined) {
                     console.log(

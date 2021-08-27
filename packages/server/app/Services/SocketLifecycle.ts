@@ -265,6 +265,11 @@ export default class SocketLifecycle {
     }
 
     public static async ownerLeavesRoom(ownedRoom: MtvRoom): Promise<void> {
+        await ownedRoom.delete();
+
+        Ws.io.in(ownedRoom.uuid).emit('FORCED_DISCONNECTION');
+        await this.deleteSocketIoRoom(ownedRoom.uuid);
+
         try {
             console.log(
                 `Sending terminate signal to temporal for room ${ownedRoom.uuid}`,
@@ -273,13 +278,9 @@ export default class SocketLifecycle {
                 roomID: ownedRoom.uuid,
                 runID: ownedRoom.runID,
             });
-            await ownedRoom.delete();
-
-            Ws.io.in(ownedRoom.uuid).emit('FORCED_DISCONNECTION');
-            await this.deleteSocketIoRoom(ownedRoom.uuid);
         } catch (e) {
             console.error(
-                `Couldnt terminate workflow on owner disconnection ${ownedRoom.creator} room: ${ownedRoom.uuid} workflow is still alive in temporal but removed from database`,
+                `Couldnt terminate workflow on owner disconnection ${ownedRoom.creator} room: ${ownedRoom.uuid} workflow is still alive in temporal but removed from database and socket io instance`,
                 e,
             );
         }

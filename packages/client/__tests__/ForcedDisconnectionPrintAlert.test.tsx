@@ -4,10 +4,10 @@ import React from 'react';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
-import { fireEvent, render, noop } from '../tests/tests-utils';
+import { fireEvent, noop, render, within } from '../tests/tests-utils';
 
 test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it when clicking on dismiss button`, async () => {
-    const { getByText, getAllByText, findByText } = render(
+    const { getByText, getAllByText, getByTestId, findByText } = render(
         <NavigationContainer
             ref={navigationRef}
             onReady={() => {
@@ -71,4 +71,9 @@ test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it 
      */
     fireEvent.press(dismissButton);
     expect(getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+    const musicPlayerMini = getByTestId('music-player-mini');
+
+    expect(
+        within(musicPlayerMini).getByText(/Join a room to listen to music/i),
+    ).toBeTruthy();
 });

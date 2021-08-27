@@ -1,4 +1,5 @@
 import { Button } from '@dripsy/core';
+import { MtvWorkflowState } from '@musicroom/types';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -6,10 +7,12 @@ import {
     AppScreenContainer,
     AppScreenHeader,
 } from '../components/kit';
+import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import { HomeTabHomeScreenScreenProps } from '../types';
 
 const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
+    const musicPlayerMachine = useMusicPlayer();
 
     return (
         <AppScreen>
@@ -41,6 +44,31 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                     onPress={() => {
                         navigation.navigate('SuggestTrack', {
                             screen: 'SuggestTrackModal',
+                        });
+                    }}
+                />
+
+                <Button
+                    title="Inject fake room"
+                    onPress={() => {
+                        const fakeState: MtvWorkflowState = {
+                            currentTrack: null,
+                            name: 'JUST A FAKE ROOM',
+                            playing: false,
+                            roomCreatorUserID: 'JUST A CREATOR ID',
+                            roomID: 'JUST A ROOM ID',
+                            tracks: null,
+                            tracksIDsList: null,
+                            userRelatedInformation: {
+                                emittingDeviceID: 'EMITTING DEVICE',
+                                userID: 'JUST A USER ID',
+                            },
+                            usersLength: 2,
+                        };
+
+                        musicPlayerMachine.sendToMachine({
+                            type: 'RETRIEVE_CONTEXT',
+                            state: fakeState,
                         });
                     }}
                 />

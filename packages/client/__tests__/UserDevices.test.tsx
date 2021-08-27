@@ -1,7 +1,7 @@
+import { UserDevice } from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
 import { datatype, name, random } from 'faker';
 import React from 'react';
-import { UserDevice } from '../../types/dist';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
@@ -9,14 +9,6 @@ import { fireEvent, render, within } from '../tests/tests-utils';
 
 function noop() {
     return undefined;
-}
-
-function waitForTimeout(ms: number): Promise<void> {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve();
-        }, ms);
-    });
 }
 
 //NOTE listing the user connected devices in the MTV room chat section is temporary, we will later have to update this test

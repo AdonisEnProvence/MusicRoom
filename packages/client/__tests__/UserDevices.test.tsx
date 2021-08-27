@@ -11,14 +11,6 @@ function noop() {
     return undefined;
 }
 
-function waitForTimeout(ms: number): Promise<void> {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve();
-        }, ms);
-    });
-}
-
 //NOTE listing the user connected devices in the MTV room chat section is temporary, we will later have to update this test
 test(`
 On userMachine mounting it should retrieve user connected devices and list them in the MTV chat section

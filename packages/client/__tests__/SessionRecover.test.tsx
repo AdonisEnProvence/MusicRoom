@@ -7,10 +7,10 @@ import { serverSocket } from '../services/websockets';
 import { db } from '../tests/data';
 import {
     fireEvent,
-    render,
-    within,
-    waitForTimeout,
     noop,
+    render,
+    waitForTimeout,
+    within,
 } from '../tests/tests-utils';
 
 test(`It should display the music player corresponding to the injected state on both CREATED_ROOM server socket callbacks`, async () => {

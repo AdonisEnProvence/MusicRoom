@@ -574,11 +574,15 @@ export const createAppMusicPlayerMachine = ({
                                                         {
                                                             target: 'waitingForTracksToBeSuggested',
 
-                                                            actions: ({
-                                                                closeSuggestionModal,
-                                                            }) => {
-                                                                closeSuggestionModal?.();
-                                                            },
+                                                            actions: [
+                                                                ({
+                                                                    closeSuggestionModal,
+                                                                }) => {
+                                                                    closeSuggestionModal?.();
+                                                                },
+
+                                                                'showTracksSuggestionAcknowledgementToast',
+                                                            ],
                                                         },
                                                 },
                                             },

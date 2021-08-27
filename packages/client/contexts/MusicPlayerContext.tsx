@@ -1,6 +1,7 @@
 import { useMachine } from '@xstate/react';
 import React, { useContext, useRef } from 'react';
 import { Platform } from 'react-native';
+import Toast from 'react-native-toast-message';
 import { Sender } from 'xstate';
 import { MusicPlayerRef } from '../components/TheMusicPlayer/Player';
 import {
@@ -95,6 +96,14 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
                     navigateFromRef('HomeScreen');
                     navigateFromRef('Alert', {
                         reason: 'FORCED_DISCONNECTION',
+                    });
+                },
+
+                showTracksSuggestionAcknowledgementToast: () => {
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Tracks suggestion',
+                        text2: 'Your suggestions have been accepted',
                     });
                 },
             },

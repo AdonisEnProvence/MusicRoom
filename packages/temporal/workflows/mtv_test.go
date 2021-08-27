@@ -1074,6 +1074,15 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.AcknowledgeTracksSuggestion,
+		mock.Anything,
+		activities.AcknowledgeTracksSuggestionArgs{
+			RoomID:   params.RoomID,
+			UserID:   suggesterUserID,
+			DeviceID: suggesterDeviceID,
+		},
+	).Return(nil).Once()
 
 	firstSuggestTracksSignalDelay := defaultDuration
 	registerDelayedCallbackWrapper(func() {

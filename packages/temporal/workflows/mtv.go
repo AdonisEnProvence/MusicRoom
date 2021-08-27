@@ -750,11 +750,29 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								activities.SuggestedTracksListChangedActivity,
 								internalState.Export(shared.NoRelatedUserID),
 							)
-							// The suggesting track user needs to receive the operation acknowledgement
-							// to be able to resuggest a new track
-							// In this way near this area we should send a acknowledgement activity
-							// that will contain a suggesting user related state
-							// Then we will send to every suggesting user a specific socket event
+
+							return nil
+						},
+					),
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+							event := e.(MtvRoomSuggestedTracksFetchedEvent)
+
+							options := workflow.ActivityOptions{
+								ScheduleToStartTimeout: time.Minute,
+								StartToCloseTimeout:    time.Minute,
+							}
+							ctx = workflow.WithActivityOptions(ctx, options)
+
+							workflow.ExecuteActivity(
+								ctx,
+								activities.AcknowledgeTracksSuggestion,
+								activities.AcknowledgeTracksSuggestionArgs{
+									RoomID:   internalState.initialParams.RoomID,
+									UserID:   event.UserID,
+									DeviceID: event.DeviceID,
+								},
+							)
 
 							return nil
 						},

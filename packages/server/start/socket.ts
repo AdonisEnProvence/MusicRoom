@@ -79,17 +79,36 @@ Ws.io.on('connection', async (socket) => {
         socket.on('CREATE_ROOM', async (payload) => {
             try {
                 const {
-                    user: { uuid: userID },
+                    user,
                     deviceID,
+                    mtvRoomID: currMtvRoomID,
                 } = await SocketLifecycle.getSocketConnectionCredentials(
                     socket,
                 );
+
                 if (!payload.name) {
                     throw new Error('CREATE_ROOM failed name should be empty');
                 }
+
+                /**
+                 * Checking if user needs to leave previous
+                 * mtv room before creating new one
+                 * If the leave fails the create won't
+                 * achieve
+                 */
+                if (currMtvRoomID !== undefined) {
+                    console.log(
+                        `User needs to leave current room before joining new one`,
+                    );
+                    await MtvRoomsWsController.onLeave({
+                        user,
+                        leavingRoomID: currMtvRoomID,
+                    });
+                }
+
                 const raw = await MtvRoomsWsController.onCreate({
                     name: payload.name,
-                    userID,
+                    userID: user.uuid,
                     initialTracksIDs: payload.initialTracksIDs,
                     deviceID,
                 });

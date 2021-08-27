@@ -1,10 +1,11 @@
-import { UserDevice } from '@musicroom/types';
+import { MtvWorkflowState, UserDevice } from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
 import { datatype, name, random } from 'faker';
 import React from 'react';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
+import { db } from '../tests/data';
 import { fireEvent, render, waitFor, within } from '../tests/tests-utils';
 
 function noop() {
@@ -21,7 +22,7 @@ He will be redirected to the home and will view the default mini music player
     }));
     const thisDevice = userDevices[0];
     const userID = datatype.uuid();
-    const state = {
+    const state: MtvWorkflowState = {
         roomID: datatype.uuid(),
         name: random.word(),
         playing: false,
@@ -31,16 +32,9 @@ He will be redirected to the home and will view the default mini music player
             userID,
         },
         currentTrack: null,
-        tracksIDsList: null,
         roomCreatorUserID: userID,
-        tracks: [
-            {
-                id: datatype.uuid(),
-                artistName: name.findName(),
-                duration: 42000,
-                title: random.words(3),
-            },
-        ],
+        tracks: [db.tracksMetadata.create()],
+        suggestedTracks: null,
     };
 
     let leaveRoomServerListenerHasBeenCalled = false;

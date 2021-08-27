@@ -1773,7 +1773,7 @@ test.group('Rooms life cycle', (group) => {
             roomCreatorUserID: userAID,
             roomID: mtvRoomIDToAssociate,
             tracks: null,
-            tracksIDsList: null,
+            suggestedTracks: null,
             userRelatedInformation: null,
             usersLength: 3,
         };
@@ -1818,10 +1818,11 @@ test.group('Rooms life cycle', (group) => {
                             artistName: name.findName(),
                             duration: 42000,
                             title: random.words(3),
+                            score: datatype.number(),
                         },
                     ],
+                    suggestedTracks: null,
                     currentTrack: null,
-                    tracksIDsList: null,
                 };
 
                 // Simulating Use Local Activity Notify

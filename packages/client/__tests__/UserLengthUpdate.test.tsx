@@ -1,24 +1,19 @@
+import { UserDevice } from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
 import { datatype, name, random } from 'faker';
 import React from 'react';
-import { UserDevice } from '../../types/dist';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
-import {
-    fireEvent,
-    render,
-    waitForTimeout,
-    within,
-} from '../tests/tests-utils';
+import { fireEvent, render, within } from '../tests/tests-utils';
 
 function noop() {
     return undefined;
 }
 
 test(`
-User should go to the musicPlayer into the settings tab an hit the leave button
-He will be redirected to the home and will view the default mini music player
+    After the client receives a USER_LENGTH_UPDATE we expect the player to display
+    2 current listeners
 `, async () => {
     const userDevices: UserDevice[] = Array.from({ length: 3 }).map(() => ({
         deviceID: datatype.uuid(),
@@ -84,9 +79,9 @@ He will be redirected to the home and will view the default mini music player
         ...state,
         usersLength: state.usersLength + 1,
     });
-    await waitForTimeout(1000);
 
-    expect(
-        within(musicPlayerFullScreen).getByText(/2 listeners/i),
-    ).toBeTruthy();
+    const listernersElement = await within(musicPlayerFullScreen).findByText(
+        /2 listeners/i,
+    );
+    expect(listernersElement).toBeTruthy();
 });

@@ -201,6 +201,7 @@ test.group('Rooms life cycle', (group) => {
                             score: datatype.number(),
                         },
                     ],
+                    suggestedTracks: null,
                     currentTrack: null,
                 };
 
@@ -344,6 +345,7 @@ test.group('Rooms life cycle', (group) => {
                             score: datatype.number(),
                         },
                     ],
+                    suggestedTracks: null,
                 };
                 return {
                     runID: datatype.uuid(),
@@ -481,6 +483,7 @@ test.group('Rooms life cycle', (group) => {
                             score: datatype.number(),
                         },
                     ],
+                    suggestedTracks: null,
                     playing: false,
                     name: roomName,
                     userRelatedInformation: {
@@ -598,6 +601,7 @@ test.group('Rooms life cycle', (group) => {
                                 score: datatype.number(),
                             },
                         ],
+                        suggestedTracks: null,
                     },
                 };
             });
@@ -665,6 +669,7 @@ test.group('Rooms life cycle', (group) => {
                             score: datatype.number(),
                         },
                     ],
+                    suggestedTracks: null,
                 };
 
                 return {
@@ -690,6 +695,7 @@ test.group('Rooms life cycle', (group) => {
                         : null,
                     currentTrack: null,
                     tracks: null,
+                    suggestedTracks: null,
                 };
             });
         sinon.stub(ServerToTemporalController, 'play').callsFake(async () => {
@@ -776,6 +782,7 @@ test.group('Rooms life cycle', (group) => {
 
                     roomCreatorUserID: userID,
                     tracks: null,
+                    suggestedTracks: null,
                     userRelatedInformation: null,
                     usersLength: 1,
                 };
@@ -833,6 +840,7 @@ test.group('Rooms life cycle', (group) => {
             roomCreatorUserID: userID,
             roomID: datatype.uuid(),
             tracks: null,
+            suggestedTracks: null,
             usersLength: 1,
             userRelatedInformation: null,
         };
@@ -929,6 +937,7 @@ test.group('Rooms life cycle', (group) => {
                     roomCreatorUserID: userID,
                     roomID: workflowID,
                     tracks: null,
+                    suggestedTracks: null,
                     userRelatedInformation: {
                         userID: userID,
                         emittingDeviceID: deviceID,
@@ -1064,6 +1073,7 @@ test.group('Rooms life cycle', (group) => {
                     roomCreatorUserID: userID,
                     roomID: workflowID,
                     tracks: null,
+                    suggestedTracks: null,
                     userRelatedInformation: {
                         userID: userID,
                         emittingDeviceID: deviceID,
@@ -1126,6 +1136,7 @@ test.group('Rooms life cycle', (group) => {
                     roomCreatorUserID: userID,
                     roomID: workflowID,
                     tracks: null,
+                    suggestedTracks: null,
                     userRelatedInformation: {
                         userID: userID,
                         emittingDeviceID: deviceID,
@@ -1194,7 +1205,7 @@ test.group('Rooms life cycle', (group) => {
                     roomCreatorUserID: userID,
                     roomID: workflowID,
                     tracks: null,
-                    tracksIDsList: null,
+                    suggestedTracks: null,
                     userRelatedInformation: null,
                     usersLength: 2,
                 };
@@ -1350,7 +1361,7 @@ test.group('Rooms life cycle', (group) => {
             roomCreatorUserID: userAID,
             roomID: mtvRoomIDToAssociate,
             tracks: null,
-            tracksIDsList: null,
+            suggestedTracks: null,
             userRelatedInformation: null,
             usersLength: 3,
         };
@@ -1362,7 +1373,7 @@ test.group('Rooms life cycle', (group) => {
             roomCreatorUserID: roomToJoinCreatorID,
             roomID: mtvRoomToJoinID,
             tracks: null,
-            tracksIDsList: null,
+            suggestedTracks: null,
             userRelatedInformation: null,
             usersLength: 1,
         };
@@ -1558,7 +1569,7 @@ test.group('Rooms life cycle', (group) => {
             roomCreatorUserID: userAID,
             roomID: mtvRoomIDToAssociate,
             tracks: null,
-            tracksIDsList: null,
+            suggestedTracks: null,
             userRelatedInformation: null,
             usersLength: 3,
         };
@@ -1570,7 +1581,7 @@ test.group('Rooms life cycle', (group) => {
             roomCreatorUserID: roomToJoinCreatorID,
             roomID: mtvRoomToJoinID,
             tracks: null,
-            tracksIDsList: null,
+            suggestedTracks: null,
             userRelatedInformation: null,
             usersLength: 1,
         };

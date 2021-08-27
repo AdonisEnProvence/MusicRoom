@@ -173,6 +173,8 @@ type SuggestTracksRequestBody struct {
 	RunID      string `json:"runID"`
 
 	TracksToSuggest []string `json:"tracksToSuggest"`
+	UserID          string   `json:"userID"`
+	DeviceID        string   `json:"deviceID"`
 }
 
 func SuggestTracksHandler(w http.ResponseWriter, r *http.Request) {
@@ -187,6 +189,8 @@ func SuggestTracksHandler(w http.ResponseWriter, r *http.Request) {
 
 	suggestTracksSignal := shared.NewSuggestTracksSignal(shared.SuggestTracksSignalArgs{
 		TracksToSuggest: body.TracksToSuggest,
+		UserID:          body.UserID,
+		DeviceID:        body.DeviceID,
 	})
 	if err := temporal.SignalWorkflow(
 		context.Background(),

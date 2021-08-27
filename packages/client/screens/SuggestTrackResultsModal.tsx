@@ -9,7 +9,7 @@ import { SearchTrackResultsScreenProps } from '../types';
 import { FlatList } from 'react-native';
 import TrackListItem from '../components/Track/TrackListItem';
 import { useSuggestTracks } from '../contexts/MusicPlayerContext';
-import { View } from 'dripsy';
+import { ActivityIndicator, View } from 'dripsy';
 
 const SuggestTrackResultsModal: React.FC<SearchTrackResultsScreenProps> = ({
     route,
@@ -17,7 +17,8 @@ const SuggestTrackResultsModal: React.FC<SearchTrackResultsScreenProps> = ({
 }) => {
     const tracks = route.params.tracks;
     const insets = useSafeAreaInsets();
-    const suggestTracks = useSuggestTracks(exitModal);
+    const { suggestTracks, showActivityIndicatorOnSuggestionsResultsScreen } =
+        useSuggestTracks(exitModal);
 
     function handleTrackPress(trackId: string) {
         suggestTracks([trackId]);
@@ -65,6 +66,23 @@ const SuggestTrackResultsModal: React.FC<SearchTrackResultsScreenProps> = ({
                     )}
                     keyExtractor={(_, index) => String(index)}
                 />
+
+                {showActivityIndicatorOnSuggestionsResultsScreen === true && (
+                    <View
+                        sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <ActivityIndicator size="large" />
+                    </View>
+                )}
             </AppScreenContainer>
         </AppScreen>
     );

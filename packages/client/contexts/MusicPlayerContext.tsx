@@ -148,10 +148,11 @@ export function useMusicPlayer(): MusicPlayerContextValue {
     return context;
 }
 
-export function useSuggestTracks(
-    closeSuggestionModal: () => void,
-): (tracksIDs: string[]) => void {
-    const { sendToMachine } = useMusicPlayer();
+export function useSuggestTracks(closeSuggestionModal: () => void): {
+    suggestTracks: (tracksIDs: string[]) => void;
+    showActivityIndicatorOnSuggestionsResultsScreen: boolean;
+} {
+    const { sendToMachine, state } = useMusicPlayer();
 
     function suggestTracks(tracksIDs: string[]) {
         sendToMachine({
@@ -161,5 +162,12 @@ export function useSuggestTracks(
         });
     }
 
-    return suggestTracks;
+    const showActivityIndicatorOnSuggestionsResultsScreen = state.hasTag(
+        'showActivityIndicatorOnSuggestionsResultsScreen',
+    );
+
+    return {
+        suggestTracks,
+        showActivityIndicatorOnSuggestionsResultsScreen,
+    };
 }

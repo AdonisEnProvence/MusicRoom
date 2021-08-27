@@ -33,6 +33,7 @@ func main() {
 	w.RegisterActivity(activities.UserLengthUpdateActivity)
 	w.RegisterActivity(activities.ChangeUserEmittingDeviceActivity)
 	w.RegisterActivity(activities.SuggestedTracksListChangedActivity)
+	w.RegisterActivity(activities.AcknowledgeTracksSuggestion)
 
 	// Start listening to the Task Queue
 	err = w.Run(worker.InterruptCh())

@@ -1677,7 +1677,6 @@ test.group('Rooms life cycle', (group) => {
              * any event
              */
             assert.isTrue(false);
-            socketC.receivedEvents.push('USER_LENGTH_UPDATE');
         });
 
         socketC.socketB.once('USER_LENGTH_UPDATE', () => {
@@ -1686,7 +1685,6 @@ test.group('Rooms life cycle', (group) => {
              * any event
              */
             assert.isTrue(false);
-            socketC.receivedEvents.push('USER_LENGTH_UPDATE');
         });
 
         /**
@@ -1699,7 +1697,6 @@ test.group('Rooms life cycle', (group) => {
 
         assert.equal(socket.receivedEvents.length, 2);
         assert.equal(socketB.receivedEvents.length, 1);
-        assert.equal(socketC.receivedEvents.length, 0);
 
         let connectedSocketsToRoom =
             await SocketLifecycle.getConnectedSocketToRoom(
@@ -1752,6 +1749,246 @@ test.group('Rooms life cycle', (group) => {
         const leavingCreator = await User.findOrFail(userCID);
         await leavingCreator.load('mtvRoom');
         assert.isNull(leavingCreator.mtvRoom);
+
+        assert.isNull(await MtvRoom.find(mtvRoomIDToAssociate));
+    });
+
+    test(`It should make a user leave the room after he disconnect all his device
+    leaving user devices should not receive any leavedMtvRoom related socket event
+    If the creator does the same it should send FORCED_DISCONNECTION to every remaining users in the room`, async (assert) => {
+        const userAID = datatype.uuid();
+        const userBID = datatype.uuid();
+        const userCID = datatype.uuid();
+        const mtvRoomIDToAssociate = datatype.uuid();
+
+        let roomToLeaveState: MtvWorkflowState = {
+            currentTrack: null,
+            name: random.word(),
+            playing: false,
+            roomCreatorUserID: userAID,
+            roomID: mtvRoomIDToAssociate,
+            tracks: null,
+            tracksIDsList: null,
+            userRelatedInformation: null,
+            usersLength: 3,
+        };
+
+        sinon
+            .stub(ServerToTemporalController, 'leaveWorkflow')
+            .callsFake(async ({ workflowID }) => {
+                roomToLeaveState = {
+                    ...roomToLeaveState,
+                    roomID: workflowID,
+                    usersLength: roomToLeaveState.usersLength - 1,
+                };
+
+                console.log('*'.repeat(100));
+
+                await supertest(BASE_URL)
+                    .post('/temporal/user-length-update')
+                    .send(roomToLeaveState);
+                return;
+            });
+        sinon
+            .stub(ServerToTemporalController, 'terminateWorkflow')
+            .callsFake(async () => {
+                return;
+            });
+        sinon
+            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .callsFake(async ({ workflowID, userID, roomName }) => {
+                const state: MtvWorkflowStateWithUserRelatedInformation = {
+                    roomID: workflowID, //workflowID === roomID
+                    roomCreatorUserID: userID,
+                    playing: false,
+                    name: roomName,
+                    userRelatedInformation: {
+                        userID,
+                        emittingDeviceID: datatype.uuid(),
+                    },
+                    usersLength: 1,
+                    tracks: [
+                        {
+                            id: datatype.uuid(),
+                            artistName: name.findName(),
+                            duration: 42000,
+                            title: random.words(3),
+                        },
+                    ],
+                    currentTrack: null,
+                    tracksIDsList: null,
+                };
+
+                // Simulating Use Local Activity Notify
+                await supertest(BASE_URL)
+                    .post('/temporal/mtv-creation-acknowledgement')
+                    .send(state);
+
+                return {
+                    runID: datatype.uuid(),
+                    workflowID,
+                    state,
+                };
+            });
+
+        /**
+         * Mocking a mtvRoom in the databse
+         */
+
+        //CREATOR
+        const socket = {
+            socket: await createUserAndGetSocket({
+                userID: userAID,
+                mtvRoomIDToAssociate,
+            }),
+            socketB: await createSocketConnection(userAID),
+            receivedEvents: [] as string[],
+        };
+
+        //USER B
+        const socketB = {
+            socket: await createUserAndGetSocket({
+                userID: userBID,
+                mtvRoomIDToAssociate,
+            }),
+            receivedEvents: [] as string[],
+        };
+
+        //USER C
+        const socketC = {
+            socket: await createUserAndGetSocket({
+                userID: userCID,
+                mtvRoomIDToAssociate,
+            }),
+            socketB: await createSocketConnection(userCID),
+            receivedEvents: [] as string[],
+        };
+
+        //CREATOR
+        socket.socket.once('USER_LENGTH_UPDATE', () => {
+            socket.receivedEvents.push('USER_LENGTH_UPDATE');
+        });
+
+        socket.socketB.once('USER_LENGTH_UPDATE', () => {
+            socket.receivedEvents.push('USER_LENGTH_UPDATE');
+        });
+
+        //USER B
+        socketB.socket.once('USER_LENGTH_UPDATE', () => {
+            socketB.receivedEvents.push('USER_LENGTH_UPDATE');
+        });
+
+        //USER C
+        socketC.socket.once('USER_LENGTH_UPDATE', () => {
+            /**
+             * This is the disconnecting one, in this way it should not receive
+             * any event
+             */
+            assert.isTrue(false);
+        });
+
+        socketC.socketB.once('USER_LENGTH_UPDATE', () => {
+            /**
+             * This is the disconnecting one, in this way it should not receive
+             * any event
+             */
+            assert.isTrue(false);
+        });
+
+        socketC.socket.once('CREATE_ROOM_SYNCHED_CALLBACK', () => {
+            socketC.receivedEvents.push('CREATE_ROOM_SYNCHED_CALLBACK');
+        });
+
+        socketC.socketB.once('CREATE_ROOM_SYNCHED_CALLBACK', () => {
+            socketC.receivedEvents.push('CREATE_ROOM_SYNCHED_CALLBACK');
+        });
+
+        /**
+         * Emit join_room with socket C
+         * Expect B and socket to receive USER_LENGTH_UDPATE
+         * server socket event
+         */
+        socketC.socket.emit('CREATE_ROOM', {
+            name: random.word(),
+            initialTracksIDs: [],
+        });
+        await sleep();
+        await sleep();
+
+        assert.equal(socket.receivedEvents.length, 2);
+        assert.equal(socketB.receivedEvents.length, 1);
+        assert.equal(socketC.receivedEvents.length, 2);
+        assert.isTrue(
+            socketC.receivedEvents.includes('CREATE_ROOM_SYNCHED_CALLBACK'),
+        );
+
+        let connectedSocketsToRoom =
+            await SocketLifecycle.getConnectedSocketToRoom(
+                mtvRoomIDToAssociate,
+            );
+        assert.isFalse(connectedSocketsToRoom.has(socketC.socket.id));
+        assert.isFalse(connectedSocketsToRoom.has(socketC.socketB.id));
+
+        const leavingUser = await User.findOrFail(userCID);
+        await leavingUser.load('mtvRoom');
+
+        assert.isNotNull(leavingUser.mtvRoom);
+
+        /**
+         * Same with creator
+         */
+
+        //CREATOR
+        socket.socket.once('FORCED_DISCONNECTION', () => {
+            assert.isTrue(false);
+        });
+
+        socket.socketB.once('FORCED_DISCONNECTION', () => {
+            assert.isTrue(false);
+        });
+
+        socket.socket.once('CREATE_ROOM_SYNCHED_CALLBACK', () => {
+            socket.receivedEvents.push('CREATE_ROOM_SYNCHED_CALLBACK');
+        });
+
+        socket.socketB.once('CREATE_ROOM_SYNCHED_CALLBACK', () => {
+            socket.receivedEvents.push('CREATE_ROOM_SYNCHED_CALLBACK');
+        });
+
+        //USER B
+        socketB.socket.once('USER_LENGTH_UPDATE', () => {
+            assert.isTrue(false);
+        });
+
+        socketB.socket.once('FORCED_DISCONNECTION', () => {
+            socketB.receivedEvents.push('FORCED_DISCONNECTION');
+        });
+
+        /**
+         * Creator joins the room
+         */
+        socket.socket.emit('CREATE_ROOM', {
+            initialTracksIDs: [],
+            name: random.word(),
+        });
+        await sleep();
+
+        assert.equal(socketB.receivedEvents.length, 2);
+        assert.isTrue(socketB.receivedEvents.includes('FORCED_DISCONNECTION'));
+        assert.equal(socket.receivedEvents.length, 4);
+        assert.isTrue(
+            socket.receivedEvents.includes('CREATE_ROOM_SYNCHED_CALLBACK'),
+        );
+
+        connectedSocketsToRoom = await SocketLifecycle.getConnectedSocketToRoom(
+            mtvRoomIDToAssociate,
+        );
+        assert.isFalse(connectedSocketsToRoom.has(socket.socket.id));
+        assert.isFalse(connectedSocketsToRoom.has(socket.socketB.id));
+
+        const leavingCreator = await User.findOrFail(userCID);
+        await leavingCreator.load('mtvRoom');
+        assert.isNotNull(leavingCreator.mtvRoom);
 
         assert.isNull(await MtvRoom.find(mtvRoomIDToAssociate));
     });

@@ -332,7 +332,7 @@ Ws.io.on('connection', async (socket) => {
                 );
                 if (mtvRoomID === undefined) {
                     throw new Error(
-                        'Can not go to the next track, the user is not listening to a mtv room',
+                        'Can not suggest tracks, the user is not listening to a mtv room',
                     );
                 }
 

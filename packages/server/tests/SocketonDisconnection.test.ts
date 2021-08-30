@@ -7,7 +7,7 @@ import { datatype, name, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
-import InitTestUtils, { BASE_URL, sleep } from './utils/TestUtils';
+import { BASE_URL, initTestUtils, sleep } from './utils/TestUtils';
 /**
  * User should create a room, and removes it after user disconnection
  * User should join a room
@@ -22,7 +22,7 @@ test.group('Rooms life cycle', (group) => {
         disconnectEveryRemainingSocketConnection,
         disconnectSocket,
         initSocketConnection,
-    } = InitTestUtils();
+    } = initTestUtils();
 
     group.beforeEach(async () => {
         initSocketConnection();

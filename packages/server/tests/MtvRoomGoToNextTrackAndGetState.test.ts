@@ -4,7 +4,7 @@ import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import MtvRoom from '../app/Models/MtvRoom';
-import initTestUtils, { sleep } from './utils/TestUtils';
+import { initTestUtils, sleep } from './utils/TestUtils';
 
 test.group(
     `MtvRoom basic related signal

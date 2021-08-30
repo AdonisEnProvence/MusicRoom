@@ -51,7 +51,7 @@ interface TestUtilsReturnedValue {
     ) => Promise<TypedTestSocket>;
 }
 
-export default function initTestUtils(): TestUtilsReturnedValue {
+export function initTestUtils(): TestUtilsReturnedValue {
     let socketsConnections: TypedTestSocket[] = [];
 
     const initSocketConnection = (): void => {

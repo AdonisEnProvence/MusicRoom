@@ -6,7 +6,7 @@ import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import { MtvWorkflowState } from '../../types/dist';
-import initTestUtils, { sleep } from './utils/TestUtils';
+import { initTestUtils, sleep } from './utils/TestUtils';
 
 test.group(`User service socket handler tests`, (group) => {
     const {

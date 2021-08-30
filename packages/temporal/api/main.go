@@ -48,7 +48,7 @@ func main() {
 	r := mux.NewRouter()
 	r.Handle("/ping", http.HandlerFunc(PingHandler)).Methods(http.MethodGet)
 	r.Handle("/play", http.HandlerFunc(PlayHandler)).Methods(http.MethodPut)
-	r.Handle("/control/{workflowID}/{runID}/pause", http.HandlerFunc(PauseHandler)).Methods(http.MethodPut)
+	r.Handle("/pause", http.HandlerFunc(PauseHandler)).Methods(http.MethodPut)
 	r.Handle("/create/{workflowID}", http.HandlerFunc(CreateRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/join", http.HandlerFunc(JoinRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/leave", http.HandlerFunc(LeaveRoomHandler)).Methods(http.MethodPut)
@@ -275,16 +275,33 @@ func TerminateWorkflowHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
+type PauseRequestBody struct {
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
+}
+
 func PauseHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Control called")
-	vars := mux.Vars(r)
-	// Use request body
-	workflowID := vars["workflowID"]
-	runID := vars["runID"]
+	defer r.Body.Close()
+
+	var body PauseRequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
+		WriteError(w, err)
+		return
+	}
 
 	signal := shared.NewPauseSignal(shared.NewPauseSignalArgs{})
-	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, shared.SignalChannelName, signal)
-	if err != nil {
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		body.RunID,
+		shared.SignalChannelName,
+		signal,
+	); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -292,7 +309,6 @@ func PauseHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	res := make(map[string]interface{})
 	res["ok"] = 1
-	printResults("", workflowID, runID)
 	json.NewEncoder(w).Encode(res)
 }
 

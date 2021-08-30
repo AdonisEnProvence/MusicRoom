@@ -144,16 +144,13 @@ export default class ServerToTemporalController {
         runID,
     }: TemporalMtvPauseArgs): Promise<void> {
         try {
-            const url = urlcat(
-                TEMPORAL_ENDPOINT,
-                '/control/:workflowID/:runID/pause',
-                {
+            const url = urlcat(TEMPORAL_ENDPOINT, '/pause');
+
+            await got.put(url, {
+                json: {
                     workflowID,
                     runID,
                 },
-            );
-            await got.put(url, {
-                responseType: 'json',
             });
         } catch (e) {
             throw new Error('PAUSE FAILED ' + workflowID);

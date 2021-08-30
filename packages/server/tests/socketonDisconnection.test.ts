@@ -1,7 +1,5 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import {
-    AllClientToServerEvents,
-    AllServerToClientEvents,
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
     UserRelatedInformation,
@@ -15,108 +13,8 @@ import UserService from 'App/Services/UserService';
 import { datatype, name, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
-import { io, Socket } from 'socket.io-client';
 import supertest from 'supertest';
-
-const BASE_URL = `http://${process.env.HOST!}:${process.env.PORT!}`;
-
-function waitForTimeout(ms: number): Promise<void> {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve();
-        }, ms);
-    });
-}
-
-const sleep = async (): Promise<void> => await waitForTimeout(100);
-
-type TypedTestSocket = Socket<AllServerToClientEvents, AllClientToServerEvents>;
-
-let socketsConnections: TypedTestSocket[] = [];
-
-type AvailableBrowsersMocks = 'Firefox' | 'Chrome' | 'Safari';
-
-async function createSocketConnection(
-    userID: string,
-    deviceName?: string,
-    browser?: AvailableBrowsersMocks,
-    requiredEventListeners?: (socket: TypedTestSocket) => void,
-): Promise<TypedTestSocket> {
-    const query: { [key: string]: string } = {
-        userID,
-    };
-    if (deviceName) query.deviceName = deviceName;
-
-    const extraHeaders: { [key: string]: string } = {};
-    if (browser !== undefined) {
-        switch (browser) {
-            case 'Chrome':
-                extraHeaders[
-                    'user-agent'
-                ] = `Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.116 Safari/537.36`;
-                break;
-            case 'Firefox':
-                extraHeaders[
-                    'user-agent'
-                ] = `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0`;
-                break;
-            case 'Safari':
-                extraHeaders[
-                    'user-agent'
-                ] = `Mozilla/5.0 (Macintosh; Intel Mac OS X 11_5_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Safari/605.1.15`;
-                break;
-        }
-    }
-
-    const socket = io(BASE_URL, {
-        query,
-        extraHeaders,
-    });
-    socketsConnections.push(socket);
-    if (requiredEventListeners) requiredEventListeners(socket);
-    await sleep();
-    return socket;
-}
-
-interface CreateUserAndGetSocketArgs {
-    userID: string;
-    deviceName?: string;
-    browser?: AvailableBrowsersMocks;
-    mtvRoomIDToAssociate?: string;
-}
-
-async function createUserAndGetSocket({
-    userID,
-    deviceName,
-    browser,
-    mtvRoomIDToAssociate,
-}: CreateUserAndGetSocketArgs): Promise<TypedTestSocket> {
-    const createdUser = await User.create({
-        uuid: userID,
-        nickname: random.word(),
-    });
-    if (mtvRoomIDToAssociate !== undefined) {
-        let mtvRoomToAssociate = await MtvRoom.find(mtvRoomIDToAssociate);
-
-        if (mtvRoomToAssociate === null) {
-            mtvRoomToAssociate = await MtvRoom.create({
-                uuid: mtvRoomIDToAssociate,
-                runID: datatype.uuid(),
-                creator: createdUser.uuid,
-            });
-        }
-        await createdUser.related('mtvRoom').associate(mtvRoomToAssociate);
-    }
-    //No need to remoteJoin the created socket as SocketLifeCycle.registerDevice will do it for us
-    return await createSocketConnection(userID, deviceName, browser);
-}
-
-async function disconnectSocket(socket: TypedTestSocket): Promise<void> {
-    socket.disconnect();
-    socketsConnections = socketsConnections.filter((el) => el.id !== socket.id);
-    await sleep();
-}
-
+import InitTestUtils, { BASE_URL, sleep } from './testUtils';
 /**
  * User should create a room, and removes it after user disconnection
  * User should join a room
@@ -125,17 +23,22 @@ async function disconnectSocket(socket: TypedTestSocket): Promise<void> {
  */
 
 test.group('Rooms life cycle', (group) => {
+    const {
+        createSocketConnection,
+        createUserAndGetSocket,
+        disconnectEveryRemainingSocketConnection,
+        disconnectSocket,
+        initSocketConnection,
+    } = InitTestUtils();
+
     group.beforeEach(async () => {
-        socketsConnections = [];
+        initSocketConnection();
         await Database.beginGlobalTransaction();
     });
 
     group.afterEach(async () => {
         sinon.restore();
-        socketsConnections.forEach((socket) => {
-            socket.disconnect();
-        });
-        await sleep();
+        await disconnectEveryRemainingSocketConnection();
         await Database.rollbackGlobalTransaction();
     });
 
@@ -299,12 +202,16 @@ test.group('Rooms life cycle', (group) => {
         console.log(userIDS);
         const userA = {
             userID: userIDS[0],
-            socket: await createUserAndGetSocket({ userID: userIDS[0] }),
+            socket: await createUserAndGetSocket({
+                userID: userIDS[0],
+            }),
             receivedEvents: [] as string[],
         };
         const userB = {
             userID: userIDS[1],
-            socket: await createUserAndGetSocket({ userID: userIDS[1] }),
+            socket: await createUserAndGetSocket({
+                userID: userIDS[1],
+            }),
             receivedEvents: [] as string[],
         };
         userA.socket.once('FORCED_DISCONNECTION', () => {
@@ -428,7 +335,7 @@ test.group('Rooms life cycle', (group) => {
                 userID,
                 mtvRoomIDToAssociate,
             }),
-            socketB: await createSocketConnection(userID),
+            socketB: await createSocketConnection({ userID }),
         };
 
         /** Mocks */
@@ -526,7 +433,9 @@ test.group('Rooms life cycle', (group) => {
         /**
          * Fisrt creatorUser creates a room
          */
-        const creatorUser = await createUserAndGetSocket({ userID: creatorID });
+        const creatorUser = await createUserAndGetSocket({
+            userID: creatorID,
+        });
         const creatorReceivedEvents: string[] = [];
         creatorUser.emit('CREATE_ROOM', {
             name: random.word(),
@@ -547,7 +456,7 @@ test.group('Rooms life cycle', (group) => {
         const receivedEvents: string[] = [];
         const joiningUser = {
             socketA: await createUserAndGetSocket({ userID }),
-            socketB: await createSocketConnection(userID),
+            socketB: await createSocketConnection({ userID }),
         };
         Object.values(joiningUser).forEach((socket, i) =>
             socket.once('JOIN_ROOM_CALLBACK', () => {
@@ -621,7 +530,7 @@ test.group('Rooms life cycle', (group) => {
          * User connects two devices then create a room from one
          */
         const socketA = await createUserAndGetSocket({ userID });
-        const socketB = await createSocketConnection(userID);
+        const socketB = await createSocketConnection({ userID });
         assert.equal((await Device.all()).length, 2);
         socketA.emit('CREATE_ROOM', {
             name: roomName,
@@ -642,7 +551,9 @@ test.group('Rooms life cycle', (group) => {
     test('New user socket connection should join previously joined/created room', async (assert) => {
         const creatorUserID = datatype.uuid();
         const roomName = random.word();
-        const socketA = await createUserAndGetSocket({ userID: creatorUserID });
+        const socketA = await createUserAndGetSocket({
+            userID: creatorUserID,
+        });
         let userCouldEmitAnExclusiveRoomSignal = false;
         /** Mocks */
         sinon
@@ -719,7 +630,7 @@ test.group('Rooms life cycle', (group) => {
          * He also receives the mtvRoom's context
          */
         const socketB = {
-            socket: await createSocketConnection(creatorUserID),
+            socket: await createSocketConnection({ userID: creatorUserID }),
         };
 
         socketB.socket.emit('ACTION_PLAY');
@@ -872,7 +783,7 @@ test.group('Rooms life cycle', (group) => {
         });
 
         const socketB = {
-            socket: await createSocketConnection(userID),
+            socket: await createSocketConnection({ userID }),
             receivedEvents: [] as string[],
         };
 
@@ -900,7 +811,7 @@ test.group('Rooms life cycle', (group) => {
         if (deviceA === null) throw new Error('DeviceA should not be null');
 
         let callbackHasBeenCalled = false;
-        await createSocketConnection(userID, undefined, 'Safari');
+        await createSocketConnection({ userID, browser: 'Safari' });
 
         socketA.emit(
             'GET_CONNECTED_DEVICES_AND_DEVICE_ID',
@@ -973,7 +884,7 @@ test.group('Rooms life cycle', (group) => {
         await deviceA.save();
 
         const socketB = {
-            socket: await createSocketConnection(userID),
+            socket: await createSocketConnection({ userID }),
             receivedEvents: [] as string[],
         };
 
@@ -1092,7 +1003,7 @@ test.group('Rooms life cycle', (group) => {
             receivedEvents: [] as string[],
         };
         const socketB = {
-            socket: await createSocketConnection(userID),
+            socket: await createSocketConnection({ userID }),
             receivedEvents: [] as string[],
         };
         const deviceB = await Device.findBy('socket_id', socketB.socket.id);
@@ -1155,7 +1066,9 @@ test.group('Rooms life cycle', (group) => {
             receivedEvents: [] as string[],
         };
         const socketB = {
-            socket: await createUserAndGetSocket({ userID: secondUserID }),
+            socket: await createUserAndGetSocket({
+                userID: secondUserID,
+            }),
             receivedEvents: [] as string[],
         };
         const deviceB = await Device.findBy('socket_id', socketB.socket.id);
@@ -1227,7 +1140,7 @@ test.group('Rooms life cycle', (group) => {
                 userID,
                 mtvRoomIDToAssociate,
             }),
-            socketB: await createSocketConnection(userID),
+            socketB: await createSocketConnection({ userID }),
             receivedEvents: [] as string[],
         };
 
@@ -1244,7 +1157,7 @@ test.group('Rooms life cycle', (group) => {
                 userID: userCID,
                 mtvRoomIDToAssociate,
             }),
-            socketB: await createSocketConnection(userCID),
+            socketB: await createSocketConnection({ userID: userCID }),
             receivedEvents: [] as string[],
         };
 
@@ -1422,7 +1335,7 @@ test.group('Rooms life cycle', (group) => {
                 userID: userAID,
                 mtvRoomIDToAssociate,
             }),
-            socketB: await createSocketConnection(userAID),
+            socketB: await createSocketConnection({ userID: userAID }),
             receivedEvents: [] as string[],
         };
 
@@ -1447,7 +1360,7 @@ test.group('Rooms life cycle', (group) => {
                 userID: userCID,
                 mtvRoomIDToAssociate,
             }),
-            socketB: await createSocketConnection(userCID),
+            socketB: await createSocketConnection({ userID: userCID }),
             receivedEvents: [] as string[],
         };
 
@@ -1632,7 +1545,7 @@ test.group('Rooms life cycle', (group) => {
                 userID: userAID,
                 mtvRoomIDToAssociate,
             }),
-            socketB: await createSocketConnection(userAID),
+            socketB: await createSocketConnection({ userID: userAID }),
             receivedEvents: [] as string[],
         };
 
@@ -1657,7 +1570,7 @@ test.group('Rooms life cycle', (group) => {
                 userID: userCID,
                 mtvRoomIDToAssociate,
             }),
-            socketB: await createSocketConnection(userCID),
+            socketB: await createSocketConnection({ userID: userCID }),
             receivedEvents: [] as string[],
         };
 
@@ -1847,7 +1760,7 @@ test.group('Rooms life cycle', (group) => {
                 userID: userAID,
                 mtvRoomIDToAssociate,
             }),
-            socketB: await createSocketConnection(userAID),
+            socketB: await createSocketConnection({ userID: userAID }),
             receivedEvents: [] as string[],
         };
 
@@ -1866,7 +1779,7 @@ test.group('Rooms life cycle', (group) => {
                 userID: userCID,
                 mtvRoomIDToAssociate,
             }),
-            socketB: await createSocketConnection(userCID),
+            socketB: await createSocketConnection({ userID: userCID }),
             receivedEvents: [] as string[],
         };
 

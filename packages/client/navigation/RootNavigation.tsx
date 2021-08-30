@@ -14,17 +14,6 @@ export const isReadyRef: React.MutableRefObject<boolean | null> =
 
 export const navigationRef = React.createRef<NavigationContainerRef>();
 
-export function useGlobalNavigationRef(): NavigationContainerRef | null {
-    const isReady = isReadyRef.current;
-    const navigation = navigationRef.current;
-
-    if (isReady === true && navigation !== null) {
-        return navigation;
-    }
-
-    return null;
-}
-
 // eslint-disable-next-line
 export function navigateFromRef<Route extends NavigateFromRefRoutes>(
     name: NavigateFromRefRoutes,

@@ -111,4 +111,31 @@ export default class TemporalToServerController {
             [state],
         );
     }
+
+    public broadcastSuggestedTracksListUpdate({
+        request,
+    }: HttpContextContract): void {
+        const state = MtvWorkflowState.parse(request.body());
+        const roomID = state.roomID;
+
+        Ws.io.to(roomID).emit('SUGGESTED_TRACKS_LIST_UPDATE', state);
+    }
+
+    public async acknowledgeTracksSuggestion({
+        request,
+    }: HttpContextContract): Promise<void> {
+        const AcknowledgeTracksSuggestionRequestBody = z.object({
+            roomID: z.string().uuid(),
+            userID: z.string().uuid(),
+            deviceID: z.string().uuid(),
+        });
+
+        const { deviceID } = AcknowledgeTracksSuggestionRequestBody.parse(
+            request.body(),
+        );
+
+        const device = await Device.findOrFail(deviceID);
+
+        Ws.io.in(device.socketID).emit('SUGGEST_TRACKS_CALLBACK');
+    }
 }

@@ -27,7 +27,6 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
             emittingDeviceID: datatype.uuid(),
             userID,
         },
-        tracksIDsList: null,
         roomCreatorUserID: userID,
         currentTrack: {
             artistName: random.word(),
@@ -35,6 +34,7 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
             duration: 158000,
             elapsed: 0,
             title: fakeTrack.title,
+            score: datatype.number(),
         },
         tracks: [
             {
@@ -42,8 +42,10 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
                 artistName: name.findName(),
                 duration: 42000,
                 title: random.words(3),
+                score: datatype.number(),
             },
         ],
+        suggestedTracks: null,
     };
 
     serverSocket.on('CREATE_ROOM', () => {

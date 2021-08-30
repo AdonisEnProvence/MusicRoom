@@ -227,15 +227,25 @@ type MtvRoomSuggestTracksEvent struct {
 	brainy.EventWithType
 
 	TracksToSuggest []string
+	UserID          string
+	DeviceID        string
 }
 
-func NewMtvRoomSuggestTracksEvent(tracksToSuggest []string) MtvRoomSuggestTracksEvent {
+type NewMtvRoomSuggestTracksEventArgs struct {
+	TracksToSuggest []string
+	UserID          string
+	DeviceID        string
+}
+
+func NewMtvRoomSuggestTracksEvent(args NewMtvRoomSuggestTracksEventArgs) MtvRoomSuggestTracksEvent {
 	return MtvRoomSuggestTracksEvent{
 		EventWithType: brainy.EventWithType{
 			Event: MtvRoomSuggestTracks,
 		},
 
-		TracksToSuggest: tracksToSuggest,
+		TracksToSuggest: args.TracksToSuggest,
+		UserID:          args.UserID,
+		DeviceID:        args.DeviceID,
 	}
 }
 
@@ -243,15 +253,25 @@ type MtvRoomSuggestedTracksFetchedEvent struct {
 	brainy.EventWithType
 
 	SuggestedTracksInformation []shared.TrackMetadata
+	UserID                     string
+	DeviceID                   string
 }
 
-func NewMtvRoomSuggestedTracksFetchedEvent(suggestedTracksInformation []shared.TrackMetadata) MtvRoomSuggestedTracksFetchedEvent {
+type NewMtvRoomSuggestedTracksFetchedEventArgs struct {
+	SuggestedTracksInformation []shared.TrackMetadata
+	UserID                     string
+	DeviceID                   string
+}
+
+func NewMtvRoomSuggestedTracksFetchedEvent(args NewMtvRoomSuggestedTracksFetchedEventArgs) MtvRoomSuggestedTracksFetchedEvent {
 	return MtvRoomSuggestedTracksFetchedEvent{
 		EventWithType: brainy.EventWithType{
 			Event: MtvRoomSuggestedTracksFetched,
 		},
 
-		SuggestedTracksInformation: suggestedTracksInformation,
+		SuggestedTracksInformation: args.SuggestedTracksInformation,
+		UserID:                     args.UserID,
+		DeviceID:                   args.DeviceID,
 	}
 }
 
@@ -683,8 +703,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 							fetchedSuggestedTracksInformationFuture = workflow.ExecuteActivity(
 								ctx,
-								activities.FetchTracksInformationActivity,
+								activities.FetchTracksInformationActivityAndForwardIniator,
 								acceptedSuggestedTracksIDs,
+								event.UserID,
+								event.DeviceID,
 							)
 
 							return nil
@@ -728,11 +750,29 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								activities.SuggestedTracksListChangedActivity,
 								internalState.Export(shared.NoRelatedUserID),
 							)
-							// The suggesting track user needs to receive the operation acknowledgement
-							// to be able to resuggest a new track
-							// In this way near this area we should send a acknowledgement activity
-							// that will contain a suggesting user related state
-							// Then we will send to every suggesting user a specific socket event
+
+							return nil
+						},
+					),
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+							event := e.(MtvRoomSuggestedTracksFetchedEvent)
+
+							options := workflow.ActivityOptions{
+								ScheduleToStartTimeout: time.Minute,
+								StartToCloseTimeout:    time.Minute,
+							}
+							ctx = workflow.WithActivityOptions(ctx, options)
+
+							workflow.ExecuteActivity(
+								ctx,
+								activities.AcknowledgeTracksSuggestion,
+								activities.AcknowledgeTracksSuggestionArgs{
+									RoomID:   internalState.initialParams.RoomID,
+									UserID:   event.UserID,
+									DeviceID: event.DeviceID,
+								},
+							)
 
 							return nil
 						},
@@ -840,7 +880,11 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				}
 
 				internalState.Machine.Send(
-					NewMtvRoomSuggestTracksEvent(message.TracksToSuggest),
+					NewMtvRoomSuggestTracksEvent(NewMtvRoomSuggestTracksEventArgs{
+						TracksToSuggest: message.TracksToSuggest,
+						UserID:          message.UserID,
+						DeviceID:        message.DeviceID,
+					}),
 				)
 
 			case shared.SignalRouteLeave:
@@ -927,7 +971,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 			selector.AddFuture(fetchedSuggestedTracksInformationFuture, func(f workflow.Future) {
 				fetchedSuggestedTracksInformationFuture = nil
 
-				var suggestedTracksInformationActivityResult []shared.TrackMetadata
+				var suggestedTracksInformationActivityResult activities.FetchedTracksInformationWithIniator
 
 				if err := f.Get(ctx, &suggestedTracksInformationActivityResult); err != nil {
 					logger.Error("error occured initialTracksActivityResult", err)
@@ -936,7 +980,11 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				}
 
 				internalState.Machine.Send(
-					NewMtvRoomSuggestedTracksFetchedEvent(suggestedTracksInformationActivityResult),
+					NewMtvRoomSuggestedTracksFetchedEvent(NewMtvRoomSuggestedTracksFetchedEventArgs{
+						SuggestedTracksInformation: suggestedTracksInformationActivityResult.Metadata,
+						UserID:                     suggestedTracksInformationActivityResult.UserID,
+						DeviceID:                   suggestedTracksInformationActivityResult.DeviceID,
+					}),
 				)
 			})
 		}

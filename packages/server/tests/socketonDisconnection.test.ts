@@ -198,10 +198,11 @@ test.group('Rooms life cycle', (group) => {
                             artistName: name.findName(),
                             duration: 42000,
                             title: random.words(3),
+                            score: datatype.number(),
                         },
                     ],
+                    suggestedTracks: null,
                     currentTrack: null,
-                    tracksIDsList: null,
                 };
 
                 // Simulating Use Local Activity Notify
@@ -335,15 +336,16 @@ test.group('Rooms life cycle', (group) => {
                     },
                     usersLength: 1,
                     currentTrack: null,
-                    tracksIDsList: null,
                     tracks: [
                         {
                             id: datatype.uuid(),
                             artistName: name.findName(),
                             duration: 42000,
                             title: random.words(3),
+                            score: datatype.number(),
                         },
                     ],
+                    suggestedTracks: null,
                 };
                 return {
                     runID: datatype.uuid(),
@@ -469,7 +471,6 @@ test.group('Rooms life cycle', (group) => {
             .stub(ServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
                 state = {
-                    tracksIDsList: null,
                     currentTrack: null,
                     roomID: workflowID,
                     roomCreatorUserID: datatype.uuid(),
@@ -479,8 +480,10 @@ test.group('Rooms life cycle', (group) => {
                             artistName: name.findName(),
                             duration: 42000,
                             title: random.words(3),
+                            score: datatype.number(),
                         },
                     ],
+                    suggestedTracks: null,
                     playing: false,
                     name: roomName,
                     userRelatedInformation: {
@@ -583,7 +586,6 @@ test.group('Rooms life cycle', (group) => {
                         roomCreatorUserID: datatype.uuid(),
                         playing: false,
                         name: roomName,
-                        tracksIDsList: null,
                         currentTrack: null,
                         userRelatedInformation: {
                             userID,
@@ -596,8 +598,10 @@ test.group('Rooms life cycle', (group) => {
                                 artistName: name.findName(),
                                 duration: 42000,
                                 title: random.words(3),
+                                score: datatype.number(),
                             },
                         ],
+                        suggestedTracks: null,
                     },
                 };
             });
@@ -650,7 +654,6 @@ test.group('Rooms life cycle', (group) => {
                     roomCreatorUserID: creatorUserID,
                     playing: false,
                     name: roomName,
-                    tracksIDsList: null,
                     usersLength: 1,
                     currentTrack: null,
                     userRelatedInformation: {
@@ -663,8 +666,10 @@ test.group('Rooms life cycle', (group) => {
                             artistName: name.findName(),
                             duration: 42000,
                             title: random.words(3),
+                            score: datatype.number(),
                         },
                     ],
+                    suggestedTracks: null,
                 };
 
                 return {
@@ -689,8 +694,8 @@ test.group('Rooms life cycle', (group) => {
                           }
                         : null,
                     currentTrack: null,
-                    tracksIDsList: null,
                     tracks: null,
+                    suggestedTracks: null,
                 };
             });
         sinon.stub(ServerToTemporalController, 'play').callsFake(async () => {
@@ -777,7 +782,7 @@ test.group('Rooms life cycle', (group) => {
 
                     roomCreatorUserID: userID,
                     tracks: null,
-                    tracksIDsList: null,
+                    suggestedTracks: null,
                     userRelatedInformation: null,
                     usersLength: 1,
                 };
@@ -835,7 +840,7 @@ test.group('Rooms life cycle', (group) => {
             roomCreatorUserID: userID,
             roomID: datatype.uuid(),
             tracks: null,
-            tracksIDsList: null,
+            suggestedTracks: null,
             usersLength: 1,
             userRelatedInformation: null,
         };
@@ -932,7 +937,7 @@ test.group('Rooms life cycle', (group) => {
                     roomCreatorUserID: userID,
                     roomID: workflowID,
                     tracks: null,
-                    tracksIDsList: null,
+                    suggestedTracks: null,
                     userRelatedInformation: {
                         userID: userID,
                         emittingDeviceID: deviceID,
@@ -1068,7 +1073,7 @@ test.group('Rooms life cycle', (group) => {
                     roomCreatorUserID: userID,
                     roomID: workflowID,
                     tracks: null,
-                    tracksIDsList: null,
+                    suggestedTracks: null,
                     userRelatedInformation: {
                         userID: userID,
                         emittingDeviceID: deviceID,
@@ -1131,7 +1136,7 @@ test.group('Rooms life cycle', (group) => {
                     roomCreatorUserID: userID,
                     roomID: workflowID,
                     tracks: null,
-                    tracksIDsList: null,
+                    suggestedTracks: null,
                     userRelatedInformation: {
                         userID: userID,
                         emittingDeviceID: deviceID,
@@ -1200,7 +1205,7 @@ test.group('Rooms life cycle', (group) => {
                     roomCreatorUserID: userID,
                     roomID: workflowID,
                     tracks: null,
-                    tracksIDsList: null,
+                    suggestedTracks: null,
                     userRelatedInformation: null,
                     usersLength: 2,
                 };
@@ -1356,7 +1361,7 @@ test.group('Rooms life cycle', (group) => {
             roomCreatorUserID: userAID,
             roomID: mtvRoomIDToAssociate,
             tracks: null,
-            tracksIDsList: null,
+            suggestedTracks: null,
             userRelatedInformation: null,
             usersLength: 3,
         };
@@ -1368,7 +1373,7 @@ test.group('Rooms life cycle', (group) => {
             roomCreatorUserID: roomToJoinCreatorID,
             roomID: mtvRoomToJoinID,
             tracks: null,
-            tracksIDsList: null,
+            suggestedTracks: null,
             userRelatedInformation: null,
             usersLength: 1,
         };
@@ -1564,7 +1569,7 @@ test.group('Rooms life cycle', (group) => {
             roomCreatorUserID: userAID,
             roomID: mtvRoomIDToAssociate,
             tracks: null,
-            tracksIDsList: null,
+            suggestedTracks: null,
             userRelatedInformation: null,
             usersLength: 3,
         };
@@ -1576,7 +1581,7 @@ test.group('Rooms life cycle', (group) => {
             roomCreatorUserID: roomToJoinCreatorID,
             roomID: mtvRoomToJoinID,
             tracks: null,
-            tracksIDsList: null,
+            suggestedTracks: null,
             userRelatedInformation: null,
             usersLength: 1,
         };
@@ -1768,7 +1773,7 @@ test.group('Rooms life cycle', (group) => {
             roomCreatorUserID: userAID,
             roomID: mtvRoomIDToAssociate,
             tracks: null,
-            tracksIDsList: null,
+            suggestedTracks: null,
             userRelatedInformation: null,
             usersLength: 3,
         };
@@ -1813,10 +1818,11 @@ test.group('Rooms life cycle', (group) => {
                             artistName: name.findName(),
                             duration: 42000,
                             title: random.words(3),
+                            score: datatype.number(),
                         },
                     ],
+                    suggestedTracks: null,
                     currentTrack: null,
-                    tracksIDsList: null,
                 };
 
                 // Simulating Use Local Activity Notify

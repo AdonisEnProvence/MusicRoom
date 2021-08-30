@@ -44,6 +44,11 @@ interface TemporalMtvPauseArgs extends TemporalBaseArgs {}
 interface TemporalMtvPlayArgs extends TemporalBaseArgs {}
 interface TemporalMtvTerminateWorkflowArgs extends TemporalBaseArgs {}
 
+interface TemporalMtvSuggestTracksArgs extends TemporalBaseArgs {
+    tracksToSuggest: string[];
+    userID: string;
+    deviceID: string;
+}
 interface TemporalMtvGetStateArgs extends TemporalBaseArgs {
     userID?: string;
 }
@@ -239,5 +244,25 @@ export default class ServerToTemporalController {
                 'Failed to change user emitting device ' + workflowID,
             );
         }
+    }
+
+    public static async suggestTracks({
+        workflowID,
+        runID,
+        tracksToSuggest,
+        userID,
+        deviceID,
+    }: TemporalMtvSuggestTracksArgs): Promise<void> {
+        const url = urlcat(TEMPORAL_ENDPOINT, '/suggest-tracks');
+
+        await got.put(url, {
+            json: {
+                workflowID,
+                runID,
+                tracksToSuggest,
+                userID,
+                deviceID,
+            },
+        });
     }
 }

@@ -320,6 +320,32 @@ Ws.io.on('connection', async (socket) => {
                 console.error(err);
             }
         });
+
+        socket.on('SUGGEST_TRACKS', async ({ tracksToSuggest }) => {
+            try {
+                const {
+                    mtvRoomID,
+                    user: { uuid: userID },
+                    deviceID,
+                } = await SocketLifecycle.getSocketConnectionCredentials(
+                    socket,
+                );
+                if (mtvRoomID === undefined) {
+                    throw new Error(
+                        'Can not suggest tracks, the user is not listening to a mtv room',
+                    );
+                }
+
+                await MtvRoomsWsController.onTracksSuggestion({
+                    roomID: mtvRoomID,
+                    tracksToSuggest,
+                    userID,
+                    deviceID,
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        });
         /// //// ///
 
         socket.on('disconnecting', async () => {

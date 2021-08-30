@@ -113,3 +113,23 @@ func SuggestedTracksListChangedActivity(ctx context.Context, state shared.MtvRoo
 
 	return err
 }
+
+type AcknowledgeTracksSuggestionArgs struct {
+	RoomID   string `json:"roomID"`
+	UserID   string `json:"userID"`
+	DeviceID string `json:"deviceID"`
+}
+
+func AcknowledgeTracksSuggestion(ctx context.Context, args AcknowledgeTracksSuggestionArgs) error {
+	requestBody := args
+
+	marshaledBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	url := ADONIS_ENDPOINT + "/temporal/acknowledge-tracks-suggestion"
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+
+	return err
+}

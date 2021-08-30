@@ -313,15 +313,21 @@ func NewChangeUserEmittingDeviceSignal(args ChangeUserEmittingDeviceSignalArgs) 
 type SuggestTracksSignal struct {
 	Route           SignalRoute
 	TracksToSuggest []string
+	UserID          string
+	DeviceID        string
 }
 
 type SuggestTracksSignalArgs struct {
 	TracksToSuggest []string
+	UserID          string
+	DeviceID        string
 }
 
 func NewSuggestTracksSignal(args SuggestTracksSignalArgs) SuggestTracksSignal {
 	return SuggestTracksSignal{
 		Route:           SignalRouteSuggestTracks,
 		TracksToSuggest: args.TracksToSuggest,
+		UserID:          args.UserID,
+		DeviceID:        args.DeviceID,
 	}
 }

@@ -1,15 +1,22 @@
 import * as z from 'zod';
 
-export const TracksMetadata = z.object({
+const Milliseconds = z.number().nonnegative();
+
+export const TrackMetadata = z.object({
     id: z.string(),
     title: z.string(),
     artistName: z.string(),
-    duration: z.number(), //ms
+    duration: Milliseconds,
 });
-export type TracksMetadata = z.infer<typeof TracksMetadata>;
+export type TrackMetadata = z.infer<typeof TrackMetadata>;
 
-export const CurrentTrack = TracksMetadata.extend({
-    elapsed: z.number(), //ms
+export const TrackMetadataWithScore = TrackMetadata.extend({
+    score: z.number(),
+});
+export type TrackMetadataWithScore = z.infer<typeof TrackMetadataWithScore>;
+
+export const CurrentTrack = TrackMetadataWithScore.extend({
+    elapsed: Milliseconds,
 });
 export type CurrentTrack = z.infer<typeof CurrentTrack>;
 
@@ -19,19 +26,17 @@ export const UserRelatedInformation = z.object({
 });
 export type UserRelatedInformation = z.infer<typeof UserRelatedInformation>;
 
-export const MtvWorkflowState = z
-    .object({
-        roomID: z.string().uuid(),
-        roomCreatorUserID: z.string().uuid(),
-        playing: z.boolean(),
-        name: z.string(),
-        userRelatedInformation: UserRelatedInformation.nullable(),
-        usersLength: z.number(),
-        currentTrack: CurrentTrack.nullable(),
-        tracksIDsList: z.string().array().nullable(),
-        tracks: z.array(TracksMetadata).nullable(),
-    })
-    .nonstrict();
+export const MtvWorkflowState = z.object({
+    roomID: z.string().uuid(),
+    roomCreatorUserID: z.string().uuid(),
+    playing: z.boolean(),
+    name: z.string(),
+    userRelatedInformation: UserRelatedInformation.nullable(),
+    usersLength: z.number(),
+    currentTrack: CurrentTrack.nullable(),
+    tracks: z.array(TrackMetadataWithScore).nullable(),
+    suggestedTracks: z.array(TrackMetadataWithScore).nullable(),
+});
 export type MtvWorkflowState = z.infer<typeof MtvWorkflowState>;
 
 export const MtvWorkflowStateWithUserRelatedInformation =

@@ -1,23 +1,23 @@
 import urlcat from 'urlcat';
 import { createModel } from 'xstate/lib/model';
 import * as z from 'zod';
-import { TracksMetadata } from '@musicroom/types';
+import { TrackMetadata } from '@musicroom/types';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 
 interface FetchTracksArgs {
     searchQuery: string;
-    tracks?: TracksMetadata[];
+    tracks?: TrackMetadata[];
 }
 
-export const SearchTracksAPIRawResponse = TracksMetadata.array().optional();
+export const SearchTracksAPIRawResponse = TrackMetadata.array().optional();
 export type SearchTracksAPIRawResponse = z.infer<
     typeof SearchTracksAPIRawResponse
 >;
 
 async function fetchTracks({
     searchQuery,
-}: FetchTracksArgs): Promise<TracksMetadata[] | undefined> {
+}: FetchTracksArgs): Promise<TrackMetadata[] | undefined> {
     const url = urlcat(SERVER_ENDPOINT, '/search/track/:searchQuery', {
         searchQuery,
     });
@@ -35,11 +35,11 @@ async function fetchTracks({
 
 const searchTrackModel = createModel(
     {
-        tracks: undefined as TracksMetadata[] | undefined,
+        tracks: undefined as TrackMetadata[] | undefined,
     },
     {
         events: {
-            FETCHED_TRACKS: (tracks: TracksMetadata[]) => ({ tracks }),
+            FETCHED_TRACKS: (tracks: TrackMetadata[]) => ({ tracks }),
             FAILED_FETCHING_TRACKS: () => ({}),
             SUBMITTED: (searchQuery: string) => ({ searchQuery }),
         },

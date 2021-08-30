@@ -35,7 +35,7 @@ test(`A user can suggest tracks to play`, async () => {
             elapsed: 0,
         },
         tracks: tracksList.slice(1),
-        tracksIDsList: null,
+        suggestedTracks: null,
     };
 
     serverSocket.on('GO_TO_NEXT_TRACK', () => {
@@ -52,6 +52,33 @@ test(`A user can suggest tracks to play`, async () => {
 
     serverSocket.on('GET_CONTEXT', () => {
         serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    });
+
+    serverSocket.on('SUGGEST_TRACKS', ({ tracksToSuggest }) => {
+        initialState.suggestedTracks = [
+            ...(initialState.suggestedTracks ?? []),
+
+            ...tracksToSuggest.map((trackID) => {
+                const track = db.tracks.findFirst({
+                    where: { id: { equals: trackID } },
+                });
+                if (track === null) {
+                    throw new Error(
+                        `Could not find a track with this id (${trackID}) in tracks database. Check that you called db.tracks.create().`,
+                    );
+                }
+
+                return db.suggestedTracksMetadata.create({
+                    id: trackID,
+                    title: track.title,
+                    artistName: track.artistName,
+                    duration: track.duration,
+                });
+            }),
+        ];
+
+        serverSocket.emit('SUGGESTED_TRACKS_LIST_UPDATE', initialState);
+        serverSocket.emit('SUGGEST_TRACKS_CALLBACK');
     });
 
     const {
@@ -123,9 +150,8 @@ test(`A user can suggest tracks to play`, async () => {
 
     await waitForElementToBeRemoved(() => getByText(/results/i));
 
-    // TODO: decomment when it will have been implemented
-    // const suggestedTrack = await within(musicPlayerFullScreen).findByText(
-    //     fakeTrack.title,
-    // );
-    // expect(suggestedTrack).toBeTruthy();
+    const suggestedTrack = await within(musicPlayerFullScreen).findByText(
+        fakeTrack.title,
+    );
+    expect(suggestedTrack).toBeTruthy();
 });

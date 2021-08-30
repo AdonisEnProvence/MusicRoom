@@ -26,7 +26,6 @@ test(`It should display the music player corresponding to the injected state on 
             emittingDeviceID: datatype.uuid(),
             userID,
         },
-        tracksIDsList: null,
         roomCreatorUserID: datatype.uuid(),
         currentTrack: {
             artistName: random.word(),
@@ -34,6 +33,7 @@ test(`It should display the music player corresponding to the injected state on 
             duration: 158000,
             elapsed: 0,
             title: fakeTrack.title,
+            score: datatype.number(),
         },
         tracks: [
             {
@@ -41,8 +41,10 @@ test(`It should display the music player corresponding to the injected state on 
                 artistName: name.findName(),
                 duration: 42000,
                 title: random.words(3),
+                score: datatype.number(),
             },
         ],
+        suggestedTracks: null,
     };
 
     const { getAllByText, getByTestId, findByA11yState } = render(
@@ -120,7 +122,6 @@ test(`It should display the music player corresponding to the injected state on 
             emittingDeviceID: datatype.uuid(),
             userID,
         },
-        tracksIDsList: null,
         roomCreatorUserID: userID,
         currentTrack: {
             artistName: random.word(),
@@ -128,6 +129,7 @@ test(`It should display the music player corresponding to the injected state on 
             duration: 158000,
             elapsed: 0,
             title: fakeTrack.title,
+            score: datatype.number(),
         },
         tracks: [
             {
@@ -135,8 +137,10 @@ test(`It should display the music player corresponding to the injected state on 
                 artistName: name.findName(),
                 duration: 42000,
                 title: random.words(3),
+                score: datatype.number(),
             },
         ],
+        suggestedTracks: null,
     };
 
     const { getAllByText, getByTestId, findByA11yState } = render(
@@ -200,7 +204,6 @@ test(`It should display the already elapsed track duration and player should be 
             emittingDeviceID: datatype.uuid(),
             userID,
         },
-        tracksIDsList: null,
         roomCreatorUserID: userID,
         currentTrack: {
             artistName: random.word(),
@@ -208,6 +211,7 @@ test(`It should display the already elapsed track duration and player should be 
             duration: 158000,
             elapsed: 100000,
             title: fakeTrack.title,
+            score: datatype.number(),
         },
         tracks: [
             {
@@ -215,8 +219,10 @@ test(`It should display the already elapsed track duration and player should be 
                 artistName: name.findName(),
                 duration: 42000,
                 title: random.words(3),
+                score: datatype.number(),
             },
         ],
+        suggestedTracks: null,
     };
 
     const { getAllByText, getByTestId, findByA11yState, debug } = render(

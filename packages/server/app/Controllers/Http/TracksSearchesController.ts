@@ -1,7 +1,7 @@
 import Env from '@ioc:Adonis/Core/Env';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import { google } from 'googleapis';
-import { TracksMetadata } from '@musicroom/types';
+import { TrackMetadata } from '@musicroom/types';
 
 const youtube = google.youtube({
     version: 'v3',
@@ -11,7 +11,7 @@ const youtube = google.youtube({
 export default class TracksSearchesController {
     public async searchTrackName({
         request,
-    }: HttpContextContract): Promise<TracksMetadata[] | undefined> {
+    }: HttpContextContract): Promise<TrackMetadata[] | undefined> {
         const params = request.params();
         const query = decodeURIComponent(params.query);
 
@@ -29,7 +29,7 @@ export default class TracksSearchesController {
             videoDuration: 'short', //less than 4 minutes
         });
 
-        const tracksMetadata: TracksMetadata[] | undefined = videos
+        const tracksMetadata: TrackMetadata[] | undefined = videos
             ?.map(({ id, snippet }) => {
                 if (id === undefined || snippet === undefined) {
                     return undefined;
@@ -47,7 +47,7 @@ export default class TracksSearchesController {
                     return undefined;
                 }
 
-                const trackMetadata = {
+                const trackMetadata: TrackMetadata = {
                     id: videoId,
                     title,
                     artistName: channelTitle,
@@ -56,7 +56,7 @@ export default class TracksSearchesController {
 
                 return trackMetadata;
             })
-            .filter(TracksMetadata.check.bind(TracksMetadata));
+            .filter(TrackMetadata.check.bind(TrackMetadata));
 
         return tracksMetadata;
     }

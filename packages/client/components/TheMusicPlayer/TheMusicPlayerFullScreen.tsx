@@ -7,6 +7,7 @@ import { FlatList, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sender } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { TrackMetadata } from '@musicroom/types';
 import {
     AppMusicPlayerMachineEvent,
     AppMusicPlayerMachineState,
@@ -162,23 +163,79 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     type: 'GO_TO_TRACKS',
                 });
             },
-            component: () =>
-                context.tracks !== null ? (
+            component: () => {
+                if (context.tracks === null) {
+                    return null;
+                }
+
+                function generateTracksListItems(): (
+                    | { type: 'TRACK'; track: TrackMetadata }
+                    | { type: 'SEPARATOR' }
+                )[] {
+                    if (context.tracks === null) {
+                        return [];
+                    }
+
+                    const tracks = context.tracks.map((track) => ({
+                        type: 'TRACK' as const,
+                        track,
+                    }));
+
+                    if (context.suggestedTracks === null) {
+                        return tracks;
+                    }
+
+                    return [
+                        ...tracks,
+
+                        { type: 'SEPARATOR' as const },
+
+                        ...context.suggestedTracks.map((track) => ({
+                            type: 'TRACK' as const,
+                            track,
+                        })),
+                    ];
+                }
+
+                const data = generateTracksListItems();
+
+                return (
                     <View sx={{ flex: 1 }}>
                         <FlatList
-                            data={context.tracks}
-                            renderItem={({
-                                item: { title, artistName },
-                                index,
-                            }) => (
-                                <TrackListItemWithScore
-                                    index={index + 1}
-                                    title={title}
-                                    artistName={artistName}
-                                    score={51}
-                                    minimumScore={50}
-                                />
-                            )}
+                            data={data}
+                            renderItem={({ item, index }) => {
+                                if (item.type === 'SEPARATOR') {
+                                    return (
+                                        <View
+                                            sx={{
+                                                height: 1,
+                                                width: '100%',
+                                                backgroundColor: 'white',
+
+                                                marginBottom: 'm',
+                                            }}
+                                        />
+                                    );
+                                }
+
+                                const { title, artistName } = item.track;
+
+                                return (
+                                    <View
+                                        sx={{
+                                            marginBottom: 'm',
+                                        }}
+                                    >
+                                        <TrackListItemWithScore
+                                            index={index + 1}
+                                            title={title}
+                                            artistName={artistName}
+                                            score={51}
+                                            minimumScore={50}
+                                        />
+                                    </View>
+                                );
+                            }}
                             keyExtractor={(_, index) => String(index)}
                             style={{ flex: 1 }}
                         />
@@ -189,7 +246,8 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                             }}
                         />
                     </View>
-                ) : null,
+                );
+            },
         },
         {
             text: 'Chat',

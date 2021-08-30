@@ -15,6 +15,8 @@ import { SocketClient } from '../hooks/useSocket';
 export interface AppMusicPlayerMachineContext extends MtvWorkflowState {
     waitingRoomID?: string;
     progressElapsedTime: number;
+
+    closeSuggestionModal?: () => void;
 }
 
 export type AppMusicPlayerMachineState = State<
@@ -54,7 +56,14 @@ export type AppMusicPlayerMachineEvent =
           type: 'RETRIEVE_CONTEXT';
           state: MtvWorkflowState;
       }
-    | { type: 'PAUSE_CALLBACK' };
+    | { type: 'PAUSE_CALLBACK' }
+    | {
+          type: 'SUGGEST_TRACKS';
+          tracksToSuggest: string[];
+          closeSuggestionModal: () => void;
+      }
+    | { type: 'SUGGESTED_TRACKS_LIST_UPDATE'; state: MtvWorkflowState }
+    | { type: 'SUGGEST_TRACKS_CALLBACK' };
 
 interface CreateAppMusicPlayerMachineArgs {
     socket: SocketClient;
@@ -66,12 +75,13 @@ const rawContext: AppMusicPlayerMachineContext = {
     roomCreatorUserID: '',
     roomID: '',
     tracks: null,
+    suggestedTracks: null,
     userRelatedInformation: null,
     usersLength: 0,
     currentTrack: null,
-    tracksIDsList: null,
     waitingRoomID: undefined,
     progressElapsedTime: 0,
+    closeSuggestionModal: undefined,
 };
 
 export const createAppMusicPlayerMachine = ({
@@ -87,7 +97,6 @@ export const createAppMusicPlayerMachine = ({
                 id: 'socketConnection',
                 src: (_context, _event) => (sendBack, onReceive) => {
                     socket.on('RETRIEVE_CONTEXT', (state) => {
-                        console.log('RETRIEVE_CONTEXT');
                         sendBack({
                             type: 'RETRIEVE_CONTEXT',
                             state,
@@ -103,9 +112,6 @@ export const createAppMusicPlayerMachine = ({
                     });
 
                     socket.on('CREATE_ROOM_SYNCHED_CALLBACK', (state) => {
-                        console.log('CREATE_ROOM_SYNCHED_CALLBACK recu', {
-                            state,
-                        });
                         sendBack({
                             type: 'JOINED_CREATED_ROOM',
                             state,
@@ -113,10 +119,6 @@ export const createAppMusicPlayerMachine = ({
                     });
 
                     socket.on('CHANGE_EMITTING_DEVICE_CALLBACK', (state) => {
-                        console.log('CHANGE_EMITTING_DEVICE_CALLBACK recu', {
-                            state,
-                        });
-
                         sendBack({
                             type: 'CHANGE_EMITTING_DEVICE_CALLBACK',
                             state,
@@ -124,7 +126,6 @@ export const createAppMusicPlayerMachine = ({
                     });
 
                     socket.on('CREATE_ROOM_CALLBACK', (state) => {
-                        console.log('CREATE_ROOM_CALLBACK recu', { state });
                         sendBack({
                             type: 'ROOM_IS_READY',
                             state,
@@ -139,7 +140,6 @@ export const createAppMusicPlayerMachine = ({
                     });
 
                     socket.on('ACTION_PLAY_CALLBACK', (state) => {
-                        console.log('ACTION_PLAY_CALLBACK', state);
                         sendBack({
                             type: 'PLAY_CALLBACK',
                             state,
@@ -152,8 +152,20 @@ export const createAppMusicPlayerMachine = ({
                         });
                     });
 
+                    socket.on('SUGGESTED_TRACKS_LIST_UPDATE', (state) => {
+                        sendBack({
+                            type: 'SUGGESTED_TRACKS_LIST_UPDATE',
+                            state,
+                        });
+                    });
+
+                    socket.on('SUGGEST_TRACKS_CALLBACK', () => {
+                        sendBack({
+                            type: 'SUGGEST_TRACKS_CALLBACK',
+                        });
+                    });
+
                     socket.on('FORCED_DISCONNECTION', () => {
-                        console.log('RECEIVED FORCED DISCONNECTION');
                         sendBack({
                             type: 'FORCED_DISCONNECTION',
                         });
@@ -194,6 +206,17 @@ export const createAppMusicPlayerMachine = ({
                                 socket.emit('CHANGE_EMITTING_DEVICE', {
                                     newEmittingDeviceID: e.params.deviceID,
                                 });
+
+                                break;
+                            }
+
+                            case 'SUGGEST_TRACKS': {
+                                const tracksToSuggest = e.tracksToSuggest;
+
+                                socket.emit('SUGGEST_TRACKS', {
+                                    tracksToSuggest,
+                                });
+
                                 break;
                             }
                         }
@@ -224,6 +247,7 @@ export const createAppMusicPlayerMachine = ({
 
                 pageHasBeenFocused: {
                     initial: 'waitingForJoinOrCreateRoom',
+
                     states: {
                         waitingForJoinOrCreateRoom: {
                             entry: 'assignRawContext',
@@ -326,155 +350,246 @@ export const createAppMusicPlayerMachine = ({
                         },
 
                         connectedToRoom: {
-                            initial: 'waitingForPlayerToBeSet',
+                            type: 'parallel',
 
                             tags: 'roomIsReady',
 
                             states: {
-                                waitingForPlayerToBeSet: {
-                                    on: {
-                                        MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET: {
-                                            target: 'waitingForTrackToLoad',
-                                        },
-                                    },
-                                },
-
-                                waitingForTrackToLoad: {
-                                    on: {
-                                        TRACK_HAS_LOADED: {
-                                            target: 'loadingTrackDuration',
-                                        },
-                                    },
-                                },
-
-                                loadingTrackDuration: {
-                                    always: [
-                                        {
-                                            cond: ({ playing }) =>
-                                                playing === true,
-                                            target: 'activatedPlayer.play',
-                                        },
-
-                                        {
-                                            target: 'activatedPlayer.pause',
-                                        },
-                                    ],
-                                },
-
-                                activatedPlayer: {
-                                    initial: 'pause',
+                                playerState: {
+                                    initial: 'waitingForPlayerToBeSet',
 
                                     states: {
-                                        pause: {
-                                            tags: 'playerOnPause',
-
-                                            initial: 'idle',
-
-                                            states: {
-                                                idle: {
-                                                    on: {
-                                                        PLAY_PAUSE_TOGGLE: {
-                                                            target: 'waitingServerAcknowledgement',
-                                                        },
+                                        waitingForPlayerToBeSet: {
+                                            on: {
+                                                MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET:
+                                                    {
+                                                        target: 'waitingForTrackToLoad',
                                                     },
-                                                },
+                                            },
+                                        },
 
-                                                waitingServerAcknowledgement: {
-                                                    entry: send(
-                                                        (context, _event) => ({
-                                                            type: 'PLAY_PAUSE_TOGGLE',
-                                                            params: {
-                                                                status: 'pause',
-                                                            },
-                                                        }),
-                                                        {
-                                                            to: 'socketConnection',
-                                                        },
-                                                    ),
+                                        waitingForTrackToLoad: {
+                                            on: {
+                                                TRACK_HAS_LOADED: {
+                                                    target: 'loadingTrackDuration',
                                                 },
                                             },
                                         },
 
-                                        play: {
-                                            tags: 'playerOnPlay',
+                                        loadingTrackDuration: {
+                                            always: [
+                                                {
+                                                    cond: ({ playing }) =>
+                                                        playing === true,
+                                                    target: 'activatedPlayer.play',
+                                                },
 
-                                            invoke: {
-                                                src: 'pollTrackElapsedTime',
-                                            },
+                                                {
+                                                    target: 'activatedPlayer.pause',
+                                                },
+                                            ],
+                                        },
 
-                                            initial: 'idle',
+                                        activatedPlayer: {
+                                            initial: 'pause',
 
                                             states: {
-                                                idle: {
-                                                    on: {
-                                                        PLAY_PAUSE_TOGGLE: {
-                                                            target: 'waitingServerAcknowledgement',
+                                                pause: {
+                                                    tags: 'playerOnPause',
+
+                                                    initial: 'idle',
+
+                                                    states: {
+                                                        idle: {
+                                                            on: {
+                                                                PLAY_PAUSE_TOGGLE:
+                                                                    {
+                                                                        target: 'waitingServerAcknowledgement',
+                                                                    },
+                                                            },
                                                         },
+
+                                                        waitingServerAcknowledgement:
+                                                            {
+                                                                entry: send(
+                                                                    (
+                                                                        context,
+                                                                        _event,
+                                                                    ) => ({
+                                                                        type: 'PLAY_PAUSE_TOGGLE',
+                                                                        params: {
+                                                                            status: 'pause',
+                                                                        },
+                                                                    }),
+                                                                    {
+                                                                        to: 'socketConnection',
+                                                                    },
+                                                                ),
+                                                            },
                                                     },
                                                 },
 
-                                                waitingServerAcknowledgement: {
-                                                    entry: send(
-                                                        (_context, _event) => ({
-                                                            type: 'PLAY_PAUSE_TOGGLE',
-                                                            params: {
-                                                                status: 'play',
+                                                play: {
+                                                    tags: 'playerOnPlay',
+
+                                                    invoke: {
+                                                        src: 'pollTrackElapsedTime',
+                                                    },
+
+                                                    initial: 'idle',
+
+                                                    states: {
+                                                        idle: {
+                                                            on: {
+                                                                PLAY_PAUSE_TOGGLE:
+                                                                    {
+                                                                        target: 'waitingServerAcknowledgement',
+                                                                    },
                                                             },
-                                                        }),
-                                                        {
-                                                            to: 'socketConnection',
                                                         },
-                                                    ),
+
+                                                        waitingServerAcknowledgement:
+                                                            {
+                                                                entry: send(
+                                                                    (
+                                                                        _context,
+                                                                        _event,
+                                                                    ) => ({
+                                                                        type: 'PLAY_PAUSE_TOGGLE',
+                                                                        params: {
+                                                                            status: 'play',
+                                                                        },
+                                                                    }),
+                                                                    {
+                                                                        to: 'socketConnection',
+                                                                    },
+                                                                ),
+                                                            },
+                                                    },
+
+                                                    on: {
+                                                        UPDATE_CURRENT_TRACK_ELAPSED_TIME:
+                                                            {
+                                                                actions:
+                                                                    'assignElapsedTimeToContext',
+                                                            },
+                                                    },
                                                 },
                                             },
 
                                             on: {
-                                                UPDATE_CURRENT_TRACK_ELAPSED_TIME:
+                                                PAUSE_CALLBACK: {
+                                                    target: 'activatedPlayer.pause',
+                                                },
+
+                                                PLAY_CALLBACK: [
                                                     {
+                                                        target: 'waitingForTrackToLoad',
+
+                                                        cond: (
+                                                            { currentTrack },
+                                                            {
+                                                                state: {
+                                                                    currentTrack:
+                                                                        currentTrackToBeSet,
+                                                                },
+                                                            },
+                                                        ) => {
+                                                            const isDifferentCurrentTrack =
+                                                                currentTrack?.id !==
+                                                                currentTrackToBeSet?.id;
+
+                                                            return isDifferentCurrentTrack;
+                                                        },
+
                                                         actions:
-                                                            'assignElapsedTimeToContext',
+                                                            'assignMergeNewState',
                                                     },
+
+                                                    {
+                                                        target: 'activatedPlayer.play',
+                                                        actions:
+                                                            'assignMergeNewState',
+                                                    },
+                                                ],
+
+                                                GO_TO_NEXT_TRACK: {
+                                                    actions:
+                                                        forwardTo(
+                                                            'socketConnection',
+                                                        ),
+                                                },
                                             },
                                         },
                                     },
+                                },
 
-                                    on: {
-                                        PAUSE_CALLBACK: {
-                                            target: 'activatedPlayer.pause',
+                                tracksSuggestion: {
+                                    initial: 'waitingForTracksToBeSuggested',
+
+                                    states: {
+                                        waitingForTracksToBeSuggested: {
+                                            on: {
+                                                SUGGEST_TRACKS: {
+                                                    target: 'waitingForTracksSuggestionToBeAcknowledged',
+
+                                                    actions: [
+                                                        assign({
+                                                            closeSuggestionModal:
+                                                                (
+                                                                    _context,
+                                                                    {
+                                                                        closeSuggestionModal,
+                                                                    },
+                                                                ) =>
+                                                                    closeSuggestionModal,
+                                                        }),
+
+                                                        send(
+                                                            (
+                                                                _context,
+                                                                event,
+                                                            ) => ({
+                                                                type: 'SUGGEST_TRACKS',
+                                                                tracksToSuggest:
+                                                                    event.tracksToSuggest,
+                                                            }),
+                                                            {
+                                                                to: 'socketConnection',
+                                                            },
+                                                        ),
+                                                    ],
+                                                },
+                                            },
                                         },
 
-                                        PLAY_CALLBACK: [
+                                        waitingForTracksSuggestionToBeAcknowledged:
                                             {
-                                                target: 'waitingForTrackToLoad',
+                                                tags: [
+                                                    'showActivityIndicatorOnSuggestionsResultsScreen',
+                                                ],
 
-                                                cond: (
-                                                    { currentTrack },
-                                                    {
-                                                        state: {
-                                                            currentTrack:
-                                                                currentTrackToBeSet,
-                                                        },
+                                                on: {
+                                                    SUGGEST_TRACKS_CALLBACK: {
+                                                        target: 'waitingForTracksToBeSuggested',
+
+                                                        actions: [
+                                                            ({
+                                                                closeSuggestionModal,
+                                                            }) => {
+                                                                closeSuggestionModal?.();
+                                                            },
+
+                                                            'showTracksSuggestionAcknowledgementToast',
+                                                        ],
                                                     },
-                                                ) => {
-                                                    const isDifferentCurrentTrack =
-                                                        currentTrack?.id !==
-                                                        currentTrackToBeSet?.id;
-
-                                                    return isDifferentCurrentTrack;
                                                 },
-
-                                                actions: 'assignMergeNewState',
                                             },
+                                    },
 
-                                            {
-                                                target: 'activatedPlayer.play',
-                                                actions: 'assignMergeNewState',
-                                            },
-                                        ],
-
-                                        GO_TO_NEXT_TRACK: {
-                                            actions:
-                                                forwardTo('socketConnection'),
+                                    on: {
+                                        SUGGESTED_TRACKS_LIST_UPDATE: {
+                                            actions: 'assignMergeNewState',
                                         },
                                     },
                                 },
@@ -604,7 +719,8 @@ export const createAppMusicPlayerMachine = ({
                         event.type !== 'ROOM_IS_READY' &&
                         event.type !== 'PLAY_CALLBACK' &&
                         event.type !== 'CHANGE_EMITTING_DEVICE_CALLBACK' &&
-                        event.type !== 'USER_LENGTH_UPDATE'
+                        event.type !== 'USER_LENGTH_UPDATE' &&
+                        event.type !== 'SUGGESTED_TRACKS_LIST_UPDATE'
                     ) {
                         return context;
                     }

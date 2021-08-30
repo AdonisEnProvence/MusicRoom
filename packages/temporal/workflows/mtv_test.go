@@ -1009,6 +1009,8 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 		faker.UUIDHyphenated(),
 		faker.UUIDHyphenated(),
 	}
+	suggesterUserID := faker.UUIDHyphenated()
+	suggesterDeviceID := faker.UUIDHyphenated()
 	tracksToSuggestMetadata := []shared.TrackMetadata{
 		{
 			ID:         tracksIDsToSuggest[0],
@@ -1051,10 +1053,16 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 	).Return(tracks, nil).Once()
 	// Mock suggested and accepted tracks information fetching
 	s.env.OnActivity(
-		activities.FetchTracksInformationActivity,
+		activities.FetchTracksInformationActivityAndForwardIniator,
 		mock.Anything,
 		tracksIDsToSuggest,
-	).Return(tracksToSuggestMetadata, nil).Once()
+		suggesterUserID,
+		suggesterDeviceID,
+	).Return(activities.FetchedTracksInformationWithIniator{
+		Metadata: tracksToSuggestMetadata,
+		UserID:   suggesterUserID,
+		DeviceID: suggesterDeviceID,
+	}, nil).Once()
 
 	s.env.OnActivity(
 		activities.CreationAcknowledgementActivity,
@@ -1066,11 +1074,22 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.AcknowledgeTracksSuggestion,
+		mock.Anything,
+		activities.AcknowledgeTracksSuggestionArgs{
+			RoomID:   params.RoomID,
+			UserID:   suggesterUserID,
+			DeviceID: suggesterDeviceID,
+		},
+	).Return(nil).Once()
 
 	firstSuggestTracksSignalDelay := defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		s.emitSuggestTrackSignal(shared.SuggestTracksSignalArgs{
 			TracksToSuggest: tracksIDsToSuggest,
+			UserID:          suggesterUserID,
+			DeviceID:        suggesterDeviceID,
 		})
 	}, firstSuggestTracksSignalDelay)
 
@@ -1086,6 +1105,8 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 	registerDelayedCallbackWrapper(func() {
 		s.emitSuggestTrackSignal(shared.SuggestTracksSignalArgs{
 			TracksToSuggest: []string{duplicateTrackIDToSuggest},
+			UserID:          suggesterUserID,
+			DeviceID:        suggesterDeviceID,
 		})
 	}, secondSuggestTracksSignalDelay)
 
@@ -1103,6 +1124,8 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 
 		s.emitSuggestTrackSignal(shared.SuggestTracksSignalArgs{
 			TracksToSuggest: []string{idOfTrackInTracksList},
+			UserID:          suggesterUserID,
+			DeviceID:        suggesterDeviceID,
 		})
 	}, thirdSuggestTracksSignalDelay)
 

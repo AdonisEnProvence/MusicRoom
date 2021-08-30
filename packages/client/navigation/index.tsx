@@ -5,8 +5,8 @@
  */
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import * as React from 'react';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
+import Toast from 'react-native-toast-message';
 import { navigationStyle } from '../constants/Colors';
 import { AlertScreen } from '../screens/AlertScreen';
 import ChatScreen from '../screens/ChatScreen';
@@ -51,6 +51,8 @@ const Navigation: React.FC<ColorModeProps> = ({
                 colorScheme={colorScheme}
                 toggleColorScheme={toggleColorScheme}
             />
+
+            <Toast ref={(ref) => Toast.setRef(ref)} />
         </NavigationContainer>
     );
 };

@@ -35,6 +35,10 @@ export interface MtvRoomClientToServerJoin {
     roomID: string;
 }
 
+export interface MtvRoomClientToServerSuggestTracks {
+    tracksToSuggest: string[];
+}
+
 export interface Track {
     name: string;
     artistName: string;
@@ -55,6 +59,7 @@ export interface MtvRoomClientToServerEvents {
     CHANGE_EMITTING_DEVICE: (
         args: MtvRoomClientToServerChangeUserEmittingDevice,
     ) => void;
+    SUGGEST_TRACKS: (args: MtvRoomClientToServerSuggestTracks) => void;
 }
 
 export interface MtvRoomServerToClientEvents {
@@ -67,4 +72,6 @@ export interface MtvRoomServerToClientEvents {
     FORCED_DISCONNECTION: () => void;
     JOIN_ROOM_CALLBACK: (state: MtvWorkflowState) => void;
     CHANGE_EMITTING_DEVICE_CALLBACK: (state: MtvWorkflowState) => void;
+    SUGGESTED_TRACKS_LIST_UPDATE: (state: MtvWorkflowState) => void;
+    SUGGEST_TRACKS_CALLBACK: () => void;
 }

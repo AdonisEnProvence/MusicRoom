@@ -3,7 +3,7 @@ import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import Device from '../app/Models/Device';
-import initTestUtils, { sleep } from './TestUtils';
+import initTestUtils, { sleep } from './utils/TestUtils';
 
 test.group(
     `User Controller tests, connected devices alerts and info fetching`,

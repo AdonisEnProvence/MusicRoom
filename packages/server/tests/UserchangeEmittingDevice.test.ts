@@ -6,7 +6,7 @@ import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
-import initTestUtils, { BASE_URL, sleep } from './TestUtils';
+import initTestUtils, { BASE_URL, sleep } from './utils/TestUtils';
 
 test.group(
     `User change emitting device success and fail cases & eviction handler`,

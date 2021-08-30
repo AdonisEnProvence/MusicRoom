@@ -6,6 +6,7 @@ import urlcat from 'urlcat';
 const TEMPORAL_ENDPOINT = Env.get('TEMPORAL_ENDPOINT');
 
 interface TemporalCreateMtvWorkflowBody {
+    workflowID: string;
     roomName: string;
     userID: string;
     deviceID: string;
@@ -61,10 +62,9 @@ export default class ServerToTemporalController {
         initialTracksIDs,
         deviceID,
     }: TemporalCreateMtvWorkflowArgs): Promise<CreateWorkflowResponse> {
-        const url = urlcat(TEMPORAL_ENDPOINT, '/create/:workflowID', {
-            workflowID,
-        });
+        const url = urlcat(TEMPORAL_ENDPOINT, '/create');
         const body: TemporalCreateMtvWorkflowBody = {
+            workflowID,
             roomName,
             userID,
             initialTracksIDs,
@@ -75,7 +75,6 @@ export default class ServerToTemporalController {
             await got
                 .put(url, {
                     json: body,
-                    responseType: 'json',
                 })
                 .json(),
         );
@@ -85,11 +84,14 @@ export default class ServerToTemporalController {
         workflowID,
         runID,
     }: TemporalMtvTerminateWorkflowArgs): Promise<void> {
-        const url = urlcat(TEMPORAL_ENDPOINT, '/terminate/:workflowID/:runID', {
-            workflowID,
-            runID,
+        const url = urlcat(TEMPORAL_ENDPOINT, '/terminate');
+
+        await got.put(url, {
+            json: {
+                workflowID,
+                runID,
+            },
         });
-        await got.get(url);
     }
 
     public static async joinWorkflow({
@@ -141,16 +143,13 @@ export default class ServerToTemporalController {
         runID,
     }: TemporalMtvPauseArgs): Promise<void> {
         try {
-            const url = urlcat(
-                TEMPORAL_ENDPOINT,
-                '/control/:workflowID/:runID/pause',
-                {
+            const url = urlcat(TEMPORAL_ENDPOINT, '/pause');
+
+            await got.put(url, {
+                json: {
                     workflowID,
                     runID,
                 },
-            );
-            await got.put(url, {
-                responseType: 'json',
             });
         } catch (e) {
             throw new Error('PAUSE FAILED ' + workflowID);
@@ -162,16 +161,13 @@ export default class ServerToTemporalController {
         runID,
     }: TemporalMtvPlayArgs): Promise<void> {
         try {
-            const url = urlcat(
-                TEMPORAL_ENDPOINT,
-                '/control/:workflowID/:runID/play',
-                {
+            const url = urlcat(TEMPORAL_ENDPOINT, '/play');
+
+            await got.put(url, {
+                json: {
                     workflowID,
                     runID,
                 },
-            );
-            await got.put(url, {
-                responseType: 'json',
             });
         } catch (e) {
             throw new Error('PLAY FAILED ' + workflowID);

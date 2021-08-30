@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"time"
 
@@ -47,16 +46,16 @@ func main() {
 
 	r := mux.NewRouter()
 	r.Handle("/ping", http.HandlerFunc(PingHandler)).Methods(http.MethodGet)
-	r.Handle("/control/{workflowID}/{runID}/play", http.HandlerFunc(PlayHandler)).Methods(http.MethodPut)
-	r.Handle("/control/{workflowID}/{runID}/pause", http.HandlerFunc(PauseHandler)).Methods(http.MethodPut)
-	r.Handle("/create/{workflowID}", http.HandlerFunc(CreateRoomHandler)).Methods(http.MethodPut)
+	r.Handle("/play", http.HandlerFunc(PlayHandler)).Methods(http.MethodPut)
+	r.Handle("/pause", http.HandlerFunc(PauseHandler)).Methods(http.MethodPut)
+	r.Handle("/create", http.HandlerFunc(CreateRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/join", http.HandlerFunc(JoinRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/leave", http.HandlerFunc(LeaveRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/change-user-emitting-device", http.HandlerFunc(ChangeUserEmittingDeviceHandler)).Methods(http.MethodPut)
 	r.Handle("/state", http.HandlerFunc(GetStateHandler)).Methods(http.MethodPut)
 	r.Handle("/go-to-next-track", http.HandlerFunc(GoToNextTrackHandler)).Methods(http.MethodPut)
 	r.Handle("/suggest-tracks", http.HandlerFunc(SuggestTracksHandler)).Methods(http.MethodPut)
-	r.Handle("/terminate/{workflowID}/{runID}", http.HandlerFunc(TerminateWorkflowHandler)).Methods(http.MethodGet)
+	r.Handle("/terminate", http.HandlerFunc(TerminateWorkflowHandler)).Methods(http.MethodPut)
 
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 
@@ -73,15 +72,33 @@ func main() {
 	}
 }
 
+type PlayRequestBody struct {
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
+}
+
 func PlayHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Control called")
-	vars := mux.Vars(r)
-	workflowID := vars["workflowID"]
-	runID := vars["runID"]
+	defer r.Body.Close()
+
+	var body PlayRequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
+		WriteError(w, err)
+		return
+	}
 
 	signal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
-	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, shared.SignalChannelName, signal)
-	if err != nil {
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		body.RunID,
+		shared.SignalChannelName,
+		signal,
+	); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -89,13 +106,12 @@ func PlayHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	res := make(map[string]interface{})
 	res["ok"] = 1
-	printResults("", workflowID, runID)
 	json.NewEncoder(w).Encode(res)
 }
 
 type GoToNextTrackRequestBody struct {
-	WorkflowID string `json:"workflowID"`
-	RunID      string `json:"runID"`
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
 }
 
 func GoToNextTrackHandler(w http.ResponseWriter, r *http.Request) {
@@ -104,6 +120,10 @@ func GoToNextTrackHandler(w http.ResponseWriter, r *http.Request) {
 	var body GoToNextTrackRequestBody
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -127,10 +147,10 @@ func GoToNextTrackHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type ChangeUserEmittingDeviceRequestBody struct {
-	WorkflowID string `json:"workflowID"`
-	RunID      string `json:"runID"`
-	UserID     string `json:"userID"`
-	DeviceID   string `json:"deviceID"`
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
+	UserID     string `json:"userID" validate:"required,uuid"`
+	DeviceID   string `json:"deviceID" validate:"required,uuid"`
 }
 
 func ChangeUserEmittingDeviceHandler(w http.ResponseWriter, r *http.Request) {
@@ -139,6 +159,10 @@ func ChangeUserEmittingDeviceHandler(w http.ResponseWriter, r *http.Request) {
 	var body ChangeUserEmittingDeviceRequestBody
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -169,12 +193,12 @@ func ChangeUserEmittingDeviceHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type SuggestTracksRequestBody struct {
-	WorkflowID string `json:"workflowID"`
-	RunID      string `json:"runID"`
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
 
-	TracksToSuggest []string `json:"tracksToSuggest"`
-	UserID          string   `json:"userID"`
-	DeviceID        string   `json:"deviceID"`
+	TracksToSuggest []string `json:"tracksToSuggest" validate:"required,dive,required"`
+	UserID          string   `json:"userID" validate:"required,uuid"`
+	DeviceID        string   `json:"deviceID" validate:"required,uuid"`
 }
 
 func SuggestTracksHandler(w http.ResponseWriter, r *http.Request) {
@@ -183,6 +207,10 @@ func SuggestTracksHandler(w http.ResponseWriter, r *http.Request) {
 	var body SuggestTracksRequestBody
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -209,15 +237,33 @@ func SuggestTracksHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
-func TerminateWorkflowHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Control called")
-	vars := mux.Vars(r)
+type TerminateWorkflowRequestBody struct {
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
+}
 
-	workflowID := vars["workflowID"]
-	runID := vars["runID"]
+func TerminateWorkflowHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var body TerminateWorkflowRequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
+		WriteError(w, err)
+		return
+	}
+
 	terminateSignal := shared.NewTerminateSignal(shared.NewTerminateSignalArgs{})
-	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, shared.SignalChannelName, terminateSignal)
-	if err != nil {
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		body.RunID,
+		shared.SignalChannelName,
+		terminateSignal,
+	); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -225,19 +271,36 @@ func TerminateWorkflowHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	res := make(map[string]interface{})
 	res["ok"] = 1
-	printResults("", workflowID, runID)
 	json.NewEncoder(w).Encode(res)
 }
 
+type PauseRequestBody struct {
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
+}
+
 func PauseHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Control called")
-	vars := mux.Vars(r)
-	workflowID := vars["workflowID"]
-	runID := vars["runID"]
+	defer r.Body.Close()
+
+	var body PauseRequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
+		WriteError(w, err)
+		return
+	}
 
 	signal := shared.NewPauseSignal(shared.NewPauseSignalArgs{})
-	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, shared.SignalChannelName, signal)
-	if err != nil {
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		body.RunID,
+		shared.SignalChannelName,
+		signal,
+	); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -245,15 +308,15 @@ func PauseHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	res := make(map[string]interface{})
 	res["ok"] = 1
-	printResults("", workflowID, runID)
 	json.NewEncoder(w).Encode(res)
 }
 
 type CreateRoomRequestBody struct {
-	UserID           string   `json:"userID"`
-	DeviceID         string   `json:"deviceID"`
-	Name             string   `json:"roomName"`
-	InitialTracksIDs []string `json:"initialTracksIDs"`
+	WorkflowID       string   `json:"workflowID" validate:"required,uuid"`
+	UserID           string   `json:"userID" validate:"required,uuid"`
+	DeviceID         string   `json:"deviceID" validate:"required,uuid"`
+	Name             string   `json:"roomName" validate:"required"`
+	InitialTracksIDs []string `json:"initialTracksIDs" validate:"required,dive,required"`
 }
 
 type CreateRoomResponse struct {
@@ -263,10 +326,8 @@ type CreateRoomResponse struct {
 }
 
 func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Create called")
 	defer r.Body.Close()
 
-	vars := mux.Vars(r)
 	var body CreateRoomRequestBody
 
 	err := json.NewDecoder(r.Body).Decode(&body)
@@ -274,15 +335,14 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
-
-	workflowID, err := url.QueryUnescape(vars["workflowID"])
-	if err != nil {
+	if err := validate.Struct(body); err != nil {
+		log.Println("create room validation error", err)
 		WriteError(w, err)
 		return
 	}
 
 	options := client.StartWorkflowOptions{
-		ID:        workflowID,
+		ID:        body.WorkflowID,
 		TaskQueue: shared.ControlTaskQueue,
 	}
 
@@ -300,7 +360,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := shared.MtvRoomParameters{
-		RoomID:               workflowID,
+		RoomID:               body.WorkflowID,
 		RoomCreatorUserID:    body.UserID,
 		RoomName:             body.Name,
 		InitialUsers:         initialUsers,
@@ -323,37 +383,18 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
-type UnescapeRoomIDAndRundIDResponse struct {
-	worflowID, runID string
-}
-
-func UnescapeRoomIDAndRundID(workflowID, runID string) (UnescapeRoomIDAndRundIDResponse, error) {
-	workflowID, err := url.QueryUnescape(workflowID)
-	if err != nil {
-		return UnescapeRoomIDAndRundIDResponse{}, err
-	}
-	runID, err = url.QueryUnescape(runID)
-	if err != nil {
-		return UnescapeRoomIDAndRundIDResponse{}, err
-	}
-	return UnescapeRoomIDAndRundIDResponse{
-		workflowID,
-		runID,
-	}, nil
-}
-
-type LeaveRoomHandlerBody struct {
-	UserID     string `json:"userID"`
-	WorkflowID string `json:"workflowID"`
-	RunID      string `json:"runID"`
-}
+type LeaveRoomHandlerBody JoinRoomHandlerBody
 
 func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	var body JoinRoomHandlerBody
-	err := json.NewDecoder(r.Body).Decode(&body)
-	if err != nil {
+	var body LeaveRoomHandlerBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -362,8 +403,13 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 		UserID: body.UserID,
 	})
 
-	err = temporal.SignalWorkflow(context.Background(), body.WorkflowID, body.RunID, shared.SignalChannelName, signal)
-	if err != nil {
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		body.RunID,
+		shared.SignalChannelName,
+		signal,
+	); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -375,18 +421,22 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type JoinRoomHandlerBody struct {
-	UserID     string `json:"userID"`
-	DeviceID   string `json:"deviceID"`
-	WorkflowID string `json:"workflowID"`
-	RunID      string `json:"runID"`
+	UserID     string `json:"userID" validate:"required,uuid"`
+	DeviceID   string `json:"deviceID" validate:"required,uuid"`
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
 }
 
 func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	var body JoinRoomHandlerBody
-	err := json.NewDecoder(r.Body).Decode(&body)
-	if err != nil {
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -396,8 +446,13 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 		DeviceID: body.DeviceID,
 	})
 
-	err = temporal.SignalWorkflow(context.Background(), body.WorkflowID, body.RunID, shared.SignalChannelName, signal)
-	if err != nil {
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		body.RunID,
+		shared.SignalChannelName,
+		signal,
+	); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -409,9 +464,9 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type GetStateBody struct {
-	WorkflowID string `json:"workflowID"`
-	UserID     string `json:"userID,omitempty"`
-	RunID      string `json:"runID"`
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	UserID     string `json:"userID,omitempty" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
 }
 
 func GetStateHandler(w http.ResponseWriter, r *http.Request) {
@@ -419,12 +474,14 @@ func GetStateHandler(w http.ResponseWriter, r *http.Request) {
 
 	var body GetStateBody
 
-	err := json.NewDecoder(r.Body).Decode(&body)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		WriteError(w, err)
 		return
 	}
-	fmt.Printf("\n ________________GETSTATE Getting body = %+v\n", body)
+	if err := validate.Struct(body); err != nil {
+		WriteError(w, err)
+		return
+	}
 
 	response, err := temporal.QueryWorkflow(context.Background(), body.WorkflowID, body.RunID, shared.MtvGetStateQuery, body.UserID)
 	if err != nil {

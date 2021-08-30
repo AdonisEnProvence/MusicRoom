@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"time"
 
@@ -49,7 +48,7 @@ func main() {
 	r.Handle("/ping", http.HandlerFunc(PingHandler)).Methods(http.MethodGet)
 	r.Handle("/play", http.HandlerFunc(PlayHandler)).Methods(http.MethodPut)
 	r.Handle("/pause", http.HandlerFunc(PauseHandler)).Methods(http.MethodPut)
-	r.Handle("/create/{workflowID}", http.HandlerFunc(CreateRoomHandler)).Methods(http.MethodPut)
+	r.Handle("/create", http.HandlerFunc(CreateRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/join", http.HandlerFunc(JoinRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/leave", http.HandlerFunc(LeaveRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/change-user-emitting-device", http.HandlerFunc(ChangeUserEmittingDeviceHandler)).Methods(http.MethodPut)
@@ -313,6 +312,7 @@ func PauseHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type CreateRoomRequestBody struct {
+	WorkflowID       string   `json:"workflowID" validate:"required,uuid"`
 	UserID           string   `json:"userID" validate:"required,uuid"`
 	DeviceID         string   `json:"deviceID" validate:"required,uuid"`
 	Name             string   `json:"roomName" validate:"required"`
@@ -326,11 +326,8 @@ type CreateRoomResponse struct {
 }
 
 func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Create called")
 	defer r.Body.Close()
 
-	// Use body
-	vars := mux.Vars(r)
 	var body CreateRoomRequestBody
 
 	err := json.NewDecoder(r.Body).Decode(&body)
@@ -344,14 +341,8 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	workflowID, err := url.QueryUnescape(vars["workflowID"])
-	if err != nil {
-		WriteError(w, err)
-		return
-	}
-
 	options := client.StartWorkflowOptions{
-		ID:        workflowID,
+		ID:        body.WorkflowID,
 		TaskQueue: shared.ControlTaskQueue,
 	}
 
@@ -369,7 +360,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := shared.MtvRoomParameters{
-		RoomID:               workflowID,
+		RoomID:               body.WorkflowID,
 		RoomCreatorUserID:    body.UserID,
 		RoomName:             body.Name,
 		InitialUsers:         initialUsers,
@@ -390,25 +381,6 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(res)
-}
-
-type UnescapeRoomIDAndRundIDResponse struct {
-	worflowID, runID string
-}
-
-func UnescapeRoomIDAndRundID(workflowID, runID string) (UnescapeRoomIDAndRundIDResponse, error) {
-	workflowID, err := url.QueryUnescape(workflowID)
-	if err != nil {
-		return UnescapeRoomIDAndRundIDResponse{}, err
-	}
-	runID, err = url.QueryUnescape(runID)
-	if err != nil {
-		return UnescapeRoomIDAndRundIDResponse{}, err
-	}
-	return UnescapeRoomIDAndRundIDResponse{
-		workflowID,
-		runID,
-	}, nil
 }
 
 type LeaveRoomHandlerBody JoinRoomHandlerBody

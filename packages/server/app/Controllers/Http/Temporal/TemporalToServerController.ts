@@ -118,7 +118,7 @@ export default class TemporalToServerController {
         const state = MtvWorkflowState.parse(request.body());
         const roomID = state.roomID;
 
-        Ws.io.to(roomID).emit('SUGGEST_TRACKS_CALLBACK', state);
+        Ws.io.to(roomID).emit('SUGGESTED_TRACKS_LIST_UPDATE', state);
     }
 
     public async acknowledgeTracksSuggestion({
@@ -136,6 +136,6 @@ export default class TemporalToServerController {
 
         const device = await Device.findOrFail(deviceID);
 
-        Ws.io.in(device.socketID).emit('ACKNOWLEDGE_TRACKS_SUGGESTION');
+        Ws.io.in(device.socketID).emit('SUGGEST_TRACKS_CALLBACK');
     }
 }

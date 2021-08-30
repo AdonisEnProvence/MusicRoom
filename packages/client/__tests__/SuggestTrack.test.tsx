@@ -77,8 +77,8 @@ test(`A user can suggest tracks to play`, async () => {
             }),
         ];
 
-        serverSocket.emit('SUGGEST_TRACKS_CALLBACK', initialState);
-        serverSocket.emit('ACKNOWLEDGE_TRACKS_SUGGESTION');
+        serverSocket.emit('SUGGESTED_TRACKS_LIST_UPDATE', initialState);
+        serverSocket.emit('SUGGEST_TRACKS_CALLBACK');
     });
 
     const {

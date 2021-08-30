@@ -72,6 +72,6 @@ export interface MtvRoomServerToClientEvents {
     FORCED_DISCONNECTION: () => void;
     JOIN_ROOM_CALLBACK: (state: MtvWorkflowState) => void;
     CHANGE_EMITTING_DEVICE_CALLBACK: (state: MtvWorkflowState) => void;
-    SUGGEST_TRACKS_CALLBACK: (state: MtvWorkflowState) => void;
-    ACKNOWLEDGE_TRACKS_SUGGESTION: () => void;
+    SUGGESTED_TRACKS_LIST_UPDATE: (state: MtvWorkflowState) => void;
+    SUGGEST_TRACKS_CALLBACK: () => void;
 }

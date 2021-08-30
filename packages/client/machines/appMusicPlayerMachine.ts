@@ -62,8 +62,8 @@ export type AppMusicPlayerMachineEvent =
           tracksToSuggest: string[];
           closeSuggestionModal: () => void;
       }
-    | { type: 'SUGGEST_TRACKS_CALLBACK'; state: MtvWorkflowState }
-    | { type: 'ACKNOWLEDGE_TRACKS_SUGGESTION' };
+    | { type: 'SUGGESTED_TRACKS_LIST_UPDATE'; state: MtvWorkflowState }
+    | { type: 'SUGGEST_TRACKS_CALLBACK' };
 
 interface CreateAppMusicPlayerMachineArgs {
     socket: SocketClient;
@@ -152,16 +152,16 @@ export const createAppMusicPlayerMachine = ({
                         });
                     });
 
-                    socket.on('SUGGEST_TRACKS_CALLBACK', (state) => {
+                    socket.on('SUGGESTED_TRACKS_LIST_UPDATE', (state) => {
                         sendBack({
-                            type: 'SUGGEST_TRACKS_CALLBACK',
+                            type: 'SUGGESTED_TRACKS_LIST_UPDATE',
                             state,
                         });
                     });
 
-                    socket.on('ACKNOWLEDGE_TRACKS_SUGGESTION', () => {
+                    socket.on('SUGGEST_TRACKS_CALLBACK', () => {
                         sendBack({
-                            type: 'ACKNOWLEDGE_TRACKS_SUGGESTION',
+                            type: 'SUGGEST_TRACKS_CALLBACK',
                         });
                     });
 
@@ -570,26 +570,25 @@ export const createAppMusicPlayerMachine = ({
                                                 ],
 
                                                 on: {
-                                                    ACKNOWLEDGE_TRACKS_SUGGESTION:
-                                                        {
-                                                            target: 'waitingForTracksToBeSuggested',
+                                                    SUGGEST_TRACKS_CALLBACK: {
+                                                        target: 'waitingForTracksToBeSuggested',
 
-                                                            actions: [
-                                                                ({
-                                                                    closeSuggestionModal,
-                                                                }) => {
-                                                                    closeSuggestionModal?.();
-                                                                },
+                                                        actions: [
+                                                            ({
+                                                                closeSuggestionModal,
+                                                            }) => {
+                                                                closeSuggestionModal?.();
+                                                            },
 
-                                                                'showTracksSuggestionAcknowledgementToast',
-                                                            ],
-                                                        },
+                                                            'showTracksSuggestionAcknowledgementToast',
+                                                        ],
+                                                    },
                                                 },
                                             },
                                     },
 
                                     on: {
-                                        SUGGEST_TRACKS_CALLBACK: {
+                                        SUGGESTED_TRACKS_LIST_UPDATE: {
                                             actions: 'assignMergeNewState',
                                         },
                                     },
@@ -721,7 +720,7 @@ export const createAppMusicPlayerMachine = ({
                         event.type !== 'PLAY_CALLBACK' &&
                         event.type !== 'CHANGE_EMITTING_DEVICE_CALLBACK' &&
                         event.type !== 'USER_LENGTH_UPDATE' &&
-                        event.type !== 'SUGGEST_TRACKS_CALLBACK'
+                        event.type !== 'SUGGESTED_TRACKS_LIST_UPDATE'
                     ) {
                         return context;
                     }

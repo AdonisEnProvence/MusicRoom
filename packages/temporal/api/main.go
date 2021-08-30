@@ -56,7 +56,7 @@ func main() {
 	r.Handle("/state", http.HandlerFunc(GetStateHandler)).Methods(http.MethodPut)
 	r.Handle("/go-to-next-track", http.HandlerFunc(GoToNextTrackHandler)).Methods(http.MethodPut)
 	r.Handle("/suggest-tracks", http.HandlerFunc(SuggestTracksHandler)).Methods(http.MethodPut)
-	r.Handle("/terminate/{workflowID}/{runID}", http.HandlerFunc(TerminateWorkflowHandler)).Methods(http.MethodGet)
+	r.Handle("/terminate", http.HandlerFunc(TerminateWorkflowHandler)).Methods(http.MethodPut)
 
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 
@@ -223,16 +223,33 @@ func SuggestTracksHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
-func TerminateWorkflowHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Control called")
-	vars := mux.Vars(r)
+type TerminateWorkflowRequestBody struct {
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
+}
 
-	// Use request body
-	workflowID := vars["workflowID"]
-	runID := vars["runID"]
+func TerminateWorkflowHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var body TerminateWorkflowRequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
+		WriteError(w, err)
+		return
+	}
+
 	terminateSignal := shared.NewTerminateSignal(shared.NewTerminateSignalArgs{})
-	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, shared.SignalChannelName, terminateSignal)
-	if err != nil {
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		body.RunID,
+		shared.SignalChannelName,
+		terminateSignal,
+	); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -240,7 +257,6 @@ func TerminateWorkflowHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	res := make(map[string]interface{})
 	res["ok"] = 1
-	printResults("", workflowID, runID)
 	json.NewEncoder(w).Encode(res)
 }
 

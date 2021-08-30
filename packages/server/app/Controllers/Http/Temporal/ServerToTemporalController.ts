@@ -85,11 +85,14 @@ export default class ServerToTemporalController {
         workflowID,
         runID,
     }: TemporalMtvTerminateWorkflowArgs): Promise<void> {
-        const url = urlcat(TEMPORAL_ENDPOINT, '/terminate/:workflowID/:runID', {
-            workflowID,
-            runID,
+        const url = urlcat(TEMPORAL_ENDPOINT, '/terminate');
+
+        await got.put(url, {
+            json: {
+                workflowID,
+                runID,
+            },
         });
-        await got.get(url);
     }
 
     public static async joinWorkflow({

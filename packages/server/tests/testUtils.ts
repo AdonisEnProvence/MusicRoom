@@ -2,9 +2,11 @@ import {
     AllClientToServerEvents,
     AllServerToClientEvents,
 } from '@musicroom/types';
+import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
 import { datatype, random } from 'faker';
+import sinon from 'sinon';
 import { io, Socket } from 'socket.io-client';
 
 export function waitForTimeout(ms: number): Promise<void> {
@@ -58,6 +60,18 @@ export default function initTestUtils(): TestUtilsReturnedValue {
 
     const disconnectEveryRemainingSocketConnection =
         async (): Promise<void> => {
+            sinon.restore();
+            sinon
+                .stub(ServerToTemporalController, 'terminateWorkflow')
+                .callsFake(async () => {
+                    return;
+                });
+            sinon
+                .stub(ServerToTemporalController, 'leaveWorkflow')
+                .callsFake(async () => {
+                    return;
+                });
+
             socketsConnections.forEach((socket) => {
                 socket.disconnect();
             });

@@ -209,7 +209,7 @@ type GenericRouteSignal struct {
 }
 
 type PlaySignal struct {
-	Route SignalRoute
+	Route SignalRoute `validate:"required"`
 }
 
 type NewPlaySignalArgs struct {
@@ -222,7 +222,7 @@ func NewPlaySignal(args NewPlaySignalArgs) PlaySignal {
 }
 
 type PauseSignal struct {
-	Route SignalRoute
+	Route SignalRoute `validate:"required"`
 }
 
 type NewPauseSignalArgs struct {
@@ -235,8 +235,8 @@ func NewPauseSignal(args NewPauseSignalArgs) PauseSignal {
 }
 
 type LeaveSignal struct {
-	Route  SignalRoute
-	UserID string
+	Route  SignalRoute `validate:"required"`
+	UserID string      `validate:"required,uuid"`
 }
 
 type NewLeaveSignalArgs struct {
@@ -251,9 +251,9 @@ func NewLeaveSignal(args NewLeaveSignalArgs) JoinSignal {
 }
 
 type JoinSignal struct {
-	Route    SignalRoute
-	UserID   string
-	DeviceID string
+	Route    SignalRoute `validate:"required"`
+	UserID   string      `validate:"required,uuid"`
+	DeviceID string      `validate:"required,uuid"`
 }
 
 type NewJoinSignalArgs struct {
@@ -282,7 +282,7 @@ func NewTerminateSignal(args NewTerminateSignalArgs) TerminateSignal {
 }
 
 type GoToNextTrackSignal struct {
-	Route SignalRoute
+	Route SignalRoute `validate:"required"`
 }
 
 func NewGoToNexTrackSignal() GoToNextTrackSignal {
@@ -292,9 +292,9 @@ func NewGoToNexTrackSignal() GoToNextTrackSignal {
 }
 
 type ChangeUserEmittingDeviceSignal struct {
-	Route    SignalRoute
-	UserID   string
-	DeviceID string
+	Route    SignalRoute `validate:"required"`
+	UserID   string      `validate:"required,uuid"`
+	DeviceID string      `validate:"required,uuid"`
 }
 
 type ChangeUserEmittingDeviceSignalArgs struct {
@@ -311,10 +311,10 @@ func NewChangeUserEmittingDeviceSignal(args ChangeUserEmittingDeviceSignalArgs) 
 }
 
 type SuggestTracksSignal struct {
-	Route           SignalRoute
-	TracksToSuggest []string
-	UserID          string
-	DeviceID        string
+	Route           SignalRoute `validate:"required"`
+	TracksToSuggest []string    `validate:"required,dive,required"`
+	UserID          string      `validate:"required,uuid"`
+	DeviceID        string      `validate:"required,uuid"`
 }
 
 type SuggestTracksSignalArgs struct {

@@ -8,8 +8,8 @@
         "yarn": "1.22.10"
     },
     "scripts": {
-        "dev": "nodemon --signal SIGTERM --ext go --exec env-cmd go run api/main.go",
-        "worker": "nodemon --signal SIGTERM --ext go --exec env-cmd go run worker/main.go",
+        "dev": "nodemon --signal SIGTERM --ext go --exec env-cmd go run api/*.go",
+        "worker": "nodemon --signal SIGTERM --ext go --exec env-cmd go run worker/*.go",
         "temporal": "cd docker-compose && docker-compose up -d",
         "test": "go test ./..."
     },

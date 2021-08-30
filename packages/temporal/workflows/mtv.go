@@ -808,6 +808,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
+				if err := validate.Struct(message); err != nil {
+					logger.Error("Validation error: %v", err)
+					return
+				}
 
 				internalState.Machine.Send(MtvRoomPlayEvent)
 
@@ -816,6 +820,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
+					return
+				}
+				if err := validate.Struct(message); err != nil {
+					logger.Error("Validation error: %v", err)
 					return
 				}
 
@@ -828,10 +836,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-
-				//Use validator
-				if message.UserID == "" || message.DeviceID == "" {
-					logger.Error("Empty fields in message %v", message)
+				if err := validate.Struct(message); err != nil {
+					logger.Error("Validation error: %v", err)
 					return
 				}
 
@@ -851,6 +857,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
+				if err := validate.Struct(message); err != nil {
+					logger.Error("Validation error: %v", err)
+					return
+				}
 
 				internalState.Machine.Send(MtvRoomGoToNextTrackEvent)
 
@@ -861,9 +871,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-
-				if message.UserID == "" || message.DeviceID == "" {
-					logger.Error("Empty fields in message %v", message)
+				if err := validate.Struct(message); err != nil {
+					logger.Error("Validation error: %v", err)
 					return
 				}
 
@@ -876,6 +885,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
+					return
+				}
+				if err := validate.Struct(message); err != nil {
+					logger.Error("Validation error: %v", err)
 					return
 				}
 
@@ -894,10 +907,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-
-				//Use validator
-				if message.UserID == "" {
-					logger.Error("Empty fields in message %v", message)
+				if err := validate.Struct(message); err != nil {
+					logger.Error("Validation error: %v", err)
 					return
 				}
 

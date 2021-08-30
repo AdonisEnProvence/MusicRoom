@@ -76,6 +76,8 @@ func main() {
 func PlayHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Control called")
 	vars := mux.Vars(r)
+
+	// Use request body
 	workflowID := vars["workflowID"]
 	runID := vars["runID"]
 
@@ -94,8 +96,8 @@ func PlayHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type GoToNextTrackRequestBody struct {
-	WorkflowID string `json:"workflowID"`
-	RunID      string `json:"runID"`
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
 }
 
 func GoToNextTrackHandler(w http.ResponseWriter, r *http.Request) {
@@ -104,6 +106,10 @@ func GoToNextTrackHandler(w http.ResponseWriter, r *http.Request) {
 	var body GoToNextTrackRequestBody
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -127,10 +133,10 @@ func GoToNextTrackHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type ChangeUserEmittingDeviceRequestBody struct {
-	WorkflowID string `json:"workflowID"`
-	RunID      string `json:"runID"`
-	UserID     string `json:"userID"`
-	DeviceID   string `json:"deviceID"`
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
+	UserID     string `json:"userID" validate:"required,uuid"`
+	DeviceID   string `json:"deviceID" validate:"required,uuid"`
 }
 
 func ChangeUserEmittingDeviceHandler(w http.ResponseWriter, r *http.Request) {
@@ -139,6 +145,10 @@ func ChangeUserEmittingDeviceHandler(w http.ResponseWriter, r *http.Request) {
 	var body ChangeUserEmittingDeviceRequestBody
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -169,12 +179,12 @@ func ChangeUserEmittingDeviceHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type SuggestTracksRequestBody struct {
-	WorkflowID string `json:"workflowID"`
-	RunID      string `json:"runID"`
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
 
-	TracksToSuggest []string `json:"tracksToSuggest"`
-	UserID          string   `json:"userID"`
-	DeviceID        string   `json:"deviceID"`
+	TracksToSuggest []string `json:"tracksToSuggest" validate:"required,dive,required"`
+	UserID          string   `json:"userID" validate:"required,uuid"`
+	DeviceID        string   `json:"deviceID" validate:"required,uuid"`
 }
 
 func SuggestTracksHandler(w http.ResponseWriter, r *http.Request) {
@@ -183,6 +193,10 @@ func SuggestTracksHandler(w http.ResponseWriter, r *http.Request) {
 	var body SuggestTracksRequestBody
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -213,6 +227,7 @@ func TerminateWorkflowHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Control called")
 	vars := mux.Vars(r)
 
+	// Use request body
 	workflowID := vars["workflowID"]
 	runID := vars["runID"]
 	terminateSignal := shared.NewTerminateSignal(shared.NewTerminateSignalArgs{})
@@ -232,6 +247,7 @@ func TerminateWorkflowHandler(w http.ResponseWriter, r *http.Request) {
 func PauseHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Control called")
 	vars := mux.Vars(r)
+	// Use request body
 	workflowID := vars["workflowID"]
 	runID := vars["runID"]
 
@@ -250,10 +266,10 @@ func PauseHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type CreateRoomRequestBody struct {
-	UserID           string   `json:"userID"`
-	DeviceID         string   `json:"deviceID"`
-	Name             string   `json:"roomName"`
-	InitialTracksIDs []string `json:"initialTracksIDs"`
+	UserID           string   `json:"userID" validate:"required,uuid"`
+	DeviceID         string   `json:"deviceID" validate:"required,uuid"`
+	Name             string   `json:"roomName" validate:"required"`
+	InitialTracksIDs []string `json:"initialTracksIDs" validate:"required,dive,required"`
 }
 
 type CreateRoomResponse struct {
@@ -266,11 +282,17 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Create called")
 	defer r.Body.Close()
 
+	// Use body
 	vars := mux.Vars(r)
 	var body CreateRoomRequestBody
 
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
+		log.Println("create room validation error", err)
 		WriteError(w, err)
 		return
 	}
@@ -342,18 +364,18 @@ func UnescapeRoomIDAndRundID(workflowID, runID string) (UnescapeRoomIDAndRundIDR
 	}, nil
 }
 
-type LeaveRoomHandlerBody struct {
-	UserID     string `json:"userID"`
-	WorkflowID string `json:"workflowID"`
-	RunID      string `json:"runID"`
-}
+type LeaveRoomHandlerBody JoinRoomHandlerBody
 
 func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	var body JoinRoomHandlerBody
-	err := json.NewDecoder(r.Body).Decode(&body)
-	if err != nil {
+	var body LeaveRoomHandlerBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -362,8 +384,13 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 		UserID: body.UserID,
 	})
 
-	err = temporal.SignalWorkflow(context.Background(), body.WorkflowID, body.RunID, shared.SignalChannelName, signal)
-	if err != nil {
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		body.RunID,
+		shared.SignalChannelName,
+		signal,
+	); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -375,18 +402,22 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type JoinRoomHandlerBody struct {
-	UserID     string `json:"userID"`
-	DeviceID   string `json:"deviceID"`
-	WorkflowID string `json:"workflowID"`
-	RunID      string `json:"runID"`
+	UserID     string `json:"userID" validate:"required,uuid"`
+	DeviceID   string `json:"deviceID" validate:"required,uuid"`
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
 }
 
 func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	var body JoinRoomHandlerBody
-	err := json.NewDecoder(r.Body).Decode(&body)
-	if err != nil {
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -396,8 +427,13 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 		DeviceID: body.DeviceID,
 	})
 
-	err = temporal.SignalWorkflow(context.Background(), body.WorkflowID, body.RunID, shared.SignalChannelName, signal)
-	if err != nil {
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		body.RunID,
+		shared.SignalChannelName,
+		signal,
+	); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -409,9 +445,9 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type GetStateBody struct {
-	WorkflowID string `json:"workflowID"`
-	UserID     string `json:"userID,omitempty"`
-	RunID      string `json:"runID"`
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	UserID     string `json:"userID,omitempty" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
 }
 
 func GetStateHandler(w http.ResponseWriter, r *http.Request) {
@@ -419,12 +455,14 @@ func GetStateHandler(w http.ResponseWriter, r *http.Request) {
 
 	var body GetStateBody
 
-	err := json.NewDecoder(r.Body).Decode(&body)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		WriteError(w, err)
 		return
 	}
-	fmt.Printf("\n ________________GETSTATE Getting body = %+v\n", body)
+	if err := validate.Struct(body); err != nil {
+		WriteError(w, err)
+		return
+	}
 
 	response, err := temporal.QueryWorkflow(context.Background(), body.WorkflowID, body.RunID, shared.MtvGetStateQuery, body.UserID)
 	if err != nil {

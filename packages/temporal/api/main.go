@@ -47,7 +47,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.Handle("/ping", http.HandlerFunc(PingHandler)).Methods(http.MethodGet)
-	r.Handle("/control/{workflowID}/{runID}/play", http.HandlerFunc(PlayHandler)).Methods(http.MethodPut)
+	r.Handle("/play", http.HandlerFunc(PlayHandler)).Methods(http.MethodPut)
 	r.Handle("/control/{workflowID}/{runID}/pause", http.HandlerFunc(PauseHandler)).Methods(http.MethodPut)
 	r.Handle("/create/{workflowID}", http.HandlerFunc(CreateRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/join", http.HandlerFunc(JoinRoomHandler)).Methods(http.MethodPut)
@@ -73,17 +73,33 @@ func main() {
 	}
 }
 
-func PlayHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Control called")
-	vars := mux.Vars(r)
+type PlayRequestBody struct {
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
+}
 
-	// Use request body
-	workflowID := vars["workflowID"]
-	runID := vars["runID"]
+func PlayHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var body PlayRequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
+		WriteError(w, err)
+		return
+	}
 
 	signal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
-	err := temporal.SignalWorkflow(context.Background(), workflowID, runID, shared.SignalChannelName, signal)
-	if err != nil {
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		body.RunID,
+		shared.SignalChannelName,
+		signal,
+	); err != nil {
 		WriteError(w, err)
 		return
 	}
@@ -91,7 +107,6 @@ func PlayHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	res := make(map[string]interface{})
 	res["ok"] = 1
-	printResults("", workflowID, runID)
 	json.NewEncoder(w).Encode(res)
 }
 

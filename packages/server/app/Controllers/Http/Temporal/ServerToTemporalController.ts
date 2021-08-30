@@ -165,16 +165,13 @@ export default class ServerToTemporalController {
         runID,
     }: TemporalMtvPlayArgs): Promise<void> {
         try {
-            const url = urlcat(
-                TEMPORAL_ENDPOINT,
-                '/control/:workflowID/:runID/play',
-                {
+            const url = urlcat(TEMPORAL_ENDPOINT, '/play');
+
+            await got.put(url, {
+                json: {
                     workflowID,
                     runID,
                 },
-            );
-            await got.put(url, {
-                responseType: 'json',
             });
         } catch (e) {
             throw new Error('PLAY FAILED ' + workflowID);

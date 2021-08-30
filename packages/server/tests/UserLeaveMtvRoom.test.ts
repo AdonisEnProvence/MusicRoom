@@ -1,4 +1,8 @@
 import Database from '@ioc:Adonis/Lucid/Database';
+import {
+    MtvWorkflowState,
+    MtvWorkflowStateWithUserRelatedInformation,
+} from '@musicroom/types';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
@@ -7,11 +11,7 @@ import { datatype, name, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
-import {
-    MtvWorkflowState,
-    MtvWorkflowStateWithUserRelatedInformation,
-} from '../../types/dist';
-import initTestUtils, { BASE_URL, sleep } from './testUtils';
+import initTestUtils, { BASE_URL, sleep } from './TestUtils';
 
 test.group(
     `User leave mtv room dwd

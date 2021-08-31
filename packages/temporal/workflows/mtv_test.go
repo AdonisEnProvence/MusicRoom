@@ -1194,6 +1194,32 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 			Duration:   random.GenerateRandomDuration(),
 		},
 	}
+	tracksExposedMetadata := []shared.TrackMetadataWithScoreWithDuration{
+		{
+			TrackMetadataWithScore: shared.TrackMetadataWithScore{
+				TrackMetadata: shared.TrackMetadata{
+					ID:         tracks[0].ID,
+					Title:      tracks[0].Title,
+					ArtistName: tracks[0].ArtistName,
+					Duration:   0,
+				},
+				Score: 0,
+			},
+			Duration: tracks[0].Duration.Milliseconds(),
+		},
+		{
+			TrackMetadataWithScore: shared.TrackMetadataWithScore{
+				TrackMetadata: shared.TrackMetadata{
+					ID:         tracks[1].ID,
+					Title:      tracks[1].Title,
+					ArtistName: tracks[1].ArtistName,
+					Duration:   0,
+				},
+				Score: 0,
+			},
+			Duration: tracks[1].Duration.Milliseconds(),
+		},
+	}
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
 	firstTracksIDsToSuggest := []string{
 		faker.UUIDHyphenated(),
@@ -1233,28 +1259,56 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 			Duration:   random.GenerateRandomDuration(),
 		},
 	}
-	firstTracksToSuggestExposedMetadata := []shared.TrackMetadataWithScore{
+	firstTracksToSuggestExposedMetadata := []shared.TrackMetadataWithScoreWithDuration{
 		{
-			TrackMetadata: firstTracksToSuggestMetadata[0],
-
-			Score: 0,
+			TrackMetadataWithScore: shared.TrackMetadataWithScore{
+				TrackMetadata: shared.TrackMetadata{
+					ID:         firstTracksToSuggestMetadata[0].ID,
+					Title:      firstTracksToSuggestMetadata[0].Title,
+					ArtistName: firstTracksToSuggestMetadata[0].ArtistName,
+					Duration:   0,
+				},
+				Score: 0,
+			},
+			Duration: firstTracksToSuggestMetadata[0].Duration.Milliseconds(),
 		},
 		{
-			TrackMetadata: firstTracksToSuggestMetadata[1],
-
-			Score: 0,
+			TrackMetadataWithScore: shared.TrackMetadataWithScore{
+				TrackMetadata: shared.TrackMetadata{
+					ID:         firstTracksToSuggestMetadata[1].ID,
+					Title:      firstTracksToSuggestMetadata[1].Title,
+					ArtistName: firstTracksToSuggestMetadata[1].ArtistName,
+					Duration:   0,
+				},
+				Score: 0,
+			},
+			Duration: firstTracksToSuggestMetadata[1].Duration.Milliseconds(),
 		},
 	}
-	secondTracksToSuggestExposedMetadata := []shared.TrackMetadataWithScore{
+	secondTracksToSuggestExposedMetadata := []shared.TrackMetadataWithScoreWithDuration{
 		{
-			TrackMetadata: secondTracksToSuggestMetadata[0],
-
-			Score: 0,
+			TrackMetadataWithScore: shared.TrackMetadataWithScore{
+				TrackMetadata: shared.TrackMetadata{
+					ID:         secondTracksToSuggestMetadata[0].ID,
+					Title:      secondTracksToSuggestMetadata[0].Title,
+					ArtistName: secondTracksToSuggestMetadata[0].ArtistName,
+					Duration:   0,
+				},
+				Score: 0,
+			},
+			Duration: secondTracksToSuggestMetadata[0].Duration.Milliseconds(),
 		},
 		{
-			TrackMetadata: secondTracksToSuggestMetadata[1],
-
-			Score: 0,
+			TrackMetadataWithScore: shared.TrackMetadataWithScore{
+				TrackMetadata: shared.TrackMetadata{
+					ID:         secondTracksToSuggestMetadata[1].ID,
+					Title:      secondTracksToSuggestMetadata[1].Title,
+					ArtistName: secondTracksToSuggestMetadata[1].ArtistName,
+					Duration:   0,
+				},
+				Score: 0,
+			},
+			Duration: secondTracksToSuggestMetadata[1].Duration.Milliseconds(),
 		},
 	}
 	params, _ := getWokflowInitParams(tracksIDs)
@@ -1338,20 +1392,23 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 	assertSecondSuggestedTrackHasBeenAcceptedDelay := defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(shared.NoRelatedUserID)
+		initialTrackAndSecondTracksToSuggest := append([]shared.TrackMetadataWithScoreWithDuration{}, tracksExposedMetadata[1])
+		initialTrackAndSecondTracksToSuggest = append(initialTrackAndSecondTracksToSuggest, secondTracksToSuggestExposedMetadata...)
 
-		s.Len(mtvState.Tracks, 1)
-		s.Equal(secondTracksToSuggestExposedMetadata, mtvState.SuggestedTracks)
+		s.Len(mtvState.Tracks, 3)
+		s.Equal(initialTrackAndSecondTracksToSuggest, mtvState.Tracks)
 	}, assertSecondSuggestedTrackHasBeenAcceptedDelay)
 
 	assertAllSuggestedTracksHaveBeenAcceptedAfterEveryFetchingHasEndedDelay := 15 * time.Second
 	registerDelayedCallbackWrapper(func() {
-		allSuggestedTracks := append([]shared.TrackMetadataWithScore{}, secondTracksToSuggestExposedMetadata...)
+		allSuggestedTracks := append([]shared.TrackMetadataWithScoreWithDuration{}, tracksExposedMetadata[1])
+		allSuggestedTracks = append(allSuggestedTracks, secondTracksToSuggestExposedMetadata...)
 		allSuggestedTracks = append(allSuggestedTracks, firstTracksToSuggestExposedMetadata...)
 
 		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
-		s.Len(mtvState.Tracks, 1)
-		s.Equal(allSuggestedTracks, mtvState.SuggestedTracks)
+		s.Len(mtvState.Tracks, 5)
+		s.Equal(allSuggestedTracks, mtvState.Tracks)
 	}, assertAllSuggestedTracksHaveBeenAcceptedAfterEveryFetchingHasEndedDelay)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)

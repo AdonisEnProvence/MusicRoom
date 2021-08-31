@@ -305,11 +305,11 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 	channel := workflow.GetSignalChannel(ctx, shared.SignalChannelName)
 
 	var (
-		terminated                              = false
-		workflowFatalError                      error
-		timerExpirationFuture                   workflow.Future
-		fetchedInitialTracksFuture              workflow.Future
-		fetchedSuggestedTracksInformationFuture workflow.Future
+		terminated                               = false
+		workflowFatalError                       error
+		timerExpirationFuture                    workflow.Future
+		fetchedInitialTracksFuture               workflow.Future
+		fetchedSuggestedTracksInformationFutures []workflow.Future
 	)
 
 	internalState.Machine, err = brainy.NewMachine(brainy.StateNode{
@@ -701,13 +701,14 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							}
 							ctx = workflow.WithActivityOptions(ctx, ao)
 
-							fetchedSuggestedTracksInformationFuture = workflow.ExecuteActivity(
+							fetchingFuture := workflow.ExecuteActivity(
 								ctx,
 								activities.FetchTracksInformationActivityAndForwardIniator,
 								acceptedSuggestedTracksIDs,
 								event.UserID,
 								event.DeviceID,
 							)
+							fetchedSuggestedTracksInformationFutures = append(fetchedSuggestedTracksInformationFutures, fetchingFuture)
 
 							return nil
 						},
@@ -978,9 +979,9 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 		}
 		/////
 
-		if fetchedSuggestedTracksInformationFuture != nil {
+		for index, fetchedSuggestedTracksInformationFuture := range fetchedSuggestedTracksInformationFutures {
 			selector.AddFuture(fetchedSuggestedTracksInformationFuture, func(f workflow.Future) {
-				fetchedSuggestedTracksInformationFuture = nil
+				fetchedSuggestedTracksInformationFutures = removeFutureFromSlice(fetchedSuggestedTracksInformationFutures, index)
 
 				var suggestedTracksInformationActivityResult activities.FetchedTracksInformationWithIniator
 
@@ -1008,6 +1009,11 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 	}
 
 	return workflowFatalError
+}
+
+func removeFutureFromSlice(slice []workflow.Future, index int) []workflow.Future {
+	slice[index] = slice[len(slice)-1]
+	return slice[:len(slice)-1]
 }
 
 func acknowledgeRoomCreation(ctx workflow.Context, state shared.MtvRoomExposedState) error {

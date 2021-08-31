@@ -16,13 +16,12 @@ import (
 type MtvRoomInternalState struct {
 	initialParams shared.MtvRoomParameters
 
-	Machine         *brainy.Machine
-	Users           map[string]*shared.InternalStateUser
-	CurrentTrack    shared.CurrentTrack
-	Tracks          shared.TracksMetadataWithScoreSet
-	SuggestedTracks shared.TracksMetadataWithScoreSet
-	Playing         bool
-	Timer           shared.MtvRoomTimer
+	Machine      *brainy.Machine
+	Users        map[string]*shared.InternalStateUser
+	CurrentTrack shared.CurrentTrack
+	Tracks       shared.TracksMetadataWithScoreSet
+	Playing      bool
+	Timer        shared.MtvRoomTimer
 }
 
 func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
@@ -37,8 +36,6 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 	for _, track := range tracks {
 		exposedTracks = append(exposedTracks, track.WithMillisecondsDuration())
 	}
-
-	suggestedTracks := s.SuggestedTracks.Values()
 
 	var currentTrackToExport *shared.ExposedCurrentTrack = nil
 	if s.CurrentTrack.ID != "" {
@@ -63,7 +60,6 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 		RoomName:          s.initialParams.RoomName,
 		CurrentTrack:      currentTrackToExport,
 		Tracks:            exposedTracks,
-		SuggestedTracks:   suggestedTracks,
 		UsersLength:       len(s.Users),
 	}
 
@@ -546,9 +542,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 							acceptedSuggestedTracksIDs := make([]string, 0, len(event.TracksToSuggest))
 							for _, suggestedTrack := range event.TracksToSuggest {
-								isDuplicateFromTracksList := internalState.Tracks.Has(suggestedTrack)
-								isDuplicateFromSuggestedTracks := internalState.SuggestedTracks.Has(suggestedTrack)
-								isDuplicate := isDuplicateFromTracksList || isDuplicateFromSuggestedTracks
+								isDuplicate := internalState.Tracks.Has(suggestedTrack)
 								if isDuplicate {
 									continue
 								}
@@ -594,11 +588,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									Score: 0,
 								}
 
-								internalState.SuggestedTracks.Add(suggestedTrackInformation)
+								internalState.Tracks.Add(suggestedTrackInformation)
 							}
-
-							// Ensure there are no duplicates between the suggested tracks and the tracks list.
-							internalState.SuggestedTracks = internalState.SuggestedTracks.Difference(internalState.Tracks)
 
 							return nil
 						},

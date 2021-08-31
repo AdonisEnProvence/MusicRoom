@@ -187,7 +187,6 @@ type MtvRoomExposedState struct {
 	UserRelatedInformation *InternalStateUser                   `json:"userRelatedInformation"`
 	CurrentTrack           *ExposedCurrentTrack                 `json:"currentTrack"`
 	Tracks                 []TrackMetadataWithScoreWithDuration `json:"tracks"`
-	SuggestedTracks        []TrackMetadataWithScore             `json:"suggestedTracks"`
 	UsersLength            int                                  `json:"usersLength"`
 }
 

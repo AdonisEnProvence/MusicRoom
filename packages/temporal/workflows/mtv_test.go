@@ -1144,6 +1144,188 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
+func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInformationHaveBeenFetchedAreNotLost() {
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
+	firstTracksIDsToSuggest := []string{
+		faker.UUIDHyphenated(),
+		faker.UUIDHyphenated(),
+	}
+	secondTracksIDsToSuggest := []string{
+		faker.UUIDHyphenated(),
+		faker.UUIDHyphenated(),
+	}
+	suggesterUserID := faker.UUIDHyphenated()
+	suggesterDeviceID := faker.UUIDHyphenated()
+	firstTracksToSuggestMetadata := []shared.TrackMetadata{
+		{
+			ID:         firstTracksIDsToSuggest[0],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+		{
+			ID:         firstTracksIDsToSuggest[1],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	secondTracksToSuggestMetadata := []shared.TrackMetadata{
+		{
+			ID:         secondTracksIDsToSuggest[0],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+		{
+			ID:         secondTracksIDsToSuggest[1],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	firstTracksToSuggestExposedMetadata := []shared.TrackMetadataWithScore{
+		{
+			TrackMetadata: firstTracksToSuggestMetadata[0],
+
+			Score: 0,
+		},
+		{
+			TrackMetadata: firstTracksToSuggestMetadata[1],
+
+			Score: 0,
+		},
+	}
+	secondTracksToSuggestExposedMetadata := []shared.TrackMetadataWithScore{
+		{
+			TrackMetadata: secondTracksToSuggestMetadata[0],
+
+			Score: 0,
+		},
+		{
+			TrackMetadata: secondTracksToSuggestMetadata[1],
+
+			Score: 0,
+		},
+	}
+	params, _ := getWokflowInitParams(tracksIDs)
+
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+	defaultDuration := 1 * time.Millisecond
+
+	defer resetMock()
+
+	// Mock first tracks information fetching
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+
+	// Mock suggested and accepted tracks information fetching
+	// Make the first mock of the activity return a long time after the next one
+	// to simulate a race condition.
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivityAndForwardIniator,
+		mock.Anything,
+		firstTracksIDsToSuggest,
+		suggesterUserID,
+		suggesterDeviceID,
+	).Return(activities.FetchedTracksInformationWithIniator{
+		Metadata: firstTracksToSuggestMetadata,
+		UserID:   suggesterUserID,
+		DeviceID: suggesterDeviceID,
+	}, nil).Once().After(10 * time.Second)
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivityAndForwardIniator,
+		mock.Anything,
+		secondTracksIDsToSuggest,
+		suggesterUserID,
+		suggesterDeviceID,
+	).Return(activities.FetchedTracksInformationWithIniator{
+		Metadata: secondTracksToSuggestMetadata,
+		UserID:   suggesterUserID,
+		DeviceID: suggesterDeviceID,
+	}, nil).Once()
+
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.SuggestedTracksListChangedActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Twice()
+	s.env.OnActivity(
+		activities.AcknowledgeTracksSuggestion,
+		mock.Anything,
+		activities.AcknowledgeTracksSuggestionArgs{
+			RoomID:   params.RoomID,
+			UserID:   suggesterUserID,
+			DeviceID: suggesterDeviceID,
+		},
+	).Return(nil).Twice()
+
+	firstSuggestTracksSignalDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitSuggestTrackSignal(shared.SuggestTracksSignalArgs{
+			TracksToSuggest: firstTracksIDsToSuggest,
+			UserID:          suggesterUserID,
+			DeviceID:        suggesterDeviceID,
+		})
+	}, firstSuggestTracksSignalDelay)
+
+	secondSuggestTracksSignalDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitSuggestTrackSignal(shared.SuggestTracksSignalArgs{
+			TracksToSuggest: secondTracksIDsToSuggest,
+			UserID:          suggesterUserID,
+			DeviceID:        suggesterDeviceID,
+		})
+	}, secondSuggestTracksSignalDelay)
+
+	assertSecondSuggestedTrackHasBeenAcceptedDelay := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		s.Len(mtvState.Tracks, 1)
+		s.Equal(secondTracksToSuggestExposedMetadata, mtvState.SuggestedTracks)
+	}, assertSecondSuggestedTrackHasBeenAcceptedDelay)
+
+	assertAllSuggestedTracksHaveBeenAcceptedAfterEveryFetchingHasEndedDelay := 15 * time.Second
+	registerDelayedCallbackWrapper(func() {
+		allSuggestedTracks := append([]shared.TrackMetadataWithScore{}, secondTracksToSuggestExposedMetadata...)
+		allSuggestedTracks = append(allSuggestedTracks, firstTracksToSuggestExposedMetadata...)
+
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		s.Len(mtvState.Tracks, 1)
+		s.Equal(allSuggestedTracks, mtvState.SuggestedTracks)
+	}, assertAllSuggestedTracksHaveBeenAcceptedAfterEveryFetchingHasEndedDelay)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
 func TestUnitTestSuite(t *testing.T) {
 	suite.Run(t, new(UnitTestSuite))
 }

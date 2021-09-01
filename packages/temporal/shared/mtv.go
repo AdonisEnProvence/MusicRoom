@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"sort"
 	"time"
 )
 
@@ -68,6 +69,26 @@ func (s *TracksMetadataWithScoreSet) Has(trackID string) bool {
 	return false
 }
 
+func (s *TracksMetadataWithScoreSet) IndexOf(trackID string) (int, bool) {
+	for index, track := range s.tracks {
+		if track.ID == trackID {
+			return index, true
+		}
+	}
+
+	return -1, false
+}
+
+func (s *TracksMetadataWithScoreSet) Get(trackID string) (*TrackMetadataWithScore, bool) {
+	index, exists := s.IndexOf(trackID)
+
+	if !exists {
+		return nil, false
+	}
+
+	return &s.tracks[index], true
+}
+
 func (s *TracksMetadataWithScoreSet) Add(tracks ...TrackMetadataWithScore) {
 	for _, track := range tracks {
 		if isDuplicate := s.Has(track.ID); isDuplicate {
@@ -92,6 +113,10 @@ func (s *TracksMetadataWithScoreSet) Delete(trackID string) bool {
 
 func (s *TracksMetadataWithScoreSet) Values() []TrackMetadataWithScore {
 	return s.tracks[:]
+}
+
+func (s *TracksMetadataWithScoreSet) StableSortByHigherScore() {
+	sort.SliceStable(s.tracks, func(i, j int) bool { return s.tracks[i].Score > s.tracks[j].Score })
 }
 
 // Shift removes the first element from the set and returns it as well as true.

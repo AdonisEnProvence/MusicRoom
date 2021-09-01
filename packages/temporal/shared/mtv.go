@@ -182,8 +182,9 @@ func (c CurrentTrack) Export(elapsed time.Duration) ExposedCurrentTrack {
 }
 
 type InternalStateUser struct {
-	UserID   string `json:"userID"`
-	DeviceID string `json:"emittingDeviceID"`
+	UserID         string   `json:"userID"`
+	DeviceID       string   `json:"emittingDeviceID"`
+	TracksVotedFor []string `json:"tracksVotedFor"`
 }
 
 type MtvRoomParameters struct {
@@ -212,6 +213,7 @@ type MtvRoomExposedState struct {
 	UserRelatedInformation *InternalStateUser                   `json:"userRelatedInformation"`
 	CurrentTrack           *ExposedCurrentTrack                 `json:"currentTrack"`
 	Tracks                 []TrackMetadataWithScoreWithDuration `json:"tracks"`
+	MinimumScoreToBePlayed int                                  `json:"minimumScoreToBePlayed"`
 	UsersLength            int                                  `json:"usersLength"`
 }
 
@@ -226,6 +228,7 @@ const (
 	SignalRouteGoToNextTrack            = "go-to-next-track"
 	SignalRouteChangeUserEmittingDevice = "change-user-emitting-device"
 	SignalRouteSuggestTracks            = "suggest-tracks"
+	SignalRouteVoteForTrack             = "vote-for-track"
 )
 
 type GenericRouteSignal struct {
@@ -353,5 +356,22 @@ func NewSuggestTracksSignal(args SuggestTracksSignalArgs) SuggestTracksSignal {
 		TracksToSuggest: args.TracksToSuggest,
 		UserID:          args.UserID,
 		DeviceID:        args.DeviceID,
+	}
+}
+
+type VoteForTrackSignal struct {
+	Route   SignalRoute `validate:"required"`
+	UserID  string      `validate:"required,uuid"`
+	TrackID string      `validate:"required"`
+}
+
+type NewVoteForTrackSignalArgs struct {
+	UserID  string `validate:"required,uuid"`
+	TrackID string `validate:"required"`
+}
+
+func NewVoteForTrackSignal(args NewVoteForTrackSignalArgs) VoteForTrackSignal {
+	return VoteForTrackSignal{
+		Route: SignalRouteVoteForTrack,
 	}
 }

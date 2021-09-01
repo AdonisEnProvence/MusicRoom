@@ -50,6 +50,7 @@ func main() {
 	r.Handle("/pause", http.HandlerFunc(PauseHandler)).Methods(http.MethodPut)
 	r.Handle("/create", http.HandlerFunc(CreateRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/join", http.HandlerFunc(JoinRoomHandler)).Methods(http.MethodPut)
+	r.Handle("/vote-for-track", http.HandlerFunc(VoteForTrackHandler)).Methods(http.MethodPut)
 	r.Handle("/leave", http.HandlerFunc(LeaveRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/change-user-emitting-device", http.HandlerFunc(ChangeUserEmittingDeviceHandler)).Methods(http.MethodPut)
 	r.Handle("/state", http.HandlerFunc(GetStateHandler)).Methods(http.MethodPut)
@@ -135,6 +136,49 @@ func GoToNextTrackHandler(w http.ResponseWriter, r *http.Request) {
 		body.RunID,
 		shared.SignalChannelName,
 		goToNextTrackSignal,
+	); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	res := make(map[string]interface{})
+	res["ok"] = 1
+	json.NewEncoder(w).Encode(res)
+}
+
+type VoteForTrackHandlerRequestBody struct {
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
+	TrackID    string `json:"trackID" validate:"required,uuid"`
+	UserID     string `json:"userID" validate:"required,uuid"`
+}
+
+func VoteForTrackHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var body VoteForTrackHandlerRequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	voteForTrackSignal := shared.NewVoteForTrackSignal(shared.NewVoteForTrackSignalArgs{
+		TrackID: body.TrackID,
+		UserID:  body.UserID,
+	})
+
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		body.RunID,
+		shared.SignalChannelName,
+		voteForTrackSignal,
 	); err != nil {
 		WriteError(w, err)
 		return

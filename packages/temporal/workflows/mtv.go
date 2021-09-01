@@ -16,17 +16,21 @@ import (
 type MtvRoomInternalState struct {
 	initialParams shared.MtvRoomParameters
 
-	Machine      *brainy.Machine
-	Users        map[string]*shared.InternalStateUser
-	CurrentTrack shared.CurrentTrack
-	Tracks       shared.TracksMetadataWithScoreSet
-	Playing      bool
-	Timer        shared.MtvRoomTimer
+	Machine                *brainy.Machine
+	Users                  map[string]*shared.InternalStateUser
+	CurrentTrack           shared.CurrentTrack
+	Tracks                 shared.TracksMetadataWithScoreSet
+	Playing                bool
+	MinimumScoreToBePlayed int
+	Timer                  shared.MtvRoomTimer
 }
 
 func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 	s.initialParams = params
 
+	//TMP MOCK
+	s.MinimumScoreToBePlayed = 1
+	//
 	s.Users = params.InitialUsers
 }
 
@@ -88,6 +92,25 @@ func (s *MtvRoomInternalState) RemoveUser(userID string) bool {
 	return false
 }
 
+func (s *MtvRoomInternalState) UserVoteForTrack(userID string, trackID string) bool {
+
+	trackFromList, exists := s.Tracks.Get(trackID)
+	if !exists {
+		return false
+	}
+
+	user, exists := s.Users[userID]
+	if !exists {
+		return false
+	}
+
+	user.TracksVotedFor = append(user.TracksVotedFor, trackID)
+	trackFromList.Score++
+	s.Tracks.StableSortByHigherScore()
+
+	return true
+}
+
 func (s *MtvRoomInternalState) UpdateUserDeviceID(user shared.InternalStateUser) {
 	if val, ok := s.Users[user.UserID]; ok {
 		val.DeviceID = user.DeviceID
@@ -116,6 +139,7 @@ const (
 	MtvRoomGoToPausedEvent          brainy.EventType = "GO_TO_PAUSED"
 	MtvRoomAddUserEvent             brainy.EventType = "ADD_USER"
 	MtvRoomRemoveUserEvent          brainy.EventType = "REMOVE_USER"
+	MtvRoomVoteForTrackEvent        brainy.EventType = "VOTE_FOR_TRACK"
 	MtvRoomGoToNextTrackEvent       brainy.EventType = "GO_TO_NEXT_TRACK"
 	MtvRoomChangeUserEmittingDevice brainy.EventType = "CHANGE_USER_EMITTING_DEVICE"
 	MtvRoomSuggestTracks            brainy.EventType = "SUGGEST_TRACKS"
@@ -494,6 +518,25 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				},
 			},
 
+			MtvRoomVoteForTrackEvent: brainy.Transition{
+				Cond: userCanVoteForTrackID(&internalState),
+
+				Actions: brainy.Actions{
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+							event := e.(MtvRoomUserVoteForTrackEvent)
+
+							success := internalState.UserVoteForTrack(event.UserID, event.TrackID)
+							if success {
+								//send activities
+							}
+
+							return nil
+						},
+					),
+				},
+			},
+
 			MtvRoomRemoveUserEvent: brainy.Transition{
 				Actions: brainy.Actions{
 					brainy.ActionFn(
@@ -771,6 +814,22 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 				internalState.Machine.Send(
 					NewMtvRoomUserLeavingRoomEvent(message.UserID),
+				)
+
+			case shared.SignalRouteVoteForTrack:
+				var message shared.VoteForTrackSignal
+
+				if err := mapstructure.Decode(signal, &message); err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
+				if err := validate.Struct(message); err != nil {
+					logger.Error("Validation error: %v", err)
+					return
+				}
+
+				internalState.Machine.Send(
+					NewMtvRoomUserVoteForTrackEvent(message.UserID, message.TrackID),
 				)
 
 			case shared.SignalRouteTerminate:

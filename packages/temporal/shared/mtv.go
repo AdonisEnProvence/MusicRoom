@@ -205,6 +205,15 @@ type InternalStateUser struct {
 	TracksVotedFor []string `json:"tracksVotedFor"`
 }
 
+func (s *InternalStateUser) HasVotedFor(trackID string) bool {
+	for _, votedFortrackID := range s.TracksVotedFor {
+		if votedFortrackID == trackID {
+			return true
+		}
+	}
+	return false
+}
+
 type MtvRoomParameters struct {
 	RoomID               string
 	RoomCreatorUserID    string

@@ -99,6 +99,12 @@ func (s *MtvRoomInternalState) UserVotedForTrack(userID string, trackID string) 
 	if !exists {
 		return false
 	}
+
+	userAlreadyVotedForTrack := user.HasVotedFor(trackID)
+
+	if userAlreadyVotedForTrack {
+		return false
+	}
 	user.TracksVotedFor = append(user.TracksVotedFor, trackID)
 
 	s.Tracks.IncrementTrackScoreAndSortTracks(trackID)

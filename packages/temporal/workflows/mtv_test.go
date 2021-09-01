@@ -231,7 +231,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 						Duration:   0,
 					},
 
-					Score: 0,
+					Score: 1,
 				},
 				AlreadyElapsed: 0,
 			},
@@ -275,7 +275,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 						Duration:   0,
 					},
 
-					Score: 0,
+					Score: 1,
 				},
 				AlreadyElapsed: 0,
 			},
@@ -301,7 +301,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 						Duration:   0,
 					},
 
-					Score: 0,
+					Score: 1,
 				},
 				AlreadyElapsed: 0,
 			},
@@ -465,7 +465,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 						Duration:   0,
 					},
 
-					Score: 0,
+					Score: 1,
 				},
 
 				AlreadyElapsed: 0,
@@ -537,6 +537,9 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 		expectedInternalStateUser := &shared.InternalStateUser{
 			UserID:   params.RoomCreatorUserID,
 			DeviceID: creatorDeviceID,
+			TracksVotedFor: []string{
+				tracks[0].ID,
+			},
 		}
 
 		s.Equal(1, mtvState.UsersLength)
@@ -599,6 +602,9 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 		expectedInternalStateUser := &shared.InternalStateUser{
 			UserID:   params.RoomCreatorUserID,
 			DeviceID: secondCreatorDeviceID,
+			TracksVotedFor: []string{
+				tracks[0].ID,
+			},
 		}
 
 		s.Equal(2, mtvState.UsersLength)
@@ -720,7 +726,7 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 						Duration:   0,
 					},
 
-					Score: 0,
+					Score: 1,
 				},
 
 				AlreadyElapsed: 0,
@@ -756,7 +762,7 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 						Duration:   0,
 					},
 
-					Score: 0,
+					Score: 1,
 				},
 
 				AlreadyElapsed: 0,
@@ -939,7 +945,7 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 						Duration:   0,
 					},
 
-					Score: 0,
+					Score: 1,
 				},
 
 				AlreadyElapsed: 0,
@@ -970,7 +976,7 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 						Duration:   0,
 					},
 
-					Score: 0,
+					Score: 1,
 				},
 
 				AlreadyElapsed: 0,
@@ -1026,52 +1032,6 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 		},
 	}
 
-	tracksToSuggestExposedMetadata := []shared.TrackMetadataWithScoreWithDuration{
-		{
-			TrackMetadataWithScore: shared.TrackMetadataWithScore{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracksToSuggestMetadata[0].ID,
-					Title:      tracksToSuggestMetadata[0].Title,
-					ArtistName: tracksToSuggestMetadata[0].ArtistName,
-					Duration:   0,
-				},
-
-				Score: 0,
-			},
-			Duration: tracksToSuggestMetadata[0].Duration.Milliseconds(),
-		},
-		{
-			TrackMetadataWithScore: shared.TrackMetadataWithScore{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracksToSuggestMetadata[1].ID,
-					Title:      tracksToSuggestMetadata[1].Title,
-					ArtistName: tracksToSuggestMetadata[1].ArtistName,
-					Duration:   0,
-				},
-				Score: 0,
-			},
-			Duration: tracksToSuggestMetadata[1].Duration.Milliseconds(),
-		},
-	}
-
-	expectedMtvStateTracks := []shared.TrackMetadataWithScoreWithDuration{
-		{
-			TrackMetadataWithScore: shared.TrackMetadataWithScore{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         tracks[1].ID,
-					Title:      tracks[1].Title,
-					ArtistName: tracks[1].ArtistName,
-					Duration:   0,
-				},
-				Score: 0,
-			},
-			Duration: tracks[1].Duration.Milliseconds(),
-		},
-		tracksToSuggestExposedMetadata[0],
-		tracksToSuggestExposedMetadata[1],
-	}
-
-	duplicateTrackIDToSuggest := tracksIDsToSuggest[0]
 	params, _ := getWokflowInitParams(tracksIDs)
 
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
@@ -1118,6 +1078,11 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 		},
 	).Return(nil).Once()
 
+	joinSuggesterUser := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitJoinSignal(suggesterUserID, suggesterDeviceID)
+	}, joinSuggesterUser)
+
 	firstSuggestTracksSignalDelay := defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		s.emitSuggestTrackSignal(shared.SuggestTracksSignalArgs{
@@ -1131,6 +1096,46 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
+		expectedMtvStateTracks := []shared.TrackMetadataWithScoreWithDuration{
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						Title:      tracks[1].Title,
+						ArtistName: tracks[1].ArtistName,
+						Duration:   0,
+					},
+					Score: 1,
+				},
+				Duration: tracks[1].Duration.Milliseconds(),
+			},
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracksToSuggestMetadata[0].ID,
+						Title:      tracksToSuggestMetadata[0].Title,
+						ArtistName: tracksToSuggestMetadata[0].ArtistName,
+						Duration:   0,
+					},
+
+					Score: 1,
+				},
+				Duration: tracksToSuggestMetadata[0].Duration.Milliseconds(),
+			},
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracksToSuggestMetadata[1].ID,
+						Title:      tracksToSuggestMetadata[1].Title,
+						ArtistName: tracksToSuggestMetadata[1].ArtistName,
+						Duration:   0,
+					},
+					Score: 1,
+				},
+				Duration: tracksToSuggestMetadata[1].Duration.Milliseconds(),
+			},
+		}
+
 		fmt.Printf("%+v", mtvState)
 		s.Len(mtvState.Tracks, 3)
 		s.Equal(expectedMtvStateTracks, mtvState.Tracks)
@@ -1139,7 +1144,7 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 	secondSuggestTracksSignalDelay := defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		s.emitSuggestTrackSignal(shared.SuggestTracksSignalArgs{
-			TracksToSuggest: []string{duplicateTrackIDToSuggest},
+			TracksToSuggest: []string{tracksToSuggestMetadata[0].ID},
 			UserID:          suggesterUserID,
 			DeviceID:        suggesterDeviceID,
 		})
@@ -1149,16 +1154,54 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
+		expectedMtvStateTracks := []shared.TrackMetadataWithScoreWithDuration{
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						Title:      tracks[1].Title,
+						ArtistName: tracks[1].ArtistName,
+						Duration:   0,
+					},
+					Score: 1,
+				},
+				Duration: tracks[1].Duration.Milliseconds(),
+			},
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracksToSuggestMetadata[0].ID,
+						Title:      tracksToSuggestMetadata[0].Title,
+						ArtistName: tracksToSuggestMetadata[0].ArtistName,
+						Duration:   0,
+					},
+
+					Score: 1,
+				},
+				Duration: tracksToSuggestMetadata[0].Duration.Milliseconds(),
+			},
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracksToSuggestMetadata[1].ID,
+						Title:      tracksToSuggestMetadata[1].Title,
+						ArtistName: tracksToSuggestMetadata[1].ArtistName,
+						Duration:   0,
+					},
+					Score: 1,
+				},
+				Duration: tracksToSuggestMetadata[1].Duration.Milliseconds(),
+			},
+		}
+
 		s.Len(mtvState.Tracks, 3)
 		s.Equal(expectedMtvStateTracks, mtvState.Tracks)
 	}, assertDuplicateSuggestedTrackHasNotBeenAcceptedDelay)
 
 	thirdSuggestTracksSignalDelay := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		idOfTrackInTracksList := tracks[1].ID
-
 		s.emitSuggestTrackSignal(shared.SuggestTracksSignalArgs{
-			TracksToSuggest: []string{idOfTrackInTracksList},
+			TracksToSuggest: []string{tracks[1].ID},
 			UserID:          suggesterUserID,
 			DeviceID:        suggesterDeviceID,
 		})
@@ -1167,6 +1210,46 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 	assertDuplicateFromTracksListSuggestedTrackHasNotBeenAcceptedDelay := defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		expectedMtvStateTracks := []shared.TrackMetadataWithScoreWithDuration{
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						Title:      tracks[1].Title,
+						ArtistName: tracks[1].ArtistName,
+						Duration:   0,
+					},
+					Score: 2,
+				},
+				Duration: tracks[1].Duration.Milliseconds(),
+			},
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracksToSuggestMetadata[0].ID,
+						Title:      tracksToSuggestMetadata[0].Title,
+						ArtistName: tracksToSuggestMetadata[0].ArtistName,
+						Duration:   0,
+					},
+
+					Score: 1,
+				},
+				Duration: tracksToSuggestMetadata[0].Duration.Milliseconds(),
+			},
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracksToSuggestMetadata[1].ID,
+						Title:      tracksToSuggestMetadata[1].Title,
+						ArtistName: tracksToSuggestMetadata[1].ArtistName,
+						Duration:   0,
+					},
+					Score: 1,
+				},
+				Duration: tracksToSuggestMetadata[1].Duration.Milliseconds(),
+			},
+		}
 
 		s.Len(mtvState.Tracks, 3)
 		s.Equal(expectedMtvStateTracks, mtvState.Tracks)
@@ -1203,7 +1286,7 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 					ArtistName: tracks[0].ArtistName,
 					Duration:   0,
 				},
-				Score: 0,
+				Score: 1,
 			},
 			Duration: tracks[0].Duration.Milliseconds(),
 		},
@@ -1215,7 +1298,7 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 					ArtistName: tracks[1].ArtistName,
 					Duration:   0,
 				},
-				Score: 0,
+				Score: 1,
 			},
 			Duration: tracks[1].Duration.Milliseconds(),
 		},
@@ -1268,7 +1351,7 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 					ArtistName: firstTracksToSuggestMetadata[0].ArtistName,
 					Duration:   0,
 				},
-				Score: 0,
+				Score: 1,
 			},
 			Duration: firstTracksToSuggestMetadata[0].Duration.Milliseconds(),
 		},
@@ -1280,7 +1363,7 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 					ArtistName: firstTracksToSuggestMetadata[1].ArtistName,
 					Duration:   0,
 				},
-				Score: 0,
+				Score: 1,
 			},
 			Duration: firstTracksToSuggestMetadata[1].Duration.Milliseconds(),
 		},
@@ -1294,7 +1377,7 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 					ArtistName: secondTracksToSuggestMetadata[0].ArtistName,
 					Duration:   0,
 				},
-				Score: 0,
+				Score: 1,
 			},
 			Duration: secondTracksToSuggestMetadata[0].Duration.Milliseconds(),
 		},
@@ -1306,7 +1389,7 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 					ArtistName: secondTracksToSuggestMetadata[1].ArtistName,
 					Duration:   0,
 				},
-				Score: 0,
+				Score: 1,
 			},
 			Duration: secondTracksToSuggestMetadata[1].Duration.Milliseconds(),
 		},
@@ -1370,6 +1453,11 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 			DeviceID: suggesterDeviceID,
 		},
 	).Return(nil).Twice()
+
+	joinSuggesterUser := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitJoinSignal(suggesterUserID, suggesterDeviceID)
+	}, joinSuggesterUser)
 
 	firstSuggestTracksSignalDelay := defaultDuration
 	registerDelayedCallbackWrapper(func() {

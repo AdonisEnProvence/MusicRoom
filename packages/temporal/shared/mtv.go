@@ -91,6 +91,22 @@ func (s *TracksMetadataWithScoreSet) Get(trackID string) (*TrackMetadataWithScor
 	return &s.tracks[index], true
 }
 
+func (s *TracksMetadataWithScoreSet) IncrementTrackScoreAndSortTracks(trackID string) bool {
+	track, exists := s.Get(trackID)
+
+	if !exists {
+		return false
+	}
+
+	track.Score++
+	s.StableSortByHigherScore()
+	return true
+}
+
+func (s *TracksMetadataWithScoreSet) StableSortByHigherScore() {
+	sort.SliceStable(s.tracks, func(i, j int) bool { return s.tracks[i].Score > s.tracks[j].Score })
+}
+
 func (s *TracksMetadataWithScoreSet) Add(tracks ...TrackMetadataWithScore) {
 	for _, track := range tracks {
 		if isDuplicate := s.Has(track.ID); isDuplicate {
@@ -115,10 +131,6 @@ func (s *TracksMetadataWithScoreSet) Delete(trackID string) bool {
 
 func (s *TracksMetadataWithScoreSet) Values() []TrackMetadataWithScore {
 	return s.tracks[:]
-}
-
-func (s *TracksMetadataWithScoreSet) StableSortByHigherScore() {
-	sort.SliceStable(s.tracks, func(i, j int) bool { return s.tracks[i].Score > s.tracks[j].Score })
 }
 
 // Shift removes the first element from the set and returns it as well as true.

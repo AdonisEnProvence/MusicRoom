@@ -20,6 +20,8 @@ func assignInitialFetchedTracks(internalState *MtvRoomInternalState) brainy.Acti
 			}
 
 			internalState.Tracks.Add(trackWithScore)
+			internalState.UserVotedForTrack(internalState.initialParams.RoomCreatorUserID, fetchedTrack.ID)
+
 		}
 
 		if tracksCount := len(event.Tracks); tracksCount > 0 {

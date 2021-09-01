@@ -93,21 +93,15 @@ func (s *MtvRoomInternalState) RemoveUser(userID string) bool {
 	return false
 }
 
-func (s *MtvRoomInternalState) UserVoteForTrack(userID string, trackID string) bool {
-
-	trackFromList, exists := s.Tracks.Get(trackID)
-	if !exists {
-		return false
-	}
+func (s *MtvRoomInternalState) UserVotedForTrack(userID string, trackID string) bool {
 
 	user, exists := s.Users[userID]
 	if !exists {
 		return false
 	}
-
 	user.TracksVotedFor = append(user.TracksVotedFor, trackID)
-	trackFromList.Score++
-	s.Tracks.StableSortByHigherScore()
+
+	s.Tracks.IncrementTrackScoreAndSortTracks(trackID)
 
 	return true
 }
@@ -529,7 +523,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 						func(c brainy.Context, e brainy.Event) error {
 							event := e.(MtvRoomUserVoteForTrackEvent)
 
-							success := internalState.UserVoteForTrack(event.UserID, event.TrackID)
+							success := internalState.UserVotedForTrack(event.UserID, event.TrackID)
 							if success {
 
 								if voteIntervalTimerFuture == nil {
@@ -630,13 +624,17 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							event := e.(MtvRoomSuggestTracksEvent)
 
 							acceptedSuggestedTracksIDs := make([]string, 0, len(event.TracksToSuggest))
-							for _, suggestedTrack := range event.TracksToSuggest {
-								isDuplicate := internalState.Tracks.Has(suggestedTrack)
+							for _, suggestedTrackID := range event.TracksToSuggest {
+								isDuplicate := internalState.Tracks.Has(suggestedTrackID)
 								if isDuplicate {
+									//Count as a voted for suggested track if already is list
+									internalState.UserVotedForTrack(event.UserID, suggestedTrackID)
+
+									//Shall i start the voteCheckForUpdateInterval here as well ?
 									continue
 								}
 
-								acceptedSuggestedTracksIDs = append(acceptedSuggestedTracksIDs, suggestedTrack)
+								acceptedSuggestedTracksIDs = append(acceptedSuggestedTracksIDs, suggestedTrackID)
 							}
 
 							if hasNoTracksToFetch := len(acceptedSuggestedTracksIDs) == 0; hasNoTracksToFetch {
@@ -678,6 +676,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								}
 
 								internalState.Tracks.Add(suggestedTrackInformation)
+								internalState.UserVotedForTrack(event.UserID, trackInformation.ID)
 							}
 
 							return nil

@@ -157,3 +157,15 @@ func NewMtvRoomSuggestedTracksFetchedEvent(args NewMtvRoomSuggestedTracksFetched
 		DeviceID:                   args.DeviceID,
 	}
 }
+
+type MtvRoomCheckForScoreUdpateIntervalExpirationEvent struct {
+	brainy.EventWithType
+}
+
+func NewMtvRoomVoteUpdateIntervalExpirationEvent(tracks []shared.TrackMetadata) MtvRoomCheckForScoreUdpateIntervalExpirationEvent {
+	return MtvRoomCheckForScoreUdpateIntervalExpirationEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MtvCheckForScoreUpdateIntervalExpirationEvent,
+		},
+	}
+}

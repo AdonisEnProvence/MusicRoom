@@ -32,7 +32,7 @@ func main() {
 	w.RegisterActivity(activities.FetchTracksInformationActivityAndForwardIniator)
 	w.RegisterActivity(activities.UserLengthUpdateActivity)
 	w.RegisterActivity(activities.ChangeUserEmittingDeviceActivity)
-	w.RegisterActivity(activities.SuggestedTracksListChangedActivity)
+	w.RegisterActivity(activities.NotifySuggestOrVoteUpdateActivity)
 	w.RegisterActivity(activities.AcknowledgeTracksSuggestion)
 
 	// Start listening to the Task Queue

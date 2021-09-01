@@ -16,13 +16,14 @@ import (
 type MtvRoomInternalState struct {
 	initialParams shared.MtvRoomParameters
 
-	Machine                *brainy.Machine
-	Users                  map[string]*shared.InternalStateUser
-	CurrentTrack           shared.CurrentTrack
-	Tracks                 shared.TracksMetadataWithScoreSet
-	Playing                bool
-	MinimumScoreToBePlayed int
-	Timer                  shared.MtvRoomTimer
+	Machine                          *brainy.Machine
+	Users                            map[string]*shared.InternalStateUser
+	CurrentTrack                     shared.CurrentTrack
+	Tracks                           shared.TracksMetadataWithScoreSet
+	Playing                          bool
+	MinimumScoreToBePlayed           int
+	Timer                            shared.MtvRoomTimer
+	TracksCheckForVoteUpdateLastSave shared.TracksMetadataWithScoreSet
 }
 
 func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
@@ -130,20 +131,21 @@ const (
 	MtvRoomPlayingWaitingTimerEndState brainy.StateType = "waiting-timer-end"
 	MtvRoomPlayingTimeoutExpiredState  brainy.StateType = "timeout-expired"
 
-	MtvRoomPlayEvent                brainy.EventType = "PLAY"
-	MtvRoomPauseEvent               brainy.EventType = "PAUSE"
-	MtvRoomTimerLaunchedEvent       brainy.EventType = "TIMER_LAUNCHED"
-	MtvRoomTimerExpiredEvent        brainy.EventType = "TIMER_EXPIRED"
-	MtvRoomInitialTracksFetched     brainy.EventType = "INITIAL_TRACKS_FETCHED"
-	MtvRoomIsReady                  brainy.EventType = "MTV_ROOM_IS_READY"
-	MtvRoomGoToPausedEvent          brainy.EventType = "GO_TO_PAUSED"
-	MtvRoomAddUserEvent             brainy.EventType = "ADD_USER"
-	MtvRoomRemoveUserEvent          brainy.EventType = "REMOVE_USER"
-	MtvRoomVoteForTrackEvent        brainy.EventType = "VOTE_FOR_TRACK"
-	MtvRoomGoToNextTrackEvent       brainy.EventType = "GO_TO_NEXT_TRACK"
-	MtvRoomChangeUserEmittingDevice brainy.EventType = "CHANGE_USER_EMITTING_DEVICE"
-	MtvRoomSuggestTracks            brainy.EventType = "SUGGEST_TRACKS"
-	MtvRoomSuggestedTracksFetched   brainy.EventType = "SUGGESTED_TRACKS_FETCHED"
+	MtvRoomPlayEvent                              brainy.EventType = "PLAY"
+	MtvRoomPauseEvent                             brainy.EventType = "PAUSE"
+	MtvRoomTimerLaunchedEvent                     brainy.EventType = "TIMER_LAUNCHED"
+	MtvRoomTimerExpiredEvent                      brainy.EventType = "TIMER_EXPIRED"
+	MtvRoomInitialTracksFetched                   brainy.EventType = "INITIAL_TRACKS_FETCHED"
+	MtvRoomIsReady                                brainy.EventType = "MTV_ROOM_IS_READY"
+	MtvCheckForScoreUpdateIntervalExpirationEvent brainy.EventType = "VOTE_UPDATE_INTERVAL_EXPIRATION"
+	MtvRoomGoToPausedEvent                        brainy.EventType = "GO_TO_PAUSED"
+	MtvRoomAddUserEvent                           brainy.EventType = "ADD_USER"
+	MtvRoomRemoveUserEvent                        brainy.EventType = "REMOVE_USER"
+	MtvRoomVoteForTrackEvent                      brainy.EventType = "VOTE_FOR_TRACK"
+	MtvRoomGoToNextTrackEvent                     brainy.EventType = "GO_TO_NEXT_TRACK"
+	MtvRoomChangeUserEmittingDevice               brainy.EventType = "CHANGE_USER_EMITTING_DEVICE"
+	MtvRoomSuggestTracks                          brainy.EventType = "SUGGEST_TRACKS"
+	MtvRoomSuggestedTracksFetched                 brainy.EventType = "SUGGESTED_TRACKS_FETCHED"
 )
 
 func GetElapsed(ctx workflow.Context, previous time.Time) time.Duration {
@@ -195,6 +197,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 		timerExpirationFuture                    workflow.Future
 		fetchedInitialTracksFuture               workflow.Future
 		fetchedSuggestedTracksInformationFutures []workflow.Future
+		voteIntervalTimerFuture                  workflow.Future
 	)
 
 	internalState.Machine, err = brainy.NewMachine(brainy.StateNode{
@@ -528,7 +531,50 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 							success := internalState.UserVoteForTrack(event.UserID, event.TrackID)
 							if success {
-								//send activities
+
+								if voteIntervalTimerFuture == nil {
+									voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.VotePollingTimer)
+								}
+
+								options := workflow.ActivityOptions{
+									ScheduleToStartTimeout: time.Minute,
+									StartToCloseTimeout:    time.Minute,
+								}
+								ctx = workflow.WithActivityOptions(ctx, options)
+
+								workflow.ExecuteActivity(
+									ctx,
+									activities.UserVoteForTrackAcknowledgement,
+									internalState.Export(event.UserID),
+								)
+							}
+
+							return nil
+						},
+					),
+				},
+			},
+
+			MtvCheckForScoreUpdateIntervalExpirationEvent: brainy.Transition{
+				Actions: brainy.Actions{
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+							needToNotifySuggestOrVoteUpdateActivity := internalState.Tracks.DeepEqual(internalState.TracksCheckForVoteUpdateLastSave)
+
+							if needToNotifySuggestOrVoteUpdateActivity {
+								options := workflow.ActivityOptions{
+									ScheduleToStartTimeout: time.Minute,
+									StartToCloseTimeout:    time.Minute,
+								}
+								ctx = workflow.WithActivityOptions(ctx, options)
+
+								workflow.ExecuteActivity(
+									ctx,
+									activities.NotifySuggestOrVoteUpdateActivity,
+									internalState.Export(shared.NoRelatedUserID),
+								)
+
+								internalState.TracksCheckForVoteUpdateLastSave = internalState.Tracks
 							}
 
 							return nil
@@ -647,7 +693,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 							workflow.ExecuteActivity(
 								ctx,
-								activities.SuggestedTracksListChangedActivity,
+								activities.NotifySuggestOrVoteUpdateActivity,
 								internalState.Export(shared.NoRelatedUserID),
 							)
 
@@ -893,6 +939,13 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 			})
 		}
 		/////
+
+		if voteIntervalTimerFuture != nil {
+			selector.AddFuture(voteIntervalTimerFuture, func(f workflow.Future) {
+				voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.VotePollingTimer)
+
+			})
+		}
 
 		for index, fetchedSuggestedTracksInformationFuture := range fetchedSuggestedTracksInformationFutures {
 			selector.AddFuture(fetchedSuggestedTracksInformationFuture, func(f workflow.Future) {

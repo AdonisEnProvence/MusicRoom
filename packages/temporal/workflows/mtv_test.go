@@ -1104,7 +1104,7 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.SuggestedTracksListChangedActivity,
+		activities.NotifySuggestOrVoteUpdateActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -1357,7 +1357,7 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.SuggestedTracksListChangedActivity,
+		activities.NotifySuggestOrVoteUpdateActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Twice()

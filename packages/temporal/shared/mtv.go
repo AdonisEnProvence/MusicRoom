@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"reflect"
 	"sort"
 	"time"
 )
@@ -10,6 +11,7 @@ type MtvRoomTimerExpiredReason string
 const (
 	MtvRoomTimerExpiredReasonCanceled MtvRoomTimerExpiredReason = "canceled"
 	MtvRoomTimerExpiredReasonFinished MtvRoomTimerExpiredReason = "finished"
+	VotePollingTimer                  time.Duration             = 2000 * time.Millisecond
 )
 
 type MtvRoomTimer struct {
@@ -136,6 +138,10 @@ func (s *TracksMetadataWithScoreSet) Shift() (TrackMetadataWithScore, bool) {
 	}
 
 	return firstElement, true
+}
+
+func (s *TracksMetadataWithScoreSet) DeepEqual(toCmpTracksList TracksMetadataWithScoreSet) bool {
+	return reflect.DeepEqual(s.tracks, toCmpTracksList.tracks)
 }
 
 // Difference returns a new TracksMetadataWithScoreSet with all the elements from

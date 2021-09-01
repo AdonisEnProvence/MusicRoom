@@ -546,11 +546,6 @@ func PingHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Pong")
 }
 
-func printResults(greeting string, workflowID, runID string) {
-	fmt.Printf("\nWorkflowID: %s RunID: %s\n", workflowID, runID)
-	fmt.Printf("\n%s\n\n", greeting)
-}
-
 func WriteError(w http.ResponseWriter, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
 	res := ErrorResponse{Message: err.Error()}

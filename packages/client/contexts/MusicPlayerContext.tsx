@@ -1,4 +1,5 @@
 import { useMachine } from '@xstate/react';
+import { ActorRef } from '@xstate/react/lib/types';
 import React, { useContext, useRef } from 'react';
 import { Platform } from 'react-native';
 import Toast from 'react-native-toast-message';
@@ -13,6 +14,10 @@ import {
     AppMusicPlayerMachineState,
     createAppMusicPlayerMachine,
 } from '../machines/appMusicPlayerMachine';
+import {
+    CreationMtvRoomFormMachineEvent,
+    CreationMtvRoomFormMachineState,
+} from '../machines/creationMtvRoomForm';
 import { navigateFromRef } from '../navigation/RootNavigation';
 import { Socket } from '../services/websockets';
 
@@ -114,6 +119,14 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
                         text2: 'Your suggestion has been rejected',
                     });
                 },
+
+                openCreationMtvRoomFormModal: () => {
+                    console.log('open creation mtv room form modal');
+                },
+
+                closeCreationMtvRoomFormModal: () => {
+                    console.log('close creation mtv room form modal');
+                },
             },
         });
 
@@ -187,4 +200,18 @@ export function useSuggestTracks(closeSuggestionModal: () => void): {
         suggestTracks,
         showActivityIndicatorOnSuggestionsResultsScreen,
     };
+}
+
+export function useCreationMtvRoomFormMachine():
+    | ActorRef<CreationMtvRoomFormMachineEvent, CreationMtvRoomFormMachineState>
+    | undefined {
+    const { state } = useMusicPlayer();
+
+    const actor:
+        | ActorRef<
+              CreationMtvRoomFormMachineEvent,
+              CreationMtvRoomFormMachineState
+          >
+        | undefined = state.children.creationMtvRoomForm ?? undefined;
+    return actor;
 }

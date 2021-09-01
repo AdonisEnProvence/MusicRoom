@@ -14,6 +14,7 @@ import {
     StateMachine,
 } from 'xstate';
 import { SocketClient } from '../hooks/useSocket';
+import { createCreationMtvRoomFormMachine } from './creationMtvRoomForm';
 
 export interface AppMusicPlayerMachineContext extends MtvWorkflowState {
     waitingRoomID?: string;
@@ -99,8 +100,13 @@ export const createAppMusicPlayerMachine = ({
     AppMusicPlayerMachineContext,
     any,
     AppMusicPlayerMachineEvent
-> =>
-    createMachine<AppMusicPlayerMachineContext, AppMusicPlayerMachineEvent>(
+> => {
+    const creationMtvRoomForm = createCreationMtvRoomFormMachine();
+
+    return createMachine<
+        AppMusicPlayerMachineContext,
+        AppMusicPlayerMachineEvent
+    >(
         {
             invoke: {
                 id: 'socketConnection',
@@ -303,36 +309,63 @@ export const createAppMusicPlayerMachine = ({
                         },
 
                         creatingRoom: {
-                            invoke: {
-                                src: (_context, event) => (sendBack) => {
-                                    //Handle global external transitions
-                                    if (
-                                        event.type === 'JOINED_CREATED_ROOM' ||
-                                        event.type === 'ROOM_IS_READY'
-                                    )
-                                        return;
+                            initial: 'selectingRoomOptions',
 
-                                    if (event.type !== 'CREATE_ROOM') {
-                                        throw new Error(
-                                            'Service must be called in reaction to CREATE_ROOM event',
-                                        );
-                                    }
-
-                                    const { roomName, initialTracksIDs } =
-                                        event;
-                                    const payload: MtvRoomClientToServerCreate =
-                                        {
-                                            name: roomName,
-                                            initialTracksIDs,
-                                        };
-
-                                    socket.emit('CREATE_ROOM', payload);
-                                },
-                            },
-
-                            initial: 'connectingToRoom',
                             states: {
+                                selectingRoomOptions: {
+                                    entry: 'openCreationMtvRoomFormModal',
+
+                                    exit: 'closeCreationMtvRoomFormModal',
+
+                                    invoke: {
+                                        id: 'creationMtvRoomForm',
+
+                                        src: creationMtvRoomForm,
+                                    },
+
+                                    onDone: {
+                                        target: 'connectingToRoom',
+                                    },
+                                },
+
                                 connectingToRoom: {
+                                    invoke: {
+                                        src:
+                                            (_context, event) => (sendBack) => {
+                                                //Handle global external transitions
+                                                if (
+                                                    event.type ===
+                                                        'JOINED_CREATED_ROOM' ||
+                                                    event.type ===
+                                                        'ROOM_IS_READY'
+                                                )
+                                                    return;
+
+                                                if (
+                                                    event.type !== 'CREATE_ROOM'
+                                                ) {
+                                                    throw new Error(
+                                                        'Service must be called in reaction to CREATE_ROOM event',
+                                                    );
+                                                }
+
+                                                const {
+                                                    roomName,
+                                                    initialTracksIDs,
+                                                } = event;
+                                                const payload: MtvRoomClientToServerCreate =
+                                                    {
+                                                        name: roomName,
+                                                        initialTracksIDs,
+                                                    };
+
+                                                socket.emit(
+                                                    'CREATE_ROOM',
+                                                    payload,
+                                                );
+                                            },
+                                    },
+
                                     on: {
                                         JOINED_CREATED_ROOM: {
                                             target: 'roomIsNotReady',
@@ -378,12 +411,14 @@ export const createAppMusicPlayerMachine = ({
                             on: {
                                 JOINED_ROOM: {
                                     target: 'connectedToRoom',
+
                                     cond: (context, event) => {
                                         return (
                                             event.state.roomID ===
                                             context.waitingRoomID
                                         );
                                     },
+
                                     actions: 'assignMergeNewState',
                                 },
                             },
@@ -845,3 +880,4 @@ export const createAppMusicPlayerMachine = ({
             },
         },
     );
+};

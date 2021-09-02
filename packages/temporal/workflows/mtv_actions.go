@@ -36,6 +36,8 @@ func assignInitialFetchedTracks(internalState *MtvRoomInternalState) brainy.Acti
 				Duration:  currentTrack.Duration,
 				Cancel:    nil,
 			}
+			internalState.RemoveTrackFromUserTracksVotedFor(currentTrack.ID)
+
 		} else {
 			internalState.Timer = shared.MtvRoomTimer{
 				CreatedOn: time.Time{},
@@ -62,6 +64,9 @@ func assignNextTrack(internalState *MtvRoomInternalState) brainy.Action {
 			Duration:  internalState.CurrentTrack.Duration,
 			Cancel:    nil,
 		}
+
+		//As the first track is not anymore in the tracks list, users can now suggest or vote for this song again
+		internalState.RemoveTrackFromUserTracksVotedFor(firstTrack.ID)
 
 		return nil
 	}

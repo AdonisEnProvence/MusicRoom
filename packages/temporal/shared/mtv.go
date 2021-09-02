@@ -153,6 +153,7 @@ func (s *TracksMetadataWithScoreSet) Shift() (TrackMetadataWithScore, bool) {
 }
 
 func (s *TracksMetadataWithScoreSet) DeepEqual(toCmpTracksList TracksMetadataWithScoreSet) bool {
+	//Could be refactor using a range loop, atm this is not compilation friendly
 	return reflect.DeepEqual(s.tracks, toCmpTracksList.tracks)
 }
 
@@ -399,6 +400,8 @@ type NewVoteForTrackSignalArgs struct {
 
 func NewVoteForTrackSignal(args NewVoteForTrackSignalArgs) VoteForTrackSignal {
 	return VoteForTrackSignal{
-		Route: SignalRouteVoteForTrack,
+		Route:   SignalRouteVoteForTrack,
+		TrackID: args.TrackID,
+		UserID:  args.UserID,
 	}
 }

@@ -162,7 +162,7 @@ type MtvRoomCheckForScoreUdpateIntervalExpirationEvent struct {
 	brainy.EventWithType
 }
 
-func NewMtvRoomVoteUpdateIntervalExpirationEvent(tracks []shared.TrackMetadata) MtvRoomCheckForScoreUdpateIntervalExpirationEvent {
+func NewMtvRoomCheckForScoreUpdateIntervalExpirationEvent() MtvRoomCheckForScoreUdpateIntervalExpirationEvent {
 	return MtvRoomCheckForScoreUdpateIntervalExpirationEvent{
 		EventWithType: brainy.EventWithType{
 			Event: MtvCheckForScoreUpdateIntervalExpirationEvent,

@@ -84,6 +84,21 @@ func (s *MtvRoomInternalState) AddUser(user shared.InternalStateUser) {
 	}
 }
 
+func (s *MtvRoomInternalState) RemoveTrackFromUserTracksVotedFor(trackID string) {
+	for _, user := range s.Users {
+		LastTracksVotedForElementIndex := len(user.TracksVotedFor) - 1
+
+		for index, trackVotedForID := range user.TracksVotedFor {
+			if trackVotedForID == trackID {
+				//remove element from slice
+				user.TracksVotedFor[index] = user.TracksVotedFor[LastTracksVotedForElementIndex]
+				user.TracksVotedFor = user.TracksVotedFor[:LastTracksVotedForElementIndex]
+				break
+			}
+		}
+	}
+}
+
 func (s *MtvRoomInternalState) RemoveUser(userID string) bool {
 	if _, ok := s.Users[userID]; ok {
 		delete(s.Users, userID)
@@ -97,12 +112,14 @@ func (s *MtvRoomInternalState) UserVotedForTrack(userID string, trackID string) 
 
 	user, exists := s.Users[userID]
 	if !exists {
+		fmt.Println("vote failed user not found")
 		return false
 	}
 
 	userAlreadyVotedForTrack := user.HasVotedFor(trackID)
 
 	if userAlreadyVotedForTrack {
+		fmt.Println("vote failed user already voted for given trackID")
 		return false
 	}
 	user.TracksVotedFor = append(user.TracksVotedFor, trackID)
@@ -575,6 +592,9 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								)
 
 								internalState.TracksCheckForVoteUpdateLastSave = internalState.Tracks
+								voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.VotePollingTimer)
+							} else {
+								voteIntervalTimerFuture = nil
 							}
 
 							return nil
@@ -631,17 +651,30 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 							acceptedSuggestedTracksIDs := make([]string, 0, len(event.TracksToSuggest))
 							for _, suggestedTrackID := range event.TracksToSuggest {
+
+								//Checking if the suggested track is in the player
+								isCurrentTrack := internalState.CurrentTrack.ID == suggestedTrackID
+								if isCurrentTrack {
+									continue
+								}
+
+								//Chekcing if the suggested track is in the queue
 								isDuplicate := internalState.Tracks.Has(suggestedTrackID)
 								if isDuplicate {
 									//Count as a voted for suggested track if already is list
-									internalState.UserVotedForTrack(event.UserID, suggestedTrackID)
-
+									success := internalState.UserVotedForTrack(event.UserID, suggestedTrackID)
+									if success && voteIntervalTimerFuture == nil {
+										voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.VotePollingTimer)
+									}
+									//TODO CHECK IF THE INFORMATIONS IS CORRECTLY SENT
 									//Shall i start the voteCheckForUpdateInterval here as well ?
 									continue
 								}
 
 								acceptedSuggestedTracksIDs = append(acceptedSuggestedTracksIDs, suggestedTrackID)
 							}
+
+							fmt.Printf("\n\n\n\n\nSUGGESTED\n%+v\nACCEPTED\n%+v\n TRACKS\n%+v\n CURRENT TRACK\n%+v\n\n\n\n", event.TracksToSuggest, acceptedSuggestedTracksIDs, internalState.Tracks, internalState.CurrentTrack)
 
 							if hasNoTracksToFetch := len(acceptedSuggestedTracksIDs) == 0; hasNoTracksToFetch {
 								return nil
@@ -870,6 +903,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 			case shared.SignalRouteVoteForTrack:
 				var message shared.VoteForTrackSignal
 
+				fmt.Printf("\n\n******VOTE RECEIVED******\n\n")
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
@@ -879,6 +913,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					return
 				}
 
+				fmt.Printf("\n\n******KEEP GOING******\n\n")
 				internalState.Machine.Send(
 					NewMtvRoomUserVoteForTrackEvent(message.UserID, message.TrackID),
 				)
@@ -947,8 +982,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 		if voteIntervalTimerFuture != nil {
 			selector.AddFuture(voteIntervalTimerFuture, func(f workflow.Future) {
-				voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.VotePollingTimer)
-
+				internalState.Machine.Send(NewMtvRoomCheckForScoreUpdateIntervalExpirationEvent())
 			})
 		}
 

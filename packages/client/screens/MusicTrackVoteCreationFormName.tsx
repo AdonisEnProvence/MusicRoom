@@ -1,20 +1,35 @@
 import { Text, View, useSx, TextInput } from 'dripsy';
 import React from 'react';
+import { useEffect } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-    AppScreen,
-    AppScreenContainer,
-    AppScreenHeader,
-} from '../components/kit';
-import { useMusicPlayer } from '../contexts/MusicPlayerContext';
+import { AppScreen, AppScreenContainer } from '../components/kit';
+import { useCreationMtvRoomFormMachine } from '../contexts/MusicPlayerContext';
 import { MusicTrackVoteCreationFormNameScreenProps } from '../types';
 
 const MusicTrackVoteCreationFormName: React.FC<MusicTrackVoteCreationFormNameScreenProps> =
     ({ navigation }) => {
         const insets = useSafeAreaInsets();
-        const musicPlayerMachine = useMusicPlayer();
+        const mtvRoomCreationActor = useCreationMtvRoomFormMachine();
         const sx = useSx();
+
+        useEffect(() => {
+            function closeModal() {
+                navigation.popToTop();
+                navigation.goBack();
+            }
+
+            mtvRoomCreationActor?.send({
+                type: 'FORWARD_MODAL_CLOSER',
+                closeModal,
+            });
+        }, [mtvRoomCreationActor, navigation]);
+
+        function handleGoBack() {
+            mtvRoomCreationActor?.send({
+                type: 'GO_BACK',
+            });
+        }
 
         return (
             <AppScreen>
@@ -86,6 +101,7 @@ const MusicTrackVoteCreationFormName: React.FC<MusicTrackVoteCreationFormNameScr
                                     borderRadius: 's',
                                     marginRight: 'l',
                                 })}
+                                onPress={handleGoBack}
                             >
                                 <Text sx={{ color: 'white', fontSize: 's' }}>
                                     Back

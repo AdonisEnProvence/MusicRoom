@@ -21,12 +21,19 @@ export interface AppMusicPlayerMachineContext extends MtvWorkflowState {
     progressElapsedTime: number;
 
     closeSuggestionModal?: () => void;
+    closeMtvRoomCreationModal?: () => void;
 }
 
 export type AppMusicPlayerMachineState = State<
     AppMusicPlayerMachineContext,
     AppMusicPlayerMachineEvent
 >;
+
+export type CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents =
+    | {
+          type: 'EXIT_MTV_ROOM_CREATION';
+      }
+    | { type: 'SAVE_MTV_ROOM_CREATION_MODAL_CLOSER'; closeModal: () => void };
 
 export type AppMusicPlayerMachineEvent =
     | {
@@ -73,7 +80,8 @@ export type AppMusicPlayerMachineEvent =
           type: 'VOTE_OR_SUGGEST_TRACK_CALLBACK';
           state: MtvWorkflowStateWithUserRelatedInformation;
       }
-    | { type: 'VOTE_FOR_TRACK'; trackID: string };
+    | { type: 'VOTE_FOR_TRACK'; trackID: string }
+    | CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents;
 
 interface CreateAppMusicPlayerMachineArgs {
     socket: SocketClient;
@@ -323,6 +331,17 @@ export const createAppMusicPlayerMachine = ({
                                         src: creationMtvRoomForm,
                                     },
 
+                                    on: {
+                                        SAVE_MTV_ROOM_CREATION_MODAL_CLOSER: {
+                                            actions: assign({
+                                                closeMtvRoomCreationModal: (
+                                                    _context,
+                                                    event,
+                                                ) => event.closeModal,
+                                            }),
+                                        },
+                                    },
+
                                     onDone: {
                                         target: 'connectingToRoom',
                                     },
@@ -330,40 +349,33 @@ export const createAppMusicPlayerMachine = ({
 
                                 connectingToRoom: {
                                     invoke: {
-                                        src:
-                                            (_context, event) => (sendBack) => {
-                                                //Handle global external transitions
-                                                if (
-                                                    event.type ===
-                                                        'JOINED_CREATED_ROOM' ||
-                                                    event.type ===
-                                                        'ROOM_IS_READY'
-                                                )
-                                                    return;
+                                        src: (_context, event) => () => {
+                                            //Handle global external transitions
+                                            if (
+                                                event.type ===
+                                                    'JOINED_CREATED_ROOM' ||
+                                                event.type === 'ROOM_IS_READY'
+                                            )
+                                                return;
 
-                                                if (
-                                                    event.type !== 'CREATE_ROOM'
-                                                ) {
-                                                    throw new Error(
-                                                        'Service must be called in reaction to CREATE_ROOM event',
-                                                    );
-                                                }
-
-                                                const {
-                                                    roomName,
-                                                    initialTracksIDs,
-                                                } = event;
-                                                const payload: MtvRoomClientToServerCreate =
-                                                    {
-                                                        name: roomName,
-                                                        initialTracksIDs,
-                                                    };
-
-                                                socket.emit(
-                                                    'CREATE_ROOM',
-                                                    payload,
+                                            if (event.type !== 'CREATE_ROOM') {
+                                                throw new Error(
+                                                    'Service must be called in reaction to CREATE_ROOM event',
                                                 );
-                                            },
+                                            }
+
+                                            const {
+                                                roomName,
+                                                initialTracksIDs,
+                                            } = event;
+                                            const payload: MtvRoomClientToServerCreate =
+                                                {
+                                                    name: roomName,
+                                                    initialTracksIDs,
+                                                };
+
+                                            socket.emit('CREATE_ROOM', payload);
+                                        },
                                     },
 
                                     on: {
@@ -385,6 +397,12 @@ export const createAppMusicPlayerMachine = ({
 
                                 roomIsReady: {
                                     type: 'final',
+                                },
+                            },
+
+                            on: {
+                                EXIT_MTV_ROOM_CREATION: {
+                                    target: 'waitingForJoinOrCreateRoom',
                                 },
                             },
 

@@ -42,7 +42,7 @@ After clicking on one not emitting it should set the clicked one as emitting
                 score: datatype.number(),
             },
         ],
-        suggestedTracks: null,
+        minimumScoreToBePlayed: 1,
     };
 
     serverSocket.on('GET_CONNECTED_DEVICES_AND_DEVICE_ID', (cb) => {

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { TrackMetadata } from '@musicroom/types';
 import { useNavigation } from '@react-navigation/native';
 import { useMachine } from '@xstate/react';
 import { Text, useSx, View } from 'dripsy';
@@ -7,7 +8,6 @@ import { FlatList, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sender } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { TrackMetadata } from '@musicroom/types';
 import {
     AppMusicPlayerMachineEvent,
     AppMusicPlayerMachineState,
@@ -176,24 +176,35 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                         return [];
                     }
 
-                    const tracks = context.tracks.map((track) => ({
-                        type: 'TRACK' as const,
+                    const formattedTracksListItem = context.tracks.map<{
+                        type: 'TRACK';
+                        track: TrackMetadata;
+                    }>((track) => ({
+                        type: 'TRACK',
                         track,
                     }));
+                    const firstSuggestedTrackIndex = context.tracks.findIndex(
+                        (track) => track.score < context.minimumScoreToBePlayed,
+                    );
 
-                    if (context.suggestedTracks === null) {
-                        return tracks;
+                    if (
+                        firstSuggestedTrackIndex === -1 ||
+                        firstSuggestedTrackIndex === context.tracks.length - 1
+                    ) {
+                        return formattedTracksListItem;
                     }
 
                     return [
-                        ...tracks,
-
-                        { type: 'SEPARATOR' as const },
-
-                        ...context.suggestedTracks.map((track) => ({
-                            type: 'TRACK' as const,
-                            track,
-                        })),
+                        ...formattedTracksListItem.slice(
+                            0,
+                            firstSuggestedTrackIndex,
+                        ),
+                        {
+                            type: 'SEPARATOR',
+                        },
+                        ...formattedTracksListItem.slice(
+                            firstSuggestedTrackIndex,
+                        ),
                     ];
                 }
 

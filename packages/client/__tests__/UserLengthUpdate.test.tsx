@@ -1,6 +1,6 @@
 import { MtvWorkflowState, UserDevice } from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
-import { datatype, name, random } from 'faker';
+import { datatype, random } from 'faker';
 import React from 'react';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
@@ -34,7 +34,7 @@ test(`
         currentTrack: null,
         roomCreatorUserID: userID,
         tracks: [db.tracksMetadata.create()],
-        suggestedTracks: null,
+        minimumScoreToBePlayed: 1,
     };
 
     const { debug, getByTestId, getAllByText, findByA11yState } = render(

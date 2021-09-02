@@ -7,11 +7,11 @@ import { serverSocket } from '../services/websockets';
 import { db } from '../tests/data';
 import {
     fireEvent,
+    noop,
     render,
     waitFor,
-    within,
     waitForTimeout,
-    noop,
+    within,
 } from '../tests/tests-utils';
 
 test(`Goes to Search a Track screen, searches a track, sees search results, presses a song and listens to it`, async () => {
@@ -45,7 +45,7 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
                 score: datatype.number(),
             },
         ],
-        suggestedTracks: null,
+        minimumScoreToBePlayed: 1,
     };
 
     serverSocket.on('CREATE_ROOM', () => {

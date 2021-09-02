@@ -16,12 +16,4 @@ export const db = factory({
         title: () => random.words(),
         score: () => datatype.number(),
     },
-
-    suggestedTracksMetadata: {
-        id: primaryKey(() => datatype.uuid()),
-        artistName: () => name.title(),
-        duration: () => 42000 as number,
-        title: () => random.words(),
-        score: () => datatype.number(),
-    },
 });

@@ -44,7 +44,7 @@ test(`It should display the music player corresponding to the injected state on 
                 score: datatype.number(),
             },
         ],
-        suggestedTracks: null,
+        minimumScoreToBePlayed: 1,
     };
 
     const { getAllByText, getByTestId, findByA11yState } = render(
@@ -140,7 +140,7 @@ test(`It should display the music player corresponding to the injected state on 
                 score: datatype.number(),
             },
         ],
-        suggestedTracks: null,
+        minimumScoreToBePlayed: 1,
     };
 
     const { getAllByText, getByTestId, findByA11yState } = render(
@@ -222,7 +222,7 @@ test(`It should display the already elapsed track duration and player should be 
                 score: datatype.number(),
             },
         ],
-        suggestedTracks: null,
+        minimumScoreToBePlayed: 1,
     };
 
     const { getAllByText, getByTestId, findByA11yState, debug } = render(

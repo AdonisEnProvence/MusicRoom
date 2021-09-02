@@ -8,11 +8,11 @@ import { serverSocket } from '../services/websockets';
 import { db } from '../tests/data';
 import {
     fireEvent,
+    noop,
     render,
     waitFor,
     waitForElementToBeRemoved,
     within,
-    noop,
 } from '../tests/tests-utils';
 
 test(`A user can suggest tracks to play`, async () => {
@@ -35,7 +35,7 @@ test(`A user can suggest tracks to play`, async () => {
             elapsed: 0,
         },
         tracks: tracksList.slice(1),
-        suggestedTracks: null,
+        minimumScoreToBePlayed: 1,
     };
 
     serverSocket.on('GO_TO_NEXT_TRACK', () => {
@@ -55,27 +55,50 @@ test(`A user can suggest tracks to play`, async () => {
     });
 
     serverSocket.on('SUGGEST_TRACKS', ({ tracksToSuggest }) => {
-        initialState.suggestedTracks = [
-            ...(initialState.suggestedTracks ?? []),
+        if (initialState.tracks === null) {
+            initialState.tracks = [];
+        }
 
-            ...tracksToSuggest.map((trackID) => {
+        tracksToSuggest.forEach((suggestedTrackID) => {
+            if (initialState.tracks === null) {
+                throw new Error('initialState.tracks is null');
+            }
+
+            const duplicateTrackIndex = initialState.tracks.findIndex(
+                (track) => track.id === suggestedTrackID,
+            );
+
+            const isDuplicate = duplicateTrackIndex !== -1;
+            if (isDuplicate) {
+                initialState.tracks[duplicateTrackIndex].score++;
+            } else {
                 const track = db.tracks.findFirst({
-                    where: { id: { equals: trackID } },
+                    where: { id: { equals: suggestedTrackID } },
                 });
+
                 if (track === null) {
                     throw new Error(
-                        `Could not find a track with this id (${trackID}) in tracks database. Check that you called db.tracks.create().`,
+                        `Could not find a track with this id (${suggestedTrackID}) in tracks database. Check that you called db.tracks.create().`,
                     );
                 }
+                // Don't know to maintain that TODO
+                //
+                // const toAdd = db.tracks.create({
+                //     id: suggestedTrackID,
+                //     title: track.title,
+                //     artistName: track.artistName,
+                //     duration: track.duration,
+                // });
 
-                return db.suggestedTracksMetadata.create({
-                    id: trackID,
+                initialState.tracks.push({
+                    id: suggestedTrackID,
                     title: track.title,
                     artistName: track.artistName,
                     duration: track.duration,
+                    score: 1,
                 });
-            }),
-        ];
+            }
+        });
 
         serverSocket.emit('SUGGESTED_TRACKS_LIST_UPDATE', initialState);
         serverSocket.emit('SUGGEST_TRACKS_CALLBACK');

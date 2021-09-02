@@ -8,11 +8,11 @@ import { serverSocket } from '../services/websockets';
 import { db } from '../tests/data';
 import {
     fireEvent,
+    noop,
     render,
     waitFor,
-    within,
     waitForTimeout,
-    noop,
+    within,
 } from '../tests/tests-utils';
 
 test(`When the user clicks on next track button, it should play the next track, if there is one`, async () => {
@@ -34,7 +34,7 @@ test(`When the user clicks on next track button, it should play the next track, 
             elapsed: 0,
         },
         tracks: tracksList.slice(1),
-        suggestedTracks: null,
+        minimumScoreToBePlayed: 1,
     };
 
     serverSocket.on('GO_TO_NEXT_TRACK', () => {

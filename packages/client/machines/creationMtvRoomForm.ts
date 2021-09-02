@@ -18,9 +18,7 @@ const creationMtvRoomFormModel = createModel(
     },
     {
         events: {
-            FORWARD_MODAL_CLOSER: (closeModal: () => void) => ({ closeModal }),
-
-            GO_BACK: () => ({}),
+            SET_ROOM_NAME: (roomName: string) => ({ roomName }),
 
             SET_OPENING_STATUS: (isOpen: boolean) => ({ isOpen }),
 
@@ -28,7 +26,9 @@ const creationMtvRoomFormModel = createModel(
                 onlyInvitedUsersCanVote: boolean,
             ) => ({ onlyInvitedUsersCanVote }),
 
-            SAVE_ROOM_NAME: (roomName: string) => ({ roomName }),
+            FORWARD_MODAL_CLOSER: (closeModal: () => void) => ({ closeModal }),
+
+            GO_BACK: () => ({}),
 
             NEXT: () => ({}),
         },
@@ -62,6 +62,13 @@ export type CreationMtvRoomFormActorRef = ActorRef<
     CreationMtvRoomFormMachineEvent,
     CreationMtvRoomFormMachineState
 >;
+
+const assignRoomName = creationMtvRoomFormModel.assign(
+    {
+        roomName: (_context, { roomName }) => roomName,
+    },
+    'SET_ROOM_NAME',
+);
 
 const assignIsOpen = creationMtvRoomFormModel.assign(
     {
@@ -99,6 +106,10 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                 },
 
                 on: {
+                    SET_ROOM_NAME: {
+                        actions: assignRoomName,
+                    },
+
                     FORWARD_MODAL_CLOSER: {
                         actions: sendParent<
                             CreationMtvRoomFormMachineContext,
@@ -120,12 +131,8 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                         }),
                     },
 
-                    SAVE_ROOM_NAME: {
+                    NEXT: {
                         target: 'openingStatus',
-
-                        actions: creationMtvRoomFormModel.assign({
-                            roomName: (_context, { roomName }) => roomName,
-                        }),
                     },
                 },
             },

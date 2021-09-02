@@ -1,3 +1,4 @@
+import { useActor } from '@xstate/react';
 import { Text, View, useSx, TextInput } from 'dripsy';
 import React from 'react';
 import { useEffect } from 'react';
@@ -11,7 +12,9 @@ const MusicTrackVoteCreationFormName: React.FC<MusicTrackVoteCreationFormNameScr
     ({ navigation }) => {
         const insets = useSafeAreaInsets();
         const mtvRoomCreationActor = useCreationMtvRoomFormMachine();
+        const [state, send] = useActor(mtvRoomCreationActor);
         const sx = useSx();
+        const currentRoomName = state.context.roomName;
 
         useEffect(() => {
             function closeModal() {
@@ -19,22 +22,28 @@ const MusicTrackVoteCreationFormName: React.FC<MusicTrackVoteCreationFormNameScr
                 navigation.goBack();
             }
 
-            mtvRoomCreationActor?.send({
+            send({
                 type: 'FORWARD_MODAL_CLOSER',
                 closeModal,
             });
-        }, [mtvRoomCreationActor, navigation]);
+        }, [send, navigation]);
 
         function handleGoBack() {
-            mtvRoomCreationActor?.send({
+            send({
                 type: 'GO_BACK',
             });
         }
 
-        function handleContinue() {
-            mtvRoomCreationActor?.send({
-                type: 'SAVE_ROOM_NAME',
-                roomName: 'ROOM NAME',
+        function handleRoomNameChange(roomName: string) {
+            send({
+                type: 'SET_ROOM_NAME',
+                roomName,
+            });
+        }
+
+        function handleNext() {
+            send({
+                type: 'NEXT',
             });
         }
 
@@ -68,6 +77,7 @@ const MusicTrackVoteCreationFormName: React.FC<MusicTrackVoteCreationFormNameScr
 
                             <View sx={{ marginTop: 'xl' }}>
                                 <TextInput
+                                    value={currentRoomName}
                                     placeholder="Francis Cabrel OnlyFans"
                                     sx={{
                                         borderWidth: 1,
@@ -77,6 +87,7 @@ const MusicTrackVoteCreationFormName: React.FC<MusicTrackVoteCreationFormNameScr
                                         color: 'white',
                                         borderRadius: 's',
                                     }}
+                                    onChangeText={handleRoomNameChange}
                                 />
                             </View>
 
@@ -128,7 +139,7 @@ const MusicTrackVoteCreationFormName: React.FC<MusicTrackVoteCreationFormNameScr
                                     paddingBottom: 'm',
                                     borderRadius: 's',
                                 })}
-                                onPress={handleContinue}
+                                onPress={handleNext}
                             >
                                 <Text sx={{ color: 'white', fontSize: 's' }}>
                                     Next

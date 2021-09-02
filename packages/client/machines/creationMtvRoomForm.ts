@@ -6,6 +6,7 @@ import {
     sendParent,
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { navigateFromRef } from '../navigation/RootNavigation';
 import { CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents } from './appMusicPlayerMachine';
 
 const creationMtvRoomFormModel = createModel(
@@ -50,6 +51,19 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
 
         states: {
             roomName: {
+                entry: () => {
+                    try {
+                        navigateFromRef('MusicTrackVoteCreationFormName');
+                    } catch {
+                        // An error is thrown when the modal is opened.
+                        // We are not yet in MusicTrackVoteCreationForm and
+                        // we can there is no screen called MusicTrackVoteCreationFormName.
+                        // This is not a problem that the first call does not succeed
+                        // as we already perform the redirection in openCreationMtvRoomFormModal action.
+                        // It is particularly useful to handle redirection to Name step.
+                    }
+                },
+
                 on: {
                     FORWARD_MODAL_CLOSER: {
                         actions: sendParent<
@@ -82,15 +96,69 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                 },
             },
 
-            openingStatus: {},
+            openingStatus: {
+                entry: () => {
+                    navigateFromRef('MusicTrackVoteCreationFormOpeningStatus');
+                },
 
-            physicalConstraints: {},
+                on: {
+                    GO_BACK: {
+                        target: 'roomName',
+                    },
+                },
+            },
 
-            playingMode: {},
+            physicalConstraints: {
+                entry: () => {
+                    navigateFromRef(
+                        'MusicTrackVoteCreationFormPhysicalConstraints',
+                    );
+                },
 
-            votesConstraints: {},
+                on: {
+                    GO_BACK: {
+                        target: 'openingStatus',
+                    },
+                },
+            },
+
+            playingMode: {
+                entry: () => {
+                    navigateFromRef('MusicTrackVoteCreationFormPlayingMode');
+                },
+
+                on: {
+                    GO_BACK: {
+                        target: 'physicalConstraints',
+                    },
+                },
+            },
+
+            votesConstraints: {
+                entry: () => {
+                    navigateFromRef(
+                        'MusicTrackVoteCreationFormVotesConstraints',
+                    );
+                },
+
+                on: {
+                    GO_BACK: {
+                        target: 'playingMode',
+                    },
+                },
+            },
 
             confirmation: {
+                entry: () => {
+                    navigateFromRef('MusicTrackVoteCreationFormConfirmation');
+                },
+
+                on: {
+                    GO_BACK: {
+                        target: 'votesConstraints',
+                    },
+                },
+
                 type: 'final',
             },
         },

@@ -31,6 +31,13 @@ const MusicTrackVoteCreationFormName: React.FC<MusicTrackVoteCreationFormNameScr
             });
         }
 
+        function handleContinue() {
+            mtvRoomCreationActor?.send({
+                type: 'SAVE_ROOM_NAME',
+                roomName: 'ROOM NAME',
+            });
+        }
+
         return (
             <AppScreen>
                 <AppScreenContainer>
@@ -121,6 +128,7 @@ const MusicTrackVoteCreationFormName: React.FC<MusicTrackVoteCreationFormNameScr
                                     paddingBottom: 'm',
                                     borderRadius: 's',
                                 })}
+                                onPress={handleContinue}
                             >
                                 <Text sx={{ color: 'white', fontSize: 's' }}>
                                     Next

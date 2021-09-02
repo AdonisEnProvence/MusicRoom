@@ -14,7 +14,8 @@ import { TrackMetadata } from '@musicroom/types';
 export type NavigateFromRefParams = {
     Alert: AlertParams;
     HomeScreen: undefined;
-} & RootStackParamList;
+} & RootStackParamList &
+    MusicTrackVoteCreationFormParamList;
 
 export type NavigateFromRefRoutes = keyof NavigateFromRefParams;
 

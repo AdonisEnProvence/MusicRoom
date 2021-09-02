@@ -7,14 +7,20 @@ import {
     AppScreenContainer,
     AppScreenHeader,
 } from '../components/kit';
-import { useMusicPlayer } from '../contexts/MusicPlayerContext';
+import { useCreationMtvRoomFormMachine } from '../contexts/MusicPlayerContext';
 import { MusicTrackVoteCreationFormOpeningStatusScreenProps } from '../types';
 
 const MusicTrackVoteCreationFormOpeningStatus: React.FC<MusicTrackVoteCreationFormOpeningStatusScreenProps> =
     ({ navigation }) => {
         const insets = useSafeAreaInsets();
-        const musicPlayerMachine = useMusicPlayer();
+        const mtvRoomCreationActor = useCreationMtvRoomFormMachine();
         const sx = useSx();
+
+        function handleGoBack() {
+            mtvRoomCreationActor?.send({
+                type: 'GO_BACK',
+            });
+        }
 
         return (
             <AppScreen>
@@ -60,6 +66,7 @@ const MusicTrackVoteCreationFormOpeningStatus: React.FC<MusicTrackVoteCreationFo
                                     borderRadius: 's',
                                     marginRight: 'l',
                                 })}
+                                onPress={handleGoBack}
                             >
                                 <Text sx={{ color: 'white', fontSize: 's' }}>
                                     Back

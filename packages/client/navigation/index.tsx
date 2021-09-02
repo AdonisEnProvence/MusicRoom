@@ -10,7 +10,12 @@ import Toast from 'react-native-toast-message';
 import { navigationStyle } from '../constants/Colors';
 import { AlertScreen } from '../screens/AlertScreen';
 import ChatScreen from '../screens/ChatScreen';
+import MusicTrackVoteCreationFormConfirmation from '../screens/MusicTrackVoteCreationFormConfirmation';
 import MusicTrackVoteCreationFormName from '../screens/MusicTrackVoteCreationFormName';
+import MusicTrackVoteCreationFormOpeningStatus from '../screens/MusicTrackVoteCreationFormOpeningStatus';
+import MusicTrackVoteCreationFormPhysicalConstraints from '../screens/MusicTrackVoteCreationFormPhysicalConstraints';
+import MusicTrackVoteCreationFormPlayingMode from '../screens/MusicTrackVoteCreationFormPlayingMode';
+import MusicTrackVoteCreationFormVotesConstraints from '../screens/MusicTrackVoteCreationFormVotesConstraints';
 import MusicTrackVoteSearchScreen from '../screens/MusicTrackVoteSearchScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import SuggestTrackModal from '../screens/SuggestTrackModal';
@@ -110,6 +115,26 @@ export const MusicTrackVoteCreationFormNavigator: React.FC<ColorModeProps> = ({
             <MusicTrackVoteCreationStack.Screen
                 name="MusicTrackVoteCreationFormName"
                 component={MusicTrackVoteCreationFormName}
+            />
+            <MusicTrackVoteCreationStack.Screen
+                name="MusicTrackVoteCreationFormOpeningStatus"
+                component={MusicTrackVoteCreationFormOpeningStatus}
+            />
+            <MusicTrackVoteCreationStack.Screen
+                name="MusicTrackVoteCreationFormPhysicalConstraints"
+                component={MusicTrackVoteCreationFormPhysicalConstraints}
+            />
+            <MusicTrackVoteCreationStack.Screen
+                name="MusicTrackVoteCreationFormPlayingMode"
+                component={MusicTrackVoteCreationFormPlayingMode}
+            />
+            <MusicTrackVoteCreationStack.Screen
+                name="MusicTrackVoteCreationFormVotesConstraints"
+                component={MusicTrackVoteCreationFormVotesConstraints}
+            />
+            <MusicTrackVoteCreationStack.Screen
+                name="MusicTrackVoteCreationFormConfirmation"
+                component={MusicTrackVoteCreationFormConfirmation}
             />
         </MusicTrackVoteCreationStack.Navigator>
     );

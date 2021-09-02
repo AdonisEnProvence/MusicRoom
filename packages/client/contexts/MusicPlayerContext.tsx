@@ -1,5 +1,4 @@
 import { useMachine } from '@xstate/react';
-import { ActorRef } from '@xstate/react/lib/types';
 import React, { useContext, useRef } from 'react';
 import { Platform } from 'react-native';
 import Toast from 'react-native-toast-message';
@@ -14,10 +13,7 @@ import {
     AppMusicPlayerMachineState,
     createAppMusicPlayerMachine,
 } from '../machines/appMusicPlayerMachine';
-import {
-    CreationMtvRoomFormMachineEvent,
-    CreationMtvRoomFormMachineState,
-} from '../machines/creationMtvRoomForm';
+import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 import { navigateFromRef } from '../navigation/RootNavigation';
 import { Socket } from '../services/websockets';
 
@@ -204,16 +200,10 @@ export function useSuggestTracks(closeSuggestionModal: () => void): {
     };
 }
 
-export function useCreationMtvRoomFormMachine():
-    | ActorRef<CreationMtvRoomFormMachineEvent, CreationMtvRoomFormMachineState>
-    | undefined {
+export function useCreationMtvRoomFormMachine(): CreationMtvRoomFormActorRef {
     const { state } = useMusicPlayer();
+    const actor: CreationMtvRoomFormActorRef =
+        state.children.creationMtvRoomForm;
 
-    const actor:
-        | ActorRef<
-              CreationMtvRoomFormMachineEvent,
-              CreationMtvRoomFormMachineState
-          >
-        | undefined = state.children.creationMtvRoomForm ?? undefined;
     return actor;
 }

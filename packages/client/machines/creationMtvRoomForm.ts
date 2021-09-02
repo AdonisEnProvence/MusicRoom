@@ -4,6 +4,7 @@ import {
     ContextFrom,
     StateFrom,
     sendParent,
+    ActorRef,
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { navigateFromRef } from '../navigation/RootNavigation';
@@ -12,6 +13,8 @@ import { CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents } from './appMu
 const creationMtvRoomFormModel = createModel(
     {
         roomName: '',
+        isOpen: false,
+        onlyInvitedUsersCanVote: false,
     },
     {
         events: {
@@ -19,7 +22,15 @@ const creationMtvRoomFormModel = createModel(
 
             GO_BACK: () => ({}),
 
+            SET_OPENING_STATUS: (isOpen: boolean) => ({ isOpen }),
+
+            SET_INVITED_USERS_VOTE_RESTRICTION: (
+                onlyInvitedUsersCanVote: boolean,
+            ) => ({ onlyInvitedUsersCanVote }),
+
             SAVE_ROOM_NAME: (roomName: string) => ({ roomName }),
+
+            NEXT: () => ({}),
         },
     },
 );
@@ -30,18 +41,41 @@ type ForwardModalCloserEvent = ReturnType<
     CreationMtvRoomFormModelEventsCreators['FORWARD_MODAL_CLOSER']
 >;
 
-export type CreationMtvRoomFormMachine = StateMachine<
-    ContextFrom<typeof creationMtvRoomFormModel>,
-    any,
-    EventFrom<typeof creationMtvRoomFormModel>
->;
-type CreationMtvRoomFormMachineContext = ContextFrom<
+export type CreationMtvRoomFormMachineContext = ContextFrom<
     typeof creationMtvRoomFormModel
 >;
+
+export type CreationMtvRoomFormMachineEvent = EventFrom<
+    typeof creationMtvRoomFormModel
+>;
+
+export type CreationMtvRoomFormMachine = StateMachine<
+    CreationMtvRoomFormMachineContext,
+    any,
+    CreationMtvRoomFormMachineEvent
+>;
+
 export type CreationMtvRoomFormMachineState =
     StateFrom<CreationMtvRoomFormMachine>;
-export type CreationMtvRoomFormMachineEvent =
-    EventFrom<CreationMtvRoomFormMachine>;
+
+export type CreationMtvRoomFormActorRef = ActorRef<
+    CreationMtvRoomFormMachineEvent,
+    CreationMtvRoomFormMachineState
+>;
+
+const assignIsOpen = creationMtvRoomFormModel.assign(
+    {
+        isOpen: (_context, { isOpen }) => isOpen,
+    },
+    'SET_OPENING_STATUS',
+);
+
+const resetOnlyInvitedUsersCanVote = creationMtvRoomFormModel.assign(
+    {
+        onlyInvitedUsersCanVote: false,
+    },
+    undefined,
+);
 
 export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
     return creationMtvRoomFormModel.createMachine({
@@ -55,7 +89,7 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                     try {
                         navigateFromRef('MusicTrackVoteCreationFormName');
                     } catch {
-                        // An error is thrown when the modal is opened.
+                        // An error is thrown when the modal is open.
                         // We are not yet in MusicTrackVoteCreationForm and
                         // we can there is no screen called MusicTrackVoteCreationFormName.
                         // This is not a problem that the first call does not succeed
@@ -101,9 +135,54 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                     navigateFromRef('MusicTrackVoteCreationFormOpeningStatus');
                 },
 
+                initial: 'public',
+
+                states: {
+                    public: {
+                        tags: 'isRoomPublic',
+
+                        entry: resetOnlyInvitedUsersCanVote,
+
+                        on: {
+                            SET_INVITED_USERS_VOTE_RESTRICTION: {
+                                actions: creationMtvRoomFormModel.assign({
+                                    onlyInvitedUsersCanVote: (
+                                        _context,
+                                        { onlyInvitedUsersCanVote },
+                                    ) => onlyInvitedUsersCanVote,
+                                }),
+                            },
+                        },
+                    },
+
+                    private: {
+                        tags: 'isRoomPrivate',
+                    },
+                },
+
                 on: {
+                    SET_OPENING_STATUS: [
+                        {
+                            cond: (_context, { isOpen }) => isOpen === true,
+
+                            target: '.public',
+
+                            actions: assignIsOpen,
+                        },
+
+                        {
+                            target: '.private',
+
+                            actions: assignIsOpen,
+                        },
+                    ],
+
                     GO_BACK: {
                         target: 'roomName',
+                    },
+
+                    NEXT: {
+                        target: 'physicalConstraints',
                     },
                 },
             },

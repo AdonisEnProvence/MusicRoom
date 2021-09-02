@@ -10,12 +10,14 @@ import Toast from 'react-native-toast-message';
 import { navigationStyle } from '../constants/Colors';
 import { AlertScreen } from '../screens/AlertScreen';
 import ChatScreen from '../screens/ChatScreen';
+import MusicTrackVoteCreationFormName from '../screens/MusicTrackVoteCreationFormName';
 import MusicTrackVoteSearchScreen from '../screens/MusicTrackVoteSearchScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import SuggestTrackModal from '../screens/SuggestTrackModal';
 import SuggestTrackResultsModal from '../screens/SuggestTrackResultsModal';
 import {
     MainStackParamList,
+    MusicTrackVoteCreationFormParamList,
     RootStackParamList,
     SuggestTrackStackParamList,
 } from '../types';
@@ -62,6 +64,8 @@ const Navigation: React.FC<ColorModeProps> = ({
 const RootStack = createStackNavigator<RootStackParamList>();
 const MainStack = createStackNavigator<MainStackParamList>();
 const SuggestTrackStack = createStackNavigator<SuggestTrackStackParamList>();
+const MusicTrackVoteCreationStack =
+    createStackNavigator<MusicTrackVoteCreationFormParamList>();
 
 export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
     const style = navigationStyle(colorScheme);
@@ -83,7 +87,31 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
                 component={SuggestTrackNavigator}
                 options={{ headerShown: false }}
             />
+
+            <RootStack.Screen
+                name="MusicTrackVoteCreationForm"
+                component={MusicTrackVoteCreationFormNavigator}
+                options={{ headerShown: false }}
+            />
         </RootStack.Navigator>
+    );
+};
+
+export const MusicTrackVoteCreationFormNavigator: React.FC<ColorModeProps> = ({
+    colorScheme,
+}) => {
+    const style = navigationStyle(colorScheme);
+
+    return (
+        <MusicTrackVoteCreationStack.Navigator
+            initialRouteName="MusicTrackVoteCreationFormName"
+            screenOptions={{ ...style, headerShown: false }}
+        >
+            <MusicTrackVoteCreationStack.Screen
+                name="MusicTrackVoteCreationFormName"
+                component={MusicTrackVoteCreationFormName}
+            />
+        </MusicTrackVoteCreationStack.Navigator>
     );
 };
 

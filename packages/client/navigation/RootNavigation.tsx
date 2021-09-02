@@ -14,7 +14,6 @@ export const isReadyRef: React.MutableRefObject<boolean | null> =
 
 export const navigationRef = React.createRef<NavigationContainerRef>();
 
-// eslint-disable-next-line
 export function navigateFromRef<Route extends NavigateFromRefRoutes>(
     name: NavigateFromRefRoutes,
     params?: NavigateFromRefParams[Route],

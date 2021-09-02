@@ -14,7 +14,7 @@ import { TrackMetadata } from '@musicroom/types';
 export type NavigateFromRefParams = {
     Alert: AlertParams;
     HomeScreen: undefined;
-};
+} & RootStackParamList;
 
 export type NavigateFromRefRoutes = keyof NavigateFromRefParams;
 
@@ -36,11 +36,17 @@ export type RootStackParamList = {
     Main: NavigatorScreenParams<MainStackParamList>;
 
     SuggestTrack: NavigatorScreenParams<SuggestTrackStackParamList>;
+
+    MusicTrackVoteCreationForm: MusicTrackVoteCreationFormParamList;
 };
 
 export type SuggestTrackStackParamList = {
     SuggestTrackModal: undefined;
     SuggestTrackResultsModal: SearchTracksResultsParams;
+};
+
+export type MusicTrackVoteCreationFormParamList = {
+    MusicTrackVoteCreationFormName: undefined;
 };
 
 export type MainStackParamList = {
@@ -91,6 +97,21 @@ export type SuggestTrackResultsModalProps = {
         >
     >;
     route: RouteProp<SuggestTrackStackParamList, 'SuggestTrackResultsModal'>;
+};
+
+export type MusicTrackVoteCreationFormNameScreenProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'MusicTrackVoteCreationForm'>,
+        StackNavigationProp<
+            MusicTrackVoteCreationFormParamList,
+            'MusicTrackVoteCreationFormName'
+        >
+    >;
+
+    route: RouteProp<
+        MusicTrackVoteCreationFormParamList,
+        'MusicTrackVoteCreationFormName'
+    >;
 };
 
 export type MusicTrackVoteSearchScreenProps = {

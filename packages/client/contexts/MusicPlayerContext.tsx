@@ -121,7 +121,7 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
                 },
 
                 openCreationMtvRoomFormModal: () => {
-                    console.log('open creation mtv room form modal');
+                    navigateFromRef('MusicTrackVoteCreationForm');
                 },
 
                 closeCreationMtvRoomFormModal: () => {

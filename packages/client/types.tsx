@@ -47,6 +47,11 @@ export type SuggestTrackStackParamList = {
 
 export type MusicTrackVoteCreationFormParamList = {
     MusicTrackVoteCreationFormName: undefined;
+    MusicTrackVoteCreationFormOpeningStatus: undefined;
+    MusicTrackVoteCreationFormPhysicalConstraints: undefined;
+    MusicTrackVoteCreationFormPlayingMode: undefined;
+    MusicTrackVoteCreationFormVotesConstraints: undefined;
+    MusicTrackVoteCreationFormConfirmation: undefined;
 };
 
 export type MainStackParamList = {
@@ -111,6 +116,81 @@ export type MusicTrackVoteCreationFormNameScreenProps = {
     route: RouteProp<
         MusicTrackVoteCreationFormParamList,
         'MusicTrackVoteCreationFormName'
+    >;
+};
+
+export type MusicTrackVoteCreationFormOpeningStatusScreenProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'MusicTrackVoteCreationForm'>,
+        StackNavigationProp<
+            MusicTrackVoteCreationFormParamList,
+            'MusicTrackVoteCreationFormOpeningStatus'
+        >
+    >;
+
+    route: RouteProp<
+        MusicTrackVoteCreationFormParamList,
+        'MusicTrackVoteCreationFormOpeningStatus'
+    >;
+};
+
+export type MusicTrackVoteCreationFormPhysicalConstraintsScreenProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'MusicTrackVoteCreationForm'>,
+        StackNavigationProp<
+            MusicTrackVoteCreationFormParamList,
+            'MusicTrackVoteCreationFormPhysicalConstraints'
+        >
+    >;
+
+    route: RouteProp<
+        MusicTrackVoteCreationFormParamList,
+        'MusicTrackVoteCreationFormPhysicalConstraints'
+    >;
+};
+
+export type MusicTrackVoteCreationFormPlayingModeScreenProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'MusicTrackVoteCreationForm'>,
+        StackNavigationProp<
+            MusicTrackVoteCreationFormParamList,
+            'MusicTrackVoteCreationFormPlayingMode'
+        >
+    >;
+
+    route: RouteProp<
+        MusicTrackVoteCreationFormParamList,
+        'MusicTrackVoteCreationFormPlayingMode'
+    >;
+};
+
+export type MusicTrackVoteCreationFormVotesConstraintsScreenProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'MusicTrackVoteCreationForm'>,
+        StackNavigationProp<
+            MusicTrackVoteCreationFormParamList,
+            'MusicTrackVoteCreationFormVotesConstraints'
+        >
+    >;
+
+    route: RouteProp<
+        MusicTrackVoteCreationFormParamList,
+        'MusicTrackVoteCreationFormVotesConstraints'
+    >;
+};
+
+export type MusicTrackVoteCreationFormConfirmationScreenProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'MusicTrackVoteCreationForm'>,
+        StackNavigationProp<
+            MusicTrackVoteCreationFormParamList,
+            'MusicTrackVoteCreationFormConfirmation'
+        >
+    >;
+
+    route: RouteProp<
+        MusicTrackVoteCreationFormParamList,
+        'MusicTrackVoteCreationFormConfirmation'
     >;
 };
 

@@ -44,11 +44,11 @@ test.group(
                         roomCreatorUserID: userID,
                         roomID: workflowID,
                         tracks: null,
-                        suggestedTracks: null,
                         userRelatedInformation: {
                             userID: userID,
                             emittingDeviceID: deviceID,
                         },
+                        minimumScoreToBePlayed: 0,
                         usersLength: 1,
                     };
 
@@ -184,11 +184,11 @@ test.group(
                         roomCreatorUserID: userID,
                         roomID: workflowID,
                         tracks: null,
-                        suggestedTracks: null,
                         userRelatedInformation: {
                             userID: userID,
                             emittingDeviceID: deviceID,
                         },
+                        minimumScoreToBePlayed: 0,
                         usersLength: 1,
                     };
 
@@ -247,11 +247,11 @@ test.group(
                         roomCreatorUserID: userID,
                         roomID: workflowID,
                         tracks: null,
-                        suggestedTracks: null,
                         userRelatedInformation: {
                             userID: userID,
                             emittingDeviceID: deviceID,
                         },
+                        minimumScoreToBePlayed: 0,
                         usersLength: 1,
                     };
 

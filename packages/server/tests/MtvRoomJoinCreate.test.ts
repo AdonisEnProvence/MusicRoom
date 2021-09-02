@@ -61,7 +61,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                                 score: datatype.number(),
                             },
                         ],
-                        suggestedTracks: null,
+                        minimumScoreToBePlayed: 0,
                     },
                 };
             });
@@ -131,7 +131,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                             score: datatype.number(),
                         },
                     ],
-                    suggestedTracks: null,
+                    minimumScoreToBePlayed: 0,
                 };
 
                 return {
@@ -157,7 +157,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                         : null,
                     currentTrack: null,
                     tracks: null,
-                    suggestedTracks: null,
+                    minimumScoreToBePlayed: 0,
                 };
             });
         sinon.stub(ServerToTemporalController, 'play').callsFake(async () => {
@@ -215,13 +215,13 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                             score: datatype.number(),
                         },
                     ],
-                    suggestedTracks: null,
                     playing: false,
                     name: roomName,
                     userRelatedInformation: {
                         userID: creatorID,
                         emittingDeviceID: datatype.uuid(),
                     },
+                    minimumScoreToBePlayed: 0,
                     usersLength: 1,
                 };
 

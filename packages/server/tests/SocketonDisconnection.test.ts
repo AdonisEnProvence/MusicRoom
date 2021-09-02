@@ -97,8 +97,8 @@ test.group('Rooms life cycle', (group) => {
                             score: datatype.number(),
                         },
                     ],
-                    suggestedTracks: null,
                     currentTrack: null,
+                    minimumScoreToBePlayed: 0,
                 };
 
                 // Simulating Use Local Activity Notify
@@ -192,7 +192,7 @@ test.group('Rooms life cycle', (group) => {
                             score: datatype.number(),
                         },
                     ],
-                    suggestedTracks: null,
+                    minimumScoreToBePlayed: 0,
                 };
                 return {
                     runID: datatype.uuid(),

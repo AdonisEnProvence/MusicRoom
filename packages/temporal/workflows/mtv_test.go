@@ -1608,7 +1608,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 		activities.NotifySuggestOrVoteUpdateActivity,
 		mock.Anything,
 		mock.Anything,
-	).Return(nil).Once()
+	).Return(nil).Times(2)
 
 	//Verify that creator has voted for the initialTracks and that he cannot vote or vote by suggest again
 	checkCreatorTracksVotedFor := defaultDuration
@@ -1810,8 +1810,9 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 
 	emitVoteForCreatorForNotVotedTrack := defaultDuration
 	registerDelayedCallbackWrapper(func() {
+		fmt.Println("((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((")
 		s.emitVoteSignal(shared.NewVoteForTrackSignalArgs{
-			TrackID: tracksToSuggest[0].ID,
+			TrackID: tracksToSuggest[1].ID,
 			UserID:  params.RoomCreatorUserID,
 		})
 	}, emitVoteForCreatorForNotVotedTrack)
@@ -1836,26 +1837,26 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 			{
 				TrackMetadataWithScore: shared.TrackMetadataWithScore{
 					TrackMetadata: shared.TrackMetadata{
-						ID:         tracksToSuggest[0].ID,
-						Title:      tracksToSuggest[0].Title,
-						ArtistName: tracksToSuggest[0].ArtistName,
-						Duration:   0,
-					},
-					Score: 2,
-				},
-				Duration: tracksToSuggest[0].Duration.Milliseconds(),
-			},
-			{
-				TrackMetadataWithScore: shared.TrackMetadataWithScore{
-					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggest[1].ID,
 						Title:      tracksToSuggest[1].Title,
 						ArtistName: tracksToSuggest[1].ArtistName,
 						Duration:   0,
 					},
-					Score: 1,
+					Score: 2,
 				},
 				Duration: tracksToSuggest[1].Duration.Milliseconds(),
+			},
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracksToSuggest[0].ID,
+						Title:      tracksToSuggest[0].Title,
+						ArtistName: tracksToSuggest[0].ArtistName,
+						Duration:   0,
+					},
+					Score: 1,
+				},
+				Duration: tracksToSuggest[0].Duration.Milliseconds(),
 			},
 		}
 
@@ -1896,26 +1897,26 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 			{
 				TrackMetadataWithScore: shared.TrackMetadataWithScore{
 					TrackMetadata: shared.TrackMetadata{
-						ID:         tracksToSuggest[0].ID,
-						Title:      tracksToSuggest[0].Title,
-						ArtistName: tracksToSuggest[0].ArtistName,
-						Duration:   0,
-					},
-					Score: 2,
-				},
-				Duration: tracksToSuggest[0].Duration.Milliseconds(),
-			},
-			{
-				TrackMetadataWithScore: shared.TrackMetadataWithScore{
-					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggest[1].ID,
 						Title:      tracksToSuggest[1].Title,
 						ArtistName: tracksToSuggest[1].ArtistName,
 						Duration:   0,
 					},
-					Score: 1,
+					Score: 2,
 				},
 				Duration: tracksToSuggest[1].Duration.Milliseconds(),
+			},
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracksToSuggest[0].ID,
+						Title:      tracksToSuggest[0].Title,
+						ArtistName: tracksToSuggest[0].ArtistName,
+						Duration:   0,
+					},
+					Score: 1,
+				},
+				Duration: tracksToSuggest[0].Duration.Milliseconds(),
 			},
 			{
 				TrackMetadataWithScore: shared.TrackMetadataWithScore{

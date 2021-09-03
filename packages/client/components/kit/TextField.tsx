@@ -1,14 +1,14 @@
 import { styled } from 'dripsy';
 import { TextInput as RNTextInput } from 'react-native';
 
-const TextInput = styled(RNTextInput)(() => ({
+const TextField = styled(RNTextInput)(() => ({
     flex: 1,
-    borderColor: 'secondary',
-    borderWidth: 's',
-    borderRadius: 's',
     padding: 'm',
+    borderWidth: 0,
+    borderRadius: 's',
     color: 'text',
+    backgroundColor: 'greyLight',
     fontSize: 's',
 }));
 
-export default TextInput;
+export default TextField;

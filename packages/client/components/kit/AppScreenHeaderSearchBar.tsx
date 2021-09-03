@@ -7,7 +7,7 @@ import { useSx, View } from 'dripsy';
 import { Ionicons } from '@expo/vector-icons';
 import { useLayout } from '../../hooks/useLayout';
 import Typo from './Typo';
-import TextInput from './TextInput';
+import TextField from './TextField';
 import { GLOBAL_THEME_CONSTANTS } from '../../hooks/useTheme';
 
 type AppScreenHeaderSearchBarProps = {
@@ -139,8 +139,8 @@ const AppScreenHeaderSearchBar: React.FC<AppScreenHeaderSearchBarProps> = ({
                     style={sx({ color: 'white', fontSize: 's' })}
                 />
 
-                <TextInput
-                    ref={(input) => {
+                <TextField
+                    ref={(input: unknown) => {
                         // @ts-expect-error we could not find a way to use our TextInput component in a ref
                         textInputRef.current = input;
                     }}

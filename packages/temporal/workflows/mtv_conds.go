@@ -26,14 +26,6 @@ func canPlayCurrentTrack(internalState *MtvRoomInternalState) brainy.Cond {
 	}
 }
 
-/*
-	user, exists := internalState.Users[userID]
-
-	if !exists {
-		return false
-	}
-*/
-
 func userCanVoteForTrackID(internalState *MtvRoomInternalState) brainy.Cond {
 	return func(c brainy.Context, e brainy.Event) bool {
 		voteForTrackEvent := e.(MtvRoomUserVoteForTrackEvent)

@@ -152,7 +152,6 @@ func (s *TracksMetadataWithScoreSet) Shift() (TrackMetadataWithScore, bool) {
 }
 
 func (s *TracksMetadataWithScoreSet) DeepEqual(toCmpTracksList TracksMetadataWithScoreSet) bool {
-	//Could be refactor using a range loop, atm this is not compilation friendly
 	if len(s.tracks) != len(toCmpTracksList.tracks) {
 		return false
 	}

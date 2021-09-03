@@ -23,6 +23,7 @@ export type CurrentTrack = z.infer<typeof CurrentTrack>;
 export const UserRelatedInformation = z.object({
     userID: z.string(),
     emittingDeviceID: z.string(),
+    tracksVotedFor: z.string().array(),
 });
 export type UserRelatedInformation = z.infer<typeof UserRelatedInformation>;
 
@@ -35,7 +36,7 @@ export const MtvWorkflowState = z.object({
     usersLength: z.number(),
     currentTrack: CurrentTrack.nullable(),
     tracks: z.array(TrackMetadataWithScore).nullable(),
-    suggestedTracks: z.array(TrackMetadataWithScore).nullable(),
+    minimumScoreToBePlayed: z.number().positive(),
 });
 export type MtvWorkflowState = z.infer<typeof MtvWorkflowState>;
 

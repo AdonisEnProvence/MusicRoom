@@ -81,8 +81,8 @@ test.group(
 
                         roomCreatorUserID: userID,
                         tracks: null,
-                        suggestedTracks: null,
                         userRelatedInformation: null,
+                        minimumScoreToBePlayed: 1,
                         usersLength: 1,
                     };
                 });

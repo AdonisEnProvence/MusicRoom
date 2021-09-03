@@ -53,7 +53,7 @@ Route.post(
 );
 
 Route.post(
-    '/temporal/suggested-tracks-list-changed',
+    '/temporal/suggest-or-vote-update',
     'Temporal/TemporalToServerController.broadcastSuggestedTracksListUpdate',
 );
 

@@ -86,6 +86,7 @@ test.group('Rooms life cycle', (group) => {
                     userRelatedInformation: {
                         userID,
                         emittingDeviceID: datatype.uuid(),
+                        tracksVotedFor: [],
                     },
                     usersLength: 1,
                     tracks: [
@@ -97,8 +98,8 @@ test.group('Rooms life cycle', (group) => {
                             score: datatype.number(),
                         },
                     ],
-                    suggestedTracks: null,
                     currentTrack: null,
+                    minimumScoreToBePlayed: 1,
                 };
 
                 // Simulating Use Local Activity Notify
@@ -180,6 +181,7 @@ test.group('Rooms life cycle', (group) => {
                     userRelatedInformation: {
                         emittingDeviceID: datatype.uuid(),
                         userID: userA.userID,
+                        tracksVotedFor: [],
                     },
                     usersLength: 1,
                     currentTrack: null,
@@ -192,7 +194,7 @@ test.group('Rooms life cycle', (group) => {
                             score: datatype.number(),
                         },
                     ],
-                    suggestedTracks: null,
+                    minimumScoreToBePlayed: 1,
                 };
                 return {
                     runID: datatype.uuid(),
@@ -208,6 +210,7 @@ test.group('Rooms life cycle', (group) => {
                 state.userRelatedInformation = {
                     userID,
                     emittingDeviceID: datatype.uuid(),
+                    tracksVotedFor: [],
                 };
                 await supertest(BASE_URL)
                     .post('/temporal/join')

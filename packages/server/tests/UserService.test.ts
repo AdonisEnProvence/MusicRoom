@@ -36,9 +36,9 @@ test.group(`User service socket handler tests`, (group) => {
             roomCreatorUserID: userID,
             roomID: datatype.uuid(),
             tracks: null,
-            suggestedTracks: null,
             usersLength: 1,
             userRelatedInformation: null,
+            minimumScoreToBePlayed: 1,
         };
         const receivedEvents: string[] = [];
 

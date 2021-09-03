@@ -44,11 +44,12 @@ test.group(
                         roomCreatorUserID: userID,
                         roomID: workflowID,
                         tracks: null,
-                        suggestedTracks: null,
                         userRelatedInformation: {
                             userID: userID,
                             emittingDeviceID: deviceID,
+                            tracksVotedFor: [],
                         },
+                        minimumScoreToBePlayed: 1,
                         usersLength: 1,
                     };
 
@@ -97,6 +98,7 @@ test.group(
                         {
                             userID: userID,
                             emittingDeviceID: deviceB.uuid,
+                            tracksVotedFor: [],
                         };
 
                     assert.isNotNull(userRelatedInformation);
@@ -118,10 +120,12 @@ test.group(
             socket.socket.once(
                 'CHANGE_EMITTING_DEVICE_CALLBACK',
                 ({ userRelatedInformation }) => {
-                    const expectedUserRelatedInformation = {
-                        userID: userID,
-                        emittingDeviceID: deviceB.uuid,
-                    };
+                    const expectedUserRelatedInformation: UserRelatedInformation =
+                        {
+                            userID: userID,
+                            emittingDeviceID: deviceB.uuid,
+                            tracksVotedFor: [],
+                        };
 
                     assert.deepEqual(
                         userRelatedInformation,
@@ -184,11 +188,12 @@ test.group(
                         roomCreatorUserID: userID,
                         roomID: workflowID,
                         tracks: null,
-                        suggestedTracks: null,
                         userRelatedInformation: {
                             userID: userID,
                             emittingDeviceID: deviceID,
+                            tracksVotedFor: [],
                         },
+                        minimumScoreToBePlayed: 1,
                         usersLength: 1,
                     };
 
@@ -247,11 +252,12 @@ test.group(
                         roomCreatorUserID: userID,
                         roomID: workflowID,
                         tracks: null,
-                        suggestedTracks: null,
                         userRelatedInformation: {
                             userID: userID,
                             emittingDeviceID: deviceID,
+                            tracksVotedFor: [],
                         },
+                        minimumScoreToBePlayed: 1,
                         usersLength: 1,
                     };
 

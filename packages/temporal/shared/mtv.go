@@ -1,14 +1,16 @@
 package shared
 
 import (
+	"sort"
 	"time"
 )
 
 type MtvRoomTimerExpiredReason string
 
 const (
-	MtvRoomTimerExpiredReasonCanceled MtvRoomTimerExpiredReason = "canceled"
-	MtvRoomTimerExpiredReasonFinished MtvRoomTimerExpiredReason = "finished"
+	MtvRoomTimerExpiredReasonCanceled  MtvRoomTimerExpiredReason = "canceled"
+	MtvRoomTimerExpiredReasonFinished  MtvRoomTimerExpiredReason = "finished"
+	CheckForVoteUpdateIntervalDuration time.Duration             = 2000 * time.Millisecond
 )
 
 type MtvRoomTimer struct {
@@ -68,6 +70,42 @@ func (s *TracksMetadataWithScoreSet) Has(trackID string) bool {
 	return false
 }
 
+func (s *TracksMetadataWithScoreSet) IndexOf(trackID string) (int, bool) {
+	for index, track := range s.tracks {
+		if track.ID == trackID {
+			return index, true
+		}
+	}
+
+	return -1, false
+}
+
+func (s *TracksMetadataWithScoreSet) Get(trackID string) (*TrackMetadataWithScore, bool) {
+	index, exists := s.IndexOf(trackID)
+
+	if !exists {
+		return nil, false
+	}
+
+	return &s.tracks[index], true
+}
+
+func (s *TracksMetadataWithScoreSet) IncrementTrackScoreAndSortTracks(trackID string) bool {
+	track, exists := s.Get(trackID)
+
+	if !exists {
+		return false
+	}
+
+	track.Score++
+	s.StableSortByHigherScore()
+	return true
+}
+
+func (s *TracksMetadataWithScoreSet) StableSortByHigherScore() {
+	sort.SliceStable(s.tracks, func(i, j int) bool { return s.tracks[i].Score > s.tracks[j].Score })
+}
+
 func (s *TracksMetadataWithScoreSet) Add(tracks ...TrackMetadataWithScore) {
 	for _, track := range tracks {
 		if isDuplicate := s.Has(track.ID); isDuplicate {
@@ -111,6 +149,19 @@ func (s *TracksMetadataWithScoreSet) Shift() (TrackMetadataWithScore, bool) {
 	}
 
 	return firstElement, true
+}
+
+func (s *TracksMetadataWithScoreSet) DeepEqual(toCmpTracksList TracksMetadataWithScoreSet) bool {
+	if len(s.tracks) != len(toCmpTracksList.tracks) {
+		return false
+	}
+
+	for index, track := range s.tracks {
+		if track != toCmpTracksList.tracks[index] {
+			return false
+		}
+	}
+	return true
 }
 
 // Difference returns a new TracksMetadataWithScoreSet with all the elements from
@@ -157,8 +208,18 @@ func (c CurrentTrack) Export(elapsed time.Duration) ExposedCurrentTrack {
 }
 
 type InternalStateUser struct {
-	UserID   string `json:"userID"`
-	DeviceID string `json:"emittingDeviceID"`
+	UserID         string   `json:"userID"`
+	DeviceID       string   `json:"emittingDeviceID"`
+	TracksVotedFor []string `json:"tracksVotedFor"`
+}
+
+func (s *InternalStateUser) HasVotedFor(trackID string) bool {
+	for _, votedFortrackID := range s.TracksVotedFor {
+		if votedFortrackID == trackID {
+			return true
+		}
+	}
+	return false
 }
 
 type MtvRoomParameters struct {
@@ -187,7 +248,7 @@ type MtvRoomExposedState struct {
 	UserRelatedInformation *InternalStateUser                   `json:"userRelatedInformation"`
 	CurrentTrack           *ExposedCurrentTrack                 `json:"currentTrack"`
 	Tracks                 []TrackMetadataWithScoreWithDuration `json:"tracks"`
-	SuggestedTracks        []TrackMetadataWithScore             `json:"suggestedTracks"`
+	MinimumScoreToBePlayed int                                  `json:"minimumScoreToBePlayed"`
 	UsersLength            int                                  `json:"usersLength"`
 }
 
@@ -202,6 +263,7 @@ const (
 	SignalRouteGoToNextTrack            = "go-to-next-track"
 	SignalRouteChangeUserEmittingDevice = "change-user-emitting-device"
 	SignalRouteSuggestTracks            = "suggest-tracks"
+	SignalRouteVoteForTrack             = "vote-for-track"
 )
 
 type GenericRouteSignal struct {
@@ -329,5 +391,24 @@ func NewSuggestTracksSignal(args SuggestTracksSignalArgs) SuggestTracksSignal {
 		TracksToSuggest: args.TracksToSuggest,
 		UserID:          args.UserID,
 		DeviceID:        args.DeviceID,
+	}
+}
+
+type VoteForTrackSignal struct {
+	Route   SignalRoute `validate:"required"`
+	UserID  string      `validate:"required,uuid"`
+	TrackID string      `validate:"required"`
+}
+
+type NewVoteForTrackSignalArgs struct {
+	UserID  string `validate:"required,uuid"`
+	TrackID string `validate:"required"`
+}
+
+func NewVoteForTrackSignal(args NewVoteForTrackSignalArgs) VoteForTrackSignal {
+	return VoteForTrackSignal{
+		Route:   SignalRouteVoteForTrack,
+		TrackID: args.TrackID,
+		UserID:  args.UserID,
 	}
 }

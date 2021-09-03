@@ -86,6 +86,20 @@ func JoinActivity(ctx context.Context, state shared.MtvRoomExposedState, joining
 	return err
 }
 
+func UserVoteForTrackAcknowledgement(ctx context.Context, state shared.MtvRoomExposedState) error {
+	requestBody := state
+
+	marshaledBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	url := ADONIS_ENDPOINT + "/temporal/acknowledge-user-vote-for-track"
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+
+	return err
+}
+
 func ChangeUserEmittingDeviceActivity(ctx context.Context, state shared.MtvRoomExposedState) error {
 	requestBody := state
 
@@ -100,7 +114,7 @@ func ChangeUserEmittingDeviceActivity(ctx context.Context, state shared.MtvRoomE
 	return err
 }
 
-func SuggestedTracksListChangedActivity(ctx context.Context, state shared.MtvRoomExposedState) error {
+func NotifySuggestOrVoteUpdateActivity(ctx context.Context, state shared.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -108,7 +122,7 @@ func SuggestedTracksListChangedActivity(ctx context.Context, state shared.MtvRoo
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/suggested-tracks-list-changed"
+	url := ADONIS_ENDPOINT + "/temporal/suggest-or-vote-update"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err

@@ -14,7 +14,7 @@ import {
 } from '../tests/tests-utils';
 
 test(`It should display the music player corresponding to the injected state on both CREATED_ROOM server socket callbacks`, async () => {
-    const fakeTrack = db.tracks.create();
+    const fakeTrack = db.searchableTracks.create();
     const roomName = random.words();
     const userID = datatype.uuid();
     const state: MtvWorkflowState = {
@@ -25,6 +25,7 @@ test(`It should display the music player corresponding to the injected state on 
         userRelatedInformation: {
             emittingDeviceID: datatype.uuid(),
             userID,
+            tracksVotedFor: [],
         },
         roomCreatorUserID: datatype.uuid(),
         currentTrack: {
@@ -44,7 +45,7 @@ test(`It should display the music player corresponding to the injected state on 
                 score: datatype.number(),
             },
         ],
-        suggestedTracks: null,
+        minimumScoreToBePlayed: 1,
     };
 
     const { getAllByText, getByTestId, findByA11yState } = render(
@@ -110,7 +111,7 @@ test(`It should display the music player corresponding to the injected state on 
 });
 
 test(`It should display the music player corresponding to the injected state on both RETRIEVE_CONTEXT server socket event`, async () => {
-    const fakeTrack = db.tracks.create();
+    const fakeTrack = db.searchableTracks.create();
     const roomName = random.words();
     const userID = datatype.uuid();
     const state: MtvWorkflowState = {
@@ -121,6 +122,7 @@ test(`It should display the music player corresponding to the injected state on 
         userRelatedInformation: {
             emittingDeviceID: datatype.uuid(),
             userID,
+            tracksVotedFor: [],
         },
         roomCreatorUserID: userID,
         currentTrack: {
@@ -140,7 +142,7 @@ test(`It should display the music player corresponding to the injected state on 
                 score: datatype.number(),
             },
         ],
-        suggestedTracks: null,
+        minimumScoreToBePlayed: 1,
     };
 
     const { getAllByText, getByTestId, findByA11yState } = render(
@@ -192,7 +194,7 @@ test(`It should display the music player corresponding to the injected state on 
 });
 
 test(`It should display the already elapsed track duration and player should be playing`, async () => {
-    const fakeTrack = db.tracks.create();
+    const fakeTrack = db.searchableTracks.create();
     const roomName = random.words();
     const userID = datatype.uuid();
     const state: MtvWorkflowState = {
@@ -203,6 +205,7 @@ test(`It should display the already elapsed track duration and player should be 
         userRelatedInformation: {
             emittingDeviceID: datatype.uuid(),
             userID,
+            tracksVotedFor: [],
         },
         roomCreatorUserID: userID,
         currentTrack: {
@@ -222,7 +225,7 @@ test(`It should display the already elapsed track duration and player should be 
                 score: datatype.number(),
             },
         ],
-        suggestedTracks: null,
+        minimumScoreToBePlayed: 1,
     };
 
     const { getAllByText, getByTestId, findByA11yState, debug } = render(

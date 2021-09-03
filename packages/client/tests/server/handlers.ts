@@ -11,7 +11,7 @@ export const handlers = [
         (req, res, ctx) => {
             const { query } = req.params;
 
-            const tracks = db.tracks.findMany({
+            const tracks = db.searchableTracks.findMany({
                 where: {
                     title: {
                         contains: query,

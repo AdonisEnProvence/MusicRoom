@@ -5,18 +5,18 @@ import React from 'react';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
-import { db } from '../tests/data';
+import { generateTrackMetadata } from '../tests/data';
 import {
     fireEvent,
+    noop,
     render,
     waitFor,
-    within,
     waitForTimeout,
-    noop,
+    within,
 } from '../tests/tests-utils';
 
 test(`When the user clicks on next track button, it should play the next track, if there is one`, async () => {
-    const tracksList = [db.tracksMetadata.create(), db.tracksMetadata.create()];
+    const tracksList = [generateTrackMetadata(), generateTrackMetadata()];
 
     const roomCreatorUserID = datatype.uuid();
     const initialState: MtvWorkflowState = {
@@ -28,13 +28,14 @@ test(`When the user clicks on next track button, it should play the next track, 
         userRelatedInformation: {
             emittingDeviceID: datatype.uuid(),
             userID: roomCreatorUserID,
+            tracksVotedFor: [],
         },
         currentTrack: {
             ...tracksList[0],
             elapsed: 0,
         },
         tracks: tracksList.slice(1),
-        suggestedTracks: null,
+        minimumScoreToBePlayed: 1,
     };
 
     serverSocket.on('GO_TO_NEXT_TRACK', () => {

@@ -1,11 +1,11 @@
 import { MtvWorkflowState, UserDevice } from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
-import { datatype, name, random } from 'faker';
+import { datatype, random } from 'faker';
 import React from 'react';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
-import { db } from '../tests/data';
+import { generateTrackMetadata } from '../tests/data';
 import { fireEvent, render, within } from '../tests/tests-utils';
 
 function noop() {
@@ -30,14 +30,15 @@ test(`
         userRelatedInformation: {
             emittingDeviceID: thisDevice.deviceID,
             userID,
+            tracksVotedFor: [],
         },
         currentTrack: null,
         roomCreatorUserID: userID,
-        tracks: [db.tracksMetadata.create()],
-        suggestedTracks: null,
+        tracks: [generateTrackMetadata()],
+        minimumScoreToBePlayed: 1,
     };
 
-    const { debug, getByTestId, getAllByText, findByA11yState } = render(
+    const { getByTestId, findByA11yState } = render(
         <NavigationContainer
             ref={navigationRef}
             onReady={() => {

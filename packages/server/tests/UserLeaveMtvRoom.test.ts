@@ -57,9 +57,9 @@ test.group(
                 roomCreatorUserID: userAID,
                 roomID: mtvRoomIDToAssociate,
                 tracks: null,
-                suggestedTracks: null,
                 userRelatedInformation: null,
                 usersLength: 3,
+                minimumScoreToBePlayed: 1,
             };
 
             const roomToJoinState: MtvWorkflowState = {
@@ -69,9 +69,9 @@ test.group(
                 roomCreatorUserID: roomToJoinCreatorID,
                 roomID: mtvRoomToJoinID,
                 tracks: null,
-                suggestedTracks: null,
                 userRelatedInformation: null,
                 usersLength: 1,
+                minimumScoreToBePlayed: 1,
             };
 
             sinon
@@ -100,6 +100,7 @@ test.group(
                     roomToJoinState.userRelatedInformation = {
                         userID: relatedUserID,
                         emittingDeviceID: datatype.uuid(),
+                        tracksVotedFor: [],
                     };
                     await supertest(BASE_URL).post('/temporal/join').send({
                         state: roomToJoinState,
@@ -268,9 +269,9 @@ test.group(
                 roomCreatorUserID: userAID,
                 roomID: mtvRoomIDToAssociate,
                 tracks: null,
-                suggestedTracks: null,
                 userRelatedInformation: null,
                 usersLength: 3,
+                minimumScoreToBePlayed: 1,
             };
 
             const roomToJoinState: MtvWorkflowState = {
@@ -280,8 +281,8 @@ test.group(
                 roomCreatorUserID: roomToJoinCreatorID,
                 roomID: mtvRoomToJoinID,
                 tracks: null,
-                suggestedTracks: null,
                 userRelatedInformation: null,
+                minimumScoreToBePlayed: 1,
                 usersLength: 1,
             };
 
@@ -313,6 +314,7 @@ test.group(
                     roomToJoinState.userRelatedInformation = {
                         userID: relatedUserID,
                         emittingDeviceID: datatype.uuid(),
+                        tracksVotedFor: [],
                     };
                     await supertest(BASE_URL).post('/temporal/join').send({
                         state: roomToJoinState,
@@ -475,9 +477,9 @@ test.group(
                 roomCreatorUserID: userAID,
                 roomID: mtvRoomIDToAssociate,
                 tracks: null,
-                suggestedTracks: null,
                 userRelatedInformation: null,
                 usersLength: 3,
+                minimumScoreToBePlayed: 1,
             };
 
             sinon
@@ -512,6 +514,7 @@ test.group(
                         userRelatedInformation: {
                             userID,
                             emittingDeviceID: datatype.uuid(),
+                            tracksVotedFor: [],
                         },
                         usersLength: 1,
                         tracks: [
@@ -523,8 +526,8 @@ test.group(
                                 score: datatype.number(),
                             },
                         ],
-                        suggestedTracks: null,
                         currentTrack: null,
+                        minimumScoreToBePlayed: 1,
                     };
 
                     // Simulating Use Local Activity Notify
@@ -726,9 +729,9 @@ test.group(
                         roomCreatorUserID: userID,
                         roomID: workflowID,
                         tracks: null,
-                        suggestedTracks: null,
                         userRelatedInformation: null,
                         usersLength: 2,
+                        minimumScoreToBePlayed: 1,
                     };
 
                     console.log('*'.repeat(100));

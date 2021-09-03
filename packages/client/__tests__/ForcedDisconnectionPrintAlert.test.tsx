@@ -31,6 +31,7 @@ test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it 
         userRelatedInformation: {
             emittingDeviceID: datatype.uuid(),
             userID,
+            tracksVotedFor: [],
         },
         currentTrack: null,
         roomCreatorUserID: userID,
@@ -43,7 +44,7 @@ test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it 
                 score: datatype.number(),
             },
         ],
-        suggestedTracks: null,
+        minimumScoreToBePlayed: 1,
     });
 
     /**

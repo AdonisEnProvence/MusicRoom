@@ -75,13 +75,13 @@ const rawContext: AppMusicPlayerMachineContext = {
     roomCreatorUserID: '',
     roomID: '',
     tracks: null,
-    suggestedTracks: null,
     userRelatedInformation: null,
     usersLength: 0,
     currentTrack: null,
     waitingRoomID: undefined,
     progressElapsedTime: 0,
     closeSuggestionModal: undefined,
+    minimumScoreToBePlayed: 1,
 };
 
 export const createAppMusicPlayerMachine = ({

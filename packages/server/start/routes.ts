@@ -62,6 +62,11 @@ Route.post(
     'Temporal/TemporalToServerController.acknowledgeTracksSuggestion',
 );
 
+Route.post(
+    '/temporal/acknowledge-user-vote-for-track',
+    'Temporal/TemporalToServerController.acknowledgeUserVoteForTrack',
+);
+
 /// //////// ////// ///
 
 Route.get('/', () => {

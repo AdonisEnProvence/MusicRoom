@@ -1,5 +1,8 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
-import { MtvWorkflowState } from '@musicroom/types';
+import {
+    MtvWorkflowState,
+    MtvWorkflowStateWithUserRelatedInformation,
+} from '@musicroom/types';
 import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
@@ -137,5 +140,19 @@ export default class TemporalToServerController {
         const device = await Device.findOrFail(deviceID);
 
         Ws.io.in(device.socketID).emit('SUGGEST_TRACKS_CALLBACK');
+    }
+
+    public async acknowledgeUserVoteForTrack({
+        request,
+    }: HttpContextContract): Promise<void> {
+        const state = MtvWorkflowStateWithUserRelatedInformation.parse(
+            request.body(),
+        );
+
+        await UserService.emitEventInEveryDeviceUser(
+            state.userRelatedInformation.userID,
+            'VOTE_FOR_TRACK_CALLBACK',
+            [state],
+        );
     }
 }

@@ -346,6 +346,36 @@ Ws.io.on('connection', async (socket) => {
                 console.error(err);
             }
         });
+
+        socket.on('VOTE_FOR_TRACK', async ({ trackID }) => {
+            try {
+                if (!trackID) {
+                    throw new Error('payload is invalid');
+                }
+
+                const {
+                    mtvRoomID,
+                    user: { uuid: userID },
+                } = await SocketLifecycle.getSocketConnectionCredentials(
+                    socket,
+                );
+
+                if (mtvRoomID === undefined) {
+                    throw new Error(
+                        'VOTE_FOR_TRACK user is not related to any room',
+                    );
+                }
+
+                await MtvRoomsWsController.voteForTrack({
+                    roomID: mtvRoomID,
+                    trackID,
+                    userID,
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        });
+
         /// //// ///
 
         socket.on('disconnecting', async () => {

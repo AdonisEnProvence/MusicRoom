@@ -59,7 +59,7 @@ test.group(
                 tracks: null,
                 userRelatedInformation: null,
                 usersLength: 3,
-                minimumScoreToBePlayed: 0,
+                minimumScoreToBePlayed: 1,
             };
 
             const roomToJoinState: MtvWorkflowState = {
@@ -71,7 +71,7 @@ test.group(
                 tracks: null,
                 userRelatedInformation: null,
                 usersLength: 1,
-                minimumScoreToBePlayed: 0,
+                minimumScoreToBePlayed: 1,
             };
 
             sinon
@@ -271,7 +271,7 @@ test.group(
                 tracks: null,
                 userRelatedInformation: null,
                 usersLength: 3,
-                minimumScoreToBePlayed: 0,
+                minimumScoreToBePlayed: 1,
             };
 
             const roomToJoinState: MtvWorkflowState = {
@@ -282,7 +282,7 @@ test.group(
                 roomID: mtvRoomToJoinID,
                 tracks: null,
                 userRelatedInformation: null,
-                minimumScoreToBePlayed: 0,
+                minimumScoreToBePlayed: 1,
                 usersLength: 1,
             };
 
@@ -479,7 +479,7 @@ test.group(
                 tracks: null,
                 userRelatedInformation: null,
                 usersLength: 3,
-                minimumScoreToBePlayed: 0,
+                minimumScoreToBePlayed: 1,
             };
 
             sinon
@@ -527,7 +527,7 @@ test.group(
                             },
                         ],
                         currentTrack: null,
-                        minimumScoreToBePlayed: 0,
+                        minimumScoreToBePlayed: 1,
                     };
 
                     // Simulating Use Local Activity Notify
@@ -731,7 +731,7 @@ test.group(
                         tracks: null,
                         userRelatedInformation: null,
                         usersLength: 2,
-                        minimumScoreToBePlayed: 0,
+                        minimumScoreToBePlayed: 1,
                     };
 
                     console.log('*'.repeat(100));

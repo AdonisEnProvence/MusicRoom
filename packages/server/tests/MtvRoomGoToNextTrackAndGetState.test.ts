@@ -82,7 +82,7 @@ test.group(
                         roomCreatorUserID: userID,
                         tracks: null,
                         userRelatedInformation: null,
-                        minimumScoreToBePlayed: 0,
+                        minimumScoreToBePlayed: 1,
                         usersLength: 1,
                     };
                 });

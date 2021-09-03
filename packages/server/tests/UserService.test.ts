@@ -38,7 +38,7 @@ test.group(`User service socket handler tests`, (group) => {
             tracks: null,
             usersLength: 1,
             userRelatedInformation: null,
-            minimumScoreToBePlayed: 0,
+            minimumScoreToBePlayed: 1,
         };
         const receivedEvents: string[] = [];
 

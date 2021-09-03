@@ -49,7 +49,7 @@ test.group(
                             emittingDeviceID: deviceID,
                             tracksVotedFor: [],
                         },
-                        minimumScoreToBePlayed: 0,
+                        minimumScoreToBePlayed: 1,
                         usersLength: 1,
                     };
 
@@ -193,7 +193,7 @@ test.group(
                             emittingDeviceID: deviceID,
                             tracksVotedFor: [],
                         },
-                        minimumScoreToBePlayed: 0,
+                        minimumScoreToBePlayed: 1,
                         usersLength: 1,
                     };
 
@@ -257,7 +257,7 @@ test.group(
                             emittingDeviceID: deviceID,
                             tracksVotedFor: [],
                         },
-                        minimumScoreToBePlayed: 0,
+                        minimumScoreToBePlayed: 1,
                         usersLength: 1,
                     };
 

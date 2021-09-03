@@ -36,7 +36,7 @@ export const MtvWorkflowState = z.object({
     usersLength: z.number(),
     currentTrack: CurrentTrack.nullable(),
     tracks: z.array(TrackMetadataWithScore).nullable(),
-    minimumScoreToBePlayed: z.number(),
+    minimumScoreToBePlayed: z.number().positive(),
 });
 export type MtvWorkflowState = z.infer<typeof MtvWorkflowState>;
 

@@ -62,7 +62,7 @@ export type AppMusicPlayerMachineEvent =
           tracksToSuggest: string[];
           closeSuggestionModal: () => void;
       }
-    | { type: 'SUGGESTED_TRACKS_LIST_UPDATE'; state: MtvWorkflowState }
+    | { type: 'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE'; state: MtvWorkflowState }
     | { type: 'SUGGEST_TRACKS_CALLBACK' };
 
 interface CreateAppMusicPlayerMachineArgs {
@@ -152,9 +152,9 @@ export const createAppMusicPlayerMachine = ({
                         });
                     });
 
-                    socket.on('SUGGESTED_TRACKS_LIST_UPDATE', (state) => {
+                    socket.on('VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', (state) => {
                         sendBack({
-                            type: 'SUGGESTED_TRACKS_LIST_UPDATE',
+                            type: 'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
                             state,
                         });
                     });
@@ -588,7 +588,7 @@ export const createAppMusicPlayerMachine = ({
                                     },
 
                                     on: {
-                                        SUGGESTED_TRACKS_LIST_UPDATE: {
+                                        VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE: {
                                             actions: 'assignMergeNewState',
                                         },
                                     },
@@ -720,7 +720,7 @@ export const createAppMusicPlayerMachine = ({
                         event.type !== 'PLAY_CALLBACK' &&
                         event.type !== 'CHANGE_EMITTING_DEVICE_CALLBACK' &&
                         event.type !== 'USER_LENGTH_UPDATE' &&
-                        event.type !== 'SUGGESTED_TRACKS_LIST_UPDATE'
+                        event.type !== 'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE'
                     ) {
                         return context;
                     }

@@ -59,7 +59,7 @@ const MtvRoomCreationFormOptionButton: React.FC<MtvRoomCreationFormOptionButtonP
                     </View>
                 )}
 
-                <Text sx={{ color: 'white' }}>{text}</Text>
+                <Text sx={{ color: 'white', textAlign: 'center' }}>{text}</Text>
             </TouchableOpacity>
         );
     };

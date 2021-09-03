@@ -150,7 +150,7 @@ func GoToNextTrackHandler(w http.ResponseWriter, r *http.Request) {
 type VoteForTrackHandlerRequestBody struct {
 	WorkflowID string `json:"workflowID" validate:"required,uuid"`
 	RunID      string `json:"runID" validate:"required,uuid"`
-	TrackID    string `json:"trackID" validate:"required,uuid"`
+	TrackID    string `json:"trackID" validate:"required"`
 	UserID     string `json:"userID" validate:"required,uuid"`
 }
 

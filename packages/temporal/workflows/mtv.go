@@ -59,13 +59,14 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 	}
 
 	exposedState := shared.MtvRoomExposedState{
-		RoomID:            s.initialParams.RoomID,
-		RoomCreatorUserID: s.initialParams.RoomCreatorUserID,
-		Playing:           s.Playing,
-		RoomName:          s.initialParams.RoomName,
-		CurrentTrack:      currentTrackToExport,
-		Tracks:            exposedTracks,
-		UsersLength:       len(s.Users),
+		RoomID:                 s.initialParams.RoomID,
+		RoomCreatorUserID:      s.initialParams.RoomCreatorUserID,
+		Playing:                s.Playing,
+		RoomName:               s.initialParams.RoomName,
+		CurrentTrack:           currentTrackToExport,
+		Tracks:                 exposedTracks,
+		UsersLength:            len(s.Users),
+		MinimumScoreToBePlayed: s.MinimumScoreToBePlayed,
 	}
 
 	if userInformation, ok := s.Users[RelatedUserID]; RelatedUserID != shared.NoRelatedUserID && ok {
@@ -86,13 +87,13 @@ func (s *MtvRoomInternalState) AddUser(user shared.InternalStateUser) {
 
 func (s *MtvRoomInternalState) RemoveTrackFromUserTracksVotedFor(trackID string) {
 	for _, user := range s.Users {
-		LastTracksVotedForElementIndex := len(user.TracksVotedFor) - 1
+		lastTracksVotedForElementIndex := len(user.TracksVotedFor) - 1
 
 		for index, trackVotedForID := range user.TracksVotedFor {
 			if trackVotedForID == trackID {
 				//remove element from slice
-				user.TracksVotedFor[index] = user.TracksVotedFor[LastTracksVotedForElementIndex]
-				user.TracksVotedFor = user.TracksVotedFor[:LastTracksVotedForElementIndex]
+				user.TracksVotedFor[index] = user.TracksVotedFor[lastTracksVotedForElementIndex]
+				user.TracksVotedFor = user.TracksVotedFor[:lastTracksVotedForElementIndex]
 				break
 			}
 		}
@@ -550,7 +551,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							if success {
 
 								if voteIntervalTimerFuture == nil {
-									voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.VotePollingTimer)
+									voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
 								}
 
 								options := workflow.ActivityOptions{
@@ -592,7 +593,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								)
 
 								internalState.TracksCheckForVoteUpdateLastSave = internalState.Tracks
-								voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.VotePollingTimer)
+								voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
 							} else {
 								voteIntervalTimerFuture = nil
 							}
@@ -664,17 +665,13 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									//Count as a voted for suggested track if already is list
 									success := internalState.UserVotedForTrack(event.UserID, suggestedTrackID)
 									if success && voteIntervalTimerFuture == nil {
-										voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.VotePollingTimer)
+										voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
 									}
-									//TODO CHECK IF THE INFORMATIONS IS CORRECTLY SENT
-									//Shall i start the voteCheckForUpdateInterval here as well ?
 									continue
 								}
 
 								acceptedSuggestedTracksIDs = append(acceptedSuggestedTracksIDs, suggestedTrackID)
 							}
-
-							fmt.Printf("\n\n\n\n\nSUGGESTED\n%+v\nACCEPTED\n%+v\n TRACKS\n%+v\n CURRENT TRACK\n%+v\n\n\n\n", event.TracksToSuggest, acceptedSuggestedTracksIDs, internalState.Tracks, internalState.CurrentTrack)
 
 							if hasNoTracksToFetch := len(acceptedSuggestedTracksIDs) == 0; hasNoTracksToFetch {
 								return nil

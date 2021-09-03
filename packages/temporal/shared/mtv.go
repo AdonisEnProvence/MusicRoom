@@ -9,9 +9,9 @@ import (
 type MtvRoomTimerExpiredReason string
 
 const (
-	MtvRoomTimerExpiredReasonCanceled MtvRoomTimerExpiredReason = "canceled"
-	MtvRoomTimerExpiredReasonFinished MtvRoomTimerExpiredReason = "finished"
-	VotePollingTimer                  time.Duration             = 2000 * time.Millisecond
+	MtvRoomTimerExpiredReasonCanceled  MtvRoomTimerExpiredReason = "canceled"
+	MtvRoomTimerExpiredReasonFinished  MtvRoomTimerExpiredReason = "finished"
+	CheckForVoteUpdateIntervalDuration time.Duration             = 2000 * time.Millisecond
 )
 
 type MtvRoomTimer struct {

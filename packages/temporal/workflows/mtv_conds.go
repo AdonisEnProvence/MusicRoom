@@ -52,12 +52,12 @@ func userCanVoteForTrackID(internalState *MtvRoomInternalState) brainy.Cond {
 			return false
 		}
 
-		for _, votedForTrackID := range user.TracksVotedFor {
-			if votedForTrackID == trackID {
-				fmt.Println("vote aborted: given userID has already voted for given trackID")
-				return false
-			}
+		userAlreadyVotedForTrack := user.HasVotedFor(trackID)
+		if userAlreadyVotedForTrack {
+			fmt.Println("vote aborted: given userID has already voted for given trackID")
+			return false
 		}
+
 		return true
 	}
 }

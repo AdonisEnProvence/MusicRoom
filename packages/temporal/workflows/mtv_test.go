@@ -1814,7 +1814,6 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 
 	emitVoteForCreatorForNotVotedTrack := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		fmt.Println("((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((")
 		s.emitVoteSignal(shared.NewVoteForTrackSignalArgs{
 			TrackID: tracksToSuggest[1].ID,
 			UserID:  params.RoomCreatorUserID,

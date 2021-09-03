@@ -128,18 +128,22 @@ export default class TemporalToServerController {
         request,
     }: HttpContextContract): Promise<void> {
         const AcknowledgeTracksSuggestionRequestBody = z.object({
-            roomID: z.string().uuid(),
-            userID: z.string().uuid(),
+            state: MtvWorkflowStateWithUserRelatedInformation,
             deviceID: z.string().uuid(),
         });
 
-        const { deviceID } = AcknowledgeTracksSuggestionRequestBody.parse(
-            request.body(),
-        );
+        const { deviceID, state } =
+            AcknowledgeTracksSuggestionRequestBody.parse(request.body());
 
         const device = await Device.findOrFail(deviceID);
 
         Ws.io.in(device.socketID).emit('SUGGEST_TRACKS_CALLBACK');
+
+        await UserService.emitEventInEveryDeviceUser(
+            state.userRelatedInformation.userID,
+            'VOTE_OR_SUGGEST_TRACK_CALLBACK',
+            [state],
+        );
     }
 
     public async acknowledgeUserVoteForTrack({
@@ -151,7 +155,7 @@ export default class TemporalToServerController {
 
         await UserService.emitEventInEveryDeviceUser(
             state.userRelatedInformation.userID,
-            'VOTE_FOR_TRACK_CALLBACK',
+            'VOTE_OR_SUGGEST_TRACK_CALLBACK',
             [state],
         );
     }

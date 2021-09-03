@@ -6,7 +6,7 @@ interface TrackListItemProps {
     index: number;
     title: string;
     artistName: string;
-    disabled: boolean;
+    disabled?: boolean;
     onPress?: () => void;
     Actions?: () => React.ReactElement;
 }

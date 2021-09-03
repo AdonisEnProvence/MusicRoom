@@ -66,7 +66,7 @@ export type AppMusicPlayerMachineEvent =
     | { type: 'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE'; state: MtvWorkflowState }
     | { type: 'SUGGEST_TRACKS_CALLBACK' }
     | {
-          type: 'VOTE_FOR_TRACK_CALLBACK';
+          type: 'VOTE_OR_SUGGEST_TRACK_CALLBACK';
           state: MtvWorkflowStateWithUserRelatedInformation;
       }
     | { type: 'VOTE_FOR_TRACK'; trackID: string };
@@ -165,10 +165,10 @@ export const createAppMusicPlayerMachine = ({
                         });
                     });
 
-                    socket.on('VOTE_FOR_TRACK_CALLBACK', (state) => {
+                    socket.on('VOTE_OR_SUGGEST_TRACK_CALLBACK', (state) => {
                         console.log('RECEIVED VOTE FOR TRACK CALLBACK', state);
                         sendBack({
-                            type: 'VOTE_FOR_TRACK_CALLBACK',
+                            type: 'VOTE_OR_SUGGEST_TRACK_CALLBACK',
                             state,
                         });
                     });
@@ -695,7 +695,7 @@ export const createAppMusicPlayerMachine = ({
                                     actions: forwardTo('socketConnection'),
                                 },
 
-                                VOTE_FOR_TRACK_CALLBACK: {
+                                VOTE_OR_SUGGEST_TRACK_CALLBACK: {
                                     actions: 'assignMergeNewState',
                                 },
 
@@ -754,7 +754,7 @@ export const createAppMusicPlayerMachine = ({
                         event.type !== 'CHANGE_EMITTING_DEVICE_CALLBACK' &&
                         event.type !== 'USER_LENGTH_UPDATE' &&
                         event.type !== 'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE' &&
-                        event.type !== 'VOTE_FOR_TRACK_CALLBACK'
+                        event.type !== 'VOTE_OR_SUGGEST_TRACK_CALLBACK'
                     ) {
                         return context;
                     }

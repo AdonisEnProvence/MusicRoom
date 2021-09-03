@@ -750,8 +750,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								ctx,
 								activities.AcknowledgeTracksSuggestion,
 								activities.AcknowledgeTracksSuggestionArgs{
-									RoomID:   internalState.initialParams.RoomID,
-									UserID:   event.UserID,
+									State:    internalState.Export(event.UserID),
 									DeviceID: event.DeviceID,
 								},
 							)

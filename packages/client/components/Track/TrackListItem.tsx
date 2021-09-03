@@ -1,11 +1,12 @@
-import React from 'react';
 import { Text, View } from 'dripsy';
+import React from 'react';
 import { TouchableOpacity } from 'react-native';
 
 interface TrackListItemProps {
     index: number;
     title: string;
     artistName: string;
+    disabled: boolean;
     onPress?: () => void;
     Actions?: () => React.ReactElement;
 }
@@ -13,6 +14,7 @@ interface TrackListItemProps {
 const TrackListItem: React.FC<TrackListItemProps> = ({
     title,
     artistName,
+    disabled,
     onPress,
     Actions,
 }) => {
@@ -21,12 +23,16 @@ const TrackListItem: React.FC<TrackListItemProps> = ({
             sx={{
                 flex: 1,
                 padding: 'm',
-                backgroundColor: 'greyLight',
+                backgroundColor: disabled ? 'gold' : 'greyLight',
                 borderRadius: 's',
                 flexDirection: 'row',
             }}
         >
-            <TouchableOpacity onPress={onPress} style={{ flex: 1 }}>
+            <TouchableOpacity
+                disabled={disabled}
+                onPress={onPress}
+                style={{ flex: 1 }}
+            >
                 <View>
                     <Text
                         sx={{

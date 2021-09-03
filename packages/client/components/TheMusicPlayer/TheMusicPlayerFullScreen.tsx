@@ -229,7 +229,19 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                                     );
                                 }
 
-                                const { title, artistName } = item.track;
+                                const {
+                                    title,
+                                    artistName,
+                                    id: trackID,
+                                } = item.track;
+                                let userHasAlreadyVotedForTrack = false;
+                                if (context.userRelatedInformation !== null) {
+                                    userHasAlreadyVotedForTrack =
+                                        context.userRelatedInformation.tracksVotedFor.find(
+                                            (trackIDVotedFor) =>
+                                                trackIDVotedFor === trackID,
+                                        ) !== undefined;
+                                }
 
                                 return (
                                     <View
@@ -243,10 +255,22 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                                             artistName={artistName}
                                             score={51}
                                             minimumScore={50}
+                                            disabled={
+                                                userHasAlreadyVotedForTrack
+                                            }
+                                            onPress={() => {
+                                                if (userHasAlreadyVotedForTrack)
+                                                    return;
+                                                sendToMachine({
+                                                    type: 'VOTE_FOR_TRACK',
+                                                    trackID,
+                                                });
+                                            }}
                                         />
                                     </View>
                                 );
                             }}
+                            extraData={context}
                             keyExtractor={(_, index) => String(index)}
                             style={{ flex: 1 }}
                         />

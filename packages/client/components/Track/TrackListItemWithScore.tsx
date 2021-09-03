@@ -1,5 +1,5 @@
-import React from 'react';
 import { Text, View } from 'dripsy';
+import React from 'react';
 import TrackListItem from './TrackListItem';
 
 interface TrackListItemWithScoreProps {
@@ -8,6 +8,7 @@ interface TrackListItemWithScoreProps {
     artistName: string;
     score: number;
     minimumScore: number;
+    disabled: boolean;
     onPress?: () => void;
 }
 
@@ -17,6 +18,7 @@ const TrackListItemWithScore: React.FC<TrackListItemWithScoreProps> = ({
     index,
     score,
     minimumScore,
+    disabled,
     onPress,
 }) => {
     const Score = () => (
@@ -37,6 +39,7 @@ const TrackListItemWithScore: React.FC<TrackListItemWithScoreProps> = ({
             title={title}
             artistName={artistName}
             index={index}
+            disabled={disabled}
             onPress={onPress}
             Actions={Score}
         />

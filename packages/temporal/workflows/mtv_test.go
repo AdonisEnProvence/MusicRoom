@@ -171,8 +171,9 @@ func getWokflowInitParams(tracksIDs []string) (shared.MtvRoomParameters, string)
 
 	initialUsers := make(map[string]*shared.InternalStateUser)
 	initialUsers[fakeRoomCreatorUserID] = &shared.InternalStateUser{
-		UserID:   fakeRoomCreatorUserID,
-		DeviceID: fakeRoomCreatorDeviceID,
+		UserID:         fakeRoomCreatorUserID,
+		DeviceID:       fakeRoomCreatorDeviceID,
+		TracksVotedFor: make([]string, 0),
 	}
 
 	return shared.MtvRoomParameters{
@@ -473,8 +474,9 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 
 		s.Equal(2, mtvState.UsersLength)
 		expectedInternalStateUser := &shared.InternalStateUser{
-			UserID:   fakeUserID,
-			DeviceID: fakeDeviceID,
+			UserID:         fakeUserID,
+			DeviceID:       fakeDeviceID,
+			TracksVotedFor: make([]string, 0),
 		}
 
 		s.NotEqual(shouldNotBeRegisterDeviceID, mtvState.UserRelatedInformation.DeviceID)
@@ -568,7 +570,7 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 		expectedInternalStateUser := &shared.InternalStateUser{
 			UserID:         params.RoomCreatorUserID,
 			DeviceID:       creatorDeviceID,
-			TracksVotedFor: []string{},
+			TracksVotedFor: make([]string, 0),
 		}
 
 		s.Equal(1, mtvState.UsersLength)
@@ -604,8 +606,9 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 		mtvState := s.getMtvState(fakeUserID)
 
 		expectedInternalStateUser := &shared.InternalStateUser{
-			UserID:   fakeUserID,
-			DeviceID: fakeDeviceID,
+			UserID:         fakeUserID,
+			DeviceID:       fakeDeviceID,
+			TracksVotedFor: make([]string, 0),
 		}
 
 		s.Equal(2, mtvState.UsersLength)
@@ -631,7 +634,7 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 		expectedInternalStateUser := &shared.InternalStateUser{
 			UserID:         params.RoomCreatorUserID,
 			DeviceID:       secondCreatorDeviceID,
-			TracksVotedFor: []string{},
+			TracksVotedFor: make([]string, 0),
 		}
 
 		s.Equal(2, mtvState.UsersLength)
@@ -644,8 +647,9 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 		mtvState := s.getMtvState(fakeUserID)
 
 		expectedInternalStateUser := &shared.InternalStateUser{
-			UserID:   fakeUserID,
-			DeviceID: fakeDeviceID,
+			UserID:         fakeUserID,
+			DeviceID:       fakeDeviceID,
+			TracksVotedFor: make([]string, 0),
 		}
 
 		s.Equal(2, mtvState.UsersLength)

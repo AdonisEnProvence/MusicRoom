@@ -826,8 +826,9 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				}
 
 				user := shared.InternalStateUser{
-					UserID:   message.UserID,
-					DeviceID: message.DeviceID,
+					UserID:         message.UserID,
+					DeviceID:       message.DeviceID,
+					TracksVotedFor: make([]string, 0),
 				}
 
 				internalState.Machine.Send(

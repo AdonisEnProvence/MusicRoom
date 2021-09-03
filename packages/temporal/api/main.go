@@ -399,8 +399,9 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 	initialUsers := make(map[string]*shared.InternalStateUser)
 	initialUsers[body.UserID] = &shared.InternalStateUser{
-		UserID:   body.UserID,
-		DeviceID: body.DeviceID,
+		UserID:         body.UserID,
+		DeviceID:       body.DeviceID,
+		TracksVotedFor: make([]string, 0),
 	}
 
 	params := shared.MtvRoomParameters{

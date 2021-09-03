@@ -50,6 +50,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                         userRelatedInformation: {
                             userID,
                             emittingDeviceID: datatype.uuid(),
+                            tracksVotedFor: [],
                         },
                         usersLength: 1,
                         tracks: [
@@ -121,6 +122,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     userRelatedInformation: {
                         userID: creator,
                         emittingDeviceID: datatype.uuid(),
+                        tracksVotedFor: [],
                     },
                     tracks: [
                         {
@@ -153,6 +155,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                         ? {
                               userID,
                               emittingDeviceID: datatype.uuid(),
+                              tracksVotedFor: [],
                           }
                         : null,
                     currentTrack: null,
@@ -220,6 +223,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     userRelatedInformation: {
                         userID: creatorID,
                         emittingDeviceID: datatype.uuid(),
+                        tracksVotedFor: [],
                     },
                     minimumScoreToBePlayed: 0,
                     usersLength: 1,

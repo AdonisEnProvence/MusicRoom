@@ -86,6 +86,7 @@ test.group('Rooms life cycle', (group) => {
                     userRelatedInformation: {
                         userID,
                         emittingDeviceID: datatype.uuid(),
+                        tracksVotedFor: [],
                     },
                     usersLength: 1,
                     tracks: [
@@ -180,6 +181,7 @@ test.group('Rooms life cycle', (group) => {
                     userRelatedInformation: {
                         emittingDeviceID: datatype.uuid(),
                         userID: userA.userID,
+                        tracksVotedFor: [],
                     },
                     usersLength: 1,
                     currentTrack: null,
@@ -208,6 +210,7 @@ test.group('Rooms life cycle', (group) => {
                 state.userRelatedInformation = {
                     userID,
                     emittingDeviceID: datatype.uuid(),
+                    tracksVotedFor: [],
                 };
                 await supertest(BASE_URL)
                     .post('/temporal/join')

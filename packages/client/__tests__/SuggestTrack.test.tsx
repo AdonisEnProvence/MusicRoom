@@ -28,6 +28,7 @@ test(`A user can suggest tracks to play`, async () => {
         userRelatedInformation: {
             emittingDeviceID: datatype.uuid(),
             userID: roomCreatorUserID,
+            tracksVotedFor: [],
         },
         usersLength: 1,
         currentTrack: {

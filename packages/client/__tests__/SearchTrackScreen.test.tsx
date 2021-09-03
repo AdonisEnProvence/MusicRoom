@@ -26,6 +26,7 @@ test(`Goes to Search a Track screen, searches a track, sees search results, pres
         userRelatedInformation: {
             emittingDeviceID: datatype.uuid(),
             userID,
+            tracksVotedFor: [],
         },
         roomCreatorUserID: userID,
         currentTrack: {

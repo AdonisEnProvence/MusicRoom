@@ -62,6 +62,7 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                             userRelatedInformation: {
                                 emittingDeviceID: 'EMITTING DEVICE',
                                 userID: 'JUST A USER ID',
+                                tracksVotedFor: [],
                             },
                             usersLength: 2,
                         };

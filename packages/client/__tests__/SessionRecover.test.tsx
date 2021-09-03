@@ -25,6 +25,7 @@ test(`It should display the music player corresponding to the injected state on 
         userRelatedInformation: {
             emittingDeviceID: datatype.uuid(),
             userID,
+            tracksVotedFor: [],
         },
         roomCreatorUserID: datatype.uuid(),
         currentTrack: {
@@ -121,6 +122,7 @@ test(`It should display the music player corresponding to the injected state on 
         userRelatedInformation: {
             emittingDeviceID: datatype.uuid(),
             userID,
+            tracksVotedFor: [],
         },
         roomCreatorUserID: userID,
         currentTrack: {
@@ -203,6 +205,7 @@ test(`It should display the already elapsed track duration and player should be 
         userRelatedInformation: {
             emittingDeviceID: datatype.uuid(),
             userID,
+            tracksVotedFor: [],
         },
         roomCreatorUserID: userID,
         currentTrack: {

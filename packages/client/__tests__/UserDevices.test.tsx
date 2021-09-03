@@ -30,6 +30,7 @@ After clicking on one not emitting it should set the clicked one as emitting
         userRelatedInformation: {
             emittingDeviceID: thisDevice.deviceID,
             userID,
+            tracksVotedFor: [],
         },
         currentTrack: null,
         roomCreatorUserID: userID,

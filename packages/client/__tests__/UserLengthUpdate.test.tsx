@@ -30,6 +30,7 @@ test(`
         userRelatedInformation: {
             emittingDeviceID: thisDevice.deviceID,
             userID,
+            tracksVotedFor: [],
         },
         currentTrack: null,
         roomCreatorUserID: userID,

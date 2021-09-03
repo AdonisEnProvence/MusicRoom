@@ -100,6 +100,7 @@ test.group(
                     roomToJoinState.userRelatedInformation = {
                         userID: relatedUserID,
                         emittingDeviceID: datatype.uuid(),
+                        tracksVotedFor: [],
                     };
                     await supertest(BASE_URL).post('/temporal/join').send({
                         state: roomToJoinState,
@@ -313,6 +314,7 @@ test.group(
                     roomToJoinState.userRelatedInformation = {
                         userID: relatedUserID,
                         emittingDeviceID: datatype.uuid(),
+                        tracksVotedFor: [],
                     };
                     await supertest(BASE_URL).post('/temporal/join').send({
                         state: roomToJoinState,
@@ -512,6 +514,7 @@ test.group(
                         userRelatedInformation: {
                             userID,
                             emittingDeviceID: datatype.uuid(),
+                            tracksVotedFor: [],
                         },
                         usersLength: 1,
                         tracks: [

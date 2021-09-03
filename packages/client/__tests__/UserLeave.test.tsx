@@ -30,6 +30,7 @@ He will be redirected to the home and will view the default mini music player
         userRelatedInformation: {
             emittingDeviceID: thisDevice.deviceID,
             userID,
+            tracksVotedFor: [],
         },
         currentTrack: null,
         roomCreatorUserID: userID,

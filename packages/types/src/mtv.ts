@@ -23,6 +23,7 @@ export type CurrentTrack = z.infer<typeof CurrentTrack>;
 export const UserRelatedInformation = z.object({
     userID: z.string(),
     emittingDeviceID: z.string(),
+    tracksVotedFor: z.string().array(),
 });
 export type UserRelatedInformation = z.infer<typeof UserRelatedInformation>;
 

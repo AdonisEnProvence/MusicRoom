@@ -1612,7 +1612,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 		activities.NotifySuggestOrVoteUpdateActivity,
 		mock.Anything,
 		mock.Anything,
-	).Return(nil).Times(2)
+	).Return(nil).Times(3)
 
 	//Verify that creator has voted for the initialTracks and that he cannot vote or vote by suggest again
 	checkCreatorTracksVotedFor := defaultDuration

@@ -1,7 +1,6 @@
 package shared
 
 import (
-	"reflect"
 	"sort"
 	"time"
 )
@@ -154,7 +153,16 @@ func (s *TracksMetadataWithScoreSet) Shift() (TrackMetadataWithScore, bool) {
 
 func (s *TracksMetadataWithScoreSet) DeepEqual(toCmpTracksList TracksMetadataWithScoreSet) bool {
 	//Could be refactor using a range loop, atm this is not compilation friendly
-	return reflect.DeepEqual(s.tracks, toCmpTracksList.tracks)
+	if len(s.tracks) != len(toCmpTracksList.tracks) {
+		return false
+	}
+
+	for index, track := range s.tracks {
+		if track != toCmpTracksList.tracks[index] {
+			return false
+		}
+	}
+	return true
 }
 
 // Difference returns a new TracksMetadataWithScoreSet with all the elements from

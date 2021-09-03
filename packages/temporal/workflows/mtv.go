@@ -577,7 +577,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				Actions: brainy.Actions{
 					brainy.ActionFn(
 						func(c brainy.Context, e brainy.Event) error {
-							needToNotifySuggestOrVoteUpdateActivity := internalState.Tracks.DeepEqual(internalState.TracksCheckForVoteUpdateLastSave)
+							tracksListsAreEqual := internalState.Tracks.DeepEqual(internalState.TracksCheckForVoteUpdateLastSave)
+							needToNotifySuggestOrVoteUpdateActivity := !tracksListsAreEqual
 
 							if needToNotifySuggestOrVoteUpdateActivity {
 								options := workflow.ActivityOptions{

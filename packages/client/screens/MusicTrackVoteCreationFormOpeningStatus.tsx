@@ -1,8 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useActor } from '@xstate/react';
 import { Text, View, useSx } from 'dripsy';
 import React from 'react';
-import { Switch, TouchableOpacity } from 'react-native';
+import { Switch } from 'react-native';
+import MtvRoomCreationFormOptionButton from '../components/MtvRoomCreationForm/MtvRoomCreationFormOptionButton';
 import MtvRoomCreationFormScreen from '../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
 import { useCreationMtvRoomFormMachine } from '../contexts/MusicPlayerContext';
 import { MusicTrackVoteCreationFormOpeningStatusScreenProps } from '../types';
@@ -80,62 +80,15 @@ const MusicTrackVoteCreationFormOpeningStatus: React.FC<MusicTrackVoteCreationFo
                                         index < openingStatusButtons.length - 1;
 
                                     return (
-                                        <TouchableOpacity
+                                        <MtvRoomCreationFormOptionButton
                                             key={text}
-                                            style={sx({
-                                                width: 110,
-                                                height: 100,
-                                                borderRadius: 's',
-                                                padding: 'l',
-                                                justifyContent: 'center',
-                                                alignItems: 'center',
-                                                backgroundColor: 'greyLighter',
-
-                                                marginRight: isNotLastButton
-                                                    ? 'l'
-                                                    : undefined,
-                                            })}
-                                            accessibilityState={{
-                                                selected,
-                                            }}
+                                            text={text}
+                                            isSelected={selected}
                                             onPress={onPress}
-                                        >
-                                            {selected && (
-                                                <View
-                                                    sx={{
-                                                        position: 'absolute',
-                                                        top: 0,
-                                                        left: 0,
-                                                        marginTop: -8,
-                                                        marginLeft: -8,
-                                                        backgroundColor:
-                                                            'secondary',
-                                                        borderRadius: 'full',
-
-                                                        // Copy-pasted from https://ethercreative.github.io/react-native-shadow-generator/
-                                                        shadowColor: '#000',
-                                                        shadowOffset: {
-                                                            width: 0,
-                                                            height: 1,
-                                                        },
-                                                        shadowOpacity: 0.2,
-                                                        shadowRadius: 1.41,
-
-                                                        elevation: 2,
-                                                    }}
-                                                >
-                                                    <Ionicons
-                                                        name="checkmark"
-                                                        size={24}
-                                                        style={sx({})}
-                                                    />
-                                                </View>
-                                            )}
-
-                                            <Text sx={{ color: 'white' }}>
-                                                {text}
-                                            </Text>
-                                        </TouchableOpacity>
+                                            shouldApplyRightMargin={
+                                                isNotLastButton
+                                            }
+                                        />
                                     );
                                 },
                             )}

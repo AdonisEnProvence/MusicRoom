@@ -237,6 +237,7 @@ func (p MtvRoomParameters) Export() MtvRoomExposedState {
 		RoomCreatorUserID:      p.RoomCreatorUserID,
 		RoomName:               p.RoomName,
 		UserRelatedInformation: p.InitialUsers[p.RoomCreatorUserID],
+		MinimumScoreToBePlayed: 1,
 	}
 }
 

@@ -54,7 +54,7 @@ Route.post(
 
 Route.post(
     '/temporal/suggest-or-vote-update',
-    'Temporal/TemporalToServerController.broadcastSuggestedTracksListUpdate',
+    'Temporal/TemporalToServerController.suggestOrVoteTracksListUpdate',
 );
 
 Route.post(

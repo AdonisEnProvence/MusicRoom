@@ -112,13 +112,13 @@ export default class TemporalToServerController {
         );
     }
 
-    public broadcastSuggestedTracksListUpdate({
+    public suggestOrVoteTracksListUpdate({
         request,
     }: HttpContextContract): void {
         const state = MtvWorkflowState.parse(request.body());
         const roomID = state.roomID;
 
-        Ws.io.to(roomID).emit('SUGGESTED_TRACKS_LIST_UPDATE', state);
+        Ws.io.to(roomID).emit('VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', state);
     }
 
     public async acknowledgeTracksSuggestion({

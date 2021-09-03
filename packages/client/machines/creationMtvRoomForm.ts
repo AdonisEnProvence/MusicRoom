@@ -10,6 +10,8 @@ import { createModel } from 'xstate/lib/model';
 import { navigateFromRef } from '../navigation/RootNavigation';
 import { CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents } from './appMusicPlayerMachine';
 
+export type MtvRoomPlayingMode = 'BROADCAST' | 'DIRECT';
+
 const creationMtvRoomFormModel = createModel(
     {
         roomName: '',
@@ -20,6 +22,7 @@ const creationMtvRoomFormModel = createModel(
         physicalConstraintRadius: 30,
         physicalConstraintStartsAt: '',
         physicalConstraintEndsAt: '',
+        playingMode: 'BROADCAST' as MtvRoomPlayingMode,
     },
 
     {
@@ -45,6 +48,10 @@ const creationMtvRoomFormModel = createModel(
             }),
 
             SET_PHYSICAL_CONSTRAINT_ENDS_AT: (endsAt: string) => ({ endsAt }),
+
+            SET_PLAYING_MODE: (playingMode: MtvRoomPlayingMode) => ({
+                playingMode,
+            }),
 
             FORWARD_MODAL_CLOSER: (closeModal: () => void) => ({ closeModal }),
 
@@ -262,8 +269,16 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                 },
 
                 on: {
+                    SET_PLAYING_MODE: {
+                        actions: assignPlayingMode,
+                    },
+
                     GO_BACK: {
                         target: 'physicalConstraints',
+                    },
+
+                    NEXT: {
+                        target: 'votesConstraints',
                     },
                 },
             },
@@ -353,4 +368,11 @@ const assignPhysicalConstraintEndsAt = creationMtvRoomFormModel.assign(
         physicalConstraintEndsAt: (_context, { endsAt }) => endsAt,
     },
     'SET_PHYSICAL_CONSTRAINT_ENDS_AT',
+);
+
+const assignPlayingMode = creationMtvRoomFormModel.assign(
+    {
+        playingMode: (_context, { playingMode }) => playingMode,
+    },
+    'SET_PLAYING_MODE',
 );

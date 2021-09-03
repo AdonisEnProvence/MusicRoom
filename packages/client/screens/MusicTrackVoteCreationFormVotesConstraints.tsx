@@ -1,94 +1,29 @@
-import { Text, View, useSx, TextInput } from 'dripsy';
+import { useActor } from '@xstate/react';
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-    AppScreen,
-    AppScreenContainer,
-    AppScreenHeader,
-} from '../components/kit';
-import { useMusicPlayer } from '../contexts/MusicPlayerContext';
+import MtvRoomCreationFormScreen from '../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
+import { useCreationMtvRoomFormMachine } from '../contexts/MusicPlayerContext';
 import { MusicTrackVoteCreationFormVotesConstraintsScreenProps } from '../types';
 
 const MusicTrackVoteCreationFormVotesConstraints: React.FC<MusicTrackVoteCreationFormVotesConstraintsScreenProps> =
-    ({ navigation }) => {
-        const insets = useSafeAreaInsets();
-        const musicPlayerMachine = useMusicPlayer();
-        const sx = useSx();
+    () => {
+        const mtvRoomCreationActor = useCreationMtvRoomFormMachine();
+        const [state, send] = useActor(mtvRoomCreationActor);
+
+        function handleGoBack() {
+            return undefined;
+        }
+
+        function handleGoNext() {
+            return undefined;
+        }
 
         return (
-            <AppScreen>
-                <AppScreenContainer>
-                    <View
-                        sx={{
-                            flex: 1,
-                            paddingTop: insets.top,
-                            paddingBottom: insets.bottom,
-                            paddingLeft: 'l',
-                            paddingRight: 'l',
-
-                            justifyContent: 'space-between',
-                        }}
-                    >
-                        <View sx={{ marginTop: 'xl' }}>
-                            <Text
-                                sx={{
-                                    paddingLeft: 'l',
-                                    paddingRight: 'l',
-
-                                    color: 'white',
-                                    fontSize: 'l',
-                                    textAlign: 'center',
-                                }}
-                            >
-                                How many votes are required for a song to be
-                                played?
-                            </Text>
-                        </View>
-
-                        <View sx={{ marginBottom: 'xl', flexDirection: 'row' }}>
-                            <TouchableOpacity
-                                style={sx({
-                                    flex: 1,
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    borderColor: 'greyLighter',
-                                    borderWidth: 1,
-                                    paddingLeft: 'm',
-                                    paddingRight: 'm',
-                                    paddingTop: 'm',
-                                    paddingBottom: 'm',
-                                    borderRadius: 's',
-                                    marginRight: 'l',
-                                })}
-                            >
-                                <Text sx={{ color: 'white', fontSize: 's' }}>
-                                    Back
-                                </Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={sx({
-                                    flex: 1,
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    borderColor: 'greyLighter',
-                                    borderWidth: 1,
-                                    paddingLeft: 'm',
-                                    paddingRight: 'm',
-                                    paddingTop: 'm',
-                                    paddingBottom: 'm',
-                                    borderRadius: 's',
-                                })}
-                            >
-                                <Text sx={{ color: 'white', fontSize: 's' }}>
-                                    Next
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </AppScreenContainer>
-            </AppScreen>
+            <MtvRoomCreationFormScreen
+                title="How many votes are required for a song to be played?"
+                onBackButtonPress={handleGoBack}
+                onNextButtonPress={handleGoNext}
+                Content={() => null}
+            />
         );
     };
 

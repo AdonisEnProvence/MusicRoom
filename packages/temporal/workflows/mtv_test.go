@@ -109,11 +109,7 @@ func (s *UnitTestSuite) mockOnceSuggest(userID string, deviceID string, roomID s
 	s.env.OnActivity(
 		activities.AcknowledgeTracksSuggestion,
 		mock.Anything,
-		activities.AcknowledgeTracksSuggestionArgs{
-			RoomID:   roomID,
-			UserID:   userID,
-			DeviceID: deviceID,
-		},
+		mock.Anything,
 	).Return(nil).Once()
 }
 
@@ -1102,11 +1098,7 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 	s.env.OnActivity(
 		activities.AcknowledgeTracksSuggestion,
 		mock.Anything,
-		activities.AcknowledgeTracksSuggestionArgs{
-			RoomID:   params.RoomID,
-			UserID:   suggesterUserID,
-			DeviceID: suggesterDeviceID,
-		},
+		mock.Anything,
 	).Return(nil).Once()
 
 	joinSuggesterUser := defaultDuration
@@ -1478,11 +1470,7 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 	s.env.OnActivity(
 		activities.AcknowledgeTracksSuggestion,
 		mock.Anything,
-		activities.AcknowledgeTracksSuggestionArgs{
-			RoomID:   params.RoomID,
-			UserID:   suggesterUserID,
-			DeviceID: suggesterDeviceID,
-		},
+		mock.Anything,
 	).Return(nil).Twice()
 
 	joinSuggesterUser := defaultDuration

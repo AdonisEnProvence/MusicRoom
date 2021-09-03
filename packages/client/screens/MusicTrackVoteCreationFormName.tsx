@@ -1,7 +1,8 @@
 import { useActor } from '@xstate/react';
-import { Text, View, TextInput } from 'dripsy';
+import { Text, View } from 'dripsy';
 import React from 'react';
 import { useEffect } from 'react';
+import { TextField } from '../components/kit';
 import MtvRoomCreationFormScreen from '../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
 import { useCreationMtvRoomFormMachine } from '../contexts/MusicPlayerContext';
 import { MusicTrackVoteCreationFormNameScreenProps } from '../types';
@@ -48,21 +49,14 @@ const MusicTrackVoteCreationFormName: React.FC<MusicTrackVoteCreationFormNameScr
                 title="What is the name of the room?"
                 onBackButtonPress={handleGoBack}
                 onNextButtonPress={handleGoNext}
-                Content={() => (
+                Content={
                     <>
                         <View sx={{ marginTop: 'xl' }}>
-                            <TextInput
+                            <TextField
                                 value={currentRoomName}
                                 placeholder="Francis Cabrel OnlyFans"
-                                sx={{
-                                    borderWidth: 1,
-                                    borderColor: 'white',
-                                    padding: 'm',
-                                    fontSize: 's',
-                                    color: 'white',
-                                    borderRadius: 's',
-                                }}
                                 onChangeText={handleRoomNameChange}
+                                sx={{ flex: 0 }}
                             />
                         </View>
 
@@ -78,7 +72,7 @@ const MusicTrackVoteCreationFormName: React.FC<MusicTrackVoteCreationFormNameScr
                             <Text>This is an advice</Text>
                         </View>
                     </>
-                )}
+                }
             />
         );
     };

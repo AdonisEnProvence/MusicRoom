@@ -22,7 +22,7 @@ const MusicTrackVoteCreationFormVotesConstraints: React.FC<MusicTrackVoteCreatio
                 title="How many votes are required for a song to be played?"
                 onBackButtonPress={handleGoBack}
                 onNextButtonPress={handleGoNext}
-                Content={() => null}
+                Content={null}
             />
         );
     };

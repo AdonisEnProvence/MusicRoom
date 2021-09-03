@@ -22,7 +22,7 @@ const MusicTrackVoteCreationFormConfirmation: React.FC<MusicTrackVoteCreationFor
                 title="Confirm room creation"
                 onBackButtonPress={handleGoBack}
                 onNextButtonPress={handleGoNext}
-                Content={() => null}
+                Content={null}
             />
         );
     };

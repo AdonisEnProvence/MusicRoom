@@ -64,7 +64,7 @@ const MusicTrackVoteCreationFormOpeningStatus: React.FC<MusicTrackVoteCreationFo
                 title="What is the opening status of the room ?"
                 onBackButtonPress={handleGoBack}
                 onNextButtonPress={handleGoNext}
-                Content={() => (
+                Content={
                     <>
                         <View
                             sx={{
@@ -121,7 +121,7 @@ const MusicTrackVoteCreationFormOpeningStatus: React.FC<MusicTrackVoteCreationFo
                             </View>
                         )}
                     </>
-                )}
+                }
             />
         );
     };

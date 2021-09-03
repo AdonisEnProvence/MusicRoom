@@ -10,7 +10,7 @@ interface MtvRoomCreationFormScreenProps {
     onBackButtonPress: () => void;
     nextButtonText?: string;
     onNextButtonPress: () => void;
-    Content: () => React.ReactElement | null;
+    Content: React.ReactElement | null;
 }
 
 const MtvRoomCreationFormScreen: React.FC<MtvRoomCreationFormScreenProps> = ({
@@ -52,7 +52,7 @@ const MtvRoomCreationFormScreen: React.FC<MtvRoomCreationFormScreenProps> = ({
                             {title}
                         </Text>
 
-                        <Content />
+                        {Content}
                     </View>
 
                     <View sx={{ marginBottom: 'xl', flexDirection: 'row' }}>

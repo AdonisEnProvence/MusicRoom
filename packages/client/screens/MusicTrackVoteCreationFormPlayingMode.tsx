@@ -22,7 +22,7 @@ const MusicTrackVoteCreationFormPlayingMode: React.FC<MusicTrackVoteCreationForm
                 title="Which playing mode do you want?"
                 onBackButtonPress={handleGoBack}
                 onNextButtonPress={handleGoNext}
-                Content={() => null}
+                Content={null}
             />
         );
     };

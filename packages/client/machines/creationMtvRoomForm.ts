@@ -15,7 +15,13 @@ const creationMtvRoomFormModel = createModel(
         roomName: '',
         isOpen: false,
         onlyInvitedUsersCanVote: false,
+        hasPhysicalConstraints: false,
+        physicalConstraintPlace: '',
+        physicalConstraintRadius: 30,
+        physicalConstraintStartsAt: '',
+        physicalConstraintEndsAt: '',
     },
+
     {
         events: {
             SET_ROOM_NAME: (roomName: string) => ({ roomName }),
@@ -25,6 +31,20 @@ const creationMtvRoomFormModel = createModel(
             SET_INVITED_USERS_VOTE_RESTRICTION: (
                 onlyInvitedUsersCanVote: boolean,
             ) => ({ onlyInvitedUsersCanVote }),
+
+            SET_PHYSICAL_CONSTRAINTS_STATUS: (isRestricted: boolean) => ({
+                isRestricted,
+            }),
+
+            SET_PHYSICAL_CONSTRAINT_PLACE: (place: string) => ({ place }),
+
+            SET_PHYSICAL_CONSTRAINT_RADIUS: (radius: number) => ({ radius }),
+
+            SET_PHYSICAL_CONSTRAINT_STARTS_AT: (startsAt: string) => ({
+                startsAt,
+            }),
+
+            SET_PHYSICAL_CONSTRAINT_ENDS_AT: (endsAt: string) => ({ endsAt }),
 
             FORWARD_MODAL_CLOSER: (closeModal: () => void) => ({ closeModal }),
 
@@ -62,27 +82,6 @@ export type CreationMtvRoomFormActorRef = ActorRef<
     CreationMtvRoomFormMachineEvent,
     CreationMtvRoomFormMachineState
 >;
-
-const assignRoomName = creationMtvRoomFormModel.assign(
-    {
-        roomName: (_context, { roomName }) => roomName,
-    },
-    'SET_ROOM_NAME',
-);
-
-const assignIsOpen = creationMtvRoomFormModel.assign(
-    {
-        isOpen: (_context, { isOpen }) => isOpen,
-    },
-    'SET_OPENING_STATUS',
-);
-
-const resetOnlyInvitedUsersCanVote = creationMtvRoomFormModel.assign(
-    {
-        onlyInvitedUsersCanVote: false,
-    },
-    undefined,
-);
 
 export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
     return creationMtvRoomFormModel.createMachine({
@@ -201,9 +200,58 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                     );
                 },
 
+                initial: 'isNotRestricted',
+
+                states: {
+                    isRestricted: {
+                        tags: 'hasPhysicalConstraints',
+                    },
+
+                    isNotRestricted: {
+                        tags: 'hasNoPhysicalConstraints',
+                    },
+                },
+
                 on: {
+                    SET_PHYSICAL_CONSTRAINTS_STATUS: [
+                        {
+                            cond: (_context, { isRestricted }) =>
+                                isRestricted === true,
+
+                            target: '.isRestricted',
+
+                            actions: assignHasPhysicalConstraints,
+                        },
+
+                        {
+                            target: '.isNotRestricted',
+
+                            actions: assignHasPhysicalConstraints,
+                        },
+                    ],
+
+                    SET_PHYSICAL_CONSTRAINT_PLACE: {
+                        actions: assignPhysicalConstraintPlace,
+                    },
+
+                    SET_PHYSICAL_CONSTRAINT_RADIUS: {
+                        actions: assignPhysicalConstraintRadius,
+                    },
+
+                    SET_PHYSICAL_CONSTRAINT_STARTS_AT: {
+                        actions: assignPhysicalConstraintStartsAt,
+                    },
+
+                    SET_PHYSICAL_CONSTRAINT_ENDS_AT: {
+                        actions: assignPhysicalConstraintEndsAt,
+                    },
+
                     GO_BACK: {
                         target: 'openingStatus',
+                    },
+
+                    NEXT: {
+                        target: 'playingMode',
                     },
                 },
             },
@@ -250,3 +298,59 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
         },
     });
 }
+
+const assignRoomName = creationMtvRoomFormModel.assign(
+    {
+        roomName: (_context, { roomName }) => roomName,
+    },
+    'SET_ROOM_NAME',
+);
+
+const assignIsOpen = creationMtvRoomFormModel.assign(
+    {
+        isOpen: (_context, { isOpen }) => isOpen,
+    },
+    'SET_OPENING_STATUS',
+);
+
+const resetOnlyInvitedUsersCanVote = creationMtvRoomFormModel.assign(
+    {
+        onlyInvitedUsersCanVote: false,
+    },
+    undefined,
+);
+
+const assignHasPhysicalConstraints = creationMtvRoomFormModel.assign(
+    {
+        hasPhysicalConstraints: (_context, { isRestricted }) => isRestricted,
+    },
+    'SET_PHYSICAL_CONSTRAINTS_STATUS',
+);
+
+const assignPhysicalConstraintPlace = creationMtvRoomFormModel.assign(
+    {
+        physicalConstraintPlace: (_context, { place }) => place,
+    },
+    'SET_PHYSICAL_CONSTRAINT_PLACE',
+);
+
+const assignPhysicalConstraintRadius = creationMtvRoomFormModel.assign(
+    {
+        physicalConstraintRadius: (_context, { radius }) => radius,
+    },
+    'SET_PHYSICAL_CONSTRAINT_RADIUS',
+);
+
+const assignPhysicalConstraintStartsAt = creationMtvRoomFormModel.assign(
+    {
+        physicalConstraintStartsAt: (_context, { startsAt }) => startsAt,
+    },
+    'SET_PHYSICAL_CONSTRAINT_STARTS_AT',
+);
+
+const assignPhysicalConstraintEndsAt = creationMtvRoomFormModel.assign(
+    {
+        physicalConstraintEndsAt: (_context, { endsAt }) => endsAt,
+    },
+    'SET_PHYSICAL_CONSTRAINT_ENDS_AT',
+);

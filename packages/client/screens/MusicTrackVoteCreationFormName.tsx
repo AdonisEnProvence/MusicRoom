@@ -56,7 +56,6 @@ const MusicTrackVoteCreationFormName: React.FC<MusicTrackVoteCreationFormNameScr
                                 value={currentRoomName}
                                 placeholder="Francis Cabrel OnlyFans"
                                 onChangeText={handleRoomNameChange}
-                                sx={{ flex: 0 }}
                             />
                         </View>
 

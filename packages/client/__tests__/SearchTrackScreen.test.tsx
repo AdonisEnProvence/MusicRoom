@@ -15,7 +15,7 @@ import {
 } from '../tests/tests-utils';
 
 test(`Goes to Search a Track screen, searches a track, sees search results, presses a song and listens to it`, async () => {
-    const fakeTrack = db.tracks.create();
+    const fakeTrack = db.searchableTracks.create();
     const roomName = random.words();
     const userID = datatype.uuid();
     const state: MtvWorkflowState = {

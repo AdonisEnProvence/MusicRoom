@@ -5,7 +5,7 @@ import React from 'react';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
-import { db } from '../tests/data';
+import { generateTrackMetadata } from '../tests/data';
 import {
     fireEvent,
     noop,
@@ -16,7 +16,7 @@ import {
 } from '../tests/tests-utils';
 
 test(`When the user clicks on next track button, it should play the next track, if there is one`, async () => {
-    const tracksList = [db.tracksMetadata.create(), db.tracksMetadata.create()];
+    const tracksList = [generateTrackMetadata(), generateTrackMetadata()];
 
     const roomCreatorUserID = datatype.uuid();
     const initialState: MtvWorkflowState = {

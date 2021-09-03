@@ -5,7 +5,7 @@ import React from 'react';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
-import { db } from '../tests/data';
+import { db, generateTrackMetadata } from '../tests/data';
 import {
     fireEvent,
     noop,
@@ -16,8 +16,8 @@ import {
 } from '../tests/tests-utils';
 
 test(`A user can suggest tracks to play`, async () => {
-    const fakeTrack = db.tracks.create();
-    const tracksList = [db.tracksMetadata.create(), db.tracksMetadata.create()];
+    const fakeTrack = db.searchableTracks.create();
+    const tracksList = [generateTrackMetadata(), generateTrackMetadata()];
 
     const roomCreatorUserID = datatype.uuid();
     const initialState: MtvWorkflowState = {
@@ -68,37 +68,30 @@ test(`A user can suggest tracks to play`, async () => {
             const duplicateTrackIndex = initialState.tracks.findIndex(
                 (track) => track.id === suggestedTrackID,
             );
-
             const isDuplicate = duplicateTrackIndex !== -1;
+
             if (isDuplicate) {
                 initialState.tracks[duplicateTrackIndex].score++;
-            } else {
-                const track = db.tracks.findFirst({
-                    where: { id: { equals: suggestedTrackID } },
-                });
 
-                if (track === null) {
-                    throw new Error(
-                        `Could not find a track with this id (${suggestedTrackID}) in tracks database. Check that you called db.tracks.create().`,
-                    );
-                }
-                // Don't know to maintain that TODO
-                //
-                // const toAdd = db.tracks.create({
-                //     id: suggestedTrackID,
-                //     title: track.title,
-                //     artistName: track.artistName,
-                //     duration: track.duration,
-                // });
-
-                initialState.tracks.push({
-                    id: suggestedTrackID,
-                    title: track.title,
-                    artistName: track.artistName,
-                    duration: track.duration,
-                    score: 1,
-                });
+                return;
             }
+
+            const suggestedTrackInformation = db.searchableTracks.findFirst({
+                where: { id: { equals: suggestedTrackID } },
+            });
+            if (suggestedTrackInformation === null) {
+                throw new Error(
+                    `Could not find a track with this id (${suggestedTrackID}) in tracks database. Check that you called db.searchableTracks.create().`,
+                );
+            }
+
+            initialState.tracks.push({
+                id: suggestedTrackID,
+                title: suggestedTrackInformation.title,
+                artistName: suggestedTrackInformation.artistName,
+                duration: suggestedTrackInformation.duration,
+                score: 1,
+            });
         });
 
         serverSocket.emit('SUGGESTED_TRACKS_LIST_UPDATE', initialState);

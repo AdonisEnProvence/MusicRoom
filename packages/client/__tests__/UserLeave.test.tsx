@@ -5,7 +5,7 @@ import React from 'react';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
-import { db } from '../tests/data';
+import { generateTrackMetadata } from '../tests/data';
 import { fireEvent, render, waitFor, within } from '../tests/tests-utils';
 
 function noop() {
@@ -34,7 +34,7 @@ He will be redirected to the home and will view the default mini music player
         },
         currentTrack: null,
         roomCreatorUserID: userID,
-        tracks: [db.tracksMetadata.create()],
+        tracks: [generateTrackMetadata()],
         minimumScoreToBePlayed: 1,
     };
 

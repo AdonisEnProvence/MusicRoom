@@ -28,6 +28,7 @@ const TrackListItemWithScore: React.FC<TrackListItemWithScoreProps> = ({
                 paddingLeft: 's',
             }}
         >
+            {/*Insert icon here in case of disabled*/}
             <Text sx={{ color: 'greyLighter' }}>
                 {score}/{minimumScore}
             </Text>

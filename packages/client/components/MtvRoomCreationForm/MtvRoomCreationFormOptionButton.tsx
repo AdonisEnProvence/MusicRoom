@@ -7,11 +7,12 @@ interface MtvRoomCreationFormOptionButtonProps {
     shouldApplyRightMargin: boolean;
     isSelected: boolean;
     text: string;
+    subtext?: string;
     onPress: () => void;
 }
 
 const MtvRoomCreationFormOptionButton: React.FC<MtvRoomCreationFormOptionButtonProps> =
-    ({ text, isSelected, shouldApplyRightMargin, onPress }) => {
+    ({ text, subtext, isSelected, shouldApplyRightMargin, onPress }) => {
         const sx = useSx();
 
         return (
@@ -60,6 +61,18 @@ const MtvRoomCreationFormOptionButton: React.FC<MtvRoomCreationFormOptionButtonP
                 )}
 
                 <Text sx={{ color: 'white', textAlign: 'center' }}>{text}</Text>
+
+                {subtext !== undefined && (
+                    <Text
+                        sx={{
+                            color: 'white',
+                            textAlign: 'center',
+                            fontSize: 'xxs',
+                        }}
+                    >
+                        {subtext}
+                    </Text>
+                )}
             </TouchableOpacity>
         );
     };

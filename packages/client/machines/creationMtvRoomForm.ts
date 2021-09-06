@@ -12,6 +12,8 @@ import { CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents } from './appMu
 
 export type MtvRoomPlayingMode = 'BROADCAST' | 'DIRECT';
 
+export type MtvRoomMinimumVotesForATrackToBePlayed = 1 | 10 | 50;
+
 const creationMtvRoomFormModel = createModel(
     {
         roomName: '',
@@ -23,6 +25,8 @@ const creationMtvRoomFormModel = createModel(
         physicalConstraintStartsAt: '',
         physicalConstraintEndsAt: '',
         playingMode: 'BROADCAST' as MtvRoomPlayingMode,
+        minimumVotesForATrackToBePlayed:
+            1 as MtvRoomMinimumVotesForATrackToBePlayed,
     },
 
     {
@@ -52,6 +56,10 @@ const creationMtvRoomFormModel = createModel(
             SET_PLAYING_MODE: (playingMode: MtvRoomPlayingMode) => ({
                 playingMode,
             }),
+
+            SET_MINIMUM_VOTES_FOR_A_TRACK_TO_BE_PLAYED: (
+                minimumVotesForATrackToBePlayed: MtvRoomMinimumVotesForATrackToBePlayed,
+            ) => ({ minimumVotesForATrackToBePlayed }),
 
             FORWARD_MODAL_CLOSER: (closeModal: () => void) => ({ closeModal }),
 
@@ -291,8 +299,16 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                 },
 
                 on: {
+                    SET_MINIMUM_VOTES_FOR_A_TRACK_TO_BE_PLAYED: {
+                        actions: assignMinimumVotesForATrackToBePlayed,
+                    },
+
                     GO_BACK: {
                         target: 'playingMode',
+                    },
+
+                    NEXT: {
+                        target: 'confirmation',
                     },
                 },
             },
@@ -375,4 +391,14 @@ const assignPlayingMode = creationMtvRoomFormModel.assign(
         playingMode: (_context, { playingMode }) => playingMode,
     },
     'SET_PLAYING_MODE',
+);
+
+const assignMinimumVotesForATrackToBePlayed = creationMtvRoomFormModel.assign(
+    {
+        minimumVotesForATrackToBePlayed: (
+            _context,
+            { minimumVotesForATrackToBePlayed },
+        ) => minimumVotesForATrackToBePlayed,
+    },
+    'SET_MINIMUM_VOTES_FOR_A_TRACK_TO_BE_PLAYED',
 );

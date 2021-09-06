@@ -308,12 +308,12 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                     },
 
                     NEXT: {
-                        target: 'confirmation',
+                        target: 'waitingForConfirmation',
                     },
                 },
             },
 
-            confirmation: {
+            waitingForConfirmation: {
                 entry: () => {
                     navigateFromRef('MusicTrackVoteCreationFormConfirmation');
                 },
@@ -322,8 +322,14 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                     GO_BACK: {
                         target: 'votesConstraints',
                     },
-                },
 
+                    NEXT: {
+                        target: 'confirmed',
+                    },
+                },
+            },
+
+            confirmed: {
                 type: 'final',
             },
         },

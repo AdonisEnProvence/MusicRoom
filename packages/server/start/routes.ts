@@ -54,12 +54,17 @@ Route.post(
 
 Route.post(
     '/temporal/suggest-or-vote-update',
-    'Temporal/TemporalToServerController.broadcastSuggestedTracksListUpdate',
+    'Temporal/TemporalToServerController.suggestOrVoteTracksListUpdate',
 );
 
 Route.post(
     '/temporal/acknowledge-tracks-suggestion',
     'Temporal/TemporalToServerController.acknowledgeTracksSuggestion',
+);
+
+Route.post(
+    '/temporal/acknowledge-user-vote-for-track',
+    'Temporal/TemporalToServerController.acknowledgeUserVoteForTrack',
 );
 
 /// //////// ////// ///

@@ -94,7 +94,7 @@ test(`A user can suggest tracks to play`, async () => {
             });
         });
 
-        serverSocket.emit('SUGGESTED_TRACKS_LIST_UPDATE', initialState);
+        serverSocket.emit('VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', initialState);
         serverSocket.emit('SUGGEST_TRACKS_CALLBACK');
     });
 

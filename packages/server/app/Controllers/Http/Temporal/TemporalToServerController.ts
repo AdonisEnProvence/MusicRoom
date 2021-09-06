@@ -1,5 +1,8 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
-import { MtvWorkflowState } from '@musicroom/types';
+import {
+    MtvWorkflowState,
+    MtvWorkflowStateWithUserRelatedInformation,
+} from '@musicroom/types';
 import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
@@ -112,13 +115,13 @@ export default class TemporalToServerController {
         );
     }
 
-    public broadcastSuggestedTracksListUpdate({
+    public suggestOrVoteTracksListUpdate({
         request,
     }: HttpContextContract): void {
         const state = MtvWorkflowState.parse(request.body());
         const roomID = state.roomID;
 
-        Ws.io.to(roomID).emit('SUGGESTED_TRACKS_LIST_UPDATE', state);
+        Ws.io.to(roomID).emit('VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', state);
     }
 
     public async acknowledgeTracksSuggestion({
@@ -137,5 +140,19 @@ export default class TemporalToServerController {
         const device = await Device.findOrFail(deviceID);
 
         Ws.io.in(device.socketID).emit('SUGGEST_TRACKS_CALLBACK');
+    }
+
+    public async acknowledgeUserVoteForTrack({
+        request,
+    }: HttpContextContract): Promise<void> {
+        const state = MtvWorkflowStateWithUserRelatedInformation.parse(
+            request.body(),
+        );
+
+        await UserService.emitEventInEveryDeviceUser(
+            state.userRelatedInformation.userID,
+            'VOTE_FOR_TRACK_CALLBACK',
+            [state],
+        );
     }
 }

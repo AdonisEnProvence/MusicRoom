@@ -50,6 +50,12 @@ interface TemporalMtvSuggestTracksArgs extends TemporalBaseArgs {
     userID: string;
     deviceID: string;
 }
+
+interface TemporalMtvVoteForTrackArgs extends TemporalBaseArgs {
+    userID: string;
+    trackID: string;
+}
+
 interface TemporalMtvGetStateArgs extends TemporalBaseArgs {
     userID?: string;
 }
@@ -258,6 +264,24 @@ export default class ServerToTemporalController {
                 tracksToSuggest,
                 userID,
                 deviceID,
+            },
+        });
+    }
+
+    public static async voteForTrack({
+        workflowID,
+        runID,
+        trackID,
+        userID,
+    }: TemporalMtvVoteForTrackArgs): Promise<void> {
+        const url = urlcat(TEMPORAL_ENDPOINT, '/vote-for-track');
+
+        await got.put(url, {
+            json: {
+                workflowID,
+                runID,
+                trackID,
+                userID,
             },
         });
     }

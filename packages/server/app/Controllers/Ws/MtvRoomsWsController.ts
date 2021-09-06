@@ -47,6 +47,10 @@ interface OnSuggestTracksArgs extends RoomID, DeviceID, UserID {
     tracksToSuggest: string[];
 }
 
+interface OnVoteForTrackArgs extends RoomID, UserID {
+    trackID: string;
+}
+
 export default class MtvRoomsWsController {
     public static async onCreate({
         initialTracksIDs,
@@ -232,6 +236,21 @@ export default class MtvRoomsWsController {
             tracksToSuggest,
             userID,
             deviceID,
+        });
+    }
+
+    public static async voteForTrack({
+        roomID,
+        trackID,
+        userID,
+    }: OnVoteForTrackArgs): Promise<void> {
+        const { runID } = await MtvRoom.findOrFail(roomID);
+
+        await ServerToTemporalController.voteForTrack({
+            workflowID: roomID,
+            runID,
+            trackID,
+            userID,
         });
     }
 }

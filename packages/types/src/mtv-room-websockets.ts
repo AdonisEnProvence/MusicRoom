@@ -1,4 +1,7 @@
-import { MtvWorkflowState } from './mtv';
+import {
+    MtvWorkflowState,
+    MtvWorkflowStateWithUserRelatedInformation,
+} from './mtv';
 
 export interface ChatMessage {
     author: string;
@@ -48,6 +51,10 @@ export interface MtvRoomClientToServerChangeUserEmittingDevice {
     newEmittingDeviceID: string;
 }
 
+export interface MtvRoomClientToServerVoteForTrackArgs {
+    trackID: string;
+}
+
 export interface MtvRoomClientToServerEvents {
     CREATE_ROOM: (args: MtvRoomClientToServerCreate) => void;
     JOIN_ROOM: (args: MtvRoomClientToServerJoin) => void;
@@ -55,6 +62,7 @@ export interface MtvRoomClientToServerEvents {
     ACTION_PLAY: () => void;
     GET_CONTEXT: () => void;
     ACTION_PAUSE: () => void;
+    VOTE_FOR_TRACK: (args: MtvRoomClientToServerVoteForTrackArgs) => void;
     GO_TO_NEXT_TRACK: () => void;
     CHANGE_EMITTING_DEVICE: (
         args: MtvRoomClientToServerChangeUserEmittingDevice,
@@ -70,8 +78,11 @@ export interface MtvRoomServerToClientEvents {
     ACTION_PAUSE_CALLBACK: () => void;
     CREATE_ROOM_CALLBACK: (state: MtvWorkflowState) => void;
     FORCED_DISCONNECTION: () => void;
+    VOTE_FOR_TRACK_CALLBACK: (
+        state: MtvWorkflowStateWithUserRelatedInformation,
+    ) => void;
     JOIN_ROOM_CALLBACK: (state: MtvWorkflowState) => void;
     CHANGE_EMITTING_DEVICE_CALLBACK: (state: MtvWorkflowState) => void;
-    SUGGESTED_TRACKS_LIST_UPDATE: (state: MtvWorkflowState) => void;
+    VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE: (state: MtvWorkflowState) => void;
     SUGGEST_TRACKS_CALLBACK: () => void;
 }

@@ -65,6 +65,8 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 	}
 
 	if userInformation, ok := s.Users[RelatedUserID]; RelatedUserID != shared.NoRelatedUserID && ok {
+		fmt.Println("ASKING FOR USER RELATED INFORMATION")
+		fmt.Printf("\n%+v\n", userInformation)
 		exposedState.UserRelatedInformation = userInformation
 	}
 
@@ -558,6 +560,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							event := e.(MtvRoomUserVoteForTrackEvent)
 
 							success := internalState.UserVotedForTrack(event.UserID, event.TrackID)
+							fmt.Println("EST CE UNE REUSSITE OU PAS ", success)
+							fmt.Printf("\n%+v\n", internalState.Users[event.UserID])
 							if success {
 
 								if voteIntervalTimerFuture == nil {

@@ -21,27 +21,51 @@ const MusicTrackVoteCreationFormConfirmation: React.FC<
 
         {
             title: 'Opening status of the room',
-            value: state.context.isOpen ? 'Public' : 'Private',
+            value: state.context.isOpen === true ? 'Public' : 'Private',
         },
+        ...(state.context.isOpen === true
+            ? [
+                  {
+                      title: 'Can only invited users vote?',
+                      value:
+                          state.context.onlyInvitedUsersCanVote === true
+                              ? 'Yes'
+                              : 'No',
+                  },
+              ]
+            : []),
 
         {
-            title: 'Geolocation',
-            value: state.context.physicalConstraintPlace,
+            title: 'Has physical constraints?',
+            value: state.context.hasPhysicalConstraints === true ? 'Yes' : 'No',
         },
+        ...(state.context.hasPhysicalConstraints === true
+            ? [
+                  {
+                      title: 'Geolocation',
+                      value: state.context.physicalConstraintPlace,
+                  },
+
+                  {
+                      title: 'Radius',
+                      value: state.context.physicalConstraintRadius,
+                  },
+
+                  {
+                      title: 'Starts at',
+                      value: state.context.physicalConstraintStartsAt,
+                  },
+
+                  {
+                      title: 'Ends at',
+                      value: state.context.physicalConstraintEndsAt,
+                  },
+              ]
+            : []),
 
         {
-            title: 'Radius',
-            value: state.context.physicalConstraintRadius,
-        },
-
-        {
-            title: 'Starts at',
-            value: state.context.physicalConstraintStartsAt,
-        },
-
-        {
-            title: 'Ends at',
-            value: state.context.physicalConstraintEndsAt,
+            title: 'Playing mode',
+            value: state.context.playingMode,
         },
 
         {
@@ -78,6 +102,7 @@ const MusicTrackVoteCreationFormConfirmation: React.FC<
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
                                     flexWrap: 'wrap',
+                                    marginBottom: 's',
                                 }}
                             >
                                 <Text sx={{ color: 'white' }}>{title}</Text>

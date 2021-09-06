@@ -230,11 +230,12 @@ func (s *InternalStateUser) HasVotedFor(trackID string) bool {
 }
 
 type MtvRoomParameters struct {
-	RoomID               string
-	RoomCreatorUserID    string
-	RoomName             string
-	InitialUsers         map[string]*InternalStateUser
-	InitialTracksIDsList []string
+	RoomID                 string
+	RoomCreatorUserID      string
+	RoomName               string
+	MinimumScoreToBePlayed int
+	InitialUsers           map[string]*InternalStateUser
+	InitialTracksIDsList   []string
 }
 
 func (p MtvRoomParameters) Export() MtvRoomExposedState {
@@ -244,7 +245,7 @@ func (p MtvRoomParameters) Export() MtvRoomExposedState {
 		RoomCreatorUserID:      p.RoomCreatorUserID,
 		RoomName:               p.RoomName,
 		UserRelatedInformation: p.InitialUsers[p.RoomCreatorUserID],
-		MinimumScoreToBePlayed: 1,
+		MinimumScoreToBePlayed: p.MinimumScoreToBePlayed,
 	}
 }
 

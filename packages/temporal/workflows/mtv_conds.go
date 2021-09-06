@@ -8,7 +8,7 @@ import (
 
 func hasNextTrackToPlay(internalState *MtvRoomInternalState) brainy.Cond {
 	return func(c brainy.Context, e brainy.Event) bool {
-		hasNextTrackToPlay := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.MinimumScoreToBePlayed)
+		hasNextTrackToPlay := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.initialParams.MinimumScoreToBePlayed)
 
 		return hasNextTrackToPlay
 	}
@@ -17,7 +17,7 @@ func hasNextTrackToPlay(internalState *MtvRoomInternalState) brainy.Cond {
 func canPlayCurrentTrack(internalState *MtvRoomInternalState) brainy.Cond {
 	return func(c brainy.Context, e brainy.Event) bool {
 		hasReachedEndOfCurrentTrack := internalState.CurrentTrack.AlreadyElapsed == internalState.CurrentTrack.Duration
-		hasNextTrackToPlay := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.MinimumScoreToBePlayed)
+		hasNextTrackToPlay := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.initialParams.MinimumScoreToBePlayed)
 		hasNoNextTrackToPlay := !hasNextTrackToPlay
 		canNotPlayCurrentTrack := hasReachedEndOfCurrentTrack && hasNoNextTrackToPlay
 		canPlayCurrentTrack := !canNotPlayCurrentTrack
@@ -28,7 +28,7 @@ func canPlayCurrentTrack(internalState *MtvRoomInternalState) brainy.Cond {
 
 func currentTrackEndedAndNextTrackIsReadyToBePlayed(internalState *MtvRoomInternalState) brainy.Cond {
 	return func(c brainy.Context, e brainy.Event) bool {
-		nextTrackIsReadyToBePlayed := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.MinimumScoreToBePlayed)
+		nextTrackIsReadyToBePlayed := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.initialParams.MinimumScoreToBePlayed)
 		//See if we need a delta
 		//Remark: in case of all initials tracks fetching fails, we expect the room to autoplay
 		//the very next ready to be played track in the queue, in this way here we do not verify

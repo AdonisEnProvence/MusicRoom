@@ -21,17 +21,12 @@ type MtvRoomInternalState struct {
 	CurrentTrack                     shared.CurrentTrack
 	Tracks                           shared.TracksMetadataWithScoreSet
 	Playing                          bool
-	MinimumScoreToBePlayed           int
 	Timer                            shared.MtvRoomTimer
 	TracksCheckForVoteUpdateLastSave shared.TracksMetadataWithScoreSet
 }
 
 func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 	s.initialParams = params
-
-	//TMP MOCK
-	s.MinimumScoreToBePlayed = 1
-	//
 	s.Users = params.InitialUsers
 }
 
@@ -66,7 +61,7 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 		CurrentTrack:           currentTrackToExport,
 		Tracks:                 exposedTracks,
 		UsersLength:            len(s.Users),
-		MinimumScoreToBePlayed: s.MinimumScoreToBePlayed,
+		MinimumScoreToBePlayed: s.initialParams.MinimumScoreToBePlayed,
 	}
 
 	if userInformation, ok := s.Users[RelatedUserID]; RelatedUserID != shared.NoRelatedUserID && ok {
@@ -396,7 +391,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									Cond: func(c brainy.Context, e brainy.Event) bool {
 										timerExpirationEvent := e.(MtvRoomTimerExpirationEvent)
 										currentTrackEnded := timerExpirationEvent.Reason == shared.MtvRoomTimerExpiredReasonFinished
-										nextTrackIsReadyToBePlayed := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.MinimumScoreToBePlayed)
+										nextTrackIsReadyToBePlayed := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.initialParams.MinimumScoreToBePlayed)
 										nextTrackIsNotReadyToBePlayed := !nextTrackIsReadyToBePlayed
 
 										return currentTrackEnded && nextTrackIsNotReadyToBePlayed
@@ -422,7 +417,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									Cond: func(c brainy.Context, e brainy.Event) bool {
 										timerExpirationEvent := e.(MtvRoomTimerExpirationEvent)
 										currentTrackEnded := timerExpirationEvent.Reason == shared.MtvRoomTimerExpiredReasonFinished
-										nextTrackIsReadyToBePlayed := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.MinimumScoreToBePlayed)
+										nextTrackIsReadyToBePlayed := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.initialParams.MinimumScoreToBePlayed)
 
 										if currentTrackEnded {
 											fmt.Println("__TRACK IS FINISHED GOING TO THE NEXT ONE__")

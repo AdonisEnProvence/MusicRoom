@@ -24,7 +24,7 @@ func assignInitialFetchedTracks(internalState *MtvRoomInternalState) brainy.Acti
 
 		}
 
-		if internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.MinimumScoreToBePlayed) {
+		if internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.initialParams.MinimumScoreToBePlayed) {
 			setFirstTrackAsCurrentTrack(internalState)
 		} else {
 			internalState.Timer = shared.MtvRoomTimer{}

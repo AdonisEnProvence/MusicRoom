@@ -22,13 +22,13 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
     const physicalConstraintEndsAt = state.context.physicalConstraintEndsAt;
     const physicalConstraintsOptions = [
         {
-            text: 'No restriction',
+            text: 'Restrict',
             selected: hasPhysicalConstraints,
             onPress: handleSetPhysicalConstraintsStatus(true),
         },
 
         {
-            text: 'Restrict',
+            text: 'No restriction',
             selected: state.hasTag('hasNoPhysicalConstraints'),
             onPress: handleSetPhysicalConstraintsStatus(false),
         },

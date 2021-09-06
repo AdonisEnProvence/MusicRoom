@@ -200,10 +200,12 @@ export function useSuggestTracks(closeSuggestionModal: () => void): {
     };
 }
 
-export function useCreationMtvRoomFormMachine(): CreationMtvRoomFormActorRef {
+export function useCreationMtvRoomFormMachine():
+    | CreationMtvRoomFormActorRef
+    | undefined {
     const { state } = useMusicPlayer();
     const actor: CreationMtvRoomFormActorRef =
         state.children.creationMtvRoomForm;
 
-    return actor;
+    return actor ?? undefined;
 }

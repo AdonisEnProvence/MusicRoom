@@ -164,6 +164,7 @@ const (
 	MtvRoomChangeUserEmittingDevice               brainy.EventType = "CHANGE_USER_EMITTING_DEVICE"
 	MtvRoomSuggestTracks                          brainy.EventType = "SUGGEST_TRACKS"
 	MtvRoomSuggestedTracksFetched                 brainy.EventType = "SUGGESTED_TRACKS_FETCHED"
+	MtvRoomTracksListScoreUpdate                  brainy.EventType = "TRACKS_LIST_SCORE_UPDATE"
 )
 
 func GetElapsed(ctx workflow.Context, previous time.Time) time.Duration {
@@ -295,6 +296,18 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 						Cond: canPlayCurrentTrack(&internalState),
 					},
+
+					MtvRoomTracksListScoreUpdate: brainy.Transition{
+						Target: MtvRoomPlayingState,
+
+						Cond: currentTrackEndedAndNextTrackIsReadyToBePlayed(&internalState),
+
+						Actions: brainy.Actions{
+							brainy.ActionFn(
+								assignNextTrack(&internalState),
+							),
+						},
+					},
 				},
 			},
 
@@ -383,9 +396,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									Cond: func(c brainy.Context, e brainy.Event) bool {
 										timerExpirationEvent := e.(MtvRoomTimerExpirationEvent)
 										currentTrackEnded := timerExpirationEvent.Reason == shared.MtvRoomTimerExpiredReasonFinished
-										hasReachedTracksListEnd := internalState.Tracks.Len() == 0
+										nextTrackIsReadyToBePlayed := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.MinimumScoreToBePlayed)
+										nextTrackIsNotReadyToBePlayed := !nextTrackIsReadyToBePlayed
 
-										return currentTrackEnded && hasReachedTracksListEnd
+										return currentTrackEnded && nextTrackIsNotReadyToBePlayed
 									},
 
 									Target: MtvRoomPlayingTimeoutExpiredState,
@@ -393,7 +407,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									Actions: brainy.Actions{
 										brainy.ActionFn(
 											func(c brainy.Context, e brainy.Event) error {
-												fmt.Println("__NO MORE TRACKS__")
+												fmt.Println("__NO MORE TRACKS TO PLAY__")
 												event := e.(MtvRoomTimerExpirationEvent)
 
 												internalState.CurrentTrack.AlreadyElapsed += event.Timer.Duration
@@ -408,12 +422,13 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									Cond: func(c brainy.Context, e brainy.Event) bool {
 										timerExpirationEvent := e.(MtvRoomTimerExpirationEvent)
 										currentTrackEnded := timerExpirationEvent.Reason == shared.MtvRoomTimerExpiredReasonFinished
+										nextTrackIsReadyToBePlayed := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.MinimumScoreToBePlayed)
 
 										if currentTrackEnded {
 											fmt.Println("__TRACK IS FINISHED GOING TO THE NEXT ONE__")
 										}
 
-										return currentTrackEnded
+										return currentTrackEnded && nextTrackIsReadyToBePlayed
 									},
 
 									Target: MtvRoomPlayingLauchingTimerState,
@@ -570,6 +585,9 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							return nil
 						},
 					),
+					brainy.Send(
+						MtvRoomTracksListScoreUpdate,
+					),
 				},
 			},
 
@@ -696,6 +714,9 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							return nil
 						},
 					),
+					brainy.Send(
+						MtvRoomTracksListScoreUpdate,
+					),
 				},
 			},
 
@@ -705,6 +726,9 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 						func(c brainy.Context, e brainy.Event) error {
 							event := e.(MtvRoomSuggestedTracksFetchedEvent)
 
+							/*
+								Check for race condition here
+							*/
 							for _, trackInformation := range event.SuggestedTracksInformation {
 								suggestedTrackInformation := shared.TrackMetadataWithScore{
 									TrackMetadata: trackInformation,
@@ -713,11 +737,17 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								}
 
 								internalState.Tracks.Add(suggestedTrackInformation)
-								internalState.UserVotedForTrack(event.UserID, trackInformation.ID)
+								success := internalState.UserVotedForTrack(event.UserID, trackInformation.ID)
+								if success && voteIntervalTimerFuture == nil {
+									voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
+								}
 							}
 
 							return nil
 						},
+					),
+					brainy.Send(
+						MtvRoomTracksListScoreUpdate,
 					),
 					brainy.ActionFn(
 						func(c brainy.Context, e brainy.Event) error {

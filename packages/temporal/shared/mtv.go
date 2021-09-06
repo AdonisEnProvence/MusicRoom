@@ -37,7 +37,7 @@ type TrackMetadata struct {
 type TrackMetadataWithScore struct {
 	TrackMetadata
 
-	Score uint `json:"score"`
+	Score int `json:"score"`
 }
 
 func (t TrackMetadataWithScore) WithMillisecondsDuration() TrackMetadataWithScoreWithDuration {
@@ -99,21 +99,42 @@ func (s *TracksMetadataWithScoreSet) IncrementTrackScoreAndSortTracks(trackID st
 
 	track.Score++
 	s.StableSortByHigherScore()
+
 	return true
+}
+
+func (s *TracksMetadataWithScoreSet) GetByIndex(index int) *TrackMetadataWithScore {
+	tracksLength := s.Len()
+
+	if tracksLength <= index {
+		return nil
+	}
+
+	return &s.Values()[index]
+}
+
+func (s *TracksMetadataWithScoreSet) FirstTrackIsReadyToBePlayed(minimumScoreToBePlayed int) bool {
+
+	firstTrack := s.GetByIndex(0)
+
+	if firstTrack == nil {
+		return false
+	}
+
+	return firstTrack.Score >= minimumScoreToBePlayed
 }
 
 func (s *TracksMetadataWithScoreSet) StableSortByHigherScore() {
 	sort.SliceStable(s.tracks, func(i, j int) bool { return s.tracks[i].Score > s.tracks[j].Score })
 }
 
-func (s *TracksMetadataWithScoreSet) Add(tracks ...TrackMetadataWithScore) {
-	for _, track := range tracks {
-		if isDuplicate := s.Has(track.ID); isDuplicate {
-			continue
-		}
-
-		s.tracks = append(s.tracks, track)
+func (s *TracksMetadataWithScoreSet) Add(track TrackMetadataWithScore) bool {
+	if isDuplicate := s.Has(track.ID); isDuplicate {
+		return false
 	}
+
+	s.tracks = append(s.tracks, track)
+	return true
 }
 
 func (s *TracksMetadataWithScoreSet) Delete(trackID string) bool {
@@ -162,20 +183,6 @@ func (s *TracksMetadataWithScoreSet) DeepEqual(toCmpTracksList TracksMetadataWit
 		}
 	}
 	return true
-}
-
-// Difference returns a new TracksMetadataWithScoreSet with all the elements from
-// s set that do not exist in toCompare set.
-func (s *TracksMetadataWithScoreSet) Difference(toCompare TracksMetadataWithScoreSet) TracksMetadataWithScoreSet {
-	var newSet TracksMetadataWithScoreSet
-
-	newSet.Add(s.tracks...)
-
-	for _, track := range toCompare.Values() {
-		newSet.Delete(track.ID)
-	}
-
-	return newSet
 }
 
 type TrackMetadataWithScoreWithDuration struct {

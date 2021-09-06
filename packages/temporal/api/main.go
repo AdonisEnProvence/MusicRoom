@@ -394,6 +394,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		"JK7WLK3ZSu8",
 		"9Tfciw7QM3c",
 		"H3s1mt7aFlc",
+		"rUWxSEwctFU",
 	}
 	initialTracksIDsList := append(body.InitialTracksIDs, seedTracksIDs...)
 

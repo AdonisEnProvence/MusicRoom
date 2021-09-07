@@ -85,7 +85,7 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
 
     return (
         <MtvRoomCreationFormScreen
-            title="Do you want to restrict voting right to physical contraints?"
+            title="Do you want to restrict voting right to physical constraints?"
             onBackButtonPress={handleGoBack}
             onNextButtonPress={handleGoNext}
             Content={

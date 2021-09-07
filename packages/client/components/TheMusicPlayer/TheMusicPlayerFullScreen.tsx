@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { TrackMetadata } from '@musicroom/types';
 import { useNavigation } from '@react-navigation/native';
 import { useMachine } from '@xstate/react';
 import { Text, useSx, View } from 'dripsy';
@@ -8,6 +7,7 @@ import { FlatList, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sender } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { TrackMetadataWithScore } from '../../../types/dist';
 import {
     AppMusicPlayerMachineEvent,
     AppMusicPlayerMachineState,
@@ -169,7 +169,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                 }
 
                 function generateTracksListItems(): (
-                    | { type: 'TRACK'; track: TrackMetadata }
+                    | { type: 'TRACK'; track: TrackMetadataWithScore }
                     | { type: 'SEPARATOR' }
                 )[] {
                     if (context.tracks === null) {
@@ -178,7 +178,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
 
                     const formattedTracksListItem = context.tracks.map<{
                         type: 'TRACK';
-                        track: TrackMetadata;
+                        track: TrackMetadataWithScore;
                     }>((track) => ({
                         type: 'TRACK',
                         track,
@@ -229,7 +229,19 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                                     );
                                 }
 
-                                const { title, artistName } = item.track;
+                                const {
+                                    title,
+                                    artistName,
+                                    id: trackID,
+                                } = item.track;
+                                let userHasAlreadyVotedForTrack = false;
+                                if (context.userRelatedInformation !== null) {
+                                    userHasAlreadyVotedForTrack =
+                                        context.userRelatedInformation.tracksVotedFor.some(
+                                            (trackIDVotedFor) =>
+                                                trackIDVotedFor === trackID,
+                                        );
+                                }
 
                                 return (
                                     <View
@@ -241,12 +253,24 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                                             index={index + 1}
                                             title={title}
                                             artistName={artistName}
-                                            score={51}
-                                            minimumScore={50}
+                                            score={item.track.score}
+                                            minimumScore={
+                                                context.minimumScoreToBePlayed
+                                            }
+                                            disabled={
+                                                userHasAlreadyVotedForTrack
+                                            }
+                                            onPress={() => {
+                                                sendToMachine({
+                                                    type: 'VOTE_FOR_TRACK',
+                                                    trackID,
+                                                });
+                                            }}
                                         />
                                     </View>
                                 );
                             }}
+                            extraData={context}
                             keyExtractor={(_, index) => String(index)}
                             style={{ flex: 1 }}
                         />

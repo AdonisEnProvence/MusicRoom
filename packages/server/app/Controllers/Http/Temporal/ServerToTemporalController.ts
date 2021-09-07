@@ -11,6 +11,7 @@ interface TemporalCreateMtvWorkflowBody {
     userID: string;
     deviceID: string;
     initialTracksIDs: string[];
+    minimumScoreToBePlayed: number;
 }
 
 interface TemporalCreateMtvWorkflowArgs {
@@ -75,6 +76,7 @@ export default class ServerToTemporalController {
             userID,
             initialTracksIDs,
             deviceID,
+            minimumScoreToBePlayed: 1,
         };
 
         return CreateWorkflowResponse.parse(

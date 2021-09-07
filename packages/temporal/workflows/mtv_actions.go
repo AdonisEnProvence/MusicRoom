@@ -24,7 +24,7 @@ func assignInitialFetchedTracks(internalState *MtvRoomInternalState) brainy.Acti
 
 		}
 
-		if tracksCount := len(event.Tracks); tracksCount > 0 {
+		if internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.initialParams.MinimumScoreToBePlayed) {
 			setFirstTrackAsCurrentTrack(internalState)
 		} else {
 			internalState.Timer = shared.MtvRoomTimer{}
@@ -35,6 +35,9 @@ func assignInitialFetchedTracks(internalState *MtvRoomInternalState) brainy.Acti
 }
 
 func setFirstTrackAsCurrentTrack(internalState *MtvRoomInternalState) {
+	//By calling this function you assume that next track is ready to be played
+	//This should not be called outside a brainy action+cond spec
+
 	firstTrack, _ := internalState.Tracks.Shift()
 
 	internalState.CurrentTrack = shared.CurrentTrack{

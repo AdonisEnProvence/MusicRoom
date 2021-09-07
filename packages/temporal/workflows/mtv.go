@@ -21,17 +21,12 @@ type MtvRoomInternalState struct {
 	CurrentTrack                     shared.CurrentTrack
 	Tracks                           shared.TracksMetadataWithScoreSet
 	Playing                          bool
-	MinimumScoreToBePlayed           int
 	Timer                            shared.MtvRoomTimer
 	TracksCheckForVoteUpdateLastSave shared.TracksMetadataWithScoreSet
 }
 
 func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 	s.initialParams = params
-
-	//TMP MOCK
-	s.MinimumScoreToBePlayed = 1
-	//
 	s.Users = params.InitialUsers
 }
 
@@ -66,7 +61,7 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 		CurrentTrack:           currentTrackToExport,
 		Tracks:                 exposedTracks,
 		UsersLength:            len(s.Users),
-		MinimumScoreToBePlayed: s.MinimumScoreToBePlayed,
+		MinimumScoreToBePlayed: s.initialParams.MinimumScoreToBePlayed,
 	}
 
 	if userInformation, ok := s.Users[RelatedUserID]; RelatedUserID != shared.NoRelatedUserID && ok {
@@ -164,6 +159,7 @@ const (
 	MtvRoomChangeUserEmittingDevice               brainy.EventType = "CHANGE_USER_EMITTING_DEVICE"
 	MtvRoomSuggestTracks                          brainy.EventType = "SUGGEST_TRACKS"
 	MtvRoomSuggestedTracksFetched                 brainy.EventType = "SUGGESTED_TRACKS_FETCHED"
+	MtvRoomTracksListScoreUpdate                  brainy.EventType = "TRACKS_LIST_SCORE_UPDATE"
 )
 
 func GetElapsed(ctx workflow.Context, previous time.Time) time.Duration {
@@ -295,6 +291,18 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 						Cond: canPlayCurrentTrack(&internalState),
 					},
+
+					MtvRoomTracksListScoreUpdate: brainy.Transition{
+						Target: MtvRoomPlayingState,
+
+						Cond: currentTrackEndedAndNextTrackIsReadyToBePlayed(&internalState),
+
+						Actions: brainy.Actions{
+							brainy.ActionFn(
+								assignNextTrack(&internalState),
+							),
+						},
+					},
 				},
 			},
 
@@ -383,9 +391,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									Cond: func(c brainy.Context, e brainy.Event) bool {
 										timerExpirationEvent := e.(MtvRoomTimerExpirationEvent)
 										currentTrackEnded := timerExpirationEvent.Reason == shared.MtvRoomTimerExpiredReasonFinished
-										hasReachedTracksListEnd := internalState.Tracks.Len() == 0
+										nextTrackIsReadyToBePlayed := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.initialParams.MinimumScoreToBePlayed)
+										nextTrackIsNotReadyToBePlayed := !nextTrackIsReadyToBePlayed
 
-										return currentTrackEnded && hasReachedTracksListEnd
+										return currentTrackEnded && nextTrackIsNotReadyToBePlayed
 									},
 
 									Target: MtvRoomPlayingTimeoutExpiredState,
@@ -393,7 +402,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									Actions: brainy.Actions{
 										brainy.ActionFn(
 											func(c brainy.Context, e brainy.Event) error {
-												fmt.Println("__NO MORE TRACKS__")
+												fmt.Println("__NO MORE TRACKS TO PLAY__")
 												event := e.(MtvRoomTimerExpirationEvent)
 
 												internalState.CurrentTrack.AlreadyElapsed += event.Timer.Duration
@@ -408,12 +417,13 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									Cond: func(c brainy.Context, e brainy.Event) bool {
 										timerExpirationEvent := e.(MtvRoomTimerExpirationEvent)
 										currentTrackEnded := timerExpirationEvent.Reason == shared.MtvRoomTimerExpiredReasonFinished
+										nextTrackIsReadyToBePlayed := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.initialParams.MinimumScoreToBePlayed)
 
 										if currentTrackEnded {
 											fmt.Println("__TRACK IS FINISHED GOING TO THE NEXT ONE__")
 										}
 
-										return currentTrackEnded
+										return currentTrackEnded && nextTrackIsReadyToBePlayed
 									},
 
 									Target: MtvRoomPlayingLauchingTimerState,
@@ -570,6 +580,9 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							return nil
 						},
 					),
+					brainy.Send(
+						MtvRoomTracksListScoreUpdate,
+					),
 				},
 			},
 
@@ -660,7 +673,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									continue
 								}
 
-								//Chekcing if the suggested track is in the queue
+								//Checking if the suggested track is in the queue
 								isDuplicate := internalState.Tracks.Has(suggestedTrackID)
 								if isDuplicate {
 									//Count as a voted for suggested track if already is list
@@ -696,6 +709,9 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							return nil
 						},
 					),
+					brainy.Send(
+						MtvRoomTracksListScoreUpdate,
+					),
 				},
 			},
 
@@ -713,11 +729,17 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								}
 
 								internalState.Tracks.Add(suggestedTrackInformation)
-								internalState.UserVotedForTrack(event.UserID, trackInformation.ID)
+								success := internalState.UserVotedForTrack(event.UserID, trackInformation.ID)
+								if success && voteIntervalTimerFuture == nil {
+									voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
+								}
 							}
 
 							return nil
 						},
+					),
+					brainy.Send(
+						MtvRoomTracksListScoreUpdate,
 					),
 					brainy.ActionFn(
 						func(c brainy.Context, e brainy.Event) error {
@@ -750,8 +772,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								ctx,
 								activities.AcknowledgeTracksSuggestion,
 								activities.AcknowledgeTracksSuggestionArgs{
-									RoomID:   internalState.initialParams.RoomID,
-									UserID:   event.UserID,
+									State:    internalState.Export(event.UserID),
 									DeviceID: event.DeviceID,
 								},
 							)
@@ -902,7 +923,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 			case shared.SignalRouteVoteForTrack:
 				var message shared.VoteForTrackSignal
 
-				fmt.Printf("\n\n******VOTE RECEIVED******\n\n")
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
@@ -912,7 +932,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					return
 				}
 
-				fmt.Printf("\n\n******KEEP GOING******\n\n")
 				internalState.Machine.Send(
 					NewMtvRoomUserVoteForTrackEvent(message.UserID, message.TrackID),
 				)

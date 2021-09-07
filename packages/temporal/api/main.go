@@ -356,11 +356,12 @@ func PauseHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type CreateRoomRequestBody struct {
-	WorkflowID       string   `json:"workflowID" validate:"required,uuid"`
-	UserID           string   `json:"userID" validate:"required,uuid"`
-	DeviceID         string   `json:"deviceID" validate:"required,uuid"`
-	Name             string   `json:"roomName" validate:"required"`
-	InitialTracksIDs []string `json:"initialTracksIDs" validate:"required,dive,required"`
+	WorkflowID             string   `json:"workflowID" validate:"required,uuid"`
+	UserID                 string   `json:"userID" validate:"required,uuid"`
+	DeviceID               string   `json:"deviceID" validate:"required,uuid"`
+	Name                   string   `json:"roomName" validate:"required"`
+	MinimumScoreToBePlayed int      `json:"minimumScoreToBePlayed" validate:"required"`
+	InitialTracksIDs       []string `json:"initialTracksIDs" validate:"required,dive,required"`
 }
 
 type CreateRoomResponse struct {
@@ -394,6 +395,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		"JK7WLK3ZSu8",
 		"9Tfciw7QM3c",
 		"H3s1mt7aFlc",
+		"rUWxSEwctFU",
 	}
 	initialTracksIDsList := append(body.InitialTracksIDs, seedTracksIDs...)
 
@@ -405,11 +407,12 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := shared.MtvRoomParameters{
-		RoomID:               body.WorkflowID,
-		RoomCreatorUserID:    body.UserID,
-		RoomName:             body.Name,
-		InitialUsers:         initialUsers,
-		InitialTracksIDsList: initialTracksIDsList,
+		RoomID:                 body.WorkflowID,
+		RoomCreatorUserID:      body.UserID,
+		RoomName:               body.Name,
+		MinimumScoreToBePlayed: body.MinimumScoreToBePlayed,
+		InitialUsers:           initialUsers,
+		InitialTracksIDsList:   initialTracksIDsList,
 	}
 
 	we, err := temporal.ExecuteWorkflow(context.Background(), options, workflows.MtvRoomWorkflow, params)

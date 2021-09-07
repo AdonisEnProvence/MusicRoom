@@ -40,7 +40,8 @@ func (s *UnitTestSuite) Test_TracksMetadataWithScoreSetAllowsDeletion() {
 		}
 	)
 
-	set.Add(setValues...)
+	set.Add(setValues[0])
+	set.Add(setValues[1])
 
 	// Delete the second item of the set
 	set.Delete(setValues[1].ID)
@@ -72,51 +73,6 @@ func (s *UnitTestSuite) Test_TracksMetadataWithScoreSetAllowsDeletion() {
 		set.Values(),
 	)
 	s.Equal(0, set.Len())
-}
-
-func (s *UnitTestSuite) Test_TracksMetadataWithScoreSetAllowsDifferences() {
-	var (
-		firstSet       shared.TracksMetadataWithScoreSet
-		firstSetValues = []shared.TrackMetadataWithScore{
-			{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         faker.UUIDHyphenated(),
-					Title:      faker.Word(),
-					ArtistName: faker.Name(),
-					Duration:   random.GenerateRandomDuration(),
-				},
-
-				Score: 0,
-			},
-			{
-				TrackMetadata: shared.TrackMetadata{
-					ID:         faker.UUIDHyphenated(),
-					Title:      faker.Word(),
-					ArtistName: faker.Name(),
-					Duration:   random.GenerateRandomDuration(),
-				},
-
-				Score: 0,
-			},
-		}
-
-		secondSet       shared.TracksMetadataWithScoreSet
-		secondSetValues = []shared.TrackMetadataWithScore{
-			firstSetValues[0],
-		}
-	)
-
-	firstSet.Add(firstSetValues...)
-	secondSet.Add(secondSetValues...)
-
-	differenceSet := firstSet.Difference(secondSet)
-
-	s.Equal(
-		[]shared.TrackMetadataWithScore{
-			firstSetValues[1],
-		},
-		differenceSet.Values(),
-	)
 }
 
 func TestUnitTestSuite(t *testing.T) {

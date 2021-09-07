@@ -129,9 +129,8 @@ func NotifySuggestOrVoteUpdateActivity(ctx context.Context, state shared.MtvRoom
 }
 
 type AcknowledgeTracksSuggestionArgs struct {
-	RoomID   string `json:"roomID"`
-	UserID   string `json:"userID"`
-	DeviceID string `json:"deviceID"`
+	State    shared.MtvRoomExposedState `json:"state"`
+	DeviceID string                     `json:"deviceID"`
 }
 
 func AcknowledgeTracksSuggestion(ctx context.Context, args AcknowledgeTracksSuggestionArgs) error {

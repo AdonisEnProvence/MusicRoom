@@ -104,12 +104,12 @@ test.group(`User service socket handler tests`, (group) => {
             receivedEvents: [] as string[],
         };
 
-        creatorSocket.socket.once('VOTE_FOR_TRACK_CALLBACK', () =>
-            creatorSocket.receivedEvents.push('VOTE_FOR_TRACK_CALLBACK'),
+        creatorSocket.socket.once('VOTE_OR_SUGGEST_TRACK_CALLBACK', () =>
+            creatorSocket.receivedEvents.push('VOTE_OR_SUGGEST_TRACK_CALLBACK'),
         );
 
-        creatorSocket.socketB.once('VOTE_FOR_TRACK_CALLBACK', () =>
-            creatorSocket.receivedEvents.push('VOTE_FOR_TRACK_CALLBACK'),
+        creatorSocket.socketB.once('VOTE_OR_SUGGEST_TRACK_CALLBACK', () =>
+            creatorSocket.receivedEvents.push('VOTE_OR_SUGGEST_TRACK_CALLBACK'),
         );
 
         const members = [creatorSocket, userBSocket, userCSocket];

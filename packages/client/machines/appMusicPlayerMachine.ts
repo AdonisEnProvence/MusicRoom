@@ -1,6 +1,7 @@
 import {
     MtvRoomClientToServerCreate,
     MtvWorkflowState,
+    MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
 import {
     assign,
@@ -63,7 +64,12 @@ export type AppMusicPlayerMachineEvent =
           closeSuggestionModal: () => void;
       }
     | { type: 'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE'; state: MtvWorkflowState }
-    | { type: 'SUGGEST_TRACKS_CALLBACK' };
+    | { type: 'SUGGEST_TRACKS_CALLBACK' }
+    | {
+          type: 'VOTE_OR_SUGGEST_TRACK_CALLBACK';
+          state: MtvWorkflowStateWithUserRelatedInformation;
+      }
+    | { type: 'VOTE_FOR_TRACK'; trackID: string };
 
 interface CreateAppMusicPlayerMachineArgs {
     socket: SocketClient;
@@ -159,6 +165,14 @@ export const createAppMusicPlayerMachine = ({
                         });
                     });
 
+                    socket.on('VOTE_OR_SUGGEST_TRACK_CALLBACK', (state) => {
+                        console.log('RECEIVED VOTE FOR TRACK CALLBACK', state);
+                        sendBack({
+                            type: 'VOTE_OR_SUGGEST_TRACK_CALLBACK',
+                            state,
+                        });
+                    });
+
                     socket.on('SUGGEST_TRACKS_CALLBACK', () => {
                         sendBack({
                             type: 'SUGGEST_TRACKS_CALLBACK',
@@ -215,6 +229,14 @@ export const createAppMusicPlayerMachine = ({
 
                                 socket.emit('SUGGEST_TRACKS', {
                                     tracksToSuggest,
+                                });
+
+                                break;
+                            }
+
+                            case 'VOTE_FOR_TRACK': {
+                                socket.emit('VOTE_FOR_TRACK', {
+                                    trackID: e.trackID,
                                 });
 
                                 break;
@@ -647,10 +669,6 @@ export const createAppMusicPlayerMachine = ({
                                     ),
                                 },
 
-                                USER_LENGTH_UPDATE: {
-                                    actions: 'assignMergeNewState',
-                                },
-
                                 CHANGE_EMITTING_DEVICE_CALLBACK: {
                                     cond: ({ userRelatedInformation }) => {
                                         const userRelatedInformationIsNotNull =
@@ -668,6 +686,19 @@ export const createAppMusicPlayerMachine = ({
                                         return userRelatedInformationIsNotNull;
                                     },
                                     actions: `assignMergeNewState`,
+                                },
+
+                                VOTE_FOR_TRACK: {
+                                    cond: 'canVoteForTrack',
+                                    actions: forwardTo('socketConnection'),
+                                },
+
+                                VOTE_OR_SUGGEST_TRACK_CALLBACK: {
+                                    actions: 'assignMergeNewState',
+                                },
+
+                                USER_LENGTH_UPDATE: {
+                                    actions: 'assignMergeNewState',
                                 },
                             },
                         },
@@ -720,7 +751,8 @@ export const createAppMusicPlayerMachine = ({
                         event.type !== 'PLAY_CALLBACK' &&
                         event.type !== 'CHANGE_EMITTING_DEVICE_CALLBACK' &&
                         event.type !== 'USER_LENGTH_UPDATE' &&
-                        event.type !== 'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE'
+                        event.type !== 'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE' &&
+                        event.type !== 'VOTE_OR_SUGGEST_TRACK_CALLBACK'
                     ) {
                         return context;
                     }
@@ -762,6 +794,31 @@ export const createAppMusicPlayerMachine = ({
                         progressElapsedTime: event.elapsedTime,
                     };
                 }),
+            },
+            guards: {
+                canVoteForTrack: (context, event) => {
+                    if (event.type !== 'VOTE_FOR_TRACK') {
+                        return false;
+                    }
+
+                    if (context.userRelatedInformation === null) {
+                        return false;
+                    }
+
+                    const { trackID } = event;
+                    const payloadIsEmpty = trackID === '';
+                    if (payloadIsEmpty) {
+                        return false;
+                    }
+
+                    const userHasVotedForTrack =
+                        context.userRelatedInformation.tracksVotedFor.includes(
+                            trackID,
+                        );
+                    const userHasNotVotedForTrack = !userHasVotedForTrack;
+
+                    return userHasNotVotedForTrack;
+                },
             },
         },
     );

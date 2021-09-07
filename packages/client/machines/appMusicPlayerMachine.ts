@@ -317,35 +317,35 @@ export const createAppMusicPlayerMachine = ({
                         },
 
                         creatingRoom: {
-                            initial: 'selectingRoomOptions',
+                            initial: 'connectingToRoom',
 
                             states: {
-                                selectingRoomOptions: {
-                                    entry: 'openCreationMtvRoomFormModal',
+                                // selectingRoomOptions: {
+                                //     entry: 'openCreationMtvRoomFormModal',
 
-                                    exit: 'closeCreationMtvRoomFormModal',
+                                //     exit: 'closeCreationMtvRoomFormModal',
 
-                                    invoke: {
-                                        id: 'creationMtvRoomForm',
+                                //     invoke: {
+                                //         id: 'creationMtvRoomForm',
 
-                                        src: creationMtvRoomForm,
-                                    },
+                                //         src: creationMtvRoomForm,
+                                //     },
 
-                                    on: {
-                                        SAVE_MTV_ROOM_CREATION_MODAL_CLOSER: {
-                                            actions: assign({
-                                                closeMtvRoomCreationModal: (
-                                                    _context,
-                                                    event,
-                                                ) => event.closeModal,
-                                            }),
-                                        },
-                                    },
+                                //     on: {
+                                //         SAVE_MTV_ROOM_CREATION_MODAL_CLOSER: {
+                                //             actions: assign({
+                                //                 closeMtvRoomCreationModal: (
+                                //                     _context,
+                                //                     event,
+                                //                 ) => event.closeModal,
+                                //             }),
+                                //         },
+                                //     },
 
-                                    onDone: {
-                                        target: 'connectingToRoom',
-                                    },
-                                },
+                                //     onDone: {
+                                //         target: 'connectingToRoom',
+                                //     },
+                                // },
 
                                 connectingToRoom: {
                                     invoke: {

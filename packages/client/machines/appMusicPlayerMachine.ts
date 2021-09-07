@@ -329,6 +329,10 @@ export const createAppMusicPlayerMachine = ({
                                 //         id: 'creationMtvRoomForm',
 
                                 //         src: creationMtvRoomForm,
+
+                                //         onDone: {
+                                //             target: 'connectingToRoom',
+                                //         },
                                 //     },
 
                                 //     on: {
@@ -340,10 +344,6 @@ export const createAppMusicPlayerMachine = ({
                                 //                 ) => event.closeModal,
                                 //             }),
                                 //         },
-                                //     },
-
-                                //     onDone: {
-                                //         target: 'connectingToRoom',
                                 //     },
                                 // },
 

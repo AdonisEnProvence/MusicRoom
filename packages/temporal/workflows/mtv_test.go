@@ -2034,7 +2034,7 @@ func (s *UnitTestSuite) Test_EmptyCurrentTrackAutoPlayAfterOneGetReadyToBePlayed
 
 	//Here we test the auto play after a track from not ready to be played
 	//one finally get the required score amount
-	checkJoinAndVoteWorkedAlsoRoomIsPlaying := defaultDuration * 6
+	checkJoinAndVoteWorkedAlsoRoomIsPlaying := defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(joiningUserID)
 
@@ -2164,7 +2164,7 @@ func (s *UnitTestSuite) Test_LoadedCurrentTrackAndReadyToBePlayedListNoAutoPlayA
 		})
 	}, joiningUserVoteForTrack)
 
-	checkJoinAndVoteWorkedAlsoRoomIsNotPlaying := defaultDuration * 6
+	checkJoinAndVoteWorkedAlsoRoomIsNotPlaying := defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(joiningUserID)
 
@@ -2217,7 +2217,7 @@ func (s *UnitTestSuite) Test_LoadedCurrentTrackAndReadyToBePlayedListNoAutoPlayA
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
-func (s *UnitTestSuite) Test_LoadedCurrentTrackAndNoTrackReadyToBePlayedAutoPlayAfterOneGetReadyToBePlayed() {
+func (s *UnitTestSuite) Test_LoadedAndEndedCurrentTrackAndNoTrackReadyToBePlayedAutoPlayAfterOneGetReadyToBePlayed() {
 	var (
 		joiningUserID   = faker.UUIDHyphenated()
 		joiningDeviceID = faker.UUIDHyphenated()
@@ -2281,7 +2281,7 @@ func (s *UnitTestSuite) Test_LoadedCurrentTrackAndNoTrackReadyToBePlayedAutoPlay
 		})
 	}, joiningUserVoteForTrack)
 
-	checkJoinAndVoteWorkedAlsoRoomIsPlaying := defaultDuration * 6
+	checkJoinAndVoteWorkedAlsoRoomIsPlaying := defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(joiningUserID)
 

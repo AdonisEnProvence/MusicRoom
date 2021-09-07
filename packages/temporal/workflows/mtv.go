@@ -65,8 +65,6 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 	}
 
 	if userInformation, ok := s.Users[RelatedUserID]; RelatedUserID != shared.NoRelatedUserID && ok {
-		fmt.Println("ASKING FOR USER RELATED INFORMATION")
-		fmt.Printf("\n%+v\n", userInformation)
 		exposedState.UserRelatedInformation = userInformation
 	}
 
@@ -560,8 +558,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							event := e.(MtvRoomUserVoteForTrackEvent)
 
 							success := internalState.UserVotedForTrack(event.UserID, event.TrackID)
-							fmt.Println("EST CE UNE REUSSITE OU PAS ", success)
-							fmt.Printf("\n%+v\n", internalState.Users[event.UserID])
 							if success {
 
 								if voteIntervalTimerFuture == nil {
@@ -677,7 +673,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									continue
 								}
 
-								//Chekcing if the suggested track is in the queue
+								//Checking if the suggested track is in the queue
 								isDuplicate := internalState.Tracks.Has(suggestedTrackID)
 								if isDuplicate {
 									//Count as a voted for suggested track if already is list
@@ -725,9 +721,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 						func(c brainy.Context, e brainy.Event) error {
 							event := e.(MtvRoomSuggestedTracksFetchedEvent)
 
-							/*
-								Check for race condition here
-							*/
 							for _, trackInformation := range event.SuggestedTracksInformation {
 								suggestedTrackInformation := shared.TrackMetadataWithScore{
 									TrackMetadata: trackInformation,
@@ -930,7 +923,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 			case shared.SignalRouteVoteForTrack:
 				var message shared.VoteForTrackSignal
 
-				fmt.Printf("\n\n******VOTE RECEIVED******\n\n")
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
@@ -940,7 +932,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					return
 				}
 
-				fmt.Printf("\n\n******KEEP GOING******\n\n")
 				internalState.Machine.Send(
 					NewMtvRoomUserVoteForTrackEvent(message.UserID, message.TrackID),
 				)

@@ -23,7 +23,8 @@ const TrackListItem: React.FC<TrackListItemProps> = ({
             sx={{
                 flex: 1,
                 padding: 'm',
-                backgroundColor: disabled ? 'gold' : 'greyLight',
+                backgroundColor: 'greyLight',
+                opacity: disabled ? 0.8 : 1,
                 borderRadius: 's',
                 flexDirection: 'row',
             }}

@@ -689,9 +689,7 @@ export const createAppMusicPlayerMachine = ({
                                 },
 
                                 VOTE_FOR_TRACK: {
-                                    cond: (_, { trackID }) => {
-                                        return trackID ? true : false;
-                                    },
+                                    cond: 'canVoteForTrack',
                                     actions: forwardTo('socketConnection'),
                                 },
 
@@ -796,6 +794,31 @@ export const createAppMusicPlayerMachine = ({
                         progressElapsedTime: event.elapsedTime,
                     };
                 }),
+            },
+            guards: {
+                canVoteForTrack: (context, event) => {
+                    if (event.type !== 'VOTE_FOR_TRACK') {
+                        return false;
+                    }
+
+                    if (context.userRelatedInformation === null) {
+                        return false;
+                    }
+
+                    const { trackID } = event;
+                    const payloadIsEmpty = trackID === '';
+                    if (payloadIsEmpty) {
+                        return false;
+                    }
+
+                    const userHasVotedForTrack =
+                        context.userRelatedInformation.tracksVotedFor.includes(
+                            trackID,
+                        );
+                    const userHasNotVotedForTrack = !userHasVotedForTrack;
+
+                    return userHasNotVotedForTrack;
+                },
             },
         },
     );

@@ -12,13 +12,11 @@ function noop() {
     return undefined;
 }
 
-test.only(`
+test(`
 User should go to the musicPlayer into the tracks tab and hit a track card to vote for it
-After the vote has been accepted a checked icon will appears next the track score
-Also the scroll view will be updated to the track card position
+After the vote has been accepted the score will be updated and the card disabled
 `, async () => {
     const deviceID = datatype.uuid();
-    const deviceName = random.word();
     const userID = datatype.uuid();
 
     const state: MtvWorkflowStateWithUserRelatedInformation = {
@@ -88,14 +86,7 @@ Also the scroll view will be updated to the track card position
         voteForTrackHasBeenCalled = true;
     });
 
-    const {
-        findByText,
-        getByTestId,
-        getAllByText,
-        findByA11yState,
-        queryAllByA11yState,
-        debug,
-    } = render(
+    const { getByTestId, findByA11yState } = render(
         <NavigationContainer
             ref={navigationRef}
             onReady={() => {
@@ -133,17 +124,17 @@ Also the scroll view will be updated to the track card position
 
     fireEvent.press(lastTrack);
 
-    const firsTrackElement = state.tracks[0];
+    const firstTrackElement = state.tracks[0];
     expect(
         await within(musicPlayerFullScreen).findAllByText(
             new RegExp(
-                `${firsTrackElement.score}/${state.minimumScoreToBePlayed}`,
+                `${firstTrackElement.score}/${state.minimumScoreToBePlayed}`,
             ),
         ),
     ).toBeTruthy();
 
     const votedTrackCard = await within(musicPlayerFullScreen).findByText(
-        firsTrackElement.title,
+        firstTrackElement.title,
     );
     expect(votedTrackCard).toBeDisabled();
 });

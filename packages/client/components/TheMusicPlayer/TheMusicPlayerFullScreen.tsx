@@ -237,10 +237,10 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                                 let userHasAlreadyVotedForTrack = false;
                                 if (context.userRelatedInformation !== null) {
                                     userHasAlreadyVotedForTrack =
-                                        context.userRelatedInformation.tracksVotedFor.find(
+                                        context.userRelatedInformation.tracksVotedFor.some(
                                             (trackIDVotedFor) =>
                                                 trackIDVotedFor === trackID,
-                                        ) !== undefined;
+                                        );
                                 }
 
                                 return (
@@ -261,8 +261,6 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                                                 userHasAlreadyVotedForTrack
                                             }
                                             onPress={() => {
-                                                if (userHasAlreadyVotedForTrack)
-                                                    return;
                                                 sendToMachine({
                                                     type: 'VOTE_FOR_TRACK',
                                                     trackID,

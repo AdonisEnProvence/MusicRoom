@@ -134,9 +134,16 @@ Also the scroll view will be updated to the track card position
     fireEvent.press(lastTrack);
 
     const firsTrackElement = state.tracks[0];
-    const votedTrackCard = await within(musicPlayerFullScreen).findAllByText(
-        new RegExp(`${firsTrackElement.score}/${state.minimumScoreToBePlayed}`),
+    expect(
+        await within(musicPlayerFullScreen).findAllByText(
+            new RegExp(
+                `${firsTrackElement.score}/${state.minimumScoreToBePlayed}`,
+            ),
+        ),
+    ).toBeTruthy();
+
+    const votedTrackCard = await within(musicPlayerFullScreen).findByText(
+        firsTrackElement.title,
     );
-    expect(votedTrackCard).toBeTruthy();
     expect(votedTrackCard).toBeDisabled();
 });

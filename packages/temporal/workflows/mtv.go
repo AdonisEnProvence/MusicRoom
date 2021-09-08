@@ -745,6 +745,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								sendAcknowledgeTracksSuggestionFailActivity(ctx, activities.AcknowledgeTracksSuggestionFailArgs{
 									DeviceID: event.DeviceID,
 								})
+								return nil
 							}
 
 							for _, trackInformation := range event.SuggestedTracksInformation {
@@ -761,16 +762,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								}
 							}
 
-							return nil
-						},
-					),
-					brainy.Send(
-						MtvRoomTracksListScoreUpdate,
-					),
-					brainy.ActionFn(
-						func(c brainy.Context, e brainy.Event) error {
-							event := e.(MtvRoomSuggestedTracksFetchedEvent)
-
 							sendAcknowledgeTracksSuggestionActivity(ctx, activities.AcknowledgeTracksSuggestionArgs{
 								DeviceID: event.DeviceID,
 								State:    internalState.Export(event.UserID),
@@ -778,6 +769,9 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 							return nil
 						},
+					),
+					brainy.Send(
+						MtvRoomTracksListScoreUpdate,
 					),
 				},
 			},

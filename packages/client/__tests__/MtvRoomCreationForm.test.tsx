@@ -7,6 +7,7 @@ import { fireEvent, noop, render } from '../tests/tests-utils';
 import { ContextFrom } from 'xstate';
 import * as z from 'zod';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
+import { MtvRoomMinimumVotesForATrackToBePlayed } from '../machines/creationMtvRoomForm';
 
 const createMtvRoomWithSettingsModel = createModel(
     {},
@@ -32,6 +33,12 @@ const createMtvRoomWithSettingsModel = createModel(
 
             SET_PLAYING_MODE_STATUS: (status: 'BROADCAST' | 'DIRECT') => ({
                 status,
+            }),
+
+            SET_MINIMUM_VOTES_CONSTRAINT: (
+                constraint: MtvRoomMinimumVotesForATrackToBePlayed,
+            ) => ({
+                constraint,
             }),
 
             GO_BACK: () => ({}),
@@ -364,8 +371,6 @@ const createMtvRoomWithSettingsMachine =
             },
 
             votesConstraints: {
-                type: 'final',
-
                 meta: {
                     test: async ({ screen }: TestingContext) => {
                         const votesConstraitsScreenTitle =
@@ -373,6 +378,103 @@ const createMtvRoomWithSettingsMachine =
                                 /how.*many.*votes.*song.*played/i,
                             );
                         expect(votesConstraitsScreenTitle).toBeTruthy();
+                    },
+                },
+
+                initial: 'small',
+
+                states: {
+                    small: {
+                        meta: {
+                            test: async ({ screen }: TestingContext) => {
+                                const selectedElementsOnScreen =
+                                    await screen.findAllByA11yState({
+                                        selected: true,
+                                    });
+
+                                const selectedVotingConstraintOption =
+                                    selectedElementsOnScreen[2];
+                                expect(
+                                    selectedVotingConstraintOption,
+                                ).toHaveTextContent(/1/i);
+                            },
+                        },
+                    },
+
+                    medium: {
+                        meta: {
+                            test: async ({ screen }: TestingContext) => {
+                                const selectedElementsOnScreen =
+                                    await screen.findAllByA11yState({
+                                        selected: true,
+                                    });
+
+                                const selectedVotingConstraintOption =
+                                    selectedElementsOnScreen[2];
+                                expect(
+                                    selectedVotingConstraintOption,
+                                ).toHaveTextContent(/10/i);
+                            },
+                        },
+                    },
+
+                    large: {
+                        meta: {
+                            test: async ({ screen }: TestingContext) => {
+                                const selectedElementsOnScreen =
+                                    await screen.findAllByA11yState({
+                                        selected: true,
+                                    });
+
+                                const selectedVotingConstraintOption =
+                                    selectedElementsOnScreen[2];
+                                expect(
+                                    selectedVotingConstraintOption,
+                                ).toHaveTextContent(/50/i);
+                            },
+                        },
+                    },
+                },
+
+                on: {
+                    SET_MINIMUM_VOTES_CONSTRAINT: [
+                        {
+                            cond: (_context, { constraint }) =>
+                                constraint === 1,
+
+                            target: '.small',
+                        },
+
+                        {
+                            cond: (_context, { constraint }) =>
+                                constraint === 10,
+
+                            target: '.medium',
+                        },
+
+                        {
+                            cond: (_context, { constraint }) =>
+                                constraint === 50,
+
+                            target: '.large',
+                        },
+                    ],
+
+                    GO_NEXT: {
+                        target: 'confirmation',
+                    },
+                },
+            },
+
+            confirmation: {
+                type: 'final',
+
+                meta: {
+                    test: async ({ screen }: TestingContext) => {
+                        const confirmationScreenTitle = await screen.findByText(
+                            /confirm.*room.*creation/i,
+                        );
+                        expect(confirmationScreenTitle).toBeTruthy();
                     },
                 },
             },
@@ -406,13 +508,6 @@ type SetPhysicalConstraintsStatusEvent = z.infer<
     typeof SetPhysicalConstraintsStatusEvent
 >;
 
-const SetPlayingModeStatusEvent = z
-    .object({
-        status: z.enum(['BROADCAST', 'DIRECT']),
-    })
-    .nonstrict();
-type SetPlayingModeStatusEvent = z.infer<typeof SetPlayingModeStatusEvent>;
-
 const SetPhysicalConstraintsValuesEvent = z
     .object({
         place: z.string(),
@@ -424,6 +519,20 @@ const SetPhysicalConstraintsValuesEvent = z
 type SetPhysicalConstraintsValuesEvent = z.infer<
     typeof SetPhysicalConstraintsValuesEvent
 >;
+
+const SetPlayingModeStatusEvent = z
+    .object({
+        status: z.enum(['BROADCAST', 'DIRECT']),
+    })
+    .nonstrict();
+type SetPlayingModeStatusEvent = z.infer<typeof SetPlayingModeStatusEvent>;
+
+const SetVotingConstraintEvent = z
+    .object({
+        constraint: MtvRoomMinimumVotesForATrackToBePlayed,
+    })
+    .nonstrict();
+type SetVotingConstraintEvent = z.infer<typeof SetVotingConstraintEvent>;
 
 const createMtvRoomWithSettingsTestModel = createTestModel<
     TestingContext,
@@ -610,6 +719,59 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
             {
                 status: 'DIRECT',
             } as SetPlayingModeStatusEvent,
+        ],
+    },
+
+    SET_MINIMUM_VOTES_CONSTRAINT: {
+        exec: ({ screen }, event) => {
+            const { constraint } = SetVotingConstraintEvent.parse(event);
+
+            switch (constraint) {
+                case 1: {
+                    const smallVotingConstraintButton =
+                        screen.getByText(/^1$/i);
+
+                    fireEvent.press(smallVotingConstraintButton);
+
+                    break;
+                }
+
+                case 10: {
+                    const mediumVotingConstraintButton =
+                        screen.getByText(/^10$/i);
+
+                    fireEvent.press(mediumVotingConstraintButton);
+
+                    break;
+                }
+
+                case 50: {
+                    const largeVotingConstraintButton =
+                        screen.getByText(/^50$/i);
+
+                    fireEvent.press(largeVotingConstraintButton);
+
+                    break;
+                }
+
+                default: {
+                    throw new Error('Reached unreachable state');
+                }
+            }
+        },
+
+        cases: [
+            {
+                constraint: 1,
+            } as SetVotingConstraintEvent,
+
+            {
+                constraint: 10,
+            } as SetVotingConstraintEvent,
+
+            {
+                constraint: 50,
+            } as SetVotingConstraintEvent,
         ],
     },
 

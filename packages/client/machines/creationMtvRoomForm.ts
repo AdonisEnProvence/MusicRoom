@@ -7,12 +7,20 @@ import {
     ActorRef,
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import * as z from 'zod';
 import { navigateFromRef } from '../navigation/RootNavigation';
 import { CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents } from './appMusicPlayerMachine';
 
 export type MtvRoomPlayingMode = 'BROADCAST' | 'DIRECT';
 
-export type MtvRoomMinimumVotesForATrackToBePlayed = 1 | 10 | 50;
+export const MtvRoomMinimumVotesForATrackToBePlayed = z.union([
+    z.literal(1),
+    z.literal(10),
+    z.literal(50),
+]);
+export type MtvRoomMinimumVotesForATrackToBePlayed = z.infer<
+    typeof MtvRoomMinimumVotesForATrackToBePlayed
+>;
 
 const creationMtvRoomFormModel = createModel(
     {

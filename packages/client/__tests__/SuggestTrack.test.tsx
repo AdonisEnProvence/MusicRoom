@@ -40,18 +40,6 @@ test(`A user can suggest tracks to play`, async () => {
         minimumScoreToBePlayed: 1,
     };
 
-    serverSocket.on('GO_TO_NEXT_TRACK', () => {
-        serverSocket.emit('ACTION_PLAY_CALLBACK', {
-            ...initialState,
-            playing: true,
-            currentTrack: {
-                ...tracksList[1],
-                elapsed: 0,
-            },
-            tracks: tracksList.slice(2),
-        });
-    });
-
     serverSocket.on('GET_CONTEXT', () => {
         serverSocket.emit('RETRIEVE_CONTEXT', initialState);
     });
@@ -170,8 +158,8 @@ test(`A user can suggest tracks to play`, async () => {
 
     expect(toast.show).toHaveBeenNthCalledWith(1, {
         type: 'success',
-        text1: 'Tracks suggestion',
-        text2: 'Your suggestion have been accepted',
+        text1: 'Track suggestion',
+        text2: 'Your suggestion has been accepted',
     });
     const suggestedTrack = await within(musicPlayerFullScreen).findByText(
         fakeTrack.title,

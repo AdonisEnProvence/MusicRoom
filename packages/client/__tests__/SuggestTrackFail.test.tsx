@@ -40,23 +40,11 @@ test(`A user can suggest tracks to play`, async () => {
         minimumScoreToBePlayed: 1,
     };
 
-    serverSocket.on('GO_TO_NEXT_TRACK', () => {
-        serverSocket.emit('ACTION_PLAY_CALLBACK', {
-            ...initialState,
-            playing: true,
-            currentTrack: {
-                ...tracksList[1],
-                elapsed: 0,
-            },
-            tracks: tracksList.slice(2),
-        });
-    });
-
     serverSocket.on('GET_CONTEXT', () => {
         serverSocket.emit('RETRIEVE_CONTEXT', initialState);
     });
 
-    serverSocket.on('SUGGEST_TRACKS', ({ tracksToSuggest }) => {
+    serverSocket.on('SUGGEST_TRACKS', () => {
         serverSocket.emit('SUGGEST_TRACKS_FAIL_CALLBACK');
     });
 
@@ -131,13 +119,12 @@ test(`A user can suggest tracks to play`, async () => {
 
     expect(toast.show).toHaveBeenNthCalledWith(1, {
         type: 'error',
-        text1: 'Tracks suggestion',
-        text2: 'Your suggestion have been rejected',
+        text1: 'Track suggestion',
+        text2: 'Your suggestion has been rejected',
     });
 
-    try {
-        await within(musicPlayerFullScreen).findByText(fakeTrack.title);
-    } catch (e) {
-        expect(e).toBeTruthy();
-    }
+    const undefinedFakeTrack = within(musicPlayerFullScreen).queryByText(
+        fakeTrack.title,
+    );
+    expect(undefinedFakeTrack).toBeNull();
 });

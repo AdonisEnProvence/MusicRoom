@@ -102,16 +102,16 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
                 showTracksSuggestionAcknowledgementToast: () => {
                     Toast.show({
                         type: 'success',
-                        text1: 'Tracks suggestion',
-                        text2: 'Your suggestion have been accepted',
+                        text1: 'Track suggestion',
+                        text2: 'Your suggestion has been accepted',
                     });
                 },
 
                 showTracksSuggestionFailedToast: () => {
                     Toast.show({
                         type: 'error',
-                        text1: 'Tracks suggestion',
-                        text2: 'Your suggestion have been rejected',
+                        text1: 'Track suggestion',
+                        text2: 'Your suggestion has been rejected',
                     });
                 },
             },

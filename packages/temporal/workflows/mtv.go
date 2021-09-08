@@ -740,14 +740,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 						func(c brainy.Context, e brainy.Event) error {
 							event := e.(MtvRoomSuggestedTracksFetchedEvent)
 
-							noTracksInformationFetched := len(event.SuggestedTracksInformation) == 0
-							if noTracksInformationFetched {
-								sendAcknowledgeTracksSuggestionFailActivity(ctx, activities.AcknowledgeTracksSuggestionFailArgs{
-									DeviceID: event.DeviceID,
-								})
-								return nil
-							}
-
 							for _, trackInformation := range event.SuggestedTracksInformation {
 								suggestedTrackInformation := shared.TrackMetadataWithScore{
 									TrackMetadata: trackInformation,

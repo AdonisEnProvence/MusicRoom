@@ -22,6 +22,12 @@ const createMtvRoomWithSettingsModel = createModel(
 
             SET_ONLY_INVITED_USERS_CAN_VOTE: () => ({}),
 
+            SET_PHYSICAL_CONSTRAINTS_STATUS: (
+                hasPhysicalConstraints: boolean,
+            ) => ({ hasPhysicalConstraints }),
+
+            // SET_PHYSICAL_CONSTRAINTS_VALUES: () => ({}),
+
             GO_BACK: () => ({}),
 
             GO_NEXT: () => ({}),
@@ -167,7 +173,7 @@ const createMtvRoomWithSettingsMachine =
                                     screen.queryByRole('switch');
                                 expect(
                                     unknownVotingConstraintSwitch,
-                                ).toBeFalsy();
+                                ).toBeNull();
                             },
                         },
                     },
@@ -203,8 +209,6 @@ const createMtvRoomWithSettingsMachine =
             },
 
             physicalConstraints: {
-                type: 'final',
-
                 meta: {
                     test: async ({ screen }: TestingContext) => {
                         const physicalConstraintsScreenTitle =
@@ -212,6 +216,76 @@ const createMtvRoomWithSettingsMachine =
                                 /want.*restrict.*voting.*physical.*constraints/i,
                             );
                         expect(physicalConstraintsScreenTitle).toBeTruthy();
+                    },
+                },
+
+                initial: 'hasNoPhysicalConstraints',
+
+                states: {
+                    hasNoPhysicalConstraints: {
+                        meta: {
+                            test: async ({ screen }: TestingContext) => {
+                                const selectedElementsOnScreen =
+                                    await screen.findAllByA11yState({
+                                        selected: true,
+                                    });
+
+                                const selectedPhysicalConstraintsStatusOption =
+                                    selectedElementsOnScreen[1];
+                                expect(
+                                    selectedPhysicalConstraintsStatusOption,
+                                ).toHaveTextContent(/^no.*restriction$/i);
+                            },
+                        },
+                    },
+
+                    hasPhysicalConstraints: {
+                        meta: {
+                            test: async ({ screen }: TestingContext) => {
+                                const selectedElementsOnScreen =
+                                    await screen.findAllByA11yState({
+                                        selected: true,
+                                    });
+
+                                const selectedPhysicalConstraintsStatusOption =
+                                    selectedElementsOnScreen[1];
+                                expect(
+                                    selectedPhysicalConstraintsStatusOption,
+                                ).toHaveTextContent(/^restrict$/i);
+                            },
+                        },
+                    },
+                },
+
+                on: {
+                    SET_PHYSICAL_CONSTRAINTS_STATUS: [
+                        {
+                            cond: (_context, { hasPhysicalConstraints }) =>
+                                hasPhysicalConstraints === true,
+
+                            target: '.hasPhysicalConstraints',
+                        },
+
+                        {
+                            target: '.hasNoPhysicalConstraints',
+                        },
+                    ],
+
+                    GO_NEXT: {
+                        target: 'playingMode',
+                    },
+                },
+            },
+
+            playingMode: {
+                type: 'final',
+
+                meta: {
+                    test: async ({ screen }: TestingContext) => {
+                        const playingModeScreenTitle = await screen.findByText(
+                            /which.*playing.*mode/i,
+                        );
+                        expect(playingModeScreenTitle).toBeTruthy();
                     },
                 },
             },
@@ -235,6 +309,15 @@ const SetOpeningStatusEvent = z
     })
     .nonstrict();
 type SetOpeningStatusEvent = z.infer<typeof SetOpeningStatusEvent>;
+
+const SetPhysicalConstraintsStatusEvent = z
+    .object({
+        hasPhysicalConstraints: z.boolean(),
+    })
+    .nonstrict();
+type SetPhysicalConstraintsStatusEvent = z.infer<
+    typeof SetPhysicalConstraintsStatusEvent
+>;
 
 const createMtvRoomWithSettingsTestModel = createTestModel<
     TestingContext,
@@ -325,6 +408,47 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
         const votingSwitch = screen.getByRole('switch');
 
         fireEvent(votingSwitch, 'valueChange', true);
+    },
+
+    SET_PHYSICAL_CONSTRAINTS_STATUS: {
+        exec: ({ screen }, event) => {
+            const { hasPhysicalConstraints } =
+                SetPhysicalConstraintsStatusEvent.parse(event);
+
+            switch (hasPhysicalConstraints) {
+                case true: {
+                    const hasPhysicalConstraintsButton =
+                        screen.getByText(/^restrict$/i);
+
+                    fireEvent.press(hasPhysicalConstraintsButton);
+
+                    break;
+                }
+
+                case false: {
+                    const hasNoPhysicalConstraintsButton =
+                        screen.getByText(/^no.*restriction$/i);
+
+                    fireEvent.press(hasNoPhysicalConstraintsButton);
+
+                    break;
+                }
+
+                default: {
+                    throw new Error('Reached unreachable state');
+                }
+            }
+        },
+
+        cases: [
+            {
+                hasPhysicalConstraints: true,
+            } as SetPhysicalConstraintsStatusEvent,
+
+            {
+                hasPhysicalConstraints: false,
+            } as SetPhysicalConstraintsStatusEvent,
+        ],
     },
 
     GO_BACK: ({ screen }) => {

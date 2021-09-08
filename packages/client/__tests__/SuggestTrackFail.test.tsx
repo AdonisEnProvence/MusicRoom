@@ -57,46 +57,7 @@ test(`A user can suggest tracks to play`, async () => {
     });
 
     serverSocket.on('SUGGEST_TRACKS', ({ tracksToSuggest }) => {
-        if (initialState.tracks === null) {
-            initialState.tracks = [];
-        }
-
-        tracksToSuggest.forEach((suggestedTrackID) => {
-            if (initialState.tracks === null) {
-                throw new Error('initialState.tracks is null');
-            }
-
-            const duplicateTrackIndex = initialState.tracks.findIndex(
-                (track) => track.id === suggestedTrackID,
-            );
-            const isDuplicate = duplicateTrackIndex !== -1;
-
-            if (isDuplicate) {
-                initialState.tracks[duplicateTrackIndex].score++;
-
-                return;
-            }
-
-            const suggestedTrackInformation = db.searchableTracks.findFirst({
-                where: { id: { equals: suggestedTrackID } },
-            });
-            if (suggestedTrackInformation === null) {
-                throw new Error(
-                    `Could not find a track with this id (${suggestedTrackID}) in tracks database. Check that you called db.searchableTracks.create().`,
-                );
-            }
-
-            initialState.tracks.push({
-                id: suggestedTrackID,
-                title: suggestedTrackInformation.title,
-                artistName: suggestedTrackInformation.artistName,
-                duration: suggestedTrackInformation.duration,
-                score: 1,
-            });
-        });
-
-        serverSocket.emit('VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', initialState);
-        serverSocket.emit('SUGGEST_TRACKS_CALLBACK');
+        serverSocket.emit('SUGGEST_TRACKS_FAIL_CALLBACK');
     });
 
     const {
@@ -169,12 +130,14 @@ test(`A user can suggest tracks to play`, async () => {
     await waitForElementToBeRemoved(() => getByText(/results/i));
 
     expect(toast.show).toHaveBeenNthCalledWith(1, {
-        type: 'success',
+        type: 'error',
         text1: 'Tracks suggestion',
-        text2: 'Your suggestion have been accepted',
+        text2: 'Your suggestion have been rejected',
     });
-    const suggestedTrack = await within(musicPlayerFullScreen).findByText(
-        fakeTrack.title,
-    );
-    expect(suggestedTrack).toBeTruthy();
+
+    try {
+        await within(musicPlayerFullScreen).findByText(fakeTrack.title);
+    } catch (e) {
+        expect(e).toBeTruthy();
+    }
 });

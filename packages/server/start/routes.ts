@@ -63,6 +63,11 @@ Route.post(
 );
 
 Route.post(
+    '/temporal/acknowledge-tracks-suggestion-fail',
+    'Temporal/TemporalToServerController.acknowledgeTracksSuggestionFail',
+);
+
+Route.post(
     '/temporal/acknowledge-user-vote-for-track',
     'Temporal/TemporalToServerController.acknowledgeUserVoteForTrack',
 );

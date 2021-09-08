@@ -159,7 +159,7 @@ func AcknowledgeTracksSuggestionFail(ctx context.Context, args AcknowledgeTracks
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/acknowledge-tracks-suggestion-error"
+	url := ADONIS_ENDPOINT + "/temporal/acknowledge-tracks-suggestion-fail"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err

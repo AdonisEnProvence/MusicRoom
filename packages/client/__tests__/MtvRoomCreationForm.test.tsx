@@ -26,7 +26,9 @@ const createMtvRoomWithSettingsModel = createModel(
                 hasPhysicalConstraints: boolean,
             ) => ({ hasPhysicalConstraints }),
 
-            // SET_PHYSICAL_CONSTRAINTS_VALUES: () => ({}),
+            SET_PHYSICAL_CONSTRAINTS_VALUES_AND_GO_NEXT: (
+                args: SetPhysicalConstraintsValuesEvent,
+            ) => args,
 
             GO_BACK: () => ({}),
 
@@ -237,6 +239,12 @@ const createMtvRoomWithSettingsMachine =
                                 ).toHaveTextContent(/^no.*restriction$/i);
                             },
                         },
+
+                        on: {
+                            GO_NEXT: {
+                                target: '#playingMode',
+                            },
+                        },
                     },
 
                     hasPhysicalConstraints: {
@@ -252,6 +260,12 @@ const createMtvRoomWithSettingsMachine =
                                 expect(
                                     selectedPhysicalConstraintsStatusOption,
                                 ).toHaveTextContent(/^restrict$/i);
+                            },
+                        },
+
+                        on: {
+                            SET_PHYSICAL_CONSTRAINTS_VALUES_AND_GO_NEXT: {
+                                target: '#playingMode',
                             },
                         },
                     },
@@ -270,14 +284,12 @@ const createMtvRoomWithSettingsMachine =
                             target: '.hasNoPhysicalConstraints',
                         },
                     ],
-
-                    GO_NEXT: {
-                        target: 'playingMode',
-                    },
                 },
             },
 
             playingMode: {
+                id: 'playingMode',
+
                 type: 'final',
 
                 meta: {
@@ -319,6 +331,18 @@ type SetPhysicalConstraintsStatusEvent = z.infer<
     typeof SetPhysicalConstraintsStatusEvent
 >;
 
+const SetPhysicalConstraintsValuesEvent = z
+    .object({
+        place: z.string(),
+        radius: z.number(),
+        startsAt: z.string(),
+        endsAt: z.string(),
+    })
+    .nonstrict();
+type SetPhysicalConstraintsValuesEvent = z.infer<
+    typeof SetPhysicalConstraintsValuesEvent
+>;
+
 const createMtvRoomWithSettingsTestModel = createTestModel<
     TestingContext,
     ContextFrom<typeof createMtvRoomWithSettingsMachine>
@@ -338,26 +362,12 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
                 /francis.*cabrel.*onlyfans/i,
             );
 
-            // fireEvent(roomNameInput, 'focus');
             fireEvent.changeText(roomNameInput, roomNameToType);
-            // fireEvent(roomNameInput, 'submitEditing');
 
             const goNextButtons = screen.getAllByText(/next/i);
             const goNextButton = goNextButtons[goNextButtons.length - 1];
 
             fireEvent.press(goNextButton);
-
-            // try {
-            //     await waitForElementToBeRemoved(() =>
-            //         screen.getByText(/what.*is.*name.*room/i),
-            //     );
-            // } catch (err) {
-            //     console.error(err);
-
-            //     screen.debug();
-
-            //     throw err;
-            // }
         },
 
         cases: [
@@ -448,6 +458,38 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
             {
                 hasPhysicalConstraints: false,
             } as SetPhysicalConstraintsStatusEvent,
+        ],
+    },
+
+    SET_PHYSICAL_CONSTRAINTS_VALUES_AND_GO_NEXT: {
+        exec: async ({ screen }, event) => {
+            console.log('SET_PHYSICAL_CONSTRAINTS_VALUES_AND_GO_NEXT', event);
+            const { place, radius, startsAt, endsAt } =
+                SetPhysicalConstraintsValuesEvent.parse(event);
+            console.log('SET_PHYSICAL_CONSTRAINTS_VALUES_AND_GO_NEXT passed');
+            const placeInput = await screen.findByPlaceholderText(/place/i);
+            const radiusInput = screen.getByPlaceholderText(/radius/i);
+            const startsAtInput = screen.getByPlaceholderText(/starts.*at/i);
+            const endsAtInput = screen.getByPlaceholderText(/ends.*at/i);
+
+            fireEvent.changeText(placeInput, place);
+            fireEvent.changeText(radiusInput, radius);
+            fireEvent.changeText(startsAtInput, startsAt);
+            fireEvent.changeText(endsAtInput, endsAt);
+
+            const goNextButtons = screen.getAllByText(/next/i);
+            const goNextButton = goNextButtons[goNextButtons.length - 1];
+
+            fireEvent.press(goNextButton);
+        },
+
+        cases: [
+            {
+                place: '96 Boulevard Bessières, Paris',
+                radius: 10,
+                startsAt: '09/08/2021 10:10:00',
+                endsAt: '10/08/2021 10:10:00',
+            } as SetPhysicalConstraintsValuesEvent,
         ],
     },
 

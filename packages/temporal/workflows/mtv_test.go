@@ -1064,13 +1064,6 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 		},
 	}
 
-	params, _ := getWokflowInitParams(tracksIDs, 1)
-
-	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
-	defaultDuration := 1 * time.Millisecond
-
-	defer resetMock()
-
 	// Mock first tracks information fetching
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
@@ -1099,12 +1092,24 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 		activities.NotifySuggestOrVoteUpdateActivity,
 		mock.Anything,
 		mock.Anything,
-	).Return(nil).Times(2)
+	).Return(nil).Once()
 	s.env.OnActivity(
 		activities.AcknowledgeTracksSuggestion,
 		mock.Anything,
 		mock.Anything,
+	).Return(nil).Times(2)
+	s.env.OnActivity(
+		activities.AcknowledgeTracksSuggestionFail,
+		mock.Anything,
+		mock.Anything,
 	).Return(nil).Once()
+
+	params, _ := getWokflowInitParams(tracksIDs, 1)
+
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+	defaultDuration := 1 * time.Millisecond
+
+	defer resetMock()
 
 	joinSuggesterUser := defaultDuration
 	registerDelayedCallbackWrapper(func() {
@@ -1471,7 +1476,7 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 		activities.NotifySuggestOrVoteUpdateActivity,
 		mock.Anything,
 		mock.Anything,
-	).Return(nil).Times(4)
+	).Return(nil).Times(2)
 	s.env.OnActivity(
 		activities.AcknowledgeTracksSuggestion,
 		mock.Anything,
@@ -1605,7 +1610,12 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 		activities.NotifySuggestOrVoteUpdateActivity,
 		mock.Anything,
 		mock.Anything,
-	).Return(nil).Times(3)
+	).Return(nil).Times(1)
+	s.env.OnActivity(
+		activities.AcknowledgeTracksSuggestionFail,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Times(1)
 
 	//Verify that creator has voted for the initialTracks and that he cannot vote or vote by suggest again
 	checkCreatorTracksVotedFor := defaultDuration

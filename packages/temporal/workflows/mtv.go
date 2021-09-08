@@ -665,6 +665,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							event := e.(MtvRoomSuggestTracksEvent)
 
 							acceptedSuggestedTracksIDs := make([]string, 0, len(event.TracksToSuggest))
+							succesfullSuggestIntoVoteTracksIDs := make([]string, 0, len(event.TracksToSuggest))
 							for _, suggestedTrackID := range event.TracksToSuggest {
 
 								//Checking if the suggested track is in the player
@@ -678,8 +679,12 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								if isDuplicate {
 									//Count as a voted for suggested track if already is list
 									success := internalState.UserVotedForTrack(event.UserID, suggestedTrackID)
-									if success && voteIntervalTimerFuture == nil {
-										voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
+									if success {
+										succesfullSuggestIntoVoteTracksIDs = append(succesfullSuggestIntoVoteTracksIDs, suggestedTrackID)
+
+										if voteIntervalTimerFuture == nil {
+											voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
+										}
 									}
 									continue
 								}
@@ -687,7 +692,21 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								acceptedSuggestedTracksIDs = append(acceptedSuggestedTracksIDs, suggestedTrackID)
 							}
 
-							if hasNoTracksToFetch := len(acceptedSuggestedTracksIDs) == 0; hasNoTracksToFetch {
+							hasNoTracksToFetch := len(acceptedSuggestedTracksIDs) == 0
+							hasNoSuccessfullVoteForDuplicate := len(succesfullSuggestIntoVoteTracksIDs) == 0
+
+							if hasNoTracksToFetch {
+								if hasNoSuccessfullVoteForDuplicate {
+									sendAcknowledgeTracksSuggestionFailActivity(ctx, activities.AcknowledgeTracksSuggestionFailArgs{
+										DeviceID: event.DeviceID,
+									})
+
+								} else {
+									sendAcknowledgeTracksSuggestionActivity(ctx, activities.AcknowledgeTracksSuggestionArgs{
+										DeviceID: event.DeviceID,
+										State:    internalState.Export(event.UserID),
+									})
+								}
 								return nil
 							}
 
@@ -735,50 +754,16 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								}
 							}
 
+							sendAcknowledgeTracksSuggestionActivity(ctx, activities.AcknowledgeTracksSuggestionArgs{
+								DeviceID: event.DeviceID,
+								State:    internalState.Export(event.UserID),
+							})
+
 							return nil
 						},
 					),
 					brainy.Send(
 						MtvRoomTracksListScoreUpdate,
-					),
-					brainy.ActionFn(
-						func(c brainy.Context, e brainy.Event) error {
-							options := workflow.ActivityOptions{
-								ScheduleToStartTimeout: time.Minute,
-								StartToCloseTimeout:    time.Minute,
-							}
-							ctx = workflow.WithActivityOptions(ctx, options)
-
-							workflow.ExecuteActivity(
-								ctx,
-								activities.NotifySuggestOrVoteUpdateActivity,
-								internalState.Export(shared.NoRelatedUserID),
-							)
-
-							return nil
-						},
-					),
-					brainy.ActionFn(
-						func(c brainy.Context, e brainy.Event) error {
-							event := e.(MtvRoomSuggestedTracksFetchedEvent)
-
-							options := workflow.ActivityOptions{
-								ScheduleToStartTimeout: time.Minute,
-								StartToCloseTimeout:    time.Minute,
-							}
-							ctx = workflow.WithActivityOptions(ctx, options)
-
-							workflow.ExecuteActivity(
-								ctx,
-								activities.AcknowledgeTracksSuggestion,
-								activities.AcknowledgeTracksSuggestionArgs{
-									State:    internalState.Export(event.UserID),
-									DeviceID: event.DeviceID,
-								},
-							)
-
-							return nil
-						},
 					),
 				},
 			},

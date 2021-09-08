@@ -65,6 +65,7 @@ export type AppMusicPlayerMachineEvent =
       }
     | { type: 'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE'; state: MtvWorkflowState }
     | { type: 'SUGGEST_TRACKS_CALLBACK' }
+    | { type: 'SUGGEST_TRACKS_FAIL_CALLBACK' }
     | {
           type: 'VOTE_OR_SUGGEST_TRACK_CALLBACK';
           state: MtvWorkflowStateWithUserRelatedInformation;
@@ -176,6 +177,12 @@ export const createAppMusicPlayerMachine = ({
                     socket.on('SUGGEST_TRACKS_CALLBACK', () => {
                         sendBack({
                             type: 'SUGGEST_TRACKS_CALLBACK',
+                        });
+                    });
+
+                    socket.on('SUGGEST_TRACKS_FAIL_CALLBACK', () => {
+                        sendBack({
+                            type: 'SUGGEST_TRACKS_FAIL_CALLBACK',
                         });
                     });
 
@@ -605,6 +612,20 @@ export const createAppMusicPlayerMachine = ({
                                                             'showTracksSuggestionAcknowledgementToast',
                                                         ],
                                                     },
+                                                    SUGGEST_TRACKS_FAIL_CALLBACK:
+                                                        {
+                                                            target: 'waitingForTracksToBeSuggested',
+
+                                                            actions: [
+                                                                ({
+                                                                    closeSuggestionModal,
+                                                                }) => {
+                                                                    closeSuggestionModal?.();
+                                                                },
+
+                                                                'showTracksSuggestionFailedToast',
+                                                            ],
+                                                        },
                                                 },
                                             },
                                     },

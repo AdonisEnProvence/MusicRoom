@@ -85,4 +85,5 @@ export interface MtvRoomServerToClientEvents {
     CHANGE_EMITTING_DEVICE_CALLBACK: (state: MtvWorkflowState) => void;
     VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE: (state: MtvWorkflowState) => void;
     SUGGEST_TRACKS_CALLBACK: () => void;
+    SUGGEST_TRACKS_FAIL_CALLBACK: () => void;
 }

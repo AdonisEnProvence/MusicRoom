@@ -146,3 +146,21 @@ func AcknowledgeTracksSuggestion(ctx context.Context, args AcknowledgeTracksSugg
 
 	return err
 }
+
+type AcknowledgeTracksSuggestionFailArgs struct {
+	DeviceID string `json:"deviceID"`
+}
+
+func AcknowledgeTracksSuggestionFail(ctx context.Context, args AcknowledgeTracksSuggestionFailArgs) error {
+	requestBody := args
+
+	marshaledBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	url := ADONIS_ENDPOINT + "/temporal/acknowledge-tracks-suggestion-fail"
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+
+	return err
+}

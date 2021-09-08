@@ -343,6 +343,7 @@ Ws.io.on('connection', async (socket) => {
                     deviceID,
                 });
             } catch (err) {
+                socket.emit('SUGGEST_TRACKS_FAIL_CALLBACK');
                 console.error(err);
             }
         });

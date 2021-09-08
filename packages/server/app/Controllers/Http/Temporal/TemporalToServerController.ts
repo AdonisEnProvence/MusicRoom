@@ -146,6 +146,22 @@ export default class TemporalToServerController {
         );
     }
 
+    public async acknowledgeTracksSuggestionFail({
+        request,
+    }: HttpContextContract): Promise<void> {
+        const AcknowledgeTracksSuggestionFailRequestBody = z.object({
+            deviceID: z.string().uuid(),
+        });
+
+        const { deviceID } = AcknowledgeTracksSuggestionFailRequestBody.parse(
+            request.body(),
+        );
+
+        const device = await Device.findOrFail(deviceID);
+
+        Ws.io.in(device.socketID).emit('SUGGEST_TRACKS_FAIL_CALLBACK');
+    }
+
     public async acknowledgeUserVoteForTrack({
         request,
     }: HttpContextContract): Promise<void> {

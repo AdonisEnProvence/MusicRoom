@@ -22,7 +22,7 @@
     "prepare": "husky install"
   },
   "volta": {
-    "node": "16.0.0",
+    "node": "16.8.0",
     "yarn": "1.22.10"
   },
   "devDependencies": {

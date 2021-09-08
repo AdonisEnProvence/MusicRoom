@@ -4,7 +4,7 @@
     "version": "0.0.1",
     "dependencies": {},
     "volta": {
-        "node": "16.0.0",
+        "node": "16.8.0",
         "yarn": "1.22.10"
     },
     "scripts": {

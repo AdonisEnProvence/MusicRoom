@@ -88,6 +88,7 @@ const MusicTrackVoteCreationFormConfirmation: React.FC<
 
     return (
         <MtvRoomCreationFormScreen
+            testID="mtv-room-creation-confirmation-step"
             title="Confirm room creation"
             onBackButtonPress={handleGoBack}
             onNextButtonPress={handleGoNext}

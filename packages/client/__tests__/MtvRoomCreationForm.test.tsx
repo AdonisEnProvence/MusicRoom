@@ -3,14 +3,24 @@ import { createModel as createTestModel } from '@xstate/test';
 import { createModel } from 'xstate/lib/model';
 import { NavigationContainer } from '@react-navigation/native';
 import { RootNavigator } from '../navigation';
-import { fireEvent, noop, render } from '../tests/tests-utils';
-import { ContextFrom } from 'xstate';
+import { fireEvent, noop, render, within } from '../tests/tests-utils';
+import { ContextFrom, EventFrom, State } from 'xstate';
 import * as z from 'zod';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { MtvRoomMinimumVotesForATrackToBePlayed } from '../machines/creationMtvRoomForm';
 
 const createMtvRoomWithSettingsModel = createModel(
-    {},
+    {
+        roomName: '',
+        isPublic: false,
+        onlyInvitedUsersCanVote: false,
+        hasPhysicalConstraints: false,
+        physicalConstraintsValues: undefined as
+            | undefined
+            | SetPhysicalConstraintsValuesEvent,
+        playingMode: 'BROADCAST' as 'BROADCAST' | 'DIRECT',
+        minimumVotesConstraint: 1 as MtvRoomMinimumVotesForATrackToBePlayed,
+    },
     {
         events: {
             CLICK_GO_TO_MTV_ROOM_CREATION_FORM: () => ({}),
@@ -47,6 +57,53 @@ const createMtvRoomWithSettingsModel = createModel(
         },
     },
 );
+
+const assignOpeningStatus = createMtvRoomWithSettingsModel.assign(
+    {
+        isPublic: (_, { isOpen }) => isOpen,
+    },
+    'SET_OPENING_STATUS',
+);
+
+const assignPhysicalConstraintsStatus = createMtvRoomWithSettingsModel.assign(
+    {
+        hasPhysicalConstraints: (_, { hasPhysicalConstraints }) =>
+            hasPhysicalConstraints,
+    },
+    'SET_PHYSICAL_CONSTRAINTS_STATUS',
+);
+
+const assignPhysicalConstraintsValues = createMtvRoomWithSettingsModel.assign(
+    {
+        physicalConstraintsValues: (_, values) => values,
+    },
+    'SET_PHYSICAL_CONSTRAINTS_VALUES_AND_GO_NEXT',
+);
+
+const assignPlayingModeStatus = createMtvRoomWithSettingsModel.assign(
+    {
+        playingMode: (_, { status }) => status,
+    },
+    'SET_PLAYING_MODE_STATUS',
+);
+
+const assignMinimumVotesConstraint = createMtvRoomWithSettingsModel.assign(
+    {
+        minimumVotesConstraint: (_, { constraint }) => constraint,
+    },
+    'SET_MINIMUM_VOTES_CONSTRAINT',
+);
+
+type CreateMtvRoomWithSettingsMachineContext = ContextFrom<
+    typeof createMtvRoomWithSettingsModel
+>;
+type CreateMtvRoomWithSettingsMachineEvent = EventFrom<
+    typeof createMtvRoomWithSettingsModel
+>;
+type CreateMtvRoomWithSettingsMachineState = State<
+    CreateMtvRoomWithSettingsMachineContext,
+    CreateMtvRoomWithSettingsMachineEvent
+>;
 
 const createMtvRoomWithSettingsMachine =
     createMtvRoomWithSettingsModel.createMachine({
@@ -96,6 +153,10 @@ const createMtvRoomWithSettingsMachine =
                             },
 
                             target: 'openingStatus',
+
+                            actions: createMtvRoomWithSettingsModel.assign({
+                                roomName: (_, { value }) => value,
+                            }),
                         },
                     ],
                 },
@@ -208,10 +269,14 @@ const createMtvRoomWithSettingsMachine =
                             cond: (_context, { isOpen }) => isOpen === true,
 
                             target: '.isPublic',
+
+                            actions: assignOpeningStatus,
                         },
 
                         {
                             target: '.isPrivate',
+
+                            actions: assignOpeningStatus,
                         },
                     ],
 
@@ -277,6 +342,8 @@ const createMtvRoomWithSettingsMachine =
                         on: {
                             SET_PHYSICAL_CONSTRAINTS_VALUES_AND_GO_NEXT: {
                                 target: '#playingMode',
+
+                                actions: assignPhysicalConstraintsValues,
                             },
                         },
                     },
@@ -289,10 +356,14 @@ const createMtvRoomWithSettingsMachine =
                                 hasPhysicalConstraints === true,
 
                             target: '.hasPhysicalConstraints',
+
+                            actions: assignPhysicalConstraintsStatus,
                         },
 
                         {
                             target: '.hasNoPhysicalConstraints',
+
+                            actions: assignPhysicalConstraintsStatus,
                         },
                     ],
                 },
@@ -355,12 +426,16 @@ const createMtvRoomWithSettingsMachine =
                                 status === 'BROADCAST',
 
                             target: '.broadcast',
+
+                            actions: assignPlayingModeStatus,
                         },
 
                         {
                             cond: (_context, { status }) => status === 'DIRECT',
 
                             target: '.direct',
+
+                            actions: assignPlayingModeStatus,
                         },
                     ],
 
@@ -443,6 +518,8 @@ const createMtvRoomWithSettingsMachine =
                                 constraint === 1,
 
                             target: '.small',
+
+                            actions: assignMinimumVotesConstraint,
                         },
 
                         {
@@ -450,6 +527,8 @@ const createMtvRoomWithSettingsMachine =
                                 constraint === 10,
 
                             target: '.medium',
+
+                            actions: assignMinimumVotesConstraint,
                         },
 
                         {
@@ -457,6 +536,8 @@ const createMtvRoomWithSettingsMachine =
                                 constraint === 50,
 
                             target: '.large',
+
+                            actions: assignMinimumVotesConstraint,
                         },
                     ],
 
@@ -467,14 +548,158 @@ const createMtvRoomWithSettingsMachine =
             },
 
             confirmation: {
-                type: 'final',
-
                 meta: {
-                    test: async ({ screen }: TestingContext) => {
-                        const confirmationScreenTitle = await screen.findByText(
+                    test: async (
+                        { screen: rootScreen }: TestingContext,
+                        state: CreateMtvRoomWithSettingsMachineState,
+                    ) => {
+                        const {
+                            roomName,
+                            isPublic,
+                            onlyInvitedUsersCanVote,
+                            hasPhysicalConstraints,
+                            physicalConstraintsValues,
+                            playingMode,
+                            minimumVotesConstraint,
+                        } = state.context;
+                        const screen = within(
+                            await rootScreen.findByTestId(
+                                'mtv-room-creation-confirmation-step',
+                            ),
+                        );
+
+                        const confirmationScreenTitle = screen.getByText(
                             /confirm.*room.*creation/i,
                         );
                         expect(confirmationScreenTitle).toBeTruthy();
+
+                        expect(screen.getByText(/name.*room/i)).toBeTruthy();
+                        expect(screen.getByText(roomName)).toBeTruthy();
+
+                        expect(
+                            screen.getByText(/opening.*status.*room/i),
+                        ).toBeTruthy();
+                        switch (isPublic) {
+                            case true: {
+                                expect(
+                                    screen.getByText(/public/i),
+                                ).toBeTruthy();
+
+                                expect(
+                                    screen.getByText(
+                                        /only.*invited.*users.*vote/i,
+                                    ),
+                                ).toBeTruthy();
+
+                                switch (onlyInvitedUsersCanVote) {
+                                    case true: {
+                                        expect(
+                                            screen.getAllByText(/yes/i).length,
+                                        ).toBeGreaterThan(0);
+
+                                        break;
+                                    }
+
+                                    case false: {
+                                        expect(
+                                            screen.getAllByText(/no/i).length,
+                                        ).toBeGreaterThan(0);
+
+                                        break;
+                                    }
+
+                                    default: {
+                                        throw new Error(
+                                            'Reached unreachable state',
+                                        );
+                                    }
+                                }
+
+                                break;
+                            }
+
+                            case false: {
+                                expect(
+                                    screen.getByText(/private/i),
+                                ).toBeTruthy();
+
+                                break;
+                            }
+
+                            default: {
+                                throw new Error('Reached unreachable state');
+                            }
+                        }
+
+                        expect(
+                            screen.getByText(/has.*physical.*constraints/i),
+                        ).toBeTruthy();
+                        switch (hasPhysicalConstraints) {
+                            case true: {
+                                if (physicalConstraintsValues === undefined) {
+                                    throw new Error(
+                                        'physicalConstraintsValues is undefined',
+                                    );
+                                }
+                                const { place, radius, startsAt, endsAt } =
+                                    physicalConstraintsValues;
+
+                                expect(
+                                    screen.getAllByText(/yes/i).length,
+                                ).toBeGreaterThan(0);
+
+                                expect(screen.getByText(place)).toBeTruthy();
+                                expect(
+                                    screen.getByText(String(radius)),
+                                ).toBeTruthy();
+                                expect(screen.getByText(startsAt)).toBeTruthy();
+                                expect(screen.getByText(endsAt)).toBeTruthy();
+
+                                break;
+                            }
+
+                            case false: {
+                                expect(
+                                    screen.getAllByText(/no/i).length,
+                                ).toBeGreaterThan(0);
+
+                                break;
+                            }
+
+                            default: {
+                                throw new Error('Reached unreachable state');
+                            }
+                        }
+
+                        expect(screen.getByText(/playing.*mode/i)).toBeTruthy();
+                        expect(screen.getByText(playingMode)).toBeTruthy();
+
+                        expect(
+                            screen.getByText(/minimum.*score/i),
+                        ).toBeTruthy();
+                        expect(
+                            screen.getByText(String(minimumVotesConstraint)),
+                        ).toBeTruthy();
+                    },
+                },
+
+                on: {
+                    GO_NEXT: {
+                        target: 'createdRoom',
+                    },
+                },
+            },
+
+            createdRoom: {
+                type: 'final',
+
+                meta: {
+                    test: ({ screen }: TestingContext) => {
+                        const confirmationStepScreenTitle = screen.queryByText(
+                            /confirm.*room.*creation/i,
+                        );
+
+                        expect(confirmationStepScreenTitle).toBeNull();
                     },
                 },
             },
@@ -675,7 +900,7 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
         cases: [
             {
                 place: '96 Boulevard Bessières, Paris',
-                radius: 10,
+                radius: 25,
                 startsAt: '09/08/2021 10:10:00',
                 endsAt: '10/08/2021 10:10:00',
             } as SetPhysicalConstraintsValuesEvent,
@@ -792,7 +1017,7 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
 });
 
 describe('Create mtv room with custom settings', () => {
-    const testPlans = createMtvRoomWithSettingsTestModel.getSimplePathPlans();
+    const testPlans = createMtvRoomWithSettingsTestModel.getShortestPathPlans();
 
     testPlans.forEach((plan) => {
         describe(plan.description, () => {

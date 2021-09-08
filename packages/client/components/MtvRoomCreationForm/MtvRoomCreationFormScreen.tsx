@@ -11,6 +11,7 @@ interface MtvRoomCreationFormScreenProps {
     nextButtonText?: string;
     onNextButtonPress: () => void;
     Content: React.ReactElement | null;
+    testID?: string;
 }
 
 const MtvRoomCreationFormScreen: React.FC<MtvRoomCreationFormScreenProps> = ({
@@ -20,6 +21,7 @@ const MtvRoomCreationFormScreen: React.FC<MtvRoomCreationFormScreenProps> = ({
     nextButtonText,
     onNextButtonPress,
     Content,
+    testID,
 }) => {
     const insets = useSafeAreaInsets();
     const sx = useSx();
@@ -28,6 +30,7 @@ const MtvRoomCreationFormScreen: React.FC<MtvRoomCreationFormScreenProps> = ({
         <AppScreen>
             <AppScreenContainer>
                 <View
+                    testID={testID}
                     sx={{
                         flex: 1,
                         paddingTop: insets.top,

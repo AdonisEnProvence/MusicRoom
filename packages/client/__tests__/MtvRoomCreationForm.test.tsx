@@ -30,6 +30,10 @@ const createMtvRoomWithSettingsModel = createModel(
                 args: SetPhysicalConstraintsValuesEvent,
             ) => args,
 
+            SET_PLAYING_MODE_STATUS: (status: 'BROADCAST' | 'DIRECT') => ({
+                status,
+            }),
+
             GO_BACK: () => ({}),
 
             GO_NEXT: () => ({}),
@@ -290,14 +294,85 @@ const createMtvRoomWithSettingsMachine =
             playingMode: {
                 id: 'playingMode',
 
-                type: 'final',
-
                 meta: {
                     test: async ({ screen }: TestingContext) => {
                         const playingModeScreenTitle = await screen.findByText(
                             /which.*playing.*mode/i,
                         );
                         expect(playingModeScreenTitle).toBeTruthy();
+                    },
+                },
+
+                initial: 'broadcast',
+
+                states: {
+                    broadcast: {
+                        meta: {
+                            test: async ({ screen }: TestingContext) => {
+                                const selectedElementsOnScreen =
+                                    await screen.findAllByA11yState({
+                                        selected: true,
+                                    });
+
+                                const selectedPlayingModeStatusOption =
+                                    selectedElementsOnScreen[1];
+                                expect(
+                                    selectedPlayingModeStatusOption,
+                                ).toHaveTextContent(/^broadcast$/i);
+                            },
+                        },
+                    },
+
+                    direct: {
+                        meta: {
+                            test: async ({ screen }: TestingContext) => {
+                                const selectedElementsOnScreen =
+                                    await screen.findAllByA11yState({
+                                        selected: true,
+                                    });
+
+                                const selectedPlayingModeStatusOption =
+                                    selectedElementsOnScreen[1];
+                                expect(
+                                    selectedPlayingModeStatusOption,
+                                ).toHaveTextContent(/^direct$/i);
+                            },
+                        },
+                    },
+                },
+
+                on: {
+                    SET_PLAYING_MODE_STATUS: [
+                        {
+                            cond: (_context, { status }) =>
+                                status === 'BROADCAST',
+
+                            target: '.broadcast',
+                        },
+
+                        {
+                            cond: (_context, { status }) => status === 'DIRECT',
+
+                            target: '.direct',
+                        },
+                    ],
+
+                    GO_NEXT: {
+                        target: 'votesConstraints',
+                    },
+                },
+            },
+
+            votesConstraints: {
+                type: 'final',
+
+                meta: {
+                    test: async ({ screen }: TestingContext) => {
+                        const votesConstraitsScreenTitle =
+                            await screen.findByText(
+                                /how.*many.*votes.*song.*played/i,
+                            );
+                        expect(votesConstraitsScreenTitle).toBeTruthy();
                     },
                 },
             },
@@ -330,6 +405,13 @@ const SetPhysicalConstraintsStatusEvent = z
 type SetPhysicalConstraintsStatusEvent = z.infer<
     typeof SetPhysicalConstraintsStatusEvent
 >;
+
+const SetPlayingModeStatusEvent = z
+    .object({
+        status: z.enum(['BROADCAST', 'DIRECT']),
+    })
+    .nonstrict();
+type SetPlayingModeStatusEvent = z.infer<typeof SetPlayingModeStatusEvent>;
 
 const SetPhysicalConstraintsValuesEvent = z
     .object({
@@ -463,10 +545,8 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
 
     SET_PHYSICAL_CONSTRAINTS_VALUES_AND_GO_NEXT: {
         exec: async ({ screen }, event) => {
-            console.log('SET_PHYSICAL_CONSTRAINTS_VALUES_AND_GO_NEXT', event);
             const { place, radius, startsAt, endsAt } =
                 SetPhysicalConstraintsValuesEvent.parse(event);
-            console.log('SET_PHYSICAL_CONSTRAINTS_VALUES_AND_GO_NEXT passed');
             const placeInput = await screen.findByPlaceholderText(/place/i);
             const radiusInput = screen.getByPlaceholderText(/radius/i);
             const startsAtInput = screen.getByPlaceholderText(/starts.*at/i);
@@ -490,6 +570,46 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
                 startsAt: '09/08/2021 10:10:00',
                 endsAt: '10/08/2021 10:10:00',
             } as SetPhysicalConstraintsValuesEvent,
+        ],
+    },
+
+    SET_PLAYING_MODE_STATUS: {
+        exec: ({ screen }, event) => {
+            const { status } = SetPlayingModeStatusEvent.parse(event);
+
+            switch (status) {
+                case 'BROADCAST': {
+                    const broadcastPlayingModeButton =
+                        screen.getByText(/^broadcast$/i);
+
+                    fireEvent.press(broadcastPlayingModeButton);
+
+                    break;
+                }
+
+                case 'DIRECT': {
+                    const directPlayingModeButton =
+                        screen.getByText(/^direct$/i);
+
+                    fireEvent.press(directPlayingModeButton);
+
+                    break;
+                }
+
+                default: {
+                    throw new Error('Reached unreachable state');
+                }
+            }
+        },
+
+        cases: [
+            {
+                status: 'BROADCAST',
+            } as SetPlayingModeStatusEvent,
+
+            {
+                status: 'DIRECT',
+            } as SetPlayingModeStatusEvent,
         ],
     },
 

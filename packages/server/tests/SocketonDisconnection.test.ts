@@ -7,7 +7,12 @@ import { datatype, name, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
-import { BASE_URL, initTestUtils, sleep } from './utils/TestUtils';
+import {
+    BASE_URL,
+    getDefaultMtvRoomCreateRoomArgs,
+    initTestUtils,
+    sleep,
+} from './utils/TestUtils';
 /**
  * User should create a room, and removes it after user disconnection
  * User should join a room
@@ -120,7 +125,11 @@ test.group('Rooms life cycle', (group) => {
          * Expecting it to be in database
          * Also looking for the CREATE_ROOM_CALLBACK event
          */
-        socket.emit('CREATE_ROOM', { name: roomName, initialTracksIDs: [] });
+        const settings = getDefaultMtvRoomCreateRoomArgs({
+            name: roomName,
+            initialTracksIDs: [],
+        });
+        socket.emit('CREATE_ROOM', settings);
         await sleep();
         await sleep();
         const roomBefore = await MtvRoom.findBy('creator', userID);
@@ -231,10 +240,10 @@ test.group('Rooms life cycle', (group) => {
             throw new Error('DeviceA nor DeviceB is/are undefined');
         assert.equal(deviceA.socketID, userA.socket.id);
         assert.equal(deviceB.userID, userB.userID);
-        userA.socket.emit('CREATE_ROOM', {
+        const settings = getDefaultMtvRoomCreateRoomArgs({
             name: roomName,
-            initialTracksIDs: [],
         });
+        userA.socket.emit('CREATE_ROOM', settings);
         await sleep();
 
         /**

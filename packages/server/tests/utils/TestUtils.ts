@@ -1,6 +1,7 @@
 import {
     AllClientToServerEvents,
     AllServerToClientEvents,
+    MtvRoomClientToServerCreateArgs,
 } from '@musicroom/types';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import MtvRoom from 'App/Models/MtvRoom';
@@ -160,5 +161,27 @@ export function initTestUtils(): TestUtilsReturnedValue {
         disconnectSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
+    };
+}
+
+export function getDefaultMtvRoomCreateRoomArgs(
+    override?: Partial<MtvRoomClientToServerCreateArgs>,
+): MtvRoomClientToServerCreateArgs {
+    if (override === undefined) {
+        override = {};
+    }
+
+    const needToOverrideIsOpen = override.isOpen !== undefined;
+
+    return {
+        name: override.name ?? random.word(),
+        initialTracksIDs: override.initialTracksIDs ?? [],
+        hasPhysicalAndTimeConstraints:
+            override.hasPhysicalAndTimeConstraints || false,
+        physicalAndTimeConstraints:
+            override.physicalAndTimeConstraints || undefined,
+        isOpen: needToOverrideIsOpen ? (override.isOpen as boolean) : true,
+        isOpenOnlyInvitedUsersCanVote:
+            override.isOpenOnlyInvitedUsersCanVote || false,
     };
 }

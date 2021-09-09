@@ -1,3 +1,4 @@
+import * as z from 'zod';
 import {
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
@@ -29,14 +30,34 @@ export interface ChatServerToClientEvents {
     RECEIVED_MESSAGE: (args: ChatServerToClientReceivedMessageArgs) => void;
 }
 
-export interface MtvRoomClientToServerCreate {
-    name: string;
-    initialTracksIDs: string[];
-}
-
 export interface MtvRoomClientToServerJoin {
     roomID: string;
 }
+
+export const MtvRoomPhysicalAndTimeConstraints = z.object({
+    physicalConstraintPlace: z.string(),
+    physicalConstraintRadius: z.number().positive(),
+    physicalConstraintStartsAt: z.string(),
+    physicalConstraintEndsAt: z.string(),
+});
+
+export type MtvRoomPhysicalAndTimeConstraints = z.infer<
+    typeof MtvRoomPhysicalAndTimeConstraints
+>;
+
+export const MtvRoomClientToServerCreateArgs = z.object({
+    name: z.string(),
+    initialTracksIDs: z.string().array(),
+    isOpen: z.boolean(),
+    minimumScoreToBePlayed: z.number(),
+    isOpenOnlyInvitedUsersCanVote: z.boolean(),
+    hasPhysicalAndTimeConstraints: z.boolean(),
+    physicalAndTimeConstraints: MtvRoomPhysicalAndTimeConstraints.optional(),
+});
+
+export type MtvRoomClientToServerCreateArgs = z.infer<
+    typeof MtvRoomClientToServerCreateArgs
+>;
 
 export interface MtvRoomClientToServerSuggestTracks {
     tracksToSuggest: string[];
@@ -56,7 +77,7 @@ export interface MtvRoomClientToServerVoteForTrackArgs {
 }
 
 export interface MtvRoomClientToServerEvents {
-    CREATE_ROOM: (args: MtvRoomClientToServerCreate) => void;
+    CREATE_ROOM: (args: MtvRoomClientToServerCreateArgs) => void;
     JOIN_ROOM: (args: MtvRoomClientToServerJoin) => void;
     LEAVE_ROOM: () => void;
     ACTION_PLAY: () => void;

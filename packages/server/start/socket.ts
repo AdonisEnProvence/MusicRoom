@@ -1,6 +1,7 @@
 import {
     AllClientToServerEvents,
     AllServerToClientEvents,
+    MtvRoomClientToServerCreateArgs,
     UserDevice,
 } from '@musicroom/types';
 import ChatController from 'App/Controllers/Ws/ChatController';
@@ -78,6 +79,25 @@ Ws.io.on('connection', async (socket) => {
         /// ROOM ///
         socket.on('CREATE_ROOM', async (payload) => {
             try {
+                MtvRoomClientToServerCreateArgs.parse(payload);
+
+                if (!payload.isOpen && payload.isOpenOnlyInvitedUsersCanVote) {
+                    throw new Error(
+                        'CREATE_ROOM failed corrupted payload, isOpen false isOpenOnlyInvitedUsersCanVote true',
+                    );
+                }
+
+                if (
+                    (payload.hasPhysicalAndTimeConstraints &&
+                        !payload.physicalAndTimeConstraints) ||
+                    (!payload.hasPhysicalAndTimeConstraints &&
+                        payload.physicalAndTimeConstraints)
+                ) {
+                    throw new Error(
+                        'CREATE_ROOM failed corrupted geoloc and time constraints',
+                    );
+                }
+
                 const {
                     user,
                     deviceID,
@@ -105,9 +125,8 @@ Ws.io.on('connection', async (socket) => {
                 }
 
                 const raw = await MtvRoomsWsController.onCreate({
-                    name: payload.name,
+                    params: payload,
                     userID: user.uuid,
-                    initialTracksIDs: payload.initialTracksIDs,
                     deviceID,
                 });
                 Ws.io

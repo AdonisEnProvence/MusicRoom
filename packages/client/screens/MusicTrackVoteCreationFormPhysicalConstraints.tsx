@@ -2,6 +2,7 @@ import { useActor } from '@xstate/react';
 import { View, Text, useSx } from 'dripsy';
 import React from 'react';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import PickerSelect from 'react-native-picker-select';
 import { TextField } from '../components/kit';
 import { useTextFieldStyles } from '../components/kit/TextField';
 import MtvRoomCreationFormOptionButton from '../components/MtvRoomCreationForm/MtvRoomCreationFormOptionButton';
@@ -169,13 +170,60 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                                 }}
                             />
 
-                            <TextField
-                                value={String(physicalConstraintRadius)}
-                                placeholder="Radius"
-                                onChangeText={
+                            <PickerSelect
+                                placeholder={{
+                                    label: 'Radius',
+                                    value: null,
+                                    color: '#9EA0A4',
+                                }}
+                                items={[
+                                    {
+                                        key: '30',
+                                        label: '30',
+                                        value: 30,
+                                    },
+                                    {
+                                        key: '50',
+                                        label: '50',
+                                        value: 50,
+                                    },
+                                    {
+                                        key: '70',
+                                        label: '70',
+                                        value: 70,
+                                    },
+                                ]}
+                                value={physicalConstraintRadius}
+                                onValueChange={
                                     handlePhysicalConstraintRadiusChange
                                 }
-                                sx={{ marginTop: 'm' }}
+                                style={
+                                    {
+                                        inputIOS: [
+                                            sx({
+                                                marginTop: 'm',
+                                                paddingRight: 'xl',
+                                            }),
+                                            placeInputStyles,
+                                        ],
+
+                                        inputAndroid: [
+                                            sx({
+                                                marginTop: 'm',
+                                                paddingRight: 'xl',
+                                            }),
+                                            placeInputStyles,
+                                        ],
+
+                                        inputWeb: [
+                                            sx({
+                                                marginTop: 'm',
+                                                paddingRight: 'xl',
+                                            }),
+                                            placeInputStyles,
+                                        ],
+                                    } as any
+                                }
                             />
 
                             <TextField

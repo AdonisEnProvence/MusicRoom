@@ -132,8 +132,9 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                             <GooglePlacesAutocomplete
                                 placeholder="Place"
                                 onPress={(data, details = null) => {
-                                    // 'details' is provided when fetchDetails = true
-                                    console.log(data, details);
+                                    handlePhysicalConstraintPlaceChange(
+                                        data.description,
+                                    );
                                 }}
                                 query={{
                                     key: GOOGLE_PLACES_API_KEY,
@@ -144,15 +145,6 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                                     url: 'http://localhost:3333/proxy-places-api',
                                 }}
                             />
-
-                            {/* <TextField
-                                value={physicalConstraintPlace}
-                                placeholder="Place"
-                                onChangeText={
-                                    handlePhysicalConstraintPlaceChange
-                                }
-                                sx={{ marginTop: 'm' }}
-                            /> */}
 
                             <TextField
                                 value={String(physicalConstraintRadius)}

@@ -183,5 +183,6 @@ export function getDefaultMtvRoomCreateRoomArgs(
         isOpen: needToOverrideIsOpen ? (override.isOpen as boolean) : true,
         isOpenOnlyInvitedUsersCanVote:
             override.isOpenOnlyInvitedUsersCanVote || false,
+        minimumScoreToBePlayed: override.minimumScoreToBePlayed ?? 1,
     };
 }

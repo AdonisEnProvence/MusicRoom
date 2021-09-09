@@ -39,6 +39,7 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
                 isOpen: false,
                 isOpenOnlyInvitedUsersCanVote: false,
                 name: random.word(),
+                minimumScoreToBePlayed: 1,
             },
             {
                 hasPhysicalAndTimeConstraints: false,
@@ -56,6 +57,7 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
                 isOpen: false,
                 isOpenOnlyInvitedUsersCanVote: false,
                 name: random.word(),
+                minimumScoreToBePlayed: 1,
             },
             {
                 hasPhysicalAndTimeConstraints: true,
@@ -64,6 +66,7 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
                 isOpen: false,
                 isOpenOnlyInvitedUsersCanVote: true,
                 name: random.word(),
+                minimumScoreToBePlayed: 1,
             },
         ];
 

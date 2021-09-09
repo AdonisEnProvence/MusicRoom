@@ -1,5 +1,5 @@
 import {
-    MtvRoomClientToServerCreate,
+    MtvRoomClientToServerCreateArgs,
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
@@ -368,10 +368,18 @@ export const createAppMusicPlayerMachine = ({
                                                 roomName,
                                                 initialTracksIDs,
                                             } = event;
-                                            const payload: MtvRoomClientToServerCreate =
+                                            const payload: MtvRoomClientToServerCreateArgs =
                                                 {
                                                     name: roomName,
                                                     initialTracksIDs,
+                                                    hasPhysicalAndTimeConstraints:
+                                                        false,
+                                                    isOpen: true,
+                                                    isOpenOnlyInvitedUsersCanVote:
+                                                        false,
+                                                    minimumScoreToBePlayed: 1,
+                                                    physicalAndTimeConstraints:
+                                                        undefined,
                                                 };
 
                                             socket.emit('CREATE_ROOM', payload);

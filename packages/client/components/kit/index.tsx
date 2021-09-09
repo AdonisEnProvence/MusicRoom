@@ -2,7 +2,7 @@ import Block from './Block';
 import FlexColContainer from './FlexColContainer';
 import FlexRowContainer from './FlexRowContainer';
 import Hr from './Hr';
-import TextInput from './TextInput';
+import TextField from './TextField';
 import Title from './Title';
 import Typo from './Typo';
 import AppScreen from './AppScreen';
@@ -17,7 +17,7 @@ export {
     FlexColContainer,
     FlexRowContainer,
     Hr,
-    TextInput,
+    TextField,
     Title,
     Typo,
     AppScreen,

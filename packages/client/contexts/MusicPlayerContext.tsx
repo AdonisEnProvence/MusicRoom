@@ -2,7 +2,14 @@ import { useMachine } from '@xstate/react';
 import React, { useContext, useRef } from 'react';
 import { Platform } from 'react-native';
 import Toast from 'react-native-toast-message';
-import { Sender } from 'xstate';
+import {
+    ContextFrom,
+    EventFrom,
+    Sender,
+    StateFrom,
+    StateMachine,
+} from 'xstate';
+import { createModel } from 'xstate/lib/model';
 import { MusicPlayerRef } from '../components/TheMusicPlayer/Player';
 import {
     MusicPlayerFullScreenProps,
@@ -13,6 +20,10 @@ import {
     AppMusicPlayerMachineState,
     createAppMusicPlayerMachine,
 } from '../machines/appMusicPlayerMachine';
+import {
+    createCreationMtvRoomFormMachine,
+    CreationMtvRoomFormActorRef,
+} from '../machines/creationMtvRoomForm';
 import { navigateFromRef } from '../navigation/RootNavigation';
 import { Socket } from '../services/websockets';
 
@@ -20,6 +31,9 @@ type MusicPlayerContextValue = {
     sendToMachine: Sender<AppMusicPlayerMachineEvent>;
     state: AppMusicPlayerMachineState;
     setPlayerRef: (ref: MusicPlayerRef) => void;
+
+    homeScreenMachineState: StateFrom<HomeScreenMachine>;
+    homeScreenMachineSend: Sender<EventFrom<HomeScreenMachine>>;
 } & MusicPlayerFullScreenProps;
 
 const MusicPlayerContext = React.createContext<
@@ -114,6 +128,16 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
                         text2: 'Your suggestion has been rejected',
                     });
                 },
+
+                openCreationMtvRoomFormModal: () => {
+                    navigateFromRef('MusicTrackVoteCreationForm');
+                },
+
+                closeCreationMtvRoomFormModal: ({
+                    closeMtvRoomCreationModal,
+                }) => {
+                    closeMtvRoomCreationModal?.();
+                },
             },
         });
 
@@ -138,6 +162,25 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
             return elapsedTime * 1000;
         }
 
+        const [homeScreenMachineState, homeScreenMachineSend] = useMachine(
+            homeScreenMachine,
+            {
+                actions: {
+                    openCreationMtvRoomFormModal: () => {
+                        navigateFromRef('MusicTrackVoteCreationForm');
+                    },
+
+                    closeCreationMtvRoomFormModal: ({
+                        closeMtvRoomCreationModal,
+                    }) => {
+                        console.log('in closeCreationMtvRoomFormModal action');
+
+                        closeMtvRoomCreationModal?.();
+                    },
+                },
+            },
+        );
+
         return (
             <MusicPlayerContext.Provider
                 value={{
@@ -147,6 +190,9 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
                     isFullScreen,
                     setIsFullScreen,
                     toggleIsFullScreen,
+
+                    homeScreenMachineState,
+                    homeScreenMachineSend,
                 }}
             >
                 {children}
@@ -188,3 +234,89 @@ export function useSuggestTracks(closeSuggestionModal: () => void): {
         showActivityIndicatorOnSuggestionsResultsScreen,
     };
 }
+
+export function useCreationMtvRoomFormMachine():
+    | CreationMtvRoomFormActorRef
+    | undefined {
+    const { homeScreenMachineState } = useMusicPlayer();
+    const actor: CreationMtvRoomFormActorRef =
+        homeScreenMachineState.children.creationMtvRoomForm;
+
+    return actor ?? undefined;
+}
+
+const homeScreenModel = createModel(
+    {
+        closeMtvRoomCreationModal: (() => {
+            return undefined;
+        }) as (() => void) | undefined,
+    },
+    {
+        events: {
+            OPEN_SETTINGS: () => ({}),
+
+            SAVE_MTV_ROOM_CREATION_MODAL_CLOSER: (closeModal: () => void) => ({
+                closeModal,
+            }),
+
+            EXIT_MTV_ROOM_CREATION: () => ({}),
+        },
+    },
+);
+
+const homeScreenMachine = homeScreenModel.createMachine({
+    initial: 'idle',
+
+    states: {
+        idle: {
+            on: {
+                OPEN_SETTINGS: {
+                    target: 'selectingRoomOptions',
+                },
+            },
+        },
+
+        selectingRoomOptions: {
+            entry: 'openCreationMtvRoomFormModal',
+
+            exit: 'closeCreationMtvRoomFormModal',
+
+            invoke: {
+                id: 'creationMtvRoomForm',
+
+                src: createCreationMtvRoomFormMachine(),
+
+                onDone: {
+                    target: 'idle',
+                },
+            },
+
+            on: {
+                SAVE_MTV_ROOM_CREATION_MODAL_CLOSER: {
+                    actions: [
+                        homeScreenModel.assign({
+                            closeMtvRoomCreationModal: (_context, event) =>
+                                event.closeModal,
+                        }),
+                        (_context, event) => {
+                            console.log(
+                                'save mtv room creation modal closer event',
+                                event,
+                            );
+                        },
+                    ],
+                },
+
+                EXIT_MTV_ROOM_CREATION: {
+                    target: 'idle',
+                },
+            },
+        },
+    },
+});
+
+type HomeScreenMachine = StateMachine<
+    ContextFrom<typeof homeScreenMachine>,
+    any,
+    EventFrom<typeof homeScreenMachine>
+>;

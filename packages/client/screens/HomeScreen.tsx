@@ -73,6 +73,15 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                         });
                     }}
                 />
+
+                <Button
+                    title="Open mtv room creation form"
+                    onPress={() => {
+                        musicPlayerMachine.homeScreenMachineSend({
+                            type: 'OPEN_SETTINGS',
+                        });
+                    }}
+                />
             </AppScreenContainer>
         </AppScreen>
     );

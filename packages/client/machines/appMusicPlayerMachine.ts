@@ -7,23 +7,33 @@ import {
     assign,
     createMachine,
     forwardTo,
+    Receiver,
     send,
+    Sender,
     State,
     StateMachine,
 } from 'xstate';
 import { SocketClient } from '../hooks/useSocket';
+import { createCreationMtvRoomFormMachine } from './creationMtvRoomForm';
 
 export interface AppMusicPlayerMachineContext extends MtvWorkflowState {
     waitingRoomID?: string;
     progressElapsedTime: number;
 
     closeSuggestionModal?: () => void;
+    closeMtvRoomCreationModal?: () => void;
 }
 
 export type AppMusicPlayerMachineState = State<
     AppMusicPlayerMachineContext,
     AppMusicPlayerMachineEvent
 >;
+
+export type CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents =
+    | {
+          type: 'EXIT_MTV_ROOM_CREATION';
+      }
+    | { type: 'SAVE_MTV_ROOM_CREATION_MODAL_CLOSER'; closeModal: () => void };
 
 export type AppMusicPlayerMachineEvent =
     | {
@@ -70,7 +80,8 @@ export type AppMusicPlayerMachineEvent =
           type: 'VOTE_OR_SUGGEST_TRACK_CALLBACK';
           state: MtvWorkflowStateWithUserRelatedInformation;
       }
-    | { type: 'VOTE_FOR_TRACK'; trackID: string };
+    | { type: 'VOTE_FOR_TRACK'; trackID: string }
+    | CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents;
 
 interface CreateAppMusicPlayerMachineArgs {
     socket: SocketClient;
@@ -97,160 +108,174 @@ export const createAppMusicPlayerMachine = ({
     AppMusicPlayerMachineContext,
     any,
     AppMusicPlayerMachineEvent
-> =>
-    createMachine<AppMusicPlayerMachineContext, AppMusicPlayerMachineEvent>(
+> => {
+    const creationMtvRoomForm = createCreationMtvRoomFormMachine();
+
+    return createMachine<
+        AppMusicPlayerMachineContext,
+        AppMusicPlayerMachineEvent
+    >(
         {
             invoke: {
                 id: 'socketConnection',
-                src: (_context, _event) => (sendBack, onReceive) => {
-                    socket.on('RETRIEVE_CONTEXT', (state) => {
-                        sendBack({
-                            type: 'RETRIEVE_CONTEXT',
-                            state,
+                src:
+                    (_context, _event) =>
+                    (
+                        sendBack: Sender<AppMusicPlayerMachineEvent>,
+                        onReceive: Receiver<AppMusicPlayerMachineEvent>,
+                    ) => {
+                        socket.on('RETRIEVE_CONTEXT', (state) => {
+                            sendBack({
+                                type: 'RETRIEVE_CONTEXT',
+                                state,
+                            });
                         });
-                    });
 
-                    socket.on('USER_LENGTH_UPDATE', (state) => {
-                        console.log('USER_LENGTH_UPDATE');
-                        sendBack({
-                            type: 'USER_LENGTH_UPDATE',
-                            state,
+                        socket.on('USER_LENGTH_UPDATE', (state) => {
+                            console.log('USER_LENGTH_UPDATE');
+                            sendBack({
+                                type: 'USER_LENGTH_UPDATE',
+                                state,
+                            });
                         });
-                    });
 
-                    socket.on('CREATE_ROOM_SYNCHED_CALLBACK', (state) => {
-                        sendBack({
-                            type: 'JOINED_CREATED_ROOM',
-                            state,
+                        socket.on('CREATE_ROOM_SYNCHED_CALLBACK', (state) => {
+                            sendBack({
+                                type: 'JOINED_CREATED_ROOM',
+                                state,
+                            });
                         });
-                    });
 
-                    socket.on('CHANGE_EMITTING_DEVICE_CALLBACK', (state) => {
-                        sendBack({
-                            type: 'CHANGE_EMITTING_DEVICE_CALLBACK',
-                            state,
+                        socket.on(
+                            'CHANGE_EMITTING_DEVICE_CALLBACK',
+                            (state) => {
+                                sendBack({
+                                    type: 'CHANGE_EMITTING_DEVICE_CALLBACK',
+                                    state,
+                                });
+                            },
+                        );
+
+                        socket.on('CREATE_ROOM_CALLBACK', (state) => {
+                            sendBack({
+                                type: 'ROOM_IS_READY',
+                                state,
+                            });
                         });
-                    });
 
-                    socket.on('CREATE_ROOM_CALLBACK', (state) => {
-                        sendBack({
-                            type: 'ROOM_IS_READY',
-                            state,
+                        socket.on('JOIN_ROOM_CALLBACK', (state) => {
+                            sendBack({
+                                type: 'JOINED_ROOM',
+                                state,
+                            });
                         });
-                    });
 
-                    socket.on('JOIN_ROOM_CALLBACK', (state) => {
-                        sendBack({
-                            type: 'JOINED_ROOM',
-                            state,
+                        socket.on('ACTION_PLAY_CALLBACK', (state) => {
+                            sendBack({
+                                type: 'PLAY_CALLBACK',
+                                state,
+                            });
                         });
-                    });
 
-                    socket.on('ACTION_PLAY_CALLBACK', (state) => {
-                        sendBack({
-                            type: 'PLAY_CALLBACK',
-                            state,
+                        socket.on('ACTION_PAUSE_CALLBACK', () => {
+                            sendBack({
+                                type: 'PAUSE_CALLBACK',
+                            });
                         });
-                    });
 
-                    socket.on('ACTION_PAUSE_CALLBACK', () => {
-                        sendBack({
-                            type: 'PAUSE_CALLBACK',
+                        socket.on(
+                            'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
+                            (state) => {
+                                sendBack({
+                                    type: 'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
+                                    state,
+                                });
+                            },
+                        );
+
+                        socket.on('VOTE_OR_SUGGEST_TRACK_CALLBACK', (state) => {
+                            console.log(
+                                'RECEIVED VOTE FOR TRACK CALLBACK',
+                                state,
+                            );
+                            sendBack({
+                                type: 'VOTE_OR_SUGGEST_TRACK_CALLBACK',
+                                state,
+                            });
                         });
-                    });
 
-                    socket.on('VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', (state) => {
-                        sendBack({
-                            type: 'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
-                            state,
+                        socket.on('SUGGEST_TRACKS_CALLBACK', () => {
+                            sendBack({
+                                type: 'SUGGEST_TRACKS_CALLBACK',
+                            });
                         });
-                    });
 
-                    socket.on('VOTE_OR_SUGGEST_TRACK_CALLBACK', (state) => {
-                        console.log('RECEIVED VOTE FOR TRACK CALLBACK', state);
-                        sendBack({
-                            type: 'VOTE_OR_SUGGEST_TRACK_CALLBACK',
-                            state,
+                        socket.on('SUGGEST_TRACKS_FAIL_CALLBACK', () => {
+                            sendBack({
+                                type: 'SUGGEST_TRACKS_FAIL_CALLBACK',
+                            });
                         });
-                    });
 
-                    socket.on('SUGGEST_TRACKS_CALLBACK', () => {
-                        sendBack({
-                            type: 'SUGGEST_TRACKS_CALLBACK',
+                        socket.on('FORCED_DISCONNECTION', () => {
+                            sendBack({
+                                type: 'FORCED_DISCONNECTION',
+                            });
                         });
-                    });
 
-                    socket.on('SUGGEST_TRACKS_FAIL_CALLBACK', () => {
-                        sendBack({
-                            type: 'SUGGEST_TRACKS_FAIL_CALLBACK',
-                        });
-                    });
+                        onReceive((e) => {
+                            switch (e.type) {
+                                case 'PLAY_PAUSE_TOGGLE': {
+                                    const { status } = e.params;
 
-                    socket.on('FORCED_DISCONNECTION', () => {
-                        sendBack({
-                            type: 'FORCED_DISCONNECTION',
-                        });
-                    });
+                                    if (status === 'play') {
+                                        socket.emit('ACTION_PAUSE');
+                                    } else {
+                                        socket.emit('ACTION_PLAY');
+                                    }
 
-                    onReceive((e) => {
-                        switch (e.type) {
-                            case 'PLAY_PAUSE_TOGGLE': {
-                                const { status } = e.params;
-
-                                if (status === 'play') {
-                                    socket.emit('ACTION_PAUSE');
-                                } else {
-                                    socket.emit('ACTION_PLAY');
+                                    break;
                                 }
 
-                                break;
+                                case 'GO_TO_NEXT_TRACK': {
+                                    socket.emit('GO_TO_NEXT_TRACK');
+
+                                    break;
+                                }
+
+                                case 'LEAVE_ROOM': {
+                                    socket.emit('LEAVE_ROOM');
+
+                                    break;
+                                }
+
+                                case 'CHANGE_EMITTING_DEVICE': {
+                                    socket.emit('CHANGE_EMITTING_DEVICE', {
+                                        newEmittingDeviceID: e.deviceID,
+                                    });
+
+                                    break;
+                                }
+
+                                case 'SUGGEST_TRACKS': {
+                                    const tracksToSuggest = e.tracksToSuggest;
+
+                                    socket.emit('SUGGEST_TRACKS', {
+                                        tracksToSuggest,
+                                    });
+
+                                    break;
+                                }
+
+                                case 'VOTE_FOR_TRACK': {
+                                    socket.emit('VOTE_FOR_TRACK', {
+                                        trackID: e.trackID,
+                                    });
+
+                                    break;
+                                }
                             }
-
-                            case 'GO_TO_NEXT_TRACK': {
-                                socket.emit('GO_TO_NEXT_TRACK');
-
-                                break;
-                            }
-
-                            case 'LEAVE_ROOM': {
-                                socket.emit('LEAVE_ROOM');
-
-                                break;
-                            }
-
-                            case 'CHANGE_EMITTING_DEVICE': {
-                                console.log(
-                                    'CHANGE EMITTING DEVICE ABOUT TO BE EMIT WITH PARAMS ',
-                                    e.params,
-                                );
-
-                                socket.emit('CHANGE_EMITTING_DEVICE', {
-                                    newEmittingDeviceID: e.params.deviceID,
-                                });
-
-                                break;
-                            }
-
-                            case 'SUGGEST_TRACKS': {
-                                const tracksToSuggest = e.tracksToSuggest;
-
-                                socket.emit('SUGGEST_TRACKS', {
-                                    tracksToSuggest,
-                                });
-
-                                break;
-                            }
-
-                            case 'VOTE_FOR_TRACK': {
-                                socket.emit('VOTE_FOR_TRACK', {
-                                    trackID: e.trackID,
-                                });
-
-                                break;
-                            }
-                        }
-                    });
-                },
+                        });
+                    },
             },
 
             context: rawContext,
@@ -292,36 +317,67 @@ export const createAppMusicPlayerMachine = ({
                         },
 
                         creatingRoom: {
-                            invoke: {
-                                src: (_context, event) => (sendBack) => {
-                                    //Handle global external transitions
-                                    if (
-                                        event.type === 'JOINED_CREATED_ROOM' ||
-                                        event.type === 'ROOM_IS_READY'
-                                    )
-                                        return;
-
-                                    if (event.type !== 'CREATE_ROOM') {
-                                        throw new Error(
-                                            'Service must be called in reaction to CREATE_ROOM event',
-                                        );
-                                    }
-
-                                    const { roomName, initialTracksIDs } =
-                                        event;
-                                    const payload: MtvRoomClientToServerCreate =
-                                        {
-                                            name: roomName,
-                                            initialTracksIDs,
-                                        };
-
-                                    socket.emit('CREATE_ROOM', payload);
-                                },
-                            },
-
                             initial: 'connectingToRoom',
+
                             states: {
+                                // selectingRoomOptions: {
+                                //     entry: 'openCreationMtvRoomFormModal',
+
+                                //     exit: 'closeCreationMtvRoomFormModal',
+
+                                //     invoke: {
+                                //         id: 'creationMtvRoomForm',
+
+                                //         src: creationMtvRoomForm,
+
+                                //         onDone: {
+                                //             target: 'connectingToRoom',
+                                //         },
+                                //     },
+
+                                //     on: {
+                                //         SAVE_MTV_ROOM_CREATION_MODAL_CLOSER: {
+                                //             actions: assign({
+                                //                 closeMtvRoomCreationModal: (
+                                //                     _context,
+                                //                     event,
+                                //                 ) => event.closeModal,
+                                //             }),
+                                //         },
+                                //     },
+                                // },
+
                                 connectingToRoom: {
+                                    invoke: {
+                                        src: (_context, event) => () => {
+                                            //Handle global external transitions
+                                            if (
+                                                event.type ===
+                                                    'JOINED_CREATED_ROOM' ||
+                                                event.type === 'ROOM_IS_READY'
+                                            )
+                                                return;
+
+                                            if (event.type !== 'CREATE_ROOM') {
+                                                throw new Error(
+                                                    'Service must be called in reaction to CREATE_ROOM event',
+                                                );
+                                            }
+
+                                            const {
+                                                roomName,
+                                                initialTracksIDs,
+                                            } = event;
+                                            const payload: MtvRoomClientToServerCreate =
+                                                {
+                                                    name: roomName,
+                                                    initialTracksIDs,
+                                                };
+
+                                            socket.emit('CREATE_ROOM', payload);
+                                        },
+                                    },
+
                                     on: {
                                         JOINED_CREATED_ROOM: {
                                             target: 'roomIsNotReady',
@@ -341,6 +397,12 @@ export const createAppMusicPlayerMachine = ({
 
                                 roomIsReady: {
                                     type: 'final',
+                                },
+                            },
+
+                            on: {
+                                EXIT_MTV_ROOM_CREATION: {
+                                    target: 'waitingForJoinOrCreateRoom',
                                 },
                             },
 
@@ -367,12 +429,14 @@ export const createAppMusicPlayerMachine = ({
                             on: {
                                 JOINED_ROOM: {
                                     target: 'connectedToRoom',
+
                                     cond: (context, event) => {
                                         return (
                                             event.state.roomID ===
                                             context.waitingRoomID
                                         );
                                     },
+
                                     actions: 'assignMergeNewState',
                                 },
                             },
@@ -677,17 +741,8 @@ export const createAppMusicPlayerMachine = ({
                                         }
                                         return false;
                                     },
-                                    actions: send(
-                                        (_context, event) => ({
-                                            type: 'CHANGE_EMITTING_DEVICE',
-                                            params: {
-                                                deviceID: event.deviceID,
-                                            },
-                                        }),
-                                        {
-                                            to: 'socketConnection',
-                                        },
-                                    ),
+
+                                    actions: forwardTo('socketConnection'),
                                 },
 
                                 CHANGE_EMITTING_DEVICE_CALLBACK: {
@@ -843,3 +898,4 @@ export const createAppMusicPlayerMachine = ({
             },
         },
     );
+};

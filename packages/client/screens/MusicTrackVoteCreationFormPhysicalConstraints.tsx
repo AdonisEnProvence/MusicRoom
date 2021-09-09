@@ -1,9 +1,11 @@
 import { useActor } from '@xstate/react';
 import { View, Text } from 'dripsy';
 import React from 'react';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { TextField } from '../components/kit';
 import MtvRoomCreationFormOptionButton from '../components/MtvRoomCreationForm/MtvRoomCreationFormOptionButton';
 import MtvRoomCreationFormScreen from '../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
+import { GOOGLE_PLACES_API_KEY } from '../constants/ApiKeys';
 import { useCreationMtvRoomFormMachine } from '../contexts/MusicPlayerContext';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 import { MusicTrackVoteCreationFormPhysicalConstraintsScreenProps } from '../types';
@@ -127,14 +129,30 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                                 Select the constraints you want
                             </Text>
 
-                            <TextField
+                            <GooglePlacesAutocomplete
+                                placeholder="Place"
+                                onPress={(data, details = null) => {
+                                    // 'details' is provided when fetchDetails = true
+                                    console.log(data, details);
+                                }}
+                                query={{
+                                    key: GOOGLE_PLACES_API_KEY,
+                                    language: 'fr',
+                                }}
+                                requestUrl={{
+                                    useOnPlatform: 'web',
+                                    url: 'http://localhost:3333/proxy-places-api',
+                                }}
+                            />
+
+                            {/* <TextField
                                 value={physicalConstraintPlace}
                                 placeholder="Place"
                                 onChangeText={
                                     handlePhysicalConstraintPlaceChange
                                 }
                                 sx={{ marginTop: 'm' }}
-                            />
+                            /> */}
 
                             <TextField
                                 value={String(physicalConstraintRadius)}

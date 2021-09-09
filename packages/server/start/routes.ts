@@ -72,6 +72,8 @@ Route.post(
     'Temporal/TemporalToServerController.acknowledgeUserVoteForTrack',
 );
 
+Route.get('/proxy-places-api/*', 'PlacesApisController.proxyPlacesAPIRequest');
+
 /// //////// ////// ///
 
 Route.get('/', () => {

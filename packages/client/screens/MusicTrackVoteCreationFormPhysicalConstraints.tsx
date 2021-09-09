@@ -1,8 +1,9 @@
 import { useActor } from '@xstate/react';
-import { View, Text } from 'dripsy';
+import { View, Text, useSx } from 'dripsy';
 import React from 'react';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { TextField } from '../components/kit';
+import { useTextFieldStyles } from '../components/kit/TextField';
 import MtvRoomCreationFormOptionButton from '../components/MtvRoomCreationForm/MtvRoomCreationFormOptionButton';
 import MtvRoomCreationFormScreen from '../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
 import { GOOGLE_PLACES_API_KEY } from '../constants/ApiKeys';
@@ -15,6 +16,7 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
         mtvRoomCreationActor: CreationMtvRoomFormActorRef;
     }
 > = ({ mtvRoomCreationActor }) => {
+    const sx = useSx();
     const [state, send] = useActor(mtvRoomCreationActor);
 
     const hasPhysicalConstraints = state.hasTag('hasPhysicalConstraints');
@@ -35,6 +37,7 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
             onPress: handleSetPhysicalConstraintsStatus(false),
         },
     ];
+    const placeInputStyles = useTextFieldStyles();
 
     function handleSetPhysicalConstraintsStatus(isRestricted: boolean) {
         return () => {
@@ -143,6 +146,20 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                                 requestUrl={{
                                     useOnPlatform: 'web',
                                     url: 'http://localhost:3333/proxy-places-api',
+                                }}
+                                styles={{
+                                    textInput: [
+                                        placeInputStyles,
+                                        {
+                                            height: null,
+                                            paddingVertical: null,
+                                            paddingHorizontal: null,
+                                            marginBottom: null,
+                                        },
+                                        sx({
+                                            marginTop: 'm',
+                                        }),
+                                    ],
                                 }}
                             />
 

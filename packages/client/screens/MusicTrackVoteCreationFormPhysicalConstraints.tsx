@@ -148,6 +148,12 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                                     url: 'http://localhost:3333/proxy-places-api',
                                 }}
                                 styles={{
+                                    container: {
+                                        flex: 0,
+                                        flexGrow: 1,
+                                        flexShrink: 1,
+                                    },
+
                                     textInput: [
                                         placeInputStyles,
                                         {

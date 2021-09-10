@@ -200,6 +200,7 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                                 onValueChange={
                                     handlePhysicalConstraintRadiusChange
                                 }
+                                useNativeAndroidPickerStyle={false}
                                 style={
                                     {
                                         inputIOS: [

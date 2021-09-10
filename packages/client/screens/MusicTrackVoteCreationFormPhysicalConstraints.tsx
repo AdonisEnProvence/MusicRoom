@@ -1,8 +1,11 @@
 import { useActor } from '@xstate/react';
-import { View, Text, useSx } from 'dripsy';
-import React from 'react';
+import { View, Text, Button, useSx } from 'dripsy';
+import { format } from 'date-fns';
+import { enUS } from 'date-fns/locale';
+import React, { useState } from 'react';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import PickerSelect from 'react-native-picker-select';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { TextField } from '../components/kit';
 import { useTextFieldStyles } from '../components/kit/TextField';
 import MtvRoomCreationFormOptionButton from '../components/MtvRoomCreationForm/MtvRoomCreationFormOptionButton';
@@ -11,6 +14,7 @@ import { GOOGLE_PLACES_API_KEY } from '../constants/ApiKeys';
 import { useCreationMtvRoomFormMachine } from '../contexts/MusicPlayerContext';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 import { MusicTrackVoteCreationFormPhysicalConstraintsScreenProps } from '../types';
+import { TouchableOpacity } from 'react-native';
 
 const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
     MusicTrackVoteCreationFormPhysicalConstraintsScreenProps & {
@@ -24,7 +28,21 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
     const physicalConstraintPlace = state.context.physicalConstraintPlace;
     const physicalConstraintRadius = state.context.physicalConstraintRadius;
     const physicalConstraintStartsAt = state.context.physicalConstraintStartsAt;
+    const physicalConstraintStartsAtFormatted = format(
+        physicalConstraintStartsAt,
+        'Pp',
+        {
+            locale: enUS,
+        },
+    );
     const physicalConstraintEndsAt = state.context.physicalConstraintEndsAt;
+    const physicalConstraintEndsAtFormatted = format(
+        physicalConstraintEndsAt,
+        'Pp',
+        {
+            locale: enUS,
+        },
+    );
     const physicalConstraintsOptions = [
         {
             text: 'Restrict',
@@ -63,18 +81,20 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
         });
     }
 
-    function handlePhysicalConstraintStartsAtChange(startsAt: string) {
+    function handlePhysicalConstraintStartsAtChange(startsAt: Date) {
         send({
             type: 'SET_PHYSICAL_CONSTRAINT_STARTS_AT',
             startsAt,
         });
+        hideStartsAtDatePicker();
     }
 
-    function handlePhysicalConstraintEndsAtChange(endsAt: string) {
+    function handlePhysicalConstraintEndsAtChange(endsAt: Date) {
         send({
             type: 'SET_PHYSICAL_CONSTRAINT_ENDS_AT',
             endsAt,
         });
+        hideEndsAtDatePicker();
     }
 
     function handleGoBack() {
@@ -88,6 +108,28 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
             type: 'NEXT',
         });
     }
+
+    const [isStartsAtDatePickerVisible, setStartsAtDatePickerVisibility] =
+        useState(false);
+
+    const showStartsAtDatePicker = () => {
+        setStartsAtDatePickerVisibility(true);
+    };
+
+    const hideStartsAtDatePicker = () => {
+        setStartsAtDatePickerVisibility(false);
+    };
+
+    const [isEndsAtDatePickerVisible, setEndsAtDatePickerVisibility] =
+        useState(false);
+
+    const showEndsAtDatePicker = () => {
+        setEndsAtDatePickerVisibility(true);
+    };
+
+    const hideEndsAtDatePicker = () => {
+        setEndsAtDatePickerVisibility(false);
+    };
 
     return (
         <MtvRoomCreationFormScreen
@@ -230,24 +272,60 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                                 }
                             />
 
-                            <TextField
-                                value={physicalConstraintStartsAt}
-                                placeholder="Starts at"
-                                placeholderTextColor="white"
-                                onChangeText={
+                            <TouchableOpacity
+                                onPress={showStartsAtDatePicker}
+                                style={[
+                                    placeInputStyles,
+                                    sx({
+                                        marginTop: 'm',
+                                        flexDirection: 'row',
+                                        justifyContent: 'space-between',
+                                    }),
+                                ]}
+                            >
+                                <Text sx={{ color: 'white', fontSize: 's' }}>
+                                    Starts at
+                                </Text>
+
+                                <Text sx={{ color: 'white', fontSize: 's' }}>
+                                    {physicalConstraintStartsAtFormatted}
+                                </Text>
+                            </TouchableOpacity>
+
+                            <DateTimePickerModal
+                                isVisible={isStartsAtDatePickerVisible}
+                                mode="datetime"
+                                onConfirm={
                                     handlePhysicalConstraintStartsAtChange
                                 }
-                                sx={{ marginTop: 'm' }}
+                                onCancel={hideStartsAtDatePicker}
                             />
 
-                            <TextField
-                                value={physicalConstraintEndsAt}
-                                placeholder="Ends at"
-                                placeholderTextColor="white"
-                                onChangeText={
-                                    handlePhysicalConstraintEndsAtChange
-                                }
-                                sx={{ marginTop: 'm' }}
+                            <TouchableOpacity
+                                onPress={showEndsAtDatePicker}
+                                style={[
+                                    placeInputStyles,
+                                    sx({
+                                        marginTop: 'm',
+                                        flexDirection: 'row',
+                                        justifyContent: 'space-between',
+                                    }),
+                                ]}
+                            >
+                                <Text sx={{ color: 'white', fontSize: 's' }}>
+                                    Ends at
+                                </Text>
+
+                                <Text sx={{ color: 'white', fontSize: 's' }}>
+                                    {physicalConstraintEndsAtFormatted}
+                                </Text>
+                            </TouchableOpacity>
+
+                            <DateTimePickerModal
+                                isVisible={isEndsAtDatePickerVisible}
+                                mode="datetime"
+                                onConfirm={handlePhysicalConstraintEndsAtChange}
+                                onCancel={hideEndsAtDatePicker}
                             />
                         </View>
                     )}

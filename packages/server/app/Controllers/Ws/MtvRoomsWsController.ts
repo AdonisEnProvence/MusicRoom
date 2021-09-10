@@ -9,7 +9,7 @@ import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
 import { randomUUID } from 'crypto';
 import { isPointWithinRadius } from 'geolib';
-import { getCoordsFromAddress } from '../Http/GeocodingController';
+import GeocodingController from '../Http/GeocodingController';
 import ServerToTemporalController, {
     MtvRoomPhysicalAndTimeConstraintsWithCoords,
 } from '../Http/Temporal/ServerToTemporalController';
@@ -73,7 +73,7 @@ export default class MtvRoomsWsController {
             roomHasPositionAndTimeConstraints &&
             params.physicalAndTimeConstraints !== undefined
         ) {
-            const coords = await getCoordsFromAddress(
+            const coords = await GeocodingController.getCoordsFromAddress(
                 params.physicalAndTimeConstraints.physicalConstraintPlace,
             );
             physicalAndTimeConstraintsWithCoords = {
@@ -108,7 +108,7 @@ export default class MtvRoomsWsController {
                     },
                 });
 
-            room.fill({
+            room.merge({
                 uuid: roomID,
                 runID: temporalResponse.runID,
                 creator: userID,
@@ -118,7 +118,7 @@ export default class MtvRoomsWsController {
                 roomHasPositionAndTimeConstraints &&
                 physicalAndTimeConstraintsWithCoords
             ) {
-                room.fill({
+                room.merge({
                     hasPositionAndTimeConstraints:
                         params.hasPhysicalAndTimeConstraints,
                     constraintRadius:

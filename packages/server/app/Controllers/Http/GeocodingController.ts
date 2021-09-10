@@ -4,21 +4,23 @@ import { LatlngCoords } from '@musicroom/types';
 
 const client = new Client({});
 
-export async function getCoordsFromAddress(
-    placeID: string,
-): Promise<LatlngCoords> {
-    const response = await client.geocode({
-        params: {
-            place_id: placeID,
-            key: Env.get('GOOGLE_PLACES_API_KEY'),
-        },
-    });
-    const { results } = response.data;
-    const resultsAreEmpty = results.length === 0;
+export default class GeocodingController {
+    public static async getCoordsFromAddress(
+        placeID: string,
+    ): Promise<LatlngCoords> {
+        const response = await client.geocode({
+            params: {
+                place_id: placeID,
+                key: Env.get('GOOGLE_PLACES_API_KEY'),
+            },
+        });
+        const { results } = response.data;
+        const resultsAreEmpty = results.length === 0;
 
-    if (resultsAreEmpty) {
-        throw new Error('Geocode error empty results');
+        if (resultsAreEmpty) {
+            throw new Error('Geocode error empty results');
+        }
+
+        return results[0].geometry.location;
     }
-
-    return results[0].geometry.location;
 }

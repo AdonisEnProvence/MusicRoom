@@ -44,6 +44,7 @@
     "@adonisjs/lucid": "^15.0.1",
     "@adonisjs/redis": "^7.0.4",
     "@adonisjs/repl": "^3.0.0",
+    "@googlemaps/google-maps-services-js": "^3.1.16",
     "@musicroom/types": "*",
     "@socket.io/redis-adapter": "^7.0.0",
     "googleapis": "^74.1.0",

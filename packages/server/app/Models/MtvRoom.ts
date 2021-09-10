@@ -17,6 +17,15 @@ export default class MtvRoom extends BaseModel {
     })
     public members: HasMany<typeof User>;
 
+    @column()
+    public constraintLng?: number;
+
+    @column()
+    public constraintLat?: number;
+
+    @column()
+    public hasPositionAndTimeConstraints: boolean;
+
     @column.dateTime({ autoCreate: true })
     public createdAt: DateTime;
 

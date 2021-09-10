@@ -33,6 +33,12 @@ export default class Device extends BaseModel {
     @column()
     public isEmitting: boolean;
 
+    @column()
+    public lat?: number;
+
+    @column()
+    public lng?: number;
+
     @column.dateTime({ autoCreate: true })
     public createdAt: DateTime;
 

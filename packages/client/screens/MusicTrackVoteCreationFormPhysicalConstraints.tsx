@@ -148,6 +148,9 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                                     useOnPlatform: 'web',
                                     url: 'http://localhost:3333/proxy-places-api',
                                 }}
+                                textInputProps={{
+                                    placeholderTextColor: 'white',
+                                }}
                                 styles={{
                                     container: {
                                         flex: 0,
@@ -229,6 +232,7 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                             <TextField
                                 value={physicalConstraintStartsAt}
                                 placeholder="Starts at"
+                                placeholderTextColor="white"
                                 onChangeText={
                                     handlePhysicalConstraintStartsAtChange
                                 }
@@ -238,6 +242,7 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                             <TextField
                                 value={physicalConstraintEndsAt}
                                 placeholder="Ends at"
+                                placeholderTextColor="white"
                                 onChangeText={
                                     handlePhysicalConstraintEndsAtChange
                                 }

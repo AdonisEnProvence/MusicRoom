@@ -229,6 +229,21 @@ func (s *InternalStateUser) HasVotedFor(trackID string) bool {
 	return false
 }
 
+type MtvRoomCoords struct {
+	Lat int `json:"lat" validate:"required"`
+	Lng int `json:"lng" validate:"required"`
+}
+
+type MtvRoomPhysicalAndTimeConstraints struct {
+	//Adonis will manage the position process, but to keep a kind of unity
+	//We would like to store in the params the constraints event if they won't
+	//be used ( for now ? )
+	PhysicalConstraintPlace    MtvRoomCoords `json:"physicalConstraintPlace" validate:"required"`
+	PhysicalConstraintRadius   int           `json:"physicalConstraintRadius" validate:"required"`
+	PhysicalConstraintStartsAt string        `json:"physicalConstraintStartsAt" validate:"required"`
+	PhysicalConstraintEndsAt   string        `json:"physicalConstraintEndsAt" validate:"required"`
+}
+
 type MtvRoomParameters struct {
 	RoomID                 string
 	RoomCreatorUserID      string
@@ -236,6 +251,13 @@ type MtvRoomParameters struct {
 	MinimumScoreToBePlayed int
 	InitialUsers           map[string]*InternalStateUser
 	InitialTracksIDsList   []string
+
+	//Same as for PhysicalConstraintPlace IsOpen won't be usefull
+	//for temporal itself but for the adonis mtv room search engine
+	IsOpen                        bool
+	IsOpenOnlyInvitedUsersCanVote bool
+	HasPhysicalAndTimeConstraints bool
+	PhysicalAndTimeConstraints    *MtvRoomPhysicalAndTimeConstraints
 }
 
 func (p MtvRoomParameters) Export() MtvRoomExposedState {

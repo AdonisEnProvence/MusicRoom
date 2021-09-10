@@ -8,7 +8,12 @@ import { datatype, name, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
-import { BASE_URL, initTestUtils, sleep } from './utils/TestUtils';
+import {
+    BASE_URL,
+    getDefaultMtvRoomCreateRoomArgs,
+    initTestUtils,
+    sleep,
+} from './utils/TestUtils';
 
 test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
     const {
@@ -84,10 +89,11 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         const socketA = await createUserAndGetSocket({ userID });
         const socketB = await createSocketConnection({ userID });
         assert.equal((await Device.all()).length, 2);
-        socketA.emit('CREATE_ROOM', {
+        const settings = getDefaultMtvRoomCreateRoomArgs({
             name: roomName,
             initialTracksIDs: [datatype.uuid()],
         });
+        socketA.emit('CREATE_ROOM', settings);
         await sleep();
         assert.isNotNull(await MtvRoom.findBy('creator', userID));
 
@@ -172,10 +178,11 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         /**
          * User connects one device, then creates a room from it
          */
-        socketA.emit('CREATE_ROOM', {
+        const settings = getDefaultMtvRoomCreateRoomArgs({
             name: roomName,
             initialTracksIDs: [datatype.uuid()],
         });
+        socketA.emit('CREATE_ROOM', settings);
         await sleep();
 
         /**
@@ -266,10 +273,10 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
             userID: creatorID,
         });
         const creatorReceivedEvents: string[] = [];
-        creatorUser.emit('CREATE_ROOM', {
-            name: random.word(),
+        const settings = getDefaultMtvRoomCreateRoomArgs({
             initialTracksIDs: [datatype.uuid()],
         });
+        creatorUser.emit('CREATE_ROOM', settings);
         await sleep();
         const createdRoom = await MtvRoom.findBy('creator', creatorID);
         assert.isNotNull(createdRoom);
@@ -316,7 +323,6 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         socket.once('CREATE_ROOM_CALLBACK', () => {
             receivedEvents.push('CREATE_ROOM_CALLBACK');
         });
-        const roomName = random.words(1);
 
         /** Mocks */
         sinon
@@ -339,7 +345,8 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         /**
          * Emit CREATE_ROOM
          */
-        socket.emit('CREATE_ROOM', { name: roomName, initialTracksIDs: [] });
+        const settings = getDefaultMtvRoomCreateRoomArgs();
+        socket.emit('CREATE_ROOM', settings);
         await sleep();
 
         if (roomID === undefined) throw new Error('roomID is undefined');

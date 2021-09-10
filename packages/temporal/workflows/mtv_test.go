@@ -173,12 +173,16 @@ func getWokflowInitParams(tracksIDs []string, minimumScoreToBePlayed int) (share
 	}
 
 	return shared.MtvRoomParameters{
-		RoomID:                 fakeWorkflowID,
-		RoomCreatorUserID:      fakeRoomCreatorUserID,
-		RoomName:               faker.Word(),
-		InitialUsers:           initialUsers,
-		InitialTracksIDsList:   tracksIDs,
-		MinimumScoreToBePlayed: minimumScoreToBePlayed,
+		RoomID:                        fakeWorkflowID,
+		RoomCreatorUserID:             fakeRoomCreatorUserID,
+		RoomName:                      faker.Word(),
+		InitialUsers:                  initialUsers,
+		InitialTracksIDsList:          tracksIDs,
+		MinimumScoreToBePlayed:        minimumScoreToBePlayed,
+		HasPhysicalAndTimeConstraints: false,
+		PhysicalAndTimeConstraints:    nil,
+		IsOpen:                        true,
+		IsOpenOnlyInvitedUsersCanVote: false,
 	}, fakeRoomCreatorDeviceID
 }
 

@@ -1,6 +1,6 @@
 import {
     CreateWorkflowResponse,
-    MtvRoomClientToServerCreate,
+    MtvRoomClientToServerCreateArgs,
     MtvWorkflowState,
 } from '@musicroom/types';
 import MtvRoom from 'App/Models/MtvRoom';
@@ -30,7 +30,9 @@ interface RunID {
     runID: string;
 }
 
-interface OnCreateArgs extends UserID, MtvRoomClientToServerCreate, DeviceID {}
+interface OnCreateArgs extends UserID, DeviceID {
+    params: MtvRoomClientToServerCreateArgs;
+}
 interface OnJoinArgs extends UserID, DeviceID {
     joiningRoom: MtvRoom;
 }
@@ -53,8 +55,7 @@ interface OnVoteForTrackArgs extends RoomID, UserID {
 
 export default class MtvRoomsWsController {
     public static async onCreate({
-        initialTracksIDs,
-        name,
+        params,
         userID,
         deviceID,
     }: OnCreateArgs): Promise<CreateWorkflowResponse> {
@@ -75,10 +76,9 @@ export default class MtvRoomsWsController {
             const temporalResponse =
                 await ServerToTemporalController.createMtvWorkflow({
                     workflowID: roomID,
-                    roomName: name,
                     userID: userID,
-                    initialTracksIDs: initialTracksIDs,
                     deviceID,
+                    params,
                 });
 
             await room

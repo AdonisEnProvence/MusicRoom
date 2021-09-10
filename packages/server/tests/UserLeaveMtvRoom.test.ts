@@ -11,7 +11,12 @@ import { datatype, name, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
-import { BASE_URL, initTestUtils, sleep } from './utils/TestUtils';
+import {
+    BASE_URL,
+    getDefaultMtvRoomCreateRoomArgs,
+    initTestUtils,
+    sleep,
+} from './utils/TestUtils';
 
 test.group(
     `User leave mtv room dwd
@@ -505,12 +510,12 @@ test.group(
                 });
             sinon
                 .stub(ServerToTemporalController, 'createMtvWorkflow')
-                .callsFake(async ({ workflowID, userID, roomName }) => {
+                .callsFake(async ({ workflowID, userID, params }) => {
                     const state: MtvWorkflowStateWithUserRelatedInformation = {
                         roomID: workflowID, //workflowID === roomID
                         roomCreatorUserID: userID,
                         playing: false,
-                        name: roomName,
+                        name: params.name,
                         userRelatedInformation: {
                             userID,
                             emittingDeviceID: datatype.uuid(),
@@ -619,10 +624,8 @@ test.group(
              * Expect B and socket to receive USER_LENGTH_UDPATE
              * server socket event
              */
-            socketC.socket.emit('CREATE_ROOM', {
-                name: random.word(),
-                initialTracksIDs: [],
-            });
+            const settings = getDefaultMtvRoomCreateRoomArgs();
+            socketC.socket.emit('CREATE_ROOM', settings);
             await sleep();
             await sleep();
 
@@ -678,10 +681,9 @@ test.group(
             /**
              * Creator joins the room
              */
-            socket.socket.emit('CREATE_ROOM', {
-                initialTracksIDs: [],
-                name: random.word(),
-            });
+            const secondRoomSettings = getDefaultMtvRoomCreateRoomArgs();
+            socket.socket.emit('CREATE_ROOM', secondRoomSettings);
+
             await sleep();
 
             assert.equal(socketB.receivedEvents.length, 2);

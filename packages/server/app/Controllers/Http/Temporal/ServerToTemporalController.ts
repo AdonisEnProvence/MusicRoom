@@ -1,25 +1,26 @@
 import Env from '@ioc:Adonis/Core/Env';
-import { CreateWorkflowResponse, MtvWorkflowState } from '@musicroom/types';
+import {
+    CreateWorkflowResponse,
+    MtvRoomClientToServerCreateArgs,
+    MtvWorkflowState,
+} from '@musicroom/types';
 import got from 'got';
 import urlcat from 'urlcat';
 
 const TEMPORAL_ENDPOINT = Env.get('TEMPORAL_ENDPOINT');
 
-interface TemporalCreateMtvWorkflowBody {
+interface TemporalCreateMtvWorkflowBody
+    extends MtvRoomClientToServerCreateArgs {
     workflowID: string;
-    roomName: string;
     userID: string;
     deviceID: string;
-    initialTracksIDs: string[];
-    minimumScoreToBePlayed: number;
 }
 
 interface TemporalCreateMtvWorkflowArgs {
     workflowID: string;
-    roomName: string;
     userID: string;
     deviceID: string;
-    initialTracksIDs: string[];
+    params: MtvRoomClientToServerCreateArgs;
 }
 
 interface TemporalBaseArgs {
@@ -64,19 +65,16 @@ interface TemporalMtvGetStateArgs extends TemporalBaseArgs {
 export default class ServerToTemporalController {
     public static async createMtvWorkflow({
         workflowID,
-        roomName,
         userID,
-        initialTracksIDs,
         deviceID,
+        params,
     }: TemporalCreateMtvWorkflowArgs): Promise<CreateWorkflowResponse> {
         const url = urlcat(TEMPORAL_ENDPOINT, '/create');
         const body: TemporalCreateMtvWorkflowBody = {
             workflowID,
-            roomName,
             userID,
-            initialTracksIDs,
             deviceID,
-            minimumScoreToBePlayed: 1,
+            ...params,
         };
 
         return CreateWorkflowResponse.parse(

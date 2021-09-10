@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -356,12 +357,17 @@ func PauseHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type CreateRoomRequestBody struct {
-	WorkflowID             string   `json:"workflowID" validate:"required,uuid"`
-	UserID                 string   `json:"userID" validate:"required,uuid"`
-	DeviceID               string   `json:"deviceID" validate:"required,uuid"`
-	Name                   string   `json:"roomName" validate:"required"`
-	MinimumScoreToBePlayed int      `json:"minimumScoreToBePlayed" validate:"required"`
-	InitialTracksIDs       []string `json:"initialTracksIDs" validate:"required,dive,required"`
+	WorkflowID       string   `json:"workflowID" validate:"required,uuid"`
+	UserID           string   `json:"userID" validate:"required,uuid"`
+	DeviceID         string   `json:"deviceID" validate:"required,uuid"`
+	Name             string   `json:"name" validate:"required"`
+	InitialTracksIDs []string `json:"initialTracksIDs" validate:"required,dive,required"`
+
+	MinimumScoreToBePlayed        int                                       `json:"minimumScoreToBePlayed" validate:"required"`
+	IsOpen                        bool                                      `json:"isOpen" validate:"required"`
+	IsOpenOnlyInvitedUsersCanVote bool                                      `json:"isOpenOnlyInvitedUsersCanVote" validate:"required"`
+	HasPhysicalAndTimeConstraints bool                                      `json:"hasPhysicalAndTimeConstraints" validate:"required"`
+	PhysicalAndTimeConstraints    *shared.MtvRoomPhysicalAndTimeConstraints `json:"physicalAndTimeConstraints" validate:"required_if=HasPhysicalAndTimeConstraints true"`
 }
 
 type CreateRoomResponse struct {
@@ -407,12 +413,32 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := shared.MtvRoomParameters{
-		RoomID:                 body.WorkflowID,
-		RoomCreatorUserID:      body.UserID,
-		RoomName:               body.Name,
-		MinimumScoreToBePlayed: body.MinimumScoreToBePlayed,
-		InitialUsers:           initialUsers,
-		InitialTracksIDsList:   initialTracksIDsList,
+		RoomID:                        body.WorkflowID,
+		RoomCreatorUserID:             body.UserID,
+		RoomName:                      body.Name,
+		MinimumScoreToBePlayed:        body.MinimumScoreToBePlayed,
+		InitialUsers:                  initialUsers,
+		InitialTracksIDsList:          initialTracksIDsList,
+		IsOpen:                        body.IsOpen,
+		IsOpenOnlyInvitedUsersCanVote: body.IsOpenOnlyInvitedUsersCanVote,
+		HasPhysicalAndTimeConstraints: body.HasPhysicalAndTimeConstraints,
+		PhysicalAndTimeConstraints:    nil,
+	}
+
+	if body.PhysicalAndTimeConstraints != nil {
+		params.PhysicalAndTimeConstraints = body.PhysicalAndTimeConstraints
+	}
+
+	PhysicalAndTimeConstraintsSetButBooleanFalse := !params.HasPhysicalAndTimeConstraints && params.PhysicalAndTimeConstraints != nil
+	if PhysicalAndTimeConstraintsSetButBooleanFalse {
+		WriteError(w, errors.New("corrupted payload HasPhysicalAndTimeConstraints true but no constraints informations"))
+		return
+	}
+
+	onlyInvitedUserTrueButRoomIsNotPublic := params.IsOpenOnlyInvitedUsersCanVote && !params.IsOpen
+	if onlyInvitedUserTrueButRoomIsNotPublic {
+		WriteError(w, errors.New("corrupted payload IsOpenOnlyInvitedUsersCanVote true but IsOpen false, private room cannot have this setting"))
+		return
 	}
 
 	we, err := temporal.ExecuteWorkflow(context.Background(), options, workflows.MtvRoomWorkflow, params)

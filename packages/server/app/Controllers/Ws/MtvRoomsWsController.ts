@@ -8,7 +8,10 @@ import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
 import { randomUUID } from 'crypto';
-import ServerToTemporalController from '../Http/Temporal/ServerToTemporalController';
+import { getCoordsFromAddress } from '../Http/GeocodingController';
+import ServerToTemporalController, {
+    MtvRoomPhysicalAndTimeConstraintsWithCoords,
+} from '../Http/Temporal/ServerToTemporalController';
 
 interface UserID {
     userID: string;
@@ -59,6 +62,25 @@ export default class MtvRoomsWsController {
         userID,
         deviceID,
     }: OnCreateArgs): Promise<CreateWorkflowResponse> {
+        let physicalAndTimeConstraintsWithCoords:
+            | MtvRoomPhysicalAndTimeConstraintsWithCoords
+            | undefined;
+        const roomHasPositionAndTimeConstraints =
+            params.hasPhysicalAndTimeConstraints &&
+            params.physicalAndTimeConstraints !== undefined;
+        if (
+            roomHasPositionAndTimeConstraints &&
+            params.physicalAndTimeConstraints !== undefined
+        ) {
+            const coords = await getCoordsFromAddress(
+                params.physicalAndTimeConstraints.physicalConstraintPlace,
+            );
+            physicalAndTimeConstraintsWithCoords = {
+                ...params.physicalAndTimeConstraints,
+                physicalConstraintPosition: coords,
+            };
+        }
+
         const roomID = randomUUID();
         const room = new MtvRoom();
         let roomHasBeenSaved = false;
@@ -78,16 +100,35 @@ export default class MtvRoomsWsController {
                     workflowID: roomID,
                     userID: userID,
                     deviceID,
-                    params,
+                    params: {
+                        ...params,
+                        physicalAndTimeConstraints:
+                            physicalAndTimeConstraintsWithCoords,
+                    },
                 });
 
-            await room
-                .fill({
-                    uuid: roomID,
-                    runID: temporalResponse.runID,
-                    creator: userID,
-                })
-                .save();
+            room.fill({
+                uuid: roomID,
+                runID: temporalResponse.runID,
+                creator: userID,
+            });
+
+            if (
+                roomHasPositionAndTimeConstraints &&
+                physicalAndTimeConstraintsWithCoords
+            ) {
+                room.fill({
+                    hasPositionAndTimeConstraints:
+                        params.hasPhysicalAndTimeConstraints,
+                    constraintLat:
+                        physicalAndTimeConstraintsWithCoords
+                            .physicalConstraintPosition.lat,
+                    constraintLng:
+                        physicalAndTimeConstraintsWithCoords
+                            .physicalConstraintPosition.lng,
+                });
+            }
+            await room.save();
             roomHasBeenSaved = true;
 
             await roomCreator.merge({ mtvRoomID: roomID }).save();

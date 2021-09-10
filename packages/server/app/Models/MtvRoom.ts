@@ -24,6 +24,9 @@ export default class MtvRoom extends BaseModel {
     public constraintLat?: number;
 
     @column()
+    public constraintRadius?: number;
+
+    @column()
     public hasPositionAndTimeConstraints: boolean;
 
     @column.dateTime({ autoCreate: true })

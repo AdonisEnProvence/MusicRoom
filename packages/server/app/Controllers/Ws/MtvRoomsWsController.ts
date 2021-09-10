@@ -8,6 +8,7 @@ import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
 import { randomUUID } from 'crypto';
+import { isPointWithinRadius } from 'geolib';
 import { getCoordsFromAddress } from '../Http/GeocodingController';
 import ServerToTemporalController, {
     MtvRoomPhysicalAndTimeConstraintsWithCoords,
@@ -120,6 +121,8 @@ export default class MtvRoomsWsController {
                 room.fill({
                     hasPositionAndTimeConstraints:
                         params.hasPhysicalAndTimeConstraints,
+                    constraintRadius:
+                        physicalAndTimeConstraintsWithCoords.physicalConstraintRadius,
                     constraintLat:
                         physicalAndTimeConstraintsWithCoords
                             .physicalConstraintPosition.lat,
@@ -292,6 +295,58 @@ export default class MtvRoomsWsController {
             runID,
             trackID,
             userID,
+        });
+    }
+
+    public static async checkUserDevicesPositionIfRoomHasPositionConstraints(
+        user: User,
+        mtvRoomID: string,
+    ): Promise<void> {
+        const room = await MtvRoom.findOrFail(mtvRoomID);
+
+        if (
+            room.hasPositionAndTimeConstraints === false ||
+            room.constraintLng === undefined ||
+            room.constraintRadius === undefined ||
+            room.constraintLat === undefined
+        ) {
+            throw new Error(
+                "Either room doesn't have constraints or registered lat lng radius constraints are corrupted",
+            );
+        }
+
+        await user.load('devices');
+        const everyDevicesResults: boolean[] = user.devices.map((device) => {
+            if (device.lat === undefined || device.lng === undefined) {
+                return false;
+            }
+
+            if (
+                room.constraintLng === undefined ||
+                room.constraintRadius === undefined ||
+                room.constraintLat === undefined
+            )
+                return false;
+
+            return isPointWithinRadius(
+                { latitude: device.lat, longitude: device.lng },
+                {
+                    latitude: room.constraintLat,
+                    longitude: room.constraintLng,
+                },
+                room.constraintRadius,
+            );
+        });
+
+        const oneDeviceFitTheConstraints = everyDevicesResults.some(
+            (status) => status === true,
+        );
+
+        await ServerToTemporalController.updateUserFitsPositionConstraints({
+            runID: room.runID,
+            userID: user.uuid,
+            workflowID: room.uuid,
+            userFitsPositionConstraints: oneDeviceFitTheConstraints,
         });
     }
 }

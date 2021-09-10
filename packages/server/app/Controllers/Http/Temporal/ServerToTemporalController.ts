@@ -73,6 +73,12 @@ interface TemporalMtvVoteForTrackArgs extends TemporalBaseArgs {
     trackID: string;
 }
 
+interface TemporalMtvUpdateUserFitsPositionConstraints
+    extends TemporalBaseArgs {
+    userFitsPositionConstraints: boolean;
+    userID: string;
+}
+
 interface TemporalMtvGetStateArgs extends TemporalBaseArgs {
     userID?: string;
 }
@@ -297,6 +303,27 @@ export default class ServerToTemporalController {
                 runID,
                 trackID,
                 userID,
+            },
+        });
+    }
+
+    public static async updateUserFitsPositionConstraints({
+        workflowID,
+        runID,
+        userID,
+        userFitsPositionConstraints,
+    }: TemporalMtvUpdateUserFitsPositionConstraints): Promise<void> {
+        const url = urlcat(
+            TEMPORAL_ENDPOINT,
+            '/update-user-fits-position-constraints',
+        );
+
+        await got.put(url, {
+            json: {
+                workflowID,
+                runID,
+                userID,
+                userFitsPositionConstraints,
             },
         });
     }

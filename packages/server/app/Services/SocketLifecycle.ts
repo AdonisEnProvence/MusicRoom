@@ -102,6 +102,10 @@ export default class SocketLifecycle {
                 `User ${queryUserID} is already a mtv room member, retrieve context`,
             );
             await this.syncMtvRoomContext(socket, deviceOwner.mtvRoomID);
+            await MtvRoomsWsController.checkUserDevicesPositionIfRoomHasPositionConstraints(
+                deviceOwner,
+                deviceOwner.mtvRoomID,
+            );
         }
         await UserService.emitConnectedDevicesUpdateToEveryUserDevices(
             deviceOwner.uuid,
@@ -180,6 +184,11 @@ export default class SocketLifecycle {
                     e,
                 );
             }
+        } else if (relatedMtvRoom !== null) {
+            await MtvRoomsWsController.checkUserDevicesPositionIfRoomHasPositionConstraints(
+                disconnectingDeviceOwner,
+                relatedMtvRoom.uuid,
+            );
         }
 
         /**

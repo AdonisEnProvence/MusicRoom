@@ -310,9 +310,7 @@ export default class MtvRoomsWsController {
             room.constraintRadius === undefined ||
             room.constraintLat === undefined
         ) {
-            throw new Error(
-                "Either room doesn't have constraints or registered lat lng radius constraints are corrupted",
-            );
+            return;
         }
 
         await user.load('devices');

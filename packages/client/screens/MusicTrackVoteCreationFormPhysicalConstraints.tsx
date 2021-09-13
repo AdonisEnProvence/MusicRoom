@@ -1,12 +1,11 @@
 import { useActor } from '@xstate/react';
-import { View, Text, Button, useSx } from 'dripsy';
+import { View, Text, useSx } from 'dripsy';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import React, { useState } from 'react';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import PickerSelect from 'react-native-picker-select';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { TextField } from '../components/kit';
 import { useTextFieldStyles } from '../components/kit/TextField';
 import MtvRoomCreationFormOptionButton from '../components/MtvRoomCreationForm/MtvRoomCreationFormOptionButton';
 import MtvRoomCreationFormScreen from '../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
@@ -15,6 +14,7 @@ import { useCreationMtvRoomFormMachine } from '../contexts/MusicPlayerContext';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 import { MusicTrackVoteCreationFormPhysicalConstraintsScreenProps } from '../types';
 import { TouchableOpacity } from 'react-native';
+import { useFormatDateTime } from '../hooks/useFormatDateTime';
 
 const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
     MusicTrackVoteCreationFormPhysicalConstraintsScreenProps & {
@@ -28,20 +28,12 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
     const physicalConstraintPlace = state.context.physicalConstraintPlace;
     const physicalConstraintRadius = state.context.physicalConstraintRadius;
     const physicalConstraintStartsAt = state.context.physicalConstraintStartsAt;
-    const physicalConstraintStartsAtFormatted = format(
+    const physicalConstraintStartsAtFormatted = useFormatDateTime(
         physicalConstraintStartsAt,
-        'Pp',
-        {
-            locale: enUS,
-        },
     );
     const physicalConstraintEndsAt = state.context.physicalConstraintEndsAt;
-    const physicalConstraintEndsAtFormatted = format(
+    const physicalConstraintEndsAtFormatted = useFormatDateTime(
         physicalConstraintEndsAt,
-        'Pp',
-        {
-            locale: enUS,
-        },
     );
     const physicalConstraintsOptions = [
         {
@@ -187,7 +179,7 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                                     language: 'fr',
                                 }}
                                 requestUrl={{
-                                    useOnPlatform: 'web',
+                                    useOnPlatform: 'all',
                                     url: 'http://localhost:3333/proxy-places-api',
                                 }}
                                 textInputProps={{

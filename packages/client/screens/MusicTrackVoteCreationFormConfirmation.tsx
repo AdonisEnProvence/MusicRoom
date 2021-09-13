@@ -3,6 +3,7 @@ import { useActor } from '@xstate/react';
 import React from 'react';
 import MtvRoomCreationFormScreen from '../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
 import { useCreationMtvRoomFormMachine } from '../contexts/MusicPlayerContext';
+import { formatDateTime } from '../hooks/useFormatDateTime';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 import { MusicTrackVoteCreationFormConfirmationScreenProps } from '../types';
 
@@ -53,12 +54,16 @@ const MusicTrackVoteCreationFormConfirmation: React.FC<
 
                   {
                       title: 'Starts at',
-                      value: state.context.physicalConstraintStartsAt,
+                      value: formatDateTime(
+                          state.context.physicalConstraintStartsAt,
+                      ),
                   },
 
                   {
                       title: 'Ends at',
-                      value: state.context.physicalConstraintEndsAt,
+                      value: formatDateTime(
+                          state.context.physicalConstraintEndsAt,
+                      ),
                   },
               ]
             : []),

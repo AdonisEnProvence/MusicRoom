@@ -881,15 +881,23 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
         exec: async ({ screen }, event) => {
             const { place, radius, startsAt, endsAt } =
                 SetPhysicalConstraintsValuesEvent.parse(event);
-            const placeInput = await screen.findByPlaceholderText(/place/i);
-            const radiusInput = screen.getByPlaceholderText(/radius/i);
-            const startsAtInput = screen.getByPlaceholderText(/starts.*at/i);
-            const endsAtInput = screen.getByPlaceholderText(/ends.*at/i);
 
+            const placeInput = await screen.findByPlaceholderText(/place/i);
+            fireEvent(placeInput, 'focus');
             fireEvent.changeText(placeInput, place);
-            fireEvent.changeText(radiusInput, radius);
-            fireEvent.changeText(startsAtInput, startsAt);
-            fireEvent.changeText(endsAtInput, endsAt);
+            const placeSuggestion = await screen.findByText(place);
+            fireEvent.press(placeSuggestion);
+
+            const radiusPicker = screen.getByTestId('ios_picker');
+            fireEvent(radiusPicker, 'valueChange', radius, 0);
+            // fireEvent.changeText(radiusInput, radius);
+            // fireEvent(radiusInput, 'valueChange', radius);
+
+            // fireEvent.changeText(startsAtInput, startsAt);
+            // fireEvent.changeText(endsAtInput, endsAt);
+
+            const startsAtInput = screen.getByText(/starts.*at/i);
+            const endsAtInput = screen.getByText(/ends.*at/i);
 
             const goNextButtons = screen.getAllByText(/next/i);
             const goNextButton = goNextButtons[goNextButtons.length - 1];
@@ -900,7 +908,7 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
         cases: [
             {
                 place: '96 Boulevard Bessières, Paris',
-                radius: 25,
+                radius: 30,
                 startsAt: '09/08/2021 10:10:00',
                 endsAt: '10/08/2021 10:10:00',
             } as SetPhysicalConstraintsValuesEvent,

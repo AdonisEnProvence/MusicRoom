@@ -2,12 +2,6 @@ import * as z from 'zod';
 
 const Milliseconds = z.number().nonnegative();
 
-export const LatlngCoords = z.object({
-    lat: z.number(),
-    lng: z.number(),
-});
-export type LatlngCoords = z.infer<typeof LatlngCoords>;
-
 export const TrackMetadata = z.object({
     id: z.string(),
     title: z.string(),

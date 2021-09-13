@@ -1,4 +1,11 @@
-import { LatlngCoords } from '.';
+import * as z from 'zod';
+
+export const LatlngCoords = z.object({
+    lat: z.number(),
+    lng: z.number(),
+});
+
+export type LatlngCoords = z.infer<typeof LatlngCoords>;
 
 export type UserDevice = {
     deviceID: string;

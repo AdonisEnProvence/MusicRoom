@@ -303,29 +303,40 @@ export default class MtvRoomsWsController {
         mtvRoomID: string,
     ): Promise<void> {
         const room = await MtvRoom.findOrFail(mtvRoomID);
-
         if (
             room.hasPositionAndTimeConstraints === false ||
+            room.constraintLng === null ||
             room.constraintLng === undefined ||
-            room.constraintRadius === undefined ||
-            room.constraintLat === undefined
+            room.constraintLat === null ||
+            room.constraintLat === undefined ||
+            room.constraintRadius === null ||
+            room.constraintRadius === undefined
         ) {
             return;
         }
 
         await user.load('devices');
         const everyDevicesResults: boolean[] = user.devices.map((device) => {
-            if (device.lat === undefined || device.lng === undefined) {
+            if (
+                device.lat === undefined ||
+                device.lat === null ||
+                device.lng === undefined ||
+                device.lng === null
+            ) {
                 return false;
             }
 
             if (
+                room.constraintLng === null ||
                 room.constraintLng === undefined ||
-                room.constraintRadius === undefined ||
-                room.constraintLat === undefined
+                room.constraintLat === null ||
+                room.constraintLat === undefined ||
+                room.constraintRadius === null ||
+                room.constraintRadius === undefined
             )
                 return false;
 
+            //radius is in meters
             return isPointWithinRadius(
                 { latitude: device.lat, longitude: device.lng },
                 {

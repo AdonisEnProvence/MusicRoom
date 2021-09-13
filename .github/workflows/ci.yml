@@ -57,13 +57,17 @@ jobs:
             - name: Run linter 👀
               run: yarn run lint
 
-            - name: Run tests 🧪
-              run: yarn run test
+            - name: Run client tests 🧪
+              run: yarn run lerna run --scope @musicroom/client test
+
+            - name: Run Server tests 🧪
+              run: yarn run lerna run --scope @musicroom/server test
               env:
                   REDIS_CONNECTION: 'local'
                   REDIS_HOST: '127.0.0.1'
                   REDIS_PORT: '6379'
                   GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+                  GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
                   HOST: '0.0.0.0'
                   APP_KEY: '-qyExFFunSk4vSAvUiwheisaGicpYVpC'
                   DB_CONNECTION: pg
@@ -73,3 +77,6 @@ jobs:
                   PG_PASSWORD: yourpassword
                   PG_DB_NAME: lucid
                   PORT: 3333
+
+            - name: Run Temporal tests 🧪
+              run: yarn run lerna run --scope @musicroom/temporal test

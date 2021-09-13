@@ -74,6 +74,30 @@ Ws.io.on('connection', async (socket) => {
                 console.error(e);
             }
         });
+
+        socket.on('UPDATE_DEVICE_POSITION', async (coords) => {
+            try {
+                const { deviceID, user, mtvRoomID } =
+                    await SocketLifecycle.getSocketConnectionCredentials(
+                        socket,
+                    );
+                const device = await Device.findOrFail(deviceID);
+                device.merge({
+                    ...coords,
+                });
+                await device.save();
+
+                if (mtvRoomID !== undefined) {
+                    await MtvRoomsWsController.checkUserDevicesPositionIfRoomHasPositionConstraints(
+                        user,
+                        mtvRoomID,
+                    );
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        });
+
         /// //// ///
 
         /// ROOM ///

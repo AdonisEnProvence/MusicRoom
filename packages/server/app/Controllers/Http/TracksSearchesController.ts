@@ -1,7 +1,7 @@
 import Env from '@ioc:Adonis/Core/Env';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
-import { google } from 'googleapis';
 import { TrackMetadata } from '@musicroom/types';
+import { google } from 'googleapis';
 
 const youtube = google.youtube({
     version: 'v3',

@@ -1,7 +1,9 @@
 import Env from '@ioc:Adonis/Core/Env';
 import {
     CreateWorkflowResponse,
+    LatlngCoords,
     MtvRoomClientToServerCreateArgs,
+    MtvRoomPhysicalAndTimeConstraints,
     MtvWorkflowState,
 } from '@musicroom/types';
 import got from 'got';
@@ -10,17 +12,30 @@ import urlcat from 'urlcat';
 const TEMPORAL_ENDPOINT = Env.get('TEMPORAL_ENDPOINT');
 
 interface TemporalCreateMtvWorkflowBody
-    extends MtvRoomClientToServerCreateArgs {
+    extends MtvRoomClientToServerCreateArgsWithCoords {
     workflowID: string;
     userID: string;
     deviceID: string;
+}
+
+export interface MtvRoomPhysicalAndTimeConstraintsWithCoords
+    extends Omit<MtvRoomPhysicalAndTimeConstraints, 'physicalConstraintPlace'> {
+    physicalConstraintPosition: LatlngCoords;
+}
+
+interface MtvRoomClientToServerCreateArgsWithCoords
+    extends Omit<
+        MtvRoomClientToServerCreateArgs,
+        'physicalAndTimeConstraints'
+    > {
+    physicalAndTimeConstraints?: MtvRoomPhysicalAndTimeConstraintsWithCoords;
 }
 
 interface TemporalCreateMtvWorkflowArgs {
     workflowID: string;
     userID: string;
     deviceID: string;
-    params: MtvRoomClientToServerCreateArgs;
+    params: MtvRoomClientToServerCreateArgsWithCoords;
 }
 
 interface TemporalBaseArgs {
@@ -56,6 +71,12 @@ interface TemporalMtvSuggestTracksArgs extends TemporalBaseArgs {
 interface TemporalMtvVoteForTrackArgs extends TemporalBaseArgs {
     userID: string;
     trackID: string;
+}
+
+interface TemporalMtvUpdateUserFitsPositionConstraints
+    extends TemporalBaseArgs {
+    userFitsPositionConstraints: boolean;
+    userID: string;
 }
 
 interface TemporalMtvGetStateArgs extends TemporalBaseArgs {
@@ -282,6 +303,27 @@ export default class ServerToTemporalController {
                 runID,
                 trackID,
                 userID,
+            },
+        });
+    }
+
+    public static async updateUserFitsPositionConstraints({
+        workflowID,
+        runID,
+        userID,
+        userFitsPositionConstraints,
+    }: TemporalMtvUpdateUserFitsPositionConstraints): Promise<void> {
+        const url = urlcat(
+            TEMPORAL_ENDPOINT,
+            '/update-user-fits-position-constraints',
+        );
+
+        await got.put(url, {
+            json: {
+                workflowID,
+                runID,
+                userID,
+                userFitsPositionConstraints,
             },
         });
     }

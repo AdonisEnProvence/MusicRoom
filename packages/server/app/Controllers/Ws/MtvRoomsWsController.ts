@@ -8,7 +8,11 @@ import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
 import { randomUUID } from 'crypto';
-import ServerToTemporalController from '../Http/Temporal/ServerToTemporalController';
+import { isPointWithinRadius } from 'geolib';
+import GeocodingController from '../Http/GeocodingController';
+import ServerToTemporalController, {
+    MtvRoomPhysicalAndTimeConstraintsWithCoords,
+} from '../Http/Temporal/ServerToTemporalController';
 
 interface UserID {
     userID: string;
@@ -59,6 +63,23 @@ export default class MtvRoomsWsController {
         userID,
         deviceID,
     }: OnCreateArgs): Promise<CreateWorkflowResponse> {
+        let physicalAndTimeConstraintsWithCoords:
+            | MtvRoomPhysicalAndTimeConstraintsWithCoords
+            | undefined;
+
+        if (
+            params.hasPhysicalAndTimeConstraints &&
+            params.physicalAndTimeConstraints !== undefined
+        ) {
+            const coords = await GeocodingController.getCoordsFromAddress(
+                params.physicalAndTimeConstraints.physicalConstraintPlace,
+            );
+            physicalAndTimeConstraintsWithCoords = {
+                ...params.physicalAndTimeConstraints,
+                physicalConstraintPosition: coords,
+            };
+        }
+
         const roomID = randomUUID();
         const room = new MtvRoom();
         let roomHasBeenSaved = false;
@@ -78,16 +99,38 @@ export default class MtvRoomsWsController {
                     workflowID: roomID,
                     userID: userID,
                     deviceID,
-                    params,
+                    params: {
+                        ...params,
+                        physicalAndTimeConstraints:
+                            physicalAndTimeConstraintsWithCoords,
+                    },
                 });
 
-            await room
-                .fill({
-                    uuid: roomID,
-                    runID: temporalResponse.runID,
-                    creator: userID,
-                })
-                .save();
+            room.merge({
+                uuid: roomID,
+                runID: temporalResponse.runID,
+                creator: userID,
+            });
+
+            if (
+                params.hasPhysicalAndTimeConstraints &&
+                params.physicalAndTimeConstraints !== undefined &&
+                physicalAndTimeConstraintsWithCoords
+            ) {
+                room.merge({
+                    hasPositionAndTimeConstraints:
+                        params.hasPhysicalAndTimeConstraints,
+                    constraintRadius:
+                        physicalAndTimeConstraintsWithCoords.physicalConstraintRadius,
+                    constraintLat:
+                        physicalAndTimeConstraintsWithCoords
+                            .physicalConstraintPosition.lat,
+                    constraintLng:
+                        physicalAndTimeConstraintsWithCoords
+                            .physicalConstraintPosition.lng,
+                });
+            }
+            await room.save();
             roomHasBeenSaved = true;
 
             await roomCreator.merge({ mtvRoomID: roomID }).save();
@@ -251,6 +294,56 @@ export default class MtvRoomsWsController {
             runID,
             trackID,
             userID,
+        });
+    }
+
+    public static async checkUserDevicesPositionIfRoomHasPositionConstraints(
+        user: User,
+        mtvRoomID: string,
+    ): Promise<void> {
+        const room = await MtvRoom.findOrFail(mtvRoomID);
+        if (
+            room.hasPositionAndTimeConstraints === false ||
+            room.constraintLng === null ||
+            room.constraintLat === null ||
+            room.constraintRadius === null
+        ) {
+            return;
+        }
+
+        await user.load('devices');
+        const everyDevicesResults: boolean[] = user.devices.map((device) => {
+            if (device.lat === null || device.lng === null) {
+                return false;
+            }
+
+            if (
+                room.constraintLng === null ||
+                room.constraintLat === null ||
+                room.constraintRadius === null
+            )
+                return false;
+
+            //radius is in meters
+            return isPointWithinRadius(
+                { latitude: device.lat, longitude: device.lng },
+                {
+                    latitude: room.constraintLat,
+                    longitude: room.constraintLng,
+                },
+                room.constraintRadius,
+            );
+        });
+
+        const oneDeviceFitTheConstraints = everyDevicesResults.some(
+            (status) => status === true,
+        );
+
+        await ServerToTemporalController.updateUserFitsPositionConstraints({
+            runID: room.runID,
+            userID: user.uuid,
+            workflowID: room.uuid,
+            userFitsPositionConstraints: oneDeviceFitTheConstraints,
         });
     }
 }

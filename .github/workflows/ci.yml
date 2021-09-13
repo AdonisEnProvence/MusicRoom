@@ -57,8 +57,8 @@ jobs:
             - name: Run linter 👀
               run: yarn run lint
 
-            - name: Run client tests 🧪
-              run: yarn run lerna run --scope @musicroom/client test
+            - name: Run Temporal tests 🧪
+              run: yarn run lerna run --scope @musicroom/temporal test
 
             - name: Run Server tests 🧪
               run: yarn run lerna run --scope @musicroom/server test
@@ -78,5 +78,5 @@ jobs:
                   PG_DB_NAME: lucid
                   PORT: 3333
 
-            - name: Run Temporal tests 🧪
-              run: yarn run lerna run --scope @musicroom/temporal test
+            - name: Run client tests 🧪
+              run: yarn run lerna run --scope @musicroom/client test

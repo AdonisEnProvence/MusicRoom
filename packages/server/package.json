@@ -1,5 +1,5 @@
 {
-  "name": "server",
+  "name": "@musicroom/server",
   "version": "1.0.0",
   "private": true,
   "volta": {

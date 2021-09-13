@@ -82,7 +82,7 @@ Ws.io.on('connection', async (socket) => {
                         socket,
                     );
                 const device = await Device.findOrFail(deviceID);
-                device.fill({
+                device.merge({
                     ...coords,
                 });
                 await device.save();

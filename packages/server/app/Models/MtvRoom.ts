@@ -18,13 +18,13 @@ export default class MtvRoom extends BaseModel {
     public members: HasMany<typeof User>;
 
     @column()
-    public constraintLng?: number;
+    public constraintLng: number | null;
 
     @column()
-    public constraintLat?: number;
+    public constraintLat: number | null;
 
     @column()
-    public constraintRadius?: number;
+    public constraintRadius: number | null;
 
     @column()
     public hasPositionAndTimeConstraints: boolean;

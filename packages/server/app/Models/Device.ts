@@ -25,7 +25,7 @@ export default class Device extends BaseModel {
     public user: BelongsTo<typeof User>;
 
     @column()
-    public userAgent?: string;
+    public userAgent: string | null;
 
     @column()
     public name: string;
@@ -34,10 +34,10 @@ export default class Device extends BaseModel {
     public isEmitting: boolean;
 
     @column()
-    public lat?: number;
+    public lat: number | null;
 
     @column()
-    public lng?: number;
+    public lng: number | null;
 
     @column.dateTime({ autoCreate: true })
     public createdAt: DateTime;

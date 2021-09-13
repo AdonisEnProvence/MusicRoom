@@ -306,33 +306,22 @@ export default class MtvRoomsWsController {
         if (
             room.hasPositionAndTimeConstraints === false ||
             room.constraintLng === null ||
-            room.constraintLng === undefined ||
             room.constraintLat === null ||
-            room.constraintLat === undefined ||
-            room.constraintRadius === null ||
-            room.constraintRadius === undefined
+            room.constraintRadius === null
         ) {
             return;
         }
 
         await user.load('devices');
         const everyDevicesResults: boolean[] = user.devices.map((device) => {
-            if (
-                device.lat === undefined ||
-                device.lat === null ||
-                device.lng === undefined ||
-                device.lng === null
-            ) {
+            if (device.lat === null || device.lng === null) {
                 return false;
             }
 
             if (
                 room.constraintLng === null ||
-                room.constraintLng === undefined ||
                 room.constraintLat === null ||
-                room.constraintLat === undefined ||
-                room.constraintRadius === null ||
-                room.constraintRadius === undefined
+                room.constraintRadius === null
             )
                 return false;
 

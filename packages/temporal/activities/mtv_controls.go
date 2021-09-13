@@ -164,3 +164,17 @@ func AcknowledgeTracksSuggestionFail(ctx context.Context, args AcknowledgeTracks
 
 	return err
 }
+
+func AcknowledgeUpdateUserFitsPositionConstraint(ctx context.Context, state shared.MtvRoomExposedState) error {
+	requestBody := state
+
+	marshaledBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	url := ADONIS_ENDPOINT + "/temporal/acknowledge-update-user-fits-position-constraint"
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+
+	return err
+}

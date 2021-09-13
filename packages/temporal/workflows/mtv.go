@@ -104,6 +104,15 @@ func (s *MtvRoomInternalState) RemoveUser(userID string) bool {
 	return false
 }
 
+func (s *MtvRoomInternalState) UpdateUserFitsPositionConstraint(userID string, userFitsPositionConstraint bool) bool {
+	if user, ok := s.Users[userID]; ok {
+		user.UserFitsPositionConstraint = userFitsPositionConstraint
+		return true
+	}
+	fmt.Printf("\n Couldnt find User %s \n", userID)
+	return false
+}
+
 func (s *MtvRoomInternalState) UserVotedForTrack(userID string, trackID string) bool {
 
 	user, exists := s.Users[userID]
@@ -155,6 +164,7 @@ const (
 	MtvRoomAddUserEvent                           brainy.EventType = "ADD_USER"
 	MtvRoomRemoveUserEvent                        brainy.EventType = "REMOVE_USER"
 	MtvRoomVoteForTrackEvent                      brainy.EventType = "VOTE_FOR_TRACK"
+	MtvRoomUpdateUserFitsPositionConstraint       brainy.EventType = "UPDATE_USER_FITS_POSITION_CONSTRAINT"
 	MtvRoomGoToNextTrackEvent                     brainy.EventType = "GO_TO_NEXT_TRACK"
 	MtvRoomChangeUserEmittingDevice               brainy.EventType = "CHANGE_USER_EMITTING_DEVICE"
 	MtvRoomSuggestTracks                          brainy.EventType = "SUGGEST_TRACKS"
@@ -618,6 +628,26 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				},
 			},
 
+			MtvRoomUpdateUserFitsPositionConstraint: brainy.Transition{
+				Cond: roomHasPositionAndTimeConstraint(&internalState),
+
+				Actions: brainy.Actions{
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+							event := e.(MtvRoomUpdateUserFitsPositionConstraintEvent)
+
+							success := internalState.UpdateUserFitsPositionConstraint(event.UserID, event.UserFitsPositionConstraint)
+
+							if success {
+								sendAcknowledgeUpdateUserFitsPositionConstraintActivity(ctx, internalState.Export(event.UserID))
+							}
+
+							return nil
+						},
+					),
+				},
+			},
+
 			MtvRoomRemoveUserEvent: brainy.Transition{
 				Actions: brainy.Actions{
 					brainy.ActionFn(
@@ -919,6 +949,22 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 				internalState.Machine.Send(
 					NewMtvRoomUserVoteForTrackEvent(message.UserID, message.TrackID),
+				)
+
+			case shared.SignalUpdateUserFitsPositionConstraint:
+				var message shared.UpdateUserFitsPositionConstraintSignal
+
+				if err := mapstructure.Decode(signal, &message); err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
+				if err := validate.Struct(message); err != nil {
+					logger.Error("Validation error: %v", err)
+					return
+				}
+
+				internalState.Machine.Send(
+					NewMtvRoomUpdateUserFitsPositionConstraintEvent(message.UserID, message.UserFitsPositionConstraint),
 				)
 
 			case shared.SignalRouteTerminate:

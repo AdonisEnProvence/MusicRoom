@@ -343,7 +343,7 @@ export default class MtvRoomsWsController {
             runID: room.runID,
             userID: user.uuid,
             workflowID: room.uuid,
-            userFitsPositionConstraints: oneDeviceFitTheConstraints,
+            userFitsPositionConstraint: oneDeviceFitTheConstraints,
         });
     }
 }

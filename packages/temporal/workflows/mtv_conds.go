@@ -66,3 +66,9 @@ func userCanVoteForTrackID(internalState *MtvRoomInternalState) brainy.Cond {
 		return true
 	}
 }
+
+func roomHasPositionAndTimeConstraint(internalState *MtvRoomInternalState) brainy.Cond {
+	return func(c brainy.Context, e brainy.Event) bool {
+		return internalState.initialParams.HasPhysicalAndTimeConstraints && internalState.initialParams.PhysicalAndTimeConstraints != nil
+	}
+}

@@ -215,9 +215,10 @@ func (c CurrentTrack) Export(elapsed time.Duration) ExposedCurrentTrack {
 }
 
 type InternalStateUser struct {
-	UserID         string   `json:"userID"`
-	DeviceID       string   `json:"emittingDeviceID"`
-	TracksVotedFor []string `json:"tracksVotedFor"`
+	UserID                     string   `json:"userID"`
+	DeviceID                   string   `json:"emittingDeviceID"`
+	TracksVotedFor             []string `json:"tracksVotedFor"`
+	UserFitsPositionConstraint bool     `json:"userFitsPositionConstraint"`
 }
 
 func (s *InternalStateUser) HasVotedFor(trackID string) bool {
@@ -286,15 +287,16 @@ type MtvRoomExposedState struct {
 type SignalRoute string
 
 const (
-	SignalRoutePlay                     = "play"
-	SignalRoutePause                    = "pause"
-	SignalRouteJoin                     = "join"
-	SignalRouteLeave                    = "leave"
-	SignalRouteTerminate                = "terminate"
-	SignalRouteGoToNextTrack            = "go-to-next-track"
-	SignalRouteChangeUserEmittingDevice = "change-user-emitting-device"
-	SignalRouteSuggestTracks            = "suggest-tracks"
-	SignalRouteVoteForTrack             = "vote-for-track"
+	SignalRoutePlay                        = "play"
+	SignalRoutePause                       = "pause"
+	SignalRouteJoin                        = "join"
+	SignalRouteLeave                       = "leave"
+	SignalRouteTerminate                   = "terminate"
+	SignalRouteGoToNextTrack               = "go-to-next-track"
+	SignalRouteChangeUserEmittingDevice    = "change-user-emitting-device"
+	SignalRouteSuggestTracks               = "suggest-tracks"
+	SignalRouteVoteForTrack                = "vote-for-track"
+	SignalUpdateUserFitsPositionConstraint = "update-user-fits-position-constraint"
 )
 
 type GenericRouteSignal struct {
@@ -441,5 +443,24 @@ func NewVoteForTrackSignal(args NewVoteForTrackSignalArgs) VoteForTrackSignal {
 		Route:   SignalRouteVoteForTrack,
 		TrackID: args.TrackID,
 		UserID:  args.UserID,
+	}
+}
+
+type UpdateUserFitsPositionConstraintSignal struct {
+	Route                      SignalRoute `validate:"required"`
+	UserID                     string      `validate:"required,uuid"`
+	UserFitsPositionConstraint bool        `validate:"required"`
+}
+
+type NewUpdateUserFitsPositionConstraintSignalArgs struct {
+	UserID                     string `validate:"required,uuid"`
+	UserFitsPositionConstraint bool   `validate:"required"`
+}
+
+func NewUpdateUserFitsPositionConstraintSignal(args NewUpdateUserFitsPositionConstraintSignalArgs) UpdateUserFitsPositionConstraintSignal {
+	return UpdateUserFitsPositionConstraintSignal{
+		Route:                      SignalUpdateUserFitsPositionConstraint,
+		UserID:                     args.UserID,
+		UserFitsPositionConstraint: args.UserFitsPositionConstraint,
 	}
 }

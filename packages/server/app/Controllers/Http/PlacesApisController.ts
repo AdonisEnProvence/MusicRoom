@@ -1,11 +1,12 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import got from 'got';
 import urlcat from 'urlcat';
+import { PlaceAutocompleteResponse } from '@musicroom/types';
 
 export default class PlacesApisController {
     public async proxyPlacesAPIRequest({
         request,
-    }: HttpContextContract): Promise<unknown> {
+    }: HttpContextContract): Promise<PlaceAutocompleteResponse> {
         const ROUTE_PATH = '/proxy-places-api';
         const requestPath = request.url(true);
         const pathToProxy = requestPath.replace(ROUTE_PATH, '');
@@ -14,7 +15,9 @@ export default class PlacesApisController {
             pathToProxy,
         );
 
-        const response = await got.get(urlToFetch).json();
+        const response: PlaceAutocompleteResponse = await got
+            .get(urlToFetch)
+            .json();
 
         return response;
     }

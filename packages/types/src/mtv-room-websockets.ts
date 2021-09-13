@@ -107,4 +107,7 @@ export interface MtvRoomServerToClientEvents {
     VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE: (state: MtvWorkflowState) => void;
     SUGGEST_TRACKS_CALLBACK: () => void;
     SUGGEST_TRACKS_FAIL_CALLBACK: () => void;
+    USER_PERMISSIONS_UPDATE: (
+        user: MtvWorkflowStateWithUserRelatedInformation,
+    ) => void;
 }

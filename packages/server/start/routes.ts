@@ -74,6 +74,11 @@ Route.post(
 
 Route.get('/proxy-places-api/*', 'PlacesApisController.proxyPlacesAPIRequest');
 
+Route.post(
+    '/temporal/acknowledge-update-user-fits-position-constraint',
+    'Temporal/TemporalToServerController.acknowledgeUserVoteForTrack',
+);
+
 /// //////// ////// ///
 
 Route.get('/', () => {

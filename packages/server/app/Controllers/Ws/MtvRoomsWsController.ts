@@ -66,11 +66,9 @@ export default class MtvRoomsWsController {
         let physicalAndTimeConstraintsWithCoords:
             | MtvRoomPhysicalAndTimeConstraintsWithCoords
             | undefined;
-        const roomHasPositionAndTimeConstraints =
-            params.hasPhysicalAndTimeConstraints &&
-            params.physicalAndTimeConstraints !== undefined;
+
         if (
-            roomHasPositionAndTimeConstraints &&
+            params.hasPhysicalAndTimeConstraints &&
             params.physicalAndTimeConstraints !== undefined
         ) {
             const coords = await GeocodingController.getCoordsFromAddress(
@@ -115,7 +113,8 @@ export default class MtvRoomsWsController {
             });
 
             if (
-                roomHasPositionAndTimeConstraints &&
+                params.hasPhysicalAndTimeConstraints &&
+                params.physicalAndTimeConstraints !== undefined &&
                 physicalAndTimeConstraintsWithCoords
             ) {
                 room.merge({

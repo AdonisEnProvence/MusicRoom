@@ -1,11 +1,11 @@
 import Env from '@ioc:Adonis/Core/Env';
 import {
     CreateWorkflowResponse,
+    LatlngCoords,
     MtvRoomClientToServerCreateArgs,
     MtvRoomPhysicalAndTimeConstraints,
     MtvWorkflowState,
 } from '@musicroom/types';
-import { LatlngCoords } from '@musicroom/types/src/mtv';
 import got from 'got';
 import urlcat from 'urlcat';
 

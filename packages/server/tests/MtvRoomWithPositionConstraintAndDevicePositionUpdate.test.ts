@@ -183,10 +183,6 @@ test.group(
                 )
                 .callsFake(
                     async ({ userFitsPositionConstraints }): Promise<void> => {
-                        console.log(
-                            'TOTOTOTOTOOTOTOTOT',
-                            userFitsPositionConstraints,
-                        );
                         mockHasBeenCalled = true;
                         userPositionFitsTheGivenRadius =
                             userFitsPositionConstraints;

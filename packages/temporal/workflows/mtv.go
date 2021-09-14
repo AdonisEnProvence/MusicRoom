@@ -54,18 +54,26 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 	}
 
 	exposedState := shared.MtvRoomExposedState{
-		RoomID:                 s.initialParams.RoomID,
-		RoomCreatorUserID:      s.initialParams.RoomCreatorUserID,
-		Playing:                s.Playing,
-		RoomName:               s.initialParams.RoomName,
-		CurrentTrack:           currentTrackToExport,
-		Tracks:                 exposedTracks,
-		UsersLength:            len(s.Users),
-		MinimumScoreToBePlayed: s.initialParams.MinimumScoreToBePlayed,
+		RoomID:                            s.initialParams.RoomID,
+		RoomCreatorUserID:                 s.initialParams.RoomCreatorUserID,
+		Playing:                           s.Playing,
+		RoomName:                          s.initialParams.RoomName,
+		CurrentTrack:                      currentTrackToExport,
+		Tracks:                            exposedTracks,
+		UsersLength:                       len(s.Users),
+		MinimumScoreToBePlayed:            s.initialParams.MinimumScoreToBePlayed,
+		RoomHasTimeAndPositionConstraints: s.initialParams.HasPhysicalAndTimeConstraints,
+		TimeConstraintIsValid:             nil,
 	}
 
 	if userInformation, ok := s.Users[RelatedUserID]; RelatedUserID != shared.NoRelatedUserID && ok {
 		exposedState.UserRelatedInformation = userInformation
+	}
+
+	if exposedState.RoomHasTimeAndPositionConstraints {
+		//Calc the time constraint validity here
+		trueTmp := true
+		exposedState.TimeConstraintIsValid = &trueTmp
 	}
 
 	return exposedState
@@ -106,7 +114,7 @@ func (s *MtvRoomInternalState) RemoveUser(userID string) bool {
 
 func (s *MtvRoomInternalState) UpdateUserFitsPositionConstraint(userID string, userFitsPositionConstraint bool) bool {
 	if user, ok := s.Users[userID]; ok {
-		user.UserFitsPositionConstraint = userFitsPositionConstraint
+		user.UserFitsPositionConstraint = &userFitsPositionConstraint
 		return true
 	}
 	fmt.Printf("\n Couldnt find User %s \n", userID)
@@ -860,9 +868,15 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				}
 
 				user := shared.InternalStateUser{
-					UserID:         message.UserID,
-					DeviceID:       message.DeviceID,
-					TracksVotedFor: make([]string, 0),
+					UserID:                     message.UserID,
+					DeviceID:                   message.DeviceID,
+					TracksVotedFor:             make([]string, 0),
+					UserFitsPositionConstraint: nil,
+				}
+
+				if internalState.initialParams.HasPhysicalAndTimeConstraints {
+					tmp := false
+					user.UserFitsPositionConstraint = &tmp
 				}
 
 				internalState.Machine.Send(

@@ -218,7 +218,7 @@ type InternalStateUser struct {
 	UserID                     string   `json:"userID"`
 	DeviceID                   string   `json:"emittingDeviceID"`
 	TracksVotedFor             []string `json:"tracksVotedFor"`
-	UserFitsPositionConstraint bool     `json:"userFitsPositionConstraint"`
+	UserFitsPositionConstraint *bool    `json:"userFitsPositionConstraint"`
 }
 
 func (s *InternalStateUser) HasVotedFor(trackID string) bool {
@@ -273,15 +273,17 @@ func (p MtvRoomParameters) Export() MtvRoomExposedState {
 }
 
 type MtvRoomExposedState struct {
-	RoomID                 string                               `json:"roomID"`
-	RoomCreatorUserID      string                               `json:"roomCreatorUserID"`
-	Playing                bool                                 `json:"playing"`
-	RoomName               string                               `json:"name"`
-	UserRelatedInformation *InternalStateUser                   `json:"userRelatedInformation"`
-	CurrentTrack           *ExposedCurrentTrack                 `json:"currentTrack"`
-	Tracks                 []TrackMetadataWithScoreWithDuration `json:"tracks"`
-	MinimumScoreToBePlayed int                                  `json:"minimumScoreToBePlayed"`
-	UsersLength            int                                  `json:"usersLength"`
+	RoomID                            string                               `json:"roomID"`
+	RoomCreatorUserID                 string                               `json:"roomCreatorUserID"`
+	Playing                           bool                                 `json:"playing"`
+	RoomName                          string                               `json:"name"`
+	UserRelatedInformation            *InternalStateUser                   `json:"userRelatedInformation"`
+	CurrentTrack                      *ExposedCurrentTrack                 `json:"currentTrack"`
+	Tracks                            []TrackMetadataWithScoreWithDuration `json:"tracks"`
+	MinimumScoreToBePlayed            int                                  `json:"minimumScoreToBePlayed"`
+	UsersLength                       int                                  `json:"usersLength"`
+	RoomHasTimeAndPositionConstraints bool                                 `json:"roomHasTimeAndPositionConstraints"`
+	TimeConstraintIsValid             *bool                                `json:"timeConstraintIsValid"`
 }
 
 type SignalRoute string

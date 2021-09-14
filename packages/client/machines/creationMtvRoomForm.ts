@@ -5,6 +5,7 @@ import {
     StateFrom,
     sendParent,
     ActorRef,
+    DoneInvokeEvent,
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import * as z from 'zod';
@@ -105,6 +106,9 @@ export type CreationMtvRoomFormActorRef = ActorRef<
     CreationMtvRoomFormMachineEvent,
     CreationMtvRoomFormMachineState
 >;
+
+export type CreationMtvRoomFormDoneInvokeEvent =
+    DoneInvokeEvent<CreationMtvRoomFormMachineContext>;
 
 export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
     return creationMtvRoomFormModel.createMachine({
@@ -339,6 +343,8 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
 
             confirmed: {
                 type: 'final',
+
+                data: (context) => context,
             },
         },
     });

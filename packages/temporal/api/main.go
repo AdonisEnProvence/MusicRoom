@@ -424,9 +424,15 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 	initialUsers := make(map[string]*shared.InternalStateUser)
 	initialUsers[body.UserID] = &shared.InternalStateUser{
-		UserID:         body.UserID,
-		DeviceID:       body.DeviceID,
-		TracksVotedFor: make([]string, 0),
+		UserID:                     body.UserID,
+		DeviceID:                   body.DeviceID,
+		TracksVotedFor:             make([]string, 0),
+		UserFitsPositionConstraint: nil,
+	}
+
+	if body.HasPhysicalAndTimeConstraints && body.PhysicalAndTimeConstraints != nil {
+		falseValue := false
+		initialUsers[body.UserID].UserFitsPositionConstraint = &falseValue
 	}
 
 	params := shared.MtvRoomParameters{

@@ -1,8 +1,11 @@
 import fetch from 'node-fetch';
+import XMLHttpRequest from 'xhr2';
 
 // @ts-expect-error The Fetch API is not available in Expo Jest environment (which is Node.js).
 // We use node-fetch polyfill and set the global reference to it.
 global.fetch = fetch;
+
+global.XMLHttpRequest = XMLHttpRequest;
 
 // MSW uses the LocalStorage internally. In order for MSW to work we need
 // to mock the LocalStorage API.

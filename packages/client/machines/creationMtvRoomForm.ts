@@ -30,8 +30,8 @@ const creationMtvRoomFormModel = createModel(
         hasPhysicalConstraints: false,
         physicalConstraintPlace: '',
         physicalConstraintRadius: 30,
-        physicalConstraintStartsAt: '',
-        physicalConstraintEndsAt: '',
+        physicalConstraintStartsAt: new Date(),
+        physicalConstraintEndsAt: new Date(),
         playingMode: 'BROADCAST' as MtvRoomPlayingMode,
         minimumVotesForATrackToBePlayed:
             1 as MtvRoomMinimumVotesForATrackToBePlayed,
@@ -55,11 +55,11 @@ const creationMtvRoomFormModel = createModel(
 
             SET_PHYSICAL_CONSTRAINT_RADIUS: (radius: number) => ({ radius }),
 
-            SET_PHYSICAL_CONSTRAINT_STARTS_AT: (startsAt: string) => ({
+            SET_PHYSICAL_CONSTRAINT_STARTS_AT: (startsAt: Date) => ({
                 startsAt,
             }),
 
-            SET_PHYSICAL_CONSTRAINT_ENDS_AT: (endsAt: string) => ({ endsAt }),
+            SET_PHYSICAL_CONSTRAINT_ENDS_AT: (endsAt: Date) => ({ endsAt }),
 
             SET_PLAYING_MODE: (playingMode: MtvRoomPlayingMode) => ({
                 playingMode,

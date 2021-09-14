@@ -49,7 +49,7 @@ export const MtvRoomClientToServerCreateArgs = z.object({
     name: z.string(),
     initialTracksIDs: z.string().array(),
     isOpen: z.boolean(),
-    minimumScoreToBePlayed: z.number(),
+    minimumScoreToBePlayed: z.number().positive().int(),
     isOpenOnlyInvitedUsersCanVote: z.boolean(),
     hasPhysicalAndTimeConstraints: z.boolean(),
     physicalAndTimeConstraints: MtvRoomPhysicalAndTimeConstraints.optional(),

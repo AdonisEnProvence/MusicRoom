@@ -1,22 +1,30 @@
 import { useActor } from '@xstate/react';
-import { View, Text } from 'dripsy';
+import { View, Text, useSx } from 'dripsy';
 import React from 'react';
-import { TextField } from '../components/kit';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import PickerSelect from 'react-native-picker-select';
+import { useTextFieldStyles } from '../components/kit/TextField';
 import MtvRoomCreationFormOptionButton from '../components/MtvRoomCreationForm/MtvRoomCreationFormOptionButton';
 import MtvRoomCreationFormScreen from '../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
+import { GOOGLE_PLACES_API_KEY } from '../constants/ApiKeys';
 import { useCreationMtvRoomFormMachine } from '../contexts/MusicPlayerContext';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 import { MusicTrackVoteCreationFormPhysicalConstraintsScreenProps } from '../types';
+import MtvRoomCreationFormDatePicker from '../components/MtvRoomCreationForm/MtvRoomCreationFormDatePicker';
+import urlcat from 'urlcat';
+import { SERVER_ENDPOINT } from '../constants/Endpoints';
 
 const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
     MusicTrackVoteCreationFormPhysicalConstraintsScreenProps & {
         mtvRoomCreationActor: CreationMtvRoomFormActorRef;
     }
 > = ({ mtvRoomCreationActor }) => {
+    const PLACES_API_PROXY_URL = urlcat(SERVER_ENDPOINT, '/proxy-places-api');
+
+    const sx = useSx();
     const [state, send] = useActor(mtvRoomCreationActor);
 
     const hasPhysicalConstraints = state.hasTag('hasPhysicalConstraints');
-    const physicalConstraintPlace = state.context.physicalConstraintPlace;
     const physicalConstraintRadius = state.context.physicalConstraintRadius;
     const physicalConstraintStartsAt = state.context.physicalConstraintStartsAt;
     const physicalConstraintEndsAt = state.context.physicalConstraintEndsAt;
@@ -33,6 +41,7 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
             onPress: handleSetPhysicalConstraintsStatus(false),
         },
     ];
+    const textFieldStyles = useTextFieldStyles();
 
     function handleSetPhysicalConstraintsStatus(isRestricted: boolean) {
         return () => {
@@ -57,14 +66,14 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
         });
     }
 
-    function handlePhysicalConstraintStartsAtChange(startsAt: string) {
+    function handlePhysicalConstraintStartsAtChange(startsAt: Date) {
         send({
             type: 'SET_PHYSICAL_CONSTRAINT_STARTS_AT',
             startsAt,
         });
     }
 
-    function handlePhysicalConstraintEndsAtChange(endsAt: string) {
+    function handlePhysicalConstraintEndsAtChange(endsAt: Date) {
         send({
             type: 'SET_PHYSICAL_CONSTRAINT_ENDS_AT',
             endsAt,
@@ -127,41 +136,124 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                                 Select the constraints you want
                             </Text>
 
-                            <TextField
-                                value={physicalConstraintPlace}
+                            <GooglePlacesAutocomplete
                                 placeholder="Place"
-                                onChangeText={
-                                    handlePhysicalConstraintPlaceChange
-                                }
-                                sx={{ marginTop: 'm' }}
+                                onPress={(data, details = null) => {
+                                    handlePhysicalConstraintPlaceChange(
+                                        data.description,
+                                    );
+                                }}
+                                query={{
+                                    key: GOOGLE_PLACES_API_KEY,
+                                    language: 'fr',
+                                }}
+                                requestUrl={{
+                                    useOnPlatform: 'all',
+                                    url: PLACES_API_PROXY_URL,
+                                }}
+                                textInputProps={{
+                                    placeholderTextColor: 'white',
+                                }}
+                                styles={{
+                                    container: {
+                                        flex: 0,
+                                        flexGrow: 1,
+                                        flexShrink: 1,
+                                    },
+
+                                    textInput: [
+                                        textFieldStyles,
+                                        {
+                                            height: null,
+                                            paddingVertical: null,
+                                            paddingHorizontal: null,
+                                            marginBottom: null,
+                                        },
+                                        sx({
+                                            marginTop: 'm',
+                                        }),
+                                    ],
+                                }}
                             />
 
-                            <TextField
-                                value={String(physicalConstraintRadius)}
-                                placeholder="Radius"
-                                onChangeText={
+                            <PickerSelect
+                                placeholder={{
+                                    label: 'Radius',
+                                    value: '',
+                                    color: '#9EA0A4',
+                                }}
+                                items={[
+                                    {
+                                        key: '30',
+                                        label: '30',
+                                        value: 30,
+                                    },
+                                    {
+                                        key: '50',
+                                        label: '50',
+                                        value: 50,
+                                    },
+                                    {
+                                        key: '70',
+                                        label: '70',
+                                        value: 70,
+                                    },
+                                ]}
+                                value={physicalConstraintRadius}
+                                onValueChange={
                                     handlePhysicalConstraintRadiusChange
                                 }
-                                sx={{ marginTop: 'm' }}
+                                useNativeAndroidPickerStyle={false}
+                                style={
+                                    {
+                                        inputIOS: [
+                                            sx({
+                                                marginTop: 'm',
+                                                paddingRight: 'xl',
+                                            }),
+                                            textFieldStyles,
+                                        ],
+
+                                        inputAndroid: [
+                                            sx({
+                                                marginTop: 'm',
+                                                paddingRight: 'xl',
+                                            }),
+                                            textFieldStyles,
+                                        ],
+
+                                        inputWeb: [
+                                            sx({
+                                                marginTop: 'm',
+                                                paddingRight: 'xl',
+                                            }),
+                                            textFieldStyles,
+                                        ],
+                                    } as any
+                                }
                             />
 
-                            <TextField
-                                value={physicalConstraintStartsAt}
-                                placeholder="Starts at"
-                                onChangeText={
-                                    handlePhysicalConstraintStartsAtChange
-                                }
-                                sx={{ marginTop: 'm' }}
-                            />
+                            <View sx={{ marginTop: 'm' }}>
+                                <MtvRoomCreationFormDatePicker
+                                    date={physicalConstraintStartsAt}
+                                    title="Starts at"
+                                    onConfirm={
+                                        handlePhysicalConstraintStartsAtChange
+                                    }
+                                    testID="starts-at-datetime-picker"
+                                />
+                            </View>
 
-                            <TextField
-                                value={physicalConstraintEndsAt}
-                                placeholder="Ends at"
-                                onChangeText={
-                                    handlePhysicalConstraintEndsAtChange
-                                }
-                                sx={{ marginTop: 'm' }}
-                            />
+                            <View sx={{ marginTop: 'm' }}>
+                                <MtvRoomCreationFormDatePicker
+                                    date={physicalConstraintEndsAt}
+                                    title="Ends at"
+                                    onConfirm={
+                                        handlePhysicalConstraintEndsAtChange
+                                    }
+                                    testID="ends-at-datetime-picker"
+                                />
+                            </View>
                         </View>
                     )}
                 </>

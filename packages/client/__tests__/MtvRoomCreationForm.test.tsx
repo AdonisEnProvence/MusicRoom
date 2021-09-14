@@ -3,11 +3,19 @@ import { createModel as createTestModel } from '@xstate/test';
 import { createModel } from 'xstate/lib/model';
 import { NavigationContainer } from '@react-navigation/native';
 import { RootNavigator } from '../navigation';
-import { fireEvent, noop, render, within } from '../tests/tests-utils';
+import {
+    fireEvent,
+    noop,
+    render,
+    within,
+    waitForElementToBeRemoved,
+} from '../tests/tests-utils';
 import { ContextFrom, EventFrom, State } from 'xstate';
 import * as z from 'zod';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { MtvRoomMinimumVotesForATrackToBePlayed } from '../machines/creationMtvRoomForm';
+import { formatDateTime } from '../hooks/useFormatDateTime';
+import { addHours } from 'date-fns';
 
 const createMtvRoomWithSettingsModel = createModel(
     {
@@ -643,6 +651,12 @@ const createMtvRoomWithSettingsMachine =
                                 }
                                 const { place, radius, startsAt, endsAt } =
                                     physicalConstraintsValues;
+                                const startsAtFormatted = formatDateTime(
+                                    new Date(startsAt),
+                                );
+                                const endsAtFormatted = formatDateTime(
+                                    new Date(endsAt),
+                                );
 
                                 expect(
                                     screen.getAllByText(/yes/i).length,
@@ -652,8 +666,12 @@ const createMtvRoomWithSettingsMachine =
                                 expect(
                                     screen.getByText(String(radius)),
                                 ).toBeTruthy();
-                                expect(screen.getByText(startsAt)).toBeTruthy();
-                                expect(screen.getByText(endsAt)).toBeTruthy();
+                                expect(
+                                    screen.getByText(startsAtFormatted),
+                                ).toBeTruthy();
+                                expect(
+                                    screen.getByText(endsAtFormatted),
+                                ).toBeTruthy();
 
                                 break;
                             }
@@ -881,15 +899,49 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
         exec: async ({ screen }, event) => {
             const { place, radius, startsAt, endsAt } =
                 SetPhysicalConstraintsValuesEvent.parse(event);
-            const placeInput = await screen.findByPlaceholderText(/place/i);
-            const radiusInput = screen.getByPlaceholderText(/radius/i);
-            const startsAtInput = screen.getByPlaceholderText(/starts.*at/i);
-            const endsAtInput = screen.getByPlaceholderText(/ends.*at/i);
 
+            const placeInput = await screen.findByPlaceholderText(/place/i);
+            fireEvent(placeInput, 'focus');
             fireEvent.changeText(placeInput, place);
-            fireEvent.changeText(radiusInput, radius);
-            fireEvent.changeText(startsAtInput, startsAt);
-            fireEvent.changeText(endsAtInput, endsAt);
+            const placeSuggestion = await screen.findByText(place);
+            fireEvent.press(placeSuggestion);
+
+            const radiusPicker = screen.getByTestId('ios_picker');
+            fireEvent(radiusPicker, 'valueChange', radius, 0);
+
+            const startsAtInput = screen.getByText(/starts.*at/i);
+            fireEvent.press(startsAtInput);
+            const startsAtDateTimePicker = screen.getByTestId(
+                'starts-at-datetime-picker',
+            );
+            fireEvent(
+                startsAtDateTimePicker,
+                'change',
+                { nativeEvent: { timestamp: new Date(startsAt) } },
+                new Date(startsAt),
+            );
+            const startsAtDateTimePickerConfirmButton =
+                screen.getByA11yLabel(/confirm/i);
+            fireEvent.press(startsAtDateTimePickerConfirmButton);
+
+            await waitForElementToBeRemoved(() =>
+                screen.getByTestId('starts-at-datetime-picker'),
+            );
+
+            const endsAtInput = screen.getByText(/ends.*at/i);
+            fireEvent.press(endsAtInput);
+            const endsAtDateTimePicker = screen.getByTestId(
+                'ends-at-datetime-picker',
+            );
+            fireEvent(
+                endsAtDateTimePicker,
+                'change',
+                { nativeEvent: { timestamp: new Date(endsAt) } },
+                new Date(endsAt),
+            );
+            const endsAtDateTimePickerConfirmButton =
+                screen.getByA11yLabel(/confirm/i);
+            fireEvent.press(endsAtDateTimePickerConfirmButton);
 
             const goNextButtons = screen.getAllByText(/next/i);
             const goNextButton = goNextButtons[goNextButtons.length - 1];
@@ -900,9 +952,9 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
         cases: [
             {
                 place: '96 Boulevard Bessières, Paris',
-                radius: 25,
-                startsAt: '09/08/2021 10:10:00',
-                endsAt: '10/08/2021 10:10:00',
+                radius: 30,
+                startsAt: new Date().toISOString(),
+                endsAt: addHours(new Date(), 2).toISOString(),
             } as SetPhysicalConstraintsValuesEvent,
         ],
     },

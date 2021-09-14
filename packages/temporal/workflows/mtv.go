@@ -30,6 +30,27 @@ func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 	s.Users = params.InitialUsers
 }
 
+func (s *MtvRoomInternalState) GetTimeConstraintValue() *bool {
+	if !s.initialParams.HasPhysicalAndTimeConstraints {
+		return nil
+	}
+
+	start := s.initialParams.PhysicalAndTimeConstraints.PhysicalConstraintStartsAt
+	end := s.initialParams.PhysicalAndTimeConstraints.PhysicalConstraintEndsAt
+	now := TimeWrapper()
+
+	nowIsBetweenStartAndEnd := now.After(start) && now.Before(end)
+
+	return &nowIsBetweenStartAndEnd
+}
+
+func (s *MtvRoomInternalState) GetUserRelatedInformation(userID string) *shared.InternalStateUser {
+	if userInformation, ok := s.Users[userID]; userID != shared.NoRelatedUserID && ok {
+		return userInformation
+	}
+	return nil
+}
+
 func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExposedState {
 	tracks := s.Tracks.Values()
 	exposedTracks := make([]shared.TrackMetadataWithScoreWithDuration, 0, len(tracks))
@@ -63,17 +84,8 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 		UsersLength:                       len(s.Users),
 		MinimumScoreToBePlayed:            s.initialParams.MinimumScoreToBePlayed,
 		RoomHasTimeAndPositionConstraints: s.initialParams.HasPhysicalAndTimeConstraints,
-		TimeConstraintIsValid:             nil,
-	}
-
-	if userInformation, ok := s.Users[RelatedUserID]; RelatedUserID != shared.NoRelatedUserID && ok {
-		exposedState.UserRelatedInformation = userInformation
-	}
-
-	if exposedState.RoomHasTimeAndPositionConstraints {
-		//Calc the time constraint validity here
-		trueTmp := true
-		exposedState.TimeConstraintIsValid = &trueTmp
+		TimeConstraintIsValid:             s.GetTimeConstraintValue(),
+		UserRelatedInformation:            s.GetUserRelatedInformation(RelatedUserID),
 	}
 
 	return exposedState

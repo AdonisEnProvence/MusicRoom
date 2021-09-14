@@ -397,6 +397,18 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if body.HasPhysicalAndTimeConstraints && body.PhysicalAndTimeConstraints != nil {
+		nowIsBeforeEnd := body.PhysicalAndTimeConstraints.PhysicalConstraintStartsAt.Before(body.PhysicalAndTimeConstraints.PhysicalConstraintEndsAt)
+		nowEqualEnd := body.PhysicalAndTimeConstraints.PhysicalConstraintStartsAt.Equal(body.PhysicalAndTimeConstraints.PhysicalConstraintEndsAt)
+		timeConstraintAreCorrupted := !nowIsBeforeEnd || nowEqualEnd
+
+		if timeConstraintAreCorrupted {
+			log.Println("time constraint are corrupted", err)
+			WriteError(w, err)
+			return
+		}
+	}
+
 	options := client.StartWorkflowOptions{
 		ID:        body.WorkflowID,
 		TaskQueue: shared.ControlTaskQueue,

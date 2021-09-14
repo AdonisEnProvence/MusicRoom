@@ -241,8 +241,8 @@ type MtvRoomPhysicalAndTimeConstraints struct {
 	//be used ( for now ? )
 	PhysicalConstraintPosition MtvRoomCoords `json:"physicalConstraintPosition" validate:"required"`
 	PhysicalConstraintRadius   int           `json:"physicalConstraintRadius" validate:"required"`
-	PhysicalConstraintStartsAt string        `json:"physicalConstraintStartsAt" validate:"required"`
-	PhysicalConstraintEndsAt   string        `json:"physicalConstraintEndsAt" validate:"required"`
+	PhysicalConstraintStartsAt time.Time     `json:"physicalConstraintStartsAt" validate:"required"`
+	PhysicalConstraintEndsAt   time.Time     `json:"physicalConstraintEndsAt" validate:"required"`
 }
 
 type MtvRoomParameters struct {

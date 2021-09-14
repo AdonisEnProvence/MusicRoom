@@ -39,6 +39,8 @@ test.group(`User service socket handler tests`, (group) => {
             usersLength: 1,
             userRelatedInformation: null,
             minimumScoreToBePlayed: 1,
+            roomHasTimeAndPositionConstraints: false,
+            timeConstraintIsValid: null,
         };
         const receivedEvents: string[] = [];
 

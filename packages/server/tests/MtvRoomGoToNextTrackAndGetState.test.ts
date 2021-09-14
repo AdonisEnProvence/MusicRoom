@@ -78,7 +78,8 @@ test.group(
                         currentTrack: null,
                         name: random.word(),
                         playing: false,
-
+                        roomHasTimeAndPositionConstraints: false,
+                        timeConstraintIsValid: null,
                         roomCreatorUserID: userID,
                         tracks: null,
                         userRelatedInformation: null,

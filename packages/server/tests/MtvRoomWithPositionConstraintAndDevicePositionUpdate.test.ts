@@ -72,10 +72,13 @@ test.group(
                         playing: false,
                         name: settings.name,
                         currentTrack: null,
+                        roomHasTimeAndPositionConstraints: false,
+                        timeConstraintIsValid: null,
                         userRelatedInformation: {
                             userID,
                             emittingDeviceID: datatype.uuid(),
                             tracksVotedFor: [],
+                            userFitsPositionConstraint: null,
                         },
                         usersLength: 1,
                         tracks: null,
@@ -182,10 +185,10 @@ test.group(
                     'updateUserFitsPositionConstraints',
                 )
                 .callsFake(
-                    async ({ userFitsPositionConstraints }): Promise<void> => {
+                    async ({ userFitsPositionConstraint }): Promise<void> => {
                         mockHasBeenCalled = true;
                         userPositionFitsTheGivenRadius =
-                            userFitsPositionConstraints;
+                            userFitsPositionConstraint;
                     },
                 );
 
@@ -212,4 +215,5 @@ test.group(
             assert.isFalse(userPositionFitsTheGivenRadius);
         });
     },
+    //TODO ADD TO THE TEST THE CREATE CALL AND JOIN CALL PERMISSION COMPUTING
 );

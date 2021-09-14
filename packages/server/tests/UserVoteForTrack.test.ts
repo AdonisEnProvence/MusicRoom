@@ -46,6 +46,8 @@ test.group(`User service socket handler tests`, (group) => {
             tracks: null,
             userRelatedInformation: null,
             usersLength: 3,
+            roomHasTimeAndPositionConstraints: false,
+            timeConstraintIsValid: null,
         };
 
         sinon
@@ -56,6 +58,7 @@ test.group(`User service socket handler tests`, (group) => {
                     {
                         ...state,
                         userRelatedInformation: {
+                            userFitsPositionConstraint: null,
                             emittingDeviceID: datatype.uuid(),
                             tracksVotedFor: [trackID],
                             userID,

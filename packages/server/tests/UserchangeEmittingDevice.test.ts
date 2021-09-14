@@ -44,7 +44,10 @@ test.group(
                         roomCreatorUserID: userID,
                         roomID: workflowID,
                         tracks: null,
+                        roomHasTimeAndPositionConstraints: false,
+                        timeConstraintIsValid: null,
                         userRelatedInformation: {
+                            userFitsPositionConstraint: null,
                             userID: userID,
                             emittingDeviceID: deviceID,
                             tracksVotedFor: [],
@@ -96,6 +99,7 @@ test.group(
                 ({ userRelatedInformation }) => {
                     const expectedUserRelatedInformation: UserRelatedInformation | null =
                         {
+                            userFitsPositionConstraint: null,
                             userID: userID,
                             emittingDeviceID: deviceB.uuid,
                             tracksVotedFor: [],
@@ -122,6 +126,7 @@ test.group(
                 ({ userRelatedInformation }) => {
                     const expectedUserRelatedInformation: UserRelatedInformation =
                         {
+                            userFitsPositionConstraint: null,
                             userID: userID,
                             emittingDeviceID: deviceB.uuid,
                             tracksVotedFor: [],
@@ -188,7 +193,10 @@ test.group(
                         roomCreatorUserID: userID,
                         roomID: workflowID,
                         tracks: null,
+                        roomHasTimeAndPositionConstraints: false,
+                        timeConstraintIsValid: null,
                         userRelatedInformation: {
+                            userFitsPositionConstraint: null,
                             userID: userID,
                             emittingDeviceID: deviceID,
                             tracksVotedFor: [],
@@ -252,7 +260,10 @@ test.group(
                         roomCreatorUserID: userID,
                         roomID: workflowID,
                         tracks: null,
+                        roomHasTimeAndPositionConstraints: false,
+                        timeConstraintIsValid: null,
                         userRelatedInformation: {
+                            userFitsPositionConstraint: null,
                             userID: userID,
                             emittingDeviceID: deviceID,
                             tracksVotedFor: [],

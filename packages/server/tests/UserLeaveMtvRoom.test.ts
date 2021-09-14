@@ -65,6 +65,8 @@ test.group(
                 userRelatedInformation: null,
                 usersLength: 3,
                 minimumScoreToBePlayed: 1,
+                roomHasTimeAndPositionConstraints: false,
+                timeConstraintIsValid: null,
             };
 
             const roomToJoinState: MtvWorkflowState = {
@@ -77,6 +79,8 @@ test.group(
                 userRelatedInformation: null,
                 usersLength: 1,
                 minimumScoreToBePlayed: 1,
+                roomHasTimeAndPositionConstraints: false,
+                timeConstraintIsValid: null,
             };
 
             sinon
@@ -103,6 +107,7 @@ test.group(
                 .callsFake(async ({ userID: relatedUserID }) => {
                     roomToJoinState.usersLength++;
                     roomToJoinState.userRelatedInformation = {
+                        userFitsPositionConstraint: null,
                         userID: relatedUserID,
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],
@@ -277,6 +282,8 @@ test.group(
                 userRelatedInformation: null,
                 usersLength: 3,
                 minimumScoreToBePlayed: 1,
+                roomHasTimeAndPositionConstraints: false,
+                timeConstraintIsValid: null,
             };
 
             const roomToJoinState: MtvWorkflowState = {
@@ -289,6 +296,8 @@ test.group(
                 userRelatedInformation: null,
                 minimumScoreToBePlayed: 1,
                 usersLength: 1,
+                roomHasTimeAndPositionConstraints: false,
+                timeConstraintIsValid: null,
             };
 
             sinon
@@ -317,6 +326,7 @@ test.group(
                 .callsFake(async ({ userID: relatedUserID }) => {
                     roomToJoinState.usersLength++;
                     roomToJoinState.userRelatedInformation = {
+                        userFitsPositionConstraint: null,
                         userID: relatedUserID,
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],
@@ -477,6 +487,8 @@ test.group(
 
             let roomToLeaveState: MtvWorkflowState = {
                 currentTrack: null,
+                roomHasTimeAndPositionConstraints: false,
+                timeConstraintIsValid: null,
                 name: random.word(),
                 playing: false,
                 roomCreatorUserID: userAID,
@@ -516,7 +528,10 @@ test.group(
                         roomCreatorUserID: userID,
                         playing: false,
                         name: params.name,
+                        roomHasTimeAndPositionConstraints: false,
+                        timeConstraintIsValid: null,
                         userRelatedInformation: {
+                            userFitsPositionConstraint: null,
                             userID,
                             emittingDeviceID: datatype.uuid(),
                             tracksVotedFor: [],
@@ -726,6 +741,8 @@ test.group(
                 .callsFake(async ({ workflowID }) => {
                     const state: MtvWorkflowState = {
                         currentTrack: null,
+                        roomHasTimeAndPositionConstraints: false,
+                        timeConstraintIsValid: null,
                         name: random.word(),
                         playing: false,
                         roomCreatorUserID: userID,

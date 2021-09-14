@@ -49,6 +49,8 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     state: {
                         roomID: workflowID,
                         roomCreatorUserID: datatype.uuid(),
+                        roomHasTimeAndPositionConstraints: false,
+                        timeConstraintIsValid: null,
                         playing: false,
                         name: roomName,
                         currentTrack: null,
@@ -56,6 +58,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                             userID,
                             emittingDeviceID: datatype.uuid(),
                             tracksVotedFor: [],
+                            userFitsPositionConstraint: null,
                         },
                         usersLength: 1,
                         tracks: [
@@ -125,10 +128,13 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     name: roomName,
                     usersLength: 1,
                     currentTrack: null,
+                    roomHasTimeAndPositionConstraints: false,
+                    timeConstraintIsValid: null,
                     userRelatedInformation: {
                         userID: creator,
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],
+                        userFitsPositionConstraint: null,
                     },
                     tracks: [
                         {
@@ -157,11 +163,14 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     playing: false,
                     roomID: workflowID,
                     usersLength: 1,
+                    roomHasTimeAndPositionConstraints: false,
+                    timeConstraintIsValid: null,
                     userRelatedInformation: userID
                         ? {
                               userID,
                               emittingDeviceID: datatype.uuid(),
                               tracksVotedFor: [],
+                              userFitsPositionConstraint: null,
                           }
                         : null,
                     currentTrack: null,
@@ -216,6 +225,8 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     currentTrack: null,
                     roomID: workflowID,
                     roomCreatorUserID: datatype.uuid(),
+                    roomHasTimeAndPositionConstraints: false,
+                    timeConstraintIsValid: null,
                     tracks: [
                         {
                             id: datatype.uuid(),
@@ -231,6 +242,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                         userID: creatorID,
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],
+                        userFitsPositionConstraint: null,
                     },
                     minimumScoreToBePlayed: 1,
                     usersLength: 1,

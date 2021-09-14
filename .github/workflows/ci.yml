@@ -80,3 +80,5 @@ jobs:
 
             - name: Run client tests 🧪
               run: yarn run lerna run --scope @musicroom/client test
+              env:
+                  GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}

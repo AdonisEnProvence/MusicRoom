@@ -6,7 +6,7 @@
         "outDir": "dist",
         "noEmit": false,
         "emitDeclarationOnly": true,
-        "declarationMap": true,
+        "declarationMap": true
     },
     "exclude": ["node_modules", "dist"],
     "include": [
@@ -23,6 +23,6 @@
         "./App.tsx",
         "./types.tsx",
         "./global.d.ts",
-        "__tests__"
+        "./__tests__"
     ]
 }

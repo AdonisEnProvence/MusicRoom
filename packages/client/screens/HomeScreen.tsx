@@ -59,7 +59,10 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                             roomID: 'JUST A ROOM ID',
                             tracks: null,
                             minimumScoreToBePlayed: 1,
+                            roomHasTimeAndPositionConstraints: false,
+                            timeConstraintIsValid: null,
                             userRelatedInformation: {
+                                userFitsPositionConstraint: null,
                                 emittingDeviceID: 'EMITTING DEVICE',
                                 userID: 'JUST A USER ID',
                                 tracksVotedFor: [],

@@ -28,7 +28,10 @@ test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it 
         name: random.word(),
         playing: false,
         usersLength: 1,
+        roomHasTimeAndPositionConstraints: false,
+        timeConstraintIsValid: null,
         userRelatedInformation: {
+            userFitsPositionConstraint: null,
             emittingDeviceID: datatype.uuid(),
             userID,
             tracksVotedFor: [],

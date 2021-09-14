@@ -22,7 +22,10 @@ test(`It should display the music player corresponding to the injected state on 
         name: roomName,
         playing: false,
         usersLength: 1,
+        roomHasTimeAndPositionConstraints: false,
+        timeConstraintIsValid: null,
         userRelatedInformation: {
+            userFitsPositionConstraint: null,
             emittingDeviceID: datatype.uuid(),
             userID,
             tracksVotedFor: [],
@@ -119,7 +122,10 @@ test(`It should display the music player corresponding to the injected state on 
         name: roomName,
         playing: false,
         usersLength: 1,
+        roomHasTimeAndPositionConstraints: false,
+        timeConstraintIsValid: null,
         userRelatedInformation: {
+            userFitsPositionConstraint: null,
             emittingDeviceID: datatype.uuid(),
             userID,
             tracksVotedFor: [],
@@ -202,7 +208,10 @@ test(`It should display the already elapsed track duration and player should be 
         name: roomName,
         playing: true,
         usersLength: 1,
+        roomHasTimeAndPositionConstraints: false,
+        timeConstraintIsValid: null,
         userRelatedInformation: {
+            userFitsPositionConstraint: null,
             emittingDeviceID: datatype.uuid(),
             userID,
             tracksVotedFor: [],

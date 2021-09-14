@@ -107,6 +107,8 @@ const rawContext: AppMusicPlayerMachineContext = {
     progressElapsedTime: 0,
     initialTracksIDs: undefined,
     closeSuggestionModal: undefined,
+    roomHasTimeAndPositionConstraints: false,
+    timeConstraintIsValid: null,
     minimumScoreToBePlayed: 1,
 };
 

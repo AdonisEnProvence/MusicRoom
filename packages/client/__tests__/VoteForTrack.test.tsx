@@ -24,7 +24,10 @@ After the vote has been accepted the score will be updated and the card disabled
         name: random.word(),
         playing: false,
         usersLength: 1,
+        roomHasTimeAndPositionConstraints: false,
+        timeConstraintIsValid: null,
         userRelatedInformation: {
+            userFitsPositionConstraint: null,
             emittingDeviceID: deviceID,
             userID,
             tracksVotedFor: [],

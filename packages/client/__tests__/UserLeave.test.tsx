@@ -27,7 +27,10 @@ He will be redirected to the home and will view the default mini music player
         name: random.word(),
         playing: false,
         usersLength: 1,
+        roomHasTimeAndPositionConstraints: false,
+        timeConstraintIsValid: null,
         userRelatedInformation: {
+            userFitsPositionConstraint: null,
             emittingDeviceID: thisDevice.deviceID,
             userID,
             tracksVotedFor: [],

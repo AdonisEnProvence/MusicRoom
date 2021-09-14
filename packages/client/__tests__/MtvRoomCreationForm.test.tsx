@@ -897,7 +897,6 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
 
     SET_PHYSICAL_CONSTRAINTS_VALUES_AND_GO_NEXT: {
         exec: async ({ screen }, event) => {
-            console.log(event);
             const { place, radius, startsAt, endsAt } =
                 SetPhysicalConstraintsValuesEvent.parse(event);
 

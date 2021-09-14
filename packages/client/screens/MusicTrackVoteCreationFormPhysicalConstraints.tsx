@@ -11,12 +11,16 @@ import { useCreationMtvRoomFormMachine } from '../contexts/MusicPlayerContext';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 import { MusicTrackVoteCreationFormPhysicalConstraintsScreenProps } from '../types';
 import MtvRoomCreationFormDatePicker from '../components/MtvRoomCreationForm/MtvRoomCreationFormDatePicker';
+import urlcat from 'urlcat';
+import { SERVER_ENDPOINT } from '../constants/Endpoints';
 
 const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
     MusicTrackVoteCreationFormPhysicalConstraintsScreenProps & {
         mtvRoomCreationActor: CreationMtvRoomFormActorRef;
     }
 > = ({ mtvRoomCreationActor }) => {
+    const PLACES_API_PROXY_URL = urlcat(SERVER_ENDPOINT, '/proxy-places-api');
+
     const sx = useSx();
     const [state, send] = useActor(mtvRoomCreationActor);
 
@@ -145,7 +149,7 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                                 }}
                                 requestUrl={{
                                     useOnPlatform: 'all',
-                                    url: 'http://localhost:3333/proxy-places-api',
+                                    url: PLACES_API_PROXY_URL,
                                 }}
                                 textInputProps={{
                                     placeholderTextColor: 'white',

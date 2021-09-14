@@ -287,6 +287,7 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                             <DateTimePickerModal
                                 isVisible={isStartsAtDatePickerVisible}
                                 mode="datetime"
+                                testID="starts-at-datetime-picker"
                                 onConfirm={
                                     handlePhysicalConstraintStartsAtChange
                                 }
@@ -316,6 +317,7 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                             <DateTimePickerModal
                                 isVisible={isEndsAtDatePickerVisible}
                                 mode="datetime"
+                                testID="ends-at-datetime-picker"
                                 onConfirm={handlePhysicalConstraintEndsAtChange}
                                 onCancel={hideEndsAtDatePicker}
                             />

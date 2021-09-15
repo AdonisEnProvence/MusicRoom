@@ -10,6 +10,7 @@ import {
     within,
     waitFor,
     waitForElementToBeRemoved,
+    waitForTimeout,
 } from '../tests/tests-utils';
 import { ContextFrom, EventFrom, State } from 'xstate';
 import * as z from 'zod';
@@ -761,7 +762,7 @@ const createMtvRoomWithSettingsMachine =
 
                 meta: {
                     test: async (
-                        { screen }: TestingContext,
+                        { screen, fakeTrack, getRoomState }: TestingContext,
                         state: CreateMtvRoomWithSettingsMachineState,
                     ) => {
                         const confirmationStepScreenTitle = screen.queryByText(
@@ -774,15 +775,66 @@ const createMtvRoomWithSettingsMachine =
                             screen.getByTestId('music-player-mini');
                         expect(musicPlayerMini).toBeTruthy();
 
-                        console.log(
-                            'state.context.roomName',
-                            state.context.roomName,
-                        );
-
                         const miniPlayerRoomName = await within(
                             musicPlayerMini,
                         ).findByText(state.context.roomName);
                         expect(miniPlayerRoomName).toBeTruthy();
+
+                        const miniPlayerPlayButton =
+                            within(musicPlayerMini).getByLabelText(
+                                /play.*video/i,
+                            );
+                        expect(miniPlayerPlayButton).toBeTruthy();
+                        expect(miniPlayerPlayButton).toBeDisabled();
+
+                        fireEvent.press(miniPlayerRoomName);
+
+                        const musicPlayerFullScreen =
+                            await screen.findByA11yState({
+                                expanded: true,
+                            });
+                        expect(musicPlayerFullScreen).toBeTruthy();
+
+                        const playButton = within(
+                            musicPlayerFullScreen,
+                        ).getByLabelText(/play.*video/i);
+                        expect(playButton).toBeTruthy();
+                        expect(playButton).toBeDisabled();
+
+                        serverSocket.emit(
+                            'CREATE_ROOM_CALLBACK',
+                            getRoomState(),
+                        );
+                        await waitForTimeout(100);
+
+                        fireEvent.press(playButton);
+                        await waitForTimeout(1_000);
+
+                        expect(
+                            await within(musicPlayerFullScreen).findByText(
+                                fakeTrack.title,
+                            ),
+                        ).toBeTruthy();
+
+                        const pauseButton = await within(
+                            musicPlayerFullScreen,
+                        ).findByLabelText(/pause.*video/i);
+                        expect(pauseButton).toBeTruthy();
+                        expect(pauseButton).toBeEnabled();
+
+                        const nonZeroCurrentTime = within(
+                            musicPlayerFullScreen,
+                        ).getByLabelText(/elapsed/i);
+                        expect(nonZeroCurrentTime).toBeTruthy();
+                        expect(nonZeroCurrentTime).not.toHaveTextContent(
+                            '00:00',
+                        );
+
+                        const durationTime = within(
+                            musicPlayerFullScreen,
+                        ).getByLabelText(/.*minutes duration/i);
+                        expect(durationTime).toBeTruthy();
+                        expect(durationTime).not.toHaveTextContent('00:00');
                     },
                 },
             },
@@ -793,6 +845,7 @@ interface TestingContext {
     screen: ReturnType<typeof render>;
 
     fakeTrack: ReturnType<typeof db.searchableTracks.create>;
+    getRoomState: () => MtvWorkflowState;
 }
 
 const TypeRoomNameEvent = z
@@ -1233,6 +1286,7 @@ describe('Create mtv room with custom settings', () => {
                     await path.test({
                         fakeTrack,
                         screen,
+                        getRoomState: () => state,
                     });
                 });
             });

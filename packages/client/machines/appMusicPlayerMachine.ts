@@ -20,6 +20,7 @@ import {
     creationMtvRoomFormInitialContext,
     CreationMtvRoomFormMachineContext,
 } from './creationMtvRoomForm';
+import { assertEventType } from './utils';
 
 export interface AppMusicPlayerMachineContext extends MtvWorkflowState {
     waitingRoomID?: string;
@@ -342,11 +343,10 @@ export const createAppMusicPlayerMachine = ({
                                             { initialTracksIDs },
                                             event,
                                         ): CreationMtvRoomFormMachineContext => {
-                                            if (event.type !== 'CREATE_ROOM') {
-                                                throw new Error(
-                                                    'Invalid event',
-                                                );
-                                            }
+                                            assertEventType(
+                                                event,
+                                                'CREATE_ROOM',
+                                            );
 
                                             if (
                                                 initialTracksIDs === undefined

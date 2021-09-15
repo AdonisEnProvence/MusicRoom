@@ -17,13 +17,15 @@ import { SocketClient } from '../hooks/useSocket';
 import {
     createCreationMtvRoomFormMachine,
     CreationMtvRoomFormDoneInvokeEvent,
+    creationMtvRoomFormInitialContext,
+    CreationMtvRoomFormMachineContext,
 } from './creationMtvRoomForm';
 
 export interface AppMusicPlayerMachineContext extends MtvWorkflowState {
     waitingRoomID?: string;
     progressElapsedTime: number;
 
-    selectedInitialTracksIDsForRoomCreation?: string[];
+    initialTracksIDs?: string[];
     closeSuggestionModal?: () => void;
     closeMtvRoomCreationModal?: () => void;
 }
@@ -102,7 +104,7 @@ const rawContext: AppMusicPlayerMachineContext = {
     currentTrack: null,
     waitingRoomID: undefined,
     progressElapsedTime: 0,
-    selectedInitialTracksIDsForRoomCreation: undefined,
+    initialTracksIDs: undefined,
     closeSuggestionModal: undefined,
     minimumScoreToBePlayed: 1,
 };
@@ -336,6 +338,30 @@ export const createAppMusicPlayerMachine = ({
 
                                         src: creationMtvRoomForm,
 
+                                        data: (
+                                            { initialTracksIDs },
+                                            event,
+                                        ): CreationMtvRoomFormMachineContext => {
+                                            if (event.type !== 'CREATE_ROOM') {
+                                                throw new Error(
+                                                    'Invalid event',
+                                                );
+                                            }
+
+                                            if (
+                                                initialTracksIDs === undefined
+                                            ) {
+                                                throw new Error(
+                                                    'Initial tracks must have been assigned to the context',
+                                                );
+                                            }
+
+                                            return {
+                                                ...creationMtvRoomFormInitialContext,
+                                                initialTracksIDs,
+                                            };
+                                        },
+
                                         onDone: {
                                             target: 'connectingToRoom',
 
@@ -369,12 +395,10 @@ export const createAppMusicPlayerMachine = ({
                                             const creationMtvRoomFormDoneInvokeEvent =
                                                 event as CreationMtvRoomFormDoneInvokeEvent;
 
-                                            const {
-                                                selectedInitialTracksIDsForRoomCreation,
-                                            } = context;
+                                            const { initialTracksIDs } =
+                                                context;
                                             if (
-                                                selectedInitialTracksIDsForRoomCreation ===
-                                                undefined
+                                                initialTracksIDs === undefined
                                             ) {
                                                 return;
                                             }
@@ -397,7 +421,7 @@ export const createAppMusicPlayerMachine = ({
                                                 {
                                                     name: roomName,
                                                     initialTracksIDs:
-                                                        selectedInitialTracksIDsForRoomCreation,
+                                                        initialTracksIDs,
                                                     hasPhysicalAndTimeConstraints:
                                                         hasPhysicalConstraints,
                                                     isOpen,
@@ -847,8 +871,7 @@ export const createAppMusicPlayerMachine = ({
                             actions: assign((context, event) => ({
                                 ...context,
                                 ...rawContext,
-                                selectedInitialTracksIDsForRoomCreation:
-                                    event.initialTracksIDs,
+                                initialTracksIDs: event.initialTracksIDs,
                             })),
                         },
 

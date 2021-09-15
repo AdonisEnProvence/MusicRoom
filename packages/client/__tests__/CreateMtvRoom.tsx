@@ -8,6 +8,7 @@ import {
     noop,
     render,
     within,
+    waitFor,
     waitForElementToBeRemoved,
 } from '../tests/tests-utils';
 import { ContextFrom, EventFrom, State } from 'xstate';
@@ -16,6 +17,10 @@ import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { MtvRoomMinimumVotesForATrackToBePlayed } from '../machines/creationMtvRoomForm';
 import { formatDateTime } from '../hooks/useFormatDateTime';
 import { addHours } from 'date-fns';
+import { db } from '../tests/data';
+import { datatype, name, random } from 'faker';
+import { MtvWorkflowState } from '@musicroom/types';
+import { serverSocket } from '../services/websockets';
 
 const createMtvRoomWithSettingsModel = createModel(
     {
@@ -31,7 +36,11 @@ const createMtvRoomWithSettingsModel = createModel(
     },
     {
         events: {
-            CLICK_GO_TO_MTV_ROOM_CREATION_FORM: () => ({}),
+            GO_TO_SEARCH_TRACKS: () => ({}),
+
+            TYPE_SEARCH_TRACK_QUERY_AND_SUBMIT: () => ({}),
+
+            PRESS_SEARCH_TRACK_QUERY_RESULT: () => ({}),
 
             SET_ROOM_NAME_AND_GO_NEXT: (roomName: string) => ({
                 value: roomName,
@@ -130,7 +139,46 @@ const createMtvRoomWithSettingsMachine =
                 },
 
                 on: {
-                    CLICK_GO_TO_MTV_ROOM_CREATION_FORM: {
+                    GO_TO_SEARCH_TRACKS: {
+                        target: 'searchTracks',
+                    },
+                },
+            },
+
+            searchTracks: {
+                meta: {
+                    test: async ({ screen }: TestingContext) => {
+                        await waitFor(() =>
+                            expect(
+                                screen.getByText(/search.*track/i),
+                            ).toBeTruthy(),
+                        );
+                    },
+                },
+
+                on: {
+                    TYPE_SEARCH_TRACK_QUERY_AND_SUBMIT: {
+                        target: 'searchTracksResults',
+                    },
+                },
+            },
+
+            searchTracksResults: {
+                meta: {
+                    test: async ({ screen, fakeTrack }: TestingContext) => {
+                        await waitFor(() =>
+                            expect(screen.getByText(/results/i)).toBeTruthy(),
+                        );
+
+                        const trackResultListItem = await screen.findByText(
+                            fakeTrack.title,
+                        );
+                        expect(trackResultListItem).toBeTruthy();
+                    },
+                },
+
+                on: {
+                    PRESS_SEARCH_TRACK_QUERY_RESULT: {
                         target: 'roomName',
                     },
                 },
@@ -712,12 +760,29 @@ const createMtvRoomWithSettingsMachine =
                 type: 'final',
 
                 meta: {
-                    test: ({ screen }: TestingContext) => {
+                    test: async (
+                        { screen }: TestingContext,
+                        state: CreateMtvRoomWithSettingsMachineState,
+                    ) => {
                         const confirmationStepScreenTitle = screen.queryByText(
                             /confirm.*room.*creation/i,
                         );
 
                         expect(confirmationStepScreenTitle).toBeNull();
+
+                        const musicPlayerMini =
+                            screen.getByTestId('music-player-mini');
+                        expect(musicPlayerMini).toBeTruthy();
+
+                        console.log(
+                            'state.context.roomName',
+                            state.context.roomName,
+                        );
+
+                        const miniPlayerRoomName = await within(
+                            musicPlayerMini,
+                        ).findByText(state.context.roomName);
+                        expect(miniPlayerRoomName).toBeTruthy();
                     },
                 },
             },
@@ -726,6 +791,8 @@ const createMtvRoomWithSettingsMachine =
 
 interface TestingContext {
     screen: ReturnType<typeof render>;
+
+    fakeTrack: ReturnType<typeof db.searchableTracks.create>;
 }
 
 const TypeRoomNameEvent = z
@@ -781,12 +848,32 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
     TestingContext,
     ContextFrom<typeof createMtvRoomWithSettingsMachine>
 >(createMtvRoomWithSettingsMachine).withEvents({
-    CLICK_GO_TO_MTV_ROOM_CREATION_FORM: ({ screen }) => {
-        const openMtvRoomCreationFormButton = screen.getByText(
-            /open.*mtv.*room.*creation.*form/i,
-        );
+    GO_TO_SEARCH_TRACKS: ({ screen }) => {
+        const searchScreenLink = screen.getByText(/search/i);
 
-        fireEvent.press(openMtvRoomCreationFormButton);
+        fireEvent.press(searchScreenLink);
+    },
+
+    TYPE_SEARCH_TRACK_QUERY_AND_SUBMIT: ({ screen, fakeTrack }) => {
+        const searchInput = screen.getByPlaceholderText(/search.*track/i);
+
+        const SEARCH_QUERY = fakeTrack.title.slice(0, 3);
+
+        /**
+         * To simulate a real interaction with a text input, we need to:
+         * 1. Focus it
+         * 2. Change its text
+         * 3. Submit the changes
+         */
+        fireEvent(searchInput, 'focus');
+        fireEvent.changeText(searchInput, SEARCH_QUERY);
+        fireEvent(searchInput, 'submitEditing');
+    },
+
+    PRESS_SEARCH_TRACK_QUERY_RESULT: async ({ screen, fakeTrack }) => {
+        const trackResultListItem = await screen.findByText(fakeTrack.title);
+
+        fireEvent.press(trackResultListItem);
     },
 
     SET_ROOM_NAME_AND_GO_NEXT: {
@@ -1075,6 +1162,60 @@ describe('Create mtv room with custom settings', () => {
         describe(plan.description, () => {
             plan.paths.forEach((path) => {
                 it(path.description, async () => {
+                    const fakeTrack = db.searchableTracks.create();
+                    const userID = datatype.uuid();
+                    let state: MtvWorkflowState = {
+                        roomID: datatype.uuid(),
+                        name: 'TEMPORARY ROOM NAME',
+                        playing: false,
+                        usersLength: 1,
+                        userRelatedInformation: {
+                            emittingDeviceID: datatype.uuid(),
+                            userID,
+                            tracksVotedFor: [],
+                        },
+                        roomCreatorUserID: userID,
+                        currentTrack: {
+                            artistName: random.word(),
+                            id: datatype.uuid(),
+                            duration: 158000,
+                            elapsed: 0,
+                            title: fakeTrack.title,
+                            score: datatype.number(),
+                        },
+                        tracks: [
+                            {
+                                id: datatype.uuid(),
+                                artistName: name.findName(),
+                                duration: 42000,
+                                title: random.words(3),
+                                score: datatype.number(),
+                            },
+                        ],
+                        minimumScoreToBePlayed: 1,
+                    };
+
+                    serverSocket.on('CREATE_ROOM', (roomArgs) => {
+                        state = {
+                            ...state,
+                            ...roomArgs,
+                        };
+
+                        serverSocket.emit('CREATE_ROOM_SYNCHED_CALLBACK', {
+                            ...state,
+                            tracks: null,
+                            currentTrack: null,
+                        });
+                    });
+
+                    serverSocket.on('ACTION_PAUSE', () => {
+                        serverSocket.emit('ACTION_PAUSE_CALLBACK');
+                    });
+
+                    serverSocket.on('ACTION_PLAY', () => {
+                        serverSocket.emit('ACTION_PLAY_CALLBACK', state);
+                    });
+
                     const screen = render(
                         <NavigationContainer
                             ref={navigationRef}
@@ -1090,6 +1231,7 @@ describe('Create mtv room with custom settings', () => {
                     );
 
                     await path.test({
+                        fakeTrack,
                         screen,
                     });
                 });

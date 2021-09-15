@@ -2,7 +2,16 @@ import { UserDevice } from '@musicroom/types';
 import * as Location from 'expo-location';
 import { LocationObject } from 'expo-location';
 import Toast from 'react-native-toast-message';
-import { assign, createMachine, send, State, StateMachine } from 'xstate';
+import {
+    assign,
+    createMachine,
+    forwardTo,
+    Receiver,
+    send,
+    Sender,
+    State,
+    StateMachine,
+} from 'xstate';
 import { SocketClient } from '../hooks/useSocket';
 
 export type AppUserMachineContext = {
@@ -20,15 +29,11 @@ type CreateUserMachineArgs = {
 export type AppUserMachineEvent =
     | {
           type: 'CONNECTED_DEVICES_UPDATE';
-          params: {
-              devices: UserDevice[];
-          };
+          devices: UserDevice[];
       }
     | {
           type: 'SET_CURRENT_DEVICE_ID';
-          params: {
-              currDeviceID: string;
-          };
+          currDeviceID: string;
       }
     | { type: 'PERMISSION_EXPIRED' }
     | {
@@ -48,9 +53,7 @@ export type AppUserMachineEvent =
       }
     | {
           type: 'UPDATE_CURRENT_LOCATION';
-          params: {
-              location: Location.LocationObject;
-          };
+          location: Location.LocationObject;
       };
 
 export const createUserMachine = ({
@@ -70,17 +73,33 @@ export const createUserMachine = ({
 
             invoke: {
                 id: 'socketConnection',
-                src: (_context, _event) => (sendBack, _onReceive) => {
-                    socket.on('CONNECTED_DEVICES_UPDATE', (devices) => {
-                        console.log('RECEIVED CONNECTED_DEVICES_UPDATE');
-                        sendBack({
-                            type: 'CONNECTED_DEVICES_UPDATE',
-                            params: {
+                src:
+                    (_context, _event) =>
+                    (
+                        sendBack: Sender<AppUserMachineEvent>,
+                        onReceive: Receiver<AppUserMachineEvent>,
+                    ) => {
+                        socket.on('CONNECTED_DEVICES_UPDATE', (devices) => {
+                            console.log('RECEIVED CONNECTED_DEVICES_UPDATE');
+                            sendBack({
+                                type: 'CONNECTED_DEVICES_UPDATE',
                                 devices,
-                            },
+                            });
                         });
-                    });
-                },
+
+                        onReceive((e) => {
+                            switch (e.type) {
+                                case 'UPDATE_CURRENT_LOCATION': {
+                                    socket.emit('UPDATE_DEVICE_POSITION', {
+                                        lat: e.location.coords.latitude,
+                                        lng: e.location.coords.longitude,
+                                    });
+
+                                    break;
+                                }
+                            }
+                        });
+                    },
             },
 
             type: 'parallel',
@@ -105,32 +124,15 @@ export const createUserMachine = ({
 
                         requestingLocationPermissions: {
                             invoke: {
-                                src:
-                                    (_context, _event) =>
-                                    async (sendBack, _onReceive) => {
-                                        console.log('WOWO THIS IS REALLY COOL');
-                                        const { status } =
-                                            await Location.requestForegroundPermissionsAsync();
-                                        if (status !== 'granted') {
-                                            Toast.show({
-                                                type: 'error',
-                                                text1: 'Permission to access location was denied',
-                                            });
-                                            console.error(
-                                                'Permission to access location was denied',
-                                            );
-                                            sendBack(
-                                                'LOCATION_PERMISSION_DENIED',
-                                            );
-                                            return false;
-                                        }
-                                        sendBack('LOCATION_PERMISSION_GRANTED');
-                                    },
+                                src: 'requestLocationPermission',
                             },
                             on: {
                                 LOCATION_PERMISSION_DENIED: {
                                     target: 'idle',
-                                    actions: 'updateLocationPermissions',
+                                    actions: [
+                                        'updateLocationPermissions',
+                                        'printPermissionDeniedToast',
+                                    ],
                                 },
 
                                 LOCATION_PERMISSION_GRANTED: {
@@ -155,15 +157,20 @@ export const createUserMachine = ({
                                         },
 
                                         UPDATE_CURRENT_LOCATION: {
-                                            //SEND UPDATE TO ADONIS
-                                            actions: ['updateCurrentLocation'],
+                                            actions: [
+                                                'updateCurrentLocation',
+                                                forwardTo('socketConnection'),
+                                            ],
                                             target: 'waitForNextTick',
                                         },
 
                                         UPDATE_CURRENT_LOCATION_FAIL: {
-                                            actions: send({
-                                                type: 'PERMISSION_EXPIRED',
-                                            }),
+                                            actions: [
+                                                'printPermissionDeniedToast',
+                                                send({
+                                                    type: 'PERMISSION_EXPIRED',
+                                                }),
+                                            ],
                                         },
                                     },
                                 },
@@ -187,6 +194,7 @@ export const createUserMachine = ({
 
                             on: {
                                 PERMISSION_EXPIRED: {
+                                    actions: 'resetDeviceLocation',
                                     target: 'requestingLocationPermissions',
                                 },
                             },
@@ -206,6 +214,22 @@ export const createUserMachine = ({
         },
         {
             actions: {
+                resetDeviceLocation: assign((context, _) => {
+                    return {
+                        ...context,
+                        location: undefined,
+                        locationPermission: false,
+                    };
+                }),
+
+                printPermissionDeniedToast: assign((context, _) => {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Permission to access location was denied',
+                    });
+                    return context;
+                }),
+
                 updateUserDevices: assign((context, event) => {
                     if (event.type !== 'CONNECTED_DEVICES_UPDATE') {
                         return context;
@@ -213,23 +237,25 @@ export const createUserMachine = ({
 
                     return {
                         ...context,
-                        devices: event.params.devices,
+                        devices: event.devices,
                     };
                 }),
+
                 setCurrDeviceID: assign((context, event) => {
                     if (event.type !== 'SET_CURRENT_DEVICE_ID') {
                         return context;
                     }
 
-                    if (event.params.currDeviceID === undefined) {
+                    if (event.currDeviceID === undefined) {
                         return context;
                     }
 
                     return {
                         ...context,
-                        currDeviceID: event.params.currDeviceID,
+                        currDeviceID: event.currDeviceID,
                     };
                 }),
+
                 updateLocationPermissions: assign((context, event) => {
                     console.log('PLEASE DISPLAY THIS LOG');
                     if (
@@ -246,6 +272,7 @@ export const createUserMachine = ({
                         locationPermission: permissionGranted,
                     };
                 }),
+
                 updateCurrentLocation: assign((context, event) => {
                     if (event.type !== 'UPDATE_CURRENT_LOCATION') {
                         return context;
@@ -253,7 +280,7 @@ export const createUserMachine = ({
 
                     return {
                         ...context,
-                        location: event.params.location,
+                        location: event.location,
                     };
                 }),
             },
@@ -274,17 +301,37 @@ export const createUserMachine = ({
                             );
                             sendBack({
                                 type: 'CONNECTED_DEVICES_UPDATE',
-                                params: { devices },
+                                devices,
                             });
 
                             console.log('JENVOIE LE RESTE A PAPI');
                             sendBack({
                                 type: 'SET_CURRENT_DEVICE_ID',
-                                params: { currDeviceID },
+                                currDeviceID,
                             });
                         },
                     );
                 },
+
+                requestLocationPermission:
+                    (_context, _event) => async (sendBack, _onReceive) => {
+                        try {
+                            console.log('WOWO THIS IS REALLY COOL');
+                            const { status } =
+                                await Location.requestForegroundPermissionsAsync();
+                            if (status !== 'granted') {
+                                console.error(
+                                    'Permission to access location was denied',
+                                );
+                                sendBack('LOCATION_PERMISSION_DENIED');
+                                return false;
+                            }
+                            sendBack('LOCATION_PERMISSION_GRANTED');
+                        } catch (e) {
+                            console.error(e);
+                            sendBack('LOCATION_PERMISSION_DENIED');
+                        }
+                    },
 
                 getCurrentLocation: (context, event) => async (sendBack) => {
                     console.log('_'.repeat(100));
@@ -295,15 +342,16 @@ export const createUserMachine = ({
                             );
                         }
 
+                        console.log('asking for current location');
                         const location = await Location.getCurrentPositionAsync(
                             {
-                                accuracy: Location.Accuracy.Balanced,
+                                accuracy: Location.Accuracy.High,
                                 distanceInterval: 100,
                                 mayShowUserSettingsDialog: false,
                                 timeInterval: 1,
                             },
                         );
-
+                        console.log(location.coords);
                         let needToUpdatePosition = true;
                         if (context.location !== undefined) {
                             const distanceBetweenTwoCoordsInMeters = distance(
@@ -324,9 +372,7 @@ export const createUserMachine = ({
                         if (needToUpdatePosition) {
                             sendBack({
                                 type: 'UPDATE_CURRENT_LOCATION',
-                                params: {
-                                    location,
-                                },
+                                location,
                             });
                         } else {
                             sendBack({
@@ -334,6 +380,7 @@ export const createUserMachine = ({
                             });
                         }
                     } catch (e) {
+                        console.error('Permission are false');
                         sendBack({
                             type: 'UPDATE_CURRENT_LOCATION_FAIL',
                         });
@@ -357,5 +404,5 @@ function distance(lat1: number, lon1: number, lat2: number, lon2: number) {
         (c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))) / 2;
 
     const resultInKm = 12742 * Math.asin(Math.sqrt(a)); // 2 * R; R = 6371 km
-    return resultInKm / 1000;
+    return resultInKm * 1000;
 }

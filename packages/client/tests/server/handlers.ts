@@ -1,15 +1,9 @@
 import { rest } from 'msw';
-import {
-    PlaceAutocompleteResponse,
-    PlaceAutocompleteResult,
-    PredictionSubstring,
-    PredictionTerm,
-    TrackMetadata,
-} from '@musicroom/types';
+import { PlaceAutocompleteResponse, TrackMetadata } from '@musicroom/types';
 import { SERVER_ENDPOINT } from '../../constants/Endpoints';
-import { SearchTracksAPIRawResponse } from '../../machines/searchTrackMachine';
 import { db } from '../data';
 import { datatype } from 'faker';
+import { SearchTracksAPIRawResponse } from '../../services/search-tracks';
 
 export const handlers = [
     rest.get<undefined, SearchTracksAPIRawResponse, { query: string }>(

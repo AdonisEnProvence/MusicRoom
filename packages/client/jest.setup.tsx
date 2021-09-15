@@ -74,6 +74,15 @@ jest.mock('moti', () => {
     };
 });
 
+jest.mock('@motify/skeleton', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { View } = require('react-native');
+
+    return {
+        Skeleton: View,
+    };
+});
+
 // Replace websockets service with its mock version.
 // In the mock version, we provide an implementation for serverSocket, which permits
 // to simulate bidirectional communication.

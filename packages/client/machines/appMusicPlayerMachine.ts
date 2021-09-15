@@ -68,6 +68,10 @@ export type AppMusicPlayerMachineEvent =
     | { type: 'FORCED_DISCONNECTION' }
     | { type: 'LEAVE_ROOM' }
     | { type: 'USER_LENGTH_UPDATE'; state: MtvWorkflowState }
+    | {
+          type: 'USER_PERMISSIONS_UPDATE';
+          state: MtvWorkflowStateWithUserRelatedInformation;
+      }
     | { type: 'FOCUS_READY' }
     | { type: 'CHANGE_EMITTING_DEVICE_CALLBACK'; state: MtvWorkflowState }
     | {
@@ -202,6 +206,13 @@ export const createAppMusicPlayerMachine = ({
                                 });
                             },
                         );
+
+                        socket.on('USER_PERMISSIONS_UPDATE', (state) => {
+                            sendBack({
+                                type: 'USER_PERMISSIONS_UPDATE',
+                                state,
+                            });
+                        });
 
                         socket.on('VOTE_OR_SUGGEST_TRACK_CALLBACK', (state) => {
                             console.log(
@@ -847,6 +858,10 @@ export const createAppMusicPlayerMachine = ({
                                 USER_LENGTH_UPDATE: {
                                     actions: 'assignMergeNewState',
                                 },
+
+                                USER_PERMISSIONS_UPDATE: {
+                                    actions: 'assignMergeNewState',
+                                },
                             },
                         },
                     },
@@ -910,7 +925,8 @@ export const createAppMusicPlayerMachine = ({
                         event.type !== 'CHANGE_EMITTING_DEVICE_CALLBACK' &&
                         event.type !== 'USER_LENGTH_UPDATE' &&
                         event.type !== 'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE' &&
-                        event.type !== 'VOTE_OR_SUGGEST_TRACK_CALLBACK'
+                        event.type !== 'VOTE_OR_SUGGEST_TRACK_CALLBACK' &&
+                        event.type !== 'USER_PERMISSIONS_UPDATE'
                     ) {
                         return context;
                     }

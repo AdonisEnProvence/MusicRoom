@@ -8,12 +8,13 @@ import {
     AppScreenHeader,
 } from '../components/kit';
 import { useMusicPlayer } from '../contexts/MusicPlayerContext';
+import { useUserContext } from '../contexts/UserContext';
 import { HomeTabHomeScreenScreenProps } from '../types';
 
 const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const musicPlayerMachine = useMusicPlayer();
-
+    const { sendToUserMachine, state } = useUserContext();
     return (
         <AppScreen>
             <AppScreenHeader title="Home" insetTop={insets.top} />
@@ -44,6 +45,16 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                     onPress={() => {
                         navigation.navigate('SuggestTrack', {
                             screen: 'SuggestTrackModal',
+                        });
+                    }}
+                />
+
+                <Button
+                    title="Ask for geoloc"
+                    onPress={() => {
+                        console.log(state.value);
+                        sendToUserMachine({
+                            type: 'REQUEST_LOCATION_PERMISSION',
                         });
                     }}
                 />

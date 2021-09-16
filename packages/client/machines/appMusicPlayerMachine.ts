@@ -14,12 +14,19 @@ import {
     StateMachine,
 } from 'xstate';
 import { SocketClient } from '../hooks/useSocket';
-import { createCreationMtvRoomFormMachine } from './creationMtvRoomForm';
+import {
+    createCreationMtvRoomFormMachine,
+    CreationMtvRoomFormDoneInvokeEvent,
+    creationMtvRoomFormInitialContext,
+    CreationMtvRoomFormMachineContext,
+} from './creationMtvRoomForm';
+import { assertEventType } from './utils';
 
 export interface AppMusicPlayerMachineContext extends MtvWorkflowState {
     waitingRoomID?: string;
     progressElapsedTime: number;
 
+    initialTracksIDs?: string[];
     closeSuggestionModal?: () => void;
     closeMtvRoomCreationModal?: () => void;
 }
@@ -98,6 +105,7 @@ const rawContext: AppMusicPlayerMachineContext = {
     currentTrack: null,
     waitingRoomID: undefined,
     progressElapsedTime: 0,
+    initialTracksIDs: undefined,
     closeSuggestionModal: undefined,
     minimumScoreToBePlayed: 1,
 };
@@ -305,6 +313,7 @@ export const createAppMusicPlayerMachine = ({
                     states: {
                         waitingForJoinOrCreateRoom: {
                             entry: 'assignRawContext',
+
                             invoke: {
                                 src: (_context) => () => {
                                     /**
@@ -317,69 +326,121 @@ export const createAppMusicPlayerMachine = ({
                         },
 
                         creatingRoom: {
-                            initial: 'connectingToRoom',
+                            initial: 'selectingRoomOptions',
 
                             states: {
-                                // selectingRoomOptions: {
-                                //     entry: 'openCreationMtvRoomFormModal',
+                                selectingRoomOptions: {
+                                    entry: 'openCreationMtvRoomFormModal',
 
-                                //     exit: 'closeCreationMtvRoomFormModal',
+                                    exit: 'closeCreationMtvRoomFormModal',
 
-                                //     invoke: {
-                                //         id: 'creationMtvRoomForm',
-
-                                //         src: creationMtvRoomForm,
-
-                                //         onDone: {
-                                //             target: 'connectingToRoom',
-                                //         },
-                                //     },
-
-                                //     on: {
-                                //         SAVE_MTV_ROOM_CREATION_MODAL_CLOSER: {
-                                //             actions: assign({
-                                //                 closeMtvRoomCreationModal: (
-                                //                     _context,
-                                //                     event,
-                                //                 ) => event.closeModal,
-                                //             }),
-                                //         },
-                                //     },
-                                // },
-
-                                connectingToRoom: {
                                     invoke: {
-                                        src: (_context, event) => () => {
-                                            //Handle global external transitions
-                                            if (
-                                                event.type ===
-                                                    'JOINED_CREATED_ROOM' ||
-                                                event.type === 'ROOM_IS_READY'
-                                            )
-                                                return;
+                                        id: 'creationMtvRoomForm',
 
-                                            if (event.type !== 'CREATE_ROOM') {
+                                        src: creationMtvRoomForm,
+
+                                        data: (
+                                            { initialTracksIDs },
+                                            event,
+                                        ): CreationMtvRoomFormMachineContext => {
+                                            assertEventType(
+                                                event,
+                                                'CREATE_ROOM',
+                                            );
+
+                                            if (
+                                                initialTracksIDs === undefined
+                                            ) {
                                                 throw new Error(
-                                                    'Service must be called in reaction to CREATE_ROOM event',
+                                                    'Initial tracks must have been assigned to the context',
                                                 );
                                             }
 
-                                            const {
-                                                roomName,
+                                            return {
+                                                ...creationMtvRoomFormInitialContext,
                                                 initialTracksIDs,
-                                            } = event;
+                                            };
+                                        },
+
+                                        onDone: {
+                                            target: 'connectingToRoom',
+
+                                            actions: (
+                                                _,
+                                                event: CreationMtvRoomFormDoneInvokeEvent,
+                                            ) => {
+                                                console.log(
+                                                    'done event',
+                                                    event,
+                                                );
+                                            },
+                                        },
+                                    },
+
+                                    on: {
+                                        SAVE_MTV_ROOM_CREATION_MODAL_CLOSER: {
+                                            actions: assign({
+                                                closeMtvRoomCreationModal: (
+                                                    _context,
+                                                    event,
+                                                ) => event.closeModal,
+                                            }),
+                                        },
+                                    },
+                                },
+
+                                connectingToRoom: {
+                                    invoke: {
+                                        src: (context, event) => () => {
+                                            const creationMtvRoomFormDoneInvokeEvent =
+                                                event as CreationMtvRoomFormDoneInvokeEvent;
+
+                                            const { initialTracksIDs } =
+                                                context;
+                                            if (
+                                                initialTracksIDs === undefined
+                                            ) {
+                                                return;
+                                            }
+
+                                            const {
+                                                data: {
+                                                    roomName,
+                                                    isOpen,
+                                                    onlyInvitedUsersCanVote,
+                                                    hasPhysicalConstraints,
+                                                    physicalConstraintPlace,
+                                                    physicalConstraintRadius,
+                                                    physicalConstraintStartsAt,
+                                                    physicalConstraintEndsAt,
+                                                    playingMode,
+                                                    minimumVotesForATrackToBePlayed,
+                                                },
+                                            } = creationMtvRoomFormDoneInvokeEvent;
                                             const payload: MtvRoomClientToServerCreateArgs =
                                                 {
                                                     name: roomName,
-                                                    initialTracksIDs,
+                                                    initialTracksIDs:
+                                                        initialTracksIDs,
                                                     hasPhysicalAndTimeConstraints:
-                                                        false,
-                                                    isOpen: true,
+                                                        hasPhysicalConstraints,
+                                                    isOpen,
                                                     isOpenOnlyInvitedUsersCanVote:
-                                                        false,
-                                                    minimumScoreToBePlayed: 1,
+                                                        onlyInvitedUsersCanVote,
+                                                    minimumScoreToBePlayed:
+                                                        minimumVotesForATrackToBePlayed,
                                                     physicalAndTimeConstraints:
-                                                        undefined,
+                                                        hasPhysicalConstraints ===
+                                                        true
+                                                            ? {
+                                                                  physicalConstraintPlace,
+                                                                  physicalConstraintRadius,
+                                                                  physicalConstraintStartsAt:
+                                                                      physicalConstraintStartsAt.toISOString(),
+                                                                  physicalConstraintEndsAt:
+                                                                      physicalConstraintEndsAt.toISOString(),
+                                                              }
+                                                            : undefined,
                                                 };
 
                                             socket.emit('CREATE_ROOM', payload);
@@ -791,6 +852,7 @@ export const createAppMusicPlayerMachine = ({
                     on: {
                         JOIN_ROOM: {
                             target: '.joiningRoom',
+
                             actions: assign((context, event) => {
                                 if (event.type !== 'JOIN_ROOM') {
                                     return context;
@@ -805,19 +867,29 @@ export const createAppMusicPlayerMachine = ({
 
                         CREATE_ROOM: {
                             target: '.creatingRoom',
-                            actions: 'assignRawContext',
+
+                            actions: assign((context, event) => ({
+                                ...context,
+                                ...rawContext,
+                                initialTracksIDs: event.initialTracksIDs,
+                            })),
                         },
 
                         RETRIEVE_CONTEXT: {
                             target: '.connectedToRoom',
+
                             actions: 'assignMergeNewState',
                         },
+
                         JOINED_CREATED_ROOM: {
                             target: '.creatingRoom.roomIsNotReady',
+
                             actions: 'assignMergeNewState',
                         },
+
                         ROOM_IS_READY: {
                             target: '.creatingRoom.roomIsReady',
+
                             actions: 'assignMergeNewState',
                         },
                     },

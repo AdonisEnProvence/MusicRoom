@@ -1,7 +1,9 @@
 import { Text, View } from '@dripsy/core';
+import { Skeleton } from '@motify/skeleton';
 import { useActor } from '@xstate/react';
 import React from 'react';
 import MtvRoomCreationFormScreen from '../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
+import TrackListItem from '../components/Track/TrackListItem';
 import { useCreationMtvRoomFormMachine } from '../contexts/MusicPlayerContext';
 import { formatDateTime } from '../hooks/useFormatDateTime';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
@@ -78,6 +80,15 @@ const MusicTrackVoteCreationFormConfirmation: React.FC<
             value: state.context.minimumVotesForATrackToBePlayed,
         },
     ];
+    const hasFetchedInitialTracksMetadata = state.hasTag(
+        'hasFetchedInitialTracksInformation',
+    );
+    const fetchedInitialTracksMetadata = state.context.initialTracksMetadata;
+    const initialTracksMetadata =
+        hasFetchedInitialTracksMetadata &&
+        fetchedInitialTracksMetadata !== undefined
+            ? fetchedInitialTracksMetadata
+            : undefined;
 
     function handleGoBack() {
         send({
@@ -116,6 +127,33 @@ const MusicTrackVoteCreationFormConfirmation: React.FC<
                                 <Text sx={{ color: 'white' }}>{value}</Text>
                             </View>
                         ))}
+
+                        <View sx={{ marginTop: 'l' }}>
+                            <Text sx={{ color: 'white', marginBottom: 'm' }}>
+                                The room will be filled with the following
+                                tracks:
+                            </Text>
+
+                            <Skeleton colorMode="dark" width="100%">
+                                {initialTracksMetadata !== undefined ? (
+                                    <View>
+                                        {initialTracksMetadata.map(
+                                            (
+                                                { id, title, artistName },
+                                                index,
+                                            ) => (
+                                                <TrackListItem
+                                                    index={index}
+                                                    key={id}
+                                                    title={title}
+                                                    artistName={artistName}
+                                                />
+                                            ),
+                                        )}
+                                    </View>
+                                ) : undefined}
+                            </Skeleton>
+                        </View>
                     </View>
                 </>
             }

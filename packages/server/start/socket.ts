@@ -130,8 +130,10 @@ Ws.io.on('connection', async (socket) => {
                     socket,
                 );
 
-                if (!payload.name) {
-                    throw new Error('CREATE_ROOM failed name should be empty');
+                if (payload.name === '') {
+                    throw new Error(
+                        'CREATE_ROOM failed name must not be empty',
+                    );
                 }
 
                 /**

@@ -38,7 +38,7 @@ export type RootStackParamList = {
 
     SuggestTrack: NavigatorScreenParams<SuggestTrackStackParamList>;
 
-    MusicTrackVoteCreationForm: MusicTrackVoteCreationFormParamList;
+    MusicTrackVoteCreationForm: NavigatorScreenParams<MusicTrackVoteCreationFormParamList>;
 };
 
 export type SuggestTrackStackParamList = {

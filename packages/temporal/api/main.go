@@ -364,9 +364,9 @@ type CreateRoomRequestBody struct {
 	InitialTracksIDs []string `json:"initialTracksIDs" validate:"required,dive,required"`
 
 	MinimumScoreToBePlayed        int                                       `json:"minimumScoreToBePlayed" validate:"required"`
-	IsOpen                        bool                                      `json:"isOpen" validate:"required"`
-	IsOpenOnlyInvitedUsersCanVote bool                                      `json:"isOpenOnlyInvitedUsersCanVote" validate:"required"`
-	HasPhysicalAndTimeConstraints bool                                      `json:"hasPhysicalAndTimeConstraints" validate:"required"`
+	IsOpen                        bool                                      `json:"isOpen"`
+	IsOpenOnlyInvitedUsersCanVote bool                                      `json:"isOpenOnlyInvitedUsersCanVote"`
+	HasPhysicalAndTimeConstraints bool                                      `json:"hasPhysicalAndTimeConstraints"`
 	PhysicalAndTimeConstraints    *shared.MtvRoomPhysicalAndTimeConstraints `json:"physicalAndTimeConstraints" validate:"required_if=HasPhysicalAndTimeConstraints true"`
 }
 
@@ -386,6 +386,9 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
+
+	fmt.Printf("received body from server is = %+v\n", body)
+
 	if err := validate.Struct(body); err != nil {
 		log.Println("create room validation error", err)
 		WriteError(w, err)

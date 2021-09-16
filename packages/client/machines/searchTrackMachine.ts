@@ -1,37 +1,7 @@
-import urlcat from 'urlcat';
 import { createModel } from 'xstate/lib/model';
-import * as z from 'zod';
 import { TrackMetadata } from '@musicroom/types';
-import { SERVER_ENDPOINT } from '../constants/Endpoints';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
-
-interface FetchTracksArgs {
-    searchQuery: string;
-    tracks?: TrackMetadata[];
-}
-
-export const SearchTracksAPIRawResponse = TrackMetadata.array().optional();
-export type SearchTracksAPIRawResponse = z.infer<
-    typeof SearchTracksAPIRawResponse
->;
-
-async function fetchTracks({
-    searchQuery,
-}: FetchTracksArgs): Promise<TrackMetadata[] | undefined> {
-    const url = urlcat(SERVER_ENDPOINT, '/search/track/:searchQuery', {
-        searchQuery,
-    });
-    const response = await fetch(url);
-    if (response.ok === false) {
-        throw new Error('Could not get tracks');
-    }
-
-    const tracksMetadata = SearchTracksAPIRawResponse.parse(
-        await response.json(),
-    );
-
-    return tracksMetadata;
-}
+import { fetchTracksSuggestions } from '../services/search-tracks';
 
 const searchTrackModel = createModel(
     {
@@ -108,7 +78,9 @@ export const searchTrackMachine = searchTrackModel.createMachine(
                 const { searchQuery } = event;
 
                 try {
-                    const tracks = await fetchTracks({ searchQuery });
+                    const tracks = await fetchTracksSuggestions({
+                        searchQuery,
+                    });
                     if (tracks) {
                         sendBack({
                             type: 'FETCHED_TRACKS',

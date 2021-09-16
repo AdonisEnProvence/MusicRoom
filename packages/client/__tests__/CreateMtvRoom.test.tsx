@@ -23,15 +23,15 @@ import {
     within,
 } from '../tests/tests-utils';
 
-type MyType = undefined | SetPhysicalConstraintsValuesEvent;
-
 const createMtvRoomWithSettingsModel = createModel(
     {
         roomName: '',
         isPublic: false,
         onlyInvitedUsersCanVote: false,
         hasPhysicalConstraints: false,
-        physicalConstraintsValues: undefined as MyType,
+        physicalConstraintsValues: undefined as
+            | undefined
+            | SetPhysicalConstraintsValuesEvent,
         playingMode: 'BROADCAST' as 'BROADCAST' | 'DIRECT',
         minimumVotesConstraint: 1 as MtvRoomMinimumVotesForATrackToBePlayed,
     },

@@ -1,9 +1,9 @@
-import { rest } from 'msw';
 import { PlaceAutocompleteResponse, TrackMetadata } from '@musicroom/types';
-import { SERVER_ENDPOINT } from '../../constants/Endpoints';
-import { db } from '../data';
 import { datatype } from 'faker';
+import { rest } from 'msw';
+import { SERVER_ENDPOINT } from '../../constants/Endpoints';
 import { SearchTracksAPIRawResponse } from '../../services/search-tracks';
+import { db } from '../data';
 
 export const handlers = [
     rest.get<undefined, SearchTracksAPIRawResponse, { query: string }>(
@@ -14,7 +14,7 @@ export const handlers = [
             const tracks = db.searchableTracks.findMany({
                 where: {
                     title: {
-                        contains: query,
+                        contains: decodeURIComponent(query),
                     },
                 },
             });

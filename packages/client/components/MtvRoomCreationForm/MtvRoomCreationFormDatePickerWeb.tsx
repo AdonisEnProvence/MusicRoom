@@ -4,11 +4,23 @@ import React from 'react';
 import { useTextFieldStyles } from '../kit/TextField';
 import { MtvRoomCreationFormDatePickerProps } from './MtvRoomCreationFormDatePickerContract';
 
+function formatDateToDatetimeLocal(date: Date): string {
+    return format(date, "yyyy-MM-dd'T'HH:mm");
+}
+
 const MtvRoomCreationFormDatePickerWeb: React.FC<MtvRoomCreationFormDatePickerProps> =
-    ({ title, date, onConfirm }) => {
+    ({ title, date, minimiumDate, maximumDate, onConfirm }) => {
         const sx = useSx();
         const textFieldStyles = useTextFieldStyles();
-        const formattedDateForInputValue = format(date, "yyyy-MM-dd'T'hh:mm");
+        const formattedDateForInputValue = formatDateToDatetimeLocal(date);
+        const formattedMinimumDateForInputValue =
+            minimiumDate !== undefined
+                ? formatDateToDatetimeLocal(minimiumDate)
+                : undefined;
+        const formattedMaximumDateForInputValue =
+            maximumDate !== undefined
+                ? formatDateToDatetimeLocal(maximumDate)
+                : undefined;
 
         return (
             <View
@@ -26,6 +38,8 @@ const MtvRoomCreationFormDatePickerWeb: React.FC<MtvRoomCreationFormDatePickerPr
                     type="datetime-local"
                     placeholder="Datetime"
                     value={formattedDateForInputValue}
+                    min={formattedMinimumDateForInputValue}
+                    max={formattedMaximumDateForInputValue}
                     onChange={({ target: { value } }) => {
                         const dateFromText = new Date(value);
 

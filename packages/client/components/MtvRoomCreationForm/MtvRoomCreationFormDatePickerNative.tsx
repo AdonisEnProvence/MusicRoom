@@ -7,7 +7,15 @@ import { useTextFieldStyles } from '../kit/TextField';
 import { MtvRoomCreationFormDatePickerProps } from './MtvRoomCreationFormDatePickerContract';
 
 const MtvRoomCreationFormDatePickerNative: React.FC<MtvRoomCreationFormDatePickerProps> =
-    ({ title, date, onConfirm, onCancel, testID }) => {
+    ({
+        title,
+        date,
+        minimiumDate,
+        maximumDate,
+        onConfirm,
+        onCancel,
+        testID,
+    }) => {
         const [isModalOpen, setIsModalOpen] = useState(false);
         const sx = useSx();
         const textFieldStyles = useTextFieldStyles();
@@ -55,6 +63,8 @@ const MtvRoomCreationFormDatePickerNative: React.FC<MtvRoomCreationFormDatePicke
                 <DateTimePickerModal
                     isVisible={isModalOpen}
                     mode="datetime"
+                    minimumDate={minimiumDate}
+                    maximumDate={maximumDate}
                     testID={testID}
                     onConfirm={handleConfirm}
                     onCancel={handleClose}

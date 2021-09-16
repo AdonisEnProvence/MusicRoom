@@ -1,27 +1,29 @@
-import React from 'react';
-import { createModel as createTestModel } from '@xstate/test';
-import { createModel } from 'xstate/lib/model';
+import { MtvWorkflowState } from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
+import { createModel as createTestModel } from '@xstate/test';
+import { addHours } from 'date-fns';
+import { datatype, name, random } from 'faker';
+import React from 'react';
+import { ContextFrom, EventFrom, State } from 'xstate';
+import { createModel } from 'xstate/lib/model';
+import * as z from 'zod';
+import { formatDateTime } from '../hooks/useFormatDateTime';
+import { MtvRoomMinimumVotesForATrackToBePlayed } from '../machines/creationMtvRoomForm';
 import { RootNavigator } from '../navigation';
+import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
+import { serverSocket } from '../services/websockets';
+import { db } from '../tests/data';
 import {
     fireEvent,
     noop,
     render,
-    within,
     waitFor,
     waitForElementToBeRemoved,
     waitForTimeout,
+    within,
 } from '../tests/tests-utils';
-import { ContextFrom, EventFrom, State } from 'xstate';
-import * as z from 'zod';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
-import { MtvRoomMinimumVotesForATrackToBePlayed } from '../machines/creationMtvRoomForm';
-import { formatDateTime } from '../hooks/useFormatDateTime';
-import { addHours } from 'date-fns';
-import { db } from '../tests/data';
-import { datatype, name, random } from 'faker';
-import { MtvWorkflowState } from '@musicroom/types';
-import { serverSocket } from '../services/websockets';
+
+type MyType = undefined | SetPhysicalConstraintsValuesEvent;
 
 const createMtvRoomWithSettingsModel = createModel(
     {
@@ -29,9 +31,7 @@ const createMtvRoomWithSettingsModel = createModel(
         isPublic: false,
         onlyInvitedUsersCanVote: false,
         hasPhysicalConstraints: false,
-        physicalConstraintsValues: undefined as
-            | undefined
-            | SetPhysicalConstraintsValuesEvent,
+        physicalConstraintsValues: undefined as MyType,
         playingMode: 'BROADCAST' as 'BROADCAST' | 'DIRECT',
         minimumVotesConstraint: 1 as MtvRoomMinimumVotesForATrackToBePlayed,
     },
@@ -167,14 +167,22 @@ const createMtvRoomWithSettingsMachine =
             searchTracksResults: {
                 meta: {
                     test: async ({ screen, fakeTrack }: TestingContext) => {
-                        await waitFor(() =>
-                            expect(screen.getByText(/results/i)).toBeTruthy(),
-                        );
+                        try {
+                            await waitFor(() =>
+                                expect(
+                                    screen.getByText(/results/i),
+                                ).toBeTruthy(),
+                            );
 
-                        const trackResultListItem = await screen.findByText(
-                            fakeTrack.title,
-                        );
-                        expect(trackResultListItem).toBeTruthy();
+                            const trackResultListItem = await screen.findByText(
+                                fakeTrack.title,
+                            );
+                            expect(trackResultListItem).toBeTruthy();
+                        } catch (err) {
+                            screen.debug();
+                            expect(true).toBeFalsy();
+                            throw err;
+                        }
                     },
                 },
 

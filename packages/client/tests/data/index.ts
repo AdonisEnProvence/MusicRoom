@@ -1,4 +1,4 @@
-import { factory, primaryKey } from '@mswjs/data';
+import { drop, factory, primaryKey } from '@mswjs/data';
 import { datatype, name, random } from 'faker';
 import { TrackMetadataWithScore } from '../../../types/dist';
 
@@ -23,4 +23,8 @@ export function generateTrackMetadata(
 
         ...overrides,
     };
+}
+
+export function dropDatabase(): void {
+    drop(db);
 }

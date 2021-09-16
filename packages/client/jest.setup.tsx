@@ -4,6 +4,7 @@ import {
     YoutubeIframeRef,
 } from 'react-native-youtube-iframe';
 import { cleanup } from './services/websockets';
+import { dropDatabase } from './tests/data';
 import { server } from './tests/server/test-server';
 
 jest.setTimeout(20_000);
@@ -106,4 +107,7 @@ beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterAll(() => server.close());
 afterEach(() => server.resetHandlers());
 
-afterEach(() => cleanup());
+beforeEach(() => {
+    cleanup();
+    dropDatabase();
+});

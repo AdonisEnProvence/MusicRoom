@@ -1222,7 +1222,10 @@ describe('Create mtv room with custom settings', () => {
                         name: 'TEMPORARY ROOM NAME',
                         playing: false,
                         usersLength: 1,
+                        roomHasTimeAndPositionConstraints: false,
+                        timeConstraintIsValid: null,
                         userRelatedInformation: {
+                            userFitsPositionConstraint: null,
                             emittingDeviceID: datatype.uuid(),
                             userID,
                             tracksVotedFor: [],

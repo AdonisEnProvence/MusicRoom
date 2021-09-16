@@ -1,6 +1,5 @@
 import { UserDevice } from '@musicroom/types';
 import * as Location from 'expo-location';
-import { LocationObject } from 'expo-location';
 import Toast from 'react-native-toast-message';
 import {
     assign,
@@ -19,7 +18,7 @@ export type AppUserMachineContext = {
     currDeviceID: string | undefined;
 
     locationPermission: boolean;
-    location?: LocationObject;
+    location?: Location.LocationObject;
 };
 
 type CreateUserMachineArgs = {

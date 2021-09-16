@@ -900,7 +900,10 @@ export const createAppMusicPlayerMachine = ({
                         RETRIEVE_CONTEXT: {
                             target: '.connectedToRoom',
 
-                            actions: 'assignMergeNewState',
+                            actions: [
+                                'assignMergeNewState',
+                                'ifRoomHasPositionConstraintsAskForLocationPermission',
+                            ],
                         },
 
                         JOINED_CREATED_ROOM: {

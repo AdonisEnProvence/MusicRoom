@@ -102,6 +102,14 @@ jest.mock('react-native-toast-message', () => ({
     hide: jest.fn(),
 }));
 
+jest.mock('expo-location', () => ({
+    requestForegroundPermissionsAsync: jest.fn(() => {
+        console.log('*'.repeat(100));
+        return false;
+    }),
+    getCurrentPositionAsync: jest.fn(),
+}));
+
 // Set up MSW before all tests, close MSW after all tests and clear temporary listeners after each test.
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterAll(() => server.close());

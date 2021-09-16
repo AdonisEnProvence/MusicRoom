@@ -31,10 +31,7 @@ export const UserContextProvider: React.FC<UserContextProviderProps> = ({
         locationPollingTickDelay,
     });
     const [state, send] = useMachine(appMusicPlayerMachine);
-    //At the app startup ask for location permissions once
-    send({
-        type: 'REQUEST_LOCATION_PERMISSION',
-    });
+
     return (
         <UserContext.Provider
             value={{

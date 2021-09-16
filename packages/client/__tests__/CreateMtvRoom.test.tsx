@@ -167,22 +167,14 @@ const createMtvRoomWithSettingsMachine =
             searchTracksResults: {
                 meta: {
                     test: async ({ screen, fakeTrack }: TestingContext) => {
-                        try {
-                            await waitFor(() =>
-                                expect(
-                                    screen.getByText(/results/i),
-                                ).toBeTruthy(),
-                            );
+                        await waitFor(() =>
+                            expect(screen.getByText(/results/i)).toBeTruthy(),
+                        );
 
-                            const trackResultListItem = await screen.findByText(
-                                fakeTrack.title,
-                            );
-                            expect(trackResultListItem).toBeTruthy();
-                        } catch (err) {
-                            screen.debug();
-                            expect(true).toBeFalsy();
-                            throw err;
-                        }
+                        const trackResultListItem = await screen.findByText(
+                            fakeTrack.title,
+                        );
+                        expect(trackResultListItem).toBeTruthy();
                     },
                 },
 

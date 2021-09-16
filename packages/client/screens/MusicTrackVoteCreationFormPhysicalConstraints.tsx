@@ -13,6 +13,15 @@ import { SERVER_ENDPOINT } from '../constants/Endpoints';
 import { useCreationMtvRoomFormMachine } from '../contexts/MusicPlayerContext';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 import { MusicTrackVoteCreationFormPhysicalConstraintsScreenProps } from '../types';
+import { Controller, useForm } from 'react-hook-form';
+import { isAfter, isFuture } from 'date-fns';
+
+interface FormFieldValues {
+    place: { id: string; label: string };
+    radius: number;
+    startsAt: Date;
+    endsAt: Date;
+}
 
 const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
     MusicTrackVoteCreationFormPhysicalConstraintsScreenProps & {
@@ -23,6 +32,12 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
 
     const sx = useSx();
     const [state, send] = useActor(mtvRoomCreationActor);
+    const {
+        control,
+        handleSubmit,
+        getValues,
+        formState: { errors },
+    } = useForm<FormFieldValues>();
 
     const hasPhysicalConstraints = state.hasTag('hasPhysicalConstraints');
     const physicalConstraintRadius = state.context.physicalConstraintRadius;
@@ -100,7 +115,22 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
         <MtvRoomCreationFormScreen
             title="Do you want to restrict voting right to physical constraints?"
             onBackButtonPress={handleGoBack}
-            onNextButtonPress={handleGoNext}
+            onNextButtonPress={handleSubmit(
+                ({ place, radius, startsAt, endsAt }) => {
+                    if (place !== undefined) {
+                        handlePhysicalConstraintPlaceChange(
+                            place.id,
+                            place.label,
+                        );
+                    }
+
+                    handlePhysicalConstraintRadiusChange(String(radius));
+                    handlePhysicalConstraintStartsAtChange(startsAt);
+                    handlePhysicalConstraintEndsAtChange(endsAt);
+
+                    handleGoNext();
+                },
+            )}
             Content={
                 <>
                     <View
@@ -140,126 +170,244 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                                 Select the constraints you want
                             </Text>
 
-                            <GooglePlacesAutocomplete
-                                minLength={20}
-                                placeholder="Place"
-                                onPress={(data, details = null) => {
-                                    console.log(data);
-                                    handlePhysicalConstraintPlaceChange(
-                                        data.place_id,
-                                        data.description,
+                            <Controller
+                                control={control}
+                                rules={{
+                                    required: true,
+                                }}
+                                render={({
+                                    field: { onChange, onBlur, value },
+                                }) => (
+                                    <GooglePlacesAutocomplete
+                                        placeholder="Place"
+                                        onPress={(data, details = null) => {
+                                            // handlePhysicalConstraintPlaceChange(
+                                            //     data.description,
+                                            // );
+
+                                            onChange({
+                                                id: data.place_id,
+                                                label: data.description,
+                                            });
+                                            onBlur();
+                                        }}
+                                        query={{
+                                            key: GOOGLE_PLACES_API_KEY,
+                                            language: 'fr',
+                                        }}
+                                        requestUrl={{
+                                            useOnPlatform: 'all',
+                                            url: PLACES_API_PROXY_URL,
+                                        }}
+                                        textInputProps={{
+                                            placeholderTextColor: 'white',
+                                        }}
+                                        styles={{
+                                            container: {
+                                                flex: undefined,
+                                                flexGrow: 1,
+                                                flexShrink: 1,
+                                            },
+
+                                            textInput: [
+                                                textFieldStyles,
+                                                {
+                                                    height: null,
+                                                    paddingVertical: null,
+                                                    paddingHorizontal: null,
+                                                    marginBottom: null,
+                                                },
+                                                sx({
+                                                    marginTop: 'm',
+                                                }),
+                                            ],
+                                        }}
+                                    />
+                                )}
+                                name="place"
+                                defaultValue={undefined}
+                            />
+                            {errors.place && (
+                                <Text sx={{ color: 'red', marginTop: 's' }}>
+                                    A place must be set.
+                                </Text>
+                            )}
+
+                            <Controller
+                                control={control}
+                                rules={{
+                                    required: true,
+                                }}
+                                render={({ field: { onChange, value } }) => {
+                                    console.log('value', value);
+
+                                    return (
+                                        <PickerSelect
+                                            placeholder={{
+                                                label: 'Radius',
+                                                value: undefined,
+                                                color: '#9EA0A4',
+                                            }}
+                                            items={[
+                                                {
+                                                    key: '30',
+                                                    label: '30',
+                                                    value: '30',
+                                                },
+                                                {
+                                                    key: '50',
+                                                    label: '50',
+                                                    value: '50',
+                                                },
+                                                {
+                                                    key: '70',
+                                                    label: '70',
+                                                    value: '70',
+                                                },
+                                            ]}
+                                            value={value}
+                                            onValueChange={(radius) => {
+                                                if (radius === undefined) {
+                                                    return;
+                                                }
+
+                                                const availableRadii = [
+                                                    '30',
+                                                    '50',
+                                                    '70',
+                                                ];
+                                                if (
+                                                    availableRadii.includes(
+                                                        radius,
+                                                    )
+                                                ) {
+                                                    onChange(radius);
+
+                                                    return;
+                                                }
+
+                                                onChange(undefined);
+                                            }}
+                                            // onClose={onBlur}
+                                            useNativeAndroidPickerStyle={false}
+                                            style={
+                                                {
+                                                    inputIOS: [
+                                                        sx({
+                                                            marginTop: 'm',
+                                                            paddingRight: 'xl',
+                                                        }),
+                                                        textFieldStyles,
+                                                    ],
+
+                                                    inputAndroid: [
+                                                        sx({
+                                                            marginTop: 'm',
+                                                            paddingRight: 'xl',
+                                                        }),
+                                                        textFieldStyles,
+                                                    ],
+
+                                                    inputWeb: [
+                                                        sx({
+                                                            marginTop: 'm',
+                                                            paddingRight: 'xl',
+                                                        }),
+                                                        textFieldStyles,
+                                                    ],
+                                                } as any
+                                            }
+                                        />
                                     );
                                 }}
-                                query={{
-                                    key: GOOGLE_PLACES_API_KEY,
-                                    language: 'fr',
-                                }}
-                                requestUrl={{
-                                    useOnPlatform: 'all',
-                                    url: PLACES_API_PROXY_URL,
-                                }}
-                                textInputProps={{
-                                    placeholderTextColor: 'white',
-                                }}
-                                styles={{
-                                    container: {
-                                        flex: 0,
-                                        flexGrow: 1,
-                                        flexShrink: 1,
-                                    },
-
-                                    textInput: [
-                                        textFieldStyles,
-                                        {
-                                            height: null,
-                                            paddingVertical: null,
-                                            paddingHorizontal: null,
-                                            marginBottom: null,
-                                        },
-                                        sx({
-                                            marginTop: 'm',
-                                        }),
-                                    ],
-                                }}
+                                name="radius"
+                                defaultValue={undefined}
                             />
-
-                            <PickerSelect
-                                placeholder={{
-                                    label: 'Radius',
-                                    value: '',
-                                    color: '#9EA0A4',
-                                }}
-                                items={[
-                                    {
-                                        key: '30',
-                                        label: '30',
-                                        value: 30,
-                                    },
-                                    {
-                                        key: '50',
-                                        label: '50',
-                                        value: 50,
-                                    },
-                                    {
-                                        key: '70',
-                                        label: '70',
-                                        value: 70,
-                                    },
-                                ]}
-                                value={physicalConstraintRadius}
-                                onValueChange={
-                                    handlePhysicalConstraintRadiusChange
-                                }
-                                useNativeAndroidPickerStyle={false}
-                                style={
-                                    {
-                                        inputIOS: [
-                                            sx({
-                                                marginTop: 'm',
-                                                paddingRight: 'xl',
-                                            }),
-                                            textFieldStyles,
-                                        ],
-
-                                        inputAndroid: [
-                                            sx({
-                                                marginTop: 'm',
-                                                paddingRight: 'xl',
-                                            }),
-                                            textFieldStyles,
-                                        ],
-
-                                        inputWeb: [
-                                            sx({
-                                                marginTop: 'm',
-                                                paddingRight: 'xl',
-                                            }),
-                                            textFieldStyles,
-                                        ],
-                                    } as any
-                                }
-                            />
+                            {errors.radius && (
+                                <Text sx={{ color: 'red', marginTop: 's' }}>
+                                    A radius must be set.
+                                </Text>
+                            )}
 
                             <View sx={{ marginTop: 'm' }}>
-                                <MtvRoomCreationFormDatePicker
-                                    date={physicalConstraintStartsAt}
-                                    title="Starts at"
-                                    onConfirm={
-                                        handlePhysicalConstraintStartsAtChange
-                                    }
-                                    testID="starts-at-datetime-picker"
+                                <Controller
+                                    control={control}
+                                    rules={{
+                                        validate: {
+                                            isFuture: (startsAt) => {
+                                                console.log(
+                                                    'starts at vs now',
+                                                    startsAt,
+                                                    new Date(),
+                                                );
+
+                                                return (
+                                                    isFuture(startsAt) ||
+                                                    'The event should start at a future date.'
+                                                );
+                                            },
+                                        },
+                                    }}
+                                    render={({
+                                        field: { onChange, value },
+                                    }) => (
+                                        <MtvRoomCreationFormDatePicker
+                                            date={value}
+                                            minimiumDate={new Date()}
+                                            title="Starts at"
+                                            onConfirm={onChange}
+                                            testID="starts-at-datetime-picker"
+                                        />
+                                    )}
+                                    name="startsAt"
+                                    defaultValue={physicalConstraintStartsAt}
                                 />
+                                {errors.startsAt && (
+                                    <Text sx={{ color: 'red', marginTop: 's' }}>
+                                        {errors.startsAt.message}
+                                    </Text>
+                                )}
                             </View>
 
                             <View sx={{ marginTop: 'm' }}>
-                                <MtvRoomCreationFormDatePicker
-                                    date={physicalConstraintEndsAt}
-                                    title="Ends at"
-                                    onConfirm={
-                                        handlePhysicalConstraintEndsAtChange
-                                    }
-                                    testID="ends-at-datetime-picker"
+                                <Controller
+                                    control={control}
+                                    rules={{
+                                        validate: {
+                                            isAfterStartsAt: (endsAt) => {
+                                                const startsAt =
+                                                    getValues('startsAt');
+
+                                                return (
+                                                    isAfter(endsAt, startsAt) ||
+                                                    'The event end date must be after its beginning.'
+                                                );
+                                            },
+                                        },
+                                    }}
+                                    render={({
+                                        field: { onChange, value },
+                                    }) => {
+                                        const startsAt = getValues('startsAt');
+
+                                        return (
+                                            <MtvRoomCreationFormDatePicker
+                                                date={value}
+                                                minimiumDate={startsAt}
+                                                title="Ends at"
+                                                onConfirm={onChange}
+                                                testID="ends-at-datetime-picker"
+                                            />
+                                        );
+                                    }}
+                                    name="endsAt"
+                                    defaultValue={physicalConstraintEndsAt}
                                 />
+                                {errors.endsAt && (
+                                    <Text sx={{ color: 'red', marginTop: 's' }}>
+                                        {errors.endsAt.message}
+                                    </Text>
+                                )}
                             </View>
                         </View>
                     )}

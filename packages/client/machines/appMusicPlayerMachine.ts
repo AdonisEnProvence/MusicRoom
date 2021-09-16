@@ -463,7 +463,7 @@ export const createAppMusicPlayerMachine = ({
                                     on: {
                                         JOINED_CREATED_ROOM: {
                                             target: 'roomIsNotReady',
-                                            actions: 'assignMergeNewState',
+                                            actions: ['assignMergeNewState'],
                                         },
                                     },
                                 },
@@ -490,6 +490,8 @@ export const createAppMusicPlayerMachine = ({
 
                             onDone: {
                                 target: 'connectedToRoom',
+                                actions:
+                                    'ifRoomHasPositionConstraintsAskForLocationPermission',
                             },
                         },
 
@@ -519,7 +521,10 @@ export const createAppMusicPlayerMachine = ({
                                         );
                                     },
 
-                                    actions: 'assignMergeNewState',
+                                    actions: [
+                                        'assignMergeNewState',
+                                        'ifRoomHasPositionConstraintsAskForLocationPermission',
+                                    ],
                                 },
                             },
                         },

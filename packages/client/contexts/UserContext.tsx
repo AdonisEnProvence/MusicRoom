@@ -25,8 +25,16 @@ export const UserContextProvider: React.FC<UserContextProviderProps> = ({
     socket,
     children,
 }) => {
-    const appMusicPlayerMachine = createUserMachine({ socket });
+    const locationPollingTickDelay = 30000;
+    const appMusicPlayerMachine = createUserMachine({
+        socket,
+        locationPollingTickDelay,
+    });
     const [state, send] = useMachine(appMusicPlayerMachine);
+    //At the app startup ask for location permissions once
+    send({
+        type: 'REQUEST_LOCATION_PERMISSION',
+    });
     return (
         <UserContext.Provider
             value={{

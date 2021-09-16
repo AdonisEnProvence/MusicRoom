@@ -23,6 +23,7 @@ export type AppUserMachineContext = {
 };
 
 type CreateUserMachineArgs = {
+    locationPollingTickDelay: number;
     socket: SocketClient;
 };
 
@@ -57,6 +58,7 @@ export type AppUserMachineEvent =
       };
 
 export const createUserMachine = ({
+    locationPollingTickDelay,
     socket,
 }: CreateUserMachineArgs): StateMachine<
     AppUserMachineContext,
@@ -177,7 +179,7 @@ export const createUserMachine = ({
 
                                 waitForNextTick: {
                                     after: {
-                                        1000: [
+                                        LOCATION_POLLING_TICK_DELAY: [
                                             {
                                                 target: 'retrieveCurrentLocation',
                                                 cond: 'locationPermissionsAreGranted',
@@ -283,6 +285,10 @@ export const createUserMachine = ({
                         location: event.location,
                     };
                 }),
+            },
+
+            delays: {
+                LOCATION_POLLING_TICK_DELAY: locationPollingTickDelay,
             },
 
             guards: {

@@ -23,6 +23,7 @@ import {
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 import { navigateFromRef } from '../navigation/RootNavigation';
 import { Socket } from '../services/websockets';
+import { useUserContext } from './UserContext';
 
 type MusicPlayerContextValue = {
     sendToMachine: Sender<AppMusicPlayerMachineEvent>;
@@ -45,6 +46,7 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
         const playerRef = useRef<MusicPlayerRef | null>(null);
         const { isFullScreen, setIsFullScreen, toggleIsFullScreen } =
             useMusicPlayerToggleFullScreen(false);
+        const { sendToUserMachine } = useUserContext();
 
         const appMusicPlayerMachine = createAppMusicPlayerMachine({ socket });
         const [state, send] = useMachine(appMusicPlayerMachine, {
@@ -94,6 +96,16 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
                 },
             },
             actions: {
+                ifRoomHasPositionConstraintsAskForLocationPermission: (
+                    context,
+                ) => {
+                    if (context.roomHasTimeAndPositionConstraints) {
+                        sendToUserMachine({
+                            type: 'REQUEST_LOCATION_PERMISSION',
+                        });
+                    }
+                },
+
                 leaveRoomFromLeaveRoomButton: () => {
                     setIsFullScreen(false);
                     navigateFromRef('HomeScreen');

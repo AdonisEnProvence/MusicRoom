@@ -46,7 +46,7 @@ test.group(
                         tracks: null,
                         roomHasTimeAndPositionConstraints: false,
                         timeConstraintIsValid: null,
-                        mode: 'BROADCAST',
+                        playingMode: 'BROADCAST',
                         userRelatedInformation: {
                             userFitsPositionConstraint: null,
                             userID: userID,
@@ -194,7 +194,7 @@ test.group(
                         roomCreatorUserID: userID,
                         roomID: workflowID,
                         tracks: null,
-                        mode: 'BROADCAST',
+                        playingMode: 'BROADCAST',
 
                         roomHasTimeAndPositionConstraints: false,
                         timeConstraintIsValid: null,
@@ -263,7 +263,7 @@ test.group(
                         roomCreatorUserID: userID,
                         roomID: workflowID,
                         tracks: null,
-                        mode: 'BROADCAST',
+                        playingMode: 'BROADCAST',
                         roomHasTimeAndPositionConstraints: false,
                         timeConstraintIsValid: null,
                         userRelatedInformation: {

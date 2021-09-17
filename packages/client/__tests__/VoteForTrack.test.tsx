@@ -23,7 +23,7 @@ After the vote has been accepted the score will be updated and the card disabled
         roomID: datatype.uuid(),
         name: random.word(),
         playing: false,
-        mode: 'BROADCAST',
+        playingMode: 'BROADCAST',
         usersLength: 1,
         roomHasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,

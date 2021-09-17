@@ -22,7 +22,7 @@ test(`It should display the music player corresponding to the injected state on 
         name: roomName,
         playing: false,
         usersLength: 1,
-        mode: 'BROADCAST',
+        playingMode: 'BROADCAST',
         roomHasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
         userRelatedInformation: {
@@ -123,7 +123,7 @@ test(`It should display the music player corresponding to the injected state on 
         name: roomName,
         playing: false,
         usersLength: 1,
-        mode: 'BROADCAST',
+        playingMode: 'BROADCAST',
         roomHasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
         userRelatedInformation: {
@@ -210,7 +210,7 @@ test(`It should display the already elapsed track duration and player should be 
         name: roomName,
         playing: true,
         usersLength: 1,
-        mode: 'BROADCAST',
+        playingMode: 'BROADCAST',
         roomHasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
         userRelatedInformation: {

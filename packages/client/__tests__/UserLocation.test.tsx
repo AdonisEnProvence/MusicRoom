@@ -77,7 +77,7 @@ describe('User device location tests', () => {
             name: random.words(),
             roomID: datatype.uuid(),
             playing: false,
-            mode: 'BROADCAST',
+            playingMode: 'BROADCAST',
             roomCreatorUserID,
             roomHasTimeAndPositionConstraints: true,
             timeConstraintIsValid: true,

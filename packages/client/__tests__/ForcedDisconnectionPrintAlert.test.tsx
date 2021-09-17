@@ -30,7 +30,7 @@ test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it 
         usersLength: 1,
         roomHasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
-        mode: 'BROADCAST',
+        playingMode: 'BROADCAST',
         userRelatedInformation: {
             userFitsPositionConstraint: null,
             emittingDeviceID: datatype.uuid(),

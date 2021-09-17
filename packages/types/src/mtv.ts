@@ -28,8 +28,8 @@ export const UserRelatedInformation = z.object({
 });
 export type UserRelatedInformation = z.infer<typeof UserRelatedInformation>;
 
-export const MtvModes = z.union([z.literal('DIRECT'), z.literal('BROADCAST')]);
-export type MtvModes = z.infer<typeof MtvModes>;
+export const MtvPlayingModes = z.enum(['DIRECT', 'BROADCAST']);
+export type MtvPlayingModes = z.infer<typeof MtvPlayingModes>;
 
 export const MtvWorkflowState = z.object({
     roomID: z.string().uuid(),
@@ -37,7 +37,7 @@ export const MtvWorkflowState = z.object({
     playing: z.boolean(),
     name: z.string(),
     userRelatedInformation: UserRelatedInformation.nullable(),
-    mode: MtvModes,
+    playingMode: MtvPlayingModes,
     usersLength: z.number(),
     currentTrack: CurrentTrack.nullable(),
     tracks: z.array(TrackMetadataWithScore).nullable(),

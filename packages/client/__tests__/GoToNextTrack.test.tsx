@@ -25,7 +25,7 @@ test(`When the user clicks on next track button, it should play the next track, 
         playing: false,
         roomCreatorUserID,
         usersLength: 1,
-        mode: 'BROADCAST',
+        playingMode: 'BROADCAST',
         roomHasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
         userRelatedInformation: {

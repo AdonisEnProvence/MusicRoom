@@ -110,7 +110,7 @@ const rawContext: AppMusicPlayerMachineContext = {
     waitingRoomID: undefined,
     progressElapsedTime: 0,
     initialTracksIDs: undefined,
-    mode: 'BROADCAST',
+    playingMode: 'BROADCAST',
     closeSuggestionModal: undefined,
     roomHasTimeAndPositionConstraints: false,
     timeConstraintIsValid: null,
@@ -440,7 +440,7 @@ export const createAppMusicPlayerMachine = ({
                                                         hasPhysicalConstraints,
                                                     isOpen,
 
-                                                    mode: playingMode,
+                                                    playingMode: playingMode,
                                                     isOpenOnlyInvitedUsersCanVote:
                                                         onlyInvitedUsersCanVote,
                                                     minimumScoreToBePlayed:

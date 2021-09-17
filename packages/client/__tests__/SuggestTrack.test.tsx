@@ -25,7 +25,7 @@ test(`A user can suggest tracks to play`, async () => {
         name: random.words(),
         roomID: datatype.uuid(),
         playing: false,
-        mode: 'BROADCAST',
+        playingMode: 'BROADCAST',
         roomCreatorUserID,
         roomHasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,

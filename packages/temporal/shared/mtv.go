@@ -245,6 +245,25 @@ type MtvRoomPhysicalAndTimeConstraints struct {
 	PhysicalConstraintEndsAt   time.Time     `json:"physicalConstraintEndsAt" validate:"required"`
 }
 
+type MtvPlayingModes string
+
+func (m MtvPlayingModes) IsValid() bool {
+	for _, mode := range MtvPlayingModesAllValues {
+		if mode == m {
+			return true
+		}
+	}
+
+	return false
+}
+
+const (
+	MtvPlayingModeDirect    MtvPlayingModes = "DIRECT"
+	MtvPlayingModeBroadcast MtvPlayingModes = "BROADCAST"
+)
+
+var MtvPlayingModesAllValues = [...]MtvPlayingModes{MtvPlayingModeDirect, MtvPlayingModeBroadcast}
+
 type MtvRoomParameters struct {
 	RoomID                 string
 	RoomCreatorUserID      string
@@ -259,6 +278,7 @@ type MtvRoomParameters struct {
 	IsOpenOnlyInvitedUsersCanVote bool
 	HasPhysicalAndTimeConstraints bool
 	PhysicalAndTimeConstraints    *MtvRoomPhysicalAndTimeConstraints
+	PlayingMode                   MtvPlayingModes
 }
 
 func (p MtvRoomParameters) Export() MtvRoomExposedState {
@@ -269,6 +289,7 @@ func (p MtvRoomParameters) Export() MtvRoomExposedState {
 		RoomName:               p.RoomName,
 		UserRelatedInformation: p.InitialUsers[p.RoomCreatorUserID],
 		MinimumScoreToBePlayed: p.MinimumScoreToBePlayed,
+		PlayingMode:            p.PlayingMode,
 	}
 }
 
@@ -284,6 +305,7 @@ type MtvRoomExposedState struct {
 	UsersLength                       int                                  `json:"usersLength"`
 	RoomHasTimeAndPositionConstraints bool                                 `json:"roomHasTimeAndPositionConstraints"`
 	TimeConstraintIsValid             *bool                                `json:"timeConstraintIsValid"`
+	PlayingMode                       MtvPlayingModes                      `json:"playingMode"`
 }
 
 type SignalRoute string

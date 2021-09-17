@@ -370,6 +370,7 @@ type CreateRoomRequestBody struct {
 	IsOpenOnlyInvitedUsersCanVote bool                                      `json:"isOpenOnlyInvitedUsersCanVote"`
 	HasPhysicalAndTimeConstraints bool                                      `json:"hasPhysicalAndTimeConstraints"`
 	PhysicalAndTimeConstraints    *shared.MtvRoomPhysicalAndTimeConstraints `json:"physicalAndTimeConstraints" validate:"required_if=HasPhysicalAndTimeConstraints true"`
+	PlayingMode                   shared.MtvPlayingModes                    `json:"playingMode" validate:"required"`
 }
 
 type CreateRoomResponse struct {
@@ -393,6 +394,12 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := validate.Struct(body); err != nil {
 		log.Println("create room validation error", err)
+		WriteError(w, err)
+		return
+	}
+
+	if !body.PlayingMode.IsValid() {
+		log.Println("mode is invalid", err)
 		WriteError(w, err)
 		return
 	}
@@ -446,6 +453,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		IsOpenOnlyInvitedUsersCanVote: body.IsOpenOnlyInvitedUsersCanVote,
 		HasPhysicalAndTimeConstraints: body.HasPhysicalAndTimeConstraints,
 		PhysicalAndTimeConstraints:    nil,
+		PlayingMode:                   body.PlayingMode,
 	}
 
 	if body.PhysicalAndTimeConstraints != nil {

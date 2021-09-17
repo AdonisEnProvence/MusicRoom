@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -86,6 +87,7 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 		RoomHasTimeAndPositionConstraints: s.initialParams.HasPhysicalAndTimeConstraints,
 		TimeConstraintIsValid:             s.GetTimeConstraintValue(),
 		UserRelatedInformation:            s.GetUserRelatedInformation(RelatedUserID),
+		PlayingMode:                       s.initialParams.PlayingMode,
 	}
 
 	return exposedState
@@ -229,9 +231,13 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 		internalState MtvRoomInternalState
 	)
 
-	internalState.FillWith(params)
-
 	logger := workflow.GetLogger(ctx)
+
+	if !params.PlayingMode.IsValid() {
+		logger.Info("Workflow creation failed, playingMode is invalid", "Error", err)
+		return errors.New("workflow creation failed, playingMode is invalid")
+	}
+	internalState.FillWith(params)
 
 	if err := workflow.SetQueryHandler(
 		ctx,

@@ -12,7 +12,8 @@ const MtvRoomCreationFormDatePickerWeb: React.FC<MtvRoomCreationFormDatePickerPr
     ({ title, date, minimiumDate, maximumDate, onConfirm }) => {
         const sx = useSx();
         const textFieldStyles = useTextFieldStyles();
-        const formattedDateForInputValue = formatDateToDatetimeLocal(date);
+        const formattedDateForInputValue =
+            date !== undefined ? formatDateToDatetimeLocal(date) : '';
         const formattedMinimumDateForInputValue =
             minimiumDate !== undefined
                 ? formatDateToDatetimeLocal(minimiumDate)
@@ -41,6 +42,13 @@ const MtvRoomCreationFormDatePickerWeb: React.FC<MtvRoomCreationFormDatePickerPr
                     min={formattedMinimumDateForInputValue}
                     max={formattedMaximumDateForInputValue}
                     onChange={({ target: { value } }) => {
+                        const isEmptyDate = value === '';
+                        if (isEmptyDate) {
+                            onConfirm(undefined);
+
+                            return;
+                        }
+
                         const dateFromText = new Date(value);
 
                         onConfirm(dateFromText);

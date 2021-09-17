@@ -19,8 +19,8 @@ import { isAfter, isFuture } from 'date-fns';
 interface FormFieldValues {
     place: { id: string; label: string };
     radius: number;
-    startsAt: Date;
-    endsAt: Date;
+    startsAt: Date | undefined;
+    endsAt: Date | undefined;
 }
 
 const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
@@ -125,8 +125,13 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                     }
 
                     handlePhysicalConstraintRadiusChange(String(radius));
-                    handlePhysicalConstraintStartsAtChange(startsAt);
-                    handlePhysicalConstraintEndsAtChange(endsAt);
+
+                    if (startsAt !== undefined) {
+                        handlePhysicalConstraintStartsAtChange(startsAt);
+                    }
+                    if (endsAt !== undefined) {
+                        handlePhysicalConstraintEndsAtChange(endsAt);
+                    }
 
                     handleGoNext();
                 },
@@ -334,12 +339,17 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                                     control={control}
                                     rules={{
                                         validate: {
-                                            isFuture: (startsAt) => {
-                                                console.log(
-                                                    'starts at vs now',
-                                                    startsAt,
-                                                    new Date(),
+                                            isRequired: (startsAt) => {
+                                                return (
+                                                    startsAt !== undefined ||
+                                                    'The start date is required.'
                                                 );
+                                            },
+
+                                            isFuture: (startsAt) => {
+                                                if (startsAt === undefined) {
+                                                    return false;
+                                                }
 
                                                 return (
                                                     isFuture(startsAt) ||
@@ -374,9 +384,23 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                                     control={control}
                                     rules={{
                                         validate: {
+                                            isRequired: (endsAt) => {
+                                                return (
+                                                    endsAt !== undefined ||
+                                                    'The end date is required.'
+                                                );
+                                            },
+
                                             isAfterStartsAt: (endsAt) => {
                                                 const startsAt =
                                                     getValues('startsAt');
+
+                                                if (
+                                                    endsAt === undefined ||
+                                                    startsAt === undefined
+                                                ) {
+                                                    return false;
+                                                }
 
                                                 return (
                                                     isAfter(endsAt, startsAt) ||

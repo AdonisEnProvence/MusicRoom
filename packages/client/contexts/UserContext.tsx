@@ -25,7 +25,9 @@ export const UserContextProvider: React.FC<UserContextProviderProps> = ({
     socket,
     children,
 }) => {
-    const locationPollingTickDelay = 30000;
+    const locationPollingTickDelay =
+        process.env.NODE_ENV === 'test' ? 10 : 30000;
+
     const appMusicPlayerMachine = createUserMachine({
         socket,
         locationPollingTickDelay,

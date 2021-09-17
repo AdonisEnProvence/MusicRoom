@@ -1,5 +1,9 @@
 import { UserDevice } from '@musicroom/types';
-import * as Location from 'expo-location';
+import {
+    getCurrentPositionAsync,
+    LocationObject,
+    requestForegroundPermissionsAsync,
+} from 'expo-location';
 import Toast from 'react-native-toast-message';
 import {
     assign,
@@ -18,7 +22,7 @@ export type AppUserMachineContext = {
     currDeviceID: string | undefined;
 
     locationPermission: boolean;
-    location?: Location.LocationObject;
+    location?: LocationObject;
 };
 
 type CreateUserMachineArgs = {
@@ -53,7 +57,7 @@ export type AppUserMachineEvent =
       }
     | {
           type: 'UPDATE_CURRENT_LOCATION';
-          location: Location.LocationObject;
+          location: LocationObject;
       };
 
 export const createUserMachine = ({
@@ -323,7 +327,7 @@ export const createUserMachine = ({
                         try {
                             console.log('WOWO THIS IS REALLY COOL');
                             const { status } =
-                                await Location.requestForegroundPermissionsAsync();
+                                await requestForegroundPermissionsAsync();
                             if (status !== 'granted') {
                                 console.error(
                                     'Permission to access location was denied',
@@ -348,14 +352,12 @@ export const createUserMachine = ({
                         }
 
                         console.log('asking for current location');
-                        const location = await Location.getCurrentPositionAsync(
-                            {
-                                accuracy: Location.Accuracy.High,
-                                distanceInterval: 100,
-                                mayShowUserSettingsDialog: false,
-                                timeInterval: 1,
-                            },
-                        );
+                        const location = await getCurrentPositionAsync({
+                            accuracy: 4,
+                            distanceInterval: 100,
+                            mayShowUserSettingsDialog: false,
+                            timeInterval: 1,
+                        });
                         console.log(location.coords);
                         let needToUpdatePosition = true;
                         if (context.location !== undefined) {
@@ -385,7 +387,7 @@ export const createUserMachine = ({
                             });
                         }
                     } catch (e) {
-                        console.error('Permission are false');
+                        console.error(e);
                         sendBack({
                             type: 'UPDATE_CURRENT_LOCATION_FAIL',
                         });

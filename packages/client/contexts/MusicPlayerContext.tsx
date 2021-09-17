@@ -2,14 +2,7 @@ import { useMachine } from '@xstate/react';
 import React, { useContext, useRef } from 'react';
 import { Platform } from 'react-native';
 import Toast from 'react-native-toast-message';
-import {
-    ContextFrom,
-    EventFrom,
-    Sender,
-    StateFrom,
-    StateMachine,
-} from 'xstate';
-import { createModel } from 'xstate/lib/model';
+import { Sender } from 'xstate';
 import { MusicPlayerRef } from '../components/TheMusicPlayer/Player';
 import {
     MusicPlayerFullScreenProps,

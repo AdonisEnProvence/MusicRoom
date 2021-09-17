@@ -6,7 +6,6 @@ import {
 import { cleanup } from './services/websockets';
 import { dropDatabase } from './tests/data';
 import { server } from './tests/server/test-server';
-
 jest.setTimeout(20_000);
 
 jest.mock('react-native-youtube-iframe', () => {
@@ -103,17 +102,20 @@ jest.mock('react-native-toast-message', () => ({
 }));
 
 jest.mock('expo-location', () => ({
-    requestForegroundPermissionsAsync: jest.fn(() => {
-        console.log('*'.repeat(100));
-        return false;
-    }),
     getCurrentPositionAsync: jest.fn(),
+    requestForegroundPermissionsAsync: jest.fn(() => {
+        return {
+            status: 'notGranted',
+        };
+    }),
 }));
 
 // Set up MSW before all tests, close MSW after all tests and clear temporary listeners after each test.
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterAll(() => server.close());
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+    server.resetHandlers();
+});
 
 beforeEach(() => {
     cleanup();

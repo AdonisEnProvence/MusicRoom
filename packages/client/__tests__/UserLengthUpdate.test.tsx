@@ -26,6 +26,7 @@ test(`
         roomID: datatype.uuid(),
         name: random.word(),
         playing: false,
+        mode: 'BROADCAST',
         usersLength: 1,
         roomHasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,

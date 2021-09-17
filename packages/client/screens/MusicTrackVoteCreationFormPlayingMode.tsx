@@ -1,13 +1,11 @@
+import { MtvModes } from '@musicroom/types';
 import { useActor } from '@xstate/react';
 import { View } from 'dripsy';
 import React from 'react';
 import MtvRoomCreationFormOptionButton from '../components/MtvRoomCreationForm/MtvRoomCreationFormOptionButton';
 import MtvRoomCreationFormScreen from '../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
 import { useCreationMtvRoomFormMachine } from '../contexts/MusicPlayerContext';
-import {
-    CreationMtvRoomFormActorRef,
-    MtvRoomPlayingMode,
-} from '../machines/creationMtvRoomForm';
+import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 import { MusicTrackVoteCreationFormPlayingModeScreenProps } from '../types';
 
 const MusicTrackVoteCreationFormPlayingMode: React.FC<
@@ -32,7 +30,7 @@ const MusicTrackVoteCreationFormPlayingMode: React.FC<
         },
     ];
 
-    function handleSetPlayingMode(playingMode: MtvRoomPlayingMode) {
+    function handleSetPlayingMode(playingMode: MtvModes) {
         return () => {
             send({
                 type: 'SET_PLAYING_MODE',

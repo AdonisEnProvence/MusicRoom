@@ -1,20 +1,18 @@
-import { TrackMetadata } from '@musicroom/types';
+import { MtvModes, TrackMetadata } from '@musicroom/types';
 import {
-    StateMachine,
-    EventFrom,
-    ContextFrom,
-    StateFrom,
-    sendParent,
     ActorRef,
+    ContextFrom,
     DoneInvokeEvent,
+    EventFrom,
+    sendParent,
+    StateFrom,
+    StateMachine,
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import * as z from 'zod';
 import { navigateFromRef } from '../navigation/RootNavigation';
 import { fetchTracksByID } from '../services/search-tracks';
 import { CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents } from './appMusicPlayerMachine';
-
-export type MtvRoomPlayingMode = 'BROADCAST' | 'DIRECT';
 
 export const MtvRoomMinimumVotesForATrackToBePlayed = z.union([
     z.literal(1),
@@ -38,7 +36,7 @@ const creationMtvRoomFormModel = createModel(
         physicalConstraintRadius: 30,
         physicalConstraintStartsAt: new Date(),
         physicalConstraintEndsAt: new Date(),
-        playingMode: 'BROADCAST' as MtvRoomPlayingMode,
+        playingMode: 'BROADCAST' as MtvModes,
         minimumVotesForATrackToBePlayed:
             1 as MtvRoomMinimumVotesForATrackToBePlayed,
     },
@@ -67,7 +65,7 @@ const creationMtvRoomFormModel = createModel(
 
             SET_PHYSICAL_CONSTRAINT_ENDS_AT: (endsAt: Date) => ({ endsAt }),
 
-            SET_PLAYING_MODE: (playingMode: MtvRoomPlayingMode) => ({
+            SET_PLAYING_MODE: (playingMode: MtvModes) => ({
                 playingMode,
             }),
 

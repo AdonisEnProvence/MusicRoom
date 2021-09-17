@@ -1221,6 +1221,7 @@ describe('Create mtv room with custom settings', () => {
                         roomID: datatype.uuid(),
                         name: 'TEMPORARY ROOM NAME',
                         playing: false,
+                        mode: 'BROADCAST',
                         usersLength: 1,
                         roomHasTimeAndPositionConstraints: false,
                         timeConstraintIsValid: null,

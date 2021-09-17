@@ -77,6 +77,7 @@ describe('User device location tests', () => {
             name: random.words(),
             roomID: datatype.uuid(),
             playing: false,
+            mode: 'BROADCAST',
             roomCreatorUserID,
             roomHasTimeAndPositionConstraints: true,
             timeConstraintIsValid: true,
@@ -116,7 +117,7 @@ describe('User device location tests', () => {
             </NavigationContainer>,
         );
 
-        await waitForTimeout(100);
+        await waitForTimeout(1000);
 
         expect(receivedEvents.length).toBe(2);
     });

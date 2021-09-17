@@ -27,6 +27,7 @@ After clicking on one not emitting it should set the clicked one as emitting
         name: random.word(),
         playing: false,
         usersLength: 1,
+        mode: 'BROADCAST',
         roomHasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
         userRelatedInformation: {

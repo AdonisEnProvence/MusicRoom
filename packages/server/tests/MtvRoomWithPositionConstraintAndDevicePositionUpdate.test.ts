@@ -71,6 +71,7 @@ test.group(
                         roomCreatorUserID: datatype.uuid(),
                         playing: false,
                         name: settings.name,
+                        mode: 'BROADCAST',
                         currentTrack: null,
                         roomHasTimeAndPositionConstraints: false,
                         timeConstraintIsValid: null,

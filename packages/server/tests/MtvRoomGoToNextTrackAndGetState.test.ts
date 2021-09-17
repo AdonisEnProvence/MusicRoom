@@ -76,6 +76,7 @@ test.group(
                     return {
                         roomID: mtvRoomIDToAssociate,
                         currentTrack: null,
+                        mode: 'BROADCAST',
                         name: random.word(),
                         playing: false,
                         roomHasTimeAndPositionConstraints: false,

@@ -1,4 +1,5 @@
 import * as z from 'zod';
+import { MtvModes } from '.';
 import {
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
@@ -53,6 +54,7 @@ export const MtvRoomClientToServerCreateArgs = z.object({
     isOpenOnlyInvitedUsersCanVote: z.boolean(),
     hasPhysicalAndTimeConstraints: z.boolean(),
     physicalAndTimeConstraints: MtvRoomPhysicalAndTimeConstraints.optional(),
+    mode: MtvModes,
 });
 
 export type MtvRoomClientToServerCreateArgs = z.infer<

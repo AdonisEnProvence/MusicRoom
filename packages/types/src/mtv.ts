@@ -28,12 +28,16 @@ export const UserRelatedInformation = z.object({
 });
 export type UserRelatedInformation = z.infer<typeof UserRelatedInformation>;
 
+export const MtvModes = z.union([z.literal('DIRECT'), z.literal('BROADCAST')]);
+export type MtvModes = z.infer<typeof MtvModes>;
+
 export const MtvWorkflowState = z.object({
     roomID: z.string().uuid(),
     roomCreatorUserID: z.string().uuid(),
     playing: z.boolean(),
     name: z.string(),
     userRelatedInformation: UserRelatedInformation.nullable(),
+    mode: MtvModes,
     usersLength: z.number(),
     currentTrack: CurrentTrack.nullable(),
     tracks: z.array(TrackMetadataWithScore).nullable(),

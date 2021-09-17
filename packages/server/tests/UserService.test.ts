@@ -31,6 +31,7 @@ test.group(`User service socket handler tests`, (group) => {
         const socket = await createUserAndGetSocket({ userID });
         const state: MtvWorkflowState = {
             currentTrack: null,
+            mode: 'BROADCAST',
             name: random.word(),
             playing: false,
             roomCreatorUserID: userID,

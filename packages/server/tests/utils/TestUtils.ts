@@ -184,5 +184,6 @@ export function getDefaultMtvRoomCreateRoomArgs(
         isOpenOnlyInvitedUsersCanVote:
             override.isOpenOnlyInvitedUsersCanVote || false,
         minimumScoreToBePlayed: override.minimumScoreToBePlayed ?? 1,
+        mode: 'BROADCAST',
     };
 }

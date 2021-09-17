@@ -53,6 +53,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                         timeConstraintIsValid: null,
                         playing: false,
                         name: roomName,
+                        mode: 'BROADCAST',
                         currentTrack: null,
                         userRelatedInformation: {
                             userID,
@@ -126,6 +127,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     roomCreatorUserID: creatorUserID,
                     playing: false,
                     name: roomName,
+                    mode: 'BROADCAST',
                     usersLength: 1,
                     currentTrack: null,
                     roomHasTimeAndPositionConstraints: false,
@@ -162,6 +164,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     roomCreatorUserID: creatorUserID,
                     playing: false,
                     roomID: workflowID,
+                    mode: 'BROADCAST',
                     usersLength: 1,
                     roomHasTimeAndPositionConstraints: false,
                     timeConstraintIsValid: null,
@@ -227,6 +230,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     roomCreatorUserID: datatype.uuid(),
                     roomHasTimeAndPositionConstraints: false,
                     timeConstraintIsValid: null,
+                    mode: 'BROADCAST',
                     tracks: [
                         {
                             id: datatype.uuid(),

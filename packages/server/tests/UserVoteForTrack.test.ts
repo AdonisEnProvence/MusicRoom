@@ -38,6 +38,7 @@ test.group(`User service socket handler tests`, (group) => {
 
         const state: MtvWorkflowState = {
             currentTrack: null,
+            mode: 'BROADCAST',
             minimumScoreToBePlayed: 1,
             name: random.word(),
             playing: false,

@@ -87,6 +87,7 @@ test.group('Rooms life cycle', (group) => {
                     roomID: workflowID, //workflowID === roomID
                     roomCreatorUserID: userID,
                     playing: false,
+                    mode: 'BROADCAST',
                     name: roomName,
                     roomHasTimeAndPositionConstraints: false,
                     timeConstraintIsValid: null,
@@ -192,6 +193,7 @@ test.group('Rooms life cycle', (group) => {
                     name: roomName,
                     roomHasTimeAndPositionConstraints: false,
                     timeConstraintIsValid: null,
+                    mode: 'BROADCAST',
                     userRelatedInformation: {
                         userFitsPositionConstraint: null,
                         emittingDeviceID: datatype.uuid(),

@@ -17,7 +17,7 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
 }) => {
     const MINI_PLAYER_HEIGHT = 52;
     const { state, sendToMachine, setPlayerRef } = useMusicPlayer();
-    const { state: userState } = useUserContext();
+    const { state: userState, sendToUserMachine } = useUserContext();
 
     const isInRoom = state.context.roomID !== '';
     function openPlayerInFullScreen() {
@@ -73,6 +73,7 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
                         dismissFullScreenPlayer={() => {
                             setIsFullScren(false);
                         }}
+                        sendToUserMachine={sendToUserMachine}
                         userState={userState}
                         sendToMachine={sendToMachine}
                         machineState={state}

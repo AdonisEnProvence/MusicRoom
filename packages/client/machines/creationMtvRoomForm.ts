@@ -1,4 +1,4 @@
-import { MtvModes, TrackMetadata } from '@musicroom/types';
+import { MtvPlayingModes, TrackMetadata } from '@musicroom/types';
 import {
     ActorRef,
     ContextFrom,
@@ -36,7 +36,7 @@ const creationMtvRoomFormModel = createModel(
         physicalConstraintRadius: 30,
         physicalConstraintStartsAt: new Date(),
         physicalConstraintEndsAt: new Date(),
-        playingMode: 'BROADCAST' as MtvModes,
+        playingMode: 'BROADCAST' as MtvPlayingModes,
         minimumVotesForATrackToBePlayed:
             1 as MtvRoomMinimumVotesForATrackToBePlayed,
     },
@@ -65,7 +65,7 @@ const creationMtvRoomFormModel = createModel(
 
             SET_PHYSICAL_CONSTRAINT_ENDS_AT: (endsAt: Date) => ({ endsAt }),
 
-            SET_PLAYING_MODE: (playingMode: MtvModes) => ({
+            SET_PLAYING_MODE: (playingMode: MtvPlayingModes) => ({
                 playingMode,
             }),
 

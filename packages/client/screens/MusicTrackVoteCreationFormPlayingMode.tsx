@@ -1,4 +1,4 @@
-import { MtvModes } from '@musicroom/types';
+import { MtvPlayingModes } from '@musicroom/types';
 import { useActor } from '@xstate/react';
 import { View } from 'dripsy';
 import React from 'react';
@@ -30,7 +30,7 @@ const MusicTrackVoteCreationFormPlayingMode: React.FC<
         },
     ];
 
-    function handleSetPlayingMode(playingMode: MtvModes) {
+    function handleSetPlayingMode(playingMode: MtvPlayingModes) {
         return () => {
             send({
                 type: 'SET_PLAYING_MODE',

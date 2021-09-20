@@ -119,13 +119,7 @@ export const createUserMachine = ({
                 locationHandler: {
                     initial: 'idle',
                     states: {
-                        idle: {
-                            on: {
-                                REQUEST_LOCATION_PERMISSION: {
-                                    target: 'requestingLocationPermissions',
-                                },
-                            },
-                        },
+                        idle: {},
 
                         requestingLocationPermissions: {
                             invoke: {
@@ -203,6 +197,12 @@ export const createUserMachine = ({
                                     target: 'requestingLocationPermissions',
                                 },
                             },
+                        },
+                    },
+
+                    on: {
+                        REQUEST_LOCATION_PERMISSION: {
+                            target: '.requestingLocationPermissions',
                         },
                     },
                 },

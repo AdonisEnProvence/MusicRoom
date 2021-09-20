@@ -15,7 +15,13 @@ import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
-import { noop, render, waitForTimeout } from '../tests/tests-utils';
+import {
+    fireEvent,
+    noop,
+    render,
+    waitForTimeout,
+    within,
+} from '../tests/tests-utils';
 
 /* eslint-disable @typescript-eslint/require-await */
 
@@ -108,7 +114,7 @@ describe('User device location tests', () => {
             receivedEvents.push('UPDATE_DEVICE_POSITION');
         });
 
-        render(
+        const { getByTestId, findByA11yState, findByText } = render(
             <NavigationContainer
                 ref={navigationRef}
                 onReady={() => {
@@ -122,5 +128,41 @@ describe('User device location tests', () => {
         await waitForTimeout(1000);
 
         expect(receivedEvents.length).toBe(2);
+        expect(requestForegroundPermissionsAsyncMocked).toBeCalledTimes(1);
+        expect(getCurrentPositionAsyncMocked).toBeCalled();
+        console.log('HELLO');
+
+        const musicPlayerMini = getByTestId('music-player-mini');
+        expect(musicPlayerMini).toBeTruthy();
+
+        fireEvent.press(musicPlayerMini);
+
+        const musicPlayerFullScreen = await findByA11yState({ expanded: true });
+        expect(musicPlayerFullScreen).toBeTruthy();
+
+        /**
+         * Toggle Settings tab
+         * And Search for leave room button
+         */
+
+        const goSettingsButton = within(musicPlayerFullScreen).getByText(
+            /Settings/i,
+        );
+        expect(goSettingsButton).toBeTruthy();
+        fireEvent.press(goSettingsButton);
+
+        expect(await findByText(/settings tab/i)).toBeTruthy();
+
+        /**
+         * Press on the leave room button
+         */
+        const requestLocationButton = within(musicPlayerFullScreen).getByText(
+            /LOCATION/i,
+        );
+        expect(requestLocationButton).toBeTruthy();
+        fireEvent.press(requestLocationButton);
+
+        await waitForTimeout(1000);
+        expect(requestForegroundPermissionsAsyncMocked).toBeCalledTimes(2);
     });
 });

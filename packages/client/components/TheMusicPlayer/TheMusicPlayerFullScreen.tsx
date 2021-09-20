@@ -8,12 +8,14 @@ import { FlatList, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sender } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { TrackMetadataWithScore } from '../../../types/dist';
 import {
     AppMusicPlayerMachineEvent,
     AppMusicPlayerMachineState,
 } from '../../machines/appMusicPlayerMachine';
-import { AppUserMachineState } from '../../machines/appUserMachine';
+import {
+    AppUserMachineEvent,
+    AppUserMachineState,
+} from '../../machines/appUserMachine';
 import { AppScreen, AppScreenContainer, Typo } from '../kit';
 import AppModalHeader from '../kit/AppModalHeader';
 import TrackListItemWithScore from '../Track/TrackListItemWithScore';
@@ -24,6 +26,7 @@ type TheMusicPlayerFullScreenProps = {
     machineState: AppMusicPlayerMachineState;
     dismissFullScreenPlayer: () => void;
     sendToMachine: Sender<AppMusicPlayerMachineEvent>;
+    sendToUserMachine: Sender<AppUserMachineEvent>;
     setPlayerRef: (ref: MusicPlayerRef) => void;
     userState: AppUserMachineState;
 };
@@ -139,6 +142,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     machineState,
     dismissFullScreenPlayer,
     sendToMachine,
+    sendToUserMachine,
     setPlayerRef,
     userState,
 }) => {
@@ -344,6 +348,23 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     <Text sx={{ color: 'white' }}>
                         Welcome to settings tab{' '}
                     </Text>
+                    {context.hasTimeAndPositionConstraints && (
+                        <TouchableOpacity
+                            onPress={() => {
+                                sendToUserMachine({
+                                    type: 'REQUEST_LOCATION_PERMISSION',
+                                });
+                            }}
+                            style={sx({
+                                backgroundColor: 'secondary',
+                                padding: 'l',
+                                borderRadius: 's',
+                                textAlign: 'center',
+                            })}
+                        >
+                            <Text>REQUEST LOCATION</Text>
+                        </TouchableOpacity>
+                    )}
                     <TouchableOpacity
                         onPress={() => {
                             sendToMachine({

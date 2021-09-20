@@ -11,7 +11,7 @@ export default class GeocodingController {
         const response = await client.geocode({
             params: {
                 place_id: placeID,
-                key: Env.get('GOOGLE_PLACES_API_KEY'),
+                key: Env.get('GOOGLE_GEOCODING_API_KEY'),
             },
         });
         const { results } = response.data;

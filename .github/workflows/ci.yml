@@ -68,6 +68,7 @@ jobs:
                   REDIS_PORT: '6379'
                   GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
                   GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+                  GOOGLE_GEOCODING_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
                   HOST: '0.0.0.0'
                   APP_KEY: '-qyExFFunSk4vSAvUiwheisaGicpYVpC'
                   DB_CONNECTION: pg

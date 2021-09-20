@@ -33,6 +33,7 @@ const creationMtvRoomFormModel = createModel(
         onlyInvitedUsersCanVote: false,
         hasPhysicalConstraints: false,
         physicalConstraintPlaceID: '',
+        physicalConstraintPlace: '',
         physicalConstraintRadius: 30,
         physicalConstraintStartsAt: new Date(),
         physicalConstraintEndsAt: new Date(),
@@ -55,7 +56,10 @@ const creationMtvRoomFormModel = createModel(
                 isRestricted,
             }),
 
-            SET_PHYSICAL_CONSTRAINT_PLACE: (placeID: string) => ({ placeID }),
+            SET_PHYSICAL_CONSTRAINT_PLACE: (
+                placeID: string,
+                place: string,
+            ) => ({ placeID, place }),
 
             SET_PHYSICAL_CONSTRAINT_RADIUS: (radius: number) => ({ radius }),
 
@@ -117,8 +121,9 @@ export type CreationMtvRoomFormActorRef = ActorRef<
     CreationMtvRoomFormMachineState
 >;
 
-export type CreationMtvRoomFormDoneInvokeEvent =
-    DoneInvokeEvent<CreationMtvRoomFormMachineContext>;
+export type CreationMtvRoomFormDoneInvokeEvent = DoneInvokeEvent<
+    Omit<CreationMtvRoomFormMachineContext, 'physicalConstraintPlace'>
+>;
 
 export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
     return creationMtvRoomFormModel.createMachine(
@@ -271,7 +276,7 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                         ],
 
                         SET_PHYSICAL_CONSTRAINT_PLACE: {
-                            actions: assignPhysicalConstraintPlaceID,
+                            actions: assignPhysicalConstraintPlaceAndPlaceID,
                         },
 
                         SET_PHYSICAL_CONSTRAINT_RADIUS: {
@@ -394,7 +399,10 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                 confirmed: {
                     type: 'final',
 
-                    data: (context) => context,
+                    data: (context) => {
+                        const { physicalConstraintPlace, ...rest } = context;
+                        return rest;
+                    },
                 },
             },
         },
@@ -451,9 +459,10 @@ const assignHasPhysicalConstraints = creationMtvRoomFormModel.assign(
     'SET_PHYSICAL_CONSTRAINTS_STATUS',
 );
 
-const assignPhysicalConstraintPlaceID = creationMtvRoomFormModel.assign(
+const assignPhysicalConstraintPlaceAndPlaceID = creationMtvRoomFormModel.assign(
     {
         physicalConstraintPlaceID: (_context, { placeID }) => placeID,
+        physicalConstraintPlace: (_context, { place }) => place,
     },
     'SET_PHYSICAL_CONSTRAINT_PLACE',
 );

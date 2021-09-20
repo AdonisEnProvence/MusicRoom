@@ -46,7 +46,7 @@ const MusicTrackVoteCreationFormConfirmation: React.FC<
             ? [
                   {
                       title: 'Geolocation',
-                      value: state.context.physicalConstraintPlaceID,
+                      value: state.context.physicalConstraintPlace,
                   },
 
                   {

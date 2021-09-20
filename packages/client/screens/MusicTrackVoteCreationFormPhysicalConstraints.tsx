@@ -52,9 +52,13 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
         };
     }
 
-    function handlePhysicalConstraintPlaceIDChange(placeID: string) {
+    function handlePhysicalConstraintPlaceChange(
+        placeID: string,
+        place: string,
+    ) {
         send({
             type: 'SET_PHYSICAL_CONSTRAINT_PLACE',
+            place,
             placeID,
         });
     }
@@ -141,8 +145,9 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                                 placeholder="Place"
                                 onPress={(data, details = null) => {
                                     console.log(data);
-                                    handlePhysicalConstraintPlaceIDChange(
+                                    handlePhysicalConstraintPlaceChange(
                                         data.place_id,
+                                        data.description,
                                     );
                                 }}
                                 query={{

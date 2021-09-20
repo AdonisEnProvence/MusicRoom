@@ -2443,10 +2443,6 @@ func (s *UnitTestSuite) Test_LoadedAndEndedCurrentTrackAndNoTrackReadyToBePlayed
 }
 
 func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPositionConstraint() {
-	// var (
-	// 	joiningUserID   = faker.UUIDHyphenated()
-	// 	joiningDeviceID = faker.UUIDHyphenated()
-	// )
 
 	falseValue := false
 	trueValue := true
@@ -2506,12 +2502,11 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(params.RoomCreatorUserID)
 
-		tmp := false
 		expectedCreator := &shared.InternalStateUser{
 			UserID:                     params.RoomCreatorUserID,
 			DeviceID:                   creatorDeviceID,
 			TracksVotedFor:             []string{},
-			UserFitsPositionConstraint: &tmp,
+			UserFitsPositionConstraint: &falseValue,
 		}
 
 		expectedTracks := []shared.TrackMetadataWithScoreWithDuration{
@@ -2545,6 +2540,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 		s.Equal(1, mtvState.MinimumScoreToBePlayed)
 		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
 		s.Equal(expectedTracks, mtvState.Tracks)
+		s.True(mtvState.RoomHasTimeAndPositionConstraints)
 	}, init)
 
 	updateCreatorAbilityToVoteForTime := defaultDuration
@@ -2602,10 +2598,6 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 }
 
 func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestTimeConstraint() {
-	// var (
-	// 	joiningUserID   = faker.UUIDHyphenated()
-	// 	joiningDeviceID = faker.UUIDHyphenated()
-	// )
 
 	falseValue := false
 	trueValue := true

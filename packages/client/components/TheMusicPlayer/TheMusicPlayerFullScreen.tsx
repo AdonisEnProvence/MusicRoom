@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { TrackMetadataWithScore } from '@musicroom/types';
 import { useNavigation } from '@react-navigation/native';
 import { useMachine } from '@xstate/react';
 import { Text, useSx, View } from 'dripsy';

@@ -1,13 +1,13 @@
 import Database from '@ioc:Adonis/Lucid/Database';
+import {
+    MtvWorkflowState,
+    MtvWorkflowStateWithUserRelatedInformation,
+} from '@musicroom/types';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
-import {
-    MtvWorkflowState,
-    MtvWorkflowStateWithUserRelatedInformation,
-} from '../../types/dist';
 import { BASE_URL, initTestUtils, sleep } from './utils/TestUtils';
 
 test.group(`User service socket handler tests`, (group) => {

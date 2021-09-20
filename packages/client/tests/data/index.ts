@@ -1,7 +1,6 @@
 import { drop, factory, primaryKey } from '@mswjs/data';
+import { TrackMetadataWithScore } from '@musicroom/types';
 import { datatype, name, random } from 'faker';
-import { TrackMetadataWithScore } from '../../../types/dist';
-
 export const db = factory({
     searchableTracks: {
         id: primaryKey(() => datatype.uuid()),

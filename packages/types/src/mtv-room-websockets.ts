@@ -1,6 +1,6 @@
 import * as z from 'zod';
-import { MtvPlayingModes } from '.';
 import {
+    MtvPlayingModes,
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
 } from './mtv';

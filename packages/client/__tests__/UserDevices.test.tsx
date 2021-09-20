@@ -28,7 +28,9 @@ After clicking on one not emitting it should set the clicked one as emitting
         playing: false,
         usersLength: 1,
         playingMode: 'BROADCAST',
-        roomHasTimeAndPositionConstraints: false,
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanVote: false,
+        hasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
         userRelatedInformation: {
             userFitsPositionConstraint: null,

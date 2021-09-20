@@ -49,7 +49,9 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     state: {
                         roomID: workflowID,
                         roomCreatorUserID: datatype.uuid(),
-                        roomHasTimeAndPositionConstraints: false,
+                        hasTimeAndPositionConstraints: false,
+                        isOpen: true,
+                        isOpenOnlyInvitedUsersCanVote: false,
                         timeConstraintIsValid: null,
                         playing: false,
                         name: roomName,
@@ -130,7 +132,9 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     playingMode: 'BROADCAST',
                     usersLength: 1,
                     currentTrack: null,
-                    roomHasTimeAndPositionConstraints: false,
+                    isOpen: true,
+                    isOpenOnlyInvitedUsersCanVote: false,
+                    hasTimeAndPositionConstraints: false,
                     timeConstraintIsValid: null,
                     userRelatedInformation: {
                         userID: creator,
@@ -166,7 +170,9 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     roomID: workflowID,
                     playingMode: 'BROADCAST',
                     usersLength: 1,
-                    roomHasTimeAndPositionConstraints: false,
+                    isOpen: true,
+                    isOpenOnlyInvitedUsersCanVote: false,
+                    hasTimeAndPositionConstraints: false,
                     timeConstraintIsValid: null,
                     userRelatedInformation: userID
                         ? {
@@ -228,7 +234,9 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     currentTrack: null,
                     roomID: workflowID,
                     roomCreatorUserID: datatype.uuid(),
-                    roomHasTimeAndPositionConstraints: false,
+                    hasTimeAndPositionConstraints: false,
+                    isOpen: true,
+                    isOpenOnlyInvitedUsersCanVote: false,
                     timeConstraintIsValid: null,
                     playingMode: 'BROADCAST',
                     tracks: [

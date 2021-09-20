@@ -27,7 +27,9 @@ test(`A user can suggest tracks to play`, async () => {
         playing: false,
         roomCreatorUserID,
         playingMode: 'BROADCAST',
-        roomHasTimeAndPositionConstraints: false,
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanVote: false,
+        hasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
         userRelatedInformation: {
             userFitsPositionConstraint: null,

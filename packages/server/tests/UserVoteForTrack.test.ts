@@ -42,12 +42,14 @@ test.group(`User service socket handler tests`, (group) => {
             minimumScoreToBePlayed: 1,
             name: random.word(),
             playing: false,
+            isOpen: true,
+            isOpenOnlyInvitedUsersCanVote: false,
             roomCreatorUserID: creatorUserID,
             roomID,
             tracks: null,
             userRelatedInformation: null,
             usersLength: 3,
-            roomHasTimeAndPositionConstraints: false,
+            hasTimeAndPositionConstraints: false,
             timeConstraintIsValid: null,
         };
 

@@ -71,7 +71,9 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                             playingMode: 'BROADCAST',
                             tracks: null,
                             minimumScoreToBePlayed: 1,
-                            roomHasTimeAndPositionConstraints: false,
+                            isOpen: true,
+                            isOpenOnlyInvitedUsersCanVote: false,
+                            hasTimeAndPositionConstraints: false,
                             timeConstraintIsValid: null,
                             userRelatedInformation: {
                                 userFitsPositionConstraint: null,

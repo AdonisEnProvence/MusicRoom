@@ -112,7 +112,9 @@ const rawContext: AppMusicPlayerMachineContext = {
     initialTracksIDs: undefined,
     playingMode: 'BROADCAST',
     closeSuggestionModal: undefined,
-    roomHasTimeAndPositionConstraints: false,
+    hasTimeAndPositionConstraints: false,
+    isOpen: true,
+    isOpenOnlyInvitedUsersCanVote: false,
     timeConstraintIsValid: null,
     minimumScoreToBePlayed: 1,
 };

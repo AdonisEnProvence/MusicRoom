@@ -89,7 +89,9 @@ test.group('Rooms life cycle', (group) => {
                     playing: false,
                     playingMode: 'BROADCAST',
                     name: roomName,
-                    roomHasTimeAndPositionConstraints: false,
+                    isOpen: true,
+                    isOpenOnlyInvitedUsersCanVote: false,
+                    hasTimeAndPositionConstraints: false,
                     timeConstraintIsValid: null,
                     userRelatedInformation: {
                         userFitsPositionConstraint: null,
@@ -191,7 +193,9 @@ test.group('Rooms life cycle', (group) => {
                     roomCreatorUserID: userA.userID,
                     playing: false,
                     name: roomName,
-                    roomHasTimeAndPositionConstraints: false,
+                    isOpen: true,
+                    isOpenOnlyInvitedUsersCanVote: false,
+                    hasTimeAndPositionConstraints: false,
                     timeConstraintIsValid: null,
                     playingMode: 'BROADCAST',
                     userRelatedInformation: {

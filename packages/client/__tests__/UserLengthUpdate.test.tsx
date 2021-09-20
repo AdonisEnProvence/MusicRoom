@@ -28,7 +28,9 @@ test(`
         playing: false,
         playingMode: 'BROADCAST',
         usersLength: 1,
-        roomHasTimeAndPositionConstraints: false,
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanVote: false,
+        hasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
         userRelatedInformation: {
             userFitsPositionConstraint: null,

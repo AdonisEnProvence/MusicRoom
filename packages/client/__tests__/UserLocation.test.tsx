@@ -79,7 +79,9 @@ describe('User device location tests', () => {
             playing: false,
             playingMode: 'BROADCAST',
             roomCreatorUserID,
-            roomHasTimeAndPositionConstraints: true,
+            isOpen: true,
+            isOpenOnlyInvitedUsersCanVote: false,
+            hasTimeAndPositionConstraints: true,
             timeConstraintIsValid: true,
             userRelatedInformation: {
                 userFitsPositionConstraint: false,

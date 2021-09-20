@@ -92,7 +92,9 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
                 ifRoomHasPositionConstraintsAskForLocationPermission: (
                     context,
                 ) => {
-                    if (context.roomHasTimeAndPositionConstraints) {
+                    console.log('CHECKING IF ROOM HAS CONSTRAINT');
+                    if (context.hasTimeAndPositionConstraints) {
+                        console.log('IT DOES HAVE CONSTRAINTS');
                         sendToUserMachine({
                             type: 'REQUEST_LOCATION_PERMISSION',
                         });

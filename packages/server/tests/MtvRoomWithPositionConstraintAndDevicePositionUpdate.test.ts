@@ -73,7 +73,9 @@ test.group(
                         name: settings.name,
                         playingMode: 'BROADCAST',
                         currentTrack: null,
-                        roomHasTimeAndPositionConstraints: false,
+                        isOpen: true,
+                        isOpenOnlyInvitedUsersCanVote: false,
+                        hasTimeAndPositionConstraints: false,
                         timeConstraintIsValid: null,
                         userRelatedInformation: {
                             userID,

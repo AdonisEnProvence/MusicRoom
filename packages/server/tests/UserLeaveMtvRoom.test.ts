@@ -63,16 +63,20 @@ test.group(
                 roomCreatorUserID: userAID,
                 roomID: mtvRoomIDToAssociate,
                 tracks: null,
+                isOpen: true,
+                isOpenOnlyInvitedUsersCanVote: false,
                 userRelatedInformation: null,
                 usersLength: 3,
                 minimumScoreToBePlayed: 1,
-                roomHasTimeAndPositionConstraints: false,
+                hasTimeAndPositionConstraints: false,
                 timeConstraintIsValid: null,
             };
 
             const roomToJoinState: MtvWorkflowState = {
                 currentTrack: null,
                 name: random.word(),
+                isOpen: true,
+                isOpenOnlyInvitedUsersCanVote: false,
                 playingMode: 'BROADCAST',
                 playing: false,
                 roomCreatorUserID: roomToJoinCreatorID,
@@ -81,7 +85,7 @@ test.group(
                 userRelatedInformation: null,
                 usersLength: 1,
                 minimumScoreToBePlayed: 1,
-                roomHasTimeAndPositionConstraints: false,
+                hasTimeAndPositionConstraints: false,
                 timeConstraintIsValid: null,
             };
 
@@ -282,10 +286,12 @@ test.group(
                 playingMode: 'BROADCAST',
                 roomID: mtvRoomIDToAssociate,
                 tracks: null,
+                isOpen: true,
+                isOpenOnlyInvitedUsersCanVote: false,
                 userRelatedInformation: null,
                 usersLength: 3,
                 minimumScoreToBePlayed: 1,
-                roomHasTimeAndPositionConstraints: false,
+                hasTimeAndPositionConstraints: false,
                 timeConstraintIsValid: null,
             };
 
@@ -297,10 +303,12 @@ test.group(
                 playingMode: 'BROADCAST',
                 roomID: mtvRoomToJoinID,
                 tracks: null,
+                isOpen: true,
+                isOpenOnlyInvitedUsersCanVote: false,
                 userRelatedInformation: null,
                 minimumScoreToBePlayed: 1,
                 usersLength: 1,
-                roomHasTimeAndPositionConstraints: false,
+                hasTimeAndPositionConstraints: false,
                 timeConstraintIsValid: null,
             };
 
@@ -491,9 +499,11 @@ test.group(
 
             let roomToLeaveState: MtvWorkflowState = {
                 currentTrack: null,
-                roomHasTimeAndPositionConstraints: false,
+                hasTimeAndPositionConstraints: false,
                 timeConstraintIsValid: null,
                 name: random.word(),
+                isOpen: true,
+                isOpenOnlyInvitedUsersCanVote: false,
                 playingMode: 'BROADCAST',
                 playing: false,
                 roomCreatorUserID: userAID,
@@ -534,7 +544,9 @@ test.group(
                         playing: false,
                         name: params.name,
                         playingMode: 'BROADCAST',
-                        roomHasTimeAndPositionConstraints: false,
+                        isOpen: true,
+                        isOpenOnlyInvitedUsersCanVote: false,
+                        hasTimeAndPositionConstraints: false,
                         timeConstraintIsValid: null,
                         userRelatedInformation: {
                             userFitsPositionConstraint: null,
@@ -747,7 +759,9 @@ test.group(
                 .callsFake(async ({ workflowID }) => {
                     const state: MtvWorkflowState = {
                         currentTrack: null,
-                        roomHasTimeAndPositionConstraints: false,
+                        isOpen: true,
+                        isOpenOnlyInvitedUsersCanVote: false,
+                        hasTimeAndPositionConstraints: false,
                         timeConstraintIsValid: null,
                         name: random.word(),
                         playing: false,

@@ -44,7 +44,9 @@ test.group(
                         roomCreatorUserID: userID,
                         roomID: workflowID,
                         tracks: null,
-                        roomHasTimeAndPositionConstraints: false,
+                        hasTimeAndPositionConstraints: false,
+                        isOpen: true,
+                        isOpenOnlyInvitedUsersCanVote: false,
                         timeConstraintIsValid: null,
                         playingMode: 'BROADCAST',
                         userRelatedInformation: {
@@ -195,8 +197,9 @@ test.group(
                         roomID: workflowID,
                         tracks: null,
                         playingMode: 'BROADCAST',
-
-                        roomHasTimeAndPositionConstraints: false,
+                        isOpen: true,
+                        isOpenOnlyInvitedUsersCanVote: false,
+                        hasTimeAndPositionConstraints: false,
                         timeConstraintIsValid: null,
                         userRelatedInformation: {
                             userFitsPositionConstraint: null,
@@ -264,7 +267,9 @@ test.group(
                         roomID: workflowID,
                         tracks: null,
                         playingMode: 'BROADCAST',
-                        roomHasTimeAndPositionConstraints: false,
+                        isOpen: true,
+                        isOpenOnlyInvitedUsersCanVote: false,
+                        hasTimeAndPositionConstraints: false,
                         timeConstraintIsValid: null,
                         userRelatedInformation: {
                             userFitsPositionConstraint: null,

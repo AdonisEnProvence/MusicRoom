@@ -34,13 +34,15 @@ test.group(`User service socket handler tests`, (group) => {
             playingMode: 'BROADCAST',
             name: random.word(),
             playing: false,
+            isOpen: true,
+            isOpenOnlyInvitedUsersCanVote: false,
             roomCreatorUserID: userID,
             roomID: datatype.uuid(),
             tracks: null,
             usersLength: 1,
             userRelatedInformation: null,
             minimumScoreToBePlayed: 1,
-            roomHasTimeAndPositionConstraints: false,
+            hasTimeAndPositionConstraints: false,
             timeConstraintIsValid: null,
         };
         const receivedEvents: string[] = [];

@@ -28,7 +28,9 @@ He will be redirected to the home and will view the default mini music player
         playing: false,
         usersLength: 1,
         playingMode: 'BROADCAST',
-        roomHasTimeAndPositionConstraints: false,
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanVote: false,
+        hasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
         userRelatedInformation: {
             userFitsPositionConstraint: null,

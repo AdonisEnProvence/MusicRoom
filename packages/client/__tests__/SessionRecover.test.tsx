@@ -23,7 +23,9 @@ test(`It should display the music player corresponding to the injected state on 
         playing: false,
         usersLength: 1,
         playingMode: 'BROADCAST',
-        roomHasTimeAndPositionConstraints: false,
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanVote: false,
+        hasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
         userRelatedInformation: {
             userFitsPositionConstraint: null,
@@ -124,7 +126,9 @@ test(`It should display the music player corresponding to the injected state on 
         playing: false,
         usersLength: 1,
         playingMode: 'BROADCAST',
-        roomHasTimeAndPositionConstraints: false,
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanVote: false,
+        hasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
         userRelatedInformation: {
             userFitsPositionConstraint: null,
@@ -211,7 +215,9 @@ test(`It should display the already elapsed track duration and player should be 
         playing: true,
         usersLength: 1,
         playingMode: 'BROADCAST',
-        roomHasTimeAndPositionConstraints: false,
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanVote: false,
+        hasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
         userRelatedInformation: {
             userFitsPositionConstraint: null,

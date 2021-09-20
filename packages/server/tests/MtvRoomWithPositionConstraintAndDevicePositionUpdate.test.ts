@@ -6,7 +6,7 @@ import {
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
-import GeocodingService from 'App/Services/GeocodingController';
+import GeocodingService from 'App/Services/GeocodingService';
 import { datatype } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';

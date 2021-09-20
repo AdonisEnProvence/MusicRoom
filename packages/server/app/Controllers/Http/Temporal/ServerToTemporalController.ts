@@ -19,7 +19,10 @@ interface TemporalCreateMtvWorkflowBody
 }
 
 export interface MtvRoomPhysicalAndTimeConstraintsWithCoords
-    extends Omit<MtvRoomPhysicalAndTimeConstraints, 'physicalConstraintPlace'> {
+    extends Omit<
+        MtvRoomPhysicalAndTimeConstraints,
+        'physicalConstraintPlaceID'
+    > {
     physicalConstraintPosition: LatlngCoords;
 }
 

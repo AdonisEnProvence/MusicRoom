@@ -381,11 +381,11 @@ type CreateRoomResponse struct {
 
 func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-
 	var body CreateRoomRequestBody
 
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
+		log.Println("create room body decode error", err)
 		WriteError(w, err)
 		return
 	}

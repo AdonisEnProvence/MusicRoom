@@ -72,7 +72,7 @@ export default class MtvRoomsWsController {
             params.physicalAndTimeConstraints !== undefined
         ) {
             const coords = await GeocodingController.getCoordsFromAddress(
-                params.physicalAndTimeConstraints.physicalConstraintPlace,
+                params.physicalAndTimeConstraints.physicalConstraintPlaceID,
             );
             physicalAndTimeConstraintsWithCoords = {
                 ...params.physicalAndTimeConstraints,
@@ -139,6 +139,9 @@ export default class MtvRoomsWsController {
 
             return temporalResponse;
         } catch (error) {
+            console.log('WELCOME TO HELL');
+            console.log(error);
+            console.error(error);
             await SocketLifecycle.deleteSocketIoRoom(roomID);
             if (roomHasBeenSaved) await room.delete();
 

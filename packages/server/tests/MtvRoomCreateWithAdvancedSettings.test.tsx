@@ -51,7 +51,7 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
                     physicalConstraintStartsAt: datatype
                         .datetime()
                         .toDateString(),
-                    physicalConstraintPlace: random.words(4),
+                    physicalConstraintPlaceID: random.words(4),
                     physicalConstraintRadius: datatype.number(),
                 },
                 initialTracksIDs: [],

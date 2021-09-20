@@ -36,7 +36,7 @@ export interface MtvRoomClientToServerJoin {
 }
 
 export const MtvRoomPhysicalAndTimeConstraints = z.object({
-    physicalConstraintPlace: z.string(),
+    physicalConstraintPlaceID: z.string(),
     physicalConstraintRadius: z.number().positive(),
     physicalConstraintStartsAt: z.string(),
     physicalConstraintEndsAt: z.string(),

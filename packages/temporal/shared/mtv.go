@@ -231,8 +231,8 @@ func (s *InternalStateUser) HasVotedFor(trackID string) bool {
 }
 
 type MtvRoomCoords struct {
-	Lat int `json:"lat" validate:"required"`
-	Lng int `json:"lng" validate:"required"`
+	Lat float32 `json:"lat" validate:"required"`
+	Lng float32 `json:"lng" validate:"required"`
 }
 
 type MtvRoomPhysicalAndTimeConstraints struct {

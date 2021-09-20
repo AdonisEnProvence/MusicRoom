@@ -1,18 +1,18 @@
 import { useActor } from '@xstate/react';
-import { View, Text, useSx } from 'dripsy';
+import { Text, useSx, View } from 'dripsy';
 import React from 'react';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import PickerSelect from 'react-native-picker-select';
+import urlcat from 'urlcat';
 import { useTextFieldStyles } from '../components/kit/TextField';
+import MtvRoomCreationFormDatePicker from '../components/MtvRoomCreationForm/MtvRoomCreationFormDatePicker';
 import MtvRoomCreationFormOptionButton from '../components/MtvRoomCreationForm/MtvRoomCreationFormOptionButton';
 import MtvRoomCreationFormScreen from '../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
 import { GOOGLE_PLACES_API_KEY } from '../constants/ApiKeys';
+import { SERVER_ENDPOINT } from '../constants/Endpoints';
 import { useCreationMtvRoomFormMachine } from '../contexts/MusicPlayerContext';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 import { MusicTrackVoteCreationFormPhysicalConstraintsScreenProps } from '../types';
-import MtvRoomCreationFormDatePicker from '../components/MtvRoomCreationForm/MtvRoomCreationFormDatePicker';
-import urlcat from 'urlcat';
-import { SERVER_ENDPOINT } from '../constants/Endpoints';
 
 const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
     MusicTrackVoteCreationFormPhysicalConstraintsScreenProps & {
@@ -52,10 +52,10 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
         };
     }
 
-    function handlePhysicalConstraintPlaceChange(place: string) {
+    function handlePhysicalConstraintPlaceIDChange(placeID: string) {
         send({
             type: 'SET_PHYSICAL_CONSTRAINT_PLACE',
-            place,
+            placeID,
         });
     }
 
@@ -137,10 +137,12 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
                             </Text>
 
                             <GooglePlacesAutocomplete
+                                minLength={20}
                                 placeholder="Place"
                                 onPress={(data, details = null) => {
-                                    handlePhysicalConstraintPlaceChange(
-                                        data.description,
+                                    console.log(data);
+                                    handlePhysicalConstraintPlaceIDChange(
+                                        data.place_id,
                                     );
                                 }}
                                 query={{

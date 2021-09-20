@@ -425,7 +425,7 @@ export const createAppMusicPlayerMachine = ({
                                                     isOpen,
                                                     onlyInvitedUsersCanVote,
                                                     hasPhysicalConstraints,
-                                                    physicalConstraintPlace,
+                                                    physicalConstraintPlaceID,
                                                     physicalConstraintRadius,
                                                     physicalConstraintStartsAt,
                                                     physicalConstraintEndsAt,
@@ -451,7 +451,7 @@ export const createAppMusicPlayerMachine = ({
                                                         hasPhysicalConstraints ===
                                                         true
                                                             ? {
-                                                                  physicalConstraintPlace,
+                                                                  physicalConstraintPlaceID,
                                                                   physicalConstraintRadius,
                                                                   physicalConstraintStartsAt:
                                                                       physicalConstraintStartsAt.toISOString(),

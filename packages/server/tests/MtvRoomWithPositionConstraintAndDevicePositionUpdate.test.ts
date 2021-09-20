@@ -44,7 +44,7 @@ test.group(
                 physicalAndTimeConstraints: {
                     physicalConstraintEndsAt: datatype.string(),
                     physicalConstraintStartsAt: datatype.string(),
-                    physicalConstraintPlace: datatype.string(),
+                    physicalConstraintPlaceID: datatype.string(),
                     physicalConstraintRadius: datatype.number({
                         min: 400,
                         max: 500,

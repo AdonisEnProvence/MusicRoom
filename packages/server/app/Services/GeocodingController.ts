@@ -4,7 +4,7 @@ import { LatlngCoords } from '@musicroom/types';
 
 const client = new Client({});
 
-export default class GeocodingController {
+export default class GeocodingService {
     public static async getCoordsFromAddress(
         placeID: string,
     ): Promise<LatlngCoords> {

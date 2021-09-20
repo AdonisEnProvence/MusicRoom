@@ -3,10 +3,10 @@ import {
     LatlngCoords,
     MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
-import GeocodingController from 'App/Controllers/Http/GeocodingController';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
+import GeocodingService from 'App/Services/GeocodingController';
 import { datatype } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
@@ -95,7 +95,7 @@ test.group(
                     };
                 });
             sinon
-                .stub(GeocodingController, 'getCoordsFromAddress')
+                .stub(GeocodingService, 'getCoordsFromAddress')
                 .callsFake(async (): Promise<LatlngCoords> => {
                     return mockedCoords;
                 });
@@ -129,7 +129,7 @@ test.group(
 
             /** Mocks */
             sinon
-                .stub(GeocodingController, 'getCoordsFromAddress')
+                .stub(GeocodingService, 'getCoordsFromAddress')
                 .callsFake(async (): Promise<LatlngCoords> => {
                     return mockedCoords;
                 });

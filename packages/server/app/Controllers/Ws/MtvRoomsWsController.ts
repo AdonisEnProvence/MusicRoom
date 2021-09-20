@@ -5,11 +5,11 @@ import {
 } from '@musicroom/types';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
+import GeocodingService from 'App/Services/GeocodingController';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
 import { randomUUID } from 'crypto';
 import { isPointWithinRadius } from 'geolib';
-import GeocodingController from '../Http/GeocodingController';
 import ServerToTemporalController, {
     MtvRoomPhysicalAndTimeConstraintsWithCoords,
 } from '../Http/Temporal/ServerToTemporalController';
@@ -71,7 +71,7 @@ export default class MtvRoomsWsController {
             params.hasPhysicalAndTimeConstraints &&
             params.physicalAndTimeConstraints !== undefined
         ) {
-            const coords = await GeocodingController.getCoordsFromAddress(
+            const coords = await GeocodingService.getCoordsFromAddress(
                 params.physicalAndTimeConstraints.physicalConstraintPlaceID,
             );
             physicalAndTimeConstraintsWithCoords = {
@@ -139,9 +139,6 @@ export default class MtvRoomsWsController {
 
             return temporalResponse;
         } catch (error) {
-            console.log('WELCOME TO HELL');
-            console.log(error);
-            console.error(error);
             await SocketLifecycle.deleteSocketIoRoom(roomID);
             if (roomHasBeenSaved) await room.delete();
 

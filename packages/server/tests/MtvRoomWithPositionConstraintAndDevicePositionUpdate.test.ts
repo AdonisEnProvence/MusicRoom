@@ -218,5 +218,4 @@ test.group(
             assert.isFalse(userPositionFitsTheGivenRadius);
         });
     },
-    //TODO ADD TO THE TEST THE CREATE CALL AND JOIN CALL PERMISSION COMPUTING
 );

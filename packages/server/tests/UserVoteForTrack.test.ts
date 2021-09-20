@@ -56,7 +56,6 @@ test.group(`User service socket handler tests`, (group) => {
         sinon
             .stub(ServerToTemporalController, 'voteForTrack')
             .callsFake(async ({ trackID, userID }) => {
-                console.log('SALUT LE SANG');
                 const stateWithUserRelatedInformations: MtvWorkflowStateWithUserRelatedInformation =
                     {
                         ...state,

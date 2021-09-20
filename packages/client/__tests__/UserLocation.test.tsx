@@ -130,7 +130,6 @@ describe('User device location tests', () => {
         expect(receivedEvents.length).toBe(2);
         expect(requestForegroundPermissionsAsyncMocked).toBeCalledTimes(1);
         expect(getCurrentPositionAsyncMocked).toBeCalled();
-        console.log('HELLO');
 
         const musicPlayerMini = getByTestId('music-player-mini');
         expect(musicPlayerMini).toBeTruthy();

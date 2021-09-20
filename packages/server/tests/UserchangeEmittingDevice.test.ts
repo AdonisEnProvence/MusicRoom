@@ -188,7 +188,6 @@ test.group(
             sinon
                 .stub(ServerToTemporalController, 'changeUserEmittingDevice')
                 .callsFake(async ({ deviceID, workflowID }) => {
-                    console.log('SALUT JE SUIS LE MOCK');
                     const state: MtvWorkflowState = {
                         currentTrack: null,
                         name: random.word(),

@@ -262,7 +262,6 @@ export const createUserMachine = ({
                 }),
 
                 updateLocationPermissions: assign((context, event) => {
-                    console.log('PLEASE DISPLAY THIS LOG');
                     if (
                         event.type !== 'LOCATION_PERMISSION_GRANTED' &&
                         event.type !== 'LOCATION_PERMISSION_DENIED'
@@ -303,17 +302,11 @@ export const createUserMachine = ({
                     socket.emit(
                         'GET_CONNECTED_DEVICES_AND_DEVICE_ID',
                         ({ devices, currDeviceID }) => {
-                            console.log(
-                                'SALUT LES COPAINS J "AI RECU DE MAMIE',
-                                devices,
-                                currDeviceID,
-                            );
                             sendBack({
                                 type: 'CONNECTED_DEVICES_UPDATE',
                                 devices,
                             });
 
-                            console.log('JENVOIE LE RESTE A PAPI');
                             sendBack({
                                 type: 'SET_CURRENT_DEVICE_ID',
                                 currDeviceID,
@@ -325,7 +318,6 @@ export const createUserMachine = ({
                 requestLocationPermission:
                     (_context, _event) => async (sendBack, _onReceive) => {
                         try {
-                            console.log('WOWO THIS IS REALLY COOL');
                             const { status } =
                                 await requestForegroundPermissionsAsync();
                             if (status !== 'granted') {

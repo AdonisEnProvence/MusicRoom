@@ -189,6 +189,7 @@ func getWokflowInitParams(tracksIDs []string, minimumScoreToBePlayed int) (share
 		PhysicalAndTimeConstraints:    nil,
 		IsOpen:                        true,
 		IsOpenOnlyInvitedUsersCanVote: false,
+		PlayingMode:                   "BROADCAST",
 	}, fakeRoomCreatorDeviceID
 }
 

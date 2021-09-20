@@ -42,9 +42,12 @@ export const MtvWorkflowState = z.object({
     currentTrack: CurrentTrack.nullable(),
     tracks: z.array(TrackMetadataWithScore).nullable(),
     minimumScoreToBePlayed: z.number(),
-    roomHasTimeAndPositionConstraints: z.boolean(),
+    hasTimeAndPositionConstraints: z.boolean(),
     timeConstraintIsValid: z.boolean().nullable(),
+    isOpen: z.boolean(),
+    isOpenOnlyInvitedUsersCanVote: z.boolean(),
 });
+
 export type MtvWorkflowState = z.infer<typeof MtvWorkflowState>;
 
 export const MtvWorkflowStateWithUserRelatedInformation =

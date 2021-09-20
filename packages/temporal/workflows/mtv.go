@@ -88,6 +88,8 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 		TimeConstraintIsValid:             s.GetTimeConstraintValue(),
 		UserRelatedInformation:            s.GetUserRelatedInformation(RelatedUserID),
 		PlayingMode:                       s.initialParams.PlayingMode,
+		IsOpen:                            s.initialParams.IsOpen,
+		IsOpenOnlyInvitedUsersCanVotes:    s.initialParams.IsOpenOnlyInvitedUsersCanVote,
 	}
 
 	return exposedState

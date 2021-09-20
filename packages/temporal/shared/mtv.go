@@ -283,13 +283,16 @@ type MtvRoomParameters struct {
 
 func (p MtvRoomParameters) Export() MtvRoomExposedState {
 	return MtvRoomExposedState{
-		RoomID:                 p.RoomID,
-		Playing:                false,
-		RoomCreatorUserID:      p.RoomCreatorUserID,
-		RoomName:               p.RoomName,
-		UserRelatedInformation: p.InitialUsers[p.RoomCreatorUserID],
-		MinimumScoreToBePlayed: p.MinimumScoreToBePlayed,
-		PlayingMode:            p.PlayingMode,
+		RoomID:                            p.RoomID,
+		Playing:                           false,
+		RoomCreatorUserID:                 p.RoomCreatorUserID,
+		RoomName:                          p.RoomName,
+		UserRelatedInformation:            p.InitialUsers[p.RoomCreatorUserID],
+		MinimumScoreToBePlayed:            p.MinimumScoreToBePlayed,
+		PlayingMode:                       p.PlayingMode,
+		IsOpen:                            p.IsOpen,
+		IsOpenOnlyInvitedUsersCanVotes:    p.IsOpenOnlyInvitedUsersCanVote,
+		RoomHasTimeAndPositionConstraints: p.HasPhysicalAndTimeConstraints,
 	}
 }
 
@@ -303,7 +306,9 @@ type MtvRoomExposedState struct {
 	Tracks                            []TrackMetadataWithScoreWithDuration `json:"tracks"`
 	MinimumScoreToBePlayed            int                                  `json:"minimumScoreToBePlayed"`
 	UsersLength                       int                                  `json:"usersLength"`
-	RoomHasTimeAndPositionConstraints bool                                 `json:"roomHasTimeAndPositionConstraints"`
+	RoomHasTimeAndPositionConstraints bool                                 `json:"hasTimeAndPositionConstraints"`
+	IsOpen                            bool                                 `json:"isOpen"`
+	IsOpenOnlyInvitedUsersCanVotes    bool                                 `json:"isOpenOnlyInvitedUsersCanVote"`
 	TimeConstraintIsValid             *bool                                `json:"timeConstraintIsValid"`
 	PlayingMode                       MtvPlayingModes                      `json:"playingMode"`
 }

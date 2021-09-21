@@ -140,7 +140,7 @@ const roomNameValidationTestModel = createTestModel<TestingContext>(
     },
 });
 
-describe('MtvRoomCreationForm validation', () => {
+describe('Room name validation', () => {
     const testPlans = roomNameValidationTestModel.getSimplePathPlans({
         filter: (state) => state.matches('idle') === false,
     });

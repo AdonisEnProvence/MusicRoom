@@ -73,26 +73,80 @@ const roomNameValidationMachine = roomNameValidationModel.createMachine({
 
             on: {
                 SUBMIT: {
-                    target: [
-                        'textFields.place.onError',
-                        'textFields.radius.onError',
-                        'textFields.startsAt.onError',
-                        'textFields.endsAt.onError',
-                    ],
+                    target: 'place',
                 },
             },
         },
 
-        textFields: {
+        place: {
+            meta: {
+                test: async ({ screen, submitSpy }: TestingContext) => {
+                    await waitFor(() => {
+                        const placeErrorsGroup =
+                            screen.getByTestId('place-errors-group');
+
+                        const requiredError =
+                            within(placeErrorsGroup).getByRole('alert');
+                        expect(requiredError).toBeTruthy();
+                        expect(requiredError).toHaveTextContent(
+                            /place.*must.*be.*set/i,
+                        );
+                    });
+
+                    expect(submitSpy).not.toHaveBeenCalled();
+                },
+            },
+
+            on: {
+                TYPE_PLACE_AND_SELECT_FIRST_RESULT: {
+                    target: 'radius',
+                },
+            },
+        },
+
+        radius: {
+            meta: {
+                test: async ({ screen, submitSpy }: TestingContext) => {
+                    await waitFor(() => {
+                        const radiusErrorsGroup = screen.getByTestId(
+                            'radius-errors-group',
+                        );
+
+                        const requiredError =
+                            within(radiusErrorsGroup).getByRole('alert');
+                        expect(requiredError).toBeTruthy();
+                        expect(requiredError).toHaveTextContent(
+                            /radius.*must.*be.*set/i,
+                        );
+                    });
+
+                    expect(submitSpy).not.toHaveBeenCalled();
+                },
+            },
+
+            on: {
+                SELECT_RADIUS: [
+                    {
+                        cond: (_, { radius }) => radius === undefined,
+
+                        target: 'radius',
+                    },
+
+                    {
+                        target: 'dateFields',
+                    },
+                ],
+            },
+        },
+
+        dateFields: {
             type: 'parallel',
 
             always: [
                 {
                     cond: (_context, _event, meta) => {
                         const allFieldsAreValid = meta.state.matches({
-                            textFields: {
-                                place: 'isValid',
-                                radius: 'isValid',
+                            dateFields: {
                                 startsAt: 'isValid',
                                 endsAt: 'isValid',
                             },
@@ -106,131 +160,8 @@ const roomNameValidationMachine = roomNameValidationModel.createMachine({
             ],
 
             states: {
-                place: {
-                    initial: 'isValid',
-
-                    states: {
-                        isValid: {
-                            meta: {
-                                test: async ({ screen }: TestingContext) => {
-                                    await waitFor(() => {
-                                        const placeErrorsGroup =
-                                            screen.queryByTestId(
-                                                'place-errors-group',
-                                            );
-                                        expect(placeErrorsGroup).toBeNull();
-                                    });
-                                },
-                            },
-                        },
-
-                        onError: {
-                            meta: {
-                                test: async ({
-                                    screen,
-                                    submitSpy,
-                                }: TestingContext) => {
-                                    await waitFor(() => {
-                                        const placeErrorsGroup =
-                                            screen.getByTestId(
-                                                'place-errors-group',
-                                            );
-
-                                        const requiredError =
-                                            within(placeErrorsGroup).getByRole(
-                                                'alert',
-                                            );
-                                        expect(requiredError).toBeTruthy();
-                                        expect(requiredError).toHaveTextContent(
-                                            /place.*must.*be.*set/i,
-                                        );
-                                    });
-
-                                    expect(submitSpy).not.toHaveBeenCalled();
-                                },
-                            },
-
-                            on: {
-                                TYPE_PLACE_AND_SELECT_FIRST_RESULT: {
-                                    target: 'isValid',
-                                },
-                            },
-                        },
-                    },
-                },
-
-                radius: {
-                    initial: 'isValid',
-
-                    states: {
-                        isValid: {
-                            meta: {
-                                test: async ({ screen }: TestingContext) => {
-                                    try {
-                                        await waitFor(() => {
-                                            const radiusErrorsGroup =
-                                                screen.queryByTestId(
-                                                    'radius-errors-group',
-                                                );
-                                            expect(
-                                                radiusErrorsGroup,
-                                            ).toBeNull();
-                                        });
-                                    } catch (err) {
-                                        screen.debug();
-
-                                        throw err;
-                                    }
-                                },
-                            },
-                        },
-
-                        onError: {
-                            meta: {
-                                test: async ({
-                                    screen,
-                                    submitSpy,
-                                }: TestingContext) => {
-                                    await waitFor(() => {
-                                        const radiusErrorsGroup =
-                                            screen.getByTestId(
-                                                'radius-errors-group',
-                                            );
-
-                                        const requiredError =
-                                            within(radiusErrorsGroup).getByRole(
-                                                'alert',
-                                            );
-                                        expect(requiredError).toBeTruthy();
-                                        expect(requiredError).toHaveTextContent(
-                                            /radius.*must.*be.*set/i,
-                                        );
-                                    });
-
-                                    expect(submitSpy).not.toHaveBeenCalled();
-                                },
-                            },
-
-                            on: {
-                                SELECT_RADIUS: [
-                                    {
-                                        cond: (_, { radius }) =>
-                                            radius === undefined,
-
-                                        target: 'onError',
-                                    },
-
-                                    {
-                                        target: 'isValid',
-                                    },
-                                ],
-                            },
-                        },
-                    },
-                },
-
                 startsAt: {
-                    initial: 'isValid',
+                    initial: 'onError',
 
                     states: {
                         isValid: {
@@ -296,7 +227,7 @@ const roomNameValidationMachine = roomNameValidationModel.createMachine({
                 },
 
                 endsAt: {
-                    initial: 'isValid',
+                    initial: 'onError',
 
                     states: {
                         isValid: {
@@ -430,6 +361,12 @@ const roomNameValidationTestModel = createTestModel<TestingContext>(
             fireEvent.changeText(placeInput, place);
             const placeSuggestion = await screen.findByText(place);
             fireEvent.press(placeSuggestion);
+
+            await waitFor(() => {
+                const placeErrorsGroup =
+                    screen.queryByTestId('place-errors-group');
+                expect(placeErrorsGroup).toBeNull();
+            });
         },
 
         cases: [
@@ -440,11 +377,20 @@ const roomNameValidationTestModel = createTestModel<TestingContext>(
     },
 
     SELECT_RADIUS: {
-        exec: ({ screen }, event) => {
+        exec: async ({ screen }, event) => {
             const { radius, index } = SelectRadiusEvent.parse(event);
 
             const radiusPicker = screen.getByTestId('ios_picker');
             fireEvent(radiusPicker, 'valueChange', radius, index);
+
+            if (radius !== undefined) {
+                await waitFor(() => {
+                    const radiusErrorsGroup = screen.queryByTestId(
+                        'radius-errors-group',
+                    );
+                    expect(radiusErrorsGroup).toBeNull();
+                });
+            }
         },
 
         cases: [

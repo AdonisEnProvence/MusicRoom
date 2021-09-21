@@ -478,12 +478,12 @@ func NewVoteForTrackSignal(args NewVoteForTrackSignalArgs) VoteForTrackSignal {
 type UpdateUserFitsPositionConstraintSignal struct {
 	Route                      SignalRoute `validate:"required"`
 	UserID                     string      `validate:"required,uuid"`
-	UserFitsPositionConstraint bool        `validate:"required"`
+	UserFitsPositionConstraint bool
 }
 
 type NewUpdateUserFitsPositionConstraintSignalArgs struct {
 	UserID                     string `validate:"required,uuid"`
-	UserFitsPositionConstraint bool   `validate:"required"`
+	UserFitsPositionConstraint bool
 }
 
 func NewUpdateUserFitsPositionConstraintSignal(args NewUpdateUserFitsPositionConstraintSignalArgs) UpdateUserFitsPositionConstraintSignal {

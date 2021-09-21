@@ -573,7 +573,7 @@ type UpdateUserFitsPositionConstraintHandlerBody struct {
 	UserID                     string `json:"userID" validate:"required,uuid"`
 	WorkflowID                 string `json:"workflowID" validate:"required,uuid"`
 	RunID                      string `json:"runID" validate:"required,uuid"`
-	UserFitsPositionConstraint bool   `json:"userFitsPositionConstraint" validate:"required"`
+	UserFitsPositionConstraint bool   `json:"userFitsPositionConstraint"`
 }
 
 func UpdateUserFitsPositionConstraintHandler(w http.ResponseWriter, r *http.Request) {
@@ -582,10 +582,12 @@ func UpdateUserFitsPositionConstraintHandler(w http.ResponseWriter, r *http.Requ
 	var body UpdateUserFitsPositionConstraintHandlerBody
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		fmt.Println(err)
 		WriteError(w, err)
 		return
 	}
 	if err := validate.Struct(body); err != nil {
+		fmt.Println(err)
 		WriteError(w, err)
 		return
 	}
@@ -602,6 +604,8 @@ func UpdateUserFitsPositionConstraintHandler(w http.ResponseWriter, r *http.Requ
 		shared.SignalChannelName,
 		signal,
 	); err != nil {
+		fmt.Println(err)
+
 		WriteError(w, err)
 		return
 	}

@@ -887,7 +887,7 @@ type SetPhysicalConstraintsStatusEvent = z.infer<
 const SetPhysicalConstraintsValuesEvent = z
     .object({
         place: z.string(),
-        radius: z.number(),
+        radius: z.string(),
         startsAt: z.string(),
         endsAt: z.string(),
     })
@@ -1105,7 +1105,7 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
         cases: [
             {
                 place: '96 Boulevard Bessières, Paris',
-                radius: 30,
+                radius: '30',
                 startsAt: new Date().toISOString(),
                 endsAt: addHours(new Date(), 2).toISOString(),
             } as SetPhysicalConstraintsValuesEvent,

@@ -1,8 +1,6 @@
 package workflows
 
 import (
-	"fmt"
-
 	"github.com/Devessier/brainy"
 )
 
@@ -39,30 +37,8 @@ func currentTrackEndedAndNextTrackIsReadyToBePlayed(internalState *MtvRoomIntern
 	}
 }
 
-func userCanVoteForTrackID(internalState *MtvRoomInternalState) brainy.Cond {
+func roomHasPositionAndTimeConstraint(internalState *MtvRoomInternalState) brainy.Cond {
 	return func(c brainy.Context, e brainy.Event) bool {
-		voteForTrackEvent := e.(MtvRoomUserVoteForTrackEvent)
-		userID := voteForTrackEvent.UserID
-		trackID := voteForTrackEvent.TrackID
-
-		user, exists := internalState.Users[userID]
-		if !exists {
-			fmt.Println("vote aborted: couldnt find given userID in the users list")
-			return false
-		}
-
-		couldFindTrackInTracksList := internalState.Tracks.Has(trackID)
-		if !couldFindTrackInTracksList {
-			fmt.Println("vote aborted: couldnt find given trackID in the tracks list")
-			return false
-		}
-
-		userAlreadyVotedForTrack := user.HasVotedFor(trackID)
-		if userAlreadyVotedForTrack {
-			fmt.Println("vote aborted: given userID has already voted for given trackID")
-			return false
-		}
-
-		return true
+		return internalState.initialParams.HasPhysicalAndTimeConstraints && internalState.initialParams.PhysicalAndTimeConstraints != nil
 	}
 }

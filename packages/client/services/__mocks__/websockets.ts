@@ -27,7 +27,7 @@ const socket = {
         event: Event,
         ...args: Parameters<AllClientToServerEvents[Event]>
     ): void {
-        console.log('emit from client to server');
+        console.log('emit from client to server', event, args);
 
         const handlers = SERVER_TO_CLIENT_EVENTS[event];
         if (handlers === undefined) {

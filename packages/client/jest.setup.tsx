@@ -1,12 +1,15 @@
 import '@testing-library/jest-native';
 import {
+    getCurrentPositionAsync,
+    requestForegroundPermissionsAsync,
+} from 'expo-location';
+import {
     YoutubeIframeProps,
     YoutubeIframeRef,
 } from 'react-native-youtube-iframe';
 import { cleanup } from './services/websockets';
 import { dropDatabase } from './tests/data';
 import { server } from './tests/server/test-server';
-
 jest.setTimeout(20_000);
 
 jest.mock('react-native-youtube-iframe', () => {
@@ -102,12 +105,35 @@ jest.mock('react-native-toast-message', () => ({
     hide: jest.fn(),
 }));
 
+//Location mock//
+jest.mock('expo-location', () => ({
+    getCurrentPositionAsync: jest.fn(),
+    requestForegroundPermissionsAsync: jest.fn(() => {
+        return {
+            status: 'notGranted',
+        };
+    }),
+}));
+export const requestForegroundPermissionsAsyncMocked =
+    requestForegroundPermissionsAsync as jest.MockedFunction<
+        typeof requestForegroundPermissionsAsync
+    >;
+export const getCurrentPositionAsyncMocked =
+    getCurrentPositionAsync as jest.MockedFunction<
+        typeof getCurrentPositionAsync
+    >;
+
 // Set up MSW before all tests, close MSW after all tests and clear temporary listeners after each test.
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterAll(() => server.close());
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+    server.resetHandlers();
+});
 
 beforeEach(() => {
     cleanup();
     dropDatabase();
 });
+
+// jest.spyOn(console, 'warn').mockImplementation(() => {});
+// jest.spyOn(console, 'error').mockImplementation(() => {});

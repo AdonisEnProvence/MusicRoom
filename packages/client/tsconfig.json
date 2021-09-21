@@ -6,12 +6,12 @@
         "outDir": "dist",
         "noEmit": false,
         "emitDeclarationOnly": true,
-        "declarationMap": true,
+        "declarationMap": true
     },
     "exclude": ["node_modules", "dist"],
     "include": [
         "./jest.setup.tsx",
-        "tests",
+        "./tests",
         "./constants",
         "./machines",
         "./hooks",
@@ -23,6 +23,6 @@
         "./App.tsx",
         "./types.tsx",
         "./global.d.ts",
-        "__tests__"
+        "./__tests__"
     ]
 }

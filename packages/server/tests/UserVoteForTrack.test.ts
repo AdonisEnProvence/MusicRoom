@@ -1,13 +1,13 @@
 import Database from '@ioc:Adonis/Lucid/Database';
+import {
+    MtvWorkflowState,
+    MtvWorkflowStateWithUserRelatedInformation,
+} from '@musicroom/types';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
-import {
-    MtvWorkflowState,
-    MtvWorkflowStateWithUserRelatedInformation,
-} from '../../types/dist';
 import { BASE_URL, initTestUtils, sleep } from './utils/TestUtils';
 
 test.group(`User service socket handler tests`, (group) => {
@@ -38,24 +38,29 @@ test.group(`User service socket handler tests`, (group) => {
 
         const state: MtvWorkflowState = {
             currentTrack: null,
+            playingMode: 'BROADCAST',
             minimumScoreToBePlayed: 1,
             name: random.word(),
             playing: false,
+            isOpen: true,
+            isOpenOnlyInvitedUsersCanVote: false,
             roomCreatorUserID: creatorUserID,
             roomID,
             tracks: null,
             userRelatedInformation: null,
             usersLength: 3,
+            hasTimeAndPositionConstraints: false,
+            timeConstraintIsValid: null,
         };
 
         sinon
             .stub(ServerToTemporalController, 'voteForTrack')
             .callsFake(async ({ trackID, userID }) => {
-                console.log('SALUT LE SANG');
                 const stateWithUserRelatedInformations: MtvWorkflowStateWithUserRelatedInformation =
                     {
                         ...state,
                         userRelatedInformation: {
+                            userFitsPositionConstraint: null,
                             emittingDeviceID: datatype.uuid(),
                             tracksVotedFor: [trackID],
                             userID,

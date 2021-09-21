@@ -169,3 +169,21 @@ func NewMtvRoomCheckForScoreUpdateIntervalExpirationEvent() MtvRoomCheckForScore
 		},
 	}
 }
+
+type MtvRoomUpdateUserFitsPositionConstraintEvent struct {
+	brainy.EventWithType
+
+	UserID                     string
+	UserFitsPositionConstraint bool
+}
+
+func NewMtvRoomUpdateUserFitsPositionConstraintEvent(userID string, userFitsPositionConstraint bool) MtvRoomUpdateUserFitsPositionConstraintEvent {
+	return MtvRoomUpdateUserFitsPositionConstraintEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MtvRoomUpdateUserFitsPositionConstraint,
+		},
+
+		UserID:                     userID,
+		UserFitsPositionConstraint: userFitsPositionConstraint,
+	}
+}

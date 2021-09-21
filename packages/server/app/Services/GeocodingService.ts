@@ -4,14 +4,14 @@ import { LatlngCoords } from '@musicroom/types';
 
 const client = new Client({});
 
-export default class GeocodingController {
+export default class GeocodingService {
     public static async getCoordsFromAddress(
         placeID: string,
     ): Promise<LatlngCoords> {
         const response = await client.geocode({
             params: {
                 place_id: placeID,
-                key: Env.get('GOOGLE_PLACES_API_KEY'),
+                key: Env.get('GOOGLE_GEOCODING_API_KEY'),
             },
         });
         const { results } = response.data;

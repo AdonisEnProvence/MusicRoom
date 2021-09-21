@@ -46,6 +46,7 @@ func main() {
 	}
 
 	r := mux.NewRouter()
+
 	r.Handle("/ping", http.HandlerFunc(PingHandler)).Methods(http.MethodGet)
 	r.Handle("/play", http.HandlerFunc(PlayHandler)).Methods(http.MethodPut)
 	r.Handle("/pause", http.HandlerFunc(PauseHandler)).Methods(http.MethodPut)
@@ -54,6 +55,7 @@ func main() {
 	r.Handle("/vote-for-track", http.HandlerFunc(VoteForTrackHandler)).Methods(http.MethodPut)
 	r.Handle("/leave", http.HandlerFunc(LeaveRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/change-user-emitting-device", http.HandlerFunc(ChangeUserEmittingDeviceHandler)).Methods(http.MethodPut)
+	r.Handle("/update-user-fits-position-constraint", http.HandlerFunc(UpdateUserFitsPositionConstraintHandler)).Methods(http.MethodPut)
 	r.Handle("/state", http.HandlerFunc(GetStateHandler)).Methods(http.MethodPut)
 	r.Handle("/go-to-next-track", http.HandlerFunc(GoToNextTrackHandler)).Methods(http.MethodPut)
 	r.Handle("/suggest-tracks", http.HandlerFunc(SuggestTracksHandler)).Methods(http.MethodPut)
@@ -368,6 +370,7 @@ type CreateRoomRequestBody struct {
 	IsOpenOnlyInvitedUsersCanVote bool                                      `json:"isOpenOnlyInvitedUsersCanVote"`
 	HasPhysicalAndTimeConstraints bool                                      `json:"hasPhysicalAndTimeConstraints"`
 	PhysicalAndTimeConstraints    *shared.MtvRoomPhysicalAndTimeConstraints `json:"physicalAndTimeConstraints" validate:"required_if=HasPhysicalAndTimeConstraints true"`
+	PlayingMode                   shared.MtvPlayingModes                    `json:"playingMode" validate:"required"`
 }
 
 type CreateRoomResponse struct {
@@ -378,11 +381,11 @@ type CreateRoomResponse struct {
 
 func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-
 	var body CreateRoomRequestBody
 
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
+		log.Println("create room body decode error", err)
 		WriteError(w, err)
 		return
 	}
@@ -393,6 +396,24 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("create room validation error", err)
 		WriteError(w, err)
 		return
+	}
+
+	if !body.PlayingMode.IsValid() {
+		log.Println("mode is invalid", err)
+		WriteError(w, err)
+		return
+	}
+
+	if body.HasPhysicalAndTimeConstraints && body.PhysicalAndTimeConstraints != nil {
+		nowIsBeforeEnd := body.PhysicalAndTimeConstraints.PhysicalConstraintStartsAt.Before(body.PhysicalAndTimeConstraints.PhysicalConstraintEndsAt)
+		nowEqualEnd := body.PhysicalAndTimeConstraints.PhysicalConstraintStartsAt.Equal(body.PhysicalAndTimeConstraints.PhysicalConstraintEndsAt)
+		timeConstraintAreCorrupted := !nowIsBeforeEnd || nowEqualEnd
+
+		if timeConstraintAreCorrupted {
+			log.Println("time constraint are corrupted", err)
+			WriteError(w, err)
+			return
+		}
 	}
 
 	options := client.StartWorkflowOptions{
@@ -410,9 +431,15 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 	initialUsers := make(map[string]*shared.InternalStateUser)
 	initialUsers[body.UserID] = &shared.InternalStateUser{
-		UserID:         body.UserID,
-		DeviceID:       body.DeviceID,
-		TracksVotedFor: make([]string, 0),
+		UserID:                     body.UserID,
+		DeviceID:                   body.DeviceID,
+		TracksVotedFor:             make([]string, 0),
+		UserFitsPositionConstraint: nil,
+	}
+
+	if body.HasPhysicalAndTimeConstraints && body.PhysicalAndTimeConstraints != nil {
+		falseValue := false
+		initialUsers[body.UserID].UserFitsPositionConstraint = &falseValue
 	}
 
 	params := shared.MtvRoomParameters{
@@ -426,6 +453,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		IsOpenOnlyInvitedUsersCanVote: body.IsOpenOnlyInvitedUsersCanVote,
 		HasPhysicalAndTimeConstraints: body.HasPhysicalAndTimeConstraints,
 		PhysicalAndTimeConstraints:    nil,
+		PlayingMode:                   body.PlayingMode,
 	}
 
 	if body.PhysicalAndTimeConstraints != nil {
@@ -538,6 +566,55 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	res := make(map[string]interface{})
 	res["ok"] = 1
 	json.NewEncoder(w).Encode(res)
+
+}
+
+type UpdateUserFitsPositionConstraintHandlerBody struct {
+	UserID                     string `json:"userID" validate:"required,uuid"`
+	WorkflowID                 string `json:"workflowID" validate:"required,uuid"`
+	RunID                      string `json:"runID" validate:"required,uuid"`
+	UserFitsPositionConstraint bool   `json:"userFitsPositionConstraint"`
+}
+
+func UpdateUserFitsPositionConstraintHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var body UpdateUserFitsPositionConstraintHandlerBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		fmt.Println(err)
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
+		fmt.Println(err)
+		WriteError(w, err)
+		return
+	}
+
+	signal := shared.NewUpdateUserFitsPositionConstraintSignal(shared.NewUpdateUserFitsPositionConstraintSignalArgs{
+		UserID:                     body.UserID,
+		UserFitsPositionConstraint: body.UserFitsPositionConstraint,
+	})
+
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		body.RunID,
+		shared.SignalChannelName,
+		signal,
+	); err != nil {
+		fmt.Println(err)
+
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	res := make(map[string]interface{})
+	res["ok"] = 1
+	json.NewEncoder(w).Encode(res)
+
 }
 
 type GetStateBody struct {

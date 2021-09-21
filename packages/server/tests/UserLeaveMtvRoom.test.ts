@@ -58,18 +58,26 @@ test.group(
             let roomToLeaveState: MtvWorkflowState = {
                 currentTrack: null,
                 name: random.word(),
+                playingMode: 'BROADCAST',
                 playing: false,
                 roomCreatorUserID: userAID,
                 roomID: mtvRoomIDToAssociate,
                 tracks: null,
+                isOpen: true,
+                isOpenOnlyInvitedUsersCanVote: false,
                 userRelatedInformation: null,
                 usersLength: 3,
                 minimumScoreToBePlayed: 1,
+                hasTimeAndPositionConstraints: false,
+                timeConstraintIsValid: null,
             };
 
             const roomToJoinState: MtvWorkflowState = {
                 currentTrack: null,
                 name: random.word(),
+                isOpen: true,
+                isOpenOnlyInvitedUsersCanVote: false,
+                playingMode: 'BROADCAST',
                 playing: false,
                 roomCreatorUserID: roomToJoinCreatorID,
                 roomID: mtvRoomToJoinID,
@@ -77,6 +85,8 @@ test.group(
                 userRelatedInformation: null,
                 usersLength: 1,
                 minimumScoreToBePlayed: 1,
+                hasTimeAndPositionConstraints: false,
+                timeConstraintIsValid: null,
             };
 
             sinon
@@ -103,6 +113,7 @@ test.group(
                 .callsFake(async ({ userID: relatedUserID }) => {
                     roomToJoinState.usersLength++;
                     roomToJoinState.userRelatedInformation = {
+                        userFitsPositionConstraint: null,
                         userID: relatedUserID,
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],
@@ -272,11 +283,16 @@ test.group(
                 name: random.word(),
                 playing: false,
                 roomCreatorUserID: userAID,
+                playingMode: 'BROADCAST',
                 roomID: mtvRoomIDToAssociate,
                 tracks: null,
+                isOpen: true,
+                isOpenOnlyInvitedUsersCanVote: false,
                 userRelatedInformation: null,
                 usersLength: 3,
                 minimumScoreToBePlayed: 1,
+                hasTimeAndPositionConstraints: false,
+                timeConstraintIsValid: null,
             };
 
             const roomToJoinState: MtvWorkflowState = {
@@ -284,11 +300,16 @@ test.group(
                 name: random.word(),
                 playing: false,
                 roomCreatorUserID: roomToJoinCreatorID,
+                playingMode: 'BROADCAST',
                 roomID: mtvRoomToJoinID,
                 tracks: null,
+                isOpen: true,
+                isOpenOnlyInvitedUsersCanVote: false,
                 userRelatedInformation: null,
                 minimumScoreToBePlayed: 1,
                 usersLength: 1,
+                hasTimeAndPositionConstraints: false,
+                timeConstraintIsValid: null,
             };
 
             sinon
@@ -317,6 +338,7 @@ test.group(
                 .callsFake(async ({ userID: relatedUserID }) => {
                     roomToJoinState.usersLength++;
                     roomToJoinState.userRelatedInformation = {
+                        userFitsPositionConstraint: null,
                         userID: relatedUserID,
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],
@@ -477,7 +499,12 @@ test.group(
 
             let roomToLeaveState: MtvWorkflowState = {
                 currentTrack: null,
+                hasTimeAndPositionConstraints: false,
+                timeConstraintIsValid: null,
                 name: random.word(),
+                isOpen: true,
+                isOpenOnlyInvitedUsersCanVote: false,
+                playingMode: 'BROADCAST',
                 playing: false,
                 roomCreatorUserID: userAID,
                 roomID: mtvRoomIDToAssociate,
@@ -516,7 +543,13 @@ test.group(
                         roomCreatorUserID: userID,
                         playing: false,
                         name: params.name,
+                        playingMode: 'BROADCAST',
+                        isOpen: true,
+                        isOpenOnlyInvitedUsersCanVote: false,
+                        hasTimeAndPositionConstraints: false,
+                        timeConstraintIsValid: null,
                         userRelatedInformation: {
+                            userFitsPositionConstraint: null,
                             userID,
                             emittingDeviceID: datatype.uuid(),
                             tracksVotedFor: [],
@@ -726,8 +759,13 @@ test.group(
                 .callsFake(async ({ workflowID }) => {
                     const state: MtvWorkflowState = {
                         currentTrack: null,
+                        isOpen: true,
+                        isOpenOnlyInvitedUsersCanVote: false,
+                        hasTimeAndPositionConstraints: false,
+                        timeConstraintIsValid: null,
                         name: random.word(),
                         playing: false,
+                        playingMode: 'BROADCAST',
                         roomCreatorUserID: userID,
                         roomID: workflowID,
                         tracks: null,

@@ -3,6 +3,7 @@ import {
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
+import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
@@ -48,6 +49,12 @@ export default class TemporalToServerController {
         const state = MtvWorkflowState.parse(request.body());
 
         Ws.io.to(state.roomID).emit('CREATE_ROOM_CALLBACK', state);
+        const creator = await User.findOrFail(state.roomCreatorUserID);
+
+        await MtvRoomsWsController.checkUserDevicesPositionIfRoomHasPositionConstraints(
+            creator,
+            state.roomID,
+        );
     }
 
     public async join({ request }: HttpContextContract): Promise<void> {
@@ -75,6 +82,11 @@ export default class TemporalToServerController {
             joiningUserID,
             'JOIN_ROOM_CALLBACK',
             [state],
+        );
+
+        await MtvRoomsWsController.checkUserDevicesPositionIfRoomHasPositionConstraints(
+            joiningUser,
+            roomID,
         );
     }
 
@@ -172,6 +184,20 @@ export default class TemporalToServerController {
         await UserService.emitEventInEveryDeviceUser(
             state.userRelatedInformation.userID,
             'VOTE_OR_SUGGEST_TRACK_CALLBACK',
+            [state],
+        );
+    }
+
+    public async acknowledgeUpdateUserFitsPositionConstraint({
+        request,
+    }: HttpContextContract): Promise<void> {
+        const state = MtvWorkflowStateWithUserRelatedInformation.parse(
+            request.body(),
+        );
+
+        await UserService.emitEventInEveryDeviceUser(
+            state.userRelatedInformation.userID,
+            'USER_PERMISSIONS_UPDATE',
             [state],
         );
     }

@@ -1,11 +1,11 @@
 import Database from '@ioc:Adonis/Lucid/Database';
+import { MtvWorkflowState } from '@musicroom/types';
 import Device from 'App/Models/Device';
 import User from 'App/Models/User';
 import UserService from 'App/Services/UserService';
 import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
-import { MtvWorkflowState } from '../../types/dist';
 import { initTestUtils, sleep } from './utils/TestUtils';
 
 test.group(`User service socket handler tests`, (group) => {
@@ -31,14 +31,19 @@ test.group(`User service socket handler tests`, (group) => {
         const socket = await createUserAndGetSocket({ userID });
         const state: MtvWorkflowState = {
             currentTrack: null,
+            playingMode: 'BROADCAST',
             name: random.word(),
             playing: false,
+            isOpen: true,
+            isOpenOnlyInvitedUsersCanVote: false,
             roomCreatorUserID: userID,
             roomID: datatype.uuid(),
             tracks: null,
             usersLength: 1,
             userRelatedInformation: null,
             minimumScoreToBePlayed: 1,
+            hasTimeAndPositionConstraints: false,
+            timeConstraintIsValid: null,
         };
         const receivedEvents: string[] = [];
 

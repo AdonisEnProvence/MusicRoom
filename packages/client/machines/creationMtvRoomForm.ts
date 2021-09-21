@@ -1,20 +1,18 @@
-import { TrackMetadata } from '@musicroom/types';
+import { MtvPlayingModes, TrackMetadata } from '@musicroom/types';
 import {
-    StateMachine,
-    EventFrom,
-    ContextFrom,
-    StateFrom,
-    sendParent,
     ActorRef,
+    ContextFrom,
     DoneInvokeEvent,
+    EventFrom,
+    sendParent,
+    StateFrom,
+    StateMachine,
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import * as z from 'zod';
 import { navigateFromRef } from '../navigation/RootNavigation';
 import { fetchTracksByID } from '../services/search-tracks';
 import { CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents } from './appMusicPlayerMachine';
-
-export type MtvRoomPlayingMode = 'BROADCAST' | 'DIRECT';
 
 export const MtvRoomMinimumVotesForATrackToBePlayed = z.union([
     z.literal(1),
@@ -34,11 +32,12 @@ const creationMtvRoomFormModel = createModel(
         isOpen: false,
         onlyInvitedUsersCanVote: false,
         hasPhysicalConstraints: false,
+        physicalConstraintPlaceID: '',
         physicalConstraintPlace: '',
         physicalConstraintRadius: 30,
         physicalConstraintStartsAt: new Date(),
         physicalConstraintEndsAt: new Date(),
-        playingMode: 'BROADCAST' as MtvRoomPlayingMode,
+        playingMode: 'BROADCAST' as MtvPlayingModes,
         minimumVotesForATrackToBePlayed:
             1 as MtvRoomMinimumVotesForATrackToBePlayed,
     },
@@ -57,7 +56,10 @@ const creationMtvRoomFormModel = createModel(
                 isRestricted,
             }),
 
-            SET_PHYSICAL_CONSTRAINT_PLACE: (place: string) => ({ place }),
+            SET_PHYSICAL_CONSTRAINT_PLACE: (
+                placeID: string,
+                place: string,
+            ) => ({ placeID, place }),
 
             SET_PHYSICAL_CONSTRAINT_RADIUS: (radius: number) => ({ radius }),
 
@@ -67,7 +69,7 @@ const creationMtvRoomFormModel = createModel(
 
             SET_PHYSICAL_CONSTRAINT_ENDS_AT: (endsAt: Date) => ({ endsAt }),
 
-            SET_PLAYING_MODE: (playingMode: MtvRoomPlayingMode) => ({
+            SET_PLAYING_MODE: (playingMode: MtvPlayingModes) => ({
                 playingMode,
             }),
 
@@ -119,8 +121,9 @@ export type CreationMtvRoomFormActorRef = ActorRef<
     CreationMtvRoomFormMachineState
 >;
 
-export type CreationMtvRoomFormDoneInvokeEvent =
-    DoneInvokeEvent<CreationMtvRoomFormMachineContext>;
+export type CreationMtvRoomFormDoneInvokeEvent = DoneInvokeEvent<
+    Omit<CreationMtvRoomFormMachineContext, 'physicalConstraintPlace'>
+>;
 
 export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
     return creationMtvRoomFormModel.createMachine(
@@ -273,7 +276,7 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                         ],
 
                         SET_PHYSICAL_CONSTRAINT_PLACE: {
-                            actions: assignPhysicalConstraintPlace,
+                            actions: assignPhysicalConstraintPlaceAndPlaceID,
                         },
 
                         SET_PHYSICAL_CONSTRAINT_RADIUS: {
@@ -396,7 +399,10 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                 confirmed: {
                     type: 'final',
 
-                    data: (context) => context,
+                    data: (context) => {
+                        const { physicalConstraintPlace, ...rest } = context;
+                        return rest;
+                    },
                 },
             },
         },
@@ -453,8 +459,9 @@ const assignHasPhysicalConstraints = creationMtvRoomFormModel.assign(
     'SET_PHYSICAL_CONSTRAINTS_STATUS',
 );
 
-const assignPhysicalConstraintPlace = creationMtvRoomFormModel.assign(
+const assignPhysicalConstraintPlaceAndPlaceID = creationMtvRoomFormModel.assign(
     {
+        physicalConstraintPlaceID: (_context, { placeID }) => placeID,
         physicalConstraintPlace: (_context, { place }) => place,
     },
     'SET_PHYSICAL_CONSTRAINT_PLACE',

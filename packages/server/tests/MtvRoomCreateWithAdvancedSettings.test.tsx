@@ -40,6 +40,7 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
                 isOpenOnlyInvitedUsersCanVote: false,
                 name: random.word(),
                 minimumScoreToBePlayed: 1,
+                playingMode: 'BROADCAST',
             },
             {
                 hasPhysicalAndTimeConstraints: false,
@@ -50,7 +51,7 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
                     physicalConstraintStartsAt: datatype
                         .datetime()
                         .toDateString(),
-                    physicalConstraintPlace: random.words(4),
+                    physicalConstraintPlaceID: random.words(4),
                     physicalConstraintRadius: datatype.number(),
                 },
                 initialTracksIDs: [],
@@ -58,6 +59,7 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
                 isOpenOnlyInvitedUsersCanVote: false,
                 name: random.word(),
                 minimumScoreToBePlayed: 1,
+                playingMode: 'BROADCAST',
             },
             {
                 hasPhysicalAndTimeConstraints: true,
@@ -67,6 +69,7 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
                 isOpenOnlyInvitedUsersCanVote: true,
                 name: random.word(),
                 minimumScoreToBePlayed: 1,
+                playingMode: 'BROADCAST',
             },
         ];
 

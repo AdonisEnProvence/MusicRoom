@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -30,6 +31,27 @@ func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 	s.Users = params.InitialUsers
 }
 
+func (s *MtvRoomInternalState) GetTimeConstraintValue() *bool {
+	if !s.initialParams.HasPhysicalAndTimeConstraints {
+		return nil
+	}
+
+	start := s.initialParams.PhysicalAndTimeConstraints.PhysicalConstraintStartsAt
+	end := s.initialParams.PhysicalAndTimeConstraints.PhysicalConstraintEndsAt
+	now := TimeWrapper()
+
+	nowIsBetweenStartAndEnd := now.After(start) && now.Before(end)
+
+	return &nowIsBetweenStartAndEnd
+}
+
+func (s *MtvRoomInternalState) GetUserRelatedInformation(userID string) *shared.InternalStateUser {
+	if userInformation, ok := s.Users[userID]; userID != shared.NoRelatedUserID && ok {
+		return userInformation
+	}
+	return nil
+}
+
 func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExposedState {
 	tracks := s.Tracks.Values()
 	exposedTracks := make([]shared.TrackMetadataWithScoreWithDuration, 0, len(tracks))
@@ -54,18 +76,20 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 	}
 
 	exposedState := shared.MtvRoomExposedState{
-		RoomID:                 s.initialParams.RoomID,
-		RoomCreatorUserID:      s.initialParams.RoomCreatorUserID,
-		Playing:                s.Playing,
-		RoomName:               s.initialParams.RoomName,
-		CurrentTrack:           currentTrackToExport,
-		Tracks:                 exposedTracks,
-		UsersLength:            len(s.Users),
-		MinimumScoreToBePlayed: s.initialParams.MinimumScoreToBePlayed,
-	}
-
-	if userInformation, ok := s.Users[RelatedUserID]; RelatedUserID != shared.NoRelatedUserID && ok {
-		exposedState.UserRelatedInformation = userInformation
+		RoomID:                            s.initialParams.RoomID,
+		RoomCreatorUserID:                 s.initialParams.RoomCreatorUserID,
+		Playing:                           s.Playing,
+		RoomName:                          s.initialParams.RoomName,
+		CurrentTrack:                      currentTrackToExport,
+		Tracks:                            exposedTracks,
+		UsersLength:                       len(s.Users),
+		MinimumScoreToBePlayed:            s.initialParams.MinimumScoreToBePlayed,
+		RoomHasTimeAndPositionConstraints: s.initialParams.HasPhysicalAndTimeConstraints,
+		TimeConstraintIsValid:             s.GetTimeConstraintValue(),
+		UserRelatedInformation:            s.GetUserRelatedInformation(RelatedUserID),
+		PlayingMode:                       s.initialParams.PlayingMode,
+		IsOpen:                            s.initialParams.IsOpen,
+		IsOpenOnlyInvitedUsersCanVotes:    s.initialParams.IsOpenOnlyInvitedUsersCanVote,
 	}
 
 	return exposedState
@@ -104,20 +128,46 @@ func (s *MtvRoomInternalState) RemoveUser(userID string) bool {
 	return false
 }
 
-func (s *MtvRoomInternalState) UserVotedForTrack(userID string, trackID string) bool {
+func (s *MtvRoomInternalState) UpdateUserFitsPositionConstraint(userID string, userFitsPositionConstraint bool) bool {
+	if user, ok := s.Users[userID]; ok {
+		user.UserFitsPositionConstraint = &userFitsPositionConstraint
+		return true
+	}
+	fmt.Printf("\n Couldnt find User %s \n", userID)
+	return false
+}
+
+func (s *MtvRoomInternalState) UserVoteForTrack(userID string, trackID string) bool {
 
 	user, exists := s.Users[userID]
 	if !exists {
-		fmt.Println("vote failed user not found")
+		fmt.Println("vote aborted: couldnt find given userID in the users list")
+		return false
+	}
+
+	if s.initialParams.HasPhysicalAndTimeConstraints {
+		timeConstraintValue := s.GetTimeConstraintValue()
+		timeConstraintIsNotValid := timeConstraintValue == nil || !*(timeConstraintValue)
+		userPositionConstraintIsNotValid := user.UserFitsPositionConstraint == nil || !*(user.UserFitsPositionConstraint)
+
+		if timeConstraintIsNotValid || userPositionConstraintIsNotValid {
+			fmt.Println("vote aborted: user doesnt fit the room position nor time constraints")
+			return false
+		}
+	}
+
+	couldFindTrackInTracksList := s.Tracks.Has(trackID)
+	if !couldFindTrackInTracksList {
+		fmt.Println("vote aborted: couldnt find given trackID in the tracks list")
 		return false
 	}
 
 	userAlreadyVotedForTrack := user.HasVotedFor(trackID)
-
 	if userAlreadyVotedForTrack {
-		fmt.Println("vote failed user already voted for given trackID")
+		fmt.Println("vote aborted: given userID has already voted for given trackID")
 		return false
 	}
+
 	user.TracksVotedFor = append(user.TracksVotedFor, trackID)
 
 	s.Tracks.IncrementTrackScoreAndSortTracks(trackID)
@@ -155,6 +205,7 @@ const (
 	MtvRoomAddUserEvent                           brainy.EventType = "ADD_USER"
 	MtvRoomRemoveUserEvent                        brainy.EventType = "REMOVE_USER"
 	MtvRoomVoteForTrackEvent                      brainy.EventType = "VOTE_FOR_TRACK"
+	MtvRoomUpdateUserFitsPositionConstraint       brainy.EventType = "UPDATE_USER_FITS_POSITION_CONSTRAINT"
 	MtvRoomGoToNextTrackEvent                     brainy.EventType = "GO_TO_NEXT_TRACK"
 	MtvRoomChangeUserEmittingDevice               brainy.EventType = "CHANGE_USER_EMITTING_DEVICE"
 	MtvRoomSuggestTracks                          brainy.EventType = "SUGGEST_TRACKS"
@@ -182,9 +233,13 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 		internalState MtvRoomInternalState
 	)
 
-	internalState.FillWith(params)
-
 	logger := workflow.GetLogger(ctx)
+
+	if !params.PlayingMode.IsValid() {
+		logger.Info("Workflow creation failed, playingMode is invalid", "Error", err)
+		return errors.New("workflow creation failed, playingMode is invalid")
+	}
+	internalState.FillWith(params)
 
 	if err := workflow.SetQueryHandler(
 		ctx,
@@ -550,14 +605,12 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 			},
 
 			MtvRoomVoteForTrackEvent: brainy.Transition{
-				Cond: userCanVoteForTrackID(&internalState),
-
 				Actions: brainy.Actions{
 					brainy.ActionFn(
 						func(c brainy.Context, e brainy.Event) error {
 							event := e.(MtvRoomUserVoteForTrackEvent)
 
-							success := internalState.UserVotedForTrack(event.UserID, event.TrackID)
+							success := internalState.UserVoteForTrack(event.UserID, event.TrackID)
 							if success {
 
 								if voteIntervalTimerFuture == nil {
@@ -610,6 +663,26 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
 							} else {
 								voteIntervalTimerFuture = nil
+							}
+
+							return nil
+						},
+					),
+				},
+			},
+
+			MtvRoomUpdateUserFitsPositionConstraint: brainy.Transition{
+				Cond: roomHasPositionAndTimeConstraint(&internalState),
+
+				Actions: brainy.Actions{
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+							event := e.(MtvRoomUpdateUserFitsPositionConstraintEvent)
+
+							success := internalState.UpdateUserFitsPositionConstraint(event.UserID, event.UserFitsPositionConstraint)
+
+							if success {
+								sendAcknowledgeUpdateUserFitsPositionConstraintActivity(ctx, internalState.Export(event.UserID))
 							}
 
 							return nil
@@ -678,7 +751,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								isDuplicate := internalState.Tracks.Has(suggestedTrackID)
 								if isDuplicate {
 									//Count as a voted for suggested track if already is list
-									success := internalState.UserVotedForTrack(event.UserID, suggestedTrackID)
+									success := internalState.UserVoteForTrack(event.UserID, suggestedTrackID)
 									if success {
 										succesfullSuggestIntoVoteTracksIDs = append(succesfullSuggestIntoVoteTracksIDs, suggestedTrackID)
 
@@ -748,7 +821,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								}
 
 								internalState.Tracks.Add(suggestedTrackInformation)
-								success := internalState.UserVotedForTrack(event.UserID, trackInformation.ID)
+								success := internalState.UserVoteForTrack(event.UserID, trackInformation.ID)
 								if success && voteIntervalTimerFuture == nil {
 									voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
 								}
@@ -830,9 +903,15 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				}
 
 				user := shared.InternalStateUser{
-					UserID:         message.UserID,
-					DeviceID:       message.DeviceID,
-					TracksVotedFor: make([]string, 0),
+					UserID:                     message.UserID,
+					DeviceID:                   message.DeviceID,
+					TracksVotedFor:             make([]string, 0),
+					UserFitsPositionConstraint: nil,
+				}
+
+				if internalState.initialParams.HasPhysicalAndTimeConstraints {
+					tmp := false
+					user.UserFitsPositionConstraint = &tmp
 				}
 
 				internalState.Machine.Send(
@@ -919,6 +998,22 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 				internalState.Machine.Send(
 					NewMtvRoomUserVoteForTrackEvent(message.UserID, message.TrackID),
+				)
+
+			case shared.SignalUpdateUserFitsPositionConstraint:
+				var message shared.UpdateUserFitsPositionConstraintSignal
+
+				if err := mapstructure.Decode(signal, &message); err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
+				if err := validate.Struct(message); err != nil {
+					logger.Error("Validation error: %v", err)
+					return
+				}
+
+				internalState.Machine.Send(
+					NewMtvRoomUpdateUserFitsPositionConstraintEvent(message.UserID, message.UserFitsPositionConstraint),
 				)
 
 			case shared.SignalRouteTerminate:

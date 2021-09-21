@@ -215,9 +215,10 @@ func (c CurrentTrack) Export(elapsed time.Duration) ExposedCurrentTrack {
 }
 
 type InternalStateUser struct {
-	UserID         string   `json:"userID"`
-	DeviceID       string   `json:"emittingDeviceID"`
-	TracksVotedFor []string `json:"tracksVotedFor"`
+	UserID                     string   `json:"userID"`
+	DeviceID                   string   `json:"emittingDeviceID"`
+	TracksVotedFor             []string `json:"tracksVotedFor"`
+	UserFitsPositionConstraint *bool    `json:"userFitsPositionConstraint"`
 }
 
 func (s *InternalStateUser) HasVotedFor(trackID string) bool {
@@ -230,8 +231,8 @@ func (s *InternalStateUser) HasVotedFor(trackID string) bool {
 }
 
 type MtvRoomCoords struct {
-	Lat int `json:"lat" validate:"required"`
-	Lng int `json:"lng" validate:"required"`
+	Lat float32 `json:"lat" validate:"required"`
+	Lng float32 `json:"lng" validate:"required"`
 }
 
 type MtvRoomPhysicalAndTimeConstraints struct {
@@ -240,9 +241,28 @@ type MtvRoomPhysicalAndTimeConstraints struct {
 	//be used ( for now ? )
 	PhysicalConstraintPosition MtvRoomCoords `json:"physicalConstraintPosition" validate:"required"`
 	PhysicalConstraintRadius   int           `json:"physicalConstraintRadius" validate:"required"`
-	PhysicalConstraintStartsAt string        `json:"physicalConstraintStartsAt" validate:"required"`
-	PhysicalConstraintEndsAt   string        `json:"physicalConstraintEndsAt" validate:"required"`
+	PhysicalConstraintStartsAt time.Time     `json:"physicalConstraintStartsAt" validate:"required"`
+	PhysicalConstraintEndsAt   time.Time     `json:"physicalConstraintEndsAt" validate:"required"`
 }
+
+type MtvPlayingModes string
+
+func (m MtvPlayingModes) IsValid() bool {
+	for _, mode := range MtvPlayingModesAllValues {
+		if mode == m {
+			return true
+		}
+	}
+
+	return false
+}
+
+const (
+	MtvPlayingModeDirect    MtvPlayingModes = "DIRECT"
+	MtvPlayingModeBroadcast MtvPlayingModes = "BROADCAST"
+)
+
+var MtvPlayingModesAllValues = [...]MtvPlayingModes{MtvPlayingModeDirect, MtvPlayingModeBroadcast}
 
 type MtvRoomParameters struct {
 	RoomID                 string
@@ -258,43 +278,54 @@ type MtvRoomParameters struct {
 	IsOpenOnlyInvitedUsersCanVote bool
 	HasPhysicalAndTimeConstraints bool
 	PhysicalAndTimeConstraints    *MtvRoomPhysicalAndTimeConstraints
+	PlayingMode                   MtvPlayingModes
 }
 
 func (p MtvRoomParameters) Export() MtvRoomExposedState {
 	return MtvRoomExposedState{
-		RoomID:                 p.RoomID,
-		Playing:                false,
-		RoomCreatorUserID:      p.RoomCreatorUserID,
-		RoomName:               p.RoomName,
-		UserRelatedInformation: p.InitialUsers[p.RoomCreatorUserID],
-		MinimumScoreToBePlayed: p.MinimumScoreToBePlayed,
+		RoomID:                            p.RoomID,
+		Playing:                           false,
+		RoomCreatorUserID:                 p.RoomCreatorUserID,
+		RoomName:                          p.RoomName,
+		UserRelatedInformation:            p.InitialUsers[p.RoomCreatorUserID],
+		MinimumScoreToBePlayed:            p.MinimumScoreToBePlayed,
+		PlayingMode:                       p.PlayingMode,
+		IsOpen:                            p.IsOpen,
+		IsOpenOnlyInvitedUsersCanVotes:    p.IsOpenOnlyInvitedUsersCanVote,
+		RoomHasTimeAndPositionConstraints: p.HasPhysicalAndTimeConstraints,
 	}
 }
 
 type MtvRoomExposedState struct {
-	RoomID                 string                               `json:"roomID"`
-	RoomCreatorUserID      string                               `json:"roomCreatorUserID"`
-	Playing                bool                                 `json:"playing"`
-	RoomName               string                               `json:"name"`
-	UserRelatedInformation *InternalStateUser                   `json:"userRelatedInformation"`
-	CurrentTrack           *ExposedCurrentTrack                 `json:"currentTrack"`
-	Tracks                 []TrackMetadataWithScoreWithDuration `json:"tracks"`
-	MinimumScoreToBePlayed int                                  `json:"minimumScoreToBePlayed"`
-	UsersLength            int                                  `json:"usersLength"`
+	RoomID                            string                               `json:"roomID"`
+	RoomCreatorUserID                 string                               `json:"roomCreatorUserID"`
+	Playing                           bool                                 `json:"playing"`
+	RoomName                          string                               `json:"name"`
+	UserRelatedInformation            *InternalStateUser                   `json:"userRelatedInformation"`
+	CurrentTrack                      *ExposedCurrentTrack                 `json:"currentTrack"`
+	Tracks                            []TrackMetadataWithScoreWithDuration `json:"tracks"`
+	MinimumScoreToBePlayed            int                                  `json:"minimumScoreToBePlayed"`
+	UsersLength                       int                                  `json:"usersLength"`
+	RoomHasTimeAndPositionConstraints bool                                 `json:"hasTimeAndPositionConstraints"`
+	IsOpen                            bool                                 `json:"isOpen"`
+	IsOpenOnlyInvitedUsersCanVotes    bool                                 `json:"isOpenOnlyInvitedUsersCanVote"`
+	TimeConstraintIsValid             *bool                                `json:"timeConstraintIsValid"`
+	PlayingMode                       MtvPlayingModes                      `json:"playingMode"`
 }
 
 type SignalRoute string
 
 const (
-	SignalRoutePlay                     = "play"
-	SignalRoutePause                    = "pause"
-	SignalRouteJoin                     = "join"
-	SignalRouteLeave                    = "leave"
-	SignalRouteTerminate                = "terminate"
-	SignalRouteGoToNextTrack            = "go-to-next-track"
-	SignalRouteChangeUserEmittingDevice = "change-user-emitting-device"
-	SignalRouteSuggestTracks            = "suggest-tracks"
-	SignalRouteVoteForTrack             = "vote-for-track"
+	SignalRoutePlay                        = "play"
+	SignalRoutePause                       = "pause"
+	SignalRouteJoin                        = "join"
+	SignalRouteLeave                       = "leave"
+	SignalRouteTerminate                   = "terminate"
+	SignalRouteGoToNextTrack               = "go-to-next-track"
+	SignalRouteChangeUserEmittingDevice    = "change-user-emitting-device"
+	SignalRouteSuggestTracks               = "suggest-tracks"
+	SignalRouteVoteForTrack                = "vote-for-track"
+	SignalUpdateUserFitsPositionConstraint = "update-user-fits-position-constraint"
 )
 
 type GenericRouteSignal struct {
@@ -441,5 +472,24 @@ func NewVoteForTrackSignal(args NewVoteForTrackSignalArgs) VoteForTrackSignal {
 		Route:   SignalRouteVoteForTrack,
 		TrackID: args.TrackID,
 		UserID:  args.UserID,
+	}
+}
+
+type UpdateUserFitsPositionConstraintSignal struct {
+	Route                      SignalRoute `validate:"required"`
+	UserID                     string      `validate:"required,uuid"`
+	UserFitsPositionConstraint bool
+}
+
+type NewUpdateUserFitsPositionConstraintSignalArgs struct {
+	UserID                     string `validate:"required,uuid"`
+	UserFitsPositionConstraint bool
+}
+
+func NewUpdateUserFitsPositionConstraintSignal(args NewUpdateUserFitsPositionConstraintSignalArgs) UpdateUserFitsPositionConstraintSignal {
+	return UpdateUserFitsPositionConstraintSignal{
+		Route:                      SignalUpdateUserFitsPositionConstraint,
+		UserID:                     args.UserID,
+		UserFitsPositionConstraint: args.UserFitsPositionConstraint,
 	}
 }

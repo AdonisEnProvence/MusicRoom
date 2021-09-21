@@ -68,6 +68,10 @@ export type AppMusicPlayerMachineEvent =
     | { type: 'FORCED_DISCONNECTION' }
     | { type: 'LEAVE_ROOM' }
     | { type: 'USER_LENGTH_UPDATE'; state: MtvWorkflowState }
+    | {
+          type: 'USER_PERMISSIONS_UPDATE';
+          state: MtvWorkflowStateWithUserRelatedInformation;
+      }
     | { type: 'FOCUS_READY' }
     | { type: 'CHANGE_EMITTING_DEVICE_CALLBACK'; state: MtvWorkflowState }
     | {
@@ -106,7 +110,12 @@ const rawContext: AppMusicPlayerMachineContext = {
     waitingRoomID: undefined,
     progressElapsedTime: 0,
     initialTracksIDs: undefined,
+    playingMode: 'BROADCAST',
     closeSuggestionModal: undefined,
+    hasTimeAndPositionConstraints: false,
+    isOpen: true,
+    isOpenOnlyInvitedUsersCanVote: false,
+    timeConstraintIsValid: null,
     minimumScoreToBePlayed: 1,
 };
 
@@ -200,6 +209,13 @@ export const createAppMusicPlayerMachine = ({
                                 });
                             },
                         );
+
+                        socket.on('USER_PERMISSIONS_UPDATE', (state) => {
+                            sendBack({
+                                type: 'USER_PERMISSIONS_UPDATE',
+                                state,
+                            });
+                        });
 
                         socket.on('VOTE_OR_SUGGEST_TRACK_CALLBACK', (state) => {
                             console.log(
@@ -409,7 +425,7 @@ export const createAppMusicPlayerMachine = ({
                                                     isOpen,
                                                     onlyInvitedUsersCanVote,
                                                     hasPhysicalConstraints,
-                                                    physicalConstraintPlace,
+                                                    physicalConstraintPlaceID,
                                                     physicalConstraintRadius,
                                                     physicalConstraintStartsAt,
                                                     physicalConstraintEndsAt,
@@ -425,6 +441,8 @@ export const createAppMusicPlayerMachine = ({
                                                     hasPhysicalAndTimeConstraints:
                                                         hasPhysicalConstraints,
                                                     isOpen,
+
+                                                    playingMode: playingMode,
                                                     isOpenOnlyInvitedUsersCanVote:
                                                         onlyInvitedUsersCanVote,
                                                     minimumScoreToBePlayed:
@@ -433,7 +451,7 @@ export const createAppMusicPlayerMachine = ({
                                                         hasPhysicalConstraints ===
                                                         true
                                                             ? {
-                                                                  physicalConstraintPlace,
+                                                                  physicalConstraintPlaceID,
                                                                   physicalConstraintRadius,
                                                                   physicalConstraintStartsAt:
                                                                       physicalConstraintStartsAt.toISOString(),
@@ -450,7 +468,7 @@ export const createAppMusicPlayerMachine = ({
                                     on: {
                                         JOINED_CREATED_ROOM: {
                                             target: 'roomIsNotReady',
-                                            actions: 'assignMergeNewState',
+                                            actions: ['assignMergeNewState'],
                                         },
                                     },
                                 },
@@ -477,6 +495,8 @@ export const createAppMusicPlayerMachine = ({
 
                             onDone: {
                                 target: 'connectedToRoom',
+                                actions:
+                                    'ifRoomHasPositionConstraintsAskForLocationPermission',
                             },
                         },
 
@@ -506,7 +526,10 @@ export const createAppMusicPlayerMachine = ({
                                         );
                                     },
 
-                                    actions: 'assignMergeNewState',
+                                    actions: [
+                                        'assignMergeNewState',
+                                        'ifRoomHasPositionConstraintsAskForLocationPermission',
+                                    ],
                                 },
                             },
                         },
@@ -845,6 +868,10 @@ export const createAppMusicPlayerMachine = ({
                                 USER_LENGTH_UPDATE: {
                                     actions: 'assignMergeNewState',
                                 },
+
+                                USER_PERMISSIONS_UPDATE: {
+                                    actions: 'assignMergeNewState',
+                                },
                             },
                         },
                     },
@@ -878,7 +905,10 @@ export const createAppMusicPlayerMachine = ({
                         RETRIEVE_CONTEXT: {
                             target: '.connectedToRoom',
 
-                            actions: 'assignMergeNewState',
+                            actions: [
+                                'assignMergeNewState',
+                                'ifRoomHasPositionConstraintsAskForLocationPermission',
+                            ],
                         },
 
                         JOINED_CREATED_ROOM: {
@@ -908,7 +938,8 @@ export const createAppMusicPlayerMachine = ({
                         event.type !== 'CHANGE_EMITTING_DEVICE_CALLBACK' &&
                         event.type !== 'USER_LENGTH_UPDATE' &&
                         event.type !== 'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE' &&
-                        event.type !== 'VOTE_OR_SUGGEST_TRACK_CALLBACK'
+                        event.type !== 'VOTE_OR_SUGGEST_TRACK_CALLBACK' &&
+                        event.type !== 'USER_PERMISSIONS_UPDATE'
                     ) {
                         return context;
                     }

@@ -87,8 +87,14 @@ test.group('Rooms life cycle', (group) => {
                     roomID: workflowID, //workflowID === roomID
                     roomCreatorUserID: userID,
                     playing: false,
+                    playingMode: 'BROADCAST',
                     name: roomName,
+                    isOpen: true,
+                    isOpenOnlyInvitedUsersCanVote: false,
+                    hasTimeAndPositionConstraints: false,
+                    timeConstraintIsValid: null,
                     userRelatedInformation: {
+                        userFitsPositionConstraint: null,
                         userID,
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],
@@ -187,7 +193,13 @@ test.group('Rooms life cycle', (group) => {
                     roomCreatorUserID: userA.userID,
                     playing: false,
                     name: roomName,
+                    isOpen: true,
+                    isOpenOnlyInvitedUsersCanVote: false,
+                    hasTimeAndPositionConstraints: false,
+                    timeConstraintIsValid: null,
+                    playingMode: 'BROADCAST',
                     userRelatedInformation: {
+                        userFitsPositionConstraint: null,
                         emittingDeviceID: datatype.uuid(),
                         userID: userA.userID,
                         tracksVotedFor: [],
@@ -217,6 +229,7 @@ test.group('Rooms life cycle', (group) => {
                 if (state === undefined) throw new Error('State is undefined');
                 state.usersLength++;
                 state.userRelatedInformation = {
+                    userFitsPositionConstraint: null,
                     userID,
                     emittingDeviceID: datatype.uuid(),
                     tracksVotedFor: [],

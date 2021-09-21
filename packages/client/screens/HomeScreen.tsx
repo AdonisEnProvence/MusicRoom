@@ -8,12 +8,13 @@ import {
     AppScreenHeader,
 } from '../components/kit';
 import { useMusicPlayer } from '../contexts/MusicPlayerContext';
+import { useUserContext } from '../contexts/UserContext';
 import { HomeTabHomeScreenScreenProps } from '../types';
 
 const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const musicPlayerMachine = useMusicPlayer();
-
+    const { sendToUserMachine, state } = useUserContext();
     return (
         <AppScreen>
             <AppScreenHeader title="Home" insetTop={insets.top} />
@@ -49,6 +50,15 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                 />
 
                 <Button
+                    title="Ask for geoloc"
+                    onPress={() => {
+                        sendToUserMachine({
+                            type: 'REQUEST_DEDUPLICATE_LOCATION_PERMISSION',
+                        });
+                    }}
+                />
+
+                <Button
                     title="Inject fake room"
                     onPress={() => {
                         const fakeState: MtvWorkflowState = {
@@ -57,9 +67,15 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                             playing: false,
                             roomCreatorUserID: 'JUST A CREATOR ID',
                             roomID: 'JUST A ROOM ID',
+                            playingMode: 'BROADCAST',
                             tracks: null,
                             minimumScoreToBePlayed: 1,
+                            isOpen: true,
+                            isOpenOnlyInvitedUsersCanVote: false,
+                            hasTimeAndPositionConstraints: false,
+                            timeConstraintIsValid: null,
                             userRelatedInformation: {
+                                userFitsPositionConstraint: null,
                                 emittingDeviceID: 'EMITTING DEVICE',
                                 userID: 'JUST A USER ID',
                                 tracksVotedFor: [],

@@ -76,9 +76,13 @@ test.group(
                     return {
                         roomID: mtvRoomIDToAssociate,
                         currentTrack: null,
+                        playingMode: 'BROADCAST',
                         name: random.word(),
                         playing: false,
-
+                        isOpen: true,
+                        isOpenOnlyInvitedUsersCanVote: false,
+                        hasTimeAndPositionConstraints: false,
+                        timeConstraintIsValid: null,
                         roomCreatorUserID: userID,
                         tracks: null,
                         userRelatedInformation: null,

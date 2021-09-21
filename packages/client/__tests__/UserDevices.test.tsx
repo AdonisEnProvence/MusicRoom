@@ -27,7 +27,13 @@ After clicking on one not emitting it should set the clicked one as emitting
         name: random.word(),
         playing: false,
         usersLength: 1,
+        playingMode: 'BROADCAST',
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanVote: false,
+        hasTimeAndPositionConstraints: false,
+        timeConstraintIsValid: null,
         userRelatedInformation: {
+            userFitsPositionConstraint: null,
             emittingDeviceID: thisDevice.deviceID,
             userID,
             tracksVotedFor: [],

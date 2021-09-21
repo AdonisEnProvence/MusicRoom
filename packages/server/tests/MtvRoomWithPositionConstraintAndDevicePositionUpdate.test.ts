@@ -3,10 +3,10 @@ import {
     LatlngCoords,
     MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
-import GeocodingController from 'App/Controllers/Http/GeocodingController';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
+import GeocodingService from 'App/Services/GeocodingService';
 import { datatype } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
@@ -44,7 +44,7 @@ test.group(
                 physicalAndTimeConstraints: {
                     physicalConstraintEndsAt: datatype.string(),
                     physicalConstraintStartsAt: datatype.string(),
-                    physicalConstraintPlace: datatype.string(),
+                    physicalConstraintPlaceID: datatype.string(),
                     physicalConstraintRadius: datatype.number({
                         min: 400,
                         max: 500,
@@ -71,11 +71,17 @@ test.group(
                         roomCreatorUserID: datatype.uuid(),
                         playing: false,
                         name: settings.name,
+                        playingMode: 'BROADCAST',
                         currentTrack: null,
+                        isOpen: true,
+                        isOpenOnlyInvitedUsersCanVote: false,
+                        hasTimeAndPositionConstraints: false,
+                        timeConstraintIsValid: null,
                         userRelatedInformation: {
                             userID,
                             emittingDeviceID: datatype.uuid(),
                             tracksVotedFor: [],
+                            userFitsPositionConstraint: null,
                         },
                         usersLength: 1,
                         tracks: null,
@@ -89,7 +95,7 @@ test.group(
                     };
                 });
             sinon
-                .stub(GeocodingController, 'getCoordsFromAddress')
+                .stub(GeocodingService, 'getCoordsFromAddress')
                 .callsFake(async (): Promise<LatlngCoords> => {
                     return mockedCoords;
                 });
@@ -123,7 +129,7 @@ test.group(
 
             /** Mocks */
             sinon
-                .stub(GeocodingController, 'getCoordsFromAddress')
+                .stub(GeocodingService, 'getCoordsFromAddress')
                 .callsFake(async (): Promise<LatlngCoords> => {
                     return mockedCoords;
                 });
@@ -182,10 +188,10 @@ test.group(
                     'updateUserFitsPositionConstraints',
                 )
                 .callsFake(
-                    async ({ userFitsPositionConstraints }): Promise<void> => {
+                    async ({ userFitsPositionConstraint }): Promise<void> => {
                         mockHasBeenCalled = true;
                         userPositionFitsTheGivenRadius =
-                            userFitsPositionConstraints;
+                            userFitsPositionConstraint;
                     },
                 );
 

@@ -5,11 +5,11 @@ import {
 } from '@musicroom/types';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
+import GeocodingService from 'App/Services/GeocodingService';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
 import { randomUUID } from 'crypto';
 import { isPointWithinRadius } from 'geolib';
-import GeocodingController from '../Http/GeocodingController';
 import ServerToTemporalController, {
     MtvRoomPhysicalAndTimeConstraintsWithCoords,
 } from '../Http/Temporal/ServerToTemporalController';
@@ -71,8 +71,8 @@ export default class MtvRoomsWsController {
             params.hasPhysicalAndTimeConstraints &&
             params.physicalAndTimeConstraints !== undefined
         ) {
-            const coords = await GeocodingController.getCoordsFromAddress(
-                params.physicalAndTimeConstraints.physicalConstraintPlace,
+            const coords = await GeocodingService.getCoordsFromAddress(
+                params.physicalAndTimeConstraints.physicalConstraintPlaceID,
             );
             physicalAndTimeConstraintsWithCoords = {
                 ...params.physicalAndTimeConstraints,
@@ -343,7 +343,7 @@ export default class MtvRoomsWsController {
             runID: room.runID,
             userID: user.uuid,
             workflowID: room.uuid,
-            userFitsPositionConstraints: oneDeviceFitTheConstraints,
+            userFitsPositionConstraint: oneDeviceFitTheConstraints,
         });
     }
 }

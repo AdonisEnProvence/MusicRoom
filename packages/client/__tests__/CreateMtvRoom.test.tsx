@@ -8,6 +8,7 @@ import { ContextFrom, EventFrom, State } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import * as z from 'zod';
 import { formatDateTime } from '../hooks/useFormatDateTime';
+import { requestForegroundPermissionsAsyncMocked } from '../jest.setup';
 import { MtvRoomMinimumVotesForATrackToBePlayed } from '../machines/creationMtvRoomForm';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
@@ -806,6 +807,18 @@ const createMtvRoomWithSettingsMachine =
                             getRoomState(),
                         );
                         await waitForTimeout(100);
+                        if (
+                            state.context.hasPhysicalConstraints &&
+                            state.context.physicalConstraintsValues
+                        ) {
+                            expect(
+                                requestForegroundPermissionsAsyncMocked,
+                            ).toBeCalledTimes(1);
+                        } else {
+                            expect(
+                                requestForegroundPermissionsAsyncMocked,
+                            ).toBeCalledTimes(0);
+                        }
 
                         fireEvent.press(playButton);
                         await waitForTimeout(1_000);
@@ -1211,6 +1224,10 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
 describe('Create mtv room with custom settings', () => {
     const testPlans = createMtvRoomWithSettingsTestModel.getShortestPathPlans();
 
+    afterEach(() => {
+        requestForegroundPermissionsAsyncMocked.mockClear();
+    });
+
     testPlans.forEach((plan) => {
         describe(plan.description, () => {
             plan.paths.forEach((path) => {
@@ -1221,8 +1238,14 @@ describe('Create mtv room with custom settings', () => {
                         roomID: datatype.uuid(),
                         name: 'TEMPORARY ROOM NAME',
                         playing: false,
+                        playingMode: 'BROADCAST',
                         usersLength: 1,
+                        isOpen: true,
+                        isOpenOnlyInvitedUsersCanVote: false,
+                        hasTimeAndPositionConstraints: false,
+                        timeConstraintIsValid: null,
                         userRelatedInformation: {
+                            userFitsPositionConstraint: null,
                             emittingDeviceID: datatype.uuid(),
                             userID,
                             tracksVotedFor: [],
@@ -1249,9 +1272,17 @@ describe('Create mtv room with custom settings', () => {
                     };
 
                     serverSocket.on('CREATE_ROOM', (roomArgs) => {
+                        const {
+                            initialTracksIDs,
+                            hasPhysicalAndTimeConstraints,
+                            ...formatedRoomArgs
+                        } = roomArgs;
+
                         state = {
                             ...state,
-                            ...roomArgs,
+                            hasTimeAndPositionConstraints:
+                                hasPhysicalAndTimeConstraints,
+                            ...formatedRoomArgs,
                         };
 
                         serverSocket.emit('CREATE_ROOM_SYNCHED_CALLBACK', {

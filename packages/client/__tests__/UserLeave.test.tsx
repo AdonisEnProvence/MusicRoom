@@ -27,7 +27,13 @@ He will be redirected to the home and will view the default mini music player
         name: random.word(),
         playing: false,
         usersLength: 1,
+        playingMode: 'BROADCAST',
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanVote: false,
+        hasTimeAndPositionConstraints: false,
+        timeConstraintIsValid: null,
         userRelatedInformation: {
+            userFitsPositionConstraint: null,
             emittingDeviceID: thisDevice.deviceID,
             userID,
             tracksVotedFor: [],
@@ -94,6 +100,16 @@ He will be redirected to the home and will view the default mini music player
      */
     const leaveRoomButton = within(musicPlayerFullScreen).getByText(/LEAVE/i);
     expect(leaveRoomButton).toBeTruthy();
+
+    /**
+     * As the room doesn't have any constraint
+     * Check that this button doesn't appear
+     */
+    const requestLocationButton = within(musicPlayerFullScreen).queryByText(
+        /LOCATION/i,
+    );
+    expect(requestLocationButton).toBeNull();
+
     fireEvent.press(leaveRoomButton);
 
     await waitFor(() => {

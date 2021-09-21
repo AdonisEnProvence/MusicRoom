@@ -50,6 +50,12 @@ func (s *UnitTestSuite) emitPlaySignal() {
 	s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
 }
 
+func (s *UnitTestSuite) emitUpdateUserPositionPermission(args shared.NewUpdateUserFitsPositionConstraintSignalArgs) {
+	fmt.Println("-----EMIT UPDATE POSITION CALLED IN TEST-----")
+	updatePositionSignal := shared.NewUpdateUserFitsPositionConstraintSignal(args)
+	s.env.SignalWorkflow(shared.SignalChannelName, updatePositionSignal)
+}
+
 func (s *UnitTestSuite) emitSuggestTrackSignal(args shared.SuggestTracksSignalArgs) {
 	fmt.Println("-----EMIT SUGGEST TRACK CALLED IN TEST-----")
 	suggestTracksSignal := shared.NewSuggestTracksSignal(args)
@@ -58,7 +64,7 @@ func (s *UnitTestSuite) emitSuggestTrackSignal(args shared.SuggestTracksSignalAr
 }
 
 func (s *UnitTestSuite) emitVoteSignal(args shared.NewVoteForTrackSignalArgs) {
-	fmt.Println("-----EMIT SUGGEST TRACK CALLED IN TEST-----")
+	fmt.Println("-----EMIT VOTE TRACK CALLED IN TEST-----")
 	voteForTrackSignal := shared.NewVoteForTrackSignal(args)
 
 	s.env.SignalWorkflow(shared.SignalChannelName, voteForTrackSignal)
@@ -183,6 +189,7 @@ func getWokflowInitParams(tracksIDs []string, minimumScoreToBePlayed int) (share
 		PhysicalAndTimeConstraints:    nil,
 		IsOpen:                        true,
 		IsOpenOnlyInvitedUsersCanVote: false,
+		PlayingMode:                   "BROADCAST",
 	}, fakeRoomCreatorDeviceID
 }
 
@@ -2427,6 +2434,342 @@ func (s *UnitTestSuite) Test_LoadedAndEndedCurrentTrackAndNoTrackReadyToBePlayed
 		s.Equal(mtvState.CurrentTrack, expectedExposedCurrentTrack)
 		s.Equal(mtvState.Tracks, expectedTracks)
 	}, checkThatRoomAutoPlayed)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPositionConstraint() {
+
+	falseValue := false
+	trueValue := true
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+
+	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
+	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	defaultDuration := 1 * time.Millisecond
+
+	start := time.Now()
+
+	end := start.Add(defaultDuration * 5000)
+
+	physicalAndTimeConstraints := shared.MtvRoomPhysicalAndTimeConstraints{
+		PhysicalConstraintPosition: shared.MtvRoomCoords{
+			Lat: 42,
+			Lng: 42,
+		},
+		PhysicalConstraintRadius:   5000,
+		PhysicalConstraintEndsAt:   end,
+		PhysicalConstraintStartsAt: start,
+	}
+
+	params.HasPhysicalAndTimeConstraints = true
+	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
+	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &falseValue
+
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
+	init := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                     params.RoomCreatorUserID,
+			DeviceID:                   creatorDeviceID,
+			TracksVotedFor:             []string{},
+			UserFitsPositionConstraint: &falseValue,
+		}
+
+		expectedTracks := []shared.TrackMetadataWithScoreWithDuration{
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[0].ID,
+						Title:      tracks[0].Title,
+						ArtistName: tracks[0].ArtistName,
+						Duration:   0,
+					},
+					Score: 0,
+				},
+				Duration: tracks[0].Duration.Milliseconds(),
+			},
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						Title:      tracks[1].Title,
+						ArtistName: tracks[1].ArtistName,
+						Duration:   0,
+					},
+					Score: 0,
+				},
+				Duration: tracks[1].Duration.Milliseconds(),
+			},
+		}
+
+		s.False(mtvState.Playing)
+		s.Equal(1, mtvState.MinimumScoreToBePlayed)
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+		s.Equal(expectedTracks, mtvState.Tracks)
+		s.True(mtvState.RoomHasTimeAndPositionConstraints)
+	}, init)
+
+	updateCreatorAbilityToVoteForTime := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitUpdateUserPositionPermission(shared.NewUpdateUserFitsPositionConstraintSignalArgs{
+			UserID:                     params.RoomCreatorUserID,
+			UserFitsPositionConstraint: true,
+		})
+	}, updateCreatorAbilityToVoteForTime)
+
+	checkPositionUpdateWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                     params.RoomCreatorUserID,
+			DeviceID:                   creatorDeviceID,
+			TracksVotedFor:             []string{},
+			UserFitsPositionConstraint: &trueValue,
+		}
+
+		s.False(mtvState.Playing)
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+	}, checkPositionUpdateWorked)
+
+	voteForAnExistingTrack := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitVoteSignal(shared.NewVoteForTrackSignalArgs{
+			UserID:  params.RoomCreatorUserID,
+			TrackID: tracks[0].ID,
+		})
+	}, voteForAnExistingTrack)
+
+	checkVoteWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                     params.RoomCreatorUserID,
+			DeviceID:                   creatorDeviceID,
+			TracksVotedFor:             []string{},
+			UserFitsPositionConstraint: &trueValue,
+		}
+
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+		s.True(mtvState.Playing)
+		s.Equal(tracks[0].ID, mtvState.CurrentTrack.ID)
+	}, checkVoteWorked)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestTimeConstraint() {
+
+	falseValue := false
+	trueValue := true
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+
+	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
+	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	defaultDuration := 1 * time.Millisecond
+
+	start := time.Now()
+
+	end := start.Add(defaultDuration * 5000)
+
+	physicalAndTimeConstraints := shared.MtvRoomPhysicalAndTimeConstraints{
+		PhysicalConstraintPosition: shared.MtvRoomCoords{
+			Lat: 42,
+			Lng: 42,
+		},
+		PhysicalConstraintRadius:   5000,
+		PhysicalConstraintEndsAt:   end,
+		PhysicalConstraintStartsAt: start,
+	}
+
+	params.HasPhysicalAndTimeConstraints = true
+	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
+	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &falseValue
+
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
+	init := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                     params.RoomCreatorUserID,
+			DeviceID:                   creatorDeviceID,
+			TracksVotedFor:             []string{},
+			UserFitsPositionConstraint: &falseValue,
+		}
+
+		expectedTracks := []shared.TrackMetadataWithScoreWithDuration{
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[0].ID,
+						Title:      tracks[0].Title,
+						ArtistName: tracks[0].ArtistName,
+						Duration:   0,
+					},
+					Score: 0,
+				},
+				Duration: tracks[0].Duration.Milliseconds(),
+			},
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						Title:      tracks[1].Title,
+						ArtistName: tracks[1].ArtistName,
+						Duration:   0,
+					},
+					Score: 0,
+				},
+				Duration: tracks[1].Duration.Milliseconds(),
+			},
+		}
+
+		s.False(mtvState.Playing)
+		s.Equal(1, mtvState.MinimumScoreToBePlayed)
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+		s.Equal(expectedTracks, mtvState.Tracks)
+	}, init)
+
+	updateCreatorAbilityToVoteForTime := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitUpdateUserPositionPermission(shared.NewUpdateUserFitsPositionConstraintSignalArgs{
+			UserID:                     params.RoomCreatorUserID,
+			UserFitsPositionConstraint: true,
+		})
+	}, updateCreatorAbilityToVoteForTime)
+
+	checkPositionUpdateWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                     params.RoomCreatorUserID,
+			DeviceID:                   creatorDeviceID,
+			TracksVotedFor:             []string{},
+			UserFitsPositionConstraint: &trueValue,
+		}
+
+		s.False(mtvState.Playing)
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+	}, checkPositionUpdateWorked)
+
+	voteForAnExistingTrack := 5001 * defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitVoteSignal(shared.NewVoteForTrackSignalArgs{
+			UserID:  params.RoomCreatorUserID,
+			TrackID: tracks[0].ID,
+		})
+	}, voteForAnExistingTrack)
+
+	checkVoteDidntWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                     params.RoomCreatorUserID,
+			DeviceID:                   creatorDeviceID,
+			TracksVotedFor:             []string{},
+			UserFitsPositionConstraint: &trueValue,
+		}
+
+		expectedTracks := []shared.TrackMetadataWithScoreWithDuration{
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[0].ID,
+						Title:      tracks[0].Title,
+						ArtistName: tracks[0].ArtistName,
+						Duration:   0,
+					},
+					Score: 0,
+				},
+				Duration: tracks[0].Duration.Milliseconds(),
+			},
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						Title:      tracks[1].Title,
+						ArtistName: tracks[1].ArtistName,
+						Duration:   0,
+					},
+					Score: 0,
+				},
+				Duration: tracks[1].Duration.Milliseconds(),
+			},
+		}
+
+		s.False(mtvState.Playing)
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+		s.Equal(expectedTracks, mtvState.Tracks)
+	}, checkVoteDidntWorked)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
 

@@ -19,7 +19,10 @@ interface TemporalCreateMtvWorkflowBody
 }
 
 export interface MtvRoomPhysicalAndTimeConstraintsWithCoords
-    extends Omit<MtvRoomPhysicalAndTimeConstraints, 'physicalConstraintPlace'> {
+    extends Omit<
+        MtvRoomPhysicalAndTimeConstraints,
+        'physicalConstraintPlaceID'
+    > {
     physicalConstraintPosition: LatlngCoords;
 }
 
@@ -75,7 +78,7 @@ interface TemporalMtvVoteForTrackArgs extends TemporalBaseArgs {
 
 interface TemporalMtvUpdateUserFitsPositionConstraints
     extends TemporalBaseArgs {
-    userFitsPositionConstraints: boolean;
+    userFitsPositionConstraint: boolean;
     userID: string;
 }
 
@@ -311,11 +314,11 @@ export default class ServerToTemporalController {
         workflowID,
         runID,
         userID,
-        userFitsPositionConstraints,
+        userFitsPositionConstraint,
     }: TemporalMtvUpdateUserFitsPositionConstraints): Promise<void> {
         const url = urlcat(
             TEMPORAL_ENDPOINT,
-            '/update-user-fits-position-constraints',
+            '/update-user-fits-position-constraint',
         );
 
         await got.put(url, {
@@ -323,7 +326,7 @@ export default class ServerToTemporalController {
                 workflowID,
                 runID,
                 userID,
-                userFitsPositionConstraints,
+                userFitsPositionConstraint,
             },
         });
     }

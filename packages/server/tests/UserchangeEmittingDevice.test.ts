@@ -44,7 +44,13 @@ test.group(
                         roomCreatorUserID: userID,
                         roomID: workflowID,
                         tracks: null,
+                        hasTimeAndPositionConstraints: false,
+                        isOpen: true,
+                        isOpenOnlyInvitedUsersCanVote: false,
+                        timeConstraintIsValid: null,
+                        playingMode: 'BROADCAST',
                         userRelatedInformation: {
+                            userFitsPositionConstraint: null,
                             userID: userID,
                             emittingDeviceID: deviceID,
                             tracksVotedFor: [],
@@ -96,6 +102,7 @@ test.group(
                 ({ userRelatedInformation }) => {
                     const expectedUserRelatedInformation: UserRelatedInformation | null =
                         {
+                            userFitsPositionConstraint: null,
                             userID: userID,
                             emittingDeviceID: deviceB.uuid,
                             tracksVotedFor: [],
@@ -122,6 +129,7 @@ test.group(
                 ({ userRelatedInformation }) => {
                     const expectedUserRelatedInformation: UserRelatedInformation =
                         {
+                            userFitsPositionConstraint: null,
                             userID: userID,
                             emittingDeviceID: deviceB.uuid,
                             tracksVotedFor: [],
@@ -180,7 +188,6 @@ test.group(
             sinon
                 .stub(ServerToTemporalController, 'changeUserEmittingDevice')
                 .callsFake(async ({ deviceID, workflowID }) => {
-                    console.log('SALUT JE SUIS LE MOCK');
                     const state: MtvWorkflowState = {
                         currentTrack: null,
                         name: random.word(),
@@ -188,7 +195,13 @@ test.group(
                         roomCreatorUserID: userID,
                         roomID: workflowID,
                         tracks: null,
+                        playingMode: 'BROADCAST',
+                        isOpen: true,
+                        isOpenOnlyInvitedUsersCanVote: false,
+                        hasTimeAndPositionConstraints: false,
+                        timeConstraintIsValid: null,
                         userRelatedInformation: {
+                            userFitsPositionConstraint: null,
                             userID: userID,
                             emittingDeviceID: deviceID,
                             tracksVotedFor: [],
@@ -252,7 +265,13 @@ test.group(
                         roomCreatorUserID: userID,
                         roomID: workflowID,
                         tracks: null,
+                        playingMode: 'BROADCAST',
+                        isOpen: true,
+                        isOpenOnlyInvitedUsersCanVote: false,
+                        hasTimeAndPositionConstraints: false,
+                        timeConstraintIsValid: null,
                         userRelatedInformation: {
+                            userFitsPositionConstraint: null,
                             userID: userID,
                             emittingDeviceID: deviceID,
                             tracksVotedFor: [],

@@ -1,5 +1,6 @@
 import * as z from 'zod';
 import {
+    MtvPlayingModes,
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
 } from './mtv';
@@ -35,7 +36,7 @@ export interface MtvRoomClientToServerJoin {
 }
 
 export const MtvRoomPhysicalAndTimeConstraints = z.object({
-    physicalConstraintPlace: z.string(),
+    physicalConstraintPlaceID: z.string(),
     physicalConstraintRadius: z.number().positive(),
     physicalConstraintStartsAt: z.string(),
     physicalConstraintEndsAt: z.string(),
@@ -53,6 +54,7 @@ export const MtvRoomClientToServerCreateArgs = z.object({
     isOpenOnlyInvitedUsersCanVote: z.boolean(),
     hasPhysicalAndTimeConstraints: z.boolean(),
     physicalAndTimeConstraints: MtvRoomPhysicalAndTimeConstraints.optional(),
+    playingMode: MtvPlayingModes,
 });
 
 export type MtvRoomClientToServerCreateArgs = z.infer<
@@ -107,4 +109,7 @@ export interface MtvRoomServerToClientEvents {
     VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE: (state: MtvWorkflowState) => void;
     SUGGEST_TRACKS_CALLBACK: () => void;
     SUGGEST_TRACKS_FAIL_CALLBACK: () => void;
+    USER_PERMISSIONS_UPDATE: (
+        user: MtvWorkflowStateWithUserRelatedInformation,
+    ) => void;
 }

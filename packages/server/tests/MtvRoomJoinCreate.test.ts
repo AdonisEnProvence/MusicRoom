@@ -49,13 +49,19 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     state: {
                         roomID: workflowID,
                         roomCreatorUserID: datatype.uuid(),
+                        hasTimeAndPositionConstraints: false,
+                        isOpen: true,
+                        isOpenOnlyInvitedUsersCanVote: false,
+                        timeConstraintIsValid: null,
                         playing: false,
                         name: roomName,
+                        playingMode: 'BROADCAST',
                         currentTrack: null,
                         userRelatedInformation: {
                             userID,
                             emittingDeviceID: datatype.uuid(),
                             tracksVotedFor: [],
+                            userFitsPositionConstraint: null,
                         },
                         usersLength: 1,
                         tracks: [
@@ -123,12 +129,18 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     roomCreatorUserID: creatorUserID,
                     playing: false,
                     name: roomName,
+                    playingMode: 'BROADCAST',
                     usersLength: 1,
                     currentTrack: null,
+                    isOpen: true,
+                    isOpenOnlyInvitedUsersCanVote: false,
+                    hasTimeAndPositionConstraints: false,
+                    timeConstraintIsValid: null,
                     userRelatedInformation: {
                         userID: creator,
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],
+                        userFitsPositionConstraint: null,
                     },
                     tracks: [
                         {
@@ -156,12 +168,18 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     roomCreatorUserID: creatorUserID,
                     playing: false,
                     roomID: workflowID,
+                    playingMode: 'BROADCAST',
                     usersLength: 1,
+                    isOpen: true,
+                    isOpenOnlyInvitedUsersCanVote: false,
+                    hasTimeAndPositionConstraints: false,
+                    timeConstraintIsValid: null,
                     userRelatedInformation: userID
                         ? {
                               userID,
                               emittingDeviceID: datatype.uuid(),
                               tracksVotedFor: [],
+                              userFitsPositionConstraint: null,
                           }
                         : null,
                     currentTrack: null,
@@ -216,6 +234,11 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     currentTrack: null,
                     roomID: workflowID,
                     roomCreatorUserID: datatype.uuid(),
+                    hasTimeAndPositionConstraints: false,
+                    isOpen: true,
+                    isOpenOnlyInvitedUsersCanVote: false,
+                    timeConstraintIsValid: null,
+                    playingMode: 'BROADCAST',
                     tracks: [
                         {
                             id: datatype.uuid(),
@@ -231,6 +254,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                         userID: creatorID,
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],
+                        userFitsPositionConstraint: null,
                     },
                     minimumScoreToBePlayed: 1,
                     usersLength: 1,

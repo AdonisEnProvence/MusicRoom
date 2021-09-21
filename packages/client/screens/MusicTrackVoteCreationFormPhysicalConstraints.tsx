@@ -49,6 +49,7 @@ export const MusicTrackVoteCreationFormPhysicalConstraintsContent: React.FC<Musi
             control,
             handleSubmit,
             getValues,
+            watch,
             formState: { errors },
         } = useForm<MusicTrackVoteCreationFormPhysicalConstraintsFormFieldValues>();
         const sx = useSx();
@@ -392,8 +393,7 @@ export const MusicTrackVoteCreationFormPhysicalConstraintsContent: React.FC<Musi
                                         render={({
                                             field: { onChange, value },
                                         }) => {
-                                            const startsAt =
-                                                getValues('startsAt');
+                                            const startsAt = watch('startsAt');
 
                                             return (
                                                 <MtvRoomCreationFormDatePicker

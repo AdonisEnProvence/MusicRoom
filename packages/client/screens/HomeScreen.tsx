@@ -53,7 +53,7 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                     title="Ask for geoloc"
                     onPress={() => {
                         sendToUserMachine({
-                            type: 'REQUEST_LOCATION_PERMISSION',
+                            type: 'REQUEST_DEDUPLICATE_LOCATION_PERMISSION',
                         });
                     }}
                 />

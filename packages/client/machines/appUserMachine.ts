@@ -56,6 +56,9 @@ export type AppUserMachineEvent =
           type: 'LOCATION_PERMISSION_DENIED';
       }
     | {
+          type: 'REQUEST_DEDUPLICATE_LOCATION_PERMISSION';
+      }
+    | {
           type: 'UPDATE_CURRENT_LOCATION';
           location: LocationObject;
       };
@@ -117,84 +120,119 @@ export const createUserMachine = ({
                 },
 
                 locationHandler: {
-                    initial: 'idle',
+                    type: 'parallel',
                     states: {
-                        idle: {},
+                        locationService: {
+                            initial: 'idle',
+                            states: {
+                                idle: {},
 
-                        requestingLocationPermissions: {
-                            invoke: {
-                                src: 'requestLocationPermission',
-                            },
-                            on: {
-                                LOCATION_PERMISSION_DENIED: {
-                                    target: 'idle',
-                                    actions: [
-                                        'updateLocationPermissions',
-                                        'printPermissionDeniedToast',
-                                    ],
+                                requestingLocationPermissions: {
+                                    invoke: {
+                                        src: 'requestLocationPermission',
+                                    },
+                                    on: {
+                                        LOCATION_PERMISSION_DENIED: {
+                                            target: 'idle',
+                                            actions: [
+                                                'updateLocationPermissions',
+                                                'printPermissionDeniedToast',
+                                            ],
+                                        },
+
+                                        LOCATION_PERMISSION_GRANTED: {
+                                            target: 'locationWatcher',
+                                            actions:
+                                                'updateLocationPermissions',
+                                        },
+                                    },
                                 },
 
-                                LOCATION_PERMISSION_GRANTED: {
-                                    target: 'locationWatcher',
-                                    actions: 'updateLocationPermissions',
+                                locationWatcher: {
+                                    initial: 'retrieveCurrentLocation',
+
+                                    states: {
+                                        retrieveCurrentLocation: {
+                                            invoke: {
+                                                src: 'getCurrentLocation',
+                                            },
+
+                                            on: {
+                                                NO_UPDATE_NEEDED_GO_FOR_NEXT_TICK:
+                                                    {
+                                                        target: 'waitForNextTick',
+                                                    },
+
+                                                UPDATE_CURRENT_LOCATION: {
+                                                    actions: [
+                                                        'updateCurrentLocation',
+                                                        forwardTo(
+                                                            'socketConnection',
+                                                        ),
+                                                    ],
+                                                    target: 'waitForNextTick',
+                                                },
+
+                                                UPDATE_CURRENT_LOCATION_FAIL: {
+                                                    actions: [
+                                                        'printPermissionDeniedToast',
+                                                        send({
+                                                            type: 'PERMISSION_EXPIRED',
+                                                        }),
+                                                    ],
+                                                },
+                                            },
+                                        },
+
+                                        waitForNextTick: {
+                                            after: {
+                                                LOCATION_POLLING_TICK_DELAY: [
+                                                    {
+                                                        target: 'retrieveCurrentLocation',
+                                                        cond: 'locationPermissionsAreGranted',
+                                                    },
+                                                    {
+                                                        actions: send({
+                                                            type: 'PERMISSION_EXPIRED',
+                                                        }),
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    },
+
+                                    on: {
+                                        PERMISSION_EXPIRED: {
+                                            actions: 'resetDeviceLocation',
+                                            target: 'requestingLocationPermissions',
+                                        },
+                                    },
                                 },
                             },
                         },
 
-                        locationWatcher: {
-                            initial: 'retrieveCurrentLocation',
+                        deduplicating: {
+                            initial: 'canPerformAction',
 
                             states: {
-                                retrieveCurrentLocation: {
-                                    invoke: {
-                                        src: 'getCurrentLocation',
-                                    },
-
+                                canPerformAction: {
                                     on: {
-                                        NO_UPDATE_NEEDED_GO_FOR_NEXT_TICK: {
-                                            target: 'waitForNextTick',
-                                        },
-
-                                        UPDATE_CURRENT_LOCATION: {
-                                            actions: [
-                                                'updateCurrentLocation',
-                                                forwardTo('socketConnection'),
-                                            ],
-                                            target: 'waitForNextTick',
-                                        },
-
-                                        UPDATE_CURRENT_LOCATION_FAIL: {
-                                            actions: [
-                                                'printPermissionDeniedToast',
-                                                send({
-                                                    type: 'PERMISSION_EXPIRED',
-                                                }),
-                                            ],
-                                        },
-                                    },
-                                },
-
-                                waitForNextTick: {
-                                    after: {
-                                        LOCATION_POLLING_TICK_DELAY: [
+                                        REQUEST_DEDUPLICATE_LOCATION_PERMISSION:
                                             {
-                                                target: 'retrieveCurrentLocation',
-                                                cond: 'locationPermissionsAreGranted',
-                                            },
-                                            {
+                                                target: 'deduplicating',
                                                 actions: send({
-                                                    type: 'PERMISSION_EXPIRED',
+                                                    type: 'REQUEST_LOCATION_PERMISSION',
                                                 }),
                                             },
-                                        ],
                                     },
                                 },
-                            },
-
-                            on: {
-                                PERMISSION_EXPIRED: {
-                                    actions: 'resetDeviceLocation',
-                                    target: 'requestingLocationPermissions',
+                                deduplicating: {
+                                    after: {
+                                        REQUEST_LOCATION_PERMISSION_DEDUPLICATE_DELAY:
+                                            {
+                                                target: 'canPerformAction',
+                                            },
+                                    },
                                 },
                             },
                         },
@@ -202,7 +240,7 @@ export const createUserMachine = ({
 
                     on: {
                         REQUEST_LOCATION_PERMISSION: {
-                            target: '.requestingLocationPermissions',
+                            target: '.locationService.requestingLocationPermissions',
                         },
                     },
                 },
@@ -291,6 +329,7 @@ export const createUserMachine = ({
 
             delays: {
                 LOCATION_POLLING_TICK_DELAY: locationPollingTickDelay,
+                REQUEST_LOCATION_PERMISSION_DEDUPLICATE_DELAY: 2000,
             },
 
             guards: {

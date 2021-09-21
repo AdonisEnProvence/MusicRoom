@@ -352,7 +352,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                         <TouchableOpacity
                             onPress={() => {
                                 sendToUserMachine({
-                                    type: 'REQUEST_LOCATION_PERMISSION',
+                                    type: 'REQUEST_DEDUPLICATE_LOCATION_PERMISSION',
                                 });
                             }}
                             style={sx({

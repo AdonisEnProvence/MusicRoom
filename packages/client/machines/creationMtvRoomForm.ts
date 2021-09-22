@@ -44,7 +44,7 @@ const creationMtvRoomFormModel = createModel(
 
     {
         events: {
-            SET_ROOM_NAME: (roomName: string) => ({ roomName }),
+            SET_ROOM_NAME_AND_GO_NEXT: (roomName: string) => ({ roomName }),
 
             SET_OPENING_STATUS: (isOpen: boolean) => ({ isOpen }),
 
@@ -143,7 +143,9 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                     },
 
                     on: {
-                        SET_ROOM_NAME: {
+                        SET_ROOM_NAME_AND_GO_NEXT: {
+                            target: 'openingStatus',
+
                             actions: assignRoomName,
                         },
 
@@ -166,10 +168,6 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                             >({
                                 type: 'EXIT_MTV_ROOM_CREATION',
                             }),
-                        },
-
-                        NEXT: {
-                            target: 'openingStatus',
                         },
                     },
                 },
@@ -425,7 +423,7 @@ const assignRoomName = creationMtvRoomFormModel.assign(
     {
         roomName: (_context, { roomName }) => roomName,
     },
-    'SET_ROOM_NAME',
+    'SET_ROOM_NAME_AND_GO_NEXT',
 );
 
 const assignIsOpen = creationMtvRoomFormModel.assign(

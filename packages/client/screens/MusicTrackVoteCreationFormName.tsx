@@ -109,14 +109,8 @@ const MusicTrackVoteCreationFormName: React.FC<
 
     function handleRoomNameChange(roomName: string) {
         send({
-            type: 'SET_ROOM_NAME',
+            type: 'SET_ROOM_NAME_AND_GO_NEXT',
             roomName,
-        });
-    }
-
-    function handleGoNext() {
-        send({
-            type: 'NEXT',
         });
     }
 
@@ -126,8 +120,6 @@ const MusicTrackVoteCreationFormName: React.FC<
             handleGoBack={handleGoBack}
             handleGoNext={({ roomName }) => {
                 handleRoomNameChange(roomName);
-
-                handleGoNext();
             }}
         />
     );

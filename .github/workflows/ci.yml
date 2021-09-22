@@ -44,12 +44,11 @@ jobs:
             - name: Cache node_modules 📦
               uses: actions/cache@v2
               with:
-                  path: ~/.npm
-                  key: ubuntu-latest-node-${{ hashFiles('yarn.lock') }}
-                  restore-keys: |
-                      ubuntu-latest-node-
+                path: '**/node_modules'
+                key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
             - name: Install dependencies 👨🏻‍💻
-              run: yarn --frozen-lockfile
+              run: yarn install
 
             - name: Build packages 👷
               run: yarn run build:tsc

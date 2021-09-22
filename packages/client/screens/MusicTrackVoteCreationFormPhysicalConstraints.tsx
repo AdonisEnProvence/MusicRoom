@@ -16,11 +16,11 @@ import { MusicTrackVoteCreationFormPhysicalConstraintsScreenProps } from '../typ
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { isAfter, isFuture } from 'date-fns';
 
-interface MusicTrackVoteCreationFormPhysicalConstraintsFormFieldValues {
+export interface MusicTrackVoteCreationFormPhysicalConstraintsFormFieldValues {
     place: { id: string; label: string };
-    radius: number;
-    startsAt: Date | undefined;
-    endsAt: Date | undefined;
+    radius: string;
+    startsAt: Date;
+    endsAt: Date;
 }
 
 interface MusicTrackVoteCreationFormPhysicalConstraintsContentProps {
@@ -440,7 +440,6 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
     const [state, send] = useActor(mtvRoomCreationActor);
 
     const hasPhysicalConstraints = state.hasTag('hasPhysicalConstraints');
-    const physicalConstraintRadius = state.context.physicalConstraintRadius;
     const physicalConstraintStartsAt = state.context.physicalConstraintStartsAt;
     const physicalConstraintEndsAt = state.context.physicalConstraintEndsAt;
 
@@ -453,47 +452,26 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
         };
     }
 
-    function handlePhysicalConstraintPlaceChange(
-        placeID: string,
-        place: string,
-    ) {
+    function handlePhysicalConstraintsValuesChange({
+        radius,
+        ...args
+    }: {
+        placeID: string;
+        place: string;
+        radius: string;
+        startsAt: Date;
+        endsAt: Date;
+    }) {
         send({
-            type: 'SET_PHYSICAL_CONSTRAINT_PLACE',
-            place,
-            placeID,
-        });
-    }
-
-    function handlePhysicalConstraintRadiusChange(radius: string) {
-        send({
-            type: 'SET_PHYSICAL_CONSTRAINT_RADIUS',
+            type: 'SET_PHYSICAL_CONSTRAINTS_VALUES_AND_GO_NEXT',
             radius: Number(radius),
-        });
-    }
-
-    function handlePhysicalConstraintStartsAtChange(startsAt: Date) {
-        send({
-            type: 'SET_PHYSICAL_CONSTRAINT_STARTS_AT',
-            startsAt,
-        });
-    }
-
-    function handlePhysicalConstraintEndsAtChange(endsAt: Date) {
-        send({
-            type: 'SET_PHYSICAL_CONSTRAINT_ENDS_AT',
-            endsAt,
+            ...args,
         });
     }
 
     function handleGoBack() {
         send({
             type: 'GO_BACK',
-        });
-    }
-
-    function handleGoNext() {
-        send({
-            type: 'NEXT',
         });
     }
 
@@ -507,20 +485,26 @@ const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
             }
             handleGoBack={handleGoBack}
             handleGoNext={({ place, radius, startsAt, endsAt }) => {
-                if (place !== undefined) {
-                    handlePhysicalConstraintPlaceChange(place.id, place.label);
+                const fieldsAreEmpty =
+                    place === undefined ||
+                    startsAt === undefined ||
+                    endsAt === undefined;
+                if (fieldsAreEmpty) {
+                    send({
+                        type: 'NEXT',
+                    });
+
+                    return;
                 }
 
-                handlePhysicalConstraintRadiusChange(String(radius));
-
-                if (startsAt !== undefined) {
-                    handlePhysicalConstraintStartsAtChange(startsAt);
-                }
-                if (endsAt !== undefined) {
-                    handlePhysicalConstraintEndsAtChange(endsAt);
-                }
-
-                handleGoNext();
+                const { id, label } = place;
+                handlePhysicalConstraintsValuesChange({
+                    placeID: id,
+                    place: label,
+                    radius,
+                    startsAt,
+                    endsAt,
+                });
             }}
         />
     );

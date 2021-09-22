@@ -56,18 +56,13 @@ const creationMtvRoomFormModel = createModel(
                 isRestricted,
             }),
 
-            SET_PHYSICAL_CONSTRAINT_PLACE: (
-                placeID: string,
-                place: string,
-            ) => ({ placeID, place }),
-
-            SET_PHYSICAL_CONSTRAINT_RADIUS: (radius: number) => ({ radius }),
-
-            SET_PHYSICAL_CONSTRAINT_STARTS_AT: (startsAt: Date) => ({
-                startsAt,
-            }),
-
-            SET_PHYSICAL_CONSTRAINT_ENDS_AT: (endsAt: Date) => ({ endsAt }),
+            SET_PHYSICAL_CONSTRAINTS_VALUES_AND_GO_NEXT: (args: {
+                placeID: string;
+                place: string;
+                radius: number;
+                startsAt: Date;
+                endsAt: Date;
+            }) => args,
 
             SET_PLAYING_MODE: (playingMode: MtvPlayingModes) => ({
                 playingMode,
@@ -275,20 +270,10 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                             },
                         ],
 
-                        SET_PHYSICAL_CONSTRAINT_PLACE: {
-                            actions: assignPhysicalConstraintPlaceAndPlaceID,
-                        },
+                        SET_PHYSICAL_CONSTRAINTS_VALUES_AND_GO_NEXT: {
+                            target: 'playingMode',
 
-                        SET_PHYSICAL_CONSTRAINT_RADIUS: {
-                            actions: assignPhysicalConstraintRadius,
-                        },
-
-                        SET_PHYSICAL_CONSTRAINT_STARTS_AT: {
-                            actions: assignPhysicalConstraintStartsAt,
-                        },
-
-                        SET_PHYSICAL_CONSTRAINT_ENDS_AT: {
-                            actions: assignPhysicalConstraintEndsAt,
+                            actions: assignPhysicalConstraintValuesToContext,
                         },
 
                         GO_BACK: {
@@ -296,7 +281,12 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                         },
 
                         NEXT: {
+                            cond: ({ hasPhysicalConstraints }) =>
+                                hasPhysicalConstraints === false,
+
                             target: 'playingMode',
+
+                            actions: resetPhysicalConstraintValues,
                         },
                     },
                 },
@@ -459,33 +449,31 @@ const assignHasPhysicalConstraints = creationMtvRoomFormModel.assign(
     'SET_PHYSICAL_CONSTRAINTS_STATUS',
 );
 
-const assignPhysicalConstraintPlaceAndPlaceID = creationMtvRoomFormModel.assign(
+const assignPhysicalConstraintValuesToContext = creationMtvRoomFormModel.assign(
     {
         physicalConstraintPlaceID: (_context, { placeID }) => placeID,
         physicalConstraintPlace: (_context, { place }) => place,
-    },
-    'SET_PHYSICAL_CONSTRAINT_PLACE',
-);
-
-const assignPhysicalConstraintRadius = creationMtvRoomFormModel.assign(
-    {
         physicalConstraintRadius: (_context, { radius }) => radius,
-    },
-    'SET_PHYSICAL_CONSTRAINT_RADIUS',
-);
-
-const assignPhysicalConstraintStartsAt = creationMtvRoomFormModel.assign(
-    {
         physicalConstraintStartsAt: (_context, { startsAt }) => startsAt,
-    },
-    'SET_PHYSICAL_CONSTRAINT_STARTS_AT',
-);
-
-const assignPhysicalConstraintEndsAt = creationMtvRoomFormModel.assign(
-    {
         physicalConstraintEndsAt: (_context, { endsAt }) => endsAt,
     },
-    'SET_PHYSICAL_CONSTRAINT_ENDS_AT',
+    'SET_PHYSICAL_CONSTRAINTS_VALUES_AND_GO_NEXT',
+);
+
+const resetPhysicalConstraintValues = creationMtvRoomFormModel.assign(
+    {
+        physicalConstraintPlaceID:
+            creationMtvRoomFormInitialContext.physicalConstraintPlaceID,
+        physicalConstraintPlace:
+            creationMtvRoomFormInitialContext.physicalConstraintPlace,
+        physicalConstraintRadius:
+            creationMtvRoomFormInitialContext.physicalConstraintRadius,
+        physicalConstraintStartsAt:
+            creationMtvRoomFormInitialContext.physicalConstraintStartsAt,
+        physicalConstraintEndsAt:
+            creationMtvRoomFormInitialContext.physicalConstraintEndsAt,
+    },
+    undefined,
 );
 
 const assignPlayingMode = creationMtvRoomFormModel.assign(

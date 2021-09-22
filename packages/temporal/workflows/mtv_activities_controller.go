@@ -51,3 +51,18 @@ func sendAcknowledgeUpdateUserFitsPositionConstraintActivity(ctx workflow.Contex
 		state,
 	)
 }
+
+func sendAcknowledgeUpdateDelegationOwnerActivity(ctx workflow.Context, state shared.MtvRoomExposedState) {
+
+	options := workflow.ActivityOptions{
+		ScheduleToStartTimeout: time.Minute,
+		StartToCloseTimeout:    time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, options)
+
+	workflow.ExecuteActivity(
+		ctx,
+		activities.AcknowledgeUpdateDelegationOwner,
+		state,
+	)
+}

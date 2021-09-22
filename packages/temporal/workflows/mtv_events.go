@@ -187,3 +187,21 @@ func NewMtvRoomUpdateUserFitsPositionConstraintEvent(userID string, userFitsPosi
 		UserFitsPositionConstraint: userFitsPositionConstraint,
 	}
 }
+
+type MtvRoomUpdateDelegationOwnerEvent struct {
+	brainy.EventWithType
+
+	NewDelegationOwnerUserID string
+	EmitterUserID            string
+}
+
+func NewMtvRoomUpdateDelegationOwnerEvent(newDelegationOwnerUserID string, emitterUserID string) MtvRoomUpdateDelegationOwnerEvent {
+	return MtvRoomUpdateDelegationOwnerEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MtvRoomUpdateDelegationOwner,
+		},
+
+		NewDelegationOwnerUserID: newDelegationOwnerUserID,
+		EmitterUserID:            emitterUserID,
+	}
+}

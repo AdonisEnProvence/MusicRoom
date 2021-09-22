@@ -431,10 +431,11 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 	initialUsers := make(map[string]*shared.InternalStateUser)
 	initialUsers[body.UserID] = &shared.InternalStateUser{
-		UserID:                     body.UserID,
-		DeviceID:                   body.DeviceID,
-		TracksVotedFor:             make([]string, 0),
-		UserFitsPositionConstraint: nil,
+		UserID:                            body.UserID,
+		DeviceID:                          body.DeviceID,
+		TracksVotedFor:                    make([]string, 0),
+		UserFitsPositionConstraint:        nil,
+		HasControlAndDelegationPermission: true,
 	}
 
 	if body.HasPhysicalAndTimeConstraints && body.PhysicalAndTimeConstraints != nil {
@@ -595,6 +596,52 @@ func UpdateUserFitsPositionConstraintHandler(w http.ResponseWriter, r *http.Requ
 	signal := shared.NewUpdateUserFitsPositionConstraintSignal(shared.NewUpdateUserFitsPositionConstraintSignalArgs{
 		UserID:                     body.UserID,
 		UserFitsPositionConstraint: body.UserFitsPositionConstraint,
+	})
+
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		body.RunID,
+		shared.SignalChannelName,
+		signal,
+	); err != nil {
+		fmt.Println(err)
+
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	res := make(map[string]interface{})
+	res["ok"] = 1
+	json.NewEncoder(w).Encode(res)
+
+}
+
+type UpdateDelegationOwnerHandlerBody struct {
+	UserID     string `json:"userID" validate:"required,uuid"`
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
+}
+
+func UpdateDelegationOwnerHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var body UpdateDelegationOwnerHandlerBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		fmt.Println(err)
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
+		fmt.Println(err)
+		WriteError(w, err)
+		return
+	}
+
+	signal := shared.NewUpdateDelegationOwnerSignal(shared.NewUpdateDelegationOwnerSignalArgs{
+		UserID: body.UserID,
 	})
 
 	if err := temporal.SignalWorkflow(

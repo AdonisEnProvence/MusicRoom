@@ -136,6 +136,7 @@ export const MusicTrackVoteCreationFormPhysicalConstraintsContent: React.FC<Musi
                                                 });
                                                 onBlur();
                                             }}
+                                            debounce={300}
                                             query={{
                                                 key: GOOGLE_PLACES_API_KEY,
                                                 language: 'fr',

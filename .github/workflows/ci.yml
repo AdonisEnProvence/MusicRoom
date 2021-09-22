@@ -44,18 +44,34 @@ jobs:
             - name: Cache node_modules 📦
               uses: actions/cache@v2
               with:
-                  path: ~/.npm
-                  key: ubuntu-latest-node-${{ hashFiles('yarn.lock') }}
-                  restore-keys: |
-                      ubuntu-latest-node-
+                path: '**/node_modules'
+                key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
             - name: Install dependencies 👨🏻‍💻
-              run: yarn --frozen-lockfile
+              run: yarn install
 
             - name: Build packages 👷
               run: yarn run build:tsc
 
             - name: Run linter 👀
               run: yarn run lint
+
+            - name: Cache Go dependencies and build artifacts 📦
+              uses: actions/cache@v2
+              with:
+                # In order:
+                # * Module download cache
+                # * Build cache (Linux)
+                # * Build cache (Mac)
+                # * Build cache (Windows)
+                path: |
+                  ~/go/pkg/mod
+                  ~/.cache/go-build
+                  ~/Library/Caches/go-build
+                  %LocalAppData%\go-build
+                key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+                restore-keys: |
+                  ${{ runner.os }}-go-
 
             - name: Run Temporal tests 🧪
               run: yarn run lerna run --scope @musicroom/temporal test

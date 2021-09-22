@@ -141,9 +141,7 @@ const roomNameValidationTestModel = createTestModel<TestingContext>(
 });
 
 describe('Room name validation', () => {
-    const testPlans = roomNameValidationTestModel.getSimplePathPlans({
-        filter: (state) => state.matches('idle') === false,
-    });
+    const testPlans = roomNameValidationTestModel.getSimplePathPlans({});
 
     testPlans.forEach((plan) => {
         describe(plan.description, () => {

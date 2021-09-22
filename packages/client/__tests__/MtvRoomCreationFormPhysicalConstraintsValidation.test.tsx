@@ -519,9 +519,7 @@ const physicalConstraintsValidationTestModel = createTestModel<TestingContext>(
 
 describe('Physical constraints validation validation', () => {
     const testPlans =
-        physicalConstraintsValidationTestModel.getShortestPathPlans({
-            filter: (state) => state.matches('idle') === false,
-        });
+        physicalConstraintsValidationTestModel.getShortestPathPlans({});
 
     testPlans.forEach((plan) => {
         describe(plan.description, () => {

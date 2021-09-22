@@ -58,6 +58,7 @@ test.group(
             let roomToLeaveState: MtvWorkflowState = {
                 currentTrack: null,
                 name: random.word(),
+                delegationOwnerUserID: null,
                 playingMode: 'BROADCAST',
                 playing: false,
                 roomCreatorUserID: userAID,
@@ -77,6 +78,7 @@ test.group(
                 name: random.word(),
                 isOpen: true,
                 isOpenOnlyInvitedUsersCanVote: false,
+                delegationOwnerUserID: null,
                 playingMode: 'BROADCAST',
                 playing: false,
                 roomCreatorUserID: roomToJoinCreatorID,
@@ -113,6 +115,7 @@ test.group(
                 .callsFake(async ({ userID: relatedUserID }) => {
                     roomToJoinState.usersLength++;
                     roomToJoinState.userRelatedInformation = {
+                        hasControlAndDelegationPermission: true,
                         userFitsPositionConstraint: null,
                         userID: relatedUserID,
                         emittingDeviceID: datatype.uuid(),
@@ -283,6 +286,7 @@ test.group(
                 name: random.word(),
                 playing: false,
                 roomCreatorUserID: userAID,
+                delegationOwnerUserID: null,
                 playingMode: 'BROADCAST',
                 roomID: mtvRoomIDToAssociate,
                 tracks: null,
@@ -303,6 +307,7 @@ test.group(
                 playingMode: 'BROADCAST',
                 roomID: mtvRoomToJoinID,
                 tracks: null,
+                delegationOwnerUserID: null,
                 isOpen: true,
                 isOpenOnlyInvitedUsersCanVote: false,
                 userRelatedInformation: null,
@@ -340,6 +345,7 @@ test.group(
                     roomToJoinState.userRelatedInformation = {
                         userFitsPositionConstraint: null,
                         userID: relatedUserID,
+                        hasControlAndDelegationPermission: true,
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],
                     };
@@ -502,6 +508,7 @@ test.group(
                 hasTimeAndPositionConstraints: false,
                 timeConstraintIsValid: null,
                 name: random.word(),
+                delegationOwnerUserID: null,
                 isOpen: true,
                 isOpenOnlyInvitedUsersCanVote: false,
                 playingMode: 'BROADCAST',
@@ -543,12 +550,14 @@ test.group(
                         roomCreatorUserID: userID,
                         playing: false,
                         name: params.name,
+                        delegationOwnerUserID: null,
                         playingMode: 'BROADCAST',
                         isOpen: true,
                         isOpenOnlyInvitedUsersCanVote: false,
                         hasTimeAndPositionConstraints: false,
                         timeConstraintIsValid: null,
                         userRelatedInformation: {
+                            hasControlAndDelegationPermission: true,
                             userFitsPositionConstraint: null,
                             userID,
                             emittingDeviceID: datatype.uuid(),
@@ -762,6 +771,7 @@ test.group(
                         isOpen: true,
                         isOpenOnlyInvitedUsersCanVote: false,
                         hasTimeAndPositionConstraints: false,
+                        delegationOwnerUserID: null,
                         timeConstraintIsValid: null,
                         name: random.word(),
                         playing: false,

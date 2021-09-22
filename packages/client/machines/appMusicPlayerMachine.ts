@@ -110,6 +110,8 @@ const rawContext: AppMusicPlayerMachineContext = {
     waitingRoomID: undefined,
     progressElapsedTime: 0,
     initialTracksIDs: undefined,
+    delegationOwnerUserID: null,
+    closeMtvRoomCreationModal: undefined,
     playingMode: 'BROADCAST',
     closeSuggestionModal: undefined,
     hasTimeAndPositionConstraints: false,

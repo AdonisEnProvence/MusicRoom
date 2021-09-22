@@ -32,7 +32,9 @@ He will be redirected to the home and will view the default mini music player
         isOpenOnlyInvitedUsersCanVote: false,
         hasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
+        delegationOwnerUserID: null,
         userRelatedInformation: {
+            hasControlAndDelegationPermission: true,
             userFitsPositionConstraint: null,
             emittingDeviceID: thisDevice.deviceID,
             userID,

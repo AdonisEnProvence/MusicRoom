@@ -34,6 +34,7 @@ test.group(`User service socket handler tests`, (group) => {
             playingMode: 'BROADCAST',
             name: random.word(),
             playing: false,
+            delegationOwnerUserID: null,
             isOpen: true,
             isOpenOnlyInvitedUsersCanVote: false,
             roomCreatorUserID: userID,

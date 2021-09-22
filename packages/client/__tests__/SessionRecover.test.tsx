@@ -27,7 +27,9 @@ test(`It should display the music player corresponding to the injected state on 
         isOpenOnlyInvitedUsersCanVote: false,
         hasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
+        delegationOwnerUserID: null,
         userRelatedInformation: {
+            hasControlAndDelegationPermission: true,
             userFitsPositionConstraint: null,
             emittingDeviceID: datatype.uuid(),
             userID,
@@ -128,9 +130,11 @@ test(`It should display the music player corresponding to the injected state on 
         playingMode: 'BROADCAST',
         isOpen: true,
         isOpenOnlyInvitedUsersCanVote: false,
+        delegationOwnerUserID: null,
         hasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
         userRelatedInformation: {
+            hasControlAndDelegationPermission: true,
             userFitsPositionConstraint: null,
             emittingDeviceID: datatype.uuid(),
             userID,
@@ -217,9 +221,11 @@ test(`It should display the already elapsed track duration and player should be 
         playingMode: 'BROADCAST',
         isOpen: true,
         isOpenOnlyInvitedUsersCanVote: false,
+        delegationOwnerUserID: null,
         hasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
         userRelatedInformation: {
+            hasControlAndDelegationPermission: true,
             userFitsPositionConstraint: null,
             emittingDeviceID: datatype.uuid(),
             userID,

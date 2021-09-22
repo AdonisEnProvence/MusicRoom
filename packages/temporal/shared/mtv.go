@@ -219,7 +219,7 @@ type InternalStateUser struct {
 	DeviceID                          string   `json:"emittingDeviceID"`
 	TracksVotedFor                    []string `json:"tracksVotedFor"`
 	UserFitsPositionConstraint        *bool    `json:"userFitsPositionConstraint"`
-	HasControlAndDelegationPermission bool     `json:"HasControlAndDelegationPermission"`
+	HasControlAndDelegationPermission bool     `json:"hasControlAndDelegationPermission"`
 }
 
 func (s *InternalStateUser) HasVotedFor(trackID string) bool {

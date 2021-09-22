@@ -45,6 +45,7 @@ test.group(`User service socket handler tests`, (group) => {
             isOpen: true,
             isOpenOnlyInvitedUsersCanVote: false,
             roomCreatorUserID: creatorUserID,
+            delegationOwnerUserID: null,
             roomID,
             tracks: null,
             userRelatedInformation: null,
@@ -60,6 +61,7 @@ test.group(`User service socket handler tests`, (group) => {
                     {
                         ...state,
                         userRelatedInformation: {
+                            hasControlAndDelegationPermission: true,
                             userFitsPositionConstraint: null,
                             emittingDeviceID: datatype.uuid(),
                             tracksVotedFor: [trackID],

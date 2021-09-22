@@ -89,7 +89,9 @@ describe('User device location tests', () => {
             isOpenOnlyInvitedUsersCanVote: false,
             hasTimeAndPositionConstraints: true,
             timeConstraintIsValid: true,
+            delegationOwnerUserID: null,
             userRelatedInformation: {
+                hasControlAndDelegationPermission: true,
                 userFitsPositionConstraint: false,
                 emittingDeviceID: datatype.uuid(),
                 userID: roomCreatorUserID,

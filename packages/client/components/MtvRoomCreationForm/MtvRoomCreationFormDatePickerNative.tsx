@@ -2,16 +2,24 @@ import { Text, useSx } from 'dripsy';
 import React, { useState } from 'react';
 import { TouchableOpacity } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { useFormatDateTime } from '../../hooks/useFormatDateTime';
+import { formatDateTime } from '../../hooks/useFormatDateTime';
 import { useTextFieldStyles } from '../kit/TextField';
 import { MtvRoomCreationFormDatePickerProps } from './MtvRoomCreationFormDatePickerContract';
 
 const MtvRoomCreationFormDatePickerNative: React.FC<MtvRoomCreationFormDatePickerProps> =
-    ({ title, date, onConfirm, onCancel, testID }) => {
+    ({
+        title,
+        date,
+        minimiumDate,
+        maximumDate,
+        onConfirm,
+        onCancel,
+        testID,
+    }) => {
         const [isModalOpen, setIsModalOpen] = useState(false);
         const sx = useSx();
         const textFieldStyles = useTextFieldStyles();
-        const formattedDate = useFormatDateTime(date);
+        const formattedDate = date !== undefined ? formatDateTime(date) : '';
 
         function openModal() {
             setIsModalOpen(true);
@@ -55,6 +63,8 @@ const MtvRoomCreationFormDatePickerNative: React.FC<MtvRoomCreationFormDatePicke
                 <DateTimePickerModal
                     isVisible={isModalOpen}
                     mode="datetime"
+                    minimumDate={minimiumDate}
+                    maximumDate={maximumDate}
                     testID={testID}
                     onConfirm={handleConfirm}
                     onCancel={handleClose}

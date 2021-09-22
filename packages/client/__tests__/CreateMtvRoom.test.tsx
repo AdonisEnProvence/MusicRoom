@@ -223,20 +223,34 @@ const createMtvRoomWithSettingsMachine =
             openingStatus: {
                 initial: 'isPublic',
 
+                meta: {
+                    test: async ({ screen }: TestingContext) => {
+                        const openingStatusScreenTitle =
+                            await screen.findByText(
+                                /what.*is.*opening.*status.*room/i,
+                            );
+                        expect(openingStatusScreenTitle).toBeTruthy();
+                    },
+                },
+
                 states: {
                     isPublic: {
                         meta: {
                             test: async ({ screen }: TestingContext) => {
-                                const selectedElementsOnScreen =
-                                    await screen.findAllByA11yState({
-                                        selected: true,
-                                    });
+                                await waitFor(() => {
+                                    const selectedElementsOnScreen =
+                                        screen.getAllByA11yState({
+                                            selected: true,
+                                        });
 
-                                const selectedOpeningStatusOption =
-                                    selectedElementsOnScreen[1];
-                                expect(
-                                    selectedOpeningStatusOption,
-                                ).toHaveTextContent(/public/i);
+                                    const selectedOpeningStatusOption =
+                                        selectedElementsOnScreen[
+                                            selectedElementsOnScreen.length - 1
+                                        ];
+                                    expect(
+                                        selectedOpeningStatusOption,
+                                    ).toHaveTextContent(/public/i);
+                                });
 
                                 const votingConstraintTitle = screen.getByText(
                                     /allow.*only.*invited.*users.*vote/i,
@@ -253,28 +267,36 @@ const createMtvRoomWithSettingsMachine =
                         states: {
                             hasNoVotingConstraint: {
                                 meta: {
-                                    test: ({ screen }: TestingContext) => {
-                                        const votingSwitch =
-                                            screen.getByRole('switch');
+                                    test: async ({
+                                        screen,
+                                    }: TestingContext) => {
+                                        await waitFor(() => {
+                                            const votingSwitch =
+                                                screen.getByRole('switch');
 
-                                        expect(votingSwitch).toHaveProp(
-                                            'value',
-                                            false,
-                                        );
+                                            expect(votingSwitch).toHaveProp(
+                                                'value',
+                                                false,
+                                            );
+                                        });
                                     },
                                 },
                             },
 
                             hasVotingConstraint: {
                                 meta: {
-                                    test: ({ screen }: TestingContext) => {
-                                        const votingSwitch =
-                                            screen.getByRole('switch');
+                                    test: async ({
+                                        screen,
+                                    }: TestingContext) => {
+                                        await waitFor(() => {
+                                            const votingSwitch =
+                                                screen.getByRole('switch');
 
-                                        expect(votingSwitch).toHaveProp(
-                                            'value',
-                                            true,
-                                        );
+                                            expect(votingSwitch).toHaveProp(
+                                                'value',
+                                                true,
+                                            );
+                                        });
                                     },
                                 },
                             },
@@ -290,16 +312,20 @@ const createMtvRoomWithSettingsMachine =
                     isPrivate: {
                         meta: {
                             test: async ({ screen }: TestingContext) => {
-                                const selectedElementsOnScreen =
-                                    await screen.findAllByA11yState({
-                                        selected: true,
-                                    });
+                                await waitFor(() => {
+                                    const selectedElementsOnScreen =
+                                        screen.getAllByA11yState({
+                                            selected: true,
+                                        });
 
-                                const selectedOpeningStatusOption =
-                                    selectedElementsOnScreen[1];
-                                expect(
-                                    selectedOpeningStatusOption,
-                                ).toHaveTextContent(/private/i);
+                                    const selectedOpeningStatusOption =
+                                        selectedElementsOnScreen[
+                                            selectedElementsOnScreen.length - 1
+                                        ];
+                                    expect(
+                                        selectedOpeningStatusOption,
+                                    ).toHaveTextContent(/private/i);
+                                });
 
                                 const unknownVotingConstraintSwitch =
                                     screen.queryByRole('switch');
@@ -308,16 +334,6 @@ const createMtvRoomWithSettingsMachine =
                                 ).toBeNull();
                             },
                         },
-                    },
-                },
-
-                meta: {
-                    test: async ({ screen }: TestingContext) => {
-                        const openingStatusScreenTitle =
-                            await screen.findByText(
-                                /what.*is.*opening.*status.*room/i,
-                            );
-                        expect(openingStatusScreenTitle).toBeTruthy();
                     },
                 },
 
@@ -367,7 +383,9 @@ const createMtvRoomWithSettingsMachine =
                                     });
 
                                 const selectedPhysicalConstraintsStatusOption =
-                                    selectedElementsOnScreen[1];
+                                    selectedElementsOnScreen[
+                                        selectedElementsOnScreen.length - 1
+                                    ];
                                 expect(
                                     selectedPhysicalConstraintsStatusOption,
                                 ).toHaveTextContent(/^no.*restriction$/i);
@@ -390,7 +408,9 @@ const createMtvRoomWithSettingsMachine =
                                     });
 
                                 const selectedPhysicalConstraintsStatusOption =
-                                    selectedElementsOnScreen[1];
+                                    selectedElementsOnScreen[
+                                        selectedElementsOnScreen.length - 1
+                                    ];
                                 expect(
                                     selectedPhysicalConstraintsStatusOption,
                                 ).toHaveTextContent(/^restrict$/i);
@@ -445,16 +465,20 @@ const createMtvRoomWithSettingsMachine =
                     broadcast: {
                         meta: {
                             test: async ({ screen }: TestingContext) => {
-                                const selectedElementsOnScreen =
-                                    await screen.findAllByA11yState({
-                                        selected: true,
-                                    });
+                                await waitFor(() => {
+                                    const selectedElementsOnScreen =
+                                        screen.getAllByA11yState({
+                                            selected: true,
+                                        });
 
-                                const selectedPlayingModeStatusOption =
-                                    selectedElementsOnScreen[1];
-                                expect(
-                                    selectedPlayingModeStatusOption,
-                                ).toHaveTextContent(/^broadcast$/i);
+                                    const selectedPlayingModeStatusOption =
+                                        selectedElementsOnScreen[
+                                            selectedElementsOnScreen.length - 1
+                                        ];
+                                    expect(
+                                        selectedPlayingModeStatusOption,
+                                    ).toHaveTextContent(/^broadcast$/i);
+                                });
                             },
                         },
                     },
@@ -462,16 +486,20 @@ const createMtvRoomWithSettingsMachine =
                     direct: {
                         meta: {
                             test: async ({ screen }: TestingContext) => {
-                                const selectedElementsOnScreen =
-                                    await screen.findAllByA11yState({
-                                        selected: true,
-                                    });
+                                await waitFor(() => {
+                                    const selectedElementsOnScreen =
+                                        screen.getAllByA11yState({
+                                            selected: true,
+                                        });
 
-                                const selectedPlayingModeStatusOption =
-                                    selectedElementsOnScreen[1];
-                                expect(
-                                    selectedPlayingModeStatusOption,
-                                ).toHaveTextContent(/^direct$/i);
+                                    const selectedPlayingModeStatusOption =
+                                        selectedElementsOnScreen[
+                                            selectedElementsOnScreen.length - 1
+                                        ];
+                                    expect(
+                                        selectedPlayingModeStatusOption,
+                                    ).toHaveTextContent(/^direct$/i);
+                                });
                             },
                         },
                     },
@@ -526,7 +554,9 @@ const createMtvRoomWithSettingsMachine =
                                     });
 
                                 const selectedVotingConstraintOption =
-                                    selectedElementsOnScreen[2];
+                                    selectedElementsOnScreen[
+                                        selectedElementsOnScreen.length - 1
+                                    ];
                                 expect(
                                     selectedVotingConstraintOption,
                                 ).toHaveTextContent(/1/i);
@@ -543,7 +573,9 @@ const createMtvRoomWithSettingsMachine =
                                     });
 
                                 const selectedVotingConstraintOption =
-                                    selectedElementsOnScreen[2];
+                                    selectedElementsOnScreen[
+                                        selectedElementsOnScreen.length - 1
+                                    ];
                                 expect(
                                     selectedVotingConstraintOption,
                                 ).toHaveTextContent(/10/i);
@@ -560,7 +592,9 @@ const createMtvRoomWithSettingsMachine =
                                     });
 
                                 const selectedVotingConstraintOption =
-                                    selectedElementsOnScreen[2];
+                                    selectedElementsOnScreen[
+                                        selectedElementsOnScreen.length - 1
+                                    ];
                                 expect(
                                     selectedVotingConstraintOption,
                                 ).toHaveTextContent(/50/i);

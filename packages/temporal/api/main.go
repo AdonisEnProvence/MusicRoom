@@ -714,6 +714,7 @@ func PingHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func WriteError(w http.ResponseWriter, err error) {
+	fmt.Println(err)
 	w.WriteHeader(http.StatusInternalServerError)
 	res := ErrorResponse{Message: err.Error()}
 	json.NewEncoder(w).Encode(res)

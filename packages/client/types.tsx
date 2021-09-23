@@ -40,7 +40,7 @@ export type RootStackParamList = {
 
     MusicTrackVoteCreationForm: NavigatorScreenParams<MusicTrackVoteCreationFormParamList>;
 
-    MusicTrackVoteUsersList: NavigatorScreenParams<MusicTrackVoteUsersListParamList>;
+    MusicTrackVoteUsersList: NavigatorScreenParams<MusicTrackVoteUsersListStackParamList>;
 };
 
 export type SuggestTrackStackParamList = {
@@ -57,7 +57,7 @@ export type MusicTrackVoteCreationFormParamList = {
     MusicTrackVoteCreationFormConfirmation: undefined;
 };
 
-export type MusicTrackVoteUsersListParamList = {
+export type MusicTrackVoteUsersListStackParamList = {
     MusicTrackVoteUsersListModal: undefined;
 };
 
@@ -115,12 +115,12 @@ export type MusicTrackVoteUsersListModalProps = {
     navigation: CompositeNavigationProp<
         StackNavigationProp<RootStackParamList, 'MusicTrackVoteUsersList'>,
         StackNavigationProp<
-            MusicTrackVoteUsersListParamList,
+            MusicTrackVoteUsersListStackParamList,
             'MusicTrackVoteUsersListModal'
         >
     >;
     route: RouteProp<
-        MusicTrackVoteUsersListParamList,
+        MusicTrackVoteUsersListStackParamList,
         'MusicTrackVoteUsersListModal'
     >;
 };

@@ -17,12 +17,14 @@ import MusicTrackVoteCreationFormPhysicalConstraints from '../screens/MusicTrack
 import MusicTrackVoteCreationFormPlayingMode from '../screens/MusicTrackVoteCreationFormPlayingMode';
 import MusicTrackVoteCreationFormVotesConstraints from '../screens/MusicTrackVoteCreationFormVotesConstraints';
 import MusicTrackVoteSearchScreen from '../screens/MusicTrackVoteSearchScreen';
+import MusicTrackVoteUsersListModal from '../screens/MusicTrackVoteUsersListModal';
 import SettingsScreen from '../screens/SettingsScreen';
 import SuggestTrackModal from '../screens/SuggestTrackModal';
 import SuggestTrackResultsModal from '../screens/SuggestTrackResultsModal';
 import {
     MainStackParamList,
     MusicTrackVoteCreationFormParamList,
+    MusicTrackVoteUsersListStackParamList,
     RootStackParamList,
     SuggestTrackStackParamList,
 } from '../types';
@@ -69,6 +71,8 @@ const Navigation: React.FC<ColorModeProps> = ({
 const RootStack = createStackNavigator<RootStackParamList>();
 const MainStack = createStackNavigator<MainStackParamList>();
 const SuggestTrackStack = createStackNavigator<SuggestTrackStackParamList>();
+const MusicTrackVoteUsersListStack =
+    createStackNavigator<MusicTrackVoteUsersListStackParamList>();
 const MusicTrackVoteCreationStack =
     createStackNavigator<MusicTrackVoteCreationFormParamList>();
 
@@ -90,6 +94,12 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
             <RootStack.Screen
                 name="SuggestTrack"
                 component={SuggestTrackNavigator}
+                options={{ headerShown: false }}
+            />
+
+            <RootStack.Screen
+                name="MusicTrackVoteUsersList"
+                component={MusicTrackVoteUsersListNavigator}
                 options={{ headerShown: false }}
             />
 
@@ -160,6 +170,24 @@ export const SuggestTrackNavigator: React.FC<ColorModeProps> = ({
                 component={SuggestTrackResultsModal}
             />
         </SuggestTrackStack.Navigator>
+    );
+};
+
+export const MusicTrackVoteUsersListNavigator: React.FC<ColorModeProps> = ({
+    colorScheme,
+}) => {
+    const style = navigationStyle(colorScheme);
+
+    return (
+        <MusicTrackVoteUsersListStack.Navigator
+            initialRouteName="MusicTrackVoteUsersListModal"
+            screenOptions={{ ...style, headerShown: false }}
+        >
+            <MusicTrackVoteUsersListStack.Screen
+                name="MusicTrackVoteUsersListModal"
+                component={MusicTrackVoteUsersListModal}
+            />
+        </MusicTrackVoteUsersListStack.Navigator>
     );
 };
 

@@ -1,6 +1,7 @@
 import { useActor, useMachine } from '@xstate/react';
 import { Text } from 'dripsy';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActorRef } from 'xstate';
 import {
@@ -12,26 +13,31 @@ import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
 } from '../machines/appScreenHeaderWithSearchBarMachine';
-import { searchTrackMachine } from '../machines/searchTrackMachine';
+import { createSearchUserMachine } from '../machines/searchUserMachine';
 import { MusicTrackVoteUsersListModalProps } from '../types';
 
 const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> =
     ({ navigation }) => {
         const insets = useSafeAreaInsets();
         const [screenOffsetY, setScreenOffsetY] = useState(0);
-        const [state] = useMachine(searchTrackMachine, {
-            actions: {
-                navigateToResultsPage: ({ tracks }) => {
-                    if (tracks === undefined) {
-                        return;
-                    }
-
-                    // navigation.navigate('SuggestTrackResultsModal', {
-                    //     tracks,
-                    // });
-                },
-            },
-        });
+        const searchUserMachine = useMemo(
+            () =>
+                createSearchUserMachine({
+                    users: [
+                        {
+                            id: 'Baptiste',
+                        },
+                        {
+                            id: 'Biolay',
+                        },
+                        {
+                            id: 'Christophe',
+                        },
+                    ],
+                }),
+            [],
+        );
+        const [state] = useMachine(searchUserMachine);
         const searchBarActor: ActorRef<
             AppScreenHeaderWithSearchBarMachineEvent,
             AppScreenHeaderWithSearchBarMachineState
@@ -59,6 +65,15 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
 
                 <AppScreenContainer>
                     <Text sx={{ color: 'white' }}>This is the modal</Text>
+
+                    <FlatList
+                        data={state.context.filteredUsers}
+                        renderItem={({ item }) => {
+                            return (
+                                <Text sx={{ color: 'white' }}>{item.id}</Text>
+                            );
+                        }}
+                    />
                 </AppScreenContainer>
             </AppScreen>
         );

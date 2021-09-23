@@ -619,7 +619,6 @@ func UpdateUserFitsPositionConstraintHandler(w http.ResponseWriter, r *http.Requ
 }
 
 type UpdateDelegationOwnerHandlerBody struct {
-	UserID                   string `json:"userID" validate:"required,uuid"`
 	WorkflowID               string `json:"workflowID" validate:"required,uuid"`
 	RunID                    string `json:"runID" validate:"required,uuid"`
 	NewDelegationOwnerUserID string `json:"newDelegationOwnerUserID" validate:"required,uuid"`
@@ -643,7 +642,7 @@ func UpdateDelegationOwnerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	signal := shared.NewUpdateDelegationOwnerSignal(shared.NewUpdateDelegationOwnerSignalArgs{
-		NewDelegationOwnerUserID: body.UserID,
+		NewDelegationOwnerUserID: body.NewDelegationOwnerUserID,
 		EmitterUserID:            body.EmitterUserID,
 	})
 

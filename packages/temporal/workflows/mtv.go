@@ -734,8 +734,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 							if success {
 								roomIsInDirectMode := internalState.initialParams.PlayingMode == shared.MtvPlayingModeDirect
-								delegationOwnerIsLeaveingRoom := internalState.DelegationOwnerUserID != nil && *internalState.DelegationOwnerUserID == event.UserID
-								if delegationOwnerIsLeaveingRoom && roomIsInDirectMode {
+								delegationOwnerIsLeavingRoom := internalState.DelegationOwnerUserID != nil && *internalState.DelegationOwnerUserID == event.UserID
+								if delegationOwnerIsLeavingRoom && roomIsInDirectMode {
 									internalState.DelegationOwnerUserID = &(internalState.initialParams.RoomCreatorUserID)
 								}
 

@@ -196,7 +196,7 @@ func getWokflowInitParams(tracksIDs []string, minimumScoreToBePlayed int) (share
 		PhysicalAndTimeConstraints:    nil,
 		IsOpen:                        true,
 		IsOpenOnlyInvitedUsersCanVote: false,
-		PlayingMode:                   "BROADCAST",
+		PlayingMode:                   shared.MtvPlayingModeBroadcast,
 	}, roomCreatorDeviceID
 }
 
@@ -3046,7 +3046,7 @@ func (s *UnitTestSuite) Test_CreateBroadcastRoomAndAttemptToExecuteDelegationOpe
 		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
 		s.False(mtvState.Playing)
 		s.Equal(shared.MtvPlayingModeBroadcast, mtvState.PlayingMode)
-		s.True(mtvState.DelegationOwnerUserID == nil)
+		s.Nil(mtvState.DelegationOwnerUserID)
 	}, init)
 
 	emitJoinSignal := defaultDuration
@@ -3077,7 +3077,7 @@ func (s *UnitTestSuite) Test_CreateBroadcastRoomAndAttemptToExecuteDelegationOpe
 		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
 		s.False(mtvState.Playing)
 		s.Equal(shared.MtvPlayingModeBroadcast, mtvState.PlayingMode)
-		s.True(mtvState.DelegationOwnerUserID == nil)
+		s.Nil(mtvState.DelegationOwnerUserID)
 	}, init)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)

@@ -60,6 +60,7 @@ func main() {
 	r.Handle("/go-to-next-track", http.HandlerFunc(GoToNextTrackHandler)).Methods(http.MethodPut)
 	r.Handle("/suggest-tracks", http.HandlerFunc(SuggestTracksHandler)).Methods(http.MethodPut)
 	r.Handle("/terminate", http.HandlerFunc(TerminateWorkflowHandler)).Methods(http.MethodPut)
+	r.Handle("/update-delegation-owner", http.HandlerFunc(UpdateDelegationOwnerHandler)).Methods(http.MethodPut)
 
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 
@@ -489,7 +490,11 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
-type LeaveRoomHandlerBody JoinRoomHandlerBody
+type LeaveRoomHandlerBody struct {
+	UserID     string `json:"userID" validate:"required,uuid"`
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
+}
 
 func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
@@ -497,10 +502,12 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 	var body LeaveRoomHandlerBody
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		fmt.Println("Leave room failed on decode body", err)
 		WriteError(w, err)
 		return
 	}
 	if err := validate.Struct(body); err != nil {
+		fmt.Println("Leave room failed on validator body", err)
 		WriteError(w, err)
 		return
 	}
@@ -516,6 +523,7 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 		shared.SignalChannelName,
 		signal,
 	); err != nil {
+		fmt.Println("Couldnt send the signal to temporal", err)
 		WriteError(w, err)
 		return
 	}

@@ -514,8 +514,6 @@ type NewUpdateDelegationOwnerSignalArgs struct {
 	EmitterUserID            string `validate:"required,uuid"`
 }
 
-// Adonis will check if the emitter is indeed the creator
-// Passing in the payload the creatorID is not reliable as it's a public information
 func NewUpdateDelegationOwnerSignal(args NewUpdateDelegationOwnerSignalArgs) UpdateDelegationOwnerSignal {
 	return UpdateDelegationOwnerSignal{
 		Route:                    SignalUpdateDelegationOwner,

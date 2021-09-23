@@ -188,6 +188,14 @@ export default class TemporalToServerController {
         );
     }
 
+    public acknowledgeUpdateDelegationOwner({
+        request,
+    }: HttpContextContract): void {
+        const state = MtvWorkflowState.parse(request.body());
+
+        Ws.io.to(state.roomID).emit('UPDATE_DELEGATION_OWNER_CALLBACK', state);
+    }
+
     public async acknowledgeUpdateUserFitsPositionConstraint({
         request,
     }: HttpContextContract): Promise<void> {

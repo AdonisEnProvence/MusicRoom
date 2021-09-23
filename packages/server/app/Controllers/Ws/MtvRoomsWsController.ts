@@ -1,6 +1,7 @@
 import {
     CreateWorkflowResponse,
     MtvRoomClientToServerCreateArgs,
+    MtvRoomUpdateDelegationOwnerArgs,
     MtvWorkflowState,
 } from '@musicroom/types';
 import MtvRoom from 'App/Models/MtvRoom';
@@ -51,6 +52,11 @@ interface OnGoToNextTrackArgs extends RoomID {}
 interface OnChangeEmittingDeviceArgs extends RoomID, DeviceID, UserID {}
 interface OnSuggestTracksArgs extends RoomID, DeviceID, UserID {
     tracksToSuggest: string[];
+}
+
+interface OnUpdateDelegationOwner extends MtvRoomUpdateDelegationOwnerArgs {
+    emitterUserID: string;
+    roomID: string;
 }
 
 interface OnVoteForTrackArgs extends RoomID, UserID {
@@ -294,6 +300,21 @@ export default class MtvRoomsWsController {
             runID,
             trackID,
             userID,
+        });
+    }
+
+    public static async updateDelegationOwner({
+        emitterUserID,
+        newDelegationOwnerUserID,
+        roomID,
+    }: OnUpdateDelegationOwner): Promise<void> {
+        const { runID } = await MtvRoom.findOrFail(roomID);
+
+        await ServerToTemporalController.updateDelegationOwner({
+            emitterUserID,
+            newDelegationOwnerUserID,
+            runID,
+            workflowID: roomID,
         });
     }
 

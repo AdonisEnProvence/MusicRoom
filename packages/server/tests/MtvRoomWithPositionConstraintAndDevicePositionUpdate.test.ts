@@ -77,8 +77,10 @@ test.group(
                         isOpenOnlyInvitedUsersCanVote: false,
                         hasTimeAndPositionConstraints: false,
                         timeConstraintIsValid: null,
+                        delegationOwnerUserID: null,
                         userRelatedInformation: {
                             userID,
+                            hasControlAndDelegationPermission: true,
                             emittingDeviceID: datatype.uuid(),
                             tracksVotedFor: [],
                             userFitsPositionConstraint: null,

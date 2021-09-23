@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/Devessier/brainy"
 )
 
@@ -40,5 +41,25 @@ func currentTrackEndedAndNextTrackIsReadyToBePlayed(internalState *MtvRoomIntern
 func roomHasPositionAndTimeConstraint(internalState *MtvRoomInternalState) brainy.Cond {
 	return func(c brainy.Context, e brainy.Event) bool {
 		return internalState.initialParams.HasPhysicalAndTimeConstraints && internalState.initialParams.PhysicalAndTimeConstraints != nil
+	}
+}
+
+func roomPlayingModeIsDirectAndUserExistsAndEmitterHasPermissions(internalState *MtvRoomInternalState) brainy.Cond {
+	return func(c brainy.Context, e brainy.Event) bool {
+		event := e.(MtvRoomUpdateDelegationOwnerEvent)
+
+		if internalState.GetUser(event.NewDelegationOwnerUserID) == nil {
+			return false
+		}
+
+		emitterUser := internalState.GetUser(event.EmitterUserID)
+		if emitterUser == nil {
+			return false
+		}
+
+		emitterUserHasPermission := emitterUser.HasControlAndDelegationPermission
+		playingModeIsDirect := internalState.initialParams.PlayingMode == shared.MtvPlayingModeDirect
+
+		return playingModeIsDirect && emitterUserHasPermission
 	}
 }

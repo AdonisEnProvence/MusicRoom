@@ -50,10 +50,16 @@ func (s *UnitTestSuite) emitPlaySignal() {
 	s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
 }
 
-func (s *UnitTestSuite) emitUpdateUserPositionPermission(args shared.NewUpdateUserFitsPositionConstraintSignalArgs) {
+func (s *UnitTestSuite) emitUpdateUserPositionPermissionSignal(args shared.NewUpdateUserFitsPositionConstraintSignalArgs) {
 	fmt.Println("-----EMIT UPDATE POSITION CALLED IN TEST-----")
 	updatePositionSignal := shared.NewUpdateUserFitsPositionConstraintSignal(args)
 	s.env.SignalWorkflow(shared.SignalChannelName, updatePositionSignal)
+}
+
+func (s *UnitTestSuite) emitUpdateDelegationOwnerSignal(args shared.NewUpdateDelegationOwnerSignalArgs) {
+	fmt.Println("-----EMIT UPDATE DELEGATION OWNER CALLED IN TEST-----")
+	updateDelegationOwnerSignal := shared.NewUpdateDelegationOwnerSignal(args)
+	s.env.SignalWorkflow(shared.SignalChannelName, updateDelegationOwnerSignal)
 }
 
 func (s *UnitTestSuite) emitSuggestTrackSignal(args shared.SuggestTracksSignalArgs) {
@@ -166,21 +172,22 @@ func (s *UnitTestSuite) initTestEnv() (func(), func(callback func(), durationToA
 
 func getWokflowInitParams(tracksIDs []string, minimumScoreToBePlayed int) (shared.MtvRoomParameters, string) {
 	var (
-		fakeWorkflowID          = faker.UUIDHyphenated()
-		fakeRoomCreatorUserID   = faker.UUIDHyphenated()
-		fakeRoomCreatorDeviceID = faker.UUIDHyphenated()
+		workflowID          = faker.UUIDHyphenated()
+		roomCreatorUserID   = faker.UUIDHyphenated()
+		roomCreatorDeviceID = faker.UUIDHyphenated()
 	)
 
 	initialUsers := make(map[string]*shared.InternalStateUser)
-	initialUsers[fakeRoomCreatorUserID] = &shared.InternalStateUser{
-		UserID:         fakeRoomCreatorUserID,
-		DeviceID:       fakeRoomCreatorDeviceID,
-		TracksVotedFor: make([]string, 0),
+	initialUsers[roomCreatorUserID] = &shared.InternalStateUser{
+		UserID:                            roomCreatorUserID,
+		DeviceID:                          roomCreatorDeviceID,
+		TracksVotedFor:                    make([]string, 0),
+		HasControlAndDelegationPermission: true,
 	}
 
 	return shared.MtvRoomParameters{
-		RoomID:                        fakeWorkflowID,
-		RoomCreatorUserID:             fakeRoomCreatorUserID,
+		RoomID:                        workflowID,
+		RoomCreatorUserID:             roomCreatorUserID,
 		RoomName:                      faker.Word(),
 		InitialUsers:                  initialUsers,
 		InitialTracksIDsList:          tracksIDs,
@@ -189,8 +196,8 @@ func getWokflowInitParams(tracksIDs []string, minimumScoreToBePlayed int) (share
 		PhysicalAndTimeConstraints:    nil,
 		IsOpen:                        true,
 		IsOpenOnlyInvitedUsersCanVote: false,
-		PlayingMode:                   "BROADCAST",
-	}, fakeRoomCreatorDeviceID
+		PlayingMode:                   shared.MtvPlayingModeBroadcast,
+	}, roomCreatorDeviceID
 }
 
 // Test_PlayThenPauseTrack scenario:
@@ -482,9 +489,10 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 
 		s.Equal(2, mtvState.UsersLength)
 		expectedInternalStateUser := &shared.InternalStateUser{
-			UserID:         fakeUserID,
-			DeviceID:       fakeDeviceID,
-			TracksVotedFor: make([]string, 0),
+			UserID:                            fakeUserID,
+			DeviceID:                          fakeDeviceID,
+			TracksVotedFor:                    make([]string, 0),
+			HasControlAndDelegationPermission: false,
 		}
 
 		s.NotEqual(shouldNotBeRegisterDeviceID, mtvState.UserRelatedInformation.DeviceID)
@@ -581,6 +589,7 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 			TracksVotedFor: []string{
 				tracks[0].ID,
 			},
+			HasControlAndDelegationPermission: true,
 		}
 
 		s.Equal(1, mtvState.UsersLength)
@@ -617,9 +626,10 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 		mtvState := s.getMtvState(fakeUserID)
 
 		expectedInternalStateUser := &shared.InternalStateUser{
-			UserID:         fakeUserID,
-			DeviceID:       fakeDeviceID,
-			TracksVotedFor: make([]string, 0),
+			UserID:                            fakeUserID,
+			DeviceID:                          fakeDeviceID,
+			TracksVotedFor:                    make([]string, 0),
+			HasControlAndDelegationPermission: false,
 		}
 
 		s.Equal(2, mtvState.UsersLength)
@@ -647,7 +657,9 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 			DeviceID: secondCreatorDeviceID,
 			TracksVotedFor: []string{
 				tracks[0].ID,
-			}}
+			},
+			HasControlAndDelegationPermission: true,
+		}
 
 		s.Equal(2, mtvState.UsersLength)
 		s.False(mtvState.Playing)
@@ -659,9 +671,10 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 		mtvState := s.getMtvState(fakeUserID)
 
 		expectedInternalStateUser := &shared.InternalStateUser{
-			UserID:         fakeUserID,
-			DeviceID:       fakeDeviceID,
-			TracksVotedFor: make([]string, 0),
+			UserID:                            fakeUserID,
+			DeviceID:                          fakeDeviceID,
+			TracksVotedFor:                    make([]string, 0),
+			HasControlAndDelegationPermission: false,
 		}
 
 		s.Equal(2, mtvState.UsersLength)
@@ -1639,6 +1652,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 			TracksVotedFor: []string{
 				tracks[1].ID,
 			},
+			HasControlAndDelegationPermission: true,
 		}
 
 		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
@@ -2011,9 +2025,10 @@ func (s *UnitTestSuite) Test_EmptyCurrentTrackAutoPlayAfterOneGetReadyToBePlayed
 		mtvState := s.getMtvState(params.RoomCreatorUserID)
 
 		expectedCreator := &shared.InternalStateUser{
-			UserID:         params.RoomCreatorUserID,
-			DeviceID:       creatorDeviceID,
-			TracksVotedFor: tracksIDs,
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    tracksIDs,
+			HasControlAndDelegationPermission: true,
 		}
 
 		s.False(mtvState.Playing)
@@ -2030,9 +2045,10 @@ func (s *UnitTestSuite) Test_EmptyCurrentTrackAutoPlayAfterOneGetReadyToBePlayed
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(params.RoomCreatorUserID)
 		expectedCreator := &shared.InternalStateUser{
-			UserID:         params.RoomCreatorUserID,
-			DeviceID:       creatorDeviceID,
-			TracksVotedFor: tracksIDs,
+			UserID:                            params.RoomCreatorUserID,
+			HasControlAndDelegationPermission: true,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    tracksIDs,
 		}
 
 		s.False(mtvState.Playing)
@@ -2060,9 +2076,10 @@ func (s *UnitTestSuite) Test_EmptyCurrentTrackAutoPlayAfterOneGetReadyToBePlayed
 		mtvState := s.getMtvState(joiningUserID)
 
 		expectedJoiningUserRelatedInformation := &shared.InternalStateUser{
-			UserID:         joiningUserID,
-			DeviceID:       joiningDeviceID,
-			TracksVotedFor: []string{},
+			UserID:                            joiningUserID,
+			DeviceID:                          joiningDeviceID,
+			TracksVotedFor:                    []string{},
+			HasControlAndDelegationPermission: false,
 		}
 
 		expectedTracks := []shared.TrackMetadataWithScoreWithDuration{
@@ -2165,6 +2182,7 @@ func (s *UnitTestSuite) Test_LoadedCurrentTrackAndReadyToBePlayedListNoAutoPlayA
 				tracks[2].ID,
 				tracks[1].ID,
 			},
+			HasControlAndDelegationPermission: true,
 		}
 
 		s.False(mtvState.Playing)
@@ -2195,6 +2213,7 @@ func (s *UnitTestSuite) Test_LoadedCurrentTrackAndReadyToBePlayedListNoAutoPlayA
 			TracksVotedFor: []string{
 				tracksIDs[2],
 			},
+			HasControlAndDelegationPermission: false,
 		}
 
 		expectedTracks := []shared.TrackMetadataWithScoreWithDuration{
@@ -2282,6 +2301,7 @@ func (s *UnitTestSuite) Test_LoadedAndEndedCurrentTrackAndNoTrackReadyToBePlayed
 			TracksVotedFor: []string{
 				tracks[0].ID,
 			},
+			HasControlAndDelegationPermission: true,
 		}
 
 		s.False(mtvState.Playing)
@@ -2307,9 +2327,10 @@ func (s *UnitTestSuite) Test_LoadedAndEndedCurrentTrackAndNoTrackReadyToBePlayed
 		mtvState := s.getMtvState(joiningUserID)
 
 		expectedJoiningUserRelatedInformation := &shared.InternalStateUser{
-			UserID:         joiningUserID,
-			DeviceID:       joiningDeviceID,
-			TracksVotedFor: []string{},
+			UserID:                            joiningUserID,
+			DeviceID:                          joiningDeviceID,
+			TracksVotedFor:                    []string{},
+			HasControlAndDelegationPermission: false,
 		}
 
 		expectedTracks := []shared.TrackMetadataWithScoreWithDuration{}
@@ -2404,9 +2425,10 @@ func (s *UnitTestSuite) Test_LoadedAndEndedCurrentTrackAndNoTrackReadyToBePlayed
 		mtvState := s.getMtvState(joiningUserID)
 
 		expectedJoiningUser := &shared.InternalStateUser{
-			UserID:         joiningUserID,
-			DeviceID:       joiningDeviceID,
-			TracksVotedFor: []string{},
+			UserID:                            joiningUserID,
+			DeviceID:                          joiningDeviceID,
+			TracksVotedFor:                    []string{},
+			HasControlAndDelegationPermission: false,
 		}
 
 		expectedExposedCurrentTrack := &shared.ExposedCurrentTrack{
@@ -2503,10 +2525,11 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 		mtvState := s.getMtvState(params.RoomCreatorUserID)
 
 		expectedCreator := &shared.InternalStateUser{
-			UserID:                     params.RoomCreatorUserID,
-			DeviceID:                   creatorDeviceID,
-			TracksVotedFor:             []string{},
-			UserFitsPositionConstraint: &falseValue,
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        &falseValue,
+			HasControlAndDelegationPermission: true,
 		}
 
 		expectedTracks := []shared.TrackMetadataWithScoreWithDuration{
@@ -2545,7 +2568,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 
 	updateCreatorAbilityToVoteForTime := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitUpdateUserPositionPermission(shared.NewUpdateUserFitsPositionConstraintSignalArgs{
+		s.emitUpdateUserPositionPermissionSignal(shared.NewUpdateUserFitsPositionConstraintSignalArgs{
 			UserID:                     params.RoomCreatorUserID,
 			UserFitsPositionConstraint: true,
 		})
@@ -2556,10 +2579,11 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 		mtvState := s.getMtvState(params.RoomCreatorUserID)
 
 		expectedCreator := &shared.InternalStateUser{
-			UserID:                     params.RoomCreatorUserID,
-			DeviceID:                   creatorDeviceID,
-			TracksVotedFor:             []string{},
-			UserFitsPositionConstraint: &trueValue,
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        &trueValue,
+			HasControlAndDelegationPermission: true,
 		}
 
 		s.False(mtvState.Playing)
@@ -2579,10 +2603,11 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 		mtvState := s.getMtvState(params.RoomCreatorUserID)
 
 		expectedCreator := &shared.InternalStateUser{
-			UserID:                     params.RoomCreatorUserID,
-			DeviceID:                   creatorDeviceID,
-			TracksVotedFor:             []string{},
-			UserFitsPositionConstraint: &trueValue,
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        &trueValue,
+			HasControlAndDelegationPermission: true,
 		}
 
 		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
@@ -2658,10 +2683,11 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestTimeC
 		mtvState := s.getMtvState(params.RoomCreatorUserID)
 
 		expectedCreator := &shared.InternalStateUser{
-			UserID:                     params.RoomCreatorUserID,
-			DeviceID:                   creatorDeviceID,
-			TracksVotedFor:             []string{},
-			UserFitsPositionConstraint: &falseValue,
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        &falseValue,
+			HasControlAndDelegationPermission: true,
 		}
 
 		expectedTracks := []shared.TrackMetadataWithScoreWithDuration{
@@ -2699,7 +2725,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestTimeC
 
 	updateCreatorAbilityToVoteForTime := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitUpdateUserPositionPermission(shared.NewUpdateUserFitsPositionConstraintSignalArgs{
+		s.emitUpdateUserPositionPermissionSignal(shared.NewUpdateUserFitsPositionConstraintSignalArgs{
 			UserID:                     params.RoomCreatorUserID,
 			UserFitsPositionConstraint: true,
 		})
@@ -2710,10 +2736,11 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestTimeC
 		mtvState := s.getMtvState(params.RoomCreatorUserID)
 
 		expectedCreator := &shared.InternalStateUser{
-			UserID:                     params.RoomCreatorUserID,
-			DeviceID:                   creatorDeviceID,
-			TracksVotedFor:             []string{},
-			UserFitsPositionConstraint: &trueValue,
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        &trueValue,
+			HasControlAndDelegationPermission: true,
 		}
 
 		s.False(mtvState.Playing)
@@ -2733,10 +2760,11 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestTimeC
 		mtvState := s.getMtvState(params.RoomCreatorUserID)
 
 		expectedCreator := &shared.InternalStateUser{
-			UserID:                     params.RoomCreatorUserID,
-			DeviceID:                   creatorDeviceID,
-			TracksVotedFor:             []string{},
-			UserFitsPositionConstraint: &trueValue,
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        &trueValue,
+			HasControlAndDelegationPermission: true,
 		}
 
 		expectedTracks := []shared.TrackMetadataWithScoreWithDuration{
@@ -2770,6 +2798,287 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestTimeC
 		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
 		s.Equal(expectedTracks, mtvState.Tracks)
 	}, checkVoteDidntWorked)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *UnitTestSuite) Test_CreateDirectRoomAndUpdateDelegationOwner() {
+
+	var (
+		joiningUserID       = faker.UUIDHyphenated()
+		joiningUserDeviceID = faker.UUIDHyphenated()
+	)
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+
+	tracksIDs := []string{tracks[0].ID}
+	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	defaultDuration := 1 * time.Millisecond
+
+	params.PlayingMode = shared.MtvPlayingModeDirect
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.AcknowledgeUpdateDelegationOwner,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
+	init := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: true,
+		}
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+		s.False(mtvState.Playing)
+		s.Equal(shared.MtvPlayingModeDirect, mtvState.PlayingMode)
+		s.Equal(&params.RoomCreatorUserID, mtvState.DelegationOwnerUserID)
+	}, init)
+
+	updateDelegationOwnerWithEmptyNewDelegationOwner := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitUpdateDelegationOwnerSignal(shared.NewUpdateDelegationOwnerSignalArgs{
+			NewDelegationOwnerUserID: "",
+			EmitterUserID:            params.RoomCreatorUserID,
+		})
+	}, updateDelegationOwnerWithEmptyNewDelegationOwner)
+
+	updateDelegationOwnerWithEmptyEmitter := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitUpdateDelegationOwnerSignal(shared.NewUpdateDelegationOwnerSignalArgs{
+			NewDelegationOwnerUserID: faker.UUIDHyphenated(),
+			EmitterUserID:            "",
+		})
+	}, updateDelegationOwnerWithEmptyEmitter)
+
+	updateDelegationOwnerWithNunExistingUser := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitUpdateDelegationOwnerSignal(shared.NewUpdateDelegationOwnerSignalArgs{
+			NewDelegationOwnerUserID: joiningUserID,
+			EmitterUserID:            params.RoomCreatorUserID,
+		})
+	}, updateDelegationOwnerWithNunExistingUser)
+
+	checkNothingWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: true,
+		}
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+		s.False(mtvState.Playing)
+		s.Equal(shared.MtvPlayingModeDirect, mtvState.PlayingMode)
+		s.Equal(&params.RoomCreatorUserID, mtvState.DelegationOwnerUserID)
+	}, checkNothingWorked)
+
+	emitJoinSignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+	}, emitJoinSignal)
+
+	updateDelegationOwnerWithExistingUserWithoutPermissions := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitUpdateDelegationOwnerSignal(shared.NewUpdateDelegationOwnerSignalArgs{
+			NewDelegationOwnerUserID: joiningUserID,
+			EmitterUserID:            joiningUserID,
+		})
+	}, updateDelegationOwnerWithExistingUserWithoutPermissions)
+
+	checkNothingWorked = defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: true,
+		}
+
+		s.Equal(2, mtvState.UsersLength)
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+		s.False(mtvState.Playing)
+		s.Equal(shared.MtvPlayingModeDirect, mtvState.PlayingMode)
+		s.Equal(&params.RoomCreatorUserID, mtvState.DelegationOwnerUserID)
+	}, checkNothingWorked)
+
+	updateDelegationOwner := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitUpdateDelegationOwnerSignal(shared.NewUpdateDelegationOwnerSignalArgs{
+			NewDelegationOwnerUserID: joiningUserID,
+			EmitterUserID:            params.RoomCreatorUserID,
+		})
+	}, updateDelegationOwner)
+
+	checkItWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: true,
+		}
+
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+		s.False(mtvState.Playing)
+		s.Equal(shared.MtvPlayingModeDirect, mtvState.PlayingMode)
+		s.Equal(&joiningUserID, mtvState.DelegationOwnerUserID)
+	}, checkItWorked)
+
+	delegationOwnerLeaveRoom := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitLeaveSignal(joiningUserID)
+	}, delegationOwnerLeaveRoom)
+
+	checkDelegationOwnerReset := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: true,
+		}
+
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+		s.False(mtvState.Playing)
+		s.Equal(shared.MtvPlayingModeDirect, mtvState.PlayingMode)
+		s.Equal(params.RoomCreatorUserID, *mtvState.DelegationOwnerUserID)
+	}, checkDelegationOwnerReset)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *UnitTestSuite) Test_CreateBroadcastRoomAndAttemptToExecuteDelegationOperation() {
+
+	var (
+		joiningUserID       = faker.UUIDHyphenated()
+		joiningUserDeviceID = faker.UUIDHyphenated()
+	)
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+
+	tracksIDs := []string{tracks[0].ID}
+	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	defaultDuration := 1 * time.Millisecond
+
+	params.PlayingMode = shared.MtvPlayingModeBroadcast
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.AcknowledgeUpdateDelegationOwner,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Never()
+
+	init := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: true,
+		}
+
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+		s.False(mtvState.Playing)
+		s.Equal(shared.MtvPlayingModeBroadcast, mtvState.PlayingMode)
+		s.Nil(mtvState.DelegationOwnerUserID)
+	}, init)
+
+	emitJoinSignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+	}, emitJoinSignal)
+
+	updateDelegationOwner := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitUpdateDelegationOwnerSignal(shared.NewUpdateDelegationOwnerSignalArgs{
+			NewDelegationOwnerUserID: joiningUserID,
+			EmitterUserID:            params.RoomCreatorUserID,
+		})
+	}, updateDelegationOwner)
+
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: true,
+		}
+
+		s.Equal(2, mtvState.UsersLength)
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+		s.False(mtvState.Playing)
+		s.Equal(shared.MtvPlayingModeBroadcast, mtvState.PlayingMode)
+		s.Nil(mtvState.DelegationOwnerUserID)
+	}, init)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
 

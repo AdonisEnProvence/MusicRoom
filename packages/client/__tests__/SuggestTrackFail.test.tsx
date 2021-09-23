@@ -30,8 +30,10 @@ test(`A user can suggest tracks to play`, async () => {
         isOpen: true,
         isOpenOnlyInvitedUsersCanVote: false,
         hasTimeAndPositionConstraints: false,
+        delegationOwnerUserID: null,
         timeConstraintIsValid: null,
         userRelatedInformation: {
+            hasControlAndDelegationPermission: true,
             userFitsPositionConstraint: null,
             emittingDeviceID: datatype.uuid(),
             userID: roomCreatorUserID,

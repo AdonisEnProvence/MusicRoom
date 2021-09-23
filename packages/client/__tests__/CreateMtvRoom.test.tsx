@@ -1278,7 +1278,9 @@ describe('Create mtv room with custom settings', () => {
                         isOpenOnlyInvitedUsersCanVote: false,
                         hasTimeAndPositionConstraints: false,
                         timeConstraintIsValid: null,
+                        delegationOwnerUserID: null,
                         userRelatedInformation: {
+                            hasControlAndDelegationPermission: true,
                             userFitsPositionConstraint: null,
                             emittingDeviceID: datatype.uuid(),
                             userID,

@@ -29,7 +29,9 @@ After the vote has been accepted the score will be updated and the card disabled
         usersLength: 1,
         hasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
+        delegationOwnerUserID: null,
         userRelatedInformation: {
+            hasControlAndDelegationPermission: true,
             userFitsPositionConstraint: null,
             emittingDeviceID: deviceID,
             userID,

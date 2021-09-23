@@ -88,6 +88,7 @@ test.group(
                         userRelatedInformation: null,
                         minimumScoreToBePlayed: 1,
                         usersLength: 1,
+                        delegationOwnerUserID: null,
                     };
                 });
 

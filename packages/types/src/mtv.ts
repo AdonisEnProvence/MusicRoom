@@ -25,6 +25,7 @@ export const UserRelatedInformation = z.object({
     emittingDeviceID: z.string(),
     tracksVotedFor: z.string().array(),
     userFitsPositionConstraint: z.boolean().nullable(),
+    hasControlAndDelegationPermission: z.boolean(),
 });
 export type UserRelatedInformation = z.infer<typeof UserRelatedInformation>;
 
@@ -46,6 +47,7 @@ export const MtvWorkflowState = z.object({
     timeConstraintIsValid: z.boolean().nullable(),
     isOpen: z.boolean(),
     isOpenOnlyInvitedUsersCanVote: z.boolean(),
+    delegationOwnerUserID: z.string().nullable(),
 });
 
 export type MtvWorkflowState = z.infer<typeof MtvWorkflowState>;

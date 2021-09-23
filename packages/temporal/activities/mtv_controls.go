@@ -178,3 +178,17 @@ func AcknowledgeUpdateUserFitsPositionConstraint(ctx context.Context, state shar
 
 	return err
 }
+
+func AcknowledgeUpdateDelegationOwner(ctx context.Context, state shared.MtvRoomExposedState) error {
+	requestBody := state
+
+	marshaledBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	url := ADONIS_ENDPOINT + "/temporal/acknowledge-update-delegation-owner"
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+
+	return err
+}

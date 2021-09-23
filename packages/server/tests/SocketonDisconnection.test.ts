@@ -88,12 +88,14 @@ test.group('Rooms life cycle', (group) => {
                     roomCreatorUserID: userID,
                     playing: false,
                     playingMode: 'BROADCAST',
+                    delegationOwnerUserID: null,
                     name: roomName,
                     isOpen: true,
                     isOpenOnlyInvitedUsersCanVote: false,
                     hasTimeAndPositionConstraints: false,
                     timeConstraintIsValid: null,
                     userRelatedInformation: {
+                        hasControlAndDelegationPermission: true,
                         userFitsPositionConstraint: null,
                         userID,
                         emittingDeviceID: datatype.uuid(),
@@ -198,7 +200,9 @@ test.group('Rooms life cycle', (group) => {
                     hasTimeAndPositionConstraints: false,
                     timeConstraintIsValid: null,
                     playingMode: 'BROADCAST',
+                    delegationOwnerUserID: null,
                     userRelatedInformation: {
+                        hasControlAndDelegationPermission: true,
                         userFitsPositionConstraint: null,
                         emittingDeviceID: datatype.uuid(),
                         userID: userA.userID,
@@ -231,6 +235,7 @@ test.group('Rooms life cycle', (group) => {
                 state.userRelatedInformation = {
                     userFitsPositionConstraint: null,
                     userID,
+                    hasControlAndDelegationPermission: true,
                     emittingDeviceID: datatype.uuid(),
                     tracksVotedFor: [],
                 };

@@ -215,10 +215,11 @@ func (c CurrentTrack) Export(elapsed time.Duration) ExposedCurrentTrack {
 }
 
 type InternalStateUser struct {
-	UserID                     string   `json:"userID"`
-	DeviceID                   string   `json:"emittingDeviceID"`
-	TracksVotedFor             []string `json:"tracksVotedFor"`
-	UserFitsPositionConstraint *bool    `json:"userFitsPositionConstraint"`
+	UserID                            string   `json:"userID"`
+	DeviceID                          string   `json:"emittingDeviceID"`
+	TracksVotedFor                    []string `json:"tracksVotedFor"`
+	UserFitsPositionConstraint        *bool    `json:"userFitsPositionConstraint"`
+	HasControlAndDelegationPermission bool     `json:"hasControlAndDelegationPermission"`
 }
 
 func (s *InternalStateUser) HasVotedFor(trackID string) bool {
@@ -282,7 +283,7 @@ type MtvRoomParameters struct {
 }
 
 func (p MtvRoomParameters) Export() MtvRoomExposedState {
-	return MtvRoomExposedState{
+	exposedState := MtvRoomExposedState{
 		RoomID:                            p.RoomID,
 		Playing:                           false,
 		RoomCreatorUserID:                 p.RoomCreatorUserID,
@@ -293,7 +294,13 @@ func (p MtvRoomParameters) Export() MtvRoomExposedState {
 		IsOpen:                            p.IsOpen,
 		IsOpenOnlyInvitedUsersCanVotes:    p.IsOpenOnlyInvitedUsersCanVote,
 		RoomHasTimeAndPositionConstraints: p.HasPhysicalAndTimeConstraints,
+		DelegationOwnerUserID:             nil,
 	}
+	if p.PlayingMode == MtvPlayingModeDirect {
+		exposedState.DelegationOwnerUserID = &p.RoomCreatorUserID
+	}
+
+	return exposedState
 }
 
 type MtvRoomExposedState struct {
@@ -311,6 +318,7 @@ type MtvRoomExposedState struct {
 	IsOpenOnlyInvitedUsersCanVotes    bool                                 `json:"isOpenOnlyInvitedUsersCanVote"`
 	TimeConstraintIsValid             *bool                                `json:"timeConstraintIsValid"`
 	PlayingMode                       MtvPlayingModes                      `json:"playingMode"`
+	DelegationOwnerUserID             *string                              `json:"delegationOwnerUserID"`
 }
 
 type SignalRoute string
@@ -326,6 +334,7 @@ const (
 	SignalRouteSuggestTracks               = "suggest-tracks"
 	SignalRouteVoteForTrack                = "vote-for-track"
 	SignalUpdateUserFitsPositionConstraint = "update-user-fits-position-constraint"
+	SignalUpdateDelegationOwner            = "update-delegation-owner"
 )
 
 type GenericRouteSignal struct {
@@ -491,5 +500,24 @@ func NewUpdateUserFitsPositionConstraintSignal(args NewUpdateUserFitsPositionCon
 		Route:                      SignalUpdateUserFitsPositionConstraint,
 		UserID:                     args.UserID,
 		UserFitsPositionConstraint: args.UserFitsPositionConstraint,
+	}
+}
+
+type UpdateDelegationOwnerSignal struct {
+	Route                    SignalRoute `validate:"required"`
+	NewDelegationOwnerUserID string      `validate:"required,uuid"`
+	EmitterUserID            string      `validate:"required,uuid"`
+}
+
+type NewUpdateDelegationOwnerSignalArgs struct {
+	NewDelegationOwnerUserID string `validate:"required,uuid"`
+	EmitterUserID            string `validate:"required,uuid"`
+}
+
+func NewUpdateDelegationOwnerSignal(args NewUpdateDelegationOwnerSignalArgs) UpdateDelegationOwnerSignal {
+	return UpdateDelegationOwnerSignal{
+		Route:                    SignalUpdateDelegationOwner,
+		NewDelegationOwnerUserID: args.NewDelegationOwnerUserID,
+		EmitterUserID:            args.EmitterUserID,
 	}
 }

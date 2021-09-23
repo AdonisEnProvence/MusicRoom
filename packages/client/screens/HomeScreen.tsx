@@ -74,7 +74,9 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                             isOpenOnlyInvitedUsersCanVote: false,
                             hasTimeAndPositionConstraints: false,
                             timeConstraintIsValid: null,
+                            delegationOwnerUserID: null,
                             userRelatedInformation: {
+                                hasControlAndDelegationPermission: true,
                                 userFitsPositionConstraint: null,
                                 emittingDeviceID: 'EMITTING DEVICE',
                                 userID: 'JUST A USER ID',

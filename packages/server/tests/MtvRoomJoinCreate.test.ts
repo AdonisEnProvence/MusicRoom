@@ -49,6 +49,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     state: {
                         roomID: workflowID,
                         roomCreatorUserID: datatype.uuid(),
+                        delegationOwnerUserID: null,
                         hasTimeAndPositionConstraints: false,
                         isOpen: true,
                         isOpenOnlyInvitedUsersCanVote: false,
@@ -62,6 +63,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                             emittingDeviceID: datatype.uuid(),
                             tracksVotedFor: [],
                             userFitsPositionConstraint: null,
+                            hasControlAndDelegationPermission: true,
                         },
                         usersLength: 1,
                         tracks: [
@@ -129,6 +131,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     roomCreatorUserID: creatorUserID,
                     playing: false,
                     name: roomName,
+                    delegationOwnerUserID: null,
                     playingMode: 'BROADCAST',
                     usersLength: 1,
                     currentTrack: null,
@@ -141,6 +144,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],
                         userFitsPositionConstraint: null,
+                        hasControlAndDelegationPermission: true,
                     },
                     tracks: [
                         {
@@ -170,12 +174,15 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     roomID: workflowID,
                     playingMode: 'BROADCAST',
                     usersLength: 1,
+                    delegationOwnerUserID: null,
+
                     isOpen: true,
                     isOpenOnlyInvitedUsersCanVote: false,
                     hasTimeAndPositionConstraints: false,
                     timeConstraintIsValid: null,
                     userRelatedInformation: userID
                         ? {
+                              hasControlAndDelegationPermission: true,
                               userID,
                               emittingDeviceID: datatype.uuid(),
                               tracksVotedFor: [],
@@ -236,6 +243,8 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     roomCreatorUserID: datatype.uuid(),
                     hasTimeAndPositionConstraints: false,
                     isOpen: true,
+                    delegationOwnerUserID: null,
+
                     isOpenOnlyInvitedUsersCanVote: false,
                     timeConstraintIsValid: null,
                     playingMode: 'BROADCAST',
@@ -251,6 +260,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     playing: false,
                     name: roomName,
                     userRelatedInformation: {
+                        hasControlAndDelegationPermission: true,
                         userID: creatorID,
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],

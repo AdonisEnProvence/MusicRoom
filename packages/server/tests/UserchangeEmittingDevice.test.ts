@@ -40,6 +40,7 @@ test.group(
                     const state: MtvWorkflowState = {
                         currentTrack: null,
                         name: random.word(),
+                        delegationOwnerUserID: null,
                         playing: false,
                         roomCreatorUserID: userID,
                         roomID: workflowID,
@@ -50,6 +51,7 @@ test.group(
                         timeConstraintIsValid: null,
                         playingMode: 'BROADCAST',
                         userRelatedInformation: {
+                            hasControlAndDelegationPermission: true,
                             userFitsPositionConstraint: null,
                             userID: userID,
                             emittingDeviceID: deviceID,
@@ -103,6 +105,7 @@ test.group(
                     const expectedUserRelatedInformation: UserRelatedInformation | null =
                         {
                             userFitsPositionConstraint: null,
+                            hasControlAndDelegationPermission: true,
                             userID: userID,
                             emittingDeviceID: deviceB.uuid,
                             tracksVotedFor: [],
@@ -130,6 +133,7 @@ test.group(
                     const expectedUserRelatedInformation: UserRelatedInformation =
                         {
                             userFitsPositionConstraint: null,
+                            hasControlAndDelegationPermission: true,
                             userID: userID,
                             emittingDeviceID: deviceB.uuid,
                             tracksVotedFor: [],
@@ -194,6 +198,7 @@ test.group(
                         playing: false,
                         roomCreatorUserID: userID,
                         roomID: workflowID,
+                        delegationOwnerUserID: null,
                         tracks: null,
                         playingMode: 'BROADCAST',
                         isOpen: true,
@@ -202,6 +207,7 @@ test.group(
                         timeConstraintIsValid: null,
                         userRelatedInformation: {
                             userFitsPositionConstraint: null,
+                            hasControlAndDelegationPermission: true,
                             userID: userID,
                             emittingDeviceID: deviceID,
                             tracksVotedFor: [],
@@ -270,8 +276,10 @@ test.group(
                         isOpenOnlyInvitedUsersCanVote: false,
                         hasTimeAndPositionConstraints: false,
                         timeConstraintIsValid: null,
+                        delegationOwnerUserID: null,
                         userRelatedInformation: {
                             userFitsPositionConstraint: null,
+                            hasControlAndDelegationPermission: true,
                             userID: userID,
                             emittingDeviceID: deviceID,
                             tracksVotedFor: [],

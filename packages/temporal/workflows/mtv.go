@@ -24,11 +24,17 @@ type MtvRoomInternalState struct {
 	Playing                          bool
 	Timer                            shared.MtvRoomTimer
 	TracksCheckForVoteUpdateLastSave shared.TracksMetadataWithScoreSet
+	DelegationOwnerUserID            *string
 }
 
 func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 	s.initialParams = params
 	s.Users = params.InitialUsers
+	s.DelegationOwnerUserID = nil
+
+	if params.PlayingMode == shared.MtvPlayingModeDirect {
+		s.DelegationOwnerUserID = &params.RoomCreatorUserID
+	}
 }
 
 func (s *MtvRoomInternalState) GetTimeConstraintValue() *bool {
@@ -90,6 +96,7 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 		PlayingMode:                       s.initialParams.PlayingMode,
 		IsOpen:                            s.initialParams.IsOpen,
 		IsOpenOnlyInvitedUsersCanVotes:    s.initialParams.IsOpenOnlyInvitedUsersCanVote,
+		DelegationOwnerUserID:             s.DelegationOwnerUserID,
 	}
 
 	return exposedState
@@ -183,6 +190,14 @@ func (s *MtvRoomInternalState) UpdateUserDeviceID(user shared.InternalStateUser)
 	}
 }
 
+func (s *MtvRoomInternalState) GetUser(userID string) *shared.InternalStateUser {
+	user, exists := s.Users[userID]
+	if !exists {
+		return nil
+	}
+	return user
+}
+
 const (
 	MtvRoomInit                        brainy.StateType = "init"
 	MtvRoomFetchInitialTracks          brainy.StateType = "fetching-initial-tracks"
@@ -211,6 +226,7 @@ const (
 	MtvRoomSuggestTracks                          brainy.EventType = "SUGGEST_TRACKS"
 	MtvRoomSuggestedTracksFetched                 brainy.EventType = "SUGGESTED_TRACKS_FETCHED"
 	MtvRoomTracksListScoreUpdate                  brainy.EventType = "TRACKS_LIST_SCORE_UPDATE"
+	MtvRoomUpdateDelegationOwner                  brainy.EventType = "UPDATE_DELEGATION_OWNER"
 )
 
 func GetElapsed(ctx workflow.Context, previous time.Time) time.Duration {
@@ -691,6 +707,23 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				},
 			},
 
+			MtvRoomUpdateDelegationOwner: brainy.Transition{
+				Cond: roomPlayingModeIsDirectAndUserExistsAndEmitterHasPermissions(&internalState),
+
+				Actions: brainy.Actions{
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+							event := e.(MtvRoomUpdateDelegationOwnerEvent)
+
+							internalState.DelegationOwnerUserID = &event.NewDelegationOwnerUserID
+							sendAcknowledgeUpdateDelegationOwnerActivity(ctx, internalState.Export(shared.NoRelatedUserID))
+
+							return nil
+						},
+					),
+				},
+			},
+
 			MtvRoomRemoveUserEvent: brainy.Transition{
 				Actions: brainy.Actions{
 					brainy.ActionFn(
@@ -700,6 +733,12 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							success := internalState.RemoveUser(event.UserID)
 
 							if success {
+								roomIsInDirectMode := internalState.initialParams.PlayingMode == shared.MtvPlayingModeDirect
+								delegationOwnerIsLeavingRoom := internalState.DelegationOwnerUserID != nil && *internalState.DelegationOwnerUserID == event.UserID
+								if delegationOwnerIsLeavingRoom && roomIsInDirectMode {
+									internalState.DelegationOwnerUserID = &(internalState.initialParams.RoomCreatorUserID)
+								}
+
 								options := workflow.ActivityOptions{
 									ScheduleToStartTimeout: time.Minute,
 									StartToCloseTimeout:    time.Minute,
@@ -903,10 +942,11 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				}
 
 				user := shared.InternalStateUser{
-					UserID:                     message.UserID,
-					DeviceID:                   message.DeviceID,
-					TracksVotedFor:             make([]string, 0),
-					UserFitsPositionConstraint: nil,
+					UserID:                            message.UserID,
+					DeviceID:                          message.DeviceID,
+					TracksVotedFor:                    make([]string, 0),
+					UserFitsPositionConstraint:        nil,
+					HasControlAndDelegationPermission: false,
 				}
 
 				if internalState.initialParams.HasPhysicalAndTimeConstraints {
@@ -1015,7 +1055,21 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				internalState.Machine.Send(
 					NewMtvRoomUpdateUserFitsPositionConstraintEvent(message.UserID, message.UserFitsPositionConstraint),
 				)
+			case shared.SignalUpdateDelegationOwner:
+				var message shared.UpdateDelegationOwnerSignal
 
+				if err := mapstructure.Decode(signal, &message); err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
+				if err := validate.Struct(message); err != nil {
+					logger.Error("Validation error: %v", err)
+					return
+				}
+
+				internalState.Machine.Send(
+					NewMtvRoomUpdateDelegationOwnerEvent(message.NewDelegationOwnerUserID, message.EmitterUserID),
+				)
 			case shared.SignalRouteTerminate:
 				terminated = true
 			}

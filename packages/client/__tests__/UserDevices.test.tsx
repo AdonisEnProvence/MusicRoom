@@ -32,7 +32,9 @@ After clicking on one not emitting it should set the clicked one as emitting
         isOpenOnlyInvitedUsersCanVote: false,
         hasTimeAndPositionConstraints: false,
         timeConstraintIsValid: null,
+        delegationOwnerUserID: null,
         userRelatedInformation: {
+            hasControlAndDelegationPermission: true,
             userFitsPositionConstraint: null,
             emittingDeviceID: thisDevice.deviceID,
             userID,

@@ -43,7 +43,11 @@ export const appScreenHeaderWithSearchBarMachine = createMachine<
                         on: {
                             UPDATE_SEARCH_QUERY: {
                                 target: 'editingSearchQuery',
-                                actions: 'setSearchQuery',
+
+                                actions: [
+                                    'setSearchQuery',
+                                    'sendSearchQueryToParent',
+                                ],
                             },
                         },
                     },
@@ -55,11 +59,20 @@ export const appScreenHeaderWithSearchBarMachine = createMachine<
                             UPDATE_SEARCH_QUERY: [
                                 {
                                     cond: 'isSearchQueryEmptyFromEvent',
+
                                     target: 'waitingSearchQuery',
-                                    actions: 'setSearchQuery',
+
+                                    actions: [
+                                        'setSearchQuery',
+                                        'sendSearchQueryToParent',
+                                    ],
                                 },
+
                                 {
-                                    actions: 'setSearchQuery',
+                                    actions: [
+                                        'setSearchQuery',
+                                        'sendSearchQueryToParent',
+                                    ],
                                 },
                             ],
                         },
@@ -100,6 +113,19 @@ export const appScreenHeaderWithSearchBarMachine = createMachine<
 
                 return {
                     ...context,
+                    searchQuery: event.searchQuery,
+                };
+            }),
+
+            sendSearchQueryToParent: sendParent((_, event) => {
+                if (event.type !== 'UPDATE_SEARCH_QUERY') {
+                    throw new Error(
+                        'sendSearchQueryToParent must only be called in response to a UPDATE_SEARCH_QUERY event',
+                    );
+                }
+
+                return {
+                    type: 'UPDATE_SEARCH_QUERY',
                     searchQuery: event.searchQuery,
                 };
             }),

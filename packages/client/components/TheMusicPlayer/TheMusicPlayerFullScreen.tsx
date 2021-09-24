@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { useMachine } from '@xstate/react';
 import { Text, useSx, View } from 'dripsy';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sender } from 'xstate';
@@ -86,10 +86,9 @@ const fullscreenPlayerTabsMachine =
     });
 
 interface Tab {
-    text: string;
+    text: 'Tracks' | 'Chat' | 'Settings';
     selected: boolean;
     onPress: () => void;
-    component: () => React.ReactElement | null;
 }
 
 const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
@@ -120,13 +119,6 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     type: 'GO_TO_TRACKS',
                 });
             },
-            component: () => (
-                <TracksListTab
-                    context={context}
-                    sendToMachine={sendToMachine}
-                    key={'TRACKS_LIST_TAB'}
-                />
-            ),
         },
         {
             text: 'Chat',
@@ -136,14 +128,6 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     type: 'GO_TO_CHAT',
                 });
             },
-            component: () => (
-                <ChatTab
-                    userContext={userContext}
-                    sendToMachine={sendToMachine}
-                    context={context}
-                    key={'CHAT_TAB'}
-                />
-            ),
         },
         {
             text: 'Settings',
@@ -153,20 +137,51 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     type: 'GO_TO_SETTINGS',
                 });
             },
-            component: () => (
-                <SettingsTab
-                    sendToMachine={sendToMachine}
-                    sendToUserMachine={sendToUserMachine}
-                    context={context}
-                    key={'SETTINGS_TAB'}
-                />
-            ),
         },
     ];
     const selectedTab = tabs.find(({ selected }) => selected === true);
     if (selectedTab === undefined) {
         throw new Error('Exactly one tab must be selected');
     }
+
+    const selectedTabComponent = useMemo(() => {
+        switch (selectedTab.text) {
+            case 'Tracks':
+                return (
+                    <TracksListTab
+                        context={context}
+                        sendToMachine={sendToMachine}
+                        key="TRACKS_LIST_TAB"
+                    />
+                );
+            case 'Chat':
+                return (
+                    <ChatTab
+                        userContext={userContext}
+                        sendToMachine={sendToMachine}
+                        context={context}
+                        key="CHAT_TAB"
+                    />
+                );
+            case 'Settings':
+                return (
+                    <SettingsTab
+                        sendToMachine={sendToMachine}
+                        sendToUserMachine={sendToUserMachine}
+                        context={context}
+                        key="SETTINGS_TAB"
+                    />
+                );
+            default:
+                throw new Error('Reached unreachable state');
+        }
+    }, [
+        context,
+        selectedTab.text,
+        sendToMachine,
+        sendToUserMachine,
+        userContext,
+    ]);
 
     function handleListenersPress() {
         navigation.navigate('MusicTrackVoteUsersList');
@@ -288,7 +303,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                             ))}
                         </View>
 
-                        <selectedTab.component />
+                        {selectedTabComponent}
                     </View>
                 </View>
             </AppScreenContainer>

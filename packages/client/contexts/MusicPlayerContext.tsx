@@ -1,6 +1,6 @@
 import { MtvPlayingModes } from '@musicroom/types';
 import { useMachine } from '@xstate/react';
-import React, { useContext, useRef } from 'react';
+import React, { useCallback, useContext, useMemo, useRef } from 'react';
 import { Platform } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { Sender } from 'xstate';
@@ -23,7 +23,7 @@ type MusicPlayerContextValue = {
     sendToMachine: Sender<AppMusicPlayerMachineEvent>;
     state: AppMusicPlayerMachineState;
     setPlayerRef: (ref: MusicPlayerRef) => void;
-    isDeviceEmitting: () => boolean;
+    isDeviceEmitting: boolean;
 } & MusicPlayerFullScreenProps;
 
 const MusicPlayerContext = React.createContext<
@@ -143,58 +143,68 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
                 },
             },
         });
+        const { context } = state;
+        const roomIsReady = state.hasTag('roomIsReady');
 
-        function isDeviceEmitting(): boolean {
-            const { context } = state;
-            if (!state.hasTag('roomIsReady')) {
-                return false;
-            }
-            if (context.userRelatedInformation === null) {
-                return false;
-            }
+        const isDeviceOwnerTheDelegationOwner = useCallback(
+            function isDeviceOwnerTheDelegationOwner(): boolean {
+                const roomIsNotInDirectMode =
+                    context.playingMode !== MtvPlayingModes.Values.DIRECT;
+                if (roomIsNotInDirectMode) {
+                    return false;
+                }
 
-            const thisDeviceIsEmitting =
-                userState.context.currDeviceID ===
-                context.userRelatedInformation.emittingDeviceID;
-            if (!thisDeviceIsEmitting) {
-                return false;
-            }
+                if (context.userRelatedInformation === null) {
+                    return false;
+                }
 
-            const roomIsInDirectMode =
-                context.playingMode === MtvPlayingModes.Values.DIRECT;
+                const deviceOwnerIsNotTheDelegationOwner =
+                    context.delegationOwnerUserID === null ||
+                    context.delegationOwnerUserID !==
+                        context.userRelatedInformation.userID;
+                if (deviceOwnerIsNotTheDelegationOwner) {
+                    return false;
+                }
 
-            if (roomIsInDirectMode) {
-                return isDeviceOwnerTheDelegationOwner();
-            }
+                return true;
+            },
+            [context],
+        );
 
-            return true;
-        }
+        const isDeviceEmitting: boolean = useMemo(
+            (): boolean => {
+                if (roomIsReady) {
+                    return false;
+                }
 
-        function isDeviceOwnerTheDelegationOwner(): boolean {
-            const { context } = state;
+                if (context.userRelatedInformation === null) {
+                    return false;
+                }
 
-            const roomIsNotInDirectMode =
-                context.playingMode !== MtvPlayingModes.Values.DIRECT;
+                const thisDeviceIsEmitting =
+                    userState.context.currDeviceID ===
+                    context.userRelatedInformation.emittingDeviceID;
+                if (!thisDeviceIsEmitting) {
+                    return false;
+                }
 
-            if (roomIsNotInDirectMode) {
-                return false;
-            }
+                const roomIsInDirectMode =
+                    context.playingMode === MtvPlayingModes.Values.DIRECT;
+                if (roomIsInDirectMode) {
+                    return isDeviceOwnerTheDelegationOwner();
+                }
 
-            if (context.userRelatedInformation === null) {
-                return false;
-            }
-
-            const deviceOwnerIsNotTheDelegationOwner =
-                context.delegationOwnerUserID === null ||
-                context.delegationOwnerUserID !==
-                    context.userRelatedInformation.userID;
-
-            if (deviceOwnerIsNotTheDelegationOwner) {
-                return false;
-            }
-
-            return true;
-        }
+                return true;
+            },
+            //Not optimal at all, function will be defined each time
+            //Ok for semantic, we will se later for performances
+            [
+                roomIsReady,
+                context,
+                userState.context,
+                isDeviceOwnerTheDelegationOwner,
+            ],
+        );
 
         function setPlayerRef(ref: MusicPlayerRef) {
             playerRef.current = ref;

@@ -28,7 +28,7 @@ type TheMusicPlayerFullScreenProps = {
     sendToMachine: Sender<AppMusicPlayerMachineEvent>;
     sendToUserMachine: Sender<AppUserMachineEvent>;
     setPlayerRef: (ref: MusicPlayerRef) => void;
-    isDeviceEmitting: () => boolean;
+    isDeviceEmitting: boolean;
     userState: AppUserMachineState;
 };
 
@@ -438,7 +438,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     }}
                 >
                     <TheMusicPlayerWithControls
-                        isDeviceEmitting={isDeviceEmitting()}
+                        isDeviceEmitting={isDeviceEmitting}
                         progressElapsedTime={context.progressElapsedTime}
                         currentTrack={context.currentTrack}
                         setPlayerRef={setPlayerRef}

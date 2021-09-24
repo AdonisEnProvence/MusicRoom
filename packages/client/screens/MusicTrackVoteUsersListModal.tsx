@@ -55,12 +55,17 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                 sendToSearch={sendToSearch}
                 goBack={handleGoBack}
             >
-                <Text sx={{ color: 'white' }}>This is the modal</Text>
-
                 <FlatList
                     data={state.context.filteredUsers}
                     renderItem={({ item }) => {
                         return <Text sx={{ color: 'white' }}>{item.id}</Text>;
+                    }}
+                    ListEmptyComponent={() => {
+                        return (
+                            <Text sx={{ color: 'white' }}>
+                                There are not users that match this request
+                            </Text>
+                        );
                     }}
                 />
             </AppScreenWithSearchBar>

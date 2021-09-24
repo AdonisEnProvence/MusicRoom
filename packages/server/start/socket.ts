@@ -2,6 +2,7 @@ import {
     AllClientToServerEvents,
     AllServerToClientEvents,
     MtvRoomClientToServerCreateArgs,
+    MtvRoomUpdateDelegationOwnerArgs,
     UserDevice,
 } from '@musicroom/types';
 import ChatController from 'App/Controllers/Ws/ChatController';
@@ -416,6 +417,33 @@ Ws.io.on('connection', async (socket) => {
                     roomID: mtvRoomID,
                     trackID,
                     userID,
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        });
+
+        socket.on('UPDATE_DELEGATION_OWNER', async (payload) => {
+            try {
+                MtvRoomUpdateDelegationOwnerArgs.parse(payload);
+
+                const {
+                    mtvRoomID,
+                    user: { uuid: userID },
+                } = await SocketLifecycle.getSocketConnectionCredentials(
+                    socket,
+                );
+
+                if (mtvRoomID === undefined) {
+                    throw new Error(
+                        'UPDATE_DELEGATION_OWNER user is not related to any room',
+                    );
+                }
+
+                await MtvRoomsWsController.updateDelegationOwner({
+                    roomID: mtvRoomID,
+                    emitterUserID: userID,
+                    newDelegationOwnerUserID: payload.newDelegationOwnerUserID,
                 });
             } catch (e) {
                 console.error(e);

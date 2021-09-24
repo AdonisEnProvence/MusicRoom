@@ -79,6 +79,11 @@ Route.post(
     'Temporal/TemporalToServerController.acknowledgeUserVoteForTrack',
 );
 
+Route.post(
+    '/temporal/acknowledge-update-delegation-owner',
+    'Temporal/TemporalToServerController.acknowledgeUpdateDelegationOwner',
+);
+
 /// //////// ////// ///
 
 Route.get('/', () => {

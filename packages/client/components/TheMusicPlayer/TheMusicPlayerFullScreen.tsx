@@ -28,6 +28,7 @@ type TheMusicPlayerFullScreenProps = {
     sendToMachine: Sender<AppMusicPlayerMachineEvent>;
     sendToUserMachine: Sender<AppUserMachineEvent>;
     setPlayerRef: (ref: MusicPlayerRef) => void;
+    isDeviceEmitting: boolean;
     userState: AppUserMachineState;
 };
 
@@ -144,6 +145,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     sendToMachine,
     sendToUserMachine,
     setPlayerRef,
+    isDeviceEmitting,
     userState,
 }) => {
     // TODO: replace the hook by a prop
@@ -151,10 +153,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     const sx = useSx();
     const context = machineState.context;
     const userContext = userState.context;
-    const isDeviceEmitting =
-        context.userRelatedInformation !== null &&
-        userContext.currDeviceID ===
-            context.userRelatedInformation.emittingDeviceID;
+
     const insets = useSafeAreaInsets();
     const isPlaying = machineState.hasTag('playerOnPlay');
     const roomIsReady = machineState.hasTag('roomIsReady');

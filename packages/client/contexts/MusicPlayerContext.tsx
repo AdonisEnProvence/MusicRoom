@@ -1,5 +1,6 @@
+import { MtvPlayingModes } from '@musicroom/types';
 import { useMachine } from '@xstate/react';
-import React, { useContext, useRef } from 'react';
+import React, { useCallback, useContext, useMemo, useRef } from 'react';
 import { Platform } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { Sender } from 'xstate';
@@ -22,6 +23,7 @@ type MusicPlayerContextValue = {
     sendToMachine: Sender<AppMusicPlayerMachineEvent>;
     state: AppMusicPlayerMachineState;
     setPlayerRef: (ref: MusicPlayerRef) => void;
+    isDeviceEmitting: boolean;
 } & MusicPlayerFullScreenProps;
 
 const MusicPlayerContext = React.createContext<
@@ -39,7 +41,7 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
         const playerRef = useRef<MusicPlayerRef | null>(null);
         const { isFullScreen, setIsFullScreen, toggleIsFullScreen } =
             useMusicPlayerToggleFullScreen(false);
-        const { sendToUserMachine } = useUserContext();
+        const { sendToUserMachine, state: userState } = useUserContext();
 
         const appMusicPlayerMachine = createAppMusicPlayerMachine({ socket });
         const [state, send] = useMachine(appMusicPlayerMachine, {
@@ -141,6 +143,68 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
                 },
             },
         });
+        const { context } = state;
+        const roomIsReady = state.hasTag('roomIsReady');
+
+        const isDeviceOwnerTheDelegationOwner = useCallback(
+            function isDeviceOwnerTheDelegationOwner(): boolean {
+                const roomIsNotInDirectMode =
+                    context.playingMode !== MtvPlayingModes.Values.DIRECT;
+                if (roomIsNotInDirectMode) {
+                    return false;
+                }
+
+                if (context.userRelatedInformation === null) {
+                    return false;
+                }
+
+                const deviceOwnerIsNotTheDelegationOwner =
+                    context.delegationOwnerUserID === null ||
+                    context.delegationOwnerUserID !==
+                        context.userRelatedInformation.userID;
+                if (deviceOwnerIsNotTheDelegationOwner) {
+                    return false;
+                }
+
+                return true;
+            },
+            [context],
+        );
+
+        const isDeviceEmitting: boolean = useMemo(
+            (): boolean => {
+                if (roomIsReady) {
+                    return false;
+                }
+
+                if (context.userRelatedInformation === null) {
+                    return false;
+                }
+
+                const thisDeviceIsEmitting =
+                    userState.context.currDeviceID ===
+                    context.userRelatedInformation.emittingDeviceID;
+                if (!thisDeviceIsEmitting) {
+                    return false;
+                }
+
+                const roomIsInDirectMode =
+                    context.playingMode === MtvPlayingModes.Values.DIRECT;
+                if (roomIsInDirectMode) {
+                    return isDeviceOwnerTheDelegationOwner();
+                }
+
+                return true;
+            },
+            //Not optimal at all, function will be defined each time
+            //Ok for semantic, we will se later for performances
+            [
+                roomIsReady,
+                context,
+                userState.context,
+                isDeviceOwnerTheDelegationOwner,
+            ],
+        );
 
         function setPlayerRef(ref: MusicPlayerRef) {
             playerRef.current = ref;
@@ -172,6 +236,7 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
                     isFullScreen,
                     setIsFullScreen,
                     toggleIsFullScreen,
+                    isDeviceEmitting,
                 }}
             >
                 {children}

@@ -16,7 +16,8 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
     setIsFullScren,
 }) => {
     const MINI_PLAYER_HEIGHT = 52;
-    const { state, sendToMachine, setPlayerRef } = useMusicPlayer();
+    const { state, sendToMachine, setPlayerRef, isDeviceEmitting } =
+        useMusicPlayer();
     const { state: userState, sendToUserMachine } = useUserContext();
 
     const isInRoom = state.context.roomID !== '';
@@ -76,6 +77,7 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
                         sendToUserMachine={sendToUserMachine}
                         userState={userState}
                         sendToMachine={sendToMachine}
+                        isDeviceEmitting={isDeviceEmitting}
                         machineState={state}
                         setPlayerRef={setPlayerRef}
                     />

@@ -67,6 +67,8 @@ export type AppMusicPlayerMachineEvent =
     | { type: 'PLAY_CALLBACK'; state: MtvWorkflowState }
     | { type: 'FORCED_DISCONNECTION' }
     | { type: 'LEAVE_ROOM' }
+    | { type: 'UPDATE_DELEGATION_OWNER'; newDelegationOwnerUserID: string }
+    | { type: 'UPDATE_DELEGATION_OWNER_CALLBACK'; state: MtvWorkflowState }
     | { type: 'USER_LENGTH_UPDATE'; state: MtvWorkflowState }
     | {
           type: 'USER_PERMISSIONS_UPDATE';
@@ -242,6 +244,16 @@ export const createAppMusicPlayerMachine = ({
                             });
                         });
 
+                        socket.on(
+                            'UPDATE_DELEGATION_OWNER_CALLBACK',
+                            (state) => {
+                                sendBack({
+                                    type: 'UPDATE_DELEGATION_OWNER_CALLBACK',
+                                    state,
+                                });
+                            },
+                        );
+
                         socket.on('FORCED_DISCONNECTION', () => {
                             sendBack({
                                 type: 'FORCED_DISCONNECTION',
@@ -264,6 +276,15 @@ export const createAppMusicPlayerMachine = ({
 
                                 case 'GO_TO_NEXT_TRACK': {
                                     socket.emit('GO_TO_NEXT_TRACK');
+
+                                    break;
+                                }
+
+                                case 'UPDATE_DELEGATION_OWNER': {
+                                    const { newDelegationOwnerUserID } = e;
+                                    socket.emit('UPDATE_DELEGATION_OWNER', {
+                                        newDelegationOwnerUserID,
+                                    });
 
                                     break;
                                 }
@@ -874,6 +895,14 @@ export const createAppMusicPlayerMachine = ({
                                 USER_PERMISSIONS_UPDATE: {
                                     actions: 'assignMergeNewState',
                                 },
+
+                                UPDATE_DELEGATION_OWNER: {
+                                    actions: forwardTo('socketConnection'),
+                                },
+
+                                UPDATE_DELEGATION_OWNER_CALLBACK: {
+                                    actions: 'assignMergeNewState',
+                                },
                             },
                         },
                     },
@@ -941,7 +970,8 @@ export const createAppMusicPlayerMachine = ({
                         event.type !== 'USER_LENGTH_UPDATE' &&
                         event.type !== 'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE' &&
                         event.type !== 'VOTE_OR_SUGGEST_TRACK_CALLBACK' &&
-                        event.type !== 'USER_PERMISSIONS_UPDATE'
+                        event.type !== 'USER_PERMISSIONS_UPDATE' &&
+                        event.type !== 'UPDATE_DELEGATION_OWNER_CALLBACK'
                     ) {
                         return context;
                     }

@@ -65,6 +65,14 @@ export interface MtvRoomClientToServerSuggestTracks {
     tracksToSuggest: string[];
 }
 
+export const MtvRoomUpdateDelegationOwnerArgs = z.object({
+    newDelegationOwnerUserID: z.string(),
+});
+
+export type MtvRoomUpdateDelegationOwnerArgs = z.infer<
+    typeof MtvRoomUpdateDelegationOwnerArgs
+>;
+
 export interface Track {
     name: string;
     artistName: string;
@@ -91,6 +99,7 @@ export interface MtvRoomClientToServerEvents {
         args: MtvRoomClientToServerChangeUserEmittingDevice,
     ) => void;
     SUGGEST_TRACKS: (args: MtvRoomClientToServerSuggestTracks) => void;
+    UPDATE_DELEGATION_OWNER: (args: MtvRoomUpdateDelegationOwnerArgs) => void;
 }
 
 export interface MtvRoomServerToClientEvents {
@@ -109,7 +118,8 @@ export interface MtvRoomServerToClientEvents {
     VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE: (state: MtvWorkflowState) => void;
     SUGGEST_TRACKS_CALLBACK: () => void;
     SUGGEST_TRACKS_FAIL_CALLBACK: () => void;
+    UPDATE_DELEGATION_OWNER_CALLBACK: (state: MtvWorkflowState) => void;
     USER_PERMISSIONS_UPDATE: (
-        user: MtvWorkflowStateWithUserRelatedInformation,
+        state: MtvWorkflowStateWithUserRelatedInformation,
     ) => void;
 }

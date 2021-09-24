@@ -1,7 +1,5 @@
-import { useMachine } from '@xstate/react';
 import React, { useRef } from 'react';
 import { TextInput as RNTextInput, TouchableOpacity } from 'react-native';
-import { createMachine } from 'xstate';
 import { View as MotiView } from 'moti';
 import { useSx, View } from 'dripsy';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,57 +11,17 @@ import { GLOBAL_THEME_CONSTANTS } from '../../hooks/useTheme';
 type AppScreenHeaderSearchBarProps = {
     searchInputPlaceholder: string;
     query: string;
-    showCancelButton: boolean;
+    showInputActions: boolean;
     setQuery: (query: string) => void;
     onBlur: () => void;
     onFocus: () => void;
     onSubmit: () => void;
 };
 
-type SearchBarMachineContext = {
-    searchQuery: string;
-};
-
-type SearchBarMachineEvent =
-    | {
-          type: 'BLUR';
-      }
-    | { type: 'FOCUS' };
-
-const searchBarMachine = createMachine<
-    SearchBarMachineContext,
-    SearchBarMachineEvent
->({
-    context: {
-        searchQuery: '',
-    },
-
-    initial: 'inactive',
-
-    states: {
-        active: {
-            on: {
-                BLUR: {
-                    target: 'inactive',
-                    actions: ['resetSearchQuery', 'blurTextInput'],
-                },
-            },
-        },
-
-        inactive: {
-            on: {
-                FOCUS: {
-                    target: 'active',
-                },
-            },
-        },
-    },
-});
-
 const AppScreenHeaderSearchBar: React.FC<AppScreenHeaderSearchBarProps> = ({
     searchInputPlaceholder,
     query,
-    showCancelButton,
+    showInputActions,
     setQuery,
     onBlur,
     onFocus,
@@ -72,41 +30,16 @@ const AppScreenHeaderSearchBar: React.FC<AppScreenHeaderSearchBarProps> = ({
     const [{ width: containerWidth }, onContainerLayout] = useLayout();
     const [{ width }, onLayout] = useLayout(true);
     const textInputRef = useRef<RNTextInput | null>(null);
-    const [state, send] = useMachine(searchBarMachine, {
-        actions: {
-            resetSearchQuery: () => {
-                setQuery('');
-            },
-            blurTextInput: () => {
-                blurTextInput();
-            },
-        },
-    });
     const sx = useSx();
 
     const cancelButtonLeftMargin = GLOBAL_THEME_CONSTANTS.space.l;
 
-    function blurTextInput() {
-        textInputRef.current?.blur();
-    }
-
-    function handleTextInputFocus() {
-        send({
-            type: 'FOCUS',
-        });
-
-        onFocus();
-    }
-
-    function handleTextClear() {
+    function handleTextClearPress() {
         setQuery('');
     }
 
-    function handleTextInputBlur() {
-        send({
-            type: 'BLUR',
-        });
-
+    function handleCancelPress() {
+        setQuery('');
         onBlur();
     }
 
@@ -121,7 +54,7 @@ const AppScreenHeaderSearchBar: React.FC<AppScreenHeaderSearchBarProps> = ({
         >
             <MotiView
                 animate={{
-                    width: showCancelButton
+                    width: showInputActions
                         ? containerWidth - width - cancelButtonLeftMargin
                         : containerWidth,
                 }}
@@ -149,13 +82,12 @@ const AppScreenHeaderSearchBar: React.FC<AppScreenHeaderSearchBarProps> = ({
                     onChangeText={setQuery}
                     placeholder={searchInputPlaceholder}
                     sx={{ flex: 1, borderWidth: 0 }}
-                    onFocus={handleTextInputFocus}
-                    onBlur={handleTextInputBlur}
+                    onFocus={onFocus}
                     onSubmitEditing={handleTextInputSubmit}
                 />
 
-                {state.matches('active') && query.length > 0 && (
-                    <TouchableOpacity onPress={handleTextClear}>
+                {showInputActions && query.length > 0 && (
+                    <TouchableOpacity onPress={handleTextClearPress}>
                         <Ionicons
                             name="close-circle-outline"
                             style={sx({
@@ -169,7 +101,7 @@ const AppScreenHeaderSearchBar: React.FC<AppScreenHeaderSearchBarProps> = ({
 
             <MotiView
                 animate={{
-                    opacity: showCancelButton ? 1 : 0,
+                    opacity: showInputActions ? 1 : 0,
                 }}
             >
                 <TouchableOpacity
@@ -177,7 +109,7 @@ const AppScreenHeaderSearchBar: React.FC<AppScreenHeaderSearchBarProps> = ({
                         marginLeft: cancelButtonLeftMargin,
                     }}
                     onLayout={onLayout}
-                    onPress={blurTextInput}
+                    onPress={handleCancelPress}
                 >
                     <Typo sx={{ fontSize: 's' }}>Cancel</Typo>
                 </TouchableOpacity>

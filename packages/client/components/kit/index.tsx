@@ -11,6 +11,7 @@ import AppScreenHeader from './AppScreenHeader';
 import AppScreenHeaderSearchBar from './AppScreenHeaderSearchBar';
 import AppScreenHeaderTitle from './AppScreenHeaderTitle';
 import AppScreenHeaderWithSearchBar from './AppScreenHeaderWithSearchBar';
+import AppScreenWithSearchBar from './AppScreenWithSearchBar';
 
 export {
     Block,
@@ -26,4 +27,5 @@ export {
     AppScreenHeaderSearchBar,
     AppScreenHeaderTitle,
     AppScreenHeaderWithSearchBar,
+    AppScreenWithSearchBar,
 };

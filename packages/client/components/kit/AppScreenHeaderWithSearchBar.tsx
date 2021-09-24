@@ -118,7 +118,7 @@ const AppScreenHeaderWithSearchBar: React.FC<AppScreenHeaderWithSearchBarProps> 
                         <AppScreenHeaderSearchBar
                             searchInputPlaceholder={searchInputPlaceholder}
                             query={searchQuery}
-                            showCancelButton={showHeader === false}
+                            showInputActions={showHeader === false}
                             setQuery={handleUpdateSearchQuery}
                             onFocus={handleTextInputFocus}
                             onBlur={handleTextInputBlur}

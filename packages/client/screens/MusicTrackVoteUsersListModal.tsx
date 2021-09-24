@@ -2,13 +2,8 @@ import { useActor, useMachine } from '@xstate/react';
 import { Text } from 'dripsy';
 import React, { useMemo, useState } from 'react';
 import { FlatList } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActorRef } from 'xstate';
-import {
-    AppScreen,
-    AppScreenContainer,
-    AppScreenHeaderWithSearchBar,
-} from '../components/kit';
+import { AppScreenWithSearchBar } from '../components/kit';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
@@ -18,7 +13,6 @@ import { MusicTrackVoteUsersListModalProps } from '../types';
 
 const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> =
     ({ navigation }) => {
-        const insets = useSafeAreaInsets();
         const [screenOffsetY, setScreenOffsetY] = useState(0);
         const searchUserMachine = useMemo(
             () =>
@@ -50,32 +44,26 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
         }
 
         return (
-            <AppScreen screenOffsetY={showHeader === true ? 0 : screenOffsetY}>
-                <AppScreenHeaderWithSearchBar
-                    canGoBack
-                    goBack={handleGoBack}
-                    title="Users list"
-                    searchInputPlaceholder="Search a user by name..."
-                    insetTop={insets.top}
-                    setScreenOffsetY={setScreenOffsetY}
-                    searchQuery={searchState.context.searchQuery}
-                    sendToMachine={sendToSearch}
-                    showHeader={showHeader}
+            <AppScreenWithSearchBar
+                canGoBack
+                title="Users list"
+                searchInputPlaceholder="Search a user by name..."
+                showHeader={showHeader}
+                screenOffsetY={showHeader === true ? 0 : screenOffsetY}
+                setScreenOffsetY={setScreenOffsetY}
+                searchQuery={searchState.context.searchQuery}
+                sendToSearch={sendToSearch}
+                goBack={handleGoBack}
+            >
+                <Text sx={{ color: 'white' }}>This is the modal</Text>
+
+                <FlatList
+                    data={state.context.filteredUsers}
+                    renderItem={({ item }) => {
+                        return <Text sx={{ color: 'white' }}>{item.id}</Text>;
+                    }}
                 />
-
-                <AppScreenContainer>
-                    <Text sx={{ color: 'white' }}>This is the modal</Text>
-
-                    <FlatList
-                        data={state.context.filteredUsers}
-                        renderItem={({ item }) => {
-                            return (
-                                <Text sx={{ color: 'white' }}>{item.id}</Text>
-                            );
-                        }}
-                    />
-                </AppScreenContainer>
-            </AppScreen>
+            </AppScreenWithSearchBar>
         );
     };
 

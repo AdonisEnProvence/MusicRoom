@@ -6,12 +6,7 @@ import React, { useState } from 'react';
 import { FlatList, ListRenderItem, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActorRef } from 'xstate';
-import {
-    AppScreen,
-    AppScreenContainer,
-    AppScreenHeaderWithSearchBar,
-    Typo,
-} from '../components/kit';
+import { AppScreenWithSearchBar, Typo } from '../components/kit';
 import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
@@ -119,50 +114,45 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
     const { sendToMachine: sendToMusicPlayerMachine } = useMusicPlayer();
 
     return (
-        <AppScreen screenOffsetY={showHeader === true ? 0 : screenOffsetY}>
-            <AppScreenHeaderWithSearchBar
-                title="Track Vote"
-                searchInputPlaceholder="Search a room..."
-                insetTop={insets.top}
-                setScreenOffsetY={setScreenOffsetY}
-                searchQuery={searchState.context.searchQuery}
-                sendToMachine={sendToSearch}
-                showHeader={showHeader}
-                canGoBack={true}
-                goBack={() => {
-                    navigation.goBack();
-                }}
-            />
-
-            <AppScreenContainer>
-                {showSuggestions ? (
-                    <MotiView
-                        animate={{
-                            opacity:
-                                reduceSuggestionsOpacity === true ? 0.7 : 1,
+        <AppScreenWithSearchBar
+            canGoBack
+            title="Track Vote"
+            searchInputPlaceholder="Search a room..."
+            showHeader={showHeader}
+            screenOffsetY={showHeader === true ? 0 : screenOffsetY}
+            setScreenOffsetY={setScreenOffsetY}
+            searchQuery={searchState.context.searchQuery}
+            sendToSearch={sendToSearch}
+            goBack={() => {
+                navigation.goBack();
+            }}
+        >
+            {showSuggestions ? (
+                <MotiView
+                    animate={{
+                        opacity: reduceSuggestionsOpacity === true ? 0.7 : 1,
+                    }}
+                    style={{ flex: 1 }}
+                >
+                    <SuggestionsList
+                        suggestions={
+                            mtvRoomState.context.rooms?.map((el) => ({
+                                roomID: el,
+                            })) ?? []
+                        }
+                        bottomInset={insets.bottom}
+                        onSuggestionPress={(roomID: string) => {
+                            sendToMusicPlayerMachine({
+                                type: 'JOIN_ROOM',
+                                roomID,
+                            });
                         }}
-                        style={{ flex: 1 }}
-                    >
-                        <SuggestionsList
-                            suggestions={
-                                mtvRoomState.context.rooms?.map((el) => ({
-                                    roomID: el,
-                                })) ?? []
-                            }
-                            bottomInset={insets.bottom}
-                            onSuggestionPress={(roomID: string) => {
-                                sendToMusicPlayerMachine({
-                                    type: 'JOIN_ROOM',
-                                    roomID,
-                                });
-                            }}
-                        />
-                    </MotiView>
-                ) : (
-                    <SearchList />
-                )}
-            </AppScreenContainer>
-        </AppScreen>
+                    />
+                </MotiView>
+            ) : (
+                <SearchList />
+            )}
+        </AppScreenWithSearchBar>
     );
 };
 

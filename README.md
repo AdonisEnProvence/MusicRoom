@@ -20,6 +20,11 @@ Install dependencies with yarn by running
 yarn
 ```
 
+## Env variables
+
+If you want to test the app as a whole you should fill a .env file for each package.
+It involves to create several google api keys ( with billing account for google console )
+
 ## Starting the project
 
 Start up the project in development mode by running
@@ -41,7 +46,14 @@ Changing any files in the folder will result in an incremental rebuild, and a re
 First launch redis & postgres container:
 
 ```sh
-cd packages/server && docker-compose -d
+cd packages/server && docker-compose up -d
+```
+
+Run the database migrations
+( Until we've done the authenfication feature we need to seed the db using node ace db:seed )
+
+```sh
+node ace migration:rollback --batch 0 && node ace migration:run && node ace db:seed
 ```
 
 Start the server:

@@ -1,9 +1,10 @@
 import { useActor, useMachine } from '@xstate/react';
-import { Text } from 'dripsy';
+import { Text, View } from 'dripsy';
 import React, { useMemo, useState } from 'react';
 import { FlatList } from 'react-native';
 import { ActorRef } from 'xstate';
 import { AppScreenWithSearchBar } from '../components/kit';
+import UserListItemWithThreeDots from '../components/User/UserListItemWithThreeDots';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
@@ -57,8 +58,25 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
             >
                 <FlatList
                     data={state.context.filteredUsers}
-                    renderItem={({ item }) => {
-                        return <Text sx={{ color: 'white' }}>{item.id}</Text>;
+                    renderItem={({ item, index }) => {
+                        const isLastItem =
+                            index === state.context.filteredUsers.length - 1;
+
+                        return (
+                            <View
+                                sx={{
+                                    marginBottom: isLastItem ? undefined : 'm',
+                                }}
+                            >
+                                <UserListItemWithThreeDots
+                                    index={index}
+                                    name={item.id}
+                                    onThreeDotsPress={() => {
+                                        console.log('three dots clicked');
+                                    }}
+                                />
+                            </View>
+                        );
                     }}
                     ListEmptyComponent={() => {
                         return (

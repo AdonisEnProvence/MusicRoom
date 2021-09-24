@@ -1,12 +1,9 @@
 import { useActor, useMachine } from '@xstate/react';
-import { Text, View } from 'dripsy';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { FlatList, StyleSheet } from 'react-native';
+import { Text, View, useSx } from 'dripsy';
+import React, { useMemo, useRef, useState } from 'react';
+import { FlatList, Switch, TouchableOpacity } from 'react-native';
 import { ActorRef } from 'xstate';
-import {
-    BottomSheetModal,
-    BottomSheetModalProvider,
-} from '@gorhom/bottom-sheet';
+import { BottomSheetModal, BottomSheetHandle } from '@gorhom/bottom-sheet';
 import { AppScreenWithSearchBar } from '../components/kit';
 import UserListItemWithThreeDots from '../components/User/UserListItemWithThreeDots';
 import {
@@ -18,6 +15,7 @@ import { MusicTrackVoteUsersListModalProps } from '../types';
 
 const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> =
     ({ navigation }) => {
+        const sx = useSx();
         const [screenOffsetY, setScreenOffsetY] = useState(0);
         const searchUserMachine = useMemo(
             () =>
@@ -45,83 +43,152 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
         const showHeader = searchState.hasTag('showHeaderTitle');
 
         const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-        const snapPoints = useMemo(() => ['25%', '50%'], []);
+        const snapPoints = [200];
 
-        const handlePresentModalPress = useCallback(() => {
+        function handlePresentModalPress() {
             bottomSheetModalRef.current?.present();
-        }, []);
-        const handleSheetChanges = useCallback((index: number) => {
+        }
+
+        function handleSheetChanges(index: number) {
             console.log('handleSheetChanges', index);
-        }, []);
+        }
 
         function handleGoBack() {
             navigation.goBack();
         }
 
-        return (
-            <BottomSheetModalProvider>
-                <AppScreenWithSearchBar
-                    canGoBack
-                    title="Users list"
-                    searchInputPlaceholder="Search a user by name..."
-                    showHeader={showHeader}
-                    screenOffsetY={showHeader === true ? 0 : screenOffsetY}
-                    setScreenOffsetY={setScreenOffsetY}
-                    searchQuery={searchState.context.searchQuery}
-                    sendToSearch={sendToSearch}
-                    goBack={handleGoBack}
-                >
-                    <FlatList
-                        data={state.context.filteredUsers}
-                        renderItem={({ item, index }) => {
-                            const isLastItem =
-                                index ===
-                                state.context.filteredUsers.length - 1;
+        const [hasPermission, setHasPermission] = useState(false);
 
-                            return (
-                                <View
+        return (
+            <AppScreenWithSearchBar
+                canGoBack
+                title="Users list"
+                searchInputPlaceholder="Search a user by name..."
+                showHeader={showHeader}
+                screenOffsetY={showHeader === true ? 0 : screenOffsetY}
+                setScreenOffsetY={setScreenOffsetY}
+                searchQuery={searchState.context.searchQuery}
+                sendToSearch={sendToSearch}
+                goBack={handleGoBack}
+            >
+                <FlatList
+                    data={state.context.filteredUsers}
+                    renderItem={({ item, index }) => {
+                        const isLastItem =
+                            index === state.context.filteredUsers.length - 1;
+
+                        return (
+                            <View
+                                sx={{
+                                    marginBottom: isLastItem ? undefined : 'm',
+                                }}
+                            >
+                                <UserListItemWithThreeDots
+                                    index={index}
+                                    name={item.id}
+                                    onThreeDotsPress={handlePresentModalPress}
+                                />
+                            </View>
+                        );
+                    }}
+                    ListEmptyComponent={() => {
+                        return (
+                            <Text sx={{ color: 'white' }}>
+                                There are not users that match this request
+                            </Text>
+                        );
+                    }}
+                />
+
+                <BottomSheetModal
+                    ref={bottomSheetModalRef}
+                    index={0}
+                    snapPoints={snapPoints}
+                    onChange={handleSheetChanges}
+                    backgroundStyle={sx({
+                        backgroundColor: 'greyLight',
+                    })}
+                    handleComponent={(props) => (
+                        <BottomSheetHandle
+                            {...props}
+                            indicatorStyle={{ backgroundColor: 'white' }}
+                        />
+                    )}
+                >
+                    <View
+                        sx={{
+                            flex: 1,
+                            padding: 'm',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <View
+                            sx={{
+                                maxWidth: [undefined, 500],
+                                width: '100%',
+                            }}
+                        >
+                            <Text
+                                sx={{
+                                    color: 'white',
+                                    marginBottom: 'l',
+                                    textAlign: 'center',
+                                }}
+                            >
+                                Biolay77 settings
+                            </Text>
+
+                            <View
+                                sx={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                }}
+                            >
+                                <Text
                                     sx={{
-                                        marginBottom: isLastItem
-                                            ? undefined
-                                            : 'm',
+                                        marginRight: 'l',
+                                        color: 'white',
                                     }}
                                 >
-                                    <UserListItemWithThreeDots
-                                        index={index}
-                                        name={item.id}
-                                        onThreeDotsPress={
-                                            handlePresentModalPress
-                                        }
-                                    />
-                                </View>
-                            );
-                        }}
-                        ListEmptyComponent={() => {
-                            return (
-                                <Text sx={{ color: 'white' }}>
-                                    There are not users that match this request
+                                    Has Delegation and Control permission?
                                 </Text>
-                            );
-                        }}
-                    />
 
-                    <BottomSheetModal
-                        ref={bottomSheetModalRef}
-                        index={1}
-                        snapPoints={snapPoints}
-                        onChange={handleSheetChanges}
-                    >
-                        <View style={styles.contentContainer}>
-                            <Text>Awesome 🎉</Text>
+                                <Switch
+                                    value={hasPermission}
+                                    onValueChange={setHasPermission}
+                                />
+                            </View>
+
+                            <View sx={{ flexDirection: 'row' }}>
+                                <TouchableOpacity
+                                    style={sx({ flex: 1, marginTop: 'l' })}
+                                >
+                                    <View
+                                        sx={{
+                                            padding: 's',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            borderRadius: 's',
+                                            backgroundColor: 'greyLighter',
+                                        }}
+                                    >
+                                        <Text
+                                            sx={{
+                                                fontSize: 's',
+                                                color: 'white',
+                                            }}
+                                        >
+                                            Make delegator
+                                        </Text>
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    </BottomSheetModal>
-                </AppScreenWithSearchBar>
-            </BottomSheetModalProvider>
+                    </View>
+                </BottomSheetModal>
+            </AppScreenWithSearchBar>
         );
     };
-
-const styles = StyleSheet.create({
-    contentContainer: { flex: 1, alignItems: 'center' },
-});
 
 export default MusicTrackVoteUsersListModal;

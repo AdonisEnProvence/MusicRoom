@@ -2,7 +2,9 @@ import { Sender } from '@xstate/react/lib/types';
 import React from 'react';
 import { TouchableWithoutFeedback, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppScreen, AppScreenContainer, AppScreenHeaderWithSearchBar } from '.';
+import AppScreen from './AppScreen';
+import AppScreenContainer from './AppScreenContainer';
+import AppScreenHeaderWithSearchBar from './AppScreenHeaderWithSearchBar';
 import { AppScreenHeaderWithSearchBarMachineEvent } from '../../machines/appScreenHeaderWithSearchBarMachine';
 
 type AppScreenWithSearchBarProps = {

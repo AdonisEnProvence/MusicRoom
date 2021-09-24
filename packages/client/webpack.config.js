@@ -10,6 +10,7 @@ module.exports = async function (env, argv) {
                     '@dripsy/core',
                     'moti',
                     '@motify',
+                    '@gorhom',
                 ],
             },
         },

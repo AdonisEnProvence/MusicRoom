@@ -36,6 +36,8 @@ func main() {
 	w.RegisterActivity(activities.UserVoteForTrackAcknowledgement)
 	w.RegisterActivity(activities.AcknowledgeTracksSuggestion)
 	w.RegisterActivity(activities.AcknowledgeTracksSuggestionFail)
+	w.RegisterActivity(activities.AcknowledgeUpdateUserFitsPositionConstraint)
+	w.RegisterActivity(activities.AcknowledgeUpdateDelegationOwner)
 
 	// Start listening to the Task Queue
 	err = w.Run(worker.InterruptCh())

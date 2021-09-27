@@ -36,7 +36,7 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
 
     return (
         <AppScreenWithSearchBar
-            title="Suggest Track"
+            title="Search a track"
             searchInputPlaceholder="Search a track..."
             showHeader={showHeader}
             screenOffsetY={showHeader === true ? 0 : screenOffsetY}

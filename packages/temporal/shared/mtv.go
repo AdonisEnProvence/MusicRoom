@@ -22,9 +22,10 @@ type MtvRoomTimer struct {
 const ControlTaskQueue = "CONTROL_TASK_QUEUE"
 
 var (
-	SignalChannelName = "control"
-	MtvGetStateQuery  = "getState"
-	NoRelatedUserID   = ""
+	SignalChannelName    = "control"
+	MtvGetStateQuery     = "getState"
+	MtvGetUsersListQuery = "getUsersList"
+	NoRelatedUserID      = ""
 )
 
 type TrackMetadata struct {
@@ -220,6 +221,13 @@ type InternalStateUser struct {
 	TracksVotedFor                    []string `json:"tracksVotedFor"`
 	UserFitsPositionConstraint        *bool    `json:"userFitsPositionConstraint"`
 	HasControlAndDelegationPermission bool     `json:"hasControlAndDelegationPermission"`
+}
+
+type ExposedInternalStateUserListElement struct {
+	UserID                            string `json:"userID"`
+	HasControlAndDelegationPermission bool   `json:"hasControlAndDelegationPermission"`
+	IsCreator                         bool   `json:"isCreator"`
+	IsDelegationOwner                 bool   `json:"isDelegationOwner"`
 }
 
 func (s *InternalStateUser) HasVotedFor(trackID string) bool {

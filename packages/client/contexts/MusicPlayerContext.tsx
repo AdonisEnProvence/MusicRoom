@@ -144,7 +144,7 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
             },
         });
         const { context } = state;
-        const roomIsReady = state.hasTag('roomIsReady');
+        const roomIsNotReady = !state.hasTag('roomIsReady');
 
         const isDeviceOwnerTheDelegationOwner = useCallback(
             function isDeviceOwnerTheDelegationOwner(): boolean {
@@ -173,7 +173,7 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
 
         const isDeviceEmitting: boolean = useMemo(
             (): boolean => {
-                if (roomIsReady) {
+                if (roomIsNotReady) {
                     return false;
                 }
 
@@ -181,10 +181,10 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
                     return false;
                 }
 
-                const thisDeviceIsEmitting =
-                    userState.context.currDeviceID ===
+                const thisDeviceIsNotEmitting =
+                    userState.context.currDeviceID !==
                     context.userRelatedInformation.emittingDeviceID;
-                if (!thisDeviceIsEmitting) {
+                if (thisDeviceIsNotEmitting) {
                     return false;
                 }
 
@@ -199,7 +199,7 @@ export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProp
             //Not optimal at all, function will be defined each time
             //Ok for semantic, we will se later for performances
             [
-                roomIsReady,
+                roomIsNotReady,
                 context,
                 userState.context,
                 isDeviceOwnerTheDelegationOwner,

@@ -6,7 +6,7 @@ interface MtvRoomUser {
     id: string;
 }
 
-const searchUserModel = createModel(
+const roomUsersListModel = createModel(
     {
         allUsers: [] as MtvRoomUser[],
         filteredUsers: [] as MtvRoomUser[],
@@ -21,36 +21,34 @@ const searchUserModel = createModel(
     },
 );
 
-const assignSearchQueryToContext = searchUserModel.assign(
+const assignSearchQueryToContext = roomUsersListModel.assign(
     {
         searchQuery: (_, { searchQuery }) => searchQuery,
     },
     'UPDATE_SEARCH_QUERY',
 );
 
-const assignFilteredUsersToContext = searchUserModel.assign(
+const assignFilteredUsersToContext = roomUsersListModel.assign(
     {
         filteredUsers: (_, { users }) => users,
     },
     'SET_USERS',
 );
 
-interface CreateSearchUserMachineArgs {
+interface CreateRoomUsersListMachineArgs {
     users: MtvRoomUser[];
 }
 
-export const createSearchUserMachine = ({
+export const createRoomUsersListMachine = ({
     users,
-}: CreateSearchUserMachineArgs): StateMachine<
-    ContextFrom<typeof searchUserModel>,
+}: CreateRoomUsersListMachineArgs): StateMachine<
+    ContextFrom<typeof roomUsersListModel>,
     any,
-    EventFrom<typeof searchUserModel>
+    EventFrom<typeof roomUsersListModel>
 > => {
-    console.log('in createSearchUserMachine');
-
-    return searchUserModel.createMachine({
+    return roomUsersListModel.createMachine({
         context: {
-            ...searchUserModel.initialContext,
+            ...roomUsersListModel.initialContext,
             allUsers: users,
             filteredUsers: users,
         },

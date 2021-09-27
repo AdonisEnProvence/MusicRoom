@@ -10,16 +10,16 @@ import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
 } from '../machines/appScreenHeaderWithSearchBarMachine';
-import { createSearchUserMachine } from '../machines/searchUserMachine';
+import { createRoomUsersListMachine } from '../machines/roomUsersListMachine';
 import { MusicTrackVoteUsersListModalProps } from '../types';
 
 const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> =
     ({ navigation }) => {
         const sx = useSx();
         const [screenOffsetY, setScreenOffsetY] = useState(0);
-        const searchUserMachine = useMemo(
+        const roomUsersListMachine = useMemo(
             () =>
-                createSearchUserMachine({
+                createRoomUsersListMachine({
                     users: [
                         {
                             id: 'Baptiste',
@@ -34,7 +34,7 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                 }),
             [],
         );
-        const [state] = useMachine(searchUserMachine);
+        const [state] = useMachine(roomUsersListMachine);
         const searchBarActor: ActorRef<
             AppScreenHeaderWithSearchBarMachineEvent,
             AppScreenHeaderWithSearchBarMachineState

@@ -86,6 +86,7 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                                 <UserListItemWithThreeDots
                                     index={index}
                                     name={item.id}
+                                    threeDotsAccessibilityLabel={`Open user ${item.id} settings`}
                                     onThreeDotsPress={handlePresentModalPress}
                                 />
                             </View>
@@ -157,6 +158,11 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                                 <Switch
                                     value={hasPermission}
                                     onValueChange={setHasPermission}
+                                    accessibilityLabel={`${
+                                        hasPermission === true
+                                            ? 'Remove'
+                                            : 'Set'
+                                    } delegation and control permission`}
                                 />
                             </View>
 

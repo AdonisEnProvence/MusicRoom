@@ -8,18 +8,26 @@ interface UserListItemWithThreeDotsProps {
     index: number;
     name: string;
     onPress?: () => void;
+    threeDotsAccessibilityLabel: string;
     onThreeDotsPress: () => void;
 }
 
 interface ThreeDotsButtonProps {
+    accessibilityLabel: string;
     onPress: () => void;
 }
 
-const ThreeDotsButton: React.FC<ThreeDotsButtonProps> = ({ onPress }) => {
+const ThreeDotsButton: React.FC<ThreeDotsButtonProps> = ({
+    accessibilityLabel,
+    onPress,
+}) => {
     const sx = useSx();
 
     return (
-        <TouchableOpacity onPress={onPress}>
+        <TouchableOpacity
+            accessibilityLabel={accessibilityLabel}
+            onPress={onPress}
+        >
             <Entypo
                 name="dots-three-vertical"
                 size={20}
@@ -35,6 +43,7 @@ const UserListItemWithThreeDots: React.FC<UserListItemWithThreeDotsProps> = ({
     index,
     name,
     onPress,
+    threeDotsAccessibilityLabel,
     onThreeDotsPress,
 }) => {
     return (
@@ -42,7 +51,12 @@ const UserListItemWithThreeDots: React.FC<UserListItemWithThreeDotsProps> = ({
             index={index}
             name={name}
             onPress={onPress}
-            Actions={() => <ThreeDotsButton onPress={onThreeDotsPress} />}
+            Actions={() => (
+                <ThreeDotsButton
+                    accessibilityLabel={threeDotsAccessibilityLabel}
+                    onPress={onThreeDotsPress}
+                />
+            )}
         />
     );
 };

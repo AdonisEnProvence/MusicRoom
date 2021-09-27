@@ -388,6 +388,10 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
         throw new Error('Exactly one tab must be selected');
     }
 
+    function handleListenersPress() {
+        navigation.navigate('MusicTrackVoteUsersList');
+    }
+
     function handleTrackReady() {
         sendToMachine({
             type: 'TRACK_HAS_LOADED',
@@ -415,15 +419,17 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                             {context.name}
                         </Typo>
 
-                        <Typo
-                            sx={{
-                                fontSize: 's',
-                                color: 'greyLighter',
-                                marginTop: 'xs',
-                            }}
-                        >
-                            {context.usersLength} Listeners
-                        </Typo>
+                        <TouchableOpacity onPress={handleListenersPress}>
+                            <Typo
+                                sx={{
+                                    fontSize: 's',
+                                    color: 'greyLighter',
+                                    marginTop: 'xs',
+                                }}
+                            >
+                                {context.usersLength} Listeners
+                            </Typo>
+                        </TouchableOpacity>
                     </View>
                 )}
             />

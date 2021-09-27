@@ -1,13 +1,8 @@
 import { useActor, useMachine } from '@xstate/react';
 import React, { useState } from 'react';
 import { Button } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActorRef } from 'xstate';
-import {
-    AppScreen,
-    AppScreenContainer,
-    AppScreenHeaderWithSearchBar,
-} from '../components/kit';
+import { AppScreenWithSearchBar } from '../components/kit';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
@@ -18,7 +13,6 @@ import { SearchTabSearchTracksScreenProps } from '../types';
 const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
     navigation,
 }) => {
-    const insets = useSafeAreaInsets();
     const [screenOffsetY, setScreenOffsetY] = useState(0);
     const [state] = useMachine(searchTrackMachine, {
         actions: {
@@ -41,28 +35,24 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
     const showHeader = searchState.hasTag('showHeaderTitle');
 
     return (
-        <AppScreen screenOffsetY={showHeader === true ? 0 : screenOffsetY}>
-            <AppScreenHeaderWithSearchBar
-                title="Search a track"
-                searchInputPlaceholder="Search a track..."
-                insetTop={insets.top}
-                setScreenOffsetY={setScreenOffsetY}
-                searchQuery={searchState.context.searchQuery}
-                sendToMachine={sendToSearch}
-                showHeader={showHeader}
+        <AppScreenWithSearchBar
+            title="Search a track"
+            searchInputPlaceholder="Search a track..."
+            showHeader={showHeader}
+            screenOffsetY={showHeader === true ? 0 : screenOffsetY}
+            setScreenOffsetY={setScreenOffsetY}
+            searchQuery={searchState.context.searchQuery}
+            sendToSearch={sendToSearch}
+        >
+            <Button
+                title="Go to home"
+                onPress={() => {
+                    navigation.navigate('Home', {
+                        screen: 'HomeScreen',
+                    });
+                }}
             />
-
-            <AppScreenContainer>
-                <Button
-                    title="Go to home"
-                    onPress={() => {
-                        navigation.navigate('Home', {
-                            screen: 'HomeScreen',
-                        });
-                    }}
-                />
-            </AppScreenContainer>
-        </AppScreen>
+        </AppScreenWithSearchBar>
     );
 };
 

@@ -1,13 +1,8 @@
 import { useActor, useMachine } from '@xstate/react';
 import { Text } from 'dripsy';
 import React, { useState } from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActorRef } from 'xstate';
-import {
-    AppScreen,
-    AppScreenContainer,
-    AppScreenHeaderWithSearchBar,
-} from '../components/kit';
+import { AppScreenWithSearchBar } from '../components/kit';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
@@ -18,7 +13,6 @@ import { SuggestTrackModalProps } from '../types';
 const SuggestTrackModal: React.FC<SuggestTrackModalProps> = ({
     navigation,
 }) => {
-    const insets = useSafeAreaInsets();
     const [screenOffsetY, setScreenOffsetY] = useState(0);
     const [state] = useMachine(searchTrackMachine, {
         actions: {
@@ -45,23 +39,19 @@ const SuggestTrackModal: React.FC<SuggestTrackModalProps> = ({
     }
 
     return (
-        <AppScreen screenOffsetY={showHeader === true ? 0 : screenOffsetY}>
-            <AppScreenHeaderWithSearchBar
-                canGoBack
-                goBack={handleGoBack}
-                title="Suggest Track"
-                searchInputPlaceholder="Search a track..."
-                insetTop={insets.top}
-                setScreenOffsetY={setScreenOffsetY}
-                searchQuery={searchState.context.searchQuery}
-                sendToMachine={sendToSearch}
-                showHeader={showHeader}
-            />
-
-            <AppScreenContainer>
-                <Text sx={{ color: 'white' }}>This is the modal</Text>
-            </AppScreenContainer>
-        </AppScreen>
+        <AppScreenWithSearchBar
+            canGoBack
+            title="Suggest Track"
+            searchInputPlaceholder="Search a track..."
+            showHeader={showHeader}
+            screenOffsetY={showHeader === true ? 0 : screenOffsetY}
+            setScreenOffsetY={setScreenOffsetY}
+            searchQuery={searchState.context.searchQuery}
+            sendToSearch={sendToSearch}
+            goBack={handleGoBack}
+        >
+            <Text sx={{ color: 'white' }}>This is the modal</Text>
+        </AppScreenWithSearchBar>
     );
 };
 

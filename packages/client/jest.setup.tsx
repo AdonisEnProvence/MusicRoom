@@ -1,4 +1,5 @@
 import '@testing-library/jest-native';
+import React from 'react';
 import {
     getCurrentPositionAsync,
     requestForegroundPermissionsAsync,
@@ -7,6 +8,10 @@ import {
     YoutubeIframeProps,
     YoutubeIframeRef,
 } from 'react-native-youtube-iframe';
+import type {
+    BottomSheetModal,
+    BottomSheetModalProps,
+} from '@gorhom/bottom-sheet';
 import { cleanup } from './services/websockets';
 import { dropDatabase } from './tests/data';
 import { server } from './tests/server/test-server';
@@ -84,6 +89,35 @@ jest.mock('@motify/skeleton', () => {
 
     return {
         Skeleton: View,
+    };
+});
+
+jest.mock('@gorhom/bottom-sheet', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { forwardRef, useImperativeHandle, useState } = require('react');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { View } = require('react-native');
+
+    return {
+        BottomSheetModalProvider: View,
+        BottomSheetHandle: View,
+
+        BottomSheetModal: forwardRef(
+            (
+                { children }: BottomSheetModalProps,
+                ref: React.RefObject<BottomSheetModal>,
+            ) => {
+                const [isOpen, setIsOpen] = useState(false);
+
+                useImperativeHandle(ref, () => ({
+                    present: () => {
+                        setIsOpen(true);
+                    },
+                }));
+
+                return <View>{isOpen ? children : null}</View>;
+            },
+        ),
     };
 });
 

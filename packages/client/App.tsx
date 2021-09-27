@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import { ImageBackground } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { MusicPlayerContextProvider } from './contexts/MusicPlayerContext';
 import { UserContextProvider } from './contexts/UserContext';
 import useCachedResources from './hooks/useCachedResources';
@@ -25,56 +26,60 @@ const App: React.FC = () => {
         return (
             <DripsyProvider theme={theme}>
                 <SafeAreaProvider>
-                    <UserContextProvider socket={socket}>
-                        <MusicPlayerContextProvider
-                            socket={socket}
-                            setDisplayModal={setDisplayModal}
-                        >
-                            {displayModal && (
-                                <View
-                                    sx={{
-                                        zIndex: '2',
-                                        position: 'absolute',
-                                        transform: `translate(-50%,-50%)`,
-                                        left: '50%',
-                                        top: '50%',
-                                        width: '40%',
-                                        height: '40%',
-                                        backgroundColor: 'red',
-                                    }}
-                                >
-                                    <ImageBackground
-                                        source={{
-                                            uri: `https://media-exp1.licdn.com/dms/image/C4D03AQE_UVoK5h2u8w/profile-displayphoto-shrink_200_200/0/1585838395278?e=1632960000&v=beta&t=hPLhVUJU0fzc-y5iFafdhhGrlwhSOJtAQjsCSlSLg7M`,
-                                        }}
-                                        resizeMode="cover"
-                                        style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
+                    <BottomSheetModalProvider>
+                        <UserContextProvider socket={socket}>
+                            <MusicPlayerContextProvider
+                                socket={socket}
+                                setDisplayModal={setDisplayModal}
+                            >
+                                {displayModal && (
+                                    <View
+                                        sx={{
+                                            zIndex: '2',
+                                            position: 'absolute',
+                                            transform: `translate(-50%,-50%)`,
+                                            left: '50%',
+                                            top: '50%',
+                                            width: '40%',
+                                            height: '40%',
+                                            backgroundColor: 'red',
                                         }}
                                     >
-                                        <Text>Click</Text>
-                                    </ImageBackground>
-                                </View>
-                            )}
-                            <Navigation
-                                colorScheme={colorScheme}
-                                toggleColorScheme={toggleColorScheme}
-                                sx={{
-                                    backgroundColor: 'headerBackground',
-                                    flex: 1,
-                                }}
-                            />
-                            <StatusBar
-                                style={
-                                    colorScheme === 'dark' ? 'light' : 'dark'
-                                }
-                            />
-                        </MusicPlayerContextProvider>
-                    </UserContextProvider>
+                                        <ImageBackground
+                                            source={{
+                                                uri: `https://media-exp1.licdn.com/dms/image/C4D03AQE_UVoK5h2u8w/profile-displayphoto-shrink_200_200/0/1585838395278?e=1632960000&v=beta&t=hPLhVUJU0fzc-y5iFafdhhGrlwhSOJtAQjsCSlSLg7M`,
+                                            }}
+                                            resizeMode="cover"
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                            }}
+                                        >
+                                            <Text>Click</Text>
+                                        </ImageBackground>
+                                    </View>
+                                )}
+                                <Navigation
+                                    colorScheme={colorScheme}
+                                    toggleColorScheme={toggleColorScheme}
+                                    sx={{
+                                        backgroundColor: 'headerBackground',
+                                        flex: 1,
+                                    }}
+                                />
+                                <StatusBar
+                                    style={
+                                        colorScheme === 'dark'
+                                            ? 'light'
+                                            : 'dark'
+                                    }
+                                />
+                            </MusicPlayerContextProvider>
+                        </UserContextProvider>
+                    </BottomSheetModalProvider>
                 </SafeAreaProvider>
             </DripsyProvider>
         );

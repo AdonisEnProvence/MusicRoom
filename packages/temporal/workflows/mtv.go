@@ -679,6 +679,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
 							} else {
 								voteIntervalTimerFuture = nil
+								internalState.TracksCheckForVoteUpdateLastSave = shared.TracksMetadataWithScoreSet{}
 							}
 
 							return nil

@@ -1,10 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
-import { TrackMetadataWithScore } from '@musicroom/types';
 import { useNavigation } from '@react-navigation/native';
 import { useMachine } from '@xstate/react';
 import { Text, useSx, View } from 'dripsy';
-import React from 'react';
-import { FlatList, TouchableOpacity } from 'react-native';
+import React, { useMemo } from 'react';
+import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sender } from 'xstate';
 import { createModel } from 'xstate/lib/model';
@@ -18,8 +16,10 @@ import {
 } from '../../machines/appUserMachine';
 import { AppScreen, AppScreenContainer, Typo } from '../kit';
 import AppModalHeader from '../kit/AppModalHeader';
-import TrackListItemWithScore from '../Track/TrackListItemWithScore';
 import { MusicPlayerRef } from './Player';
+import ChatTab from './Tabs/Chat';
+import SettingsTab from './Tabs/Settings';
+import TracksListTab from './Tabs/TracksList';
 import TheMusicPlayerWithControls from './TheMusicPlayerWithControls';
 
 type TheMusicPlayerFullScreenProps = {
@@ -86,58 +86,10 @@ const fullscreenPlayerTabsMachine =
     });
 
 interface Tab {
-    text: string;
+    text: 'Tracks' | 'Chat' | 'Settings';
     selected: boolean;
     onPress: () => void;
-    component: () => React.ReactElement | null;
 }
-
-interface AddSongButtonProps {
-    onPress: () => void;
-}
-
-const AddSongButton: React.FC<AddSongButtonProps> = ({ onPress }) => {
-    const sx = useSx();
-    return (
-        <TouchableOpacity
-            style={sx({
-                position: 'absolute',
-                right: 0,
-                bottom: 0,
-                borderRadius: 'full',
-                backgroundColor: 'secondary',
-                width: 48,
-                height: 48,
-                margin: 'm',
-                justifyContent: 'center',
-                alignItems: 'center',
-
-                // Copy pasted from https://ethercreative.github.io/react-native-shadow-generator/
-                shadowColor: '#000',
-                shadowOffset: {
-                    width: 0,
-                    height: 2,
-                },
-                shadowOpacity: 0.25,
-                shadowRadius: 3.84,
-
-                elevation: 5,
-            })}
-            onPress={onPress}
-        >
-            <Ionicons
-                accessibilityLabel="Suggest a track"
-                name="add"
-                size={32}
-                color="white"
-                style={{
-                    // Necessary to center the icon visually
-                    right: -1,
-                }}
-            />
-        </TouchableOpacity>
-    );
-};
 
 const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     machineState,
@@ -167,126 +119,6 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     type: 'GO_TO_TRACKS',
                 });
             },
-            component: () => {
-                if (context.tracks === null) {
-                    return null;
-                }
-
-                function generateTracksListItems(): (
-                    | { type: 'TRACK'; track: TrackMetadataWithScore }
-                    | { type: 'SEPARATOR' }
-                )[] {
-                    if (context.tracks === null) {
-                        return [];
-                    }
-
-                    const formattedTracksListItem = context.tracks.map<{
-                        type: 'TRACK';
-                        track: TrackMetadataWithScore;
-                    }>((track) => ({
-                        type: 'TRACK',
-                        track,
-                    }));
-                    const firstSuggestedTrackIndex = context.tracks.findIndex(
-                        (track) => track.score < context.minimumScoreToBePlayed,
-                    );
-
-                    if (
-                        firstSuggestedTrackIndex === -1 ||
-                        firstSuggestedTrackIndex === context.tracks.length - 1
-                    ) {
-                        return formattedTracksListItem;
-                    }
-
-                    return [
-                        ...formattedTracksListItem.slice(
-                            0,
-                            firstSuggestedTrackIndex,
-                        ),
-                        {
-                            type: 'SEPARATOR',
-                        },
-                        ...formattedTracksListItem.slice(
-                            firstSuggestedTrackIndex,
-                        ),
-                    ];
-                }
-
-                const data = generateTracksListItems();
-
-                return (
-                    <View sx={{ flex: 1 }}>
-                        <FlatList
-                            data={data}
-                            renderItem={({ item, index }) => {
-                                if (item.type === 'SEPARATOR') {
-                                    return (
-                                        <View
-                                            sx={{
-                                                height: 1,
-                                                width: '100%',
-                                                backgroundColor: 'white',
-
-                                                marginBottom: 'm',
-                                            }}
-                                        />
-                                    );
-                                }
-
-                                const {
-                                    title,
-                                    artistName,
-                                    id: trackID,
-                                } = item.track;
-                                let userHasAlreadyVotedForTrack = false;
-                                if (context.userRelatedInformation !== null) {
-                                    userHasAlreadyVotedForTrack =
-                                        context.userRelatedInformation.tracksVotedFor.some(
-                                            (trackIDVotedFor) =>
-                                                trackIDVotedFor === trackID,
-                                        );
-                                }
-
-                                return (
-                                    <View
-                                        sx={{
-                                            marginBottom: 'm',
-                                        }}
-                                    >
-                                        <TrackListItemWithScore
-                                            index={index + 1}
-                                            title={title}
-                                            artistName={artistName}
-                                            score={item.track.score}
-                                            minimumScore={
-                                                context.minimumScoreToBePlayed
-                                            }
-                                            disabled={
-                                                userHasAlreadyVotedForTrack
-                                            }
-                                            onPress={() => {
-                                                sendToMachine({
-                                                    type: 'VOTE_FOR_TRACK',
-                                                    trackID,
-                                                });
-                                            }}
-                                        />
-                                    </View>
-                                );
-                            }}
-                            extraData={context}
-                            keyExtractor={(_, index) => String(index)}
-                            style={{ flex: 1 }}
-                        />
-
-                        <AddSongButton
-                            onPress={() => {
-                                navigation.navigate('SuggestTrack');
-                            }}
-                        />
-                    </View>
-                );
-            },
         },
         {
             text: 'Chat',
@@ -296,43 +128,6 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     type: 'GO_TO_CHAT',
                 });
             },
-            component: () => (
-                <View>
-                    <Text sx={{ color: 'white' }}>
-                        Welcome to our great Chat You have{' '}
-                        {userContext.devices.length} connected devices
-                    </Text>
-                    {userContext.devices.length > 0 && (
-                        <FlatList
-                            data={userContext.devices}
-                            renderItem={({ item: { deviceID, name } }) => (
-                                <TouchableOpacity
-                                    onPress={() => {
-                                        sendToMachine({
-                                            type: 'CHANGE_EMITTING_DEVICE',
-                                            deviceID,
-                                        });
-                                    }}
-                                >
-                                    <Text
-                                        sx={{
-                                            color: 'white',
-                                        }}
-                                    >
-                                        {name}{' '}
-                                        {deviceID ===
-                                        context.userRelatedInformation
-                                            ?.emittingDeviceID
-                                            ? 'EMITTING'
-                                            : ''}
-                                    </Text>
-                                </TouchableOpacity>
-                            )}
-                            keyExtractor={(_, index) => String(index)}
-                        />
-                    )}
-                </View>
-            ),
         },
         {
             text: 'Settings',
@@ -342,51 +137,51 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     type: 'GO_TO_SETTINGS',
                 });
             },
-            component: () => (
-                <View>
-                    <Text sx={{ color: 'white' }}>
-                        Welcome to settings tab{' '}
-                    </Text>
-                    {context.hasTimeAndPositionConstraints && (
-                        <TouchableOpacity
-                            onPress={() => {
-                                sendToUserMachine({
-                                    type: 'REQUEST_DEDUPLICATE_LOCATION_PERMISSION',
-                                });
-                            }}
-                            style={sx({
-                                backgroundColor: 'secondary',
-                                padding: 'l',
-                                borderRadius: 's',
-                                textAlign: 'center',
-                            })}
-                        >
-                            <Text>REQUEST LOCATION</Text>
-                        </TouchableOpacity>
-                    )}
-                    <TouchableOpacity
-                        onPress={() => {
-                            sendToMachine({
-                                type: 'LEAVE_ROOM',
-                            });
-                        }}
-                        style={sx({
-                            backgroundColor: '#8B0000',
-                            padding: 'l',
-                            borderRadius: 's',
-                            textAlign: 'center',
-                        })}
-                    >
-                        <Text>LEAVE THE ROOM</Text>
-                    </TouchableOpacity>
-                </View>
-            ),
         },
     ];
     const selectedTab = tabs.find(({ selected }) => selected === true);
     if (selectedTab === undefined) {
         throw new Error('Exactly one tab must be selected');
     }
+
+    const selectedTabComponent = useMemo(() => {
+        switch (selectedTab.text) {
+            case 'Tracks':
+                return (
+                    <TracksListTab
+                        context={context}
+                        sendToMachine={sendToMachine}
+                        key="TRACKS_LIST_TAB"
+                    />
+                );
+            case 'Chat':
+                return (
+                    <ChatTab
+                        userContext={userContext}
+                        sendToMachine={sendToMachine}
+                        context={context}
+                        key="CHAT_TAB"
+                    />
+                );
+            case 'Settings':
+                return (
+                    <SettingsTab
+                        sendToMachine={sendToMachine}
+                        sendToUserMachine={sendToUserMachine}
+                        context={context}
+                        key="SETTINGS_TAB"
+                    />
+                );
+            default:
+                throw new Error('Reached unreachable state');
+        }
+    }, [
+        context,
+        selectedTab.text,
+        sendToMachine,
+        sendToUserMachine,
+        userContext,
+    ]);
 
     function handleListenersPress() {
         navigation.navigate('MusicTrackVoteUsersList');
@@ -508,7 +303,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                             ))}
                         </View>
 
-                        <selectedTab.component />
+                        {selectedTabComponent}
                     </View>
                 </View>
             </AppScreenContainer>

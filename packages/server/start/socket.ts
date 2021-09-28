@@ -63,7 +63,7 @@ Ws.io.on('connection', async (socket) => {
                     (device) => device.socketID === socket.id,
                 );
 
-                if (currDevice === undefined) {
+                if (currDevice === undefined || currDevice === null) {
                     throw new Error('currDeviceID should not be undefined');
                 }
 

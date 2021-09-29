@@ -63,3 +63,20 @@ func roomPlayingModeIsDirectAndUserExistsAndEmitterHasPermissions(internalState 
 		return playingModeIsDirect && emitterUserHasPermission
 	}
 }
+
+func emitterIsCreatorAndUserToUpdateExists(internalState *MtvRoomInternalState) brainy.Cond {
+	return func(c brainy.Context, e brainy.Event) bool {
+		event := e.(MtvRoomUpdateControlAndDelegationPermissionEvent)
+
+		creatorUserID := internalState.initialParams.RoomCreatorUserID
+		isEmitterCreator := event.EmitterUserID == creatorUserID
+		isEmitterNotCreator := !isEmitterCreator
+		if isEmitterNotCreator {
+			return false
+		}
+
+		doesUserToUpdateExist := internalState.HasUser(event.ToUpdateUserID)
+
+		return doesUserToUpdateExist
+	}
+}

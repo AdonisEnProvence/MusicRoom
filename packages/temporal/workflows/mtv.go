@@ -198,6 +198,12 @@ func (s *MtvRoomInternalState) GetUser(userID string) *shared.InternalStateUser 
 	return user
 }
 
+func (s *MtvRoomInternalState) HasUser(userID string) bool {
+	_, exists := s.Users[userID]
+
+	return exists
+}
+
 const (
 	MtvRoomInit                        brainy.StateType = "init"
 	MtvRoomFetchInitialTracks          brainy.StateType = "fetching-initial-tracks"
@@ -719,6 +725,26 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 							internalState.DelegationOwnerUserID = &event.NewDelegationOwnerUserID
 							sendAcknowledgeUpdateDelegationOwnerActivity(ctx, internalState.Export(shared.NoRelatedUserID))
+
+							return nil
+						},
+					),
+				},
+			},
+
+			MtvRoomControlAndDelegationPermission: brainy.Transition{
+				Cond: emitterIsCreatorAndUserToUpdateExists(&internalState),
+
+				Actions: brainy.Actions{
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+							event := e.(MtvRoomUpdateControlAndDelegationPermissionEvent)
+
+							userToUpdate := internalState.GetUser(event.ToUpdateUserID)
+
+							userToUpdate.HasControlAndDelegationPermission = event.HasControlAndDelegationPermission
+
+							sendAcknowledgeUpdateControlAndDelegationPermissionActivity(ctx, internalState.Export(shared.NoRelatedUserID))
 
 							return nil
 						},

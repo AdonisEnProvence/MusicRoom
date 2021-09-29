@@ -3112,7 +3112,6 @@ func (s *UnitTestSuite) Test_CreatorCanUpdateControlAndDelegationPermission() {
 	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
 	defaultDuration := 1 * time.Millisecond
 
-	params.PlayingMode = shared.MtvPlayingModeDirect
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 
 	defer resetMock()
@@ -3128,7 +3127,7 @@ func (s *UnitTestSuite) Test_CreatorCanUpdateControlAndDelegationPermission() {
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.AcknowledgeUpdateDelegationOwner,
+		activities.AcknowledgeUpdateControlAndDelegationPermission,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -3146,8 +3145,6 @@ func (s *UnitTestSuite) Test_CreatorCanUpdateControlAndDelegationPermission() {
 		}
 		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
 		s.False(mtvState.Playing)
-		s.Equal(shared.MtvPlayingModeDirect, mtvState.PlayingMode)
-		s.Equal(params.RoomCreatorUserID, *mtvState.DelegationOwnerUserID)
 	}, init)
 
 	emitJoinSignal := defaultDuration
@@ -3207,7 +3204,6 @@ func (s *UnitTestSuite) Test_NonCreatorCanNotUpdateControlAndDelegationPermissio
 	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
 	defaultDuration := 1 * time.Millisecond
 
-	params.PlayingMode = shared.MtvPlayingModeDirect
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 
 	defer resetMock()
@@ -3219,11 +3215,6 @@ func (s *UnitTestSuite) Test_NonCreatorCanNotUpdateControlAndDelegationPermissio
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
 		activities.CreationAcknowledgementActivity,
-		mock.Anything,
-		mock.Anything,
-	).Return(nil).Once()
-	s.env.OnActivity(
-		activities.AcknowledgeUpdateDelegationOwner,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -3241,8 +3232,6 @@ func (s *UnitTestSuite) Test_NonCreatorCanNotUpdateControlAndDelegationPermissio
 		}
 		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
 		s.False(mtvState.Playing)
-		s.Equal(shared.MtvPlayingModeDirect, mtvState.PlayingMode)
-		s.Equal(params.RoomCreatorUserID, *mtvState.DelegationOwnerUserID)
 		s.Equal(true, mtvState.UserRelatedInformation.HasControlAndDelegationPermission)
 	}, init)
 

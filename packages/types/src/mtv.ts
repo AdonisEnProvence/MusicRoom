@@ -59,3 +59,13 @@ export const MtvWorkflowStateWithUserRelatedInformation =
 export type MtvWorkflowStateWithUserRelatedInformation = z.infer<
     typeof MtvWorkflowStateWithUserRelatedInformation
 >;
+
+export const MtvRoomUsersListElement = z.object({
+    userID: z.string().uuid(),
+    isCreator: z.boolean(),
+    isDelegationOwner: z.boolean(),
+    hasControlAndDelegationPermission: z.boolean(),
+    nickname: z.string(),
+    avatar: z.string().optional(), //TODO
+});
+export type MtvRoomUsersListElement = z.infer<typeof MtvRoomUsersListElement>;

@@ -3,6 +3,7 @@ import {
     MtvRoomClientToServerCreateArgs,
     MtvRoomUpdateControlAndDelegationPermissionArgs,
     MtvRoomUpdateDelegationOwnerArgs,
+    MtvRoomUsersListElement,
     MtvWorkflowState,
 } from '@musicroom/types';
 import MtvRoom from 'App/Models/MtvRoom';
@@ -49,6 +50,9 @@ interface OnPauseArgs extends RoomID {}
 interface OnPlayArgs extends RoomID {}
 interface OnTerminateArgs extends RoomID, RunID {}
 interface OnGetStateArgs extends RoomID, UserID {}
+interface OnGetUsersListArgs {
+    roomID: string;
+}
 interface OnGoToNextTrackArgs extends RoomID {}
 interface OnChangeEmittingDeviceArgs extends RoomID, DeviceID, UserID {}
 interface OnSuggestTracksArgs extends RoomID, DeviceID, UserID {
@@ -251,6 +255,43 @@ export default class MtvRoomsWsController {
             runID: room.runID,
             userID,
         });
+    }
+
+    public static async onGetUsersList({
+        roomID,
+    }: OnGetUsersListArgs): Promise<MtvRoomUsersListElement[]> {
+        const room = await MtvRoom.findOrFail(roomID);
+        const temporalFormatedUsersList =
+            await ServerToTemporalController.getUsersList({
+                workflowID: roomID,
+                runID: room.runID,
+            });
+
+        await room.load('members');
+        const usersRelatedToRoom = room.members;
+        const formattedUsersList: MtvRoomUsersListElement[] =
+            temporalFormatedUsersList.map((temporalUser) => {
+                const pgUser = usersRelatedToRoom.find(
+                    (user) => temporalUser.userID === user.uuid,
+                );
+
+                if (pgUser === undefined) {
+                    throw new Error(
+                        'Postgres and temporal are desync on users list',
+                    );
+                }
+                return {
+                    ...temporalUser,
+                    nickname: pgUser.nickname,
+                    avatar: undefined,
+                };
+            });
+
+        if (formattedUsersList.length === 0) {
+            throw new Error('FormattedUsersList is empty');
+        }
+
+        return formattedUsersList;
     }
 
     public static async onGoToNextTrack({

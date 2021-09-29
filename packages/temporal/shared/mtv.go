@@ -525,13 +525,11 @@ func NewUpdateDelegationOwnerSignal(args NewUpdateDelegationOwnerSignalArgs) Upd
 
 type UpdateControlAndDelegationPermissionSignal struct {
 	Route                             SignalRoute `validate:"required"`
-	EmitterUserID                     string      `validate:"required,uuid"`
 	ToUpdateUserID                    string      `validate:"required,uuid"`
 	HasControlAndDelegationPermission bool
 }
 
 type NewUpdateControlAndDelegationPermissionSignalArgs struct {
-	EmitterUserID                     string
 	ToUpdateUserID                    string
 	HasControlAndDelegationPermission bool
 }
@@ -539,7 +537,6 @@ type NewUpdateControlAndDelegationPermissionSignalArgs struct {
 func NewUpdateControlAndDelegationPermissionSignal(args NewUpdateControlAndDelegationPermissionSignalArgs) UpdateControlAndDelegationPermissionSignal {
 	return UpdateControlAndDelegationPermissionSignal{
 		Route:                             SignalUpdateControlAndDelegationPermission,
-		EmitterUserID:                     args.EmitterUserID,
 		ToUpdateUserID:                    args.ToUpdateUserID,
 		HasControlAndDelegationPermission: args.HasControlAndDelegationPermission,
 	}

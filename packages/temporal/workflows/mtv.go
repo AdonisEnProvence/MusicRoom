@@ -733,7 +733,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 			},
 
 			MtvRoomControlAndDelegationPermission: brainy.Transition{
-				Cond: emitterIsCreatorAndUserToUpdateExists(&internalState),
+				Cond: userToUpdateExists(&internalState),
 
 				Actions: brainy.Actions{
 					brainy.ActionFn(
@@ -1114,7 +1114,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 				internalState.Machine.Send(
 					NewMtvRoomUpdateControlAndDelegationPermissionEvent(NewMtvRoomUpdateControlAndDelegationPermissionEventArgs{
-						EmitterUserID:                     message.EmitterUserID,
 						ToUpdateUserID:                    message.ToUpdateUserID,
 						HasControlAndDelegationPermission: message.HasControlAndDelegationPermission,
 					}),

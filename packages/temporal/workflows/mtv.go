@@ -744,7 +744,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 							userToUpdate.HasControlAndDelegationPermission = event.HasControlAndDelegationPermission
 
-							sendAcknowledgeUpdateControlAndDelegationPermissionActivity(ctx, internalState.Export(shared.NoRelatedUserID))
+							sendAcknowledgeUpdateControlAndDelegationPermissionActivity(
+								ctx,
+								internalState.Export(event.ToUpdateUserID),
+							)
 
 							return nil
 						},

@@ -18,7 +18,7 @@ export function waitForTimeout(ms: number): Promise<void> {
     });
 }
 
-export const sleep = async (): Promise<void> => await waitForTimeout(100);
+export const sleep = async (): Promise<void> => await waitForTimeout(200);
 
 type TypedTestSocket = Socket<AllServerToClientEvents, AllClientToServerEvents>;
 

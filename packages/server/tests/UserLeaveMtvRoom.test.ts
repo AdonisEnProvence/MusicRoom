@@ -495,7 +495,7 @@ test.group(
             assert.isNull(await MtvRoom.find(mtvRoomIDToAssociate));
         });
 
-        test(`It should make a user leave the room after he disconnect all his device
+        test(`It should make a user leave the room after he creates a new one
         leaving user devices should not receive any leavedMtvRoom related socket event
         If the creator does the same it should send FORCED_DISCONNECTION to every remaining users in the room`, async (assert) => {
             const userAID = datatype.uuid();

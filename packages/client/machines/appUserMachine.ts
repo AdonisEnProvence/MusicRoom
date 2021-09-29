@@ -15,7 +15,7 @@ import {
     State,
     StateMachine,
 } from 'xstate';
-import { SocketClient } from '../hooks/useSocket';
+import { SocketClient } from '../contexts/SocketContext';
 
 export type AppUserMachineContext = {
     devices: UserDevice[];

@@ -2,10 +2,10 @@ import { useMachine, useSelector } from '@xstate/react';
 import React from 'react';
 import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { io } from '../services/websockets';
 import { assign, createMachine, send } from 'xstate';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
-import { SocketClient } from '../hooks/useSocket';
+import { SocketClient } from '../contexts/SocketContext';
+import { io } from '../services/websockets';
 import { ChatScreenProps } from '../types';
 
 interface ChatMessage {

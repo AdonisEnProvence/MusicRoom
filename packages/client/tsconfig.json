@@ -23,6 +23,7 @@
         "./App.tsx",
         "./types.tsx",
         "./global.d.ts",
-        "./__tests__"
+        "./__tests__",
+        "./test"
     ]
 }

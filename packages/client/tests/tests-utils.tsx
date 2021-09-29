@@ -1,3 +1,4 @@
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import {
     render as rtlRender,
     RenderAPI,
@@ -6,10 +7,9 @@ import {
 import { DripsyProvider } from 'dripsy';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { MusicPlayerContextProvider } from '../contexts/MusicPlayerContext';
+import { SocketContextProvider } from '../contexts/SocketContext';
 import { UserContextProvider } from '../contexts/UserContext';
-import { useSocket } from '../hooks/useSocket';
 import { useTheme } from '../hooks/useTheme';
 import { ServerSocket, serverSocket } from '../services/websockets';
 
@@ -17,7 +17,6 @@ export type SizeTerms = 'xs' | 's' | 'm' | 'l' | 'xl';
 export type BackgroundTerms = 'primary' | 'seconday' | 'white' | 'text';
 
 const AllTheProviders: React.FC = ({ children }) => {
-    const socket = useSocket();
     const { theme } = useTheme();
 
     return (
@@ -29,14 +28,13 @@ const AllTheProviders: React.FC = ({ children }) => {
                 }}
             >
                 <BottomSheetModalProvider>
-                    <UserContextProvider socket={socket}>
-                        <MusicPlayerContextProvider
-                            setDisplayModal={noop}
-                            socket={socket}
-                        >
-                            {children}
-                        </MusicPlayerContextProvider>
-                    </UserContextProvider>
+                    <SocketContextProvider>
+                        <UserContextProvider>
+                            <MusicPlayerContextProvider setDisplayModal={noop}>
+                                {children}
+                            </MusicPlayerContextProvider>
+                        </UserContextProvider>
+                    </SocketContextProvider>
                 </BottomSheetModalProvider>
             </SafeAreaProvider>
         </DripsyProvider>

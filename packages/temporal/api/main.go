@@ -61,6 +61,7 @@ func main() {
 	r.Handle("/suggest-tracks", http.HandlerFunc(SuggestTracksHandler)).Methods(http.MethodPut)
 	r.Handle("/terminate", http.HandlerFunc(TerminateWorkflowHandler)).Methods(http.MethodPut)
 	r.Handle("/update-delegation-owner", http.HandlerFunc(UpdateDelegationOwnerHandler)).Methods(http.MethodPut)
+	r.Handle("/update-control-and-delegation-permission", http.HandlerFunc(UpdateControlAndDelegationPermissionHandler)).Methods(http.MethodPut)
 
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 
@@ -672,6 +673,53 @@ func UpdateDelegationOwnerHandler(w http.ResponseWriter, r *http.Request) {
 	res["ok"] = 1
 	json.NewEncoder(w).Encode(res)
 
+}
+
+type UpdateControlAndDelegationPermissionHandlerBody struct {
+	WorkflowID                        string `json:"workflowID" validate:"required,uuid"`
+	RunID                             string `json:"runID" validate:"required,uuid"`
+	ToUpdateUserID                    string `json:"toUpdateUserID" validate:"required,uuid"`
+	HasControlAndDelegationPermission bool   `json:"hasControlAndDelegationPermission"`
+}
+
+func UpdateControlAndDelegationPermissionHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var body UpdateControlAndDelegationPermissionHandlerBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		fmt.Println(err)
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
+		fmt.Println(err)
+		WriteError(w, err)
+		return
+	}
+
+	signal := shared.NewUpdateControlAndDelegationPermissionSignal(shared.NewUpdateControlAndDelegationPermissionSignalArgs{
+		ToUpdateUserID:                    body.ToUpdateUserID,
+		HasControlAndDelegationPermission: body.HasControlAndDelegationPermission,
+	})
+
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		body.RunID,
+		shared.SignalChannelName,
+		signal,
+	); err != nil {
+		fmt.Println(err)
+
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	res := make(map[string]interface{})
+	res["ok"] = 1
+	json.NewEncoder(w).Encode(res)
 }
 
 type GetStateBody struct {

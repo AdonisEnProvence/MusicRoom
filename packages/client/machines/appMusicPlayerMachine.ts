@@ -13,7 +13,7 @@ import {
     State,
     StateMachine,
 } from 'xstate';
-import { SocketClient } from '../hooks/useSocket';
+import { SocketClient } from '../contexts/SocketContext';
 import {
     createCreationMtvRoomFormMachine,
     CreationMtvRoomFormDoneInvokeEvent,

@@ -3,10 +3,10 @@ import {
     AllServerToClientEvents,
 } from '@musicroom/types';
 import * as Device from 'expo-device';
-import { useMemo } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { Platform } from 'react-native';
+import { io, Socket } from 'socket.io-client';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
-import { io, Socket } from '../services/websockets';
 
 export type SocketClient = Socket<
     AllServerToClientEvents,
@@ -39,4 +39,27 @@ function getFakeUserID(): string {
     return Platform.OS === 'web'
         ? 'f5ddbf01-cc01-4422-b347-67988342b558'
         : '9ed60e96-d5fc-40b3-b842-aeaa75e93972';
+}
+
+const SocketContext = React.createContext<SocketClient | undefined>(undefined);
+
+export const SocketContextProvider: React.FC = ({ children }) => {
+    const socket = useSocket();
+
+    return (
+        <SocketContext.Provider value={socket}>
+            {children}
+        </SocketContext.Provider>
+    );
+};
+
+export function useSocketContext(): SocketClient {
+    const context = useContext(SocketContext);
+    if (context === undefined) {
+        throw new Error(
+            'useUserContext must be used within a UserContextProvider',
+        );
+    }
+
+    return context;
 }

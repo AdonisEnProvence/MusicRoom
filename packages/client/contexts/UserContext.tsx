@@ -6,7 +6,7 @@ import {
     AppUserMachineState,
     createUserMachine,
 } from '../machines/appUserMachine';
-import { Socket } from '../services/websockets';
+import { useSocketContext } from './SocketContext';
 
 type UserContextValue = {
     sendToUserMachine: Sender<AppUserMachineEvent>;
@@ -17,16 +17,10 @@ const UserContext = React.createContext<UserContextValue | undefined>(
     undefined,
 );
 
-type UserContextProviderProps = {
-    socket: Socket;
-};
-
-export const UserContextProvider: React.FC<UserContextProviderProps> = ({
-    socket,
-    children,
-}) => {
+export const UserContextProvider: React.FC = ({ children }) => {
     const locationPollingTickDelay =
         process.env.NODE_ENV === 'test' ? 250 : 30000;
+    const socket = useSocketContext();
 
     const appMusicPlayerMachine = createUserMachine({
         socket,

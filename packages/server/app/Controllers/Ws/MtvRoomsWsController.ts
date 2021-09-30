@@ -11,6 +11,7 @@ import User from 'App/Models/User';
 import GeocodingService from 'App/Services/GeocodingService';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
+import Ws from 'App/Services/Ws';
 import { randomUUID } from 'crypto';
 import { isPointWithinRadius } from 'geolib';
 import ServerToTemporalController, {
@@ -214,6 +215,7 @@ export default class MtvRoomsWsController {
                 userID,
             });
         }
+        Ws.io.to(leavingRoom.uuid).emit('USERS_LIST_FORCED_REFRESH');
     }
 
     public static async onPause({ roomID }: OnPauseArgs): Promise<void> {

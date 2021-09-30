@@ -95,8 +95,9 @@ export const createRoomUsersListMachine = ({
             },
             {
                 id: 'socketConnection',
-                src: (context, _event) => (sendBack, onReceive) => {
+                src: (_, _event) => (sendBack, onReceive) => {
                     socket.on('USERS_LIST_FORCED_REFRESH', () => {
+                        console.log('RECEIVED FORCED REFRESH');
                         sendBack({
                             type: 'RETRIEVE_USERS_LIST',
                         });

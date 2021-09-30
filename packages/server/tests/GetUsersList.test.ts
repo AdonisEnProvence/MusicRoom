@@ -90,7 +90,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
             );
 
         try {
-            await MtvRoomsWsController.onGetUsersList({ roomID });
+            await MtvRoomsWsController.onGetUsersList({ roomID, userID });
             assert.isTrue(false);
         } catch ({ message }) {
             assert.equal(
@@ -120,7 +120,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
             );
 
         try {
-            await MtvRoomsWsController.onGetUsersList({ roomID });
+            await MtvRoomsWsController.onGetUsersList({ roomID, userID });
             assert.isTrue(false);
         } catch ({ message }) {
             assert.equal(message, 'FormattedUsersList is empty');

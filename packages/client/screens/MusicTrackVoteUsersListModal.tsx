@@ -64,7 +64,6 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
             navigation.goBack();
         }
 
-        console.log(state.context);
         return (
             <AppScreenWithSearchBar
                 canGoBack

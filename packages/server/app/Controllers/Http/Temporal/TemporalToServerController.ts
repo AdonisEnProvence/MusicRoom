@@ -82,6 +82,8 @@ export default class TemporalToServerController {
             joiningUser,
             roomID,
         );
+
+        Ws.io.to(roomID).emit('USERS_LIST_FORCED_REFRESH');
     }
 
     public async mtvChangeUserEmittingDeviceAcknowledgement({
@@ -188,6 +190,7 @@ export default class TemporalToServerController {
         const state = MtvWorkflowState.parse(request.body());
 
         Ws.io.to(state.roomID).emit('UPDATE_DELEGATION_OWNER_CALLBACK', state);
+        Ws.io.to(state.roomID).emit('USERS_LIST_FORCED_REFRESH');
     }
 
     public async acknowledgeUpdateUserFitsPositionConstraint({

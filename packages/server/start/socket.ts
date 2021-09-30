@@ -498,10 +498,12 @@ Ws.io.on('connection', async (socket) => {
 
         socket.on('GET_USERS_LIST', async (callback) => {
             try {
-                const { mtvRoomID } =
-                    await SocketLifecycle.getSocketConnectionCredentials(
-                        socket,
-                    );
+                const {
+                    mtvRoomID,
+                    user: { uuid: userID },
+                } = await SocketLifecycle.getSocketConnectionCredentials(
+                    socket,
+                );
 
                 if (mtvRoomID === undefined) {
                     throw new Error(
@@ -510,9 +512,9 @@ Ws.io.on('connection', async (socket) => {
                 }
 
                 const usersList = await MtvRoomsWsController.onGetUsersList({
+                    userID,
                     roomID: mtvRoomID,
                 });
-
                 callback(usersList);
             } catch (e) {
                 console.error(e);

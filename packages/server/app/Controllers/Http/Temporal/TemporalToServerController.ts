@@ -13,7 +13,7 @@ import * as z from 'zod';
 
 const TemporalToServerJoinBody = z.object({
     joiningUserID: z.string(),
-    state: MtvWorkflowState,
+    state: MtvWorkflowStateWithUserRelatedInformation,
 });
 
 type TemporalToServerJoinBody = z.infer<typeof TemporalToServerJoinBody>;
@@ -62,12 +62,6 @@ export default class TemporalToServerController {
             request.body(),
         );
         const { roomID } = state;
-
-        if (state.userRelatedInformation === null) {
-            throw new Error(
-                'userRelatedInformation on temporal join callback should not be null',
-            );
-        }
 
         const joiningUser = await User.findOrFail(joiningUserID);
         const mtvRoom = await MtvRoom.findOrFail(roomID);

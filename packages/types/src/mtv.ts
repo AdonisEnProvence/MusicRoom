@@ -64,6 +64,7 @@ export const MtvRoomUsersListElement = z.object({
     userID: z.string().uuid(),
     isCreator: z.boolean(),
     isDelegationOwner: z.boolean(),
+    isMe: z.boolean(),
     hasControlAndDelegationPermission: z.boolean(),
     nickname: z.string(),
     avatar: z.string().optional(), //TODO

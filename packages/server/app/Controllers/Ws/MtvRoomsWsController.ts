@@ -52,6 +52,7 @@ interface OnTerminateArgs extends RoomID, RunID {}
 interface OnGetStateArgs extends RoomID, UserID {}
 interface OnGetUsersListArgs {
     roomID: string;
+    userID: string;
 }
 interface OnGoToNextTrackArgs extends RoomID {}
 interface OnChangeEmittingDeviceArgs extends RoomID, DeviceID, UserID {}
@@ -258,6 +259,7 @@ export default class MtvRoomsWsController {
     }
 
     public static async onGetUsersList({
+        userID,
         roomID,
     }: OnGetUsersListArgs): Promise<MtvRoomUsersListElement[]> {
         const room = await MtvRoom.findOrFail(roomID);
@@ -280,10 +282,13 @@ export default class MtvRoomsWsController {
                         'Postgres and temporal are desync on users list',
                     );
                 }
+                const isMe = pgUser.uuid === userID;
+
                 return {
                     ...temporalUser,
                     nickname: pgUser.nickname,
                     avatar: undefined,
+                    isMe,
                 };
             });
 

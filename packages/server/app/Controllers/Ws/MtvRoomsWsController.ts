@@ -121,7 +121,9 @@ export default class MtvRoomsWsController {
             room.merge({
                 uuid: roomID,
                 runID: temporalResponse.runID,
+                name: params.name,
                 creator: userID,
+                isOpen: params.isOpen,
             });
 
             if (

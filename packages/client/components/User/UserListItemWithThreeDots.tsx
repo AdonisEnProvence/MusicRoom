@@ -1,8 +1,8 @@
-import React from 'react';
-import { Entypo } from '@expo/vector-icons';
-import UserListItem from './UserListItem';
-import { TouchableOpacity } from 'react-native';
 import { useSx } from '@dripsy/core';
+import { Entypo } from '@expo/vector-icons';
+import React from 'react';
+import { TouchableOpacity } from 'react-native';
+import UserListItem from './UserListItem';
 
 interface UserListItemWithThreeDotsProps {
     index: number;
@@ -10,6 +10,7 @@ interface UserListItemWithThreeDotsProps {
     onPress?: () => void;
     threeDotsAccessibilityLabel: string;
     onThreeDotsPress: () => void;
+    hideThreeDots: boolean;
 }
 
 interface ThreeDotsButtonProps {
@@ -45,18 +46,24 @@ const UserListItemWithThreeDots: React.FC<UserListItemWithThreeDotsProps> = ({
     onPress,
     threeDotsAccessibilityLabel,
     onThreeDotsPress,
+    hideThreeDots,
 }) => {
     return (
         <UserListItem
             index={index}
             name={name}
             onPress={onPress}
-            Actions={() => (
-                <ThreeDotsButton
-                    accessibilityLabel={threeDotsAccessibilityLabel}
-                    onPress={onThreeDotsPress}
-                />
-            )}
+            Actions={() => {
+                if (hideThreeDots) {
+                    return <></>;
+                }
+                return (
+                    <ThreeDotsButton
+                        accessibilityLabel={threeDotsAccessibilityLabel}
+                        onPress={onThreeDotsPress}
+                    />
+                );
+            }}
         />
     );
 };

@@ -1,15 +1,15 @@
+import { ActivityIndicator, View } from 'dripsy';
 import React from 'react';
+import { FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
     AppScreen,
     AppScreenContainer,
     AppScreenHeader,
 } from '../components/kit';
-import { SearchTrackResultsScreenProps } from '../types';
-import { FlatList } from 'react-native';
 import TrackListItem from '../components/Track/TrackListItem';
 import { useSuggestTracks } from '../contexts/MusicPlayerContext';
-import { ActivityIndicator, View } from 'dripsy';
+import { SearchTrackResultsScreenProps } from '../types';
 
 const SuggestTrackResultsModal: React.FC<SearchTrackResultsScreenProps> = ({
     route,

@@ -40,6 +40,7 @@ export default class TemporalToServerController {
 
         console.log('received userLengthUpdate from temporal', state);
 
+        Ws.io.to(roomID).emit('USERS_LIST_FORCED_REFRESH');
         Ws.io.to(roomID).emit('USER_LENGTH_UPDATE', state);
     }
 
@@ -82,8 +83,6 @@ export default class TemporalToServerController {
             joiningUser,
             roomID,
         );
-
-        Ws.io.to(roomID).emit('USERS_LIST_FORCED_REFRESH');
     }
 
     public async mtvChangeUserEmittingDeviceAcknowledgement({
@@ -219,5 +218,6 @@ export default class TemporalToServerController {
             'USER_PERMISSIONS_UPDATE',
             [state],
         );
+        Ws.io.to(state.roomID).emit('USERS_LIST_FORCED_REFRESH');
     }
 }

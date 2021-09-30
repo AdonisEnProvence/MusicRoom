@@ -137,4 +137,5 @@ export interface MtvRoomServerToClientEvents {
     USER_PERMISSIONS_UPDATE: (
         state: MtvWorkflowStateWithUserRelatedInformation,
     ) => void;
+    USERS_LIST_FORCED_REFRESH: () => void;
 }

@@ -97,8 +97,8 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                                 >
                                     <UserListItemWithThreeDots
                                         hideThreeDots={hideThreeDots}
+                                        user={item}
                                         index={index}
-                                        name={item.userID}
                                         threeDotsAccessibilityLabel={`Open user ${item.userID} settings`}
                                         onThreeDotsPress={() =>
                                             handlePresentModalPress(item)
@@ -133,9 +133,9 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                                     }}
                                 >
                                     <UserListItemWithThreeDots
+                                        user={item}
                                         hideThreeDots={hideThreeDots}
                                         index={index}
-                                        name={item.nickname}
                                         threeDotsAccessibilityLabel={`Open user ${item.nickname} settings`}
                                         onThreeDotsPress={() =>
                                             handlePresentModalPress(item)

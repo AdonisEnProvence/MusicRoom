@@ -1,16 +1,17 @@
 import { useSx } from '@dripsy/core';
 import { Entypo } from '@expo/vector-icons';
+import { MtvRoomUsersListElement } from '@musicroom/types';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import UserListItem from './UserListItem';
 
 interface UserListItemWithThreeDotsProps {
     index: number;
-    name: string;
     onPress?: () => void;
     threeDotsAccessibilityLabel: string;
     onThreeDotsPress: () => void;
     hideThreeDots: boolean;
+    user: MtvRoomUsersListElement;
 }
 
 interface ThreeDotsButtonProps {
@@ -42,16 +43,16 @@ const ThreeDotsButton: React.FC<ThreeDotsButtonProps> = ({
 
 const UserListItemWithThreeDots: React.FC<UserListItemWithThreeDotsProps> = ({
     index,
-    name,
     onPress,
     threeDotsAccessibilityLabel,
     onThreeDotsPress,
     hideThreeDots,
+    user,
 }) => {
     return (
         <UserListItem
             index={index}
-            name={name}
+            user={user}
             onPress={onPress}
             Actions={() => {
                 if (hideThreeDots) {

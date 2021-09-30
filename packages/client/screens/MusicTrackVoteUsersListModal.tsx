@@ -8,7 +8,6 @@ import { ActorRef } from 'xstate';
 import { AppScreenWithSearchBar } from '../components/kit';
 import MtvRoomUserListElementSetting from '../components/User/MtvRoomUserListElementSettings';
 import UserListItemWithThreeDots from '../components/User/UserListItemWithThreeDots';
-import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import { useSocketContext } from '../contexts/SocketContext';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
@@ -22,19 +21,12 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
         const sx = useSx();
         const [screenOffsetY, setScreenOffsetY] = useState(0);
         const socket = useSocketContext();
-        const { state: musicPlayerState } = useMusicPlayer();
 
         //the deviceOnwerUserID will be retrieve in the cookies later with authentification dev
-        const { userRelatedInformation } = musicPlayerState.context;
-        if (userRelatedInformation === null) {
-            throw new Error('User related information is null');
-        }
-
         const roomUsersListMachine = useMemo(
             () =>
                 createRoomUsersListMachine({
                     socket,
-                    deviceOwnerUserID: userRelatedInformation.userID,
                 }),
             // eslint-disable-next-line react-hooks/exhaustive-deps
             [],

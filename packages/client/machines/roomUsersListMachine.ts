@@ -13,7 +13,6 @@ const roomUsersListModel = createModel(
         searchQuery: '',
         selectedUser: undefined as OptionnalMtvRoomUsersListElement,
         deviceOwnerUser: undefined as OptionnalMtvRoomUsersListElement,
-        deviceOwnerUserID: '',
     },
     {
         events: {
@@ -64,22 +63,18 @@ const assignFilteredUsersToContext = roomUsersListModel.assign(
 const assignRetrievedUsersListToContext = roomUsersListModel.assign(
     {
         allUsers: (_, { retrievedUsers }) => retrievedUsers,
-        deviceOwnerUser: (context, { retrievedUsers }) =>
-            retrievedUsers.find(
-                (user) => user.userID === context.deviceOwnerUserID,
-            ),
+        deviceOwnerUser: (_, { retrievedUsers }) =>
+            retrievedUsers.find((user) => user.isMe),
     },
     'ASSIGN_RETRIEVED_USERS_LIST',
 );
 
 interface CreateRoomUsersListMachineArgs {
     socket: SocketClient;
-    deviceOwnerUserID: string;
 }
 
 export const createRoomUsersListMachine = ({
     socket,
-    deviceOwnerUserID,
 }: CreateRoomUsersListMachineArgs): StateMachine<
     ContextFrom<typeof roomUsersListModel>,
     any,
@@ -91,7 +86,6 @@ export const createRoomUsersListMachine = ({
             allUsers: [],
             filteredUsers: [],
             selectedUser: undefined,
-            deviceOwnerUserID,
         },
 
         invoke: [

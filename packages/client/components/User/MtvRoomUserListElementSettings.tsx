@@ -37,8 +37,7 @@ const MtvRoomUserListElementSetting: React.FC<MtvRoomUserListElementSettings> =
             return <View>Unauthorized</View>;
         }
 
-        const selectedUserIsNotDeviceOwnerUser =
-            deviceOwnerUser.userID !== selectedUser.userID;
+        const selectedUserIsNotDeviceOwnerUser = !selectedUser.isMe;
         const selectedUserIsNotTheDelegationOwner =
             !selectedUser.isDelegationOwner;
 

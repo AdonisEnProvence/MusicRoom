@@ -20,7 +20,6 @@ import { SocketClient } from '../contexts/SocketContext';
 export type AppUserMachineContext = {
     devices: UserDevice[];
     currDeviceID: string | undefined;
-
     locationPermission: boolean;
     location?: LocationObject;
 };

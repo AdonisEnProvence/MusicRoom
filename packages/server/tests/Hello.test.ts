@@ -1,7 +1,6 @@
 import test from 'japa';
 import supertest from 'supertest';
-
-const BASE_URL = `http://${process.env.HOST!}:${process.env.PORT!}`;
+import { BASE_URL } from './utils/TestUtils';
 
 test('/ route returns JSON object', async (assert) => {
     const { body } = await supertest(BASE_URL)

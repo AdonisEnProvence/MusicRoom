@@ -10,6 +10,9 @@ export default class MtvRoom extends BaseModel {
     public runID: string;
 
     @column()
+    public name: string;
+
+    @column()
     public creator: string;
 
     @hasMany(() => User, {
@@ -28,6 +31,9 @@ export default class MtvRoom extends BaseModel {
 
     @column()
     public hasPositionAndTimeConstraints: boolean;
+
+    @column()
+    public isOpen: boolean;
 
     @column.dateTime({ autoCreate: true })
     public createdAt: DateTime;

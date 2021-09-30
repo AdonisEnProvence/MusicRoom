@@ -1,4 +1,11 @@
-import { BaseModel, column, hasMany, HasMany } from '@ioc:Adonis/Lucid/Orm';
+import {
+    BaseModel,
+    column,
+    hasMany,
+    HasMany,
+    HasOne,
+    hasOne,
+} from '@ioc:Adonis/Lucid/Orm';
 import { DateTime } from 'luxon';
 import User from './User';
 
@@ -12,8 +19,14 @@ export default class MtvRoom extends BaseModel {
     @column()
     public name: string;
 
-    @column()
-    public creator: string;
+    @column({ columnName: 'creator' })
+    public creatorID: string;
+
+    @hasOne(() => User, {
+        localKey: 'creatorID',
+        foreignKey: 'uuid',
+    })
+    public creator: HasOne<typeof User>;
 
     @hasMany(() => User, {
         foreignKey: 'mtvRoomID',

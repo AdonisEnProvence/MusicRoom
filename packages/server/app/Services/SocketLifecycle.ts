@@ -272,7 +272,7 @@ export default class SocketLifecycle {
             });
         } catch (e) {
             console.error(
-                `Couldnt terminate workflow on owner disconnection ${ownedRoom.creator} room: ${ownedRoom.uuid} workflow is still alive in temporal but removed from database and socket io instance`,
+                `Couldnt terminate workflow on owner disconnection ${ownedRoom.creator.uuid} room: ${ownedRoom.uuid} workflow is still alive in temporal but removed from database and socket io instance`,
                 e,
             );
         }

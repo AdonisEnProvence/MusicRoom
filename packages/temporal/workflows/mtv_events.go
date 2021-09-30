@@ -205,3 +205,26 @@ func NewMtvRoomUpdateDelegationOwnerEvent(newDelegationOwnerUserID string, emitt
 		EmitterUserID:            emitterUserID,
 	}
 }
+
+type MtvRoomUpdateControlAndDelegationPermissionEvent struct {
+	brainy.EventWithType
+
+	ToUpdateUserID                    string
+	HasControlAndDelegationPermission bool
+}
+
+type NewMtvRoomUpdateControlAndDelegationPermissionEventArgs struct {
+	ToUpdateUserID                    string
+	HasControlAndDelegationPermission bool
+}
+
+func NewMtvRoomUpdateControlAndDelegationPermissionEvent(args NewMtvRoomUpdateControlAndDelegationPermissionEventArgs) MtvRoomUpdateControlAndDelegationPermissionEvent {
+	return MtvRoomUpdateControlAndDelegationPermissionEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MtvRoomControlAndDelegationPermission,
+		},
+
+		ToUpdateUserID:                    args.ToUpdateUserID,
+		HasControlAndDelegationPermission: args.HasControlAndDelegationPermission,
+	}
+}

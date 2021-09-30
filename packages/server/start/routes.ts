@@ -84,6 +84,11 @@ Route.post(
     'Temporal/TemporalToServerController.acknowledgeUpdateDelegationOwner',
 );
 
+Route.post(
+    '/temporal/acknowledge-update-control-and-delegation-permission',
+    'Temporal/TemporalToServerController.acknowledgeUpdateControlAndDelegationPermission',
+);
+
 /// //////// ////// ///
 
 Route.get('/', () => {

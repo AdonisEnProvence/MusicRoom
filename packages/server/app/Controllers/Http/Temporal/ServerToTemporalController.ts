@@ -4,6 +4,7 @@ import {
     LatlngCoords,
     MtvRoomClientToServerCreateArgs,
     MtvRoomPhysicalAndTimeConstraints,
+    MtvRoomUpdateControlAndDelegationPermissionArgs,
     MtvRoomUpdateDelegationOwnerArgs,
     MtvWorkflowState,
 } from '@musicroom/types';
@@ -82,6 +83,10 @@ interface TemporalMtvUpdateDelegationOwner
         MtvRoomUpdateDelegationOwnerArgs {
     emitterUserID: string;
 }
+
+interface TemporalMtvUpdateControlAndDelegationPermission
+    extends TemporalBaseArgs,
+        MtvRoomUpdateControlAndDelegationPermissionArgs {}
 
 interface TemporalMtvUpdateUserFitsPositionConstraints
     extends TemporalBaseArgs {
@@ -331,6 +336,27 @@ export default class ServerToTemporalController {
                 runID,
                 newDelegationOwnerUserID,
                 emitterUserID,
+            },
+        });
+    }
+
+    public static async updateControlAndDelegationPermission({
+        workflowID,
+        runID,
+        toUpdateUserID,
+        hasControlAndDelegationPermission,
+    }: TemporalMtvUpdateControlAndDelegationPermission): Promise<void> {
+        const url = urlcat(
+            TEMPORAL_ENDPOINT,
+            '/update-control-and-delegation-permission',
+        );
+
+        await got.put(url, {
+            json: {
+                workflowID,
+                runID,
+                toUpdateUserID,
+                hasControlAndDelegationPermission,
             },
         });
     }

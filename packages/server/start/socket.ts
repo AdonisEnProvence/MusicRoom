@@ -3,6 +3,7 @@ import {
     AllServerToClientEvents,
     MtvRoomClientToServerCreateArgs,
     MtvRoomUpdateDelegationOwnerArgs,
+    MtvRoomUpdateControlAndDelegationPermissionArgs,
     UserDevice,
 } from '@musicroom/types';
 import ChatController from 'App/Controllers/Ws/ChatController';
@@ -449,6 +450,51 @@ Ws.io.on('connection', async (socket) => {
                 console.error(e);
             }
         });
+
+        socket.on(
+            'UPDATE_CONTROL_AND_DELEGATION_PERMISSION',
+            async (rawPayload) => {
+                try {
+                    const {
+                        toUpdateUserID,
+                        hasControlAndDelegationPermission,
+                    } =
+                        MtvRoomUpdateControlAndDelegationPermissionArgs.parse(
+                            rawPayload,
+                        );
+
+                    const { mtvRoomID, user } =
+                        await SocketLifecycle.getSocketConnectionCredentials(
+                            socket,
+                        );
+                    if (mtvRoomID === undefined) {
+                        throw new Error(
+                            'UPDATE_CONTROL_AND_DELEGATION_PERMISSION user is not related to any room',
+                        );
+                    }
+
+                    await user.load('mtvRoom');
+                    const roomCreatorUuid = user.mtvRoom.creator;
+                    const isRoomCreator = user.uuid === roomCreatorUuid;
+                    const isNotRoomCreator = isRoomCreator === false;
+                    if (isNotRoomCreator === true) {
+                        throw new Error(
+                            'User is not room creator. Only the room creator can update control and delegation permission.',
+                        );
+                    }
+
+                    await MtvRoomsWsController.updateControlAndDelegationPermission(
+                        {
+                            roomID: mtvRoomID,
+                            toUpdateUserID,
+                            hasControlAndDelegationPermission,
+                        },
+                    );
+                } catch (e) {
+                    console.error(e);
+                }
+            },
+        );
 
         /// //// ///
 

@@ -198,6 +198,12 @@ func (s *MtvRoomInternalState) GetUser(userID string) *shared.InternalStateUser 
 	return user
 }
 
+func (s *MtvRoomInternalState) HasUser(userID string) bool {
+	_, exists := s.Users[userID]
+
+	return exists
+}
+
 const (
 	MtvRoomInit                        brainy.StateType = "init"
 	MtvRoomFetchInitialTracks          brainy.StateType = "fetching-initial-tracks"
@@ -227,6 +233,7 @@ const (
 	MtvRoomSuggestedTracksFetched                 brainy.EventType = "SUGGESTED_TRACKS_FETCHED"
 	MtvRoomTracksListScoreUpdate                  brainy.EventType = "TRACKS_LIST_SCORE_UPDATE"
 	MtvRoomUpdateDelegationOwner                  brainy.EventType = "UPDATE_DELEGATION_OWNER"
+	MtvRoomControlAndDelegationPermission         brainy.EventType = "UPDATE_CONTROL_AND_DELEGATION_PERMISSION"
 )
 
 func GetElapsed(ctx workflow.Context, previous time.Time) time.Duration {
@@ -725,6 +732,29 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				},
 			},
 
+			MtvRoomControlAndDelegationPermission: brainy.Transition{
+				Cond: userToUpdateExists(&internalState),
+
+				Actions: brainy.Actions{
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+							event := e.(MtvRoomUpdateControlAndDelegationPermissionEvent)
+
+							userToUpdate := internalState.GetUser(event.ToUpdateUserID)
+
+							userToUpdate.HasControlAndDelegationPermission = event.HasControlAndDelegationPermission
+
+							sendAcknowledgeUpdateControlAndDelegationPermissionActivity(
+								ctx,
+								internalState.Export(event.ToUpdateUserID),
+							)
+
+							return nil
+						},
+					),
+				},
+			},
+
 			MtvRoomRemoveUserEvent: brainy.Transition{
 				Actions: brainy.Actions{
 					brainy.ActionFn(
@@ -1056,6 +1086,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				internalState.Machine.Send(
 					NewMtvRoomUpdateUserFitsPositionConstraintEvent(message.UserID, message.UserFitsPositionConstraint),
 				)
+
 			case shared.SignalUpdateDelegationOwner:
 				var message shared.UpdateDelegationOwnerSignal
 
@@ -1071,6 +1102,26 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				internalState.Machine.Send(
 					NewMtvRoomUpdateDelegationOwnerEvent(message.NewDelegationOwnerUserID, message.EmitterUserID),
 				)
+
+			case shared.SignalUpdateControlAndDelegationPermission:
+				var message shared.UpdateControlAndDelegationPermissionSignal
+
+				if err := mapstructure.Decode(signal, &message); err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
+				if err := validate.Struct(message); err != nil {
+					logger.Error("Validation error: %v", err)
+					return
+				}
+
+				internalState.Machine.Send(
+					NewMtvRoomUpdateControlAndDelegationPermissionEvent(NewMtvRoomUpdateControlAndDelegationPermissionEventArgs{
+						ToUpdateUserID:                    message.ToUpdateUserID,
+						HasControlAndDelegationPermission: message.HasControlAndDelegationPermission,
+					}),
+				)
+
 			case shared.SignalRouteTerminate:
 				terminated = true
 			}

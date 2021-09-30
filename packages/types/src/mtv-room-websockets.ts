@@ -73,6 +73,14 @@ export type MtvRoomUpdateDelegationOwnerArgs = z.infer<
     typeof MtvRoomUpdateDelegationOwnerArgs
 >;
 
+export const MtvRoomUpdateControlAndDelegationPermissionArgs = z.object({
+    toUpdateUserID: z.string().uuid(),
+    hasControlAndDelegationPermission: z.boolean(),
+});
+export type MtvRoomUpdateControlAndDelegationPermissionArgs = z.infer<
+    typeof MtvRoomUpdateControlAndDelegationPermissionArgs
+>;
+
 export interface Track {
     name: string;
     artistName: string;
@@ -100,6 +108,9 @@ export interface MtvRoomClientToServerEvents {
     ) => void;
     SUGGEST_TRACKS: (args: MtvRoomClientToServerSuggestTracks) => void;
     UPDATE_DELEGATION_OWNER: (args: MtvRoomUpdateDelegationOwnerArgs) => void;
+    UPDATE_CONTROL_AND_DELEGATION_PERMISSION: (
+        args: MtvRoomUpdateControlAndDelegationPermissionArgs,
+    ) => void;
 }
 
 export interface MtvRoomServerToClientEvents {

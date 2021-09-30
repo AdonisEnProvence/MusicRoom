@@ -324,17 +324,18 @@ type MtvRoomExposedState struct {
 type SignalRoute string
 
 const (
-	SignalRoutePlay                        = "play"
-	SignalRoutePause                       = "pause"
-	SignalRouteJoin                        = "join"
-	SignalRouteLeave                       = "leave"
-	SignalRouteTerminate                   = "terminate"
-	SignalRouteGoToNextTrack               = "go-to-next-track"
-	SignalRouteChangeUserEmittingDevice    = "change-user-emitting-device"
-	SignalRouteSuggestTracks               = "suggest-tracks"
-	SignalRouteVoteForTrack                = "vote-for-track"
-	SignalUpdateUserFitsPositionConstraint = "update-user-fits-position-constraint"
-	SignalUpdateDelegationOwner            = "update-delegation-owner"
+	SignalRoutePlay                            = "play"
+	SignalRoutePause                           = "pause"
+	SignalRouteJoin                            = "join"
+	SignalRouteLeave                           = "leave"
+	SignalRouteTerminate                       = "terminate"
+	SignalRouteGoToNextTrack                   = "go-to-next-track"
+	SignalRouteChangeUserEmittingDevice        = "change-user-emitting-device"
+	SignalRouteSuggestTracks                   = "suggest-tracks"
+	SignalRouteVoteForTrack                    = "vote-for-track"
+	SignalUpdateUserFitsPositionConstraint     = "update-user-fits-position-constraint"
+	SignalUpdateDelegationOwner                = "update-delegation-owner"
+	SignalUpdateControlAndDelegationPermission = "update-control-and-delegation-permision"
 )
 
 type GenericRouteSignal struct {
@@ -519,5 +520,24 @@ func NewUpdateDelegationOwnerSignal(args NewUpdateDelegationOwnerSignalArgs) Upd
 		Route:                    SignalUpdateDelegationOwner,
 		NewDelegationOwnerUserID: args.NewDelegationOwnerUserID,
 		EmitterUserID:            args.EmitterUserID,
+	}
+}
+
+type UpdateControlAndDelegationPermissionSignal struct {
+	Route                             SignalRoute `validate:"required"`
+	ToUpdateUserID                    string      `validate:"required,uuid"`
+	HasControlAndDelegationPermission bool
+}
+
+type NewUpdateControlAndDelegationPermissionSignalArgs struct {
+	ToUpdateUserID                    string
+	HasControlAndDelegationPermission bool
+}
+
+func NewUpdateControlAndDelegationPermissionSignal(args NewUpdateControlAndDelegationPermissionSignalArgs) UpdateControlAndDelegationPermissionSignal {
+	return UpdateControlAndDelegationPermissionSignal{
+		Route:                             SignalUpdateControlAndDelegationPermission,
+		ToUpdateUserID:                    args.ToUpdateUserID,
+		HasControlAndDelegationPermission: args.HasControlAndDelegationPermission,
 	}
 }

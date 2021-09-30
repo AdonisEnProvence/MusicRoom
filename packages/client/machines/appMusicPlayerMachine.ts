@@ -94,6 +94,11 @@ export type AppMusicPlayerMachineEvent =
           state: MtvWorkflowStateWithUserRelatedInformation;
       }
     | { type: 'VOTE_FOR_TRACK'; trackID: string }
+    | {
+          type: 'UPDATE_CONTROL_AND_DELEGATION_PERMISSION';
+          toUpdateUserID: string;
+          hasControlAndDelegationPermission: boolean;
+      }
     | CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents;
 
 interface CreateAppMusicPlayerMachineArgs {
@@ -317,6 +322,23 @@ export const createAppMusicPlayerMachine = ({
                                     socket.emit('VOTE_FOR_TRACK', {
                                         trackID: e.trackID,
                                     });
+
+                                    break;
+                                }
+
+                                case 'UPDATE_CONTROL_AND_DELEGATION_PERMISSION': {
+                                    const {
+                                        toUpdateUserID,
+                                        hasControlAndDelegationPermission,
+                                    } = e;
+
+                                    socket.emit(
+                                        'UPDATE_CONTROL_AND_DELEGATION_PERMISSION',
+                                        {
+                                            toUpdateUserID,
+                                            hasControlAndDelegationPermission,
+                                        },
+                                    );
 
                                     break;
                                 }
@@ -897,6 +919,10 @@ export const createAppMusicPlayerMachine = ({
                                 },
 
                                 UPDATE_DELEGATION_OWNER: {
+                                    actions: forwardTo('socketConnection'),
+                                },
+
+                                UPDATE_CONTROL_AND_DELEGATION_PERMISSION: {
                                     actions: forwardTo('socketConnection'),
                                 },
 

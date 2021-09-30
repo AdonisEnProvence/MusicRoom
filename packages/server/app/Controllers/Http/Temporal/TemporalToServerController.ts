@@ -209,4 +209,18 @@ export default class TemporalToServerController {
             [state],
         );
     }
+
+    public async acknowledgeUpdateControlAndDelegationPermission({
+        request,
+    }: HttpContextContract): Promise<void> {
+        const state = MtvWorkflowStateWithUserRelatedInformation.parse(
+            request.body(),
+        );
+
+        await UserService.emitEventInEveryDeviceUser(
+            state.userRelatedInformation.userID,
+            'USER_PERMISSIONS_UPDATE',
+            [state],
+        );
+    }
 }

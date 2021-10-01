@@ -34,26 +34,24 @@ test.group('MtvRoom Search Engine', (group) => {
     });
 
     test('Rooms are paginated', async (assert) => {
+        const PAGE_MAX_LENGTH = 10;
         const creator = await User.create({
             uuid: datatype.uuid(),
             nickname: internet.userName(),
         });
-        const rooms = await MtvRoom.createMany(
-            generateArray(
-                datatype.number({
-                    min: 10,
-                    max: 15,
-                }),
-                () => ({
-                    uuid: datatype.uuid(),
-                    runID: datatype.uuid(),
-                    name: random.words(2),
-                    creatorID: creator.uuid,
-                    isOpen: datatype.boolean(),
-                }),
-            ),
+        const roomsCount = datatype.number({
+            min: 11,
+            max: 15,
+        });
+        await MtvRoom.createMany(
+            generateArray(roomsCount, () => ({
+                uuid: datatype.uuid(),
+                runID: datatype.uuid(),
+                name: random.words(2),
+                creatorID: creator.uuid,
+                isOpen: datatype.boolean(),
+            })),
         );
-        const roomsCount = rooms.length;
 
         const { body: firstPageBodyRaw } = await supertest(BASE_URL)
             .post('/v2/search/rooms')
@@ -66,8 +64,9 @@ test.group('MtvRoom Search Engine', (group) => {
         const firstPageBodyParsed =
             MtvRoomSearchResponse.parse(firstPageBodyRaw);
         assert.isTrue(firstPageBodyParsed.hasMore);
-        assert.isTrue(firstPageBodyParsed.page === 1);
-        assert.isTrue(firstPageBodyParsed.totalEntries === roomsCount);
+        assert.equal(firstPageBodyParsed.page, 1);
+        assert.equal(firstPageBodyParsed.totalEntries, roomsCount);
+        assert.equal(firstPageBodyParsed.data.length, PAGE_MAX_LENGTH);
 
         const { body: secondPageBodyRaw } = await supertest(BASE_URL)
             .post('/v2/search/rooms')
@@ -80,8 +79,12 @@ test.group('MtvRoom Search Engine', (group) => {
         const secondPageBodyParsed =
             MtvRoomSearchResponse.parse(secondPageBodyRaw);
         assert.isFalse(secondPageBodyParsed.hasMore);
-        assert.isTrue(secondPageBodyParsed.page === 2);
-        assert.isTrue(secondPageBodyParsed.totalEntries === roomsCount);
+        assert.equal(secondPageBodyParsed.page, 2);
+        assert.equal(secondPageBodyParsed.totalEntries, roomsCount);
+        assert.equal(
+            secondPageBodyParsed.data.length,
+            roomsCount % PAGE_MAX_LENGTH,
+        );
     });
 
     test('Rooms are paginated and filtered', async (assert) => {
@@ -119,8 +122,9 @@ test.group('MtvRoom Search Engine', (group) => {
             .expect('Content-Type', /json/)
             .expect(200);
         const pageBodyParsed = MtvRoomSearchResponse.parse(pageBodyRaw);
-        assert.isTrue(pageBodyParsed.page === 1);
-        assert.isTrue(pageBodyParsed.totalEntries === roomsCount);
+        assert.equal(pageBodyParsed.page, 1);
+        assert.equal(pageBodyParsed.totalEntries, roomsCount);
+        assert.equal(pageBodyParsed.data.length, roomsCount);
     });
 
     test('Returns empty data if page is out of bound', async (assert) => {
@@ -147,8 +151,8 @@ test.group('MtvRoom Search Engine', (group) => {
             .expect(200);
         const pageBodyParsed = MtvRoomSearchResponse.parse(pageBodyRaw);
 
-        assert.isTrue(pageBodyParsed.page === PAGE_OUT_OF_BOUND);
-        assert.isTrue(pageBodyParsed.totalEntries === 1);
+        assert.equal(pageBodyParsed.page, PAGE_OUT_OF_BOUND);
+        assert.equal(pageBodyParsed.totalEntries, 1);
         assert.isFalse(pageBodyParsed.hasMore);
         assert.isEmpty(pageBodyParsed.data);
     });

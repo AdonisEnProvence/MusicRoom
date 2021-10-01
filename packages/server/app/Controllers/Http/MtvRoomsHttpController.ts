@@ -8,6 +8,11 @@ import MtvRoom from 'App/Models/MtvRoom';
 const MTV_ROOMS_SEARCH_LIMIT = 10;
 
 export default class MtvRoomsHttpController {
+    public async listAllRooms(): Promise<string[]> {
+        const rooms = await MtvRoom.all();
+        return rooms.map<string>((room) => room.uuid);
+    }
+
     public async fetchMtvRooms({
         request,
     }: HttpContextContract): Promise<MtvRoomSearchResponse> {

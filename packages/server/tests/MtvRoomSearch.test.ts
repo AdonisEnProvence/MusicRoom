@@ -25,7 +25,7 @@ test.group('MtvRoom Search Engine', (group) => {
 
     test('Page must be strictly positive', async () => {
         await supertest(BASE_URL)
-            .post('/search/rooms')
+            .post('/v2/search/rooms')
             .send({
                 page: 0,
                 searchQuery: '',
@@ -56,7 +56,7 @@ test.group('MtvRoom Search Engine', (group) => {
         const roomsCount = rooms.length;
 
         const { body: firstPageBodyRaw } = await supertest(BASE_URL)
-            .post('/search/rooms')
+            .post('/v2/search/rooms')
             .send({
                 page: 1,
                 searchQuery: '',
@@ -70,7 +70,7 @@ test.group('MtvRoom Search Engine', (group) => {
         assert.isTrue(firstPageBodyParsed.totalEntries === roomsCount);
 
         const { body: secondPageBodyRaw } = await supertest(BASE_URL)
-            .post('/search/rooms')
+            .post('/v2/search/rooms')
             .send({
                 page: 2,
                 searchQuery: '',
@@ -111,7 +111,7 @@ test.group('MtvRoom Search Engine', (group) => {
         const roomsCount = roomsWithNameFirstCharacterEqualToFirstRoom.length;
 
         const { body: pageBodyRaw } = await supertest(BASE_URL)
-            .post('/search/rooms')
+            .post('/v2/search/rooms')
             .send({
                 page: 1,
                 searchQuery: firstRoomNameFirstCharacter,
@@ -138,7 +138,7 @@ test.group('MtvRoom Search Engine', (group) => {
         });
 
         const { body: pageBodyRaw } = await supertest(BASE_URL)
-            .post('/search/rooms')
+            .post('/v2/search/rooms')
             .send({
                 page: PAGE_OUT_OF_BOUND,
                 searchQuery: '',

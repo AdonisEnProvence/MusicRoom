@@ -4,6 +4,7 @@ import { useActor, useMachine } from '@xstate/react';
 import { Text, useSx, View } from 'dripsy';
 import React, { useMemo, useRef, useState } from 'react';
 import { FlatList } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActorRef } from 'xstate';
 import { AppScreenWithSearchBar } from '../components/kit';
 import MtvRoomUserListElementSetting from '../components/User/MtvRoomUserListElementSettings';
@@ -20,6 +21,7 @@ import { MusicTrackVoteUsersListModalProps } from '../types';
 const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> =
     ({ navigation }) => {
         const sx = useSx();
+        const insets = useSafeAreaInsets();
         const [screenOffsetY, setScreenOffsetY] = useState(0);
         const socket = useSocketContext();
         const {
@@ -149,6 +151,11 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                                     : 'No users found in this room'}
                             </Text>
                         );
+                    }}
+                    // This is here that we ensure the Flat List will not show items
+                    // on an unsafe area.
+                    contentContainerStyle={{
+                        paddingBottom: insets.bottom,
                     }}
                 />
 

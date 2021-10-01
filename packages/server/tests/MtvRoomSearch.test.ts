@@ -49,6 +49,7 @@ test.group('MtvRoom Search Engine', (group) => {
                     runID: datatype.uuid(),
                     name: random.words(2),
                     creatorID: creator.uuid,
+                    isOpen: datatype.boolean(),
                 }),
             ),
         );
@@ -99,6 +100,7 @@ test.group('MtvRoom Search Engine', (group) => {
                     runID: datatype.uuid(),
                     name: random.words(2),
                     creatorID: creator.uuid,
+                    isOpen: datatype.boolean(),
                 }),
             ),
         );
@@ -132,6 +134,7 @@ test.group('MtvRoom Search Engine', (group) => {
             runID: datatype.uuid(),
             name: random.words(2),
             creatorID: creator.uuid,
+            isOpen: datatype.boolean(),
         });
 
         const { body: pageBodyRaw } = await supertest(BASE_URL)

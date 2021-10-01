@@ -1,14 +1,42 @@
-import Ws from 'App/Services/Ws';
-import MtvRoom from '../../Models/MtvRoom';
+import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
+import {
+    MtvRoomSearchRequestBody,
+    MtvRoomSearchResponse,
+} from '@musicroom/types';
+import MtvRoom from 'App/Models/MtvRoom';
 
-export const getAllRooms = async (): Promise<string[]> => {
-    const adapter = Ws.adapter();
-    return [...(await adapter.allRooms())] as string[];
-};
+const MTV_ROOMS_SEARCH_LIMIT = 10;
 
 export default class MtvRoomsHttpController {
     public async listAllRooms(): Promise<string[]> {
         const rooms = await MtvRoom.all();
         return rooms.map<string>((room) => room.uuid);
+    }
+
+    public async fetchMtvRooms({
+        request,
+    }: HttpContextContract): Promise<MtvRoomSearchResponse> {
+        const rawBody = request.body();
+        const { searchQuery, page } = MtvRoomSearchRequestBody.parse(rawBody);
+
+        const roomsPagination = await MtvRoom.query()
+            .preload('creator')
+            .where('name', 'ilike', `${searchQuery}%`)
+            .paginate(page, MTV_ROOMS_SEARCH_LIMIT);
+        const totalRoomsToLoad = roomsPagination.total;
+        const hasMoreRoomsToLoad = roomsPagination.hasMorePages;
+        const formattedRooms = roomsPagination.all().map((room) => ({
+            roomID: room.uuid,
+            roomName: room.name,
+            isOpen: room.isOpen,
+            creatorName: room.creator.nickname,
+        }));
+
+        return {
+            page,
+            hasMore: hasMoreRoomsToLoad,
+            totalEntries: totalRoomsToLoad,
+            data: formattedRooms,
+        };
     }
 }

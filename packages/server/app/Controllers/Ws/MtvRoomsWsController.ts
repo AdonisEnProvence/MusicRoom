@@ -121,7 +121,9 @@ export default class MtvRoomsWsController {
             room.merge({
                 uuid: roomID,
                 runID: temporalResponse.runID,
-                creator: userID,
+                name: params.name,
+                creatorID: userID,
+                isOpen: params.isOpen,
             });
 
             if (
@@ -181,7 +183,7 @@ export default class MtvRoomsWsController {
         console.log(`USER ${userID} LEAVES ${leavingRoomID}`);
 
         const leavingRoom = await MtvRoom.findOrFail(leavingRoomID);
-        const { creator, runID } = leavingRoom;
+        const { creatorID, runID } = leavingRoom;
 
         /**
          * No matter if the leaving user was creator or not
@@ -196,7 +198,7 @@ export default class MtvRoomsWsController {
          * to terminate the workflow and forced disconnect
          * every remaining users
          */
-        const leavingUserIsTheCreator = userID === creator;
+        const leavingUserIsTheCreator = userID === creatorID;
         console.log('LEAVING USER IS THE CREATOR ', leavingUserIsTheCreator);
         if (leavingUserIsTheCreator) {
             await SocketLifecycle.ownerLeavesRoom(leavingRoom);

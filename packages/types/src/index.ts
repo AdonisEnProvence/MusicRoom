@@ -25,6 +25,7 @@
 export * from './http';
 export * from './mtv';
 export * from './mtv-room-websockets';
+export * from './mtv-room-search';
 export * from './server-to-temporal';
 export * from './user-websockets';
 export * from './websockets';

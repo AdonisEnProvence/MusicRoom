@@ -1,4 +1,11 @@
-import { BaseModel, column, hasMany, HasMany } from '@ioc:Adonis/Lucid/Orm';
+import {
+    BaseModel,
+    column,
+    hasMany,
+    HasMany,
+    HasOne,
+    hasOne,
+} from '@ioc:Adonis/Lucid/Orm';
 import { DateTime } from 'luxon';
 import User from './User';
 
@@ -10,7 +17,16 @@ export default class MtvRoom extends BaseModel {
     public runID: string;
 
     @column()
-    public creator: string;
+    public name: string;
+
+    @column({ columnName: 'creator' })
+    public creatorID: string;
+
+    @hasOne(() => User, {
+        localKey: 'creatorID',
+        foreignKey: 'uuid',
+    })
+    public creator: HasOne<typeof User>;
 
     @hasMany(() => User, {
         foreignKey: 'mtvRoomID',
@@ -28,6 +44,9 @@ export default class MtvRoom extends BaseModel {
 
     @column()
     public hasPositionAndTimeConstraints: boolean;
+
+    @column()
+    public isOpen: boolean;
 
     @column.dateTime({ autoCreate: true })
     public createdAt: DateTime;

@@ -474,7 +474,7 @@ Ws.io.on('connection', async (socket) => {
                     }
 
                     await user.load('mtvRoom');
-                    const roomCreatorUuid = user.mtvRoom.creator;
+                    const roomCreatorUuid = user.mtvRoom.creatorID;
                     const isRoomCreator = user.uuid === roomCreatorUuid;
                     const isNotRoomCreator = isRoomCreator === false;
                     if (isNotRoomCreator === true) {

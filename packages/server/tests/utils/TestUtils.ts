@@ -146,7 +146,8 @@ export function initTestUtils(): TestUtilsReturnedValue {
                 mtvRoomToAssociate = await MtvRoom.create({
                     uuid: mtvRoomIDToAssociate,
                     runID: datatype.uuid(),
-                    creator: createdUser.uuid,
+                    name: random.words(2),
+                    creatorID: createdUser.uuid,
                 });
             }
             await createdUser.related('mtvRoom').associate(mtvRoomToAssociate);

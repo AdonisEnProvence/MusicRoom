@@ -29,12 +29,6 @@ const roomUsersListModel = createModel(
             SET_SELECTED_USER: (selectedUser: MtvRoomUsersListElement) => ({
                 selectedUser,
             }),
-
-            SET_AS_DELEGATION_OWNER: (userID: string) => ({ userID }),
-
-            TOGGLE_CONTROL_AND_DELEGATION_PERMISSION: (userID: string) => ({
-                userID,
-            }),
         },
     },
 );
@@ -65,6 +59,17 @@ const assignRetrievedUsersListToContext = roomUsersListModel.assign(
         allUsers: (_, { retrievedUsers }) => retrievedUsers,
         deviceOwnerUser: (_, { retrievedUsers }) =>
             retrievedUsers.find((user) => user.isMe),
+        selectedUser: (context, { retrievedUsers }) => {
+            if (context.selectedUser === undefined) {
+                return undefined;
+            }
+            console.log('cc', context.selectedUser);
+            return retrievedUsers.find(
+                (user) =>
+                    user.userID ===
+                    (context.selectedUser as MtvRoomUsersListElement).userID,
+            );
+        },
     },
     'ASSIGN_RETRIEVED_USERS_LIST',
 );

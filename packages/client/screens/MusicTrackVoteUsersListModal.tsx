@@ -1,5 +1,5 @@
 import { BottomSheetHandle, BottomSheetModal } from '@gorhom/bottom-sheet';
-import { MtvRoomUsersListElement } from '@musicroom/types';
+import { MtvPlayingModes, MtvRoomUsersListElement } from '@musicroom/types';
 import { useActor, useMachine } from '@xstate/react';
 import { Text, useSx, View } from 'dripsy';
 import React, { useMemo, useRef, useState } from 'react';
@@ -8,6 +8,7 @@ import { ActorRef } from 'xstate';
 import { AppScreenWithSearchBar } from '../components/kit';
 import MtvRoomUserListElementSetting from '../components/User/MtvRoomUserListElementSettings';
 import UserListItemWithThreeDots from '../components/User/UserListItemWithThreeDots';
+import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import { useSocketContext } from '../contexts/SocketContext';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
@@ -21,8 +22,13 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
         const sx = useSx();
         const [screenOffsetY, setScreenOffsetY] = useState(0);
         const socket = useSocketContext();
+        const {
+            state: musicPlayerState,
+            sendToMachine: sendToMusicPlayerMachine,
+        } = useMusicPlayer();
+        const roomPlayingMode = musicPlayerState.context.playingMode;
 
-        //the deviceOnwerUserID will be retrieve in the cookies later with authentification dev
+        //Init room users list machine
         const roomUsersListMachine = useMemo(
             () =>
                 createRoomUsersListMachine({
@@ -32,20 +38,39 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
             [],
         );
         const [state, sendToMachine] = useMachine(roomUsersListMachine);
-        const { deviceOwnerUser } = state.context;
-        const hideThreeDots =
-            deviceOwnerUser === undefined ||
-            (deviceOwnerUser !== undefined &&
-                !deviceOwnerUser.isCreator &&
-                !deviceOwnerUser.hasControlAndDelegationPermission);
+        ///
 
+        const { deviceOwnerUser } = state.context;
+        //Maybe here we should redirect the user to the home if the deviceOwner is not found in the users list ?
+
+        let hideThreeDots = true;
+
+        const deviceOwnerIsRoomCreator =
+            deviceOwnerUser !== undefined && deviceOwnerUser.isCreator;
+        if (deviceOwnerIsRoomCreator) {
+            hideThreeDots = false;
+        }
+
+        const roomIsInDirectMode =
+            roomPlayingMode === MtvPlayingModes.Values.DIRECT;
+        const deviceOwnerHasControlAndDelegationPermissionAndRoomIsInDirectMode =
+            deviceOwnerUser !== undefined &&
+            deviceOwnerUser.hasControlAndDelegationPermission &&
+            roomIsInDirectMode;
+        if (deviceOwnerHasControlAndDelegationPermissionAndRoomIsInDirectMode) {
+            hideThreeDots = false;
+        }
+
+        //Search bar
         const searchBarActor: ActorRef<
             AppScreenHeaderWithSearchBarMachineEvent,
             AppScreenHeaderWithSearchBarMachineState
         > = state.children.searchBarMachine;
         const [searchState, sendToSearch] = useActor(searchBarActor);
         const showHeader = searchState.hasTag('showHeaderTitle');
+        ///
 
+        //Bottom sheet related
         const bottomSheetModalRef = useRef<BottomSheetModal>(null);
         const snapPoints = [200];
 
@@ -63,7 +88,9 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
         function handleGoBack() {
             navigation.goBack();
         }
+        ///
 
+        const searchQueryIsNotEmpty = state.context.searchQuery !== '';
         return (
             <AppScreenWithSearchBar
                 canGoBack
@@ -86,6 +113,11 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                                 index ===
                                 state.context.filteredUsers.length - 1;
 
+                            const hideDeviceOwnerUserCardThreeDotsButton =
+                                deviceOwnerIsRoomCreator &&
+                                !roomIsInDirectMode &&
+                                item.isMe;
+
                             return (
                                 <View
                                     sx={{
@@ -95,7 +127,10 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                                     }}
                                 >
                                     <UserListItemWithThreeDots
-                                        hideThreeDots={hideThreeDots}
+                                        hideThreeDots={
+                                            hideDeviceOwnerUserCardThreeDotsButton ||
+                                            hideThreeDots
+                                        }
                                         user={item}
                                         index={index}
                                         threeDotsAccessibilityLabel={`Open user ${item.userID} settings`}
@@ -123,6 +158,14 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                             const isLastItem =
                                 index === state.context.allUsers.length - 1;
 
+                            //If the deviceOwner is the room creator and the room is not in direct mode
+                            //Then we should hide the three dots points for it's card as there's no
+                            //operation to be done inside
+                            const hideDeviceOwnerUserCardThreeDotsButton =
+                                deviceOwnerIsRoomCreator &&
+                                !roomIsInDirectMode &&
+                                item.isMe;
+
                             return (
                                 <View
                                     sx={{
@@ -133,7 +176,10 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                                 >
                                     <UserListItemWithThreeDots
                                         user={item}
-                                        hideThreeDots={hideThreeDots}
+                                        hideThreeDots={
+                                            hideDeviceOwnerUserCardThreeDotsButton ||
+                                            hideThreeDots
+                                        }
                                         index={index}
                                         threeDotsAccessibilityLabel={`Open user ${item.nickname} settings`}
                                         onThreeDotsPress={() =>
@@ -169,16 +215,19 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                     )}
                 >
                     <MtvRoomUserListElementSetting
+                        playingMode={roomPlayingMode}
                         setAsDelegationOwner={(user) => {
-                            sendToMachine({
-                                type: 'SET_AS_DELEGATION_OWNER',
-                                userID: user.userID,
+                            sendToMusicPlayerMachine({
+                                type: 'UPDATE_DELEGATION_OWNER',
+                                newDelegationOwnerUserID: user.userID,
                             });
                         }}
                         toggleHasControlAndDelegationPermission={(user) => {
-                            sendToMachine({
-                                type: 'TOGGLE_CONTROL_AND_DELEGATION_PERMISSION',
-                                userID: user.userID,
+                            sendToMusicPlayerMachine({
+                                type: 'UPDATE_CONTROL_AND_DELEGATION_PERMISSION',
+                                toUpdateUserID: user.userID,
+                                hasControlAndDelegationPermission:
+                                    !user.hasControlAndDelegationPermission,
                             });
                         }}
                         selectedUser={state.context.selectedUser}

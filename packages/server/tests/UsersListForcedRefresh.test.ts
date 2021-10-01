@@ -82,7 +82,6 @@ test.group(`MtvRoom get users list test group`, (group) => {
         let usersListForcedRefreshHasBeenCalled = false;
 
         socket.on('USERS_LIST_FORCED_REFRESH', () => {
-            console.log('JE SUIS LE PETIT JESUS');
             usersListForcedRefreshHasBeenCalled = true;
         });
 

@@ -103,101 +103,57 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                 sendToSearch={sendToSearch}
                 goBack={handleGoBack}
             >
-                {state.context.searchQuery !== '' ? (
-                    <FlatList
-                        data={state.context.filteredUsers}
-                        key={'filtered_users_list'}
-                        keyExtractor={(item) => item.userID}
-                        renderItem={({ item, index }) => {
-                            const isLastItem =
-                                index ===
-                                state.context.filteredUsers.length - 1;
+                <FlatList
+                    sx={{
+                        flexShrink: [1, 0],
+                    }}
+                    data={
+                        searchQueryIsNotEmpty
+                            ? state.context.filteredUsers
+                            : state.context.allUsers
+                    }
+                    key={'mtv_room_users_list'}
+                    keyExtractor={(item) => item.userID}
+                    renderItem={({ item, index }) => {
+                        const isLastItem =
+                            index === state.context.filteredUsers.length - 1;
 
-                            const hideDeviceOwnerUserCardThreeDotsButton =
-                                deviceOwnerIsRoomCreator &&
-                                !roomIsInDirectMode &&
-                                item.isMe;
+                        const hideDeviceOwnerUserCardThreeDotsButton =
+                            deviceOwnerIsRoomCreator &&
+                            !roomIsInDirectMode &&
+                            item.isMe;
 
-                            return (
-                                <View
-                                    sx={{
-                                        marginBottom: isLastItem
-                                            ? undefined
-                                            : 'm',
-                                    }}
-                                >
-                                    <UserListItemWithThreeDots
-                                        hideThreeDots={
-                                            hideDeviceOwnerUserCardThreeDotsButton ||
-                                            hideThreeDots
-                                        }
-                                        user={item}
-                                        index={index}
-                                        threeDotsAccessibilityLabel={`Open user ${item.userID} settings`}
-                                        onThreeDotsPress={() =>
-                                            handlePresentModalPress(item)
-                                        }
-                                    />
-                                </View>
-                            );
-                        }}
-                        ListEmptyComponent={() => {
-                            return (
-                                <Text sx={{ color: 'white' }}>
-                                    There are not users that match this request
-                                </Text>
-                            );
-                        }}
-                    />
-                ) : (
-                    <FlatList
-                        key={'not_filtered_users_list'}
-                        data={state.context.allUsers}
-                        keyExtractor={(item) => item.userID}
-                        renderItem={({ item, index }) => {
-                            const isLastItem =
-                                index === state.context.allUsers.length - 1;
-
-                            //If the deviceOwner is the room creator and the room is not in direct mode
-                            //Then we should hide the three dots points for it's card as there's no
-                            //operation to be done inside
-                            const hideDeviceOwnerUserCardThreeDotsButton =
-                                deviceOwnerIsRoomCreator &&
-                                !roomIsInDirectMode &&
-                                item.isMe;
-
-                            return (
-                                <View
-                                    sx={{
-                                        marginBottom: isLastItem
-                                            ? undefined
-                                            : 'm',
-                                    }}
-                                >
-                                    <UserListItemWithThreeDots
-                                        user={item}
-                                        hideThreeDots={
-                                            hideDeviceOwnerUserCardThreeDotsButton ||
-                                            hideThreeDots
-                                        }
-                                        index={index}
-                                        threeDotsAccessibilityLabel={`Open user ${item.nickname} settings`}
-                                        onThreeDotsPress={() =>
-                                            handlePresentModalPress(item)
-                                        }
-                                    />
-                                </View>
-                            );
-                        }}
-                        ListEmptyComponent={() => {
-                            return (
-                                <Text sx={{ color: 'white' }}>
-                                    No users found in this room
-                                </Text>
-                            );
-                        }}
-                    />
-                )}
+                        return (
+                            <View
+                                sx={{
+                                    marginBottom: isLastItem ? undefined : 'm',
+                                }}
+                            >
+                                <UserListItemWithThreeDots
+                                    hideThreeDots={
+                                        hideDeviceOwnerUserCardThreeDotsButton ||
+                                        hideThreeDots
+                                    }
+                                    user={item}
+                                    index={index}
+                                    threeDotsAccessibilityLabel={`Open user ${item.userID} settings`}
+                                    onThreeDotsPress={() =>
+                                        handlePresentModalPress(item)
+                                    }
+                                />
+                            </View>
+                        );
+                    }}
+                    ListEmptyComponent={() => {
+                        return (
+                            <Text sx={{ color: 'white' }}>
+                                {searchQueryIsNotEmpty
+                                    ? 'There are not users that match this request'
+                                    : 'No users found in this room'}
+                            </Text>
+                        );
+                    }}
+                />
 
                 <BottomSheetModal
                     ref={bottomSheetModalRef}

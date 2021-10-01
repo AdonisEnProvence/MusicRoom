@@ -1,27 +1,49 @@
-import { assign, createMachine } from 'xstate';
-import { listAllRooms } from '../services/MtvService';
+import { createModel } from 'xstate/lib/model';
+import { MtvRoomSearchResult } from '@musicroom/types';
+import { fetchMtvRooms } from '../services/MtvService';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 
-type SearchMtvRoomsEvent =
-    | { type: 'SUBMITTED' }
-    | { type: 'FETCHED_ROOMS'; rooms: string[] }
-    | { type: 'FAILED_FETCHING_ROOMS' };
-
-interface SearchMtvRoomContext {
-    rooms: undefined | string[];
-}
-
-export const searchMtvRoomsMachine = createMachine<
-    SearchMtvRoomContext,
-    SearchMtvRoomsEvent
->(
+const searchMtvRoomsModel = createModel(
     {
-        context: {
-            rooms: undefined,
-        },
+        rooms: [] as MtvRoomSearchResult[],
+        hasMore: true,
 
-        // FIXME: replace by idle when we will have implemented
-        // suggestions fetching
+        page: 1,
+        searchQuery: '',
+    },
+    {
+        events: {
+            SUBMITTED: (searchQuery: string) => ({ searchQuery }),
+
+            FETCHED_ROOMS: (
+                rooms: MtvRoomSearchResult[],
+                hasMore: boolean,
+            ) => ({ rooms, hasMore }),
+
+            FAILED_FETCHING_ROOMS: () => ({}),
+        },
+    },
+);
+
+const assigSearchQueryToContext = searchMtvRoomsModel.assign(
+    {
+        searchQuery: (_, event) => event.searchQuery,
+    },
+    'SUBMITTED',
+);
+
+const assignFetchedRoomsToContext = searchMtvRoomsModel.assign(
+    {
+        rooms: (_, event) => event.rooms,
+        hasMore: (_, event) => event.hasMore,
+    },
+    'FETCHED_ROOMS',
+);
+
+export const searchMtvRoomsMachine = searchMtvRoomsModel.createMachine(
+    {
+        context: searchMtvRoomsModel.initialContext,
+
         initial: 'fetchingRooms',
 
         invoke: {
@@ -34,6 +56,8 @@ export const searchMtvRoomsMachine = createMachine<
                 on: {
                     SUBMITTED: {
                         target: 'fetchingRooms',
+
+                        actions: assigSearchQueryToContext,
                     },
                 },
             },
@@ -45,8 +69,9 @@ export const searchMtvRoomsMachine = createMachine<
 
                 on: {
                     FETCHED_ROOMS: {
-                        actions: 'assignRoomsToContext',
-                        target: 'fetchedRooms',
+                        target: 'idle',
+
+                        actions: assignFetchedRoomsToContext,
                     },
 
                     FAILED_FETCHING_ROOMS: {
@@ -55,46 +80,39 @@ export const searchMtvRoomsMachine = createMachine<
                 },
             },
 
-            fetchedRooms: {},
-
-            errFetchingRooms: {},
+            errFetchingRooms: {
+                on: {
+                    SUBMITTED: {
+                        target: 'fetchingRooms',
+                    },
+                },
+            },
         },
     },
     {
-        actions: {
-            assignRoomsToContext: assign((context, event) => {
-                if (event.type !== 'FETCHED_ROOMS') {
-                    return context;
-                }
-
-                return {
-                    ...context,
-                    rooms: event.rooms,
-                };
-            }),
-        },
-
         services: {
-            fetchRooms: (_context, _event) => async (sendBack, _onReceive) => {
-                // if (event.type !== 'SUBMITTED') {
-                //     throw new Error(
-                //         'fetchRooms service must be invoked in response to SUBMITTED event',
-                //     );
-                // }
+            fetchRooms:
+                ({ page, searchQuery }) =>
+                async (sendBack) => {
+                    try {
+                        const fetchedRoomResponse = await fetchMtvRooms({
+                            page,
+                            searchQuery,
+                        });
 
-                try {
-                    const rooms = await listAllRooms();
-                    sendBack({
-                        type: 'FETCHED_ROOMS',
-                        rooms,
-                    });
-                } catch (err) {
-                    console.error(err);
-                    sendBack({
-                        type: 'FAILED_FETCHING_ROOMS',
-                    });
-                }
-            },
+                        sendBack({
+                            type: 'FETCHED_ROOMS',
+                            rooms: fetchedRoomResponse.data,
+                            hasMore: fetchedRoomResponse.hasMore,
+                        });
+                    } catch (err) {
+                        console.error(err);
+
+                        sendBack({
+                            type: 'FAILED_FETCHING_ROOMS',
+                        });
+                    }
+                },
         },
     },
 );

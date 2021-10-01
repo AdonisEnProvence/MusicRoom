@@ -104,9 +104,6 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                 goBack={handleGoBack}
             >
                 <FlatList
-                    sx={{
-                        flexShrink: [1, 0],
-                    }}
                     data={
                         searchQueryIsNotEmpty
                             ? state.context.filteredUsers

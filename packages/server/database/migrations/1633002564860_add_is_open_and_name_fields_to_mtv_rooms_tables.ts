@@ -6,7 +6,7 @@ export default class MtvRooms extends BaseSchema {
     public up(): void {
         this.schema.table(this.tableName, (table) => {
             table.string('name').notNullable();
-            table.boolean('is_open').defaultTo(true);
+            table.boolean('is_open').notNullable().defaultTo(true);
         });
     }
 

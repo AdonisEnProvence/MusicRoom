@@ -5,8 +5,8 @@ import {
 import * as Device from 'expo-device';
 import React, { useContext, useMemo } from 'react';
 import { Platform } from 'react-native';
-import { io, Socket } from 'socket.io-client';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
+import { io, Socket } from '../services/websockets';
 
 export type SocketClient = Socket<
     AllServerToClientEvents,

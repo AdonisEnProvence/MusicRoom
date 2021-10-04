@@ -5,7 +5,9 @@ export default class UserSeeder extends BaseSeeder {
     public static developmentOnly = true;
 
     public async run(): Promise<void> {
-        await User.createMany([
+        const uniqueKey = 'uuid';
+
+        await User.updateOrCreateMany(uniqueKey, [
             {
                 uuid: 'f5ddbf01-cc01-4422-b347-67988342b558',
                 nickname: 'Web',

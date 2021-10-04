@@ -8,7 +8,7 @@ const searchMtvRoomsModel = createModel(
         rooms: [] as MtvRoomSearchResult[],
         hasMore: true,
 
-        page: 1,
+        nextPage: 1,
         searchQuery: '',
     },
     {
@@ -18,24 +18,39 @@ const searchMtvRoomsModel = createModel(
             FETCHED_ROOMS: (
                 rooms: MtvRoomSearchResult[],
                 hasMore: boolean,
-            ) => ({ rooms, hasMore }),
+                page: number,
+            ) => ({ rooms, hasMore, page }),
+
+            LOAD_MORE_ITEMS: () => ({}),
 
             FAILED_FETCHING_ROOMS: () => ({}),
         },
     },
 );
 
-const assigSearchQueryToContext = searchMtvRoomsModel.assign(
+const assignSearchQueryToContext = searchMtvRoomsModel.assign(
     {
         searchQuery: (_, event) => event.searchQuery,
+        nextPage: 1,
     },
     'SUBMITTED',
 );
 
 const assignFetchedRoomsToContext = searchMtvRoomsModel.assign(
     {
-        rooms: (_, event) => event.rooms,
-        hasMore: (_, event) => event.hasMore,
+        rooms: (
+            { rooms: currentRooms },
+            { rooms: fetchedRooms, page: fetchedPage },
+        ) => {
+            if (fetchedPage === 1) {
+                return fetchedRooms;
+            }
+
+            return [...currentRooms, ...fetchedRooms];
+        },
+        hasMore: (_, { hasMore }) => hasMore,
+        nextPage: ({ nextPage }, { hasMore }) =>
+            hasMore === true ? nextPage + 1 : nextPage,
     },
     'FETCHED_ROOMS',
 );
@@ -57,7 +72,13 @@ export const searchMtvRoomsMachine = searchMtvRoomsModel.createMachine(
                     SUBMITTED: {
                         target: 'fetchingRooms',
 
-                        actions: assigSearchQueryToContext,
+                        actions: assignSearchQueryToContext,
+                    },
+
+                    LOAD_MORE_ITEMS: {
+                        cond: 'hasMoreRoomsToFetch',
+
+                        target: 'fetchingRooms',
                     },
                 },
             },
@@ -92,11 +113,11 @@ export const searchMtvRoomsMachine = searchMtvRoomsModel.createMachine(
     {
         services: {
             fetchRooms:
-                ({ page, searchQuery }) =>
+                ({ nextPage, searchQuery }) =>
                 async (sendBack) => {
                     try {
                         const fetchedRoomResponse = await fetchMtvRooms({
-                            page,
+                            page: nextPage,
                             searchQuery,
                         });
 
@@ -104,6 +125,7 @@ export const searchMtvRoomsMachine = searchMtvRoomsModel.createMachine(
                             type: 'FETCHED_ROOMS',
                             rooms: fetchedRoomResponse.data,
                             hasMore: fetchedRoomResponse.hasMore,
+                            page: fetchedRoomResponse.page,
                         });
                     } catch (err) {
                         console.error(err);
@@ -113,6 +135,10 @@ export const searchMtvRoomsMachine = searchMtvRoomsModel.createMachine(
                         });
                     }
                 },
+        },
+
+        guards: {
+            hasMoreRoomsToFetch: ({ hasMore }) => hasMore === true,
         },
     },
 );

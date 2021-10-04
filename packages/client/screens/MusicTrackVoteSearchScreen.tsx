@@ -18,13 +18,19 @@ import { MusicTrackVoteSearchScreenProps } from '../types';
 type SuggestionListProps = {
     bottomInset: number;
     onSuggestionPress: (id: string) => void;
+    hasMoreRoomsToFetch: boolean;
     suggestions: MtvRoomSearchResult[];
+    onEndReached: () => void;
+    onLoadMore: () => void;
 };
 
 const SuggestionsList: React.FC<SuggestionListProps> = ({
     bottomInset,
     onSuggestionPress,
+    hasMoreRoomsToFetch,
     suggestions,
+    onEndReached,
+    onLoadMore,
 }) => {
     const sx = useSx();
 
@@ -81,6 +87,43 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
             contentContainerStyle={{
                 paddingBottom: bottomInset,
             }}
+            onEndReached={onEndReached}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={
+                hasMoreRoomsToFetch === true
+                    ? () => {
+                          return (
+                              <View
+                                  sx={{
+                                      flexDirection: 'row',
+                                      justifyContent: 'center',
+                                      alignItems: 'center',
+                                  }}
+                              >
+                                  <TouchableOpacity
+                                      onPress={onLoadMore}
+                                      style={sx({
+                                          borderRadius: 'full',
+                                          borderWidth: 2,
+                                          borderColor: 'secondary',
+                                          paddingX: 'l',
+                                          paddingY: 's',
+                                      })}
+                                  >
+                                      <Text
+                                          sx={{
+                                              color: 'secondary',
+                                              fontWeight: 'bold',
+                                          }}
+                                      >
+                                          Load more
+                                      </Text>
+                                  </TouchableOpacity>
+                              </View>
+                          );
+                      }
+                    : undefined
+            }
         />
     );
 };
@@ -90,7 +133,8 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
 }) => {
     const insets = useSafeAreaInsets();
     const [screenOffsetY, setScreenOffsetY] = useState(0);
-    const [mtvRoomState] = useMachine(searchMtvRoomsMachine);
+    const [mtvRoomState, mtvRoomSend] = useMachine(searchMtvRoomsMachine);
+    const hasMoreRoomsToFetch = mtvRoomState.context.hasMore;
     const searchBarActor: ActorRef<
         AppScreenHeaderWithSearchBarMachineEvent,
         AppScreenHeaderWithSearchBarMachineState
@@ -98,6 +142,12 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
     const [searchState, sendToSearch] = useActor(searchBarActor);
     const showHeader = searchState.hasTag('showHeaderTitle');
     const { sendToMachine: sendToMusicPlayerMachine } = useMusicPlayer();
+
+    function handleLoadMoreItems() {
+        mtvRoomSend({
+            type: 'LOAD_MORE_ITEMS',
+        });
+    }
 
     return (
         <AppScreenWithSearchBar
@@ -114,6 +164,7 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
             }}
         >
             <SuggestionsList
+                hasMoreRoomsToFetch={hasMoreRoomsToFetch}
                 suggestions={mtvRoomState.context.rooms}
                 bottomInset={insets.bottom}
                 onSuggestionPress={(roomID: string) => {
@@ -122,6 +173,8 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
                         roomID,
                     });
                 }}
+                onEndReached={handleLoadMoreItems}
+                onLoadMore={handleLoadMoreItems}
             />
         </AppScreenWithSearchBar>
     );

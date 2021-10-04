@@ -125,11 +125,11 @@ export const createRoomUsersListMachine = ({
                             }
                         }
                     });
+
+                    return () => socket.off('USERS_LIST_FORCED_REFRESH');
                 },
             },
         ],
-
-        exit: () => socket.off('USERS_LIST_FORCED_REFRESH'),
 
         initial: 'firstUsersListFetch',
 

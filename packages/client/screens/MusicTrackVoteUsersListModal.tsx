@@ -135,7 +135,7 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                                     }
                                     user={item}
                                     index={index}
-                                    threeDotsAccessibilityLabel={`Open user ${item.userID} settings`}
+                                    threeDotsAccessibilityLabel={`Open user ${item.nickname} settings`}
                                     onThreeDotsPress={() =>
                                         handlePresentModalPress(item)
                                     }

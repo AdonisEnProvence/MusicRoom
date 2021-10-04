@@ -34,6 +34,7 @@ const UserListItem: React.FC<UserListItemProps> = ({
                 flexDirection: 'row',
                 alignItems: 'center',
             }}
+            testID={`${user.nickname}-user-card`}
         >
             <TouchableOpacity
                 // disabled={disabled}
@@ -82,6 +83,7 @@ const UserListItem: React.FC<UserListItemProps> = ({
                         {user.isCreator && (
                             <MaterialCommunityIcons
                                 name="crown"
+                                accessibilityLabel={`${user.nickname} is the room creator`}
                                 style={sx({
                                     fontSize: 'm',
                                     color: 'white',
@@ -100,6 +102,7 @@ const UserListItem: React.FC<UserListItemProps> = ({
                         {user.isDelegationOwner && (
                             <Foundation
                                 name="music"
+                                accessibilityLabel={`${user.nickname} is the delegation owner`}
                                 style={sx({
                                     fontSize: 'm',
                                     color: 'white',
@@ -111,6 +114,7 @@ const UserListItem: React.FC<UserListItemProps> = ({
                         {user.hasControlAndDelegationPermission && (
                             <AntDesign
                                 name="star"
+                                accessibilityLabel={`${user.nickname} has control and delegation permission`}
                                 style={sx({
                                     fontSize: 'm',
                                     color: 'white',

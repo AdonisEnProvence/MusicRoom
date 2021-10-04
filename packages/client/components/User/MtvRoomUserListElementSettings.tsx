@@ -1,6 +1,5 @@
-import { Text, useSx } from '@dripsy/core';
-import { View } from '@motify/components';
 import { MtvPlayingModes, MtvRoomUsersListElement } from '@musicroom/types';
+import { Text, useSx, View } from 'dripsy';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { Switch } from 'react-native-gesture-handler';

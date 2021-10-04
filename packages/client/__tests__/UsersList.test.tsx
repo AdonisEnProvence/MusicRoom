@@ -193,25 +193,5 @@ describe('User list tests', () => {
                 // ///
             }),
         );
-
-        // const openUserSettingsButton = screen.getByA11yLabel(
-        //     new RegExp(`open.*${USER_TO_SELECT_USERNAME}.*settings`, 'i'),
-        // );
-        // expect(openUserSettingsButton).toBeTruthy();
-
-        // fireEvent.press(openUserSettingsButton);
-
-        // await waitFor(() => {
-        //     const bottomSheetModalTitle = screen.getByText(
-        //         new RegExp(`${USER_TO_SELECT_USERNAME}.*settings`, 'i'),
-        //     );
-        //     expect(bottomSheetModalTitle).toBeTruthy();
-        // });
-        // const delegationAndControlSwitch = screen.getByA11yLabel(
-        //     /delegation.*control.*permission/i,
-        // );
-        // expect(delegationAndControlSwitch).toBeTruthy();
-        // const makeDelegatorButton = screen.getByText(/make.*delegator/i);
-        // expect(makeDelegatorButton).toBeTruthy();
     });
 });

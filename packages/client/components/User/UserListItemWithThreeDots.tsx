@@ -1,6 +1,6 @@
-import { useSx } from '@dripsy/core';
 import { Entypo } from '@expo/vector-icons';
 import { MtvRoomUsersListElement } from '@musicroom/types';
+import { useSx } from 'dripsy';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import UserListItem from './UserListItem';

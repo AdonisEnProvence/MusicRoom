@@ -1,7 +1,7 @@
-import { useSx, View } from '@dripsy/core';
 import { Ionicons } from '@expo/vector-icons';
 import { TrackMetadataWithScore } from '@musicroom/types';
 import { useNavigation } from '@react-navigation/core';
+import { useSx, View } from 'dripsy';
 import React from 'react';
 import { FlatList, TouchableOpacity } from 'react-native';
 import { Sender } from 'xstate';

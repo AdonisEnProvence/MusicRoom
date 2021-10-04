@@ -67,18 +67,11 @@ jest.mock('react-native-reanimated', () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const Reanimated = require('react-native-reanimated/mock');
 
-    // Reanimated.default.call = () => {
-    //     return undefined;
-    // };
-
-    // Reanimated.useSharedValue.call = () => {
-    //     return undefined;
-    // };
-
-    return {
-        ...Reanimated,
-        userSharedValue: jest.fn(),
+    Reanimated.default.call = () => {
+        return undefined;
     };
+
+    return Reanimated as unknown;
 });
 
 jest.mock('moti', () => {

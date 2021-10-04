@@ -1,17 +1,17 @@
-import '@testing-library/jest-native';
-import React from 'react';
-import {
-    getCurrentPositionAsync,
-    requestForegroundPermissionsAsync,
-} from 'expo-location';
-import {
-    YoutubeIframeProps,
-    YoutubeIframeRef,
-} from 'react-native-youtube-iframe';
 import type {
     BottomSheetModal,
     BottomSheetModalProps,
 } from '@gorhom/bottom-sheet';
+import '@testing-library/jest-native';
+import {
+    getCurrentPositionAsync,
+    requestForegroundPermissionsAsync,
+} from 'expo-location';
+import React from 'react';
+import {
+    YoutubeIframeProps,
+    YoutubeIframeRef,
+} from 'react-native-youtube-iframe';
 import { cleanup } from './services/websockets';
 import { dropDatabase } from './tests/data';
 import { server } from './tests/server/test-server';
@@ -67,11 +67,18 @@ jest.mock('react-native-reanimated', () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const Reanimated = require('react-native-reanimated/mock');
 
-    Reanimated.default.call = () => {
-        return undefined;
-    };
+    // Reanimated.default.call = () => {
+    //     return undefined;
+    // };
 
-    return Reanimated as unknown;
+    // Reanimated.useSharedValue.call = () => {
+    //     return undefined;
+    // };
+
+    return {
+        ...Reanimated,
+        userSharedValue: jest.fn(),
+    };
 });
 
 jest.mock('moti', () => {

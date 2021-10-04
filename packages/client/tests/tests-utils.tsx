@@ -1,10 +1,12 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { MtvRoomUsersListElement } from '@musicroom/types';
 import {
     render as rtlRender,
     RenderAPI,
     RenderOptions,
 } from '@testing-library/react-native';
 import { DripsyProvider } from 'dripsy';
+import { datatype, random } from 'faker';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { MusicPlayerContextProvider } from '../contexts/MusicPlayerContext';
@@ -68,4 +70,48 @@ export function waitForTimeout(ms: number): Promise<void> {
 
 export function noop(): void {
     return undefined;
+}
+
+export function getFakeUsersList({
+    length,
+    directMode,
+    isMeIsCreator,
+}: {
+    length?: number;
+    directMode: boolean;
+    isMeIsCreator?: boolean;
+}): MtvRoomUsersListElement[] {
+    const len = length || 10;
+
+    const minRandomIndex = 1;
+    const getRandomIndex = () =>
+        Math.floor(Math.random() * (len - minRandomIndex + 1) + minRandomIndex);
+
+    const getFakeUser = (): MtvRoomUsersListElement => ({
+        hasControlAndDelegationPermission: false,
+        isCreator: false,
+        isDelegationOwner: false,
+        isMe: false,
+        nickname: random.word(),
+        userID: datatype.uuid(),
+    });
+
+    const fakeUsersArray: MtvRoomUsersListElement[] = Array.from({
+        length: len,
+    }).map(() => getFakeUser());
+
+    fakeUsersArray[0] = {
+        ...fakeUsersArray[0],
+        isCreator: true,
+        hasControlAndDelegationPermission: true,
+        isDelegationOwner: directMode || false,
+        isMe: isMeIsCreator || false,
+    };
+
+    if (!isMeIsCreator) {
+        const isMeIndex = getRandomIndex();
+        fakeUsersArray[isMeIndex].isMe = true;
+    }
+
+    return fakeUsersArray;
 }

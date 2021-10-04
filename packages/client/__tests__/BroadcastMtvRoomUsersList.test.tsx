@@ -27,10 +27,9 @@ describe('User list tests', () => {
         getCurrentPositionAsyncMocked.mockClear();
     });
 
-    it(`It should display a user card for each users in the direct mtv room
-    As the device owner is the creator it should be able to open every user's settings even itself
-    Where we should find the set as delegation owner button and toggle permission switch for every user
-    Except for the creator where we should find only the delegation owner button`, async () => {
+    it(`It should display a user card for each users in the broadcast mtv room
+    As the device owner is the creator it should be able to open except for himself
+    Where we should find the toggle permission switch`, async () => {
         const tracksList = [generateTrackMetadata(), generateTrackMetadata()];
 
         const roomCreatorUserID = datatype.uuid();
@@ -38,7 +37,7 @@ describe('User list tests', () => {
             name: random.words(),
             roomID: datatype.uuid(),
             playing: false,
-            playingMode: MtvPlayingModes.Values.DIRECT,
+            playingMode: MtvPlayingModes.Values.BROADCAST,
             roomCreatorUserID,
             isOpen: true,
             isOpenOnlyInvitedUsersCanVote: false,
@@ -62,7 +61,7 @@ describe('User list tests', () => {
         };
 
         const fakeUsersArray = getFakeUsersList({
-            directMode: true,
+            directMode: false,
             isMeIsCreator: true,
         });
 
@@ -131,10 +130,10 @@ describe('User list tests', () => {
                 ).toBeTruthy();
 
                 expect(
-                    within(userListItem).getByA11yLabel(
+                    within(userListItem).queryByA11yLabel(
                         `${fakeUser.nickname} is the delegation owner`,
                     ),
-                ).toBeTruthy();
+                ).toBeNull();
 
                 expect(within(userListItem).getByText(/\(you\)/i)).toBeTruthy();
             }
@@ -151,31 +150,26 @@ describe('User list tests', () => {
             //Looking for settings
             const userSettingsThreeDotsButton = within(
                 userListItem,
-            ).getByA11yLabel(`Open user ${fakeUser.nickname} settings`);
-            expect(userSettingsThreeDotsButton).toBeTruthy();
-
-            fireEvent.press(userSettingsThreeDotsButton);
-
-            await waitFor(() => {
-                const bottomSheetModalTitle = screen.getByText(
-                    new RegExp(`${fakeUser.nickname}.*settings`, 'i'),
-                );
-                expect(bottomSheetModalTitle).toBeTruthy();
-            });
-
-            const makeDelegatorButton = screen.queryByText(
-                /.*delegation.*owner.*/i,
-            );
-            expect(makeDelegatorButton).toBeTruthy();
+            ).queryByA11yLabel(`Open user ${fakeUser.nickname} settings`);
 
             if (fakeUser.isCreator) {
-                expect(makeDelegatorButton).toBeDisabled();
-                expect(
-                    screen.queryByA11yLabel(
-                        /.*delegation.*control.*permission/i,
-                    ),
-                ).toBeNull();
+                expect(userSettingsThreeDotsButton).toBeNull();
             } else {
+                expect(userSettingsThreeDotsButton).toBeTruthy();
+                fireEvent.press(userSettingsThreeDotsButton);
+
+                await waitFor(() => {
+                    const bottomSheetModalTitle = screen.getByText(
+                        new RegExp(`${fakeUser.nickname}.*settings`, 'i'),
+                    );
+                    expect(bottomSheetModalTitle).toBeTruthy();
+                });
+
+                const makeDelegatorButton = screen.queryByText(
+                    /.*delegation.*owner.*/i,
+                );
+                expect(makeDelegatorButton).toBeNull();
+
                 if (fakeUser.hasControlAndDelegationPermission) {
                     expect(
                         screen.getByA11yLabel(
@@ -194,8 +188,8 @@ describe('User list tests', () => {
         }
     });
 
-    it(`It should display a user card for each users in the direct mtv room
-    As the device owner is not the creator it should not be able to see any three dots point settings`, async () => {
+    it(`It should display a user card for each users in the broadcast mtv room
+    As the device owner is not the creator it should not be able to see any users settings three dots button`, async () => {
         const tracksList = [generateTrackMetadata(), generateTrackMetadata()];
 
         const roomCreatorUserID = datatype.uuid();
@@ -203,7 +197,7 @@ describe('User list tests', () => {
             name: random.words(),
             roomID: datatype.uuid(),
             playing: false,
-            playingMode: MtvPlayingModes.Values.DIRECT,
+            playingMode: MtvPlayingModes.Values.BROADCAST,
             roomCreatorUserID,
             isOpen: true,
             isOpenOnlyInvitedUsersCanVote: false,
@@ -227,7 +221,7 @@ describe('User list tests', () => {
         };
 
         const fakeUsersArray = getFakeUsersList({
-            directMode: true,
+            directMode: false,
             isMeIsCreator: false,
         });
 
@@ -322,13 +316,12 @@ describe('User list tests', () => {
                 userListItem,
             ).queryByA11yLabel(`Open user ${fakeUser.nickname} settings`);
             expect(userSettingsThreeDotsButton).toBeNull();
+            // ///
         }
     });
 
-    it(`It should display a user card for each users in the direct mtv room
-    As the device owner is not the creator but has the control and delegation pemrission
-    it should be able to go to every user's settings
-    where it should find the set as delegation owner button`, async () => {
+    it(`It should display a user card for each users in the broadcast mtv room
+    The device owner has the control and delegation permission, he should not be able to see any users settings three dots button`, async () => {
         const tracksList = [generateTrackMetadata(), generateTrackMetadata()];
 
         const roomCreatorUserID = datatype.uuid();
@@ -336,7 +329,7 @@ describe('User list tests', () => {
             name: random.words(),
             roomID: datatype.uuid(),
             playing: false,
-            playingMode: MtvPlayingModes.Values.DIRECT,
+            playingMode: MtvPlayingModes.Values.BROADCAST,
             roomCreatorUserID,
             isOpen: true,
             isOpenOnlyInvitedUsersCanVote: false,
@@ -360,7 +353,7 @@ describe('User list tests', () => {
         };
 
         const fakeUsersArray = getFakeUsersList({
-            directMode: true,
+            directMode: false,
             isMeIsCreator: false,
         }).map((fakeUser) =>
             fakeUser.isMe
@@ -461,29 +454,7 @@ describe('User list tests', () => {
             const userSettingsThreeDotsButton = within(
                 userListItem,
             ).queryByA11yLabel(`Open user ${fakeUser.nickname} settings`);
-            expect(userSettingsThreeDotsButton).toBeTruthy();
-
-            fireEvent.press(userSettingsThreeDotsButton);
-
-            await waitFor(() => {
-                const bottomSheetModalTitle = screen.getByText(
-                    new RegExp(`${fakeUser.nickname}.*settings`, 'i'),
-                );
-                expect(bottomSheetModalTitle).toBeTruthy();
-            });
-
-            const makeDelegatorButton = screen.queryByText(
-                /.*delegation.*owner.*/i,
-            );
-            expect(makeDelegatorButton).toBeTruthy();
-
-            expect(
-                screen.queryByA11yLabel(/.*delegation.*control.*permission/i),
-            ).toBeNull();
-
-            if (fakeUser.isCreator) {
-                expect(makeDelegatorButton).toBeDisabled();
-            }
+            expect(userSettingsThreeDotsButton).toBeNull();
             // ///
         }
     });

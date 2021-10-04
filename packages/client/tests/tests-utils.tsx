@@ -73,16 +73,13 @@ export function noop(): void {
 }
 
 export function getFakeUsersList({
-    length,
     directMode,
     isMeIsCreator,
 }: {
-    length?: number;
     directMode: boolean;
     isMeIsCreator?: boolean;
 }): MtvRoomUsersListElement[] {
-    const len = length || 10;
-
+    const len = 5;
     const minRandomIndex = 1;
     const getRandomIndex = () =>
         Math.floor(Math.random() * (len - minRandomIndex + 1) + minRandomIndex);

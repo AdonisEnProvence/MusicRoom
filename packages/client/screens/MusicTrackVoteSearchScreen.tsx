@@ -29,7 +29,7 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
     const sx = useSx();
 
     const renderItem: ListRenderItem<MtvRoomSearchResult> = ({
-        item: { roomID, roomName, creatorName },
+        item: { roomID, roomName, creatorName, isOpen },
     }) => (
         <TouchableOpacity
             onPress={() => {
@@ -45,7 +45,9 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
                 }}
             >
                 <View>
-                    <Typo sx={{ fontSize: 's' }}>{roomName}</Typo>
+                    <Typo sx={{ fontSize: 's' }}>
+                        {roomName} • {isOpen === true ? 'Public' : 'Private'}
+                    </Typo>
                     <Typo sx={{ fontSize: 'xs', color: 'greyLighter' }}>
                         {creatorName}
                     </Typo>

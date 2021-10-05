@@ -327,9 +327,9 @@ describe('User list tests', () => {
     });
 
     it(`It should display a user card for each users in the direct mtv room
-    As the device owner is not the creator but has the control and delegation permission
-    it should be able to go to a user settings and set him as delegation owner
-    the the creator delegation button should not be disabled anymore`, async () => {
+    As the device owner is not the creator but has the control and delegation pemrission
+    it should be able to go to every user's settings
+    where it should find the set as delegation owner button`, async () => {
         const tracksList = [generateTrackMetadata(), generateTrackMetadata()];
 
         const roomCreatorUserID = datatype.uuid();
@@ -490,8 +490,8 @@ describe('User list tests', () => {
     });
 
     it.only(`It should display a user card for each users in the direct mtv room
-    As the device owner is not the creator but has the control and delegation permission
-    where it should find the set as delegation owner button`, async () => {
+    As the device owner is the creator he should be able to go to a user settings and set him as delegation owner
+    the the creator delegation button should not be disabled anymore`, async () => {
         const tracksList = [generateTrackMetadata(), generateTrackMetadata()];
 
         const roomCreatorUserID = datatype.uuid();
@@ -524,15 +524,8 @@ describe('User list tests', () => {
 
         let fakeUsersArray = getFakeUsersList({
             directMode: true,
-            isMeIsCreator: false,
-        }).map((fakeUser) =>
-            fakeUser.isMe
-                ? {
-                      ...fakeUser,
-                      hasControlAndDelegationPermission: true,
-                  }
-                : fakeUser,
-        );
+            isMeIsCreator: true,
+        });
 
         serverSocket.on('GET_CONTEXT', () => {
             serverSocket.emit('RETRIEVE_CONTEXT', initialState);

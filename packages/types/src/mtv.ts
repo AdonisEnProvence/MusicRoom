@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import { MtvRoomUsersListRawElementFromTemporal } from '.';
+import { MtvRoomUsersListRawElementFromTemporal } from './server-to-temporal';
 
 const Milliseconds = z.number().nonnegative();
 

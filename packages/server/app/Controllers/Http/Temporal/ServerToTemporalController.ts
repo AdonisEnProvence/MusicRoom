@@ -261,7 +261,7 @@ export default class ServerToTemporalController {
             return TemporalGetStateQueryResponse.parse(res);
         } catch (e) {
             console.error(e);
-            throw new Error('Get State FAILED' + workflowID);
+            throw new Error('Get Users list FAILED' + workflowID);
         }
     }
 

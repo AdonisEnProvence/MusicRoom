@@ -3,6 +3,7 @@ import {
     MtvRoomSearchResponse,
 } from '@musicroom/types';
 import urlcat from 'urlcat';
+import redaxios from 'redaxios';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
 
 export async function fetchMtvRooms(
@@ -10,21 +11,8 @@ export async function fetchMtvRooms(
 ): Promise<MtvRoomSearchResponse> {
     const url = urlcat(SERVER_ENDPOINT, '/v2/search/rooms');
 
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-    });
-    if (response.ok === false) {
-        console.error(response.status, response.statusText);
-        throw new Error('Could not get rooms');
-    }
-
-    const rawResponse = await response.json();
-    const parsedResponse = MtvRoomSearchResponse.parse(rawResponse);
+    const rawResponse = await redaxios.post(url, body);
+    const parsedResponse = MtvRoomSearchResponse.parse(rawResponse.data);
 
     return parsedResponse;
 }

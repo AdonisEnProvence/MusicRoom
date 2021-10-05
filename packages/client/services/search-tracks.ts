@@ -1,5 +1,6 @@
 import urlcat from 'urlcat';
 import * as z from 'zod';
+import redaxios from 'redaxios';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
 import { TrackMetadata } from '@musicroom/types';
 
@@ -21,14 +22,10 @@ export async function fetchTracksSuggestions({
     const url = urlcat(SERVER_ENDPOINT, '/search/track/:searchQuery', {
         searchQuery,
     });
-    const response = await fetch(url);
-    if (response.ok === false) {
-        throw new Error('Could not get tracks');
-    }
 
-    const tracksMetadata = SearchTracksAPIRawResponse.parse(
-        await response.json(),
-    );
+    const response = await redaxios.get(url);
+
+    const tracksMetadata = SearchTracksAPIRawResponse.parse(response.data);
     if (tracksMetadata === undefined) {
         return tracksMetadata;
     }

@@ -72,6 +72,13 @@ export function noop(): void {
     return undefined;
 }
 
+/**
+ * Returns a fake users list array
+ * First element will always be the creator
+ * @param directMode if true the default delegation owner will be the creator
+ * @param isMeIsCreator if true creator will also be "me"
+ * @returns
+ */
 export function getFakeUsersList({
     directMode,
     isMeIsCreator,
@@ -81,21 +88,24 @@ export function getFakeUsersList({
 }): MtvRoomUsersListElement[] {
     const len = 5;
     const minRandomIndex = 1;
-    const getRandomIndex = () =>
-        Math.floor(Math.random() * (len - minRandomIndex + 1) + minRandomIndex);
 
-    const getFakeUser = (): MtvRoomUsersListElement => ({
+    const getRandomIndex = () =>
+        Math.floor(
+            Math.random() * (len - 1 - minRandomIndex + 1) + minRandomIndex,
+        );
+
+    const getFakeUser = (index: number): MtvRoomUsersListElement => ({
         hasControlAndDelegationPermission: false,
         isCreator: false,
         isDelegationOwner: false,
         isMe: false,
-        nickname: random.word(),
+        nickname: `${random.word()}_${index}`,
         userID: datatype.uuid(),
     });
 
     const fakeUsersArray: MtvRoomUsersListElement[] = Array.from({
         length: len,
-    }).map(() => getFakeUser());
+    }).map((_, index) => getFakeUser(index));
 
     fakeUsersArray[0] = {
         ...fakeUsersArray[0],

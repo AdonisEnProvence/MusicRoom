@@ -39,6 +39,10 @@ const socket = {
         });
     },
 
+    off<Event extends keyof AllServerToClientEvents>(event: Event): void {
+        CLIENT_TO_SERVER_EVENTS[event] = [];
+    },
+
     disconnect(): void {
         return undefined;
     },

@@ -13,7 +13,7 @@ import * as z from 'zod';
 
 const TemporalToServerJoinBody = z.object({
     joiningUserID: z.string(),
-    state: MtvWorkflowState,
+    state: MtvWorkflowStateWithUserRelatedInformation,
 });
 
 type TemporalToServerJoinBody = z.infer<typeof TemporalToServerJoinBody>;
@@ -40,6 +40,7 @@ export default class TemporalToServerController {
 
         console.log('received userLengthUpdate from temporal', state);
 
+        Ws.io.to(roomID).emit('USERS_LIST_FORCED_REFRESH');
         Ws.io.to(roomID).emit('USER_LENGTH_UPDATE', state);
     }
 
@@ -62,12 +63,6 @@ export default class TemporalToServerController {
             request.body(),
         );
         const { roomID } = state;
-
-        if (state.userRelatedInformation === null) {
-            throw new Error(
-                'userRelatedInformation on temporal join callback should not be null',
-            );
-        }
 
         const joiningUser = await User.findOrFail(joiningUserID);
         const mtvRoom = await MtvRoom.findOrFail(roomID);
@@ -194,6 +189,7 @@ export default class TemporalToServerController {
         const state = MtvWorkflowState.parse(request.body());
 
         Ws.io.to(state.roomID).emit('UPDATE_DELEGATION_OWNER_CALLBACK', state);
+        Ws.io.to(state.roomID).emit('USERS_LIST_FORCED_REFRESH');
     }
 
     public async acknowledgeUpdateUserFitsPositionConstraint({
@@ -222,5 +218,6 @@ export default class TemporalToServerController {
             'USER_PERMISSIONS_UPDATE',
             [state],
         );
+        Ws.io.to(state.roomID).emit('USERS_LIST_FORCED_REFRESH');
     }
 }

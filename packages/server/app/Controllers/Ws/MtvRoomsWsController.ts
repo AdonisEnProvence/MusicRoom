@@ -3,6 +3,7 @@ import {
     MtvRoomClientToServerCreateArgs,
     MtvRoomUpdateControlAndDelegationPermissionArgs,
     MtvRoomUpdateDelegationOwnerArgs,
+    MtvRoomUsersListElement,
     MtvWorkflowState,
 } from '@musicroom/types';
 import MtvRoom from 'App/Models/MtvRoom';
@@ -10,6 +11,7 @@ import User from 'App/Models/User';
 import GeocodingService from 'App/Services/GeocodingService';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
+import Ws from 'App/Services/Ws';
 import { randomUUID } from 'crypto';
 import { isPointWithinRadius } from 'geolib';
 import ServerToTemporalController, {
@@ -49,6 +51,10 @@ interface OnPauseArgs extends RoomID {}
 interface OnPlayArgs extends RoomID {}
 interface OnTerminateArgs extends RoomID, RunID {}
 interface OnGetStateArgs extends RoomID, UserID {}
+interface OnGetUsersListArgs {
+    roomID: string;
+    userID: string;
+}
 interface OnGoToNextTrackArgs extends RoomID {}
 interface OnChangeEmittingDeviceArgs extends RoomID, DeviceID, UserID {}
 interface OnSuggestTracksArgs extends RoomID, DeviceID, UserID {
@@ -209,6 +215,7 @@ export default class MtvRoomsWsController {
                 userID,
             });
         }
+        Ws.io.to(leavingRoom.uuid).emit('USERS_LIST_FORCED_REFRESH');
     }
 
     public static async onPause({ roomID }: OnPauseArgs): Promise<void> {
@@ -251,6 +258,47 @@ export default class MtvRoomsWsController {
             runID: room.runID,
             userID,
         });
+    }
+
+    public static async onGetUsersList({
+        userID,
+        roomID,
+    }: OnGetUsersListArgs): Promise<MtvRoomUsersListElement[]> {
+        const room = await MtvRoom.findOrFail(roomID);
+        const temporalFormatedUsersList =
+            await ServerToTemporalController.getUsersList({
+                workflowID: roomID,
+                runID: room.runID,
+            });
+
+        await room.load('members');
+        const usersRelatedToRoom = room.members;
+        const formattedUsersList: MtvRoomUsersListElement[] =
+            temporalFormatedUsersList.map((temporalUser) => {
+                const pgUser = usersRelatedToRoom.find(
+                    (user) => temporalUser.userID === user.uuid,
+                );
+
+                if (pgUser === undefined) {
+                    throw new Error(
+                        'Postgres and temporal are desync on users list',
+                    );
+                }
+                const isMe = pgUser.uuid === userID;
+
+                return {
+                    ...temporalUser,
+                    nickname: pgUser.nickname,
+                    avatar: undefined,
+                    isMe,
+                };
+            });
+
+        if (formattedUsersList.length === 0) {
+            throw new Error('FormattedUsersList is empty');
+        }
+
+        return formattedUsersList;
     }
 
     public static async onGoToNextTrack({

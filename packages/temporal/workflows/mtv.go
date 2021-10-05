@@ -281,6 +281,34 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 		return err
 	}
 
+	if err := workflow.SetQueryHandler(
+		ctx,
+		shared.MtvGetUsersListQuery,
+		func() ([]shared.ExposedInternalStateUserListElement, error) {
+
+			usersList := make([]shared.ExposedInternalStateUserListElement, 0, len(internalState.Users))
+
+			for _, user := range internalState.Users {
+
+				isCreator := internalState.initialParams.RoomCreatorUserID == user.UserID
+				isDelegationOwner := internalState.DelegationOwnerUserID != nil && *internalState.DelegationOwnerUserID == user.UserID
+
+				formatedUserListElement := shared.ExposedInternalStateUserListElement{
+					UserID:                            user.UserID,
+					HasControlAndDelegationPermission: user.HasControlAndDelegationPermission,
+					IsCreator:                         isCreator,
+					IsDelegationOwner:                 isDelegationOwner,
+				}
+				usersList = append(usersList, formatedUserListElement)
+			}
+
+			return usersList, nil
+		},
+	); err != nil {
+		logger.Info("SetQueryHandler for getUsersList failed.", "Error", err)
+		return err
+	}
+
 	channel := workflow.GetSignalChannel(ctx, shared.SignalChannelName)
 
 	var (

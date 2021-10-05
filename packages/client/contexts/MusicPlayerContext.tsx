@@ -16,7 +16,7 @@ import {
 } from '../machines/appMusicPlayerMachine';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 import { navigateFromRef } from '../navigation/RootNavigation';
-import { Socket } from '../services/websockets';
+import { useSocketContext } from './SocketContext';
 import { useUserContext } from './UserContext';
 
 type MusicPlayerContextValue = {
@@ -31,13 +31,13 @@ const MusicPlayerContext = React.createContext<
 >(undefined);
 
 type MusicPlayerContextProviderProps = {
-    socket: Socket;
     setDisplayModal: (display: boolean) => void;
 };
 
 // TODO: See if we need to optimize the performances
 export const MusicPlayerContextProvider: React.FC<MusicPlayerContextProviderProps> =
-    ({ socket, setDisplayModal, children }) => {
+    ({ setDisplayModal, children }) => {
+        const socket = useSocketContext();
         const playerRef = useRef<MusicPlayerRef | null>(null);
         const { isFullScreen, setIsFullScreen, toggleIsFullScreen } =
             useMusicPlayerToggleFullScreen(false);

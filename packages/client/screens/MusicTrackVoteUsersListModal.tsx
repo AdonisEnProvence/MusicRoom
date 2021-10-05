@@ -1,11 +1,16 @@
+import { BottomSheetHandle, BottomSheetModal } from '@gorhom/bottom-sheet';
+import { MtvPlayingModes, MtvRoomUsersListElement } from '@musicroom/types';
 import { useActor, useMachine } from '@xstate/react';
-import { Text, View, useSx } from 'dripsy';
+import { Text, useSx, View } from 'dripsy';
 import React, { useMemo, useRef, useState } from 'react';
-import { FlatList, Switch, TouchableOpacity } from 'react-native';
+import { FlatList } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActorRef } from 'xstate';
-import { BottomSheetModal, BottomSheetHandle } from '@gorhom/bottom-sheet';
 import { AppScreenWithSearchBar } from '../components/kit';
+import MtvRoomUserListElementSettings from '../components/User/MtvRoomUserListElementSettings';
 import UserListItemWithThreeDots from '../components/User/UserListItemWithThreeDots';
+import { useMusicPlayer } from '../contexts/MusicPlayerContext';
+import { useSocketContext } from '../contexts/SocketContext';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
@@ -16,36 +21,64 @@ import { MusicTrackVoteUsersListModalProps } from '../types';
 const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> =
     ({ navigation }) => {
         const sx = useSx();
+        const insets = useSafeAreaInsets();
         const [screenOffsetY, setScreenOffsetY] = useState(0);
+        const socket = useSocketContext();
+        const {
+            state: musicPlayerState,
+            sendToMachine: sendToMusicPlayerMachine,
+        } = useMusicPlayer();
+        const roomPlayingMode = musicPlayerState.context.playingMode;
+
+        //Init room users list machine
         const roomUsersListMachine = useMemo(
             () =>
                 createRoomUsersListMachine({
-                    users: [
-                        {
-                            id: 'Baptiste',
-                        },
-                        {
-                            id: 'Biolay',
-                        },
-                        {
-                            id: 'Christophe',
-                        },
-                    ],
+                    socket,
                 }),
-            [],
+            [socket],
         );
-        const [state] = useMachine(roomUsersListMachine);
+        const [state, sendToMachine] = useMachine(roomUsersListMachine);
+        ///
+
+        const { deviceOwnerUser } = state.context;
+        //Maybe here we should redirect the user to the home if the deviceOwner is not found in the users list ?
+
+        let hideThreeDots = true;
+
+        const deviceOwnerIsRoomCreator =
+            deviceOwnerUser !== undefined && deviceOwnerUser.isCreator;
+        if (deviceOwnerIsRoomCreator) {
+            hideThreeDots = false;
+        }
+
+        const roomIsInDirectMode =
+            roomPlayingMode === MtvPlayingModes.Values.DIRECT;
+        const deviceOwnerHasControlAndDelegationPermissionAndRoomIsInDirectMode =
+            deviceOwnerUser !== undefined &&
+            deviceOwnerUser.hasControlAndDelegationPermission &&
+            roomIsInDirectMode;
+        if (deviceOwnerHasControlAndDelegationPermissionAndRoomIsInDirectMode) {
+            hideThreeDots = false;
+        }
+
+        //Search bar
         const searchBarActor: ActorRef<
             AppScreenHeaderWithSearchBarMachineEvent,
             AppScreenHeaderWithSearchBarMachineState
         > = state.children.searchBarMachine;
         const [searchState, sendToSearch] = useActor(searchBarActor);
         const showHeader = searchState.hasTag('showHeaderTitle');
+        ///
 
+        //Bottom sheet related
         const bottomSheetModalRef = useRef<BottomSheetModal>(null);
         const snapPoints = [200];
 
-        function handlePresentModalPress() {
+        function handlePresentModalPress(
+            selectedUser: MtvRoomUsersListElement,
+        ) {
+            sendToMachine({ type: 'SET_SELECTED_USER', selectedUser });
             bottomSheetModalRef.current?.present();
         }
 
@@ -56,9 +89,9 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
         function handleGoBack() {
             navigation.goBack();
         }
+        ///
 
-        const [hasPermission, setHasPermission] = useState(false);
-
+        const searchQueryIsNotEmpty = state.context.searchQuery !== '';
         return (
             <AppScreenWithSearchBar
                 canGoBack
@@ -72,10 +105,21 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                 goBack={handleGoBack}
             >
                 <FlatList
-                    data={state.context.filteredUsers}
+                    data={
+                        searchQueryIsNotEmpty
+                            ? state.context.filteredUsers
+                            : state.context.allUsers
+                    }
+                    key={'mtv_room_users_list'}
+                    keyExtractor={(item) => item.userID}
                     renderItem={({ item, index }) => {
                         const isLastItem =
                             index === state.context.filteredUsers.length - 1;
+
+                        const hideDeviceOwnerUserCardThreeDotsButton =
+                            deviceOwnerIsRoomCreator &&
+                            !roomIsInDirectMode &&
+                            item.isMe;
 
                         return (
                             <View
@@ -84,10 +128,16 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                                 }}
                             >
                                 <UserListItemWithThreeDots
+                                    hideThreeDots={
+                                        hideDeviceOwnerUserCardThreeDotsButton ||
+                                        hideThreeDots
+                                    }
+                                    user={item}
                                     index={index}
-                                    name={item.id}
-                                    threeDotsAccessibilityLabel={`Open user ${item.id} settings`}
-                                    onThreeDotsPress={handlePresentModalPress}
+                                    threeDotsAccessibilityLabel={`Open user ${item.nickname} settings`}
+                                    onThreeDotsPress={() =>
+                                        handlePresentModalPress(item)
+                                    }
                                 />
                             </View>
                         );
@@ -95,9 +145,16 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                     ListEmptyComponent={() => {
                         return (
                             <Text sx={{ color: 'white' }}>
-                                There are not users that match this request
+                                {searchQueryIsNotEmpty
+                                    ? 'There are not users that match this request'
+                                    : 'No users found in this room'}
                             </Text>
                         );
+                    }}
+                    // This is here that we ensure the Flat List will not show items
+                    // on an unsafe area.
+                    contentContainerStyle={{
+                        paddingBottom: insets.bottom,
                     }}
                 />
 
@@ -116,82 +173,25 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                         />
                     )}
                 >
-                    <View
-                        sx={{
-                            flex: 1,
-                            padding: 'm',
-                            alignItems: 'center',
+                    <MtvRoomUserListElementSettings
+                        playingMode={roomPlayingMode}
+                        setAsDelegationOwner={(user) => {
+                            sendToMusicPlayerMachine({
+                                type: 'UPDATE_DELEGATION_OWNER',
+                                newDelegationOwnerUserID: user.userID,
+                            });
                         }}
-                    >
-                        <View
-                            sx={{
-                                maxWidth: [undefined, 500],
-                                width: '100%',
-                            }}
-                        >
-                            <Text
-                                sx={{
-                                    color: 'white',
-                                    marginBottom: 'l',
-                                    textAlign: 'center',
-                                }}
-                            >
-                                Biolay77 settings
-                            </Text>
-
-                            <View
-                                sx={{
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                }}
-                            >
-                                <Text
-                                    sx={{
-                                        marginRight: 'l',
-                                        color: 'white',
-                                    }}
-                                >
-                                    Has Delegation and Control permission?
-                                </Text>
-
-                                <Switch
-                                    value={hasPermission}
-                                    onValueChange={setHasPermission}
-                                    accessibilityLabel={`${
-                                        hasPermission === true
-                                            ? 'Remove'
-                                            : 'Set'
-                                    } delegation and control permission`}
-                                />
-                            </View>
-
-                            <View sx={{ flexDirection: 'row' }}>
-                                <TouchableOpacity
-                                    style={sx({ flex: 1, marginTop: 'l' })}
-                                >
-                                    <View
-                                        sx={{
-                                            padding: 's',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            borderRadius: 's',
-                                            backgroundColor: 'greyLighter',
-                                        }}
-                                    >
-                                        <Text
-                                            sx={{
-                                                fontSize: 's',
-                                                color: 'white',
-                                            }}
-                                        >
-                                            Make delegator
-                                        </Text>
-                                    </View>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    </View>
+                        toggleHasControlAndDelegationPermission={(user) => {
+                            sendToMusicPlayerMachine({
+                                type: 'UPDATE_CONTROL_AND_DELEGATION_PERMISSION',
+                                toUpdateUserID: user.userID,
+                                hasControlAndDelegationPermission:
+                                    !user.hasControlAndDelegationPermission,
+                            });
+                        }}
+                        selectedUser={state.context.selectedUser}
+                        deviceOwnerUser={state.context.deviceOwnerUser}
+                    />
                 </BottomSheetModal>
             </AppScreenWithSearchBar>
         );

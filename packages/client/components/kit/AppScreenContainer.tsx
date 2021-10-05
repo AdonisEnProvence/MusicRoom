@@ -15,6 +15,9 @@ const AppScreenContainer: React.FC<AppScreenContainerProps> = ({
                 paddingLeft: 'l',
                 paddingRight: 'l',
                 flex: 1,
+                // The initial height of the element is not its content height,
+                // it's 0 so that it grows only how we want it to grow.
+                flexBasis: 0,
 
                 // Enable vertical scrolling on tablets and desktops.
                 overflow:

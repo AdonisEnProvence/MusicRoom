@@ -57,6 +57,7 @@ func main() {
 	r.Handle("/change-user-emitting-device", http.HandlerFunc(ChangeUserEmittingDeviceHandler)).Methods(http.MethodPut)
 	r.Handle("/update-user-fits-position-constraint", http.HandlerFunc(UpdateUserFitsPositionConstraintHandler)).Methods(http.MethodPut)
 	r.Handle("/state", http.HandlerFunc(GetStateHandler)).Methods(http.MethodPut)
+	r.Handle("/users-list", http.HandlerFunc(GetUsersListHandler)).Methods(http.MethodPut)
 	r.Handle("/go-to-next-track", http.HandlerFunc(GoToNextTrackHandler)).Methods(http.MethodPut)
 	r.Handle("/suggest-tracks", http.HandlerFunc(SuggestTracksHandler)).Methods(http.MethodPut)
 	r.Handle("/terminate", http.HandlerFunc(TerminateWorkflowHandler)).Methods(http.MethodPut)
@@ -747,7 +748,41 @@ func GetStateHandler(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
-	var res interface{}
+	var res shared.MtvRoomExposedState
+	if err := response.Get(&res); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(res)
+}
+
+type GetUsersListBody struct {
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
+}
+
+func GetUsersListHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var body GetUsersListBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	response, err := temporal.QueryWorkflow(context.Background(), body.WorkflowID, body.RunID, shared.MtvGetUsersListQuery)
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
+	var res []shared.ExposedInternalStateUserListElement
 	if err := response.Get(&res); err != nil {
 		WriteError(w, err)
 		return

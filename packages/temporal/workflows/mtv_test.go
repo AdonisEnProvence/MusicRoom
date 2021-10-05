@@ -44,6 +44,18 @@ func (s *UnitTestSuite) getMtvState(userID string) shared.MtvRoomExposedState {
 	return mtvState
 }
 
+func (s *UnitTestSuite) getUsersList() []shared.ExposedInternalStateUserListElement {
+	var usersList []shared.ExposedInternalStateUserListElement
+
+	res, err := s.env.QueryWorkflow(shared.MtvGetUsersListQuery)
+	s.NoError(err)
+
+	err = res.Get(&usersList)
+	s.NoError(err)
+
+	return usersList
+}
+
 func (s *UnitTestSuite) emitPlaySignal() {
 	fmt.Println("-----EMIT PLAY CALLED IN TEST-----")
 	playSignal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
@@ -3176,6 +3188,217 @@ func (s *UnitTestSuite) Test_CanUpdateControlAndDelegationPermission() {
 		s.Equal(joiningUserID, mtvState.UserRelatedInformation.UserID)
 		s.Equal(true, mtvState.UserRelatedInformation.HasControlAndDelegationPermission)
 	}, addedUserHasControlAndDelegationPermission)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *UnitTestSuite) Test_GetUsersListQuery() {
+
+	var (
+		joiningUserID       = faker.UUIDHyphenated()
+		joiningUserDeviceID = faker.UUIDHyphenated()
+	)
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+
+	tracksIDs := []string{tracks[0].ID}
+	params, _ := getWokflowInitParams(tracksIDs, 1)
+	defaultDuration := 1 * time.Millisecond
+
+	params.PlayingMode = shared.MtvPlayingModeBroadcast
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.AcknowledgeUpdateDelegationOwner,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Never()
+
+	init := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		usersList := s.getUsersList()
+
+		expectedUsersList := []shared.ExposedInternalStateUserListElement{
+			{
+				UserID:                            params.RoomCreatorUserID,
+				HasControlAndDelegationPermission: true,
+				IsCreator:                         true,
+				IsDelegationOwner:                 false,
+			},
+		}
+
+		s.Equal(expectedUsersList, usersList)
+	}, init)
+
+	emitJoinSignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+	}, emitJoinSignal)
+
+	checkJoinWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		usersList := s.getUsersList()
+
+		expectedUsersList := []shared.ExposedInternalStateUserListElement{
+			{
+				UserID:                            params.RoomCreatorUserID,
+				HasControlAndDelegationPermission: true,
+				IsCreator:                         true,
+				IsDelegationOwner:                 false,
+			},
+			{
+				UserID:                            joiningUserID,
+				HasControlAndDelegationPermission: false,
+				IsCreator:                         false,
+				IsDelegationOwner:                 false,
+			},
+		}
+
+		s.Equal(expectedUsersList, usersList)
+	}, checkJoinWorked)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *UnitTestSuite) Test_GetUsersListQueryInDirectRoom() {
+
+	var (
+		joiningUserID       = faker.UUIDHyphenated()
+		joiningUserDeviceID = faker.UUIDHyphenated()
+	)
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+
+	tracksIDs := []string{tracks[0].ID}
+	params, _ := getWokflowInitParams(tracksIDs, 1)
+	defaultDuration := 1 * time.Millisecond
+
+	params.PlayingMode = shared.MtvPlayingModeDirect
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.AcknowledgeUpdateDelegationOwner,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Never()
+
+	init := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		usersList := s.getUsersList()
+
+		expectedUsersList := []shared.ExposedInternalStateUserListElement{
+			{
+				UserID:                            params.RoomCreatorUserID,
+				HasControlAndDelegationPermission: true,
+				IsCreator:                         true,
+				IsDelegationOwner:                 true,
+			},
+		}
+
+		s.Equal(expectedUsersList, usersList)
+	}, init)
+
+	emitJoinSignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+	}, emitJoinSignal)
+
+	updateDelegationOwner := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitUpdateDelegationOwnerSignal(shared.NewUpdateDelegationOwnerSignalArgs{
+			NewDelegationOwnerUserID: joiningUserID,
+			EmitterUserID:            params.RoomCreatorUserID,
+		})
+	}, updateDelegationOwner)
+
+	checkOperationsWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		usersList := s.getUsersList()
+
+		expectedUsersList := []shared.ExposedInternalStateUserListElement{
+			{
+				UserID:                            params.RoomCreatorUserID,
+				HasControlAndDelegationPermission: true,
+				IsCreator:                         true,
+				IsDelegationOwner:                 false,
+			},
+			{
+				UserID:                            joiningUserID,
+				HasControlAndDelegationPermission: false,
+				IsCreator:                         false,
+				IsDelegationOwner:                 true,
+			},
+		}
+
+		s.Equal(expectedUsersList, usersList)
+	}, checkOperationsWorked)
+
+	emitLeave := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitLeaveSignal(joiningUserID)
+	}, emitLeave)
+
+	checkDelegationOwnerResetAndUserListUpdate := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		usersList := s.getUsersList()
+
+		expectedUsersList := []shared.ExposedInternalStateUserListElement{
+			{
+				UserID:                            params.RoomCreatorUserID,
+				HasControlAndDelegationPermission: true,
+				IsCreator:                         true,
+				IsDelegationOwner:                 true,
+			},
+		}
+
+		s.Equal(expectedUsersList, usersList)
+	}, checkDelegationOwnerResetAndUserListUpdate)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
 

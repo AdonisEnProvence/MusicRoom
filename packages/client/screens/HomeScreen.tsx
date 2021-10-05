@@ -1,5 +1,5 @@
-import { Button } from '@dripsy/core';
 import { MtvWorkflowState } from '@musicroom/types';
+import { Button } from 'dripsy';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {

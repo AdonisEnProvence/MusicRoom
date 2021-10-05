@@ -1,22 +1,34 @@
+import { MtvRoomUsersListElement } from '@musicroom/types';
+import { ContextFrom, EventFrom, forwardTo, send, StateMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { ContextFrom, EventFrom, StateMachine } from 'xstate';
+import { SocketClient } from '../contexts/SocketContext';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 
-interface MtvRoomUser {
-    id: string;
-}
+type OptionnalMtvRoomUsersListElement = MtvRoomUsersListElement | undefined;
 
 const roomUsersListModel = createModel(
     {
-        allUsers: [] as MtvRoomUser[],
-        filteredUsers: [] as MtvRoomUser[],
+        allUsers: [] as MtvRoomUsersListElement[],
+        filteredUsers: [] as MtvRoomUsersListElement[],
         searchQuery: '',
+        selectedUser: undefined as OptionnalMtvRoomUsersListElement,
+        deviceOwnerUser: undefined as OptionnalMtvRoomUsersListElement,
     },
     {
         events: {
             UPDATE_SEARCH_QUERY: (searchQuery: string) => ({ searchQuery }),
 
-            SET_USERS: (users: MtvRoomUser[]) => ({ users }),
+            RETRIEVE_USERS_LIST: () => ({}),
+
+            ASSIGN_RETRIEVED_USERS_LIST: (
+                retrievedUsers: MtvRoomUsersListElement[],
+            ) => ({ retrievedUsers }),
+
+            SET_USERS: (users: MtvRoomUsersListElement[]) => ({ users }),
+
+            SET_SELECTED_USER: (selectedUser: MtvRoomUsersListElement) => ({
+                selectedUser,
+            }),
         },
     },
 );
@@ -28,6 +40,13 @@ const assignSearchQueryToContext = roomUsersListModel.assign(
     'UPDATE_SEARCH_QUERY',
 );
 
+const assignSelectedUser = roomUsersListModel.assign(
+    {
+        selectedUser: (_, { selectedUser }) => selectedUser,
+    },
+    'SET_SELECTED_USER',
+);
+
 const assignFilteredUsersToContext = roomUsersListModel.assign(
     {
         filteredUsers: (_, { users }) => users,
@@ -35,12 +54,32 @@ const assignFilteredUsersToContext = roomUsersListModel.assign(
     'SET_USERS',
 );
 
+const assignRetrievedUsersListToContext = roomUsersListModel.assign(
+    {
+        allUsers: (_, { retrievedUsers }) => retrievedUsers,
+        deviceOwnerUser: (_, { retrievedUsers }) =>
+            retrievedUsers.find((user) => user.isMe),
+        selectedUser: (context, { retrievedUsers }) => {
+            if (context.selectedUser === undefined) {
+                return undefined;
+            }
+            return retrievedUsers.find(
+                (user) =>
+                    user.userID ===
+                    MtvRoomUsersListElement.parse(context.selectedUser).userID,
+            );
+        },
+        //add filtered users
+    },
+    'ASSIGN_RETRIEVED_USERS_LIST',
+);
+
 interface CreateRoomUsersListMachineArgs {
-    users: MtvRoomUser[];
+    socket: SocketClient;
 }
 
 export const createRoomUsersListMachine = ({
-    users,
+    socket,
 }: CreateRoomUsersListMachineArgs): StateMachine<
     ContextFrom<typeof roomUsersListModel>,
     any,
@@ -49,61 +88,120 @@ export const createRoomUsersListMachine = ({
     return roomUsersListModel.createMachine({
         context: {
             ...roomUsersListModel.initialContext,
-            allUsers: users,
-            filteredUsers: users,
+            allUsers: [],
+            filteredUsers: [],
+            selectedUser: undefined,
         },
 
-        initial: 'idle',
+        invoke: [
+            {
+                id: 'searchBarMachine',
+                src: appScreenHeaderWithSearchBarMachine,
+            },
+            {
+                id: 'socketConnection',
+                src: (_, _event) => (sendBack, onReceive) => {
+                    socket.on('USERS_LIST_FORCED_REFRESH', () => {
+                        console.log('RECEIVED FORCED REFRESH');
+                        sendBack({
+                            type: 'RETRIEVE_USERS_LIST',
+                        });
+                    });
 
-        invoke: {
-            id: 'searchBarMachine',
-            src: appScreenHeaderWithSearchBarMachine,
-        },
+                    onReceive((e) => {
+                        switch (e.type) {
+                            case 'RETRIEVE_USERS_LIST': {
+                                socket.emit(
+                                    'GET_USERS_LIST',
+                                    (retrievedUsers) => {
+                                        sendBack({
+                                            type: 'ASSIGN_RETRIEVED_USERS_LIST',
+                                            retrievedUsers,
+                                        });
+                                    },
+                                );
 
-        states: {
-            idle: {},
+                                break;
+                            }
+                        }
+                    });
 
-            debouncingQuery: {
-                after: {
-                    300: {
-                        target: 'filteringUsers',
-                    },
+                    return () => socket.off('USERS_LIST_FORCED_REFRESH');
                 },
             },
+        ],
 
-            filteringUsers: {
-                invoke: {
-                    id: 'filteringUsers',
+        initial: 'firstUsersListFetch',
 
-                    src:
-                        ({ allUsers, searchQuery }) =>
-                        (sendBack) => {
-                            const filteredUsers = allUsers.filter(({ id }) =>
-                                id.startsWith(searchQuery),
-                            );
+        states: {
+            firstUsersListFetch: {
+                entry: send({ type: 'RETRIEVE_USERS_LIST' }),
+            },
 
-                            sendBack({
-                                type: 'SET_USERS',
-                                users: filteredUsers,
-                            });
+            machineIsReady: {
+                initial: 'idle',
+
+                states: {
+                    idle: {},
+
+                    debouncingQuery: {
+                        after: {
+                            300: {
+                                target: 'filteringUsers',
+                            },
                         },
+                    },
+
+                    filteringUsers: {
+                        invoke: {
+                            id: 'filteringUsers',
+
+                            src:
+                                ({ allUsers, searchQuery }) =>
+                                (sendBack) => {
+                                    const filteredUsers = allUsers.filter(
+                                        ({ nickname }) =>
+                                            nickname.startsWith(searchQuery),
+                                    );
+
+                                    sendBack({
+                                        type: 'SET_USERS',
+                                        users: filteredUsers,
+                                    });
+                                },
+                        },
+
+                        on: {
+                            SET_USERS: {
+                                target: 'idle',
+
+                                actions: assignFilteredUsersToContext,
+                            },
+                        },
+                    },
                 },
 
                 on: {
-                    SET_USERS: {
-                        target: 'idle',
+                    UPDATE_SEARCH_QUERY: {
+                        target: '.debouncingQuery',
 
-                        actions: assignFilteredUsersToContext,
+                        actions: [assignSearchQueryToContext],
+                    },
+
+                    SET_SELECTED_USER: {
+                        actions: [assignSelectedUser],
                     },
                 },
             },
         },
-
         on: {
-            UPDATE_SEARCH_QUERY: {
-                target: '.debouncingQuery',
+            RETRIEVE_USERS_LIST: {
+                actions: forwardTo('socketConnection'),
+            },
 
-                actions: [assignSearchQueryToContext],
+            ASSIGN_RETRIEVED_USERS_LIST: {
+                target: '.machineIsReady',
+                actions: assignRetrievedUsersListToContext,
             },
         },
     });

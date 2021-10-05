@@ -2,8 +2,8 @@ import {
     AllClientToServerEvents,
     AllServerToClientEvents,
     MtvRoomClientToServerCreateArgs,
-    MtvRoomUpdateDelegationOwnerArgs,
     MtvRoomUpdateControlAndDelegationPermissionArgs,
+    MtvRoomUpdateDelegationOwnerArgs,
     UserDevice,
 } from '@musicroom/types';
 import ChatController from 'App/Controllers/Ws/ChatController';
@@ -495,6 +495,31 @@ Ws.io.on('connection', async (socket) => {
                 }
             },
         );
+
+        socket.on('GET_USERS_LIST', async (callback) => {
+            try {
+                const {
+                    mtvRoomID,
+                    user: { uuid: userID },
+                } = await SocketLifecycle.getSocketConnectionCredentials(
+                    socket,
+                );
+
+                if (mtvRoomID === undefined) {
+                    throw new Error(
+                        'UPDATE_DELEGATION_OWNER user is not related to any room',
+                    );
+                }
+
+                const usersList = await MtvRoomsWsController.onGetUsersList({
+                    userID,
+                    roomID: mtvRoomID,
+                });
+                callback(usersList);
+            } catch (e) {
+                console.error(e);
+            }
+        });
 
         /// //// ///
 

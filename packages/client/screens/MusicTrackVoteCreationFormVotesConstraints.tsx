@@ -1,5 +1,5 @@
-import { View } from '@dripsy/core';
 import { useActor } from '@xstate/react';
+import { View } from 'dripsy';
 import React from 'react';
 import MtvRoomCreationFormOptionButton from '../components/MtvRoomCreationForm/MtvRoomCreationFormOptionButton';
 import MtvRoomCreationFormScreen from '../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';

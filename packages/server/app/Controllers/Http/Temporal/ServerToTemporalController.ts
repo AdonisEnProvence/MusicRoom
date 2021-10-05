@@ -7,6 +7,7 @@ import {
     MtvRoomUpdateControlAndDelegationPermissionArgs,
     MtvRoomUpdateDelegationOwnerArgs,
     MtvWorkflowState,
+    TemporalGetStateQueryResponse,
 } from '@musicroom/types';
 import got from 'got';
 import urlcat from 'urlcat';
@@ -216,7 +217,6 @@ export default class ServerToTemporalController {
         }
     }
 
-    //TODO to be dev in temporal atm only mocked in tests
     public static async getState({
         workflowID,
         runID,
@@ -239,6 +239,29 @@ export default class ServerToTemporalController {
         } catch (e) {
             console.error(e);
             throw new Error('Get State FAILED' + workflowID);
+        }
+    }
+
+    public static async getUsersList({
+        workflowID,
+        runID,
+    }: TemporalMtvGetStateArgs): Promise<TemporalGetStateQueryResponse> {
+        try {
+            const url = urlcat(TEMPORAL_ENDPOINT, '/users-list');
+
+            const res = await got
+                .put(url, {
+                    json: {
+                        workflowID,
+                        runID,
+                    },
+                })
+                .json();
+
+            return TemporalGetStateQueryResponse.parse(res);
+        } catch (e) {
+            console.error(e);
+            throw new Error('Get Users list FAILED' + workflowID);
         }
     }
 

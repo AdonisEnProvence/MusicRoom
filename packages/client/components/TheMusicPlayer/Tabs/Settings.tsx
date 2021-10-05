@@ -1,5 +1,5 @@
-import { Text, useSx, View } from '@dripsy/core';
 import { Sender } from '@xstate/react/lib/types';
+import { Text, useSx, View } from 'dripsy';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import {

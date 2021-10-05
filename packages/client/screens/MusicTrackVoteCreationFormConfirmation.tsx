@@ -1,6 +1,6 @@
-import { Text, View } from '@dripsy/core';
 import { Skeleton } from '@motify/skeleton';
 import { useActor } from '@xstate/react';
+import { Text, View } from 'dripsy';
 import React from 'react';
 import MtvRoomCreationFormScreen from '../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
 import TrackListItem from '../components/Track/TrackListItem';

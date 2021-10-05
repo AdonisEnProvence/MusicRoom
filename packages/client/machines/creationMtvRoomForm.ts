@@ -471,7 +471,7 @@ const resetPhysicalConstraintValues = creationMtvRoomFormModel.assign(
         physicalConstraintEndsAt:
             creationMtvRoomFormInitialContext.physicalConstraintEndsAt,
     },
-    undefined,
+    'NEXT',
 );
 
 const assignPlayingMode = creationMtvRoomFormModel.assign(

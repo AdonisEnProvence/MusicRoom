@@ -1,5 +1,5 @@
-import { useSx } from '@dripsy/core';
 import { Ionicons } from '@expo/vector-icons';
+import { useSx } from 'dripsy';
 import React from 'react';
 import { TouchableOpacity, TouchableOpacityProps } from 'react-native';
 

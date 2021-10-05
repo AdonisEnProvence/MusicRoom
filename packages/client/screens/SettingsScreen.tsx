@@ -1,10 +1,10 @@
-import { Button } from '@dripsy/core';
+import { Button } from 'dripsy';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
     AppScreen,
-    AppScreenHeader,
     AppScreenContainer,
+    AppScreenHeader,
 } from '../components/kit';
 import { ColorModeProps } from '../navigation';
 import { SettingsScreenProps } from '../types';

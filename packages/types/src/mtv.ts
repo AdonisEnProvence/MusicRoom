@@ -1,4 +1,5 @@
 import * as z from 'zod';
+import { MtvRoomUsersListRawElementFromTemporal } from './server-to-temporal';
 
 const Milliseconds = z.number().nonnegative();
 
@@ -59,3 +60,11 @@ export const MtvWorkflowStateWithUserRelatedInformation =
 export type MtvWorkflowStateWithUserRelatedInformation = z.infer<
     typeof MtvWorkflowStateWithUserRelatedInformation
 >;
+
+export const MtvRoomUsersListElement =
+    MtvRoomUsersListRawElementFromTemporal.extend({
+        isMe: z.boolean(),
+        nickname: z.string(),
+        avatar: z.string().optional(), //TODO
+    });
+export type MtvRoomUsersListElement = z.infer<typeof MtvRoomUsersListElement>;

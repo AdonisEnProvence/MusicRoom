@@ -1,6 +1,7 @@
 import * as z from 'zod';
 import {
     MtvPlayingModes,
+    MtvRoomUsersListElement,
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
 } from './mtv';
@@ -102,6 +103,9 @@ export interface MtvRoomClientToServerEvents {
     GET_CONTEXT: () => void;
     ACTION_PAUSE: () => void;
     VOTE_FOR_TRACK: (args: MtvRoomClientToServerVoteForTrackArgs) => void;
+    GET_USERS_LIST: (
+        callback: (usersList: MtvRoomUsersListElement[]) => void,
+    ) => void;
     GO_TO_NEXT_TRACK: () => void;
     CHANGE_EMITTING_DEVICE: (
         args: MtvRoomClientToServerChangeUserEmittingDevice,
@@ -133,4 +137,5 @@ export interface MtvRoomServerToClientEvents {
     USER_PERMISSIONS_UPDATE: (
         state: MtvWorkflowStateWithUserRelatedInformation,
     ) => void;
+    USERS_LIST_FORCED_REFRESH: () => void;
 }

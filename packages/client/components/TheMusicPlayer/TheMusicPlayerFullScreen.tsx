@@ -184,10 +184,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     ]);
 
     function handleListenersPress() {
-        //Migrate into the state machine and print toast
-        if (context.userRelatedInformation !== null) {
-            navigation.navigate('MusicTrackVoteUsersList');
-        }
+        navigation.navigate('MusicTrackVoteUsersList');
     }
 
     function handleTrackReady() {

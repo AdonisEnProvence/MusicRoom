@@ -1,5 +1,5 @@
 import { MtvRoomUsersListElement } from '@musicroom/types';
-import { ContextFrom, EventFrom, forwardTo, StateMachine } from 'xstate';
+import { ContextFrom, EventFrom, forwardTo, send, StateMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { SocketClient } from '../contexts/SocketContext';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
@@ -70,6 +70,7 @@ const assignRetrievedUsersListToContext = roomUsersListModel.assign(
                     (context.selectedUser as MtvRoomUsersListElement).userID,
             );
         },
+        //add filtered users
     },
     'ASSIGN_RETRIEVED_USERS_LIST',
 );
@@ -135,13 +136,7 @@ export const createRoomUsersListMachine = ({
 
         states: {
             firstUsersListFetch: {
-                invoke: {
-                    src: () => (sendBack) => {
-                        sendBack({
-                            type: 'RETRIEVE_USERS_LIST',
-                        });
-                    },
-                },
+                entry: send({ type: 'RETRIEVE_USERS_LIST' }),
             },
 
             machineIsReady: {
@@ -166,8 +161,8 @@ export const createRoomUsersListMachine = ({
                                 ({ allUsers, searchQuery }) =>
                                 (sendBack) => {
                                     const filteredUsers = allUsers.filter(
-                                        ({ userID }) =>
-                                            userID.startsWith(searchQuery),
+                                        ({ nickname }) =>
+                                            nickname.startsWith(searchQuery),
                                     );
 
                                     sendBack({
@@ -202,11 +197,11 @@ export const createRoomUsersListMachine = ({
         },
         on: {
             RETRIEVE_USERS_LIST: {
-                target: '.machineIsReady',
                 actions: forwardTo('socketConnection'),
             },
 
             ASSIGN_RETRIEVED_USERS_LIST: {
+                target: '.machineIsReady',
                 actions: assignRetrievedUsersListToContext,
             },
         },

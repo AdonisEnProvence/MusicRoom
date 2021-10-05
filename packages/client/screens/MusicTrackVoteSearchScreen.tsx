@@ -7,6 +7,7 @@ import { FlatList, ListRenderItem, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActorRef } from 'xstate';
 import { AppScreenWithSearchBar, Typo } from '../components/kit';
+import { IS_TEST } from '../constants/Env';
 import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
@@ -33,11 +34,13 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
     onLoadMore,
 }) => {
     const sx = useSx();
+    const initialNumberOfItemsToRender = IS_TEST ? Infinity : 10;
 
     const renderItem: ListRenderItem<MtvRoomSearchResult> = ({
         item: { roomID, roomName, creatorName, isOpen },
     }) => (
         <TouchableOpacity
+            testID={`mtv-room-search-${roomID}`}
             onPress={() => {
                 onSuggestionPress(roomID);
             }}
@@ -72,6 +75,7 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
 
     return (
         <FlatList
+            testID="mtv-room-search-flat-list"
             data={suggestions}
             renderItem={renderItem}
             keyExtractor={({ roomID }) => roomID}
@@ -89,6 +93,7 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
             }}
             onEndReached={onEndReached}
             onEndReachedThreshold={0.5}
+            initialNumToRender={initialNumberOfItemsToRender}
             ListFooterComponent={
                 hasMoreRoomsToFetch === true
                     ? () => {

@@ -1,8 +1,7 @@
 import { MtvPlayingModes, MtvRoomUsersListElement } from '@musicroom/types';
 import { Text, useSx, View } from 'dripsy';
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
-import { Switch } from 'react-native-gesture-handler';
+import { Switch, TouchableOpacity } from 'react-native';
 
 interface MtvRoomUserListElementSettings {
     selectedUser?: MtvRoomUsersListElement;
@@ -14,7 +13,7 @@ interface MtvRoomUserListElementSettings {
     playingMode: MtvPlayingModes;
 }
 
-const MtvRoomUserListElementSetting: React.FC<MtvRoomUserListElementSettings> =
+const MtvRoomUserListElementSettings: React.FC<MtvRoomUserListElementSettings> =
     ({
         selectedUser,
         deviceOwnerUser,
@@ -26,7 +25,11 @@ const MtvRoomUserListElementSetting: React.FC<MtvRoomUserListElementSettings> =
         const roomIsInDirectMode =
             playingMode === MtvPlayingModes.Values.DIRECT;
         if (selectedUser === undefined || deviceOwnerUser === undefined) {
-            return <View>Error no user was selected</View>;
+            return (
+                <View>
+                    <Text>Error no user was selected</Text>
+                </View>
+            );
         }
 
         const deviceOwnerIsRoomCreator = deviceOwnerUser.isCreator;
@@ -36,7 +39,11 @@ const MtvRoomUserListElementSetting: React.FC<MtvRoomUserListElementSettings> =
             !deviceOwnerIsRoomCreator &&
             !deviceOwnerHasControlAndDelegationPermission;
         if (userNeitherIsNotCreatorOrHasNoPermission) {
-            return <View>Unauthorized</View>;
+            return (
+                <View>
+                    <Text>Unauthorized</Text>
+                </View>
+            );
         }
 
         const selectedUserIsNotDeviceOwnerUser = !selectedUser.isMe;
@@ -138,4 +145,4 @@ const MtvRoomUserListElementSetting: React.FC<MtvRoomUserListElementSettings> =
         );
     };
 
-export default MtvRoomUserListElementSetting;
+export default MtvRoomUserListElementSettings;

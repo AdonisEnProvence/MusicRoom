@@ -7,7 +7,7 @@ import { FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActorRef } from 'xstate';
 import { AppScreenWithSearchBar } from '../components/kit';
-import MtvRoomUserListElementSetting from '../components/User/MtvRoomUserListElementSettings';
+import MtvRoomUserListElementSettings from '../components/User/MtvRoomUserListElementSettings';
 import UserListItemWithThreeDots from '../components/User/UserListItemWithThreeDots';
 import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import { useSocketContext } from '../contexts/SocketContext';
@@ -36,8 +36,7 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                 createRoomUsersListMachine({
                     socket,
                 }),
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-            [],
+            [socket],
         );
         const [state, sendToMachine] = useMachine(roomUsersListMachine);
         ///
@@ -174,7 +173,7 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                         />
                     )}
                 >
-                    <MtvRoomUserListElementSetting
+                    <MtvRoomUserListElementSettings
                         playingMode={roomPlayingMode}
                         setAsDelegationOwner={(user) => {
                             sendToMusicPlayerMachine({

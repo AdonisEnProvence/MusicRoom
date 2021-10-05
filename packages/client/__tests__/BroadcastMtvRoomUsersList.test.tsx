@@ -2,10 +2,6 @@ import { MtvPlayingModes, MtvWorkflowState } from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
 import { datatype, random } from 'faker';
 import React from 'react';
-import {
-    getCurrentPositionAsyncMocked,
-    requestForegroundPermissionsAsyncMocked,
-} from '../jest.setup';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
@@ -16,18 +12,10 @@ import {
     noop,
     render,
     waitFor,
-    waitForTimeout,
     within,
 } from '../tests/tests-utils';
 
-/* eslint-disable @typescript-eslint/require-await */
-
 describe('User list tests', () => {
-    afterAll(() => {
-        requestForegroundPermissionsAsyncMocked.mockClear();
-        getCurrentPositionAsyncMocked.mockClear();
-    });
-
     it(`It should display a user card for each users in the broadcast mtv room
     As the device owner is the creator it should be able to open except for himself
     Where we should find the toggle permission switch`, async () => {
@@ -120,7 +108,9 @@ describe('User list tests', () => {
                 `${fakeUser.nickname}-user-card`,
             );
             expect(userListItem).toBeTruthy();
-            expect(within(userListItem).getByText(fakeUser.nickname));
+            expect(
+                within(userListItem).getByText(fakeUser.nickname),
+            ).toBeTruthy();
 
             //Looking for Icons
             if (fakeUser.isCreator) {
@@ -280,7 +270,9 @@ describe('User list tests', () => {
                 `${fakeUser.nickname}-user-card`,
             );
             expect(userListItem).toBeTruthy();
-            expect(within(userListItem).getByText(fakeUser.nickname));
+            expect(
+                within(userListItem).getByText(fakeUser.nickname),
+            ).toBeTruthy();
 
             //Looking for Icons
             if (fakeUser.isCreator) {
@@ -419,7 +411,9 @@ describe('User list tests', () => {
                 `${fakeUser.nickname}-user-card`,
             );
             expect(userListItem).toBeTruthy();
-            expect(within(userListItem).getByText(fakeUser.nickname));
+            expect(
+                within(userListItem).getByText(fakeUser.nickname),
+            ).toBeTruthy();
 
             //Looking for Icons
             if (fakeUser.isCreator) {
@@ -575,7 +569,7 @@ describe('User list tests', () => {
             `${fakeUser.nickname}-user-card`,
         );
         expect(userListItem).toBeTruthy();
-        expect(within(userListItem).getByText(fakeUser.nickname));
+        expect(within(userListItem).getByText(fakeUser.nickname)).toBeTruthy();
 
         //Looking for settings
         const userSettingsThreeDotsButton = within(
@@ -604,14 +598,14 @@ describe('User list tests', () => {
         expect(permissionButton).toBeTruthy();
 
         fireEvent(permissionButton, 'valueChange', true);
-        await waitForTimeout(1000);
 
-        console.log(fakeUsersArray);
-        expect(
-            within(userListItem).getByA11yLabel(
-                `${fakeUser.nickname} has control and delegation permission`,
-            ),
-        ).toBeTruthy();
+        await waitFor(() => {
+            expect(
+                within(userListItem).getByA11yLabel(
+                    `${fakeUser.nickname} has control and delegation permission`,
+                ),
+            ).toBeTruthy();
+        });
         // ///
     });
 });

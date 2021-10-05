@@ -63,11 +63,10 @@ const assignRetrievedUsersListToContext = roomUsersListModel.assign(
             if (context.selectedUser === undefined) {
                 return undefined;
             }
-            console.log('cc', context.selectedUser);
             return retrievedUsers.find(
                 (user) =>
                     user.userID ===
-                    (context.selectedUser as MtvRoomUsersListElement).userID,
+                    MtvRoomUsersListElement.parse(context.selectedUser).userID,
             );
         },
         //add filtered users

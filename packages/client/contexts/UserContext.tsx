@@ -1,6 +1,7 @@
 import { useMachine } from '@xstate/react';
 import React, { useContext } from 'react';
 import { Sender } from 'xstate';
+import { IS_TEST } from '../constants/Env';
 import {
     AppUserMachineEvent,
     AppUserMachineState,
@@ -18,8 +19,7 @@ const UserContext = React.createContext<UserContextValue | undefined>(
 );
 
 export const UserContextProvider: React.FC = ({ children }) => {
-    const locationPollingTickDelay =
-        process.env.NODE_ENV === 'test' ? 250 : 30000;
+    const locationPollingTickDelay = IS_TEST ? 250 : 30000;
     const socket = useSocketContext();
 
     const appMusicPlayerMachine = createUserMachine({

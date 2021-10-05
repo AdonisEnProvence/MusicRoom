@@ -1,7 +1,7 @@
 import * as z from 'zod';
-import { MtvRoomUsersListElement } from '.';
 import {
     MtvPlayingModes,
+    MtvRoomUsersListElement,
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
 } from './mtv';

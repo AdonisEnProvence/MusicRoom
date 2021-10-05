@@ -148,7 +148,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
         assert.isTrue(usersListForcedRefreshHasBeenCalled);
     });
 
-    test.only('It should emit users list forced refresh on temporal response for update control and delegation permission', async (assert) => {
+    test('It should emit users list forced refresh on temporal response for update control and delegation permission', async (assert) => {
         const userID = datatype.uuid();
         const roomID = datatype.uuid();
         const creatorSocket = await createUserAndGetSocket({

@@ -460,7 +460,7 @@ describe('User list tests', () => {
         }
     });
 
-    it.only(`It should display a user card for each users in the broadcast mtv room
+    it(`It should display a user card for each users in the broadcast mtv room
     As the device owner is the creator he should be able to go to a user settings 
     and give him control and delegation permission the permission icon should appear next
     to the user card`, async () => {

@@ -489,7 +489,7 @@ describe('User list tests', () => {
         }
     });
 
-    it.only(`It should display a user card for each users in the direct mtv room
+    it(`It should display a user card for each users in the direct mtv room
     As the device owner is the creator he should be able to go to a user settings and set him as delegation owner
     the the creator delegation button should not be disabled anymore`, async () => {
         const tracksList = [generateTrackMetadata(), generateTrackMetadata()];

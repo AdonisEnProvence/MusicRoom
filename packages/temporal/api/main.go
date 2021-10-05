@@ -748,7 +748,7 @@ func GetStateHandler(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
-	var res interface{}
+	var res shared.MtvRoomExposedState
 	if err := response.Get(&res); err != nil {
 		WriteError(w, err)
 		return
@@ -782,7 +782,7 @@ func GetUsersListHandler(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
-	var res interface{}
+	var res []shared.ExposedInternalStateUserListElement
 	if err := response.Get(&res); err != nil {
 		WriteError(w, err)
 		return

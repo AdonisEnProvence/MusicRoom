@@ -726,6 +726,11 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									internalState.DelegationOwnerUserID = &(internalState.initialParams.RoomCreatorUserID)
 								}
 
+								joinActivityArgs := activities.AcknowledgeLeaveRoomRequestBody{
+									LeavingUserID: event.UserID,
+									State:         internalState.Export(shared.NoRelatedUserID),
+								}
+								sendLeaveActivity(ctx, joinActivityArgs)
 								sendUserLengthUpdateActivity(ctx, internalState.Export(shared.NoRelatedUserID))
 							}
 

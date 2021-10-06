@@ -896,6 +896,11 @@ func (s *UnitTestSuite) Test_UserLeaveRoom() {
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Times(2)
+	s.env.OnActivity(
+		activities.LeaveActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
 
 	// 1. We expect the room to be paused by default and contains one user (the creator).
 	initialStateQueryDelay := defaultDuration

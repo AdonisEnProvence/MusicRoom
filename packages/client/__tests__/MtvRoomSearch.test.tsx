@@ -86,6 +86,7 @@ test('Rooms are listed when coming to the screen and infinitely loaded', async (
     expect(mtvRoomsSearchFlatList).toBeTruthy();
     fireEvent(mtvRoomsSearchFlatList, 'endReached');
 
+    // Load more button disappears when there are no more items to fetch.
     await waitForElementToBeRemoved(() => screen.getByText(/load.*more/i));
 
     for (const { roomID, roomName, creatorName, isOpen } of secondPageRooms) {
@@ -212,4 +213,29 @@ test('Rooms are filtered and infinitely loaded', async () => {
     }
 });
 
-// test.skip('Displays empty state when no rooms match the query', async () => {});
+test('Displays empty state when no rooms match the query', async () => {
+    const screen = render(
+        <NavigationContainer
+            ref={navigationRef}
+            onReady={() => {
+                isReadyRef.current = true;
+            }}
+        >
+            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
+        </NavigationContainer>,
+    );
+
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+    const goToMtvSearchScreenButton = screen.getByText(
+        /go.*to.*music.*track.*vote/i,
+    );
+    expect(goToMtvSearchScreenButton).toBeTruthy();
+
+    fireEvent.press(goToMtvSearchScreenButton);
+
+    const emptyStateElement = await screen.findByText(
+        /no.*rooms.*match.*request/i,
+    );
+    expect(emptyStateElement).toBeTruthy();
+});

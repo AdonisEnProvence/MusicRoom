@@ -1,6 +1,7 @@
 import BaseSeeder from '@ioc:Adonis/Lucid/Seeder';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
+import { datatype } from 'faker';
 
 export default class MtvRoomSeeder extends BaseSeeder {
     public static developmentOnly = true;
@@ -12,6 +13,24 @@ export default class MtvRoomSeeder extends BaseSeeder {
         });
 
         const uniqueKey = 'uuid';
+
+        const getFakeRoom = (): {
+            creatorID: string;
+            uuid: string;
+            runID: string;
+            isOpen: boolean;
+            name: string;
+        } => {
+            return {
+                creatorID: creator.uuid,
+                uuid: datatype.uuid(),
+                runID: datatype.uuid(),
+                isOpen: true,
+                name: datatype.uuid(),
+            };
+        };
+        const rooms = Array.from({ length: 50 }).map(getFakeRoom);
+
         await MtvRoom.updateOrCreateMany(uniqueKey, [
             {
                 creatorID: creator.uuid,
@@ -55,6 +74,7 @@ export default class MtvRoomSeeder extends BaseSeeder {
                 isOpen: false,
                 name: 'Random Electro',
             },
+            ...rooms,
         ]);
     }
 }

@@ -1,5 +1,4 @@
 import * as z from 'zod';
-import { MtvRoomUsersListRawElementFromTemporal } from './server-to-temporal';
 
 const Milliseconds = z.number().nonnegative();
 
@@ -59,6 +58,16 @@ export const MtvWorkflowStateWithUserRelatedInformation =
     });
 export type MtvWorkflowStateWithUserRelatedInformation = z.infer<
     typeof MtvWorkflowStateWithUserRelatedInformation
+>;
+
+export const MtvRoomUsersListRawElementFromTemporal = z.object({
+    userID: z.string().uuid(),
+    isCreator: z.boolean(),
+    isDelegationOwner: z.boolean(),
+    hasControlAndDelegationPermission: z.boolean(),
+});
+export type MtvRoomUsersListRawElementFromTemporal = z.infer<
+    typeof MtvRoomUsersListRawElementFromTemporal
 >;
 
 export const MtvRoomUsersListElement =

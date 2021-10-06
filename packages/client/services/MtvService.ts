@@ -1,14 +1,18 @@
+import {
+    MtvRoomSearchRequestBody,
+    MtvRoomSearchResponse,
+} from '@musicroom/types';
 import urlcat from 'urlcat';
-import * as z from 'zod';
+import redaxios from 'redaxios';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
 
-export async function listAllRooms(): Promise<string[]> {
+export async function fetchMtvRooms(
+    body: MtvRoomSearchRequestBody,
+): Promise<MtvRoomSearchResponse> {
     const url = urlcat(SERVER_ENDPOINT, '/search/rooms');
-    const response = await fetch(url, { method: 'POST' });
-    if (response.ok === false) {
-        console.error(response.status, response.statusText);
-        throw new Error('Could not get rooms');
-    }
-    const parsedResponse = z.array(z.string()).parse(await response.json());
+
+    const rawResponse = await redaxios.post(url, body);
+    const parsedResponse = MtvRoomSearchResponse.parse(rawResponse.data);
+
     return parsedResponse;
 }

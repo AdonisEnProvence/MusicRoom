@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
+import { MtvRoomSearchResult } from '@musicroom/types';
 import { useActor, useMachine } from '@xstate/react';
-import { useSx, View } from 'dripsy';
-import { View as MotiView } from 'moti';
+import { useSx, View, Text } from 'dripsy';
 import React, { useState } from 'react';
 import { FlatList, ListRenderItem, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActorRef } from 'xstate';
 import { AppScreenWithSearchBar, Typo } from '../components/kit';
+import { IS_TEST } from '../constants/Env';
 import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
@@ -18,24 +19,28 @@ import { MusicTrackVoteSearchScreenProps } from '../types';
 type SuggestionListProps = {
     bottomInset: number;
     onSuggestionPress: (id: string) => void;
-    suggestions: RoomSuggestion[];
+    hasMoreRoomsToFetch: boolean;
+    suggestions: MtvRoomSearchResult[];
+    onEndReached: () => void;
+    onLoadMore: () => void;
 };
-
-interface RoomSuggestion {
-    roomID: string;
-}
 
 const SuggestionsList: React.FC<SuggestionListProps> = ({
     bottomInset,
     onSuggestionPress,
+    hasMoreRoomsToFetch,
     suggestions,
+    onEndReached,
+    onLoadMore,
 }) => {
     const sx = useSx();
+    const initialNumberOfItemsToRender = IS_TEST ? Infinity : 10;
 
-    const renderItem: ListRenderItem<RoomSuggestion> = ({
-        item: { roomID },
+    const renderItem: ListRenderItem<MtvRoomSearchResult> = ({
+        item: { roomID, roomName, creatorName, isOpen },
     }) => (
         <TouchableOpacity
+            testID={`mtv-room-search-${roomID}`}
             onPress={() => {
                 onSuggestionPress(roomID);
             }}
@@ -49,9 +54,11 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
                 }}
             >
                 <View>
-                    <Typo sx={{ fontSize: 's' }}>{roomID}</Typo>
+                    <Typo sx={{ fontSize: 's' }}>
+                        {roomName} • {isOpen === true ? 'Public' : 'Private'}
+                    </Typo>
                     <Typo sx={{ fontSize: 'xs', color: 'greyLighter' }}>
-                        Baptiste Devessier
+                        {creatorName}
                     </Typo>
                 </View>
 
@@ -68,30 +75,61 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
 
     return (
         <FlatList
+            testID="mtv-room-search-flat-list"
             data={suggestions}
             renderItem={renderItem}
-            ListHeaderComponent={() => (
-                <Typo
-                    sx={{ fontSize: 's', fontWeight: '700', marginBottom: 'm' }}
-                >
-                    Suggestions
-                </Typo>
-            )}
             keyExtractor={({ roomID }) => roomID}
+            ListEmptyComponent={() => {
+                return (
+                    <Text sx={{ color: 'white' }}>
+                        There are not mtv rooms that match this request
+                    </Text>
+                );
+            }}
             // This is here that we ensure the Flat List will not show items
             // on an unsafe area.
             contentContainerStyle={{
                 paddingBottom: bottomInset,
             }}
+            onEndReached={onEndReached}
+            onEndReachedThreshold={0.5}
+            initialNumToRender={initialNumberOfItemsToRender}
+            ListFooterComponent={
+                hasMoreRoomsToFetch === true
+                    ? () => {
+                          return (
+                              <View
+                                  sx={{
+                                      flexDirection: 'row',
+                                      justifyContent: 'center',
+                                      alignItems: 'center',
+                                  }}
+                              >
+                                  <TouchableOpacity
+                                      onPress={onLoadMore}
+                                      style={sx({
+                                          borderRadius: 'full',
+                                          borderWidth: 2,
+                                          borderColor: 'secondary',
+                                          paddingX: 'l',
+                                          paddingY: 's',
+                                      })}
+                                  >
+                                      <Text
+                                          sx={{
+                                              color: 'secondary',
+                                              fontWeight: 'bold',
+                                          }}
+                                      >
+                                          Load more
+                                      </Text>
+                                  </TouchableOpacity>
+                              </View>
+                          );
+                      }
+                    : undefined
+            }
         />
-    );
-};
-
-const SearchList: React.FC = () => {
-    return (
-        <View>
-            <Typo>Search results</Typo>
-        </View>
     );
 };
 
@@ -100,18 +138,21 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
 }) => {
     const insets = useSafeAreaInsets();
     const [screenOffsetY, setScreenOffsetY] = useState(0);
-    const [mtvRoomState] = useMachine(searchMtvRoomsMachine);
+    const [mtvRoomState, mtvRoomSend] = useMachine(searchMtvRoomsMachine);
+    const hasMoreRoomsToFetch = mtvRoomState.context.hasMore;
     const searchBarActor: ActorRef<
         AppScreenHeaderWithSearchBarMachineEvent,
         AppScreenHeaderWithSearchBarMachineState
     > = mtvRoomState.children.searchBarMachine;
     const [searchState, sendToSearch] = useActor(searchBarActor);
     const showHeader = searchState.hasTag('showHeaderTitle');
-    const showSuggestions = searchState.hasTag('showSuggestions');
-    const reduceSuggestionsOpacity = searchState.hasTag(
-        'reduceSuggestionsOpacity',
-    );
     const { sendToMachine: sendToMusicPlayerMachine } = useMusicPlayer();
+
+    function handleLoadMoreItems() {
+        mtvRoomSend({
+            type: 'LOAD_MORE_ITEMS',
+        });
+    }
 
     return (
         <AppScreenWithSearchBar
@@ -127,31 +168,19 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
                 navigation.goBack();
             }}
         >
-            {showSuggestions ? (
-                <MotiView
-                    animate={{
-                        opacity: reduceSuggestionsOpacity === true ? 0.7 : 1,
-                    }}
-                    style={{ flex: 1 }}
-                >
-                    <SuggestionsList
-                        suggestions={
-                            mtvRoomState.context.rooms?.map((el) => ({
-                                roomID: el,
-                            })) ?? []
-                        }
-                        bottomInset={insets.bottom}
-                        onSuggestionPress={(roomID: string) => {
-                            sendToMusicPlayerMachine({
-                                type: 'JOIN_ROOM',
-                                roomID,
-                            });
-                        }}
-                    />
-                </MotiView>
-            ) : (
-                <SearchList />
-            )}
+            <SuggestionsList
+                hasMoreRoomsToFetch={hasMoreRoomsToFetch}
+                suggestions={mtvRoomState.context.rooms}
+                bottomInset={insets.bottom}
+                onSuggestionPress={(roomID: string) => {
+                    sendToMusicPlayerMachine({
+                        type: 'JOIN_ROOM',
+                        roomID,
+                    });
+                }}
+                onEndReached={handleLoadMoreItems}
+                onLoadMore={handleLoadMoreItems}
+            />
         </AppScreenWithSearchBar>
     );
 };

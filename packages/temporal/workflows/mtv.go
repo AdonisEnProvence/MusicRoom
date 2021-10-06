@@ -328,17 +328,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				OnEntry: brainy.Actions{
 					brainy.ActionFn(
 						func(c brainy.Context, e brainy.Event) error {
-							ao := workflow.ActivityOptions{
-								ScheduleToStartTimeout: time.Minute,
-								StartToCloseTimeout:    time.Minute,
-							}
-							ctx = workflow.WithActivityOptions(ctx, ao)
-
-							fetchedInitialTracksFuture = workflow.ExecuteActivity(
-								ctx,
-								activities.FetchTracksInformationActivity,
-								internalState.initialParams.InitialTracksIDsList,
-							)
+							fetchedInitialTracksFuture = sendFetchTracksInformationActivity(ctx, internalState.initialParams.InitialTracksIDsList)
 
 							return nil
 						},
@@ -374,17 +364,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				OnEntry: brainy.Actions{
 					brainy.ActionFn(
 						func(c brainy.Context, e brainy.Event) error {
-							options := workflow.ActivityOptions{
-								ScheduleToStartTimeout: time.Minute,
-								StartToCloseTimeout:    time.Minute,
-							}
-							ctx = workflow.WithActivityOptions(ctx, options)
-
-							workflow.ExecuteActivity(
-								ctx,
-								activities.PauseActivity,
-								params.RoomID,
-							)
+							sendPauseActivity(ctx, params.RoomID)
 
 							return nil
 						},
@@ -460,12 +440,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							),
 							brainy.ActionFn(
 								func(c brainy.Context, e brainy.Event) error {
-									options := workflow.ActivityOptions{
-										ScheduleToStartTimeout: time.Minute,
-										StartToCloseTimeout:    time.Minute,
-									}
-									ctx = workflow.WithActivityOptions(ctx, options)
-
 									// To do not corrupt the elapsed on a paused room with the freshly created timer
 									// but also set as playing true a previously paused room after a go to next track event
 									// we need to mutate and update the internalState after the internalState.Export()
@@ -473,11 +447,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									exposedInternalState.Playing = true
 									internalState.Playing = true
 
-									workflow.ExecuteActivity(
-										ctx,
-										activities.PlayActivity,
-										exposedInternalState,
-									)
+									sendPlayActivity(ctx, exposedInternalState)
 
 									return nil
 								},
@@ -604,16 +574,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							}
 							internalState.UpdateUserDeviceID(user)
 
-							options := workflow.ActivityOptions{
-								ScheduleToStartTimeout: time.Minute,
-								StartToCloseTimeout:    time.Minute,
-							}
-							ctx = workflow.WithActivityOptions(ctx, options)
-							workflow.ExecuteActivity(
-								ctx,
-								activities.ChangeUserEmittingDeviceActivity,
-								internalState.Export(event.UserID),
-							)
+							sendChangeUserEmittingDeviceActivity(ctx, internalState.Export(event.UserID))
 							return nil
 						},
 					),
@@ -630,25 +591,12 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 							internalState.AddUser(event.User)
 
-							options := workflow.ActivityOptions{
-								ScheduleToStartTimeout: time.Minute,
-								StartToCloseTimeout:    time.Minute,
+							joinActivityArgs := activities.MtvJoinCallbackRequestBody{
+								State:         internalState.Export(event.User.UserID),
+								JoiningUserID: event.User.UserID,
 							}
-							ctx = workflow.WithActivityOptions(ctx, options)
-
-							workflow.ExecuteActivity(
-								ctx,
-								activities.JoinActivity,
-								internalState.Export(event.User.UserID),
-								event.User.UserID,
-							)
-
-							workflow.ExecuteActivity(
-								ctx,
-								activities.UserLengthUpdateActivity,
-								internalState.Export(shared.NoRelatedUserID),
-							)
-
+							sendJoinActivity(ctx, joinActivityArgs)
+							sendUserLengthUpdateActivity(ctx, internalState.Export(shared.NoRelatedUserID))
 							return nil
 						},
 					),
@@ -668,17 +616,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
 								}
 
-								options := workflow.ActivityOptions{
-									ScheduleToStartTimeout: time.Minute,
-									StartToCloseTimeout:    time.Minute,
-								}
-								ctx = workflow.WithActivityOptions(ctx, options)
-
-								workflow.ExecuteActivity(
-									ctx,
-									activities.UserVoteForTrackAcknowledgement,
-									internalState.Export(event.UserID),
-								)
+								sendUserVoteForTrackAcknowledgementActivity(ctx, internalState.Export(event.UserID))
 							}
 
 							return nil
@@ -698,17 +636,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							needToNotifySuggestOrVoteUpdateActivity := !tracksListsAreEqual
 
 							if needToNotifySuggestOrVoteUpdateActivity {
-								options := workflow.ActivityOptions{
-									ScheduleToStartTimeout: time.Minute,
-									StartToCloseTimeout:    time.Minute,
-								}
-								ctx = workflow.WithActivityOptions(ctx, options)
-
-								workflow.ExecuteActivity(
-									ctx,
-									activities.NotifySuggestOrVoteUpdateActivity,
-									internalState.Export(shared.NoRelatedUserID),
-								)
+								sendNotifySuggestOrVoteUpdateActivity(ctx, internalState.Export(shared.NoRelatedUserID))
 
 								internalState.TracksCheckForVoteUpdateLastSave = internalState.Tracks
 								voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
@@ -798,17 +726,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									internalState.DelegationOwnerUserID = &(internalState.initialParams.RoomCreatorUserID)
 								}
 
-								options := workflow.ActivityOptions{
-									ScheduleToStartTimeout: time.Minute,
-									StartToCloseTimeout:    time.Minute,
-								}
-								ctx = workflow.WithActivityOptions(ctx, options)
-
-								workflow.ExecuteActivity(
-									ctx,
-									activities.UserLengthUpdateActivity,
-									internalState.Export(shared.NoRelatedUserID),
-								)
+								sendUserLengthUpdateActivity(ctx, internalState.Export(shared.NoRelatedUserID))
 							}
 
 							return nil
@@ -881,19 +799,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								return nil
 							}
 
-							ao := workflow.ActivityOptions{
-								ScheduleToStartTimeout: time.Minute,
-								StartToCloseTimeout:    time.Minute,
-							}
-							ctx = workflow.WithActivityOptions(ctx, ao)
+							fetchingFuture := sendFetchTracksInformationActivityAndForwardInitiator(ctx, acceptedSuggestedTracksIDs, event.UserID, event.DeviceID)
 
-							fetchingFuture := workflow.ExecuteActivity(
-								ctx,
-								activities.FetchTracksInformationActivityAndForwardIniator,
-								acceptedSuggestedTracksIDs,
-								event.UserID,
-								event.DeviceID,
-							)
 							fetchedSuggestedTracksInformationFutures = append(fetchedSuggestedTracksInformationFutures, fetchingFuture)
 
 							return nil
@@ -1222,7 +1129,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 			selector.AddFuture(fetchedSuggestedTracksInformationFuture, func(f workflow.Future) {
 				fetchedSuggestedTracksInformationFutures = removeFutureFromSlice(fetchedSuggestedTracksInformationFutures, index)
 
-				var suggestedTracksInformationActivityResult activities.FetchedTracksInformationWithIniator
+				var suggestedTracksInformationActivityResult activities.FetchedTracksInformationWithInitiator
 
 				if err := f.Get(ctx, &suggestedTracksInformationActivityResult); err != nil {
 					logger.Error("error occured initialTracksActivityResult", err)

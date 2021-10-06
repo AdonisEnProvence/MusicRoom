@@ -1,5 +1,8 @@
 import * as z from 'zod';
-import { MtvWorkflowStateWithUserRelatedInformation } from './mtv';
+import {
+    MtvRoomUsersListRawElementFromTemporal,
+    MtvWorkflowStateWithUserRelatedInformation,
+} from './mtv';
 
 export const CreateWorkflowResponse = z.object({
     state: MtvWorkflowStateWithUserRelatedInformation,
@@ -7,16 +10,6 @@ export const CreateWorkflowResponse = z.object({
     runID: z.string(),
 });
 export type CreateWorkflowResponse = z.infer<typeof CreateWorkflowResponse>;
-
-export const MtvRoomUsersListRawElementFromTemporal = z.object({
-    userID: z.string().uuid(),
-    isCreator: z.boolean(),
-    isDelegationOwner: z.boolean(),
-    hasControlAndDelegationPermission: z.boolean(),
-});
-export type MtvRoomUsersListRawElementFromTemporal = z.infer<
-    typeof MtvRoomUsersListRawElementFromTemporal
->;
 
 export const TemporalGetStateQueryResponse =
     MtvRoomUsersListRawElementFromTemporal.array();

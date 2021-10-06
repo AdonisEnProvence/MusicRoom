@@ -3,6 +3,7 @@ import {
     fireEvent,
     noop,
     render,
+    waitFor,
     waitForElementToBeRemoved,
     within,
 } from '../tests/tests-utils';
@@ -107,6 +108,7 @@ test('Rooms are listed when coming to the screen and infinitely loaded', async (
 
                 break;
             }
+
             case false: {
                 const privateStatusElement =
                     within(listItem).getByText(/private/i);
@@ -122,6 +124,92 @@ test('Rooms are listed when coming to the screen and infinitely loaded', async (
     }
 });
 
-// test.skip('Rooms are filtered and infinitely loaded', async () => {});
+test('Rooms are filtered and infinitely loaded', async () => {
+    const rooms = createSearchableRooms(datatype.number({ min: 11, max: 15 }));
+    // Create a room with a unique name so that we can sort
+    // results with it.
+    const roomToFind = db.searchableRooms.create({
+        roomName: datatype.uuid(),
+    });
+
+    const screen = render(
+        <NavigationContainer
+            ref={navigationRef}
+            onReady={() => {
+                isReadyRef.current = true;
+            }}
+        >
+            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
+        </NavigationContainer>,
+    );
+
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+    const goToMtvSearchScreenButton = screen.getByText(
+        /go.*to.*music.*track.*vote/i,
+    );
+    expect(goToMtvSearchScreenButton).toBeTruthy();
+
+    fireEvent.press(goToMtvSearchScreenButton);
+
+    // Wait for first element of the list to be displayed
+    await waitFor(() => {
+        const firstRoomBeforeFilteringElement = screen.getByTestId(
+            `mtv-room-search-${rooms[0].roomID}`,
+        );
+        expect(firstRoomBeforeFilteringElement).toBeTruthy();
+    });
+    // Ensure room we want to find is not displayed.
+    const roomWithSpecialNameElement = screen.queryByTestId(
+        `mtv-room-search-${roomToFind.roomID}`,
+    );
+    expect(roomWithSpecialNameElement).toBeNull();
+
+    const searchInput = await screen.findByPlaceholderText(/search.*room/i);
+    expect(searchInput).toBeTruthy();
+
+    fireEvent(searchInput, 'focus');
+    fireEvent.changeText(searchInput, roomToFind.roomName);
+    fireEvent(searchInput, 'submitEditing');
+
+    const roomToFindListElement = await screen.findByTestId(
+        `mtv-room-search-${roomToFind.roomID}`,
+    );
+    expect(roomToFindListElement).toBeTruthy();
+
+    const roomNameElement = within(roomToFindListElement).getByText(
+        new RegExp(roomToFind.roomName),
+    );
+    expect(roomNameElement).toBeTruthy();
+
+    const creatorNameElement = within(roomToFindListElement).getByText(
+        roomToFind.creatorName,
+    );
+    expect(creatorNameElement).toBeTruthy();
+
+    switch (roomToFind.isOpen) {
+        case true: {
+            const publicStatusElement = within(roomToFindListElement).getByText(
+                /public/i,
+            );
+            expect(publicStatusElement).toBeTruthy();
+
+            break;
+        }
+
+        case false: {
+            const privateStatusElement = within(
+                roomToFindListElement,
+            ).getByText(/private/i);
+            expect(privateStatusElement).toBeTruthy();
+
+            break;
+        }
+
+        default: {
+            throw new Error('Reached unreachable state');
+        }
+    }
+});
 
 // test.skip('Displays empty state when no rooms match the query', async () => {});

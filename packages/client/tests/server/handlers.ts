@@ -60,7 +60,7 @@ export const handlers = [
     ),
 
     rest.post<MtvRoomSearchRequestBody, MtvRoomSearchResponse>(
-        `${SERVER_ENDPOINT}/v2/search/rooms`,
+        `${SERVER_ENDPOINT}/search/rooms`,
         (req, res, ctx) => {
             const PAGE_SIZE = 10;
             const { page, searchQuery } = req.body;

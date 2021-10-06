@@ -9,7 +9,7 @@ import { SERVER_ENDPOINT } from '../constants/Endpoints';
 export async function fetchMtvRooms(
     body: MtvRoomSearchRequestBody,
 ): Promise<MtvRoomSearchResponse> {
-    const url = urlcat(SERVER_ENDPOINT, '/v2/search/rooms');
+    const url = urlcat(SERVER_ENDPOINT, '/search/rooms');
 
     const rawResponse = await redaxios.post(url, body);
     const parsedResponse = MtvRoomSearchResponse.parse(rawResponse.data);

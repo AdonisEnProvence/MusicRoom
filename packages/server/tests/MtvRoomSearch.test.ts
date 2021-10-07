@@ -3,12 +3,12 @@ import {
     MtvRoomSearchRequestBody,
     MtvRoomSearchResponse,
 } from '@musicroom/types';
+import MtvRoom from 'App/Models/MtvRoom';
+import User from 'App/Models/User';
+import { datatype, internet, random } from 'faker';
 import test from 'japa';
 import supertest from 'supertest';
-import { random, datatype, internet } from 'faker';
-import MtvRoom from 'App/Models/MtvRoom';
 import { BASE_URL } from './utils/TestUtils';
-import User from 'App/Models/User';
 
 function generateArray<Item>(length: number, fill: () => Item): Item[] {
     return Array.from({ length }).map(() => fill());
@@ -101,7 +101,7 @@ test.group('MtvRoom Search Engine', (group) => {
                 () => ({
                     uuid: datatype.uuid(),
                     runID: datatype.uuid(),
-                    name: random.words(2),
+                    name: datatype.uuid(),
                     creatorID: creator.uuid,
                     isOpen: datatype.boolean(),
                 }),

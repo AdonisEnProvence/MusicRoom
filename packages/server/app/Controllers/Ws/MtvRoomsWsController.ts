@@ -110,6 +110,21 @@ export default class MtvRoomsWsController {
         const roomCreator = await User.findOrFail(userID);
         await UserService.joinEveryUserDevicesToRoom(roomCreator, roomID);
 
+        /**
+         * Check for room name duplication
+         * If room name is found in db
+         * Just add creator nickame after the room name
+         */
+        const roomWithCreatedRoomName = await MtvRoom.findBy(
+            'name',
+            params.name,
+        );
+        const roomNameIsAlreadyTaken = roomWithCreatedRoomName !== null;
+        if (roomNameIsAlreadyTaken) {
+            params.name = `${params.name} (${roomCreator.nickname})`;
+        }
+        ///
+
         try {
             const temporalResponse =
                 await ServerToTemporalController.createMtvWorkflow({
@@ -155,7 +170,6 @@ export default class MtvRoomsWsController {
             await roomCreator.merge({ mtvRoomID: roomID }).save();
             await room.related('members').save(roomCreator);
             console.log('created room ' + roomID);
-
             return temporalResponse;
         } catch (error) {
             await SocketLifecycle.deleteSocketIoRoom(roomID);

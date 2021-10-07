@@ -3,6 +3,7 @@ import { MtvWorkflowStateWithUserRelatedInformation } from '@musicroom/types';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
+import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import { datatype, name, random } from 'faker';
 import test from 'japa';
@@ -400,5 +401,81 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
          */
         const roomBefore = await MtvRoom.findBy('creator', userID);
         assert.isNull(roomBefore);
+    });
+
+    test('Create room with duplicated name', async (assert) => {
+        const roomID = datatype.uuid();
+        const roomName = random.word();
+        const creatorUserID = datatype.uuid();
+
+        await createUserAndGetSocket({
+            userID: datatype.uuid(),
+            mtvRoomIDToAssociate: roomID,
+            roomName,
+        });
+
+        const creatorSocket = await createUserAndGetSocket({
+            userID: creatorUserID,
+        });
+
+        /** Mocks */
+        sinon
+            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .callsFake(async ({ workflowID, params, userID }) => {
+                const state: MtvWorkflowStateWithUserRelatedInformation = {
+                    roomID: workflowID,
+                    roomCreatorUserID: userID,
+                    playing: false,
+                    name: params.name,
+                    delegationOwnerUserID: null,
+                    playingMode: 'BROADCAST',
+                    usersLength: 1,
+                    currentTrack: null,
+                    isOpen: true,
+                    isOpenOnlyInvitedUsersCanVote: false,
+                    hasTimeAndPositionConstraints: false,
+                    timeConstraintIsValid: null,
+                    userRelatedInformation: {
+                        userID: userID,
+                        emittingDeviceID: datatype.uuid(),
+                        tracksVotedFor: [],
+                        userFitsPositionConstraint: null,
+                        hasControlAndDelegationPermission: true,
+                    },
+                    tracks: null,
+                    minimumScoreToBePlayed: 1,
+                };
+
+                return {
+                    runID: datatype.uuid(),
+                    workflowID,
+                    state,
+                };
+            });
+        /** ***** */
+
+        const creatorUser = await User.findOrFail(creatorUserID);
+        const expectedRoomName = `${roomName} (${creatorUser.nickname})`;
+
+        let createRoomSynchedCallbackHasBeenCalled = false;
+        creatorSocket.on('CREATE_ROOM_SYNCHED_CALLBACK', (state) => {
+            createRoomSynchedCallbackHasBeenCalled = true;
+            assert.equal(state.name, expectedRoomName);
+        });
+
+        const settings = getDefaultMtvRoomCreateRoomArgs({
+            name: roomName,
+        });
+        creatorSocket.emit('CREATE_ROOM', settings);
+
+        await sleep();
+
+        await creatorUser.refresh();
+        await creatorUser.load('mtvRoom');
+        const createdRoom = creatorUser.mtvRoom;
+
+        assert.isNotNull(createdRoom);
+        assert.equal(createdRoom.name, expectedRoomName);
+        assert.isTrue(createRoomSynchedCallbackHasBeenCalled);
     });
 });

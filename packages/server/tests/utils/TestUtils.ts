@@ -29,6 +29,7 @@ interface CreateUserAndGetSocketArgs {
     deviceName?: string;
     browser?: AvailableBrowsersMocks;
     mtvRoomIDToAssociate?: string;
+    roomName?: string;
 }
 
 interface CreateSocketConnectionArgs {
@@ -134,6 +135,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
         deviceName,
         browser,
         mtvRoomIDToAssociate,
+        roomName,
     }: CreateUserAndGetSocketArgs): Promise<TypedTestSocket> => {
         const createdUser = await User.create({
             uuid: userID,
@@ -146,7 +148,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
                 mtvRoomToAssociate = await MtvRoom.create({
                     uuid: mtvRoomIDToAssociate,
                     runID: datatype.uuid(),
-                    name: random.words(2),
+                    name: roomName ?? random.words(2),
                     creatorID: createdUser.uuid,
                 });
             }

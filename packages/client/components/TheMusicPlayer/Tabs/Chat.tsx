@@ -18,7 +18,7 @@ const ChatTab: React.FC = () => {
 
             <View
                 sx={{
-                    flexShrink: 1,
+                    flexShrink: 0,
                     paddingTop: 'm',
                     paddingBottom: 'l',
 

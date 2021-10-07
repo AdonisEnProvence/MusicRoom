@@ -86,6 +86,7 @@ const ChatTab: React.FC = () => {
                     }) => {
                         const isFirstItem = index === 0;
                         const isNotFirstItem = !isFirstItem;
+                        const isNotMyMessage = !isMyMessage;
 
                         return (
                             <View
@@ -98,15 +99,17 @@ const ChatTab: React.FC = () => {
                                         : undefined,
                                 }}
                             >
-                                <Text
-                                    sx={{
-                                        color: 'greyLighter',
-                                        marginBottom: 's',
-                                        fontSize: 'xxs',
-                                    }}
-                                >
-                                    {creatorName}
-                                </Text>
+                                {isNotMyMessage && (
+                                    <Text
+                                        sx={{
+                                            color: 'greyLighter',
+                                            marginBottom: 's',
+                                            fontSize: 'xxs',
+                                        }}
+                                    >
+                                        {creatorName}
+                                    </Text>
+                                )}
 
                                 <View
                                     sx={{

@@ -14,12 +14,6 @@ import (
 
 var ErrInvalidGoogleAPIKey = errors.New("invalid Google API key")
 
-type FetchedTracksInformationWithIniator struct {
-	Metadata []shared.TrackMetadata
-	UserID   string
-	DeviceID string
-}
-
 func FetchTracksInformationActivity(ctx context.Context, tracksIDs []string) ([]shared.TrackMetadata, error) {
 	metadata := make([]shared.TrackMetadata, 0, len(tracksIDs))
 
@@ -53,13 +47,19 @@ func FetchTracksInformationActivity(ctx context.Context, tracksIDs []string) ([]
 	return metadata, nil
 }
 
-func FetchTracksInformationActivityAndForwardIniator(ctx context.Context, tracksIDs []string, userID string, deviceID string) (FetchedTracksInformationWithIniator, error) {
+type FetchedTracksInformationWithInitiator struct {
+	Metadata []shared.TrackMetadata
+	UserID   string
+	DeviceID string
+}
+
+func FetchTracksInformationActivityAndForwardInitiator(ctx context.Context, tracksIDs []string, userID string, deviceID string) (FetchedTracksInformationWithInitiator, error) {
 	metadata, err := FetchTracksInformationActivity(ctx, tracksIDs)
 	if err != nil {
-		return FetchedTracksInformationWithIniator{}, err
+		return FetchedTracksInformationWithInitiator{}, err
 	}
 
-	return FetchedTracksInformationWithIniator{
+	return FetchedTracksInformationWithInitiator{
 		Metadata: metadata,
 		UserID:   userID,
 		DeviceID: deviceID,

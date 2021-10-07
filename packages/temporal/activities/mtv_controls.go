@@ -64,16 +64,13 @@ func UserLengthUpdateActivity(ctx context.Context, state shared.MtvRoomExposedSt
 	return err
 }
 
-type mtvJoinCallbackRequestBody struct {
+type MtvJoinCallbackRequestBody struct {
 	State         shared.MtvRoomExposedState `json:"state"`
 	JoiningUserID string                     `json:"joiningUserID"`
 }
 
-func JoinActivity(ctx context.Context, state shared.MtvRoomExposedState, joiningUserID string) error {
-	requestBody := mtvJoinCallbackRequestBody{
-		State:         state,
-		JoiningUserID: joiningUserID,
-	}
+func JoinActivity(ctx context.Context, args MtvJoinCallbackRequestBody) error {
+	requestBody := args
 
 	marshaledBody, err := json.Marshal(requestBody)
 	if err != nil {
@@ -81,6 +78,28 @@ func JoinActivity(ctx context.Context, state shared.MtvRoomExposedState, joining
 	}
 
 	url := ADONIS_ENDPOINT + "/temporal/join"
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+
+	return err
+}
+
+type AcknowledgeLeaveRoomRequestBody struct {
+	State         shared.MtvRoomExposedState `json:"state"`
+	LeavingUserID string                     `json:"leavingUserID"`
+}
+
+func LeaveActivity(ctx context.Context, args AcknowledgeLeaveRoomRequestBody) error {
+	requestBody := AcknowledgeLeaveRoomRequestBody{
+		State:         args.State,
+		LeavingUserID: args.LeavingUserID,
+	}
+
+	marshaledBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	url := ADONIS_ENDPOINT + "/temporal/leave"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err

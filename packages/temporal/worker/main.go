@@ -29,7 +29,7 @@ func main() {
 	w.RegisterActivity(activities.JoinActivity)
 	w.RegisterActivity(activities.CreationAcknowledgementActivity)
 	w.RegisterActivity(activities.FetchTracksInformationActivity)
-	w.RegisterActivity(activities.FetchTracksInformationActivityAndForwardIniator)
+	w.RegisterActivity(activities.FetchTracksInformationActivityAndForwardInitiator)
 	w.RegisterActivity(activities.UserLengthUpdateActivity)
 	w.RegisterActivity(activities.ChangeUserEmittingDeviceActivity)
 	w.RegisterActivity(activities.NotifySuggestOrVoteUpdateActivity)
@@ -39,6 +39,7 @@ func main() {
 	w.RegisterActivity(activities.AcknowledgeUpdateUserFitsPositionConstraint)
 	w.RegisterActivity(activities.AcknowledgeUpdateDelegationOwner)
 	w.RegisterActivity(activities.AcknowledgeUpdateControlAndDelegationPermission)
+	w.RegisterActivity(activities.LeaveActivity)
 
 	// Start listening to the Task Queue
 	err = w.Run(worker.InterruptCh())

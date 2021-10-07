@@ -125,12 +125,12 @@ func (s *UnitTestSuite) emitChangeUserEmittingDevice(userID string, deviceID str
 
 func (s *UnitTestSuite) mockOnceSuggest(userID string, deviceID string, roomID string, tracks []shared.TrackMetadata) {
 	s.env.OnActivity(
-		activities.FetchTracksInformationActivityAndForwardIniator,
+		activities.FetchTracksInformationActivityAndForwardInitiator,
 		mock.Anything,
 		mock.Anything,
 		userID,
 		deviceID,
-	).Return(activities.FetchedTracksInformationWithIniator{
+	).Return(activities.FetchedTracksInformationWithInitiator{
 		Metadata: tracks,
 		UserID:   userID,
 		DeviceID: deviceID,
@@ -445,7 +445,6 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		activities.JoinActivity,
 		mock.Anything,
 		mock.Anything,
-		mock.Anything,
 	).Return(nil).Times(2)
 	s.env.OnActivity(
 		activities.UserLengthUpdateActivity,
@@ -594,7 +593,6 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 		activities.JoinActivity,
 		mock.Anything,
 		mock.Anything,
-		fakeUserID,
 	).Return(nil).Once()
 
 	checkCreateUserRelatedInformation := defaultDuration
@@ -898,6 +896,11 @@ func (s *UnitTestSuite) Test_UserLeaveRoom() {
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Times(2)
+	s.env.OnActivity(
+		activities.LeaveActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
 
 	// 1. We expect the room to be paused by default and contains one user (the creator).
 	initialStateQueryDelay := defaultDuration
@@ -1114,12 +1117,12 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 	).Return(tracks, nil).Once()
 	// Mock suggested and accepted tracks information fetching
 	s.env.OnActivity(
-		activities.FetchTracksInformationActivityAndForwardIniator,
+		activities.FetchTracksInformationActivityAndForwardInitiator,
 		mock.Anything,
 		tracksIDsToSuggest,
 		suggesterUserID,
 		suggesterDeviceID,
-	).Return(activities.FetchedTracksInformationWithIniator{
+	).Return(activities.FetchedTracksInformationWithInitiator{
 		Metadata: tracksToSuggestMetadata,
 		UserID:   suggesterUserID,
 		DeviceID: suggesterDeviceID,
@@ -1167,7 +1170,7 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 		})
 	}, firstSuggestTracksSignalDelay)
 
-	assertSuggestedTracksHaveBeenAcceptedDelay := defaultDuration
+	assertSuggestedTracksHaveBeenAcceptedDelay := defaultDuration * 20
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
@@ -1211,8 +1214,6 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 			},
 		}
 
-		fmt.Printf("%+v", mtvState)
-		s.Len(mtvState.Tracks, 3)
 		s.Equal(expectedMtvStateTracks, mtvState.Tracks)
 	}, assertSuggestedTracksHaveBeenAcceptedDelay)
 
@@ -1487,23 +1488,23 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 	// Make the first mock of the activity return a long time after the next one
 	// to simulate a race condition.
 	s.env.OnActivity(
-		activities.FetchTracksInformationActivityAndForwardIniator,
+		activities.FetchTracksInformationActivityAndForwardInitiator,
 		mock.Anything,
 		firstTracksIDsToSuggest,
 		suggesterUserID,
 		suggesterDeviceID,
-	).Return(activities.FetchedTracksInformationWithIniator{
+	).Return(activities.FetchedTracksInformationWithInitiator{
 		Metadata: firstTracksToSuggestMetadata,
 		UserID:   suggesterUserID,
 		DeviceID: suggesterDeviceID,
 	}, nil).Once().After(10 * time.Second)
 	s.env.OnActivity(
-		activities.FetchTracksInformationActivityAndForwardIniator,
+		activities.FetchTracksInformationActivityAndForwardInitiator,
 		mock.Anything,
 		secondTracksIDsToSuggest,
 		suggesterUserID,
 		suggesterDeviceID,
-	).Return(activities.FetchedTracksInformationWithIniator{
+	).Return(activities.FetchedTracksInformationWithInitiator{
 		Metadata: secondTracksToSuggestMetadata,
 		UserID:   suggesterUserID,
 		DeviceID: suggesterDeviceID,
@@ -1641,7 +1642,6 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 		activities.JoinActivity,
 		mock.Anything,
 		mock.Anything,
-		joiningUserID,
 	).Return(nil).Once()
 	s.env.OnActivity(
 		activities.UserVoteForTrackAcknowledgement,
@@ -3231,11 +3231,6 @@ func (s *UnitTestSuite) Test_GetUsersListQuery() {
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
-	s.env.OnActivity(
-		activities.AcknowledgeUpdateDelegationOwner,
-		mock.Anything,
-		mock.Anything,
-	).Return(nil).Never()
 
 	init := defaultDuration
 	registerDelayedCallbackWrapper(func() {
@@ -3277,7 +3272,7 @@ func (s *UnitTestSuite) Test_GetUsersListQuery() {
 			},
 		}
 
-		s.Equal(expectedUsersList, usersList)
+		s.ElementsMatch(expectedUsersList, usersList)
 	}, checkJoinWorked)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
@@ -3326,7 +3321,7 @@ func (s *UnitTestSuite) Test_GetUsersListQueryInDirectRoom() {
 		activities.AcknowledgeUpdateDelegationOwner,
 		mock.Anything,
 		mock.Anything,
-	).Return(nil).Never()
+	).Return(nil).Once()
 
 	init := defaultDuration
 	registerDelayedCallbackWrapper(func() {
@@ -3376,7 +3371,7 @@ func (s *UnitTestSuite) Test_GetUsersListQueryInDirectRoom() {
 			},
 		}
 
-		s.Equal(expectedUsersList, usersList)
+		s.ElementsMatch(expectedUsersList, usersList)
 	}, checkOperationsWorked)
 
 	emitLeave := defaultDuration

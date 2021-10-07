@@ -17,7 +17,7 @@ import {
 import { AppScreen, AppScreenContainer, Typo } from '../kit';
 import AppModalHeader from '../kit/AppModalHeader';
 import { MusicPlayerRef } from './Player';
-import ChatTab from './Tabs/Chat';
+import DevicesTab from './Tabs/Devices';
 import SettingsTab from './Tabs/Settings';
 import TracksListTab from './Tabs/TracksList';
 import TheMusicPlayerWithControls from './TheMusicPlayerWithControls';
@@ -41,6 +41,8 @@ const fullscreenPlayerTabsMachineModel = createModel(
             GO_TO_CHAT: () => ({}),
 
             GO_TO_SETTINGS: () => ({}),
+
+            GO_TO_DEVICES: () => ({}),
         },
     },
 );
@@ -50,43 +52,42 @@ const fullscreenPlayerTabsMachine =
         initial: 'tracks',
 
         states: {
-            tracks: {
-                on: {
-                    GO_TO_CHAT: {
-                        target: 'chat',
-                    },
-                    GO_TO_SETTINGS: {
-                        target: 'settings',
-                    },
-                },
-            },
+            tracks: {},
 
             chat: {
-                on: {
-                    GO_TO_TRACKS: {
-                        target: 'tracks',
-                    },
-                    GO_TO_SETTINGS: {
-                        target: 'settings',
-                    },
-                },
+                on: {},
             },
 
             settings: {
-                on: {
-                    GO_TO_TRACKS: {
-                        target: 'tracks',
-                    },
-                    GO_TO_CHAT: {
-                        target: 'chat',
-                    },
-                },
+                on: {},
+            },
+
+            devices: {
+                on: {},
+            },
+        },
+
+        on: {
+            GO_TO_TRACKS: {
+                target: 'tracks',
+            },
+
+            GO_TO_CHAT: {
+                target: 'chat',
+            },
+
+            GO_TO_SETTINGS: {
+                target: 'settings',
+            },
+
+            GO_TO_DEVICES: {
+                target: 'devices',
             },
         },
     });
 
 interface Tab {
-    text: 'Tracks' | 'Chat' | 'Settings';
+    text: 'Tracks' | 'Chat' | 'Settings' | 'Devices';
     selected: boolean;
     onPress: () => void;
 }
@@ -121,11 +122,11 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
             },
         },
         {
-            text: 'Chat',
-            selected: tabsState.matches('chat'),
+            text: 'Devices',
+            selected: tabsState.matches('devices'),
             onPress: () => {
                 tabsSend({
-                    type: 'GO_TO_CHAT',
+                    type: 'GO_TO_DEVICES',
                 });
             },
         },
@@ -151,16 +152,14 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     <TracksListTab
                         context={context}
                         sendToMachine={sendToMachine}
-                        key="TRACKS_LIST_TAB"
                     />
                 );
-            case 'Chat':
+            case 'Devices':
                 return (
-                    <ChatTab
+                    <DevicesTab
                         userContext={userContext}
                         sendToMachine={sendToMachine}
                         context={context}
-                        key="CHAT_TAB"
                     />
                 );
             case 'Settings':
@@ -169,7 +168,6 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                         sendToMachine={sendToMachine}
                         sendToUserMachine={sendToUserMachine}
                         context={context}
-                        key="SETTINGS_TAB"
                     />
                 );
             default:

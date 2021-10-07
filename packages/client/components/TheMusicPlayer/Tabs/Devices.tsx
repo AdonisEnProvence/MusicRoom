@@ -8,13 +8,13 @@ import {
 } from '../../../machines/appMusicPlayerMachine';
 import { AppUserMachineContext } from '../../../machines/appUserMachine';
 
-interface ChatTabProps {
+interface DevicesTabProps {
     userContext: AppUserMachineContext;
     context: AppMusicPlayerMachineContext;
     sendToMachine: Sender<AppMusicPlayerMachineEvent>;
 }
 
-const ChatTab: React.FC<ChatTabProps> = ({
+const DevicesTab: React.FC<DevicesTabProps> = ({
     userContext,
     context,
     sendToMachine,
@@ -22,8 +22,8 @@ const ChatTab: React.FC<ChatTabProps> = ({
     return (
         <View>
             <Text sx={{ color: 'white' }}>
-                Welcome to our great Chat You have {userContext.devices.length}{' '}
-                connected devices
+                Welcome to our great Devices You have{' '}
+                {userContext.devices.length} connected devices
             </Text>
             {userContext.devices.length > 0 && (
                 <FlatList
@@ -57,4 +57,4 @@ const ChatTab: React.FC<ChatTabProps> = ({
     );
 };
 
-export default ChatTab;
+export default DevicesTab;

@@ -1,6 +1,6 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import { MtvWorkflowState } from '@musicroom/types';
-import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
+import { TemporalToServerLeaveBody } from 'App/Controllers/Http/Temporal/TemporalToServerController';
 import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
@@ -148,7 +148,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
         assert.isTrue(usersListForcedRefreshHasBeenCalled);
     });
 
-    test('It should emit users list forced refresh on temporal response for update control and delegation permission', async (assert) => {
+    test('It should emit users list forced refresh on temporal response for leave temporal response', async (assert) => {
         const userID = datatype.uuid();
         const roomID = datatype.uuid();
         const creatorSocket = await createUserAndGetSocket({
@@ -156,20 +156,20 @@ test.group(`MtvRoom get users list test group`, (group) => {
             mtvRoomIDToAssociate: roomID,
         });
 
-        const joiningUserID = datatype.uuid();
-        const joiningUserSocket = await createUserAndGetSocket({
-            userID: joiningUserID,
-            mtvRoomIDToAssociate: roomID,
-        });
-
-        sinon.stub(ServerToTemporalController, 'leaveWorkflow');
-
         let usersListForcedRefreshHasBeenCalled = false;
         creatorSocket.on('USERS_LIST_FORCED_REFRESH', () => {
             usersListForcedRefreshHasBeenCalled = true;
         });
 
-        await disconnectSocket(joiningUserSocket);
+        const leaveBody: TemporalToServerLeaveBody = {
+            leavingUserID: datatype.uuid(),
+            state: getBasicState({
+                userID,
+                roomID,
+                withUserRelatedInformation: true,
+            }),
+        };
+        await supertest(BASE_URL).post('/temporal/leave').send(leaveBody);
 
         await sleep();
 

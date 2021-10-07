@@ -42,6 +42,8 @@ Route.get(
 
 Route.post('/temporal/join', 'Temporal/TemporalToServerController.join');
 
+Route.post('/temporal/leave', 'Temporal/TemporalToServerController.leave');
+
 Route.post(
     '/temporal/change-user-emitting-device',
     'Temporal/TemporalToServerController.mtvChangeUserEmittingDeviceAcknowledgement',

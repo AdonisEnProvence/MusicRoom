@@ -12,11 +12,20 @@ import Ws from 'App/Services/Ws';
 import * as z from 'zod';
 
 const TemporalToServerJoinBody = z.object({
-    joiningUserID: z.string(),
+    joiningUserID: z.string().uuid(),
     state: MtvWorkflowStateWithUserRelatedInformation,
 });
 
 type TemporalToServerJoinBody = z.infer<typeof TemporalToServerJoinBody>;
+
+export const TemporalToServerLeaveBody = z.object({
+    leavingUserID: z.string().uuid(),
+    state: MtvWorkflowState,
+});
+
+export type TemporalToServerLeaveBody = z.infer<
+    typeof TemporalToServerLeaveBody
+>;
 
 export default class TemporalToServerController {
     public pause({ request }: HttpContextContract): void {
@@ -83,6 +92,12 @@ export default class TemporalToServerController {
             joiningUser,
             roomID,
         );
+    }
+
+    public async leave({ request }: HttpContextContract): Promise<void> {
+        const { state } = TemporalToServerLeaveBody.parse(request.body());
+
+        Ws.io.to(state.roomID).emit('USERS_LIST_FORCED_REFRESH');
     }
 
     public async mtvChangeUserEmittingDeviceAcknowledgement({

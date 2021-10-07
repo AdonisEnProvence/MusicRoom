@@ -19,6 +19,7 @@ import AppModalHeader from '../kit/AppModalHeader';
 import { MusicPlayerRef } from './Player';
 import DevicesTab from './Tabs/Devices';
 import SettingsTab from './Tabs/Settings';
+import ChatTab from './Tabs/Chat';
 import TracksListTab from './Tabs/TracksList';
 import TheMusicPlayerWithControls from './TheMusicPlayerWithControls';
 
@@ -139,6 +140,15 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                 });
             },
         },
+        {
+            text: 'Chat',
+            selected: tabsState.matches('chat'),
+            onPress: () => {
+                tabsSend({
+                    type: 'GO_TO_CHAT',
+                });
+            },
+        },
     ];
     const selectedTab = tabs.find(({ selected }) => selected === true);
     if (selectedTab === undefined) {
@@ -170,6 +180,8 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                         context={context}
                     />
                 );
+            case 'Chat':
+                return <ChatTab />;
             default:
                 throw new Error('Reached unreachable state');
         }

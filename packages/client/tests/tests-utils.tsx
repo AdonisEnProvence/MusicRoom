@@ -6,7 +6,7 @@ import {
     RenderOptions,
 } from '@testing-library/react-native';
 import { DripsyProvider } from 'dripsy';
-import { datatype, random } from 'faker';
+import { datatype } from 'faker';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { MusicPlayerContextProvider } from '../contexts/MusicPlayerContext';
@@ -99,7 +99,7 @@ export function getFakeUsersList({
         isCreator: false,
         isDelegationOwner: false,
         isMe: false,
-        nickname: `${random.word()}_${index}`,
+        nickname: `${datatype.uuid()}_${index}`,
         userID: datatype.uuid(),
     });
 

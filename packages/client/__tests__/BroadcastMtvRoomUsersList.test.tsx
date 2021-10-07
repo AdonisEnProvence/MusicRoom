@@ -1,4 +1,8 @@
-import { MtvPlayingModes, MtvWorkflowState } from '@musicroom/types';
+import {
+    MtvPlayingModes,
+    MtvRoomUsersListElement,
+    MtvWorkflowState,
+} from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
 import { datatype, random } from 'faker';
 import React from 'react';
@@ -607,5 +611,141 @@ describe('User list tests', () => {
             ).toBeTruthy();
         });
         // ///
+    });
+
+    it(`It should display a user card for each users in the broadcast mtv room
+    After changing the filter input it should display only the users starting with the given search query 
+    After a forced refresh with new data inside the search query should still be used`, async () => {
+        const tracksList = [generateTrackMetadata(), generateTrackMetadata()];
+
+        const roomCreatorUserID = datatype.uuid();
+        const initialState: MtvWorkflowState = {
+            name: random.words(),
+            roomID: datatype.uuid(),
+            playing: false,
+            playingMode: MtvPlayingModes.Values.BROADCAST,
+            roomCreatorUserID,
+            isOpen: true,
+            isOpenOnlyInvitedUsersCanVote: false,
+            hasTimeAndPositionConstraints: false,
+            timeConstraintIsValid: null,
+            delegationOwnerUserID: null,
+            userRelatedInformation: {
+                hasControlAndDelegationPermission: true,
+                userFitsPositionConstraint: null,
+                emittingDeviceID: datatype.uuid(),
+                userID: roomCreatorUserID,
+                tracksVotedFor: [],
+            },
+            usersLength: 1,
+            currentTrack: {
+                ...tracksList[0],
+                elapsed: 0,
+            },
+            tracks: tracksList.slice(1),
+            minimumScoreToBePlayed: 1,
+        };
+
+        let fakeUsersArray = getFakeUsersList({
+            directMode: false,
+            isMeIsCreator: true,
+        });
+        serverSocket.on('GET_CONTEXT', () => {
+            console.log('1'.repeat(100));
+            serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+        });
+
+        serverSocket.on('GET_USERS_LIST', (cb) => {
+            cb(fakeUsersArray);
+        });
+
+        const screen = render(
+            <NavigationContainer
+                ref={navigationRef}
+                onReady={() => {
+                    isReadyRef.current = true;
+                }}
+            >
+                <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
+            </NavigationContainer>,
+        );
+
+        expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+        const musicPlayerMini = screen.getByTestId('music-player-mini');
+        expect(musicPlayerMini).toBeTruthy();
+
+        const miniPlayerTrackTitle = await within(musicPlayerMini).findByText(
+            new RegExp(`${tracksList[0].title}.*${tracksList[0].artistName}`),
+        );
+        expect(miniPlayerTrackTitle).toBeTruthy();
+
+        fireEvent.press(miniPlayerTrackTitle);
+
+        const musicPlayerFullScreen = await screen.findByA11yState({
+            expanded: true,
+        });
+        expect(musicPlayerFullScreen).toBeTruthy();
+        expect(
+            within(musicPlayerFullScreen).getByText(tracksList[0].title),
+        ).toBeTruthy();
+
+        const listenersButton = await screen.getByText(/listeners/i);
+        expect(listenersButton).toBeTruthy();
+
+        fireEvent.press(listenersButton);
+
+        await waitFor(() => {
+            const usersListScreen = screen.getByText(/users.*list/i);
+            expect(usersListScreen).toBeTruthy();
+        });
+
+        const searchUserTextField = await screen.findByPlaceholderText(
+            /search.*user.*/i,
+        );
+        expect(searchUserTextField).toBeTruthy();
+
+        const searchedUser = fakeUsersArray[0];
+        const searchQuery = searchedUser.nickname.slice(0, 4);
+        fireEvent(searchUserTextField, 'focus');
+        fireEvent.changeText(searchUserTextField, searchQuery);
+        fireEvent(searchUserTextField, 'submitEditing');
+
+        await waitFor(() => {
+            const searchedUserCard = screen.getByTestId(
+                `${searchedUser.nickname}-user-card`,
+            );
+            expect(searchedUserCard).toBeTruthy();
+            const otherUser = screen.queryByTestId(
+                `${fakeUsersArray[1].nickname}-user-card`,
+            );
+            expect(otherUser).toBeNull();
+        });
+
+        const newSearchAbleUser: MtvRoomUsersListElement = {
+            hasControlAndDelegationPermission: false,
+            isCreator: false,
+            isDelegationOwner: false,
+            isMe: false,
+            nickname: `${searchQuery}_${datatype.uuid()}`,
+            userID: datatype.uuid(),
+        };
+        fakeUsersArray = [...fakeUsersArray, newSearchAbleUser];
+        serverSocket.emit('USERS_LIST_FORCED_REFRESH');
+
+        await waitFor(() => {
+            const searchedUserCard = screen.getByTestId(
+                `${searchedUser.nickname}-user-card`,
+            );
+            expect(searchedUserCard).toBeTruthy();
+            const otherUser = screen.queryByTestId(
+                `${fakeUsersArray[1].nickname}-user-card`,
+            );
+            expect(otherUser).toBeNull();
+            const newSearchAbleUserCard = screen.getByTestId(
+                `${newSearchAbleUser.nickname}-user-card`,
+            );
+            expect(newSearchAbleUserCard).toBeTruthy();
+        });
     });
 });

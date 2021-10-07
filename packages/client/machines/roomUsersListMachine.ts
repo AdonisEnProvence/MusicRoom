@@ -69,7 +69,14 @@ const assignRetrievedUsersListToContext = roomUsersListModel.assign(
                     MtvRoomUsersListElement.parse(context.selectedUser).userID,
             );
         },
-        //add filtered users
+        filteredUsers: (context, { retrievedUsers }) => {
+            if (context.searchQuery) {
+                return retrievedUsers.filter(({ nickname }) =>
+                    nickname.startsWith(context.searchQuery),
+                );
+            }
+            return [];
+        },
     },
     'ASSIGN_RETRIEVED_USERS_LIST',
 );

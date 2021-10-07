@@ -8,7 +8,13 @@ const ChatTab: React.FC = () => {
 
     return (
         <View sx={{ flex: 1 }}>
-            <View sx={{ backgroundColor: 'secondary', flex: 1 }} />
+            <View
+                sx={{
+                    backgroundColor: 'secondary',
+                    flex: 1,
+                    flexBasis: [undefined, 400],
+                }}
+            />
 
             <View
                 sx={{

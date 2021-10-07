@@ -57,6 +57,10 @@ const ChatTab: React.FC = () => {
     const [message, setMessage] = useState('');
 
     function handleMessageSubmit() {
+        if (message === '') {
+            return;
+        }
+
         setMessages((messages) => [
             {
                 content: message,
@@ -164,6 +168,7 @@ const ChatTab: React.FC = () => {
                     style={sx({
                         padding: 's',
                     })}
+                    accessibilityLabel="Send message"
                     onPress={handleMessageSubmit}
                 >
                     <Ionicons name="send" size={20} color="white" />

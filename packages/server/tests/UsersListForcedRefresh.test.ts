@@ -57,7 +57,6 @@ test.group(`MtvRoom get users list test group`, (group) => {
         createUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
-        disconnectSocket,
     } = initTestUtils();
 
     group.beforeEach(async () => {

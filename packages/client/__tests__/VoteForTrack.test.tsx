@@ -6,11 +6,7 @@ import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
-import { fireEvent, render, within } from '../tests/tests-utils';
-
-function noop() {
-    return undefined;
-}
+import { fireEvent, render, within, noop } from '../tests/tests-utils';
 
 test(`
 User should go to the musicPlayer into the tracks tab and hit a track card to vote for it

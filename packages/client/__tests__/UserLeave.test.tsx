@@ -6,11 +6,7 @@ import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
-import { fireEvent, render, waitFor, within } from '../tests/tests-utils';
-
-function noop() {
-    return undefined;
-}
+import { fireEvent, render, waitFor, within, noop } from '../tests/tests-utils';
 
 test(`
 User should go to the musicPlayer into the settings tab an hit the leave button

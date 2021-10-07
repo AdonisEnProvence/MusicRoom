@@ -175,6 +175,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
             case 'Settings':
                 return (
                     <SettingsTab
+                        userContext={userContext}
                         sendToMachine={sendToMachine}
                         sendToUserMachine={sendToUserMachine}
                         context={context}

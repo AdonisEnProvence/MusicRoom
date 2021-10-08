@@ -65,7 +65,6 @@ After clicking on one not emitting device card it should set the clicked one as 
     });
 
     serverSocket.on('GET_CONTEXT', () => {
-        console.log('J AI BIEN RECUP LE CONTEXT');
         serverSocket.emit('RETRIEVE_CONTEXT', state);
     });
 

@@ -173,74 +173,64 @@ export function initTestUtils(): TestUtilsReturnedValue {
     const createWaitForMachine = <ExpectReturn>(timeout: number) =>
         createMachine(
             {
-                initial: 'process',
+                initial: 'tryExpect',
 
                 context: {
                     expectReturn: undefined as ExpectReturn | undefined,
                 },
 
+                after: {
+                    TIMEOUT: {
+                        target: 'cancelled',
+                    },
+                },
+
                 states: {
-                    process: {
-                        type: 'parallel',
+                    tryExpect: {
+                        initial: 'assert',
 
                         states: {
-                            tryExpect: {
-                                initial: 'assert',
+                            assert: {
+                                invoke: {
+                                    src: 'expect',
 
-                                states: {
-                                    assert: {
-                                        invoke: {
-                                            src: 'expect',
+                                    onDone: {
+                                        target: 'succeeded',
 
-                                            onDone: {
-                                                actions: [
-                                                    send({
-                                                        type: 'SUCCEEDED',
-                                                    }),
-
-                                                    assign({
-                                                        expectReturn: (
-                                                            _,
-                                                            {
-                                                                data,
-                                                            }: DoneInvokeEvent<ExpectReturn>,
-                                                        ) => data,
-                                                    }),
-                                                ],
-                                            },
-
-                                            onError: {
-                                                target: 'debouncing',
-                                            },
-                                        },
+                                        actions: assign({
+                                            expectReturn: (
+                                                _,
+                                                {
+                                                    data,
+                                                }: DoneInvokeEvent<ExpectReturn>,
+                                            ) => data,
+                                        }),
                                     },
 
-                                    debouncing: {
-                                        after: {
-                                            10: {
-                                                target: 'assert',
-                                            },
-                                        },
+                                    onError: {
+                                        target: 'debouncing',
                                     },
                                 },
                             },
 
-                            timer: {
+                            debouncing: {
                                 after: {
-                                    TIMEOUT: {
-                                        actions: send({
-                                            type: 'CANCELLED',
-                                        }),
+                                    10: {
+                                        target: 'assert',
                                     },
                                 },
+                            },
+
+                            succeeded: {
+                                type: 'final',
                             },
                         },
 
-                        on: {
-                            SUCCEEDED: {
-                                target: 'succeeded',
-                            },
+                        onDone: {
+                            target: 'succeeded',
+                        },
 
+                        on: {
                             CANCELLED: {
                                 target: 'cancelled',
                             },

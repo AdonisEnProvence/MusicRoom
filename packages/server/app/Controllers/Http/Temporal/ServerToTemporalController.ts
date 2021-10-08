@@ -64,8 +64,12 @@ interface TemporalMtvLeaveWorkflowArgs extends TemporalBaseArgs {
 }
 
 interface TemporalMtvGoToNextTrackArgs extends TemporalBaseArgs {}
-interface TemporalMtvPauseArgs extends TemporalBaseArgs {}
-interface TemporalMtvPlayArgs extends TemporalBaseArgs {}
+interface TemporalMtvPauseArgs extends TemporalBaseArgs {
+    userID: string;
+}
+interface TemporalMtvPlayArgs extends TemporalBaseArgs {
+    userID: string;
+}
 interface TemporalMtvTerminateWorkflowArgs extends TemporalBaseArgs {}
 
 interface TemporalMtvSuggestTracksArgs extends TemporalBaseArgs {

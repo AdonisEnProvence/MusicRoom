@@ -266,15 +266,18 @@ Ws.io.on('connection', async (socket) => {
         socket.on('ACTION_PLAY', async () => {
             try {
                 //we need to check auth from socket id into a userId into a room users[]
-                const { mtvRoomID } =
-                    await SocketLifecycle.getSocketConnectionCredentials(
-                        socket,
-                    );
+                const {
+                    mtvRoomID,
+                    user: { uuid: userID },
+                } = await SocketLifecycle.getSocketConnectionCredentials(
+                    socket,
+                );
                 if (mtvRoomID === undefined) {
                     throw new Error('ACTION_PLAY failed room not found');
                 }
                 await MtvRoomsWsController.onPlay({
                     roomID: mtvRoomID,
+                    userID,
                 });
             } catch (e) {
                 console.error(e);
@@ -283,15 +286,18 @@ Ws.io.on('connection', async (socket) => {
 
         socket.on('ACTION_PAUSE', async () => {
             try {
-                const { mtvRoomID } =
-                    await SocketLifecycle.getSocketConnectionCredentials(
-                        socket,
-                    );
+                const {
+                    mtvRoomID,
+                    user: { uuid: userID },
+                } = await SocketLifecycle.getSocketConnectionCredentials(
+                    socket,
+                );
                 if (mtvRoomID === undefined) {
                     throw new Error('ACTION_PLAY failed room not found');
                 }
                 await MtvRoomsWsController.onPause({
                     roomID: mtvRoomID,
+                    userID,
                 });
             } catch (e) {
                 console.error(e);

@@ -7,12 +7,13 @@ import {
 } from './mtv';
 
 export interface MtvRoomChatMessage {
-    author: string;
+    authorID: string;
+    authorName: string;
     text: string;
 }
 
 export interface MtvRoomChatClientToServerNewMessageArgs {
-    message: MtvRoomChatMessage;
+    message: string;
 }
 
 export interface MtvRoomChatServerToClientReceivedMessageArgs {

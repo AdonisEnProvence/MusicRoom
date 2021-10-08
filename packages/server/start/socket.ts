@@ -35,6 +35,34 @@ Ws.io.on('connection', async (socket) => {
         }
 
         /// CHAT ///
+        socket.on('NEW_MESSAGE', async ({ message }) => {
+            try {
+                const {
+                    mtvRoomID,
+                    user: { uuid: userID, nickname: userName },
+                } = await SocketLifecycle.getSocketConnectionCredentials(
+                    socket,
+                );
+                if (mtvRoomID === undefined) {
+                    throw new Error(
+                        'User can not send message if not in a room',
+                    );
+                }
+
+                Ws.io
+                    .in(mtvRoomID)
+                    .except(socket.id)
+                    .emit('RECEIVED_MESSAGE', {
+                        message: {
+                            text: message,
+                            authorID: userID,
+                            authorName: userName,
+                        },
+                    });
+            } catch (e) {
+                console.error('Error while broadcasting message', e);
+            }
+        });
         /// //// ///
 
         /// USER ///

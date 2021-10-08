@@ -96,12 +96,12 @@ jest.mock('@gorhom/bottom-sheet', () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { forwardRef, useImperativeHandle, useState } = require('react');
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { View } = require('react-native');
+    const { View, FlatList } = require('react-native');
 
     return {
         BottomSheetModalProvider: View,
         BottomSheetHandle: View,
-
+        BottomSheetFlatList: FlatList,
         BottomSheetModal: forwardRef(
             (
                 { children }: BottomSheetModalProps,

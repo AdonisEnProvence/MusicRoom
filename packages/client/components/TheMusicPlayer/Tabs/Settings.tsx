@@ -106,6 +106,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
             >
                 {userContext.devices.length > 0 ? (
                     <BottomSheetFlatList
+                        testID="change-emitting-device-bottom-sheet-flat-list"
                         data={userContext.devices}
                         renderItem={({ item: { deviceID, name } }) => {
                             const isDeviceEmitting =
@@ -128,7 +129,6 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                                         backgroundColor: 'greyLight',
                                         borderRadius: 's',
                                     }}
-                                    testID={`${deviceID}-device-card`}
                                 >
                                     <TouchableOpacity
                                         onPress={() => {
@@ -137,6 +137,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                                                 deviceID,
                                             });
                                         }}
+                                        testID={`${deviceID}-device-card`}
                                     >
                                         <View
                                             sx={{

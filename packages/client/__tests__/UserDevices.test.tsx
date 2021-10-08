@@ -1,23 +1,25 @@
 import { MtvWorkflowState, UserDevice } from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
-import { datatype, name, random } from 'faker';
+import { datatype, random } from 'faker';
 import React from 'react';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
-import { fireEvent, render, within, noop } from '../tests/tests-utils';
+import { generateTrackMetadata } from '../tests/data';
+import { fireEvent, noop, render, waitFor, within } from '../tests/tests-utils';
 
-//NOTE listing the user connected devices in the MTV room chat section is temporary, we will later have to update this test
 test(`
-On userMachine mounting it should retrieve user connected devices and list them in the MTV chat section
-After clicking on one not emitting it should set the clicked one as emitting
-`, async () => {
+On userMachine mounting it should retrieve user connected devices and list them in the MTV settings section
+after user clicked on change emitting device button
+After clicking on one not emitting device card it should set the clicked one as emitting`, async () => {
     const userDevices: UserDevice[] = Array.from({ length: 3 }).map(() => ({
         deviceID: datatype.uuid(),
         name: random.word(),
     }));
     const thisDevice = userDevices[0];
     const userID = datatype.uuid();
+    const tracksList = [generateTrackMetadata(), generateTrackMetadata()];
+
     const state: MtvWorkflowState = {
         roomID: datatype.uuid(),
         name: random.word(),
@@ -36,17 +38,12 @@ After clicking on one not emitting it should set the clicked one as emitting
             userID,
             tracksVotedFor: [],
         },
-        currentTrack: null,
         roomCreatorUserID: userID,
-        tracks: [
-            {
-                id: datatype.uuid(),
-                artistName: name.findName(),
-                duration: 42000,
-                title: random.words(3),
-                score: datatype.number(),
-            },
-        ],
+        currentTrack: {
+            ...tracksList[0],
+            elapsed: 0,
+        },
+        tracks: tracksList.slice(1),
         minimumScoreToBePlayed: 1,
     };
 
@@ -67,7 +64,12 @@ After clicking on one not emitting it should set the clicked one as emitting
         });
     });
 
-    const { findByText, getByTestId, getByText, findByA11yState } = render(
+    serverSocket.on('GET_CONTEXT', () => {
+        console.log('J AI BIEN RECUP LE CONTEXT');
+        serverSocket.emit('RETRIEVE_CONTEXT', state);
+    });
+
+    const screen = render(
         <NavigationContainer
             ref={navigationRef}
             onReady={() => {
@@ -84,14 +86,21 @@ After clicking on one not emitting it should set the clicked one as emitting
      * And toggle mtv room full screen
      */
 
-    serverSocket.emit('RETRIEVE_CONTEXT', state);
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const musicPlayerMini = getByTestId('music-player-mini');
+    const musicPlayerMini = screen.getByTestId('music-player-mini');
     expect(musicPlayerMini).toBeTruthy();
 
-    fireEvent.press(musicPlayerMini);
+    const miniPlayerTrackTitle = await within(musicPlayerMini).findByText(
+        new RegExp(`${tracksList[0].title}.*${tracksList[0].artistName}`),
+    );
+    expect(miniPlayerTrackTitle).toBeTruthy();
 
-    const musicPlayerFullScreen = await findByA11yState({ expanded: true });
+    fireEvent.press(miniPlayerTrackTitle);
+
+    const musicPlayerFullScreen = await screen.findByA11yState({
+        expanded: true,
+    });
     expect(musicPlayerFullScreen).toBeTruthy();
 
     /**
@@ -99,28 +108,54 @@ After clicking on one not emitting it should set the clicked one as emitting
      * And Search for listed user devices
      */
 
-    const goDevicesButton = within(musicPlayerFullScreen).getByText(/devices/i);
-    expect(goDevicesButton).toBeTruthy();
-    fireEvent.press(goDevicesButton);
+    const goSettingsButton = within(musicPlayerFullScreen).getByText(
+        /Settings/i,
+    );
+    expect(goSettingsButton).toBeTruthy();
+    fireEvent.press(goSettingsButton);
 
-    expect(await findByText(/welcome.*devices/i)).toBeTruthy();
+    expect(await screen.findByText(/Welcome.*Settings.*/i)).toBeTruthy();
 
-    expect(
-        getByText(new RegExp(`${userDevices.length} connected devices`)),
-    ).toBeTruthy();
+    //Click on change emitting device button
+    const displaychangeEmittingDeviceBottomSheetModalButton = within(
+        musicPlayerFullScreen,
+    ).getByText(/Change.*emitting.*device/i);
+    expect(displaychangeEmittingDeviceBottomSheetModalButton).toBeTruthy();
 
+    fireEvent.press(displaychangeEmittingDeviceBottomSheetModalButton);
+
+    await waitFor(() => {
+        const bottomSheetModal = screen.getByTestId(
+            'change-emitting-device-bottom-sheet-flat-list',
+        );
+        expect(bottomSheetModal).toBeTruthy();
+    });
+
+    const bottomSheetModal = screen.getByTestId(
+        'change-emitting-device-bottom-sheet-flat-list',
+    );
     userDevices.forEach((device) => {
+        const deviceCardList = within(bottomSheetModal).getByTestId(
+            `${device.deviceID}-device-card`,
+        );
+        expect(deviceCardList).toBeTruthy();
+
+        const isDeviceThisDevice = thisDevice.deviceID === device.deviceID;
+        const deviceName = within(deviceCardList).getByText(
+            new RegExp(
+                `${device.name}.*${isDeviceThisDevice ? '(This device)' : ''}`,
+            ),
+        );
+        expect(deviceName).toBeTruthy();
+
         const isEmittingDevice =
             state.userRelatedInformation?.emittingDeviceID === device.deviceID;
-        let expectedDeviceName = device.name;
-
-        if (isEmittingDevice) expectedDeviceName += ' EMITTING';
-
-        const listedMatchingDevice = within(musicPlayerFullScreen).getByText(
-            new RegExp(expectedDeviceName),
-        );
-
-        expect(listedMatchingDevice).toBeTruthy();
+        if (isEmittingDevice) {
+            const emitterIcon = within(deviceCardList).getByA11yLabel(
+                `${device.name} is emitting`,
+            );
+            expect(emitterIcon).toBeTruthy();
+        }
     });
 
     /**
@@ -129,16 +164,17 @@ After clicking on one not emitting it should set the clicked one as emitting
      */
 
     const lastDevice = userDevices.slice(-1)[0];
-    const lastDeviceElement = within(musicPlayerFullScreen).getByText(
-        new RegExp(lastDevice.name),
+    const lastDeviceCardList = within(bottomSheetModal).getByTestId(
+        `${lastDevice.deviceID}-device-card`,
     );
-    expect(lastDeviceElement).toBeTruthy();
+    expect(lastDeviceCardList).toBeTruthy();
 
-    fireEvent.press(lastDeviceElement);
+    fireEvent.press(lastDeviceCardList);
 
-    expect(
-        await within(musicPlayerFullScreen).findByText(
-            new RegExp(lastDevice.name + ' EMITTING'),
-        ),
-    ).toBeTruthy();
+    await waitFor(() => {
+        const emitterIcon = within(lastDeviceCardList).getByA11yLabel(
+            `${lastDevice.name} is emitting`,
+        );
+        expect(emitterIcon).toBeTruthy();
+    });
 });

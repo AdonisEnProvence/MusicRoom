@@ -5,11 +5,7 @@ import React from 'react';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
-import { fireEvent, render, within } from '../tests/tests-utils';
-
-function noop() {
-    return undefined;
-}
+import { fireEvent, render, within, noop } from '../tests/tests-utils';
 
 //NOTE listing the user connected devices in the MTV room chat section is temporary, we will later have to update this test
 test(`
@@ -99,15 +95,15 @@ After clicking on one not emitting it should set the clicked one as emitting
     expect(musicPlayerFullScreen).toBeTruthy();
 
     /**
-     * Toggle Chat tab
+     * Toggle Devices tab
      * And Search for listed user devices
      */
 
-    const goChatButton = within(musicPlayerFullScreen).getByText(/Chat/i);
-    expect(goChatButton).toBeTruthy();
-    fireEvent.press(goChatButton);
+    const goDevicesButton = within(musicPlayerFullScreen).getByText(/devices/i);
+    expect(goDevicesButton).toBeTruthy();
+    fireEvent.press(goDevicesButton);
 
-    expect(await findByText(/Welcome.*Chat/i)).toBeTruthy();
+    expect(await findByText(/welcome.*devices/i)).toBeTruthy();
 
     expect(
         getByText(new RegExp(`${userDevices.length} connected devices`)),

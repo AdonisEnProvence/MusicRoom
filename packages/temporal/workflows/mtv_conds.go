@@ -5,16 +5,29 @@ import (
 	"github.com/Devessier/brainy"
 )
 
-func hasNextTrackToPlay(internalState *MtvRoomInternalState) brainy.Cond {
+func userHasPermissionAndHasNextTrackToPlay(internalState *MtvRoomInternalState) brainy.Cond {
 	return func(c brainy.Context, e brainy.Event) bool {
+		event := e.(MtvRoomGoToNextTrackEvent)
+
+		userDoesNotHaveControlAndDelegationPermission := !internalState.UserHasControlAndDelegationPermission(event.UserID)
+		if userDoesNotHaveControlAndDelegationPermission {
+			return false
+		}
 		hasNextTrackToPlay := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.initialParams.MinimumScoreToBePlayed)
 
 		return hasNextTrackToPlay
 	}
 }
 
-func canPlayCurrentTrack(internalState *MtvRoomInternalState) brainy.Cond {
+func checkUserPermissionAndCanPlayCurrentTrack(internalState *MtvRoomInternalState) brainy.Cond {
 	return func(c brainy.Context, e brainy.Event) bool {
+		event := e.(MtvRoomPlayEvent)
+
+		userDoesNotHaveControlAndDelegationPermission := !internalState.UserHasControlAndDelegationPermission(event.UserID)
+		if userDoesNotHaveControlAndDelegationPermission {
+			return false
+		}
+
 		hasReachedEndOfCurrentTrack := internalState.CurrentTrack.AlreadyElapsed == internalState.CurrentTrack.Duration
 		hasNextTrackToPlay := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.initialParams.MinimumScoreToBePlayed)
 		hasNoNextTrackToPlay := !hasNextTrackToPlay
@@ -22,6 +35,14 @@ func canPlayCurrentTrack(internalState *MtvRoomInternalState) brainy.Cond {
 		canPlayCurrentTrack := !canNotPlayCurrentTrack
 
 		return canPlayCurrentTrack
+	}
+}
+
+func userHasPermissionToPauseCurrentTrack(internalState *MtvRoomInternalState) brainy.Cond {
+	return func(c brainy.Context, e brainy.Event) bool {
+		event := e.(MtvRoomPauseEvent)
+
+		return internalState.UserHasControlAndDelegationPermission(event.UserID)
 	}
 }
 
@@ -48,11 +69,11 @@ func roomPlayingModeIsDirectAndUserExistsAndEmitterHasPermissions(internalState 
 	return func(c brainy.Context, e brainy.Event) bool {
 		event := e.(MtvRoomUpdateDelegationOwnerEvent)
 
-		if internalState.GetUser(event.NewDelegationOwnerUserID) == nil {
+		if internalState.GetUserRelatedInformation(event.NewDelegationOwnerUserID) == nil {
 			return false
 		}
 
-		emitterUser := internalState.GetUser(event.EmitterUserID)
+		emitterUser := internalState.GetUserRelatedInformation(event.EmitterUserID)
 		if emitterUser == nil {
 			return false
 		}

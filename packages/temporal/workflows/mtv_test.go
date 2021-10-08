@@ -56,9 +56,9 @@ func (s *UnitTestSuite) getUsersList() []shared.ExposedInternalStateUserListElem
 	return usersList
 }
 
-func (s *UnitTestSuite) emitPlaySignal() {
+func (s *UnitTestSuite) emitPlaySignal(args shared.NewPlaySignalArgs) {
 	fmt.Println("-----EMIT PLAY CALLED IN TEST-----")
-	playSignal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
+	playSignal := shared.NewPlaySignal(args)
 	s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
 }
 
@@ -74,7 +74,7 @@ func (s *UnitTestSuite) emitUpdateDelegationOwnerSignal(args shared.NewUpdateDel
 	s.env.SignalWorkflow(shared.SignalChannelName, updateDelegationOwnerSignal)
 }
 
-func (s *UnitTestSuite) emitUpdateControlAndDelegationSignal(args shared.NewUpdateControlAndDelegationPermissionSignalArgs) {
+func (s *UnitTestSuite) emitUpdateControlAndDelegationPermissionSignal(args shared.NewUpdateControlAndDelegationPermissionSignalArgs) {
 	fmt.Println("-----EMIT UPDATE CONTROL AND DELEGATION PERMISSION CALLED IN TEST-----")
 	updateDelegationOwnerSignal := shared.NewUpdateControlAndDelegationPermissionSignal(args)
 	s.env.SignalWorkflow(shared.SignalChannelName, updateDelegationOwnerSignal)
@@ -143,16 +143,16 @@ func (s *UnitTestSuite) mockOnceSuggest(userID string, deviceID string, roomID s
 	).Return(nil).Once()
 }
 
-func (s *UnitTestSuite) emitPauseSignal() {
+func (s *UnitTestSuite) emitPauseSignal(args shared.NewPauseSignalArgs) {
 	fmt.Println("-----EMIT PAUSED CALLED IN TEST-----")
-	pauseSignal := shared.NewPauseSignal(shared.NewPauseSignalArgs{})
+	pauseSignal := shared.NewPauseSignal(args)
 
 	s.env.SignalWorkflow(shared.SignalChannelName, pauseSignal)
 }
 
-func (s *UnitTestSuite) emitGoToNextTrackSignal() {
+func (s *UnitTestSuite) emitGoToNextTrackSignal(args shared.NewGoToNextTrackSignalArgs) {
 	fmt.Println("-----EMIT GO TO NEXT TRACK IN TEST-----")
-	goToNextTrackSignal := shared.NewGoToNexTrackSignal()
+	goToNextTrackSignal := shared.NewGoToNexTrackSignal(args)
 
 	s.env.SignalWorkflow(shared.SignalChannelName, goToNextTrackSignal)
 }
@@ -273,14 +273,18 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		mtvState := s.getMtvState(shared.NoRelatedUserID)
 		s.False(mtvState.Playing)
 
-		s.emitPlaySignal()
+		s.emitPlaySignal(shared.NewPlaySignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, checkThatRoomIsNotPlaying)
 
 	emitPause := firstTrackDurationFirstThird
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(shared.NoRelatedUserID)
 		s.True(mtvState.Playing)
-		s.emitPauseSignal()
+		s.emitPauseSignal(shared.NewPauseSignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, emitPause)
 
 	checkThatOneThirdFirstTrackElapsed := defaultDuration
@@ -315,7 +319,9 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 	//Play alone because the signal is sent as last from registerDelayedCallback
 	registerDelayedCallbackWrapper(func() {
 		fmt.Println("*********VERIFICATION 3/3 first track*********")
-		s.emitPlaySignal()
+		s.emitPlaySignal(shared.NewPlaySignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, secondEmitPlaySignal)
 
 	// Important
@@ -514,7 +520,9 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 
 		s.NotEqual(shouldNotBeRegisterDeviceID, mtvState.UserRelatedInformation.DeviceID)
 		s.Equal(expectedInternalStateUser, mtvState.UserRelatedInformation)
-		s.emitPlaySignal()
+		s.emitPlaySignal(shared.NewPlaySignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, checkTwoUsersThenEmitPlay)
 
 	emitPauseSignal := firstTrackDuration - 200*defaultDuration
@@ -778,7 +786,9 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 	// 2. Send the first GoToNextTrack signal.
 	firstGoToNextTrackSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitGoToNextTrackSignal()
+		s.emitGoToNextTrackSignal(shared.NewGoToNextTrackSignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, firstGoToNextTrackSignal)
 
 	// 3. We expect the second initial track to be the current one
@@ -813,7 +823,9 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 	// 4. Send the second GoToNextTrack signal.
 	secondGoToNextTrackSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitGoToNextTrackSignal()
+		s.emitGoToNextTrackSignal(shared.NewGoToNextTrackSignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, secondGoToNextTrackSignal)
 
 	// 5. We expect the second initial track to still be the current one playing one
@@ -1005,7 +1017,9 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
 		s.False(mtvState.Playing)
-		s.emitPlaySignal()
+		s.emitPlaySignal(shared.NewPlaySignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, initialStateQueryDelay)
 
 	secondStateQueryAfterTotalTrackDuration := firstTrackDuration
@@ -1036,7 +1050,9 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 
 	secondPlaySignalDelay := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitPlaySignal()
+		s.emitPlaySignal(shared.NewPlaySignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, secondPlaySignalDelay)
 
 	thirdStateQueryAfterSecondPlaySignal := firstTrackDuration
@@ -1915,7 +1931,9 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 	//Test that a finished track can be suggest again and voted again
 	emitGoToNextTrackSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitGoToNextTrackSignal()
+		s.emitGoToNextTrackSignal(shared.NewGoToNextTrackSignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, emitGoToNextTrackSignal)
 
 	previousCurrentTrackToSuggest := []shared.TrackMetadata{
@@ -2056,7 +2074,9 @@ func (s *UnitTestSuite) Test_EmptyCurrentTrackAutoPlayAfterOneGetReadyToBePlayed
 
 	emitGoToNextTrack := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitGoToNextTrackSignal()
+		s.emitGoToNextTrackSignal(shared.NewGoToNextTrackSignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, emitGoToNextTrack)
 
 	checkNothingHappened := defaultDuration
@@ -3175,7 +3195,7 @@ func (s *UnitTestSuite) Test_CanUpdateControlAndDelegationPermission() {
 
 	updateAddedUserControlAndDelegationPermission := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitUpdateControlAndDelegationSignal(shared.NewUpdateControlAndDelegationPermissionSignalArgs{
+		s.emitUpdateControlAndDelegationPermissionSignal(shared.NewUpdateControlAndDelegationPermissionSignalArgs{
 			ToUpdateUserID:                    joiningUserID,
 			HasControlAndDelegationPermission: true,
 		})
@@ -3394,6 +3414,408 @@ func (s *UnitTestSuite) Test_GetUsersListQueryInDirectRoom() {
 
 		s.Equal(expectedUsersList, usersList)
 	}, checkDelegationOwnerResetAndUserListUpdate)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionPlay() {
+
+	var (
+		joiningUserID       = faker.UUIDHyphenated()
+		joiningUserDeviceID = faker.UUIDHyphenated()
+	)
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+
+	tracksIDs := []string{tracks[0].ID}
+	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	defaultDuration := 1 * time.Millisecond
+
+	params.PlayingMode = shared.MtvPlayingModeDirect
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.PlayActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
+	init := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: true,
+		}
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+	}, init)
+
+	emitJoinSignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+	}, emitJoinSignal)
+
+	checkJoinWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(joiningUserID)
+
+		expectedJoiningUser := &shared.InternalStateUser{
+			UserID:                            joiningUserID,
+			DeviceID:                          joiningUserDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: false,
+		}
+		s.Equal(expectedJoiningUser, mtvState.UserRelatedInformation)
+	}, checkJoinWorked)
+
+	emitPlaySignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitPlaySignal(shared.NewPlaySignalArgs{
+			UserID: joiningUserID,
+		})
+	}, emitPlaySignal)
+
+	checkPlayFailed := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(joiningUserID)
+
+		s.False(mtvState.Playing)
+	}, checkPlayFailed)
+
+	emitUpdateUserControlAndDelegationPermission := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitUpdateControlAndDelegationPermissionSignal(shared.NewUpdateControlAndDelegationPermissionSignalArgs{
+			HasControlAndDelegationPermission: true,
+			ToUpdateUserID:                    joiningUserID,
+		})
+	}, emitUpdateUserControlAndDelegationPermission)
+
+	secondEmitPlaySignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitPlaySignal(shared.NewPlaySignalArgs{
+			UserID: joiningUserID,
+		})
+	}, secondEmitPlaySignal)
+
+	checkEmitPlayWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(joiningUserID)
+
+		s.True(mtvState.UserRelatedInformation.HasControlAndDelegationPermission)
+		s.True(mtvState.Playing)
+	}, checkEmitPlayWorked)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionPause() {
+
+	var (
+		joiningUserID       = faker.UUIDHyphenated()
+		joiningUserDeviceID = faker.UUIDHyphenated()
+	)
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+
+	tracksIDs := []string{tracks[0].ID}
+	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	defaultDuration := 1 * time.Millisecond
+
+	params.PlayingMode = shared.MtvPlayingModeDirect
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.PlayActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	//First call after initial tracks fetch
+	//Second call after Custom emit pause signal
+	s.env.OnActivity(
+		activities.PauseActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Times(2)
+
+	init := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: true,
+		}
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+	}, init)
+
+	emitJoinSignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+	}, emitJoinSignal)
+
+	checkJoinWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(joiningUserID)
+
+		expectedJoiningUser := &shared.InternalStateUser{
+			UserID:                            joiningUserID,
+			DeviceID:                          joiningUserDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: false,
+		}
+		s.Equal(expectedJoiningUser, mtvState.UserRelatedInformation)
+	}, checkJoinWorked)
+
+	emitPlaySignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitPlaySignal(shared.NewPlaySignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
+	}, emitPlaySignal)
+
+	checkPlayWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		s.True(mtvState.Playing)
+	}, checkPlayWorked)
+
+	emitPauseSignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitPlaySignal(shared.NewPlaySignalArgs{
+			UserID: joiningUserID,
+		})
+	}, emitPauseSignal)
+
+	checkPauseFailed := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		s.True(mtvState.Playing)
+	}, checkPauseFailed)
+
+	emitUpdateUserControlAndDelegationPermission := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitUpdateControlAndDelegationPermissionSignal(shared.NewUpdateControlAndDelegationPermissionSignalArgs{
+			HasControlAndDelegationPermission: true,
+			ToUpdateUserID:                    joiningUserID,
+		})
+	}, emitUpdateUserControlAndDelegationPermission)
+
+	secondEmitPauseSignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitPauseSignal(shared.NewPauseSignalArgs{
+			UserID: joiningUserID,
+		})
+	}, secondEmitPauseSignal)
+
+	checkEmitPauseWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(joiningUserID)
+
+		s.True(mtvState.UserRelatedInformation.HasControlAndDelegationPermission)
+		s.False(mtvState.Playing)
+	}, checkEmitPauseWorked)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionGoToNextTrack() {
+
+	var (
+		joiningUserID       = faker.UUIDHyphenated()
+		joiningUserDeviceID = faker.UUIDHyphenated()
+	)
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+
+	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
+	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	defaultDuration := 1 * time.Millisecond
+
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.PlayActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
+	init := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{tracksIDs[1]},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: true,
+		}
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+	}, init)
+
+	emitJoinSignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+	}, emitJoinSignal)
+
+	checkJoinWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(joiningUserID)
+
+		expectedJoiningUser := &shared.InternalStateUser{
+			UserID:                            joiningUserID,
+			DeviceID:                          joiningUserDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: false,
+		}
+		s.Equal(expectedJoiningUser, mtvState.UserRelatedInformation)
+	}, checkJoinWorked)
+
+	emitGoToNextTrackSignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitGoToNextTrackSignal(shared.NewGoToNextTrackSignalArgs{
+			UserID: joiningUserID,
+		})
+	}, emitGoToNextTrackSignal)
+
+	checkGoToNextTrackFailed := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		expectedTracks := []shared.TrackMetadataWithScoreWithDuration{
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						Title:      tracks[1].Title,
+						ArtistName: tracks[1].ArtistName,
+						Duration:   0,
+					},
+					Score: 1,
+				},
+				Duration: tracks[1].Duration.Milliseconds(),
+			},
+		}
+
+		s.False(mtvState.Playing)
+		s.Equal(expectedTracks, mtvState.Tracks)
+		s.Equal(tracks[0].ID, mtvState.CurrentTrack.ID)
+	}, checkGoToNextTrackFailed)
+
+	emitUpdateUserControlAndDelegationPermission := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitUpdateControlAndDelegationPermissionSignal(shared.NewUpdateControlAndDelegationPermissionSignalArgs{
+			HasControlAndDelegationPermission: true,
+			ToUpdateUserID:                    joiningUserID,
+		})
+	}, emitUpdateUserControlAndDelegationPermission)
+
+	secondEmitGoToNextTrackSignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitGoToNextTrackSignal(shared.NewGoToNextTrackSignalArgs{
+			UserID: joiningUserID,
+		})
+	}, secondEmitGoToNextTrackSignal)
+
+	checkEmitGoToNextTrackWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(joiningUserID)
+
+		expectedTracks := []shared.TrackMetadataWithScoreWithDuration{}
+
+		s.True(mtvState.UserRelatedInformation.HasControlAndDelegationPermission)
+		s.Equal(expectedTracks, mtvState.Tracks)
+		s.Equal(tracks[1].ID, mtvState.CurrentTrack.ID)
+		s.True(mtvState.Playing)
+
+	}, checkEmitGoToNextTrackWorked)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
 

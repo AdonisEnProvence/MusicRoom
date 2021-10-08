@@ -107,6 +107,11 @@ interface CreateAppMusicPlayerMachineArgs {
 
 const rawContext: AppMusicPlayerMachineContext = {
     name: '',
+    /**
+     * Do not use the deprecated playing boolean
+     * It's not correctly updated after a pause signal callback
+     * Use state machine tags instead
+     */
     playing: false,
     roomCreatorUserID: '',
     roomID: '',

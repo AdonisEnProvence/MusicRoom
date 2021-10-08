@@ -46,15 +46,21 @@ interface OnJoinArgs extends UserID, DeviceID {
 interface OnLeaveArgs extends UserArgs {
     leavingRoomID: string;
 }
-interface OnPauseArgs extends RoomID {}
-interface OnPlayArgs extends RoomID {}
+interface OnPauseArgs extends RoomID {
+    userID: string;
+}
+interface OnPlayArgs extends RoomID {
+    userID: string;
+}
 interface OnTerminateArgs extends RoomID, RunID {}
 interface OnGetStateArgs extends RoomID, UserID {}
 interface OnGetUsersListArgs {
     roomID: string;
     userID: string;
 }
-interface OnGoToNextTrackArgs extends RoomID {}
+interface OnGoToNextTrackArgs extends RoomID {
+    userID: string;
+}
 interface OnChangeEmittingDeviceArgs extends RoomID, DeviceID, UserID {}
 interface OnSuggestTracksArgs extends RoomID, DeviceID, UserID {
     tracksToSuggest: string[];
@@ -230,16 +236,27 @@ export default class MtvRoomsWsController {
         }
     }
 
-    public static async onPause({ roomID }: OnPauseArgs): Promise<void> {
+    public static async onPause({
+        roomID,
+        userID,
+    }: OnPauseArgs): Promise<void> {
         console.log(`PAUSE ${roomID}`);
         const { runID } = await MtvRoom.findOrFail(roomID);
-        await ServerToTemporalController.pause({ workflowID: roomID, runID });
+        await ServerToTemporalController.pause({
+            workflowID: roomID,
+            runID,
+            userID,
+        });
     }
 
-    public static async onPlay({ roomID }: OnPlayArgs): Promise<void> {
+    public static async onPlay({ roomID, userID }: OnPlayArgs): Promise<void> {
         console.log(`PLAY ${roomID} `);
         const { runID } = await MtvRoom.findOrFail(roomID);
-        await ServerToTemporalController.play({ workflowID: roomID, runID });
+        await ServerToTemporalController.play({
+            workflowID: roomID,
+            runID,
+            userID,
+        });
     }
 
     /**
@@ -315,12 +332,14 @@ export default class MtvRoomsWsController {
 
     public static async onGoToNextTrack({
         roomID,
+        userID,
     }: OnGoToNextTrackArgs): Promise<void> {
         const { runID } = await MtvRoom.findOrFail(roomID);
 
         await ServerToTemporalController.goToNextTrack({
             workflowID: roomID,
             runID,
+            userID,
         });
     }
 

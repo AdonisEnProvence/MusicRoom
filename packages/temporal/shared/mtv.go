@@ -351,28 +351,34 @@ type GenericRouteSignal struct {
 }
 
 type PlaySignal struct {
-	Route SignalRoute `validate:"required"`
+	Route  SignalRoute `validate:"required"`
+	UserID string      `validate:"required,uuid"`
 }
 
 type NewPlaySignalArgs struct {
+	UserID string `validate:"required,uuid"`
 }
 
 func NewPlaySignal(args NewPlaySignalArgs) PlaySignal {
 	return PlaySignal{
-		Route: SignalRoutePlay,
+		Route:  SignalRoutePlay,
+		UserID: args.UserID,
 	}
 }
 
 type PauseSignal struct {
-	Route SignalRoute `validate:"required"`
+	Route  SignalRoute `validate:"required"`
+	UserID string      `validate:"required,uuid"`
 }
 
 type NewPauseSignalArgs struct {
+	UserID string `validate:"required,uuid"`
 }
 
 func NewPauseSignal(args NewPauseSignalArgs) PauseSignal {
 	return PauseSignal{
-		Route: SignalRoutePause,
+		Route:  SignalRoutePause,
+		UserID: args.UserID,
 	}
 }
 
@@ -424,12 +430,18 @@ func NewTerminateSignal(args NewTerminateSignalArgs) TerminateSignal {
 }
 
 type GoToNextTrackSignal struct {
-	Route SignalRoute `validate:"required"`
+	Route  SignalRoute `validate:"required"`
+	UserID string      `validate:"required,uuid"`
 }
 
-func NewGoToNexTrackSignal() GoToNextTrackSignal {
+type NewGoToNextTrackSignalArgs struct {
+	UserID string `validate:"required,uuid"`
+}
+
+func NewGoToNexTrackSignal(args NewGoToNextTrackSignalArgs) GoToNextTrackSignal {
 	return GoToNextTrackSignal{
-		Route: SignalRouteGoToNextTrack,
+		Route:  SignalRouteGoToNextTrack,
+		UserID: args.UserID,
 	}
 }
 
@@ -537,6 +549,12 @@ type UpdateControlAndDelegationPermissionSignal struct {
 	HasControlAndDelegationPermission bool
 }
 
+//REMINDER:
+//Only the creator is allow to do this operation
+//The verification is done upper by adonis itself
+//It match a socket_id to a user and the user to a related room
+//Passing the creatorUserID in this payload is not a safe
+//as the creatorUserID is a public information
 type NewUpdateControlAndDelegationPermissionSignalArgs struct {
 	ToUpdateUserID                    string
 	HasControlAndDelegationPermission bool

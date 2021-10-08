@@ -34,13 +34,6 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                     }}
                 />
                 <Button
-                    title="Go chat"
-                    onPress={() => {
-                        navigation.navigate('Chat');
-                    }}
-                />
-
-                <Button
                     title="Suggest track modal"
                     onPress={() => {
                         navigation.navigate('SuggestTrack', {

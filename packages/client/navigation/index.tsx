@@ -9,7 +9,6 @@ import React, { useEffect } from 'react';
 import Toast from 'react-native-toast-message';
 import { navigationStyle } from '../constants/Colors';
 import { AlertScreen } from '../screens/AlertScreen';
-import ChatScreen from '../screens/ChatScreen';
 import MusicTrackVoteCreationFormConfirmation from '../screens/MusicTrackVoteCreationFormConfirmation';
 import MusicTrackVoteCreationFormName from '../screens/MusicTrackVoteCreationFormName';
 import MusicTrackVoteCreationFormOpeningStatus from '../screens/MusicTrackVoteCreationFormOpeningStatus';
@@ -213,12 +212,6 @@ const MainNavigator: React.FC<ColorModeProps> = ({
                 name="MusicTrackVoteSearch"
                 component={MusicTrackVoteSearchScreen}
                 options={{ title: 'Track Vote Search' }}
-            />
-
-            <MainStack.Screen
-                name="Chat"
-                component={ChatScreen}
-                options={{ title: 'Chat' }}
             />
 
             <MainStack.Screen name="Settings" options={{ title: 'Settings' }}>

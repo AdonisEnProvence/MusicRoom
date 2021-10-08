@@ -6,30 +6,27 @@ import {
     MtvWorkflowStateWithUserRelatedInformation,
 } from './mtv';
 
-export interface ChatMessage {
+export interface MtvRoomChatMessage {
     author: string;
     text: string;
 }
 
-export interface ChatClientToServerNewMessageArgs {
-    message: ChatMessage;
+export interface MtvRoomChatClientToServerNewMessageArgs {
+    message: MtvRoomChatMessage;
 }
 
-export interface ChatServerToClientLoadMessagesArgs {
-    messages: ChatMessage[];
+export interface MtvRoomChatServerToClientReceivedMessageArgs {
+    message: MtvRoomChatMessage;
 }
 
-export interface ChatServerToClientReceivedMessageArgs {
-    message: ChatMessage;
+export interface MtvRoomChatClientToServerEvents {
+    NEW_MESSAGE: (args: MtvRoomChatClientToServerNewMessageArgs) => void;
 }
 
-export interface ChatClientToServerEvents {
-    NEW_MESSAGE: (args: ChatClientToServerNewMessageArgs) => void;
-}
-
-export interface ChatServerToClientEvents {
-    LOAD_MESSAGES: (args: ChatServerToClientLoadMessagesArgs) => void;
-    RECEIVED_MESSAGE: (args: ChatServerToClientReceivedMessageArgs) => void;
+export interface MtvRoomChatServerToClientEvents {
+    RECEIVED_MESSAGE: (
+        args: MtvRoomChatServerToClientReceivedMessageArgs,
+    ) => void;
 }
 
 export interface MtvRoomClientToServerJoin {

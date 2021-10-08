@@ -6,7 +6,6 @@ import {
     MtvRoomUpdateDelegationOwnerArgs,
     UserDevice,
 } from '@musicroom/types';
-import ChatController from 'App/Controllers/Ws/ChatController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
@@ -27,8 +26,6 @@ export type TypedSocket = Socket<
 
 Ws.io.on('connection', async (socket) => {
     try {
-        ChatController.onConnect({ socket, payload: undefined });
-
         const hasDeviceNotBeenFound =
             (await Device.findBy('socket_id', socket.id)) === null;
         if (hasDeviceNotBeenFound) {
@@ -36,10 +33,8 @@ Ws.io.on('connection', async (socket) => {
         } else {
             console.log('socketID already registered');
         }
+
         /// CHAT ///
-        socket.on('NEW_MESSAGE', (payload) => {
-            ChatController.onWriteMessage({ socket, payload });
-        });
         /// //// ///
 
         /// USER ///

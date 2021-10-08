@@ -67,8 +67,6 @@ export type MainStackParamList = {
     MusicTrackVoteSearch: undefined;
     MusicTrackVote: MusicTrackVoteParams;
 
-    Chat: undefined;
-
     Settings: undefined;
 
     Alert: AlertParams;
@@ -221,14 +219,6 @@ export type MusicTrackVoteSearchScreenProps = {
         StackNavigationProp<MainStackParamList, 'MusicTrackVoteSearch'>
     >;
     route: RouteProp<MainStackParamList, 'MusicTrackVoteSearch'>;
-};
-
-export type ChatScreenProps = {
-    navigation: CompositeNavigationProp<
-        StackNavigationProp<RootStackParamList, 'Main'>,
-        StackNavigationProp<MainStackParamList, 'Chat'>
-    >;
-    route: RouteProp<MainStackParamList, 'Chat'>;
 };
 
 export type SettingsScreenProps = {

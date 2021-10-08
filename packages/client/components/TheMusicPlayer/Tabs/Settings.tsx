@@ -8,6 +8,7 @@ import { Sender } from '@xstate/react/lib/types';
 import { Text, useSx, View } from 'dripsy';
 import React, { useRef } from 'react';
 import { TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
     AppMusicPlayerMachineContext,
     AppMusicPlayerMachineEvent,
@@ -31,6 +32,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
     sendToMachine,
 }) => {
     const sx = useSx();
+    const insets = useSafeAreaInsets();
 
     //Bottom sheet related
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -170,6 +172,9 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                             );
                         }}
                         keyExtractor={(item) => item.deviceID}
+                        contentContainerStyle={{
+                            paddingBottom: insets.bottom,
+                        }}
                     />
                 ) : (
                     <View>

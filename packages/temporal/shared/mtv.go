@@ -351,28 +351,34 @@ type GenericRouteSignal struct {
 }
 
 type PlaySignal struct {
-	Route SignalRoute `validate:"required"`
+	Route  SignalRoute `validate:"required"`
+	UserID string      `validate:"required,uuid"`
 }
 
 type NewPlaySignalArgs struct {
+	UserID string `validate:"required,uuid"`
 }
 
 func NewPlaySignal(args NewPlaySignalArgs) PlaySignal {
 	return PlaySignal{
-		Route: SignalRoutePlay,
+		Route:  SignalRoutePlay,
+		UserID: args.UserID,
 	}
 }
 
 type PauseSignal struct {
-	Route SignalRoute `validate:"required"`
+	Route  SignalRoute `validate:"required"`
+	UserID string      `validate:"required,uuid"`
 }
 
 type NewPauseSignalArgs struct {
+	UserID string `validate:"required,uuid"`
 }
 
 func NewPauseSignal(args NewPauseSignalArgs) PauseSignal {
 	return PauseSignal{
-		Route: SignalRoutePause,
+		Route:  SignalRoutePause,
+		UserID: args.UserID,
 	}
 }
 
@@ -424,12 +430,18 @@ func NewTerminateSignal(args NewTerminateSignalArgs) TerminateSignal {
 }
 
 type GoToNextTrackSignal struct {
-	Route SignalRoute `validate:"required"`
+	Route  SignalRoute `validate:"required"`
+	UserID string      `validate:"required,uuid"`
 }
 
-func NewGoToNexTrackSignal() GoToNextTrackSignal {
+type NewGoToNextTrackSignalArgs struct {
+	UserID string `validate:"required,uuid"`
+}
+
+func NewGoToNexTrackSignal(args NewGoToNextTrackSignalArgs) GoToNextTrackSignal {
 	return GoToNextTrackSignal{
-		Route: SignalRouteGoToNextTrack,
+		Route:  SignalRouteGoToNextTrack,
+		UserID: args.UserID,
 	}
 }
 

@@ -215,8 +215,8 @@ const (
 	MtvRoomPlayingWaitingTimerEndState brainy.StateType = "waiting-timer-end"
 	MtvRoomPlayingTimeoutExpiredState  brainy.StateType = "timeout-expired"
 
-	MtvRoomPlayEvent                              brainy.EventType = "PLAY"
-	MtvRoomPauseEvent                             brainy.EventType = "PAUSE"
+	MtvRoomPlay                                   brainy.EventType = "PLAY"
+	MtvRoomPause                                  brainy.EventType = "PAUSE"
 	MtvRoomTimerLaunchedEvent                     brainy.EventType = "TIMER_LAUNCHED"
 	MtvRoomTimerExpiredEvent                      brainy.EventType = "TIMER_EXPIRED"
 	MtvRoomInitialTracksFetched                   brainy.EventType = "INITIAL_TRACKS_FETCHED"
@@ -227,7 +227,7 @@ const (
 	MtvRoomRemoveUserEvent                        brainy.EventType = "REMOVE_USER"
 	MtvRoomVoteForTrackEvent                      brainy.EventType = "VOTE_FOR_TRACK"
 	MtvRoomUpdateUserFitsPositionConstraint       brainy.EventType = "UPDATE_USER_FITS_POSITION_CONSTRAINT"
-	MtvRoomGoToNextTrackEvent                     brainy.EventType = "GO_TO_NEXT_TRACK"
+	MtvRoomGoToNextTrack                          brainy.EventType = "GO_TO_NEXT_TRACK"
 	MtvRoomChangeUserEmittingDevice               brainy.EventType = "CHANGE_USER_EMITTING_DEVICE"
 	MtvRoomSuggestTracks                          brainy.EventType = "SUGGEST_TRACKS"
 	MtvRoomSuggestedTracksFetched                 brainy.EventType = "SUGGESTED_TRACKS_FETCHED"
@@ -372,7 +372,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				},
 
 				On: brainy.Events{
-					MtvRoomPlayEvent: brainy.Transition{
+					MtvRoomPlay: brainy.Transition{
 						Target: MtvRoomPlayingState,
 
 						Cond: canPlayCurrentTrack(&internalState),
@@ -531,7 +531,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								},
 							},
 
-							MtvRoomPauseEvent: brainy.Transition{
+							MtvRoomPause: brainy.Transition{
 								Actions: brainy.Actions{
 									brainy.ActionFn(
 										func(c brainy.Context, e brainy.Event) error {
@@ -740,7 +740,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				},
 			},
 
-			MtvRoomGoToNextTrackEvent: brainy.Transition{
+			MtvRoomGoToNextTrack: brainy.Transition{
 				Target: MtvRoomPlayingState,
 
 				Cond: hasNextTrackToPlay(&internalState),
@@ -884,7 +884,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					return
 				}
 
-				internalState.Machine.Send(MtvRoomPlayEvent)
+				args := NewMtvRoomPlayEventArgs{
+					UserID: message.UserID,
+				}
+				internalState.Machine.Send(NewMtvRoomPlayEvent(args))
 
 			case shared.SignalRoutePause:
 				var message shared.PauseSignal
@@ -898,7 +901,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					return
 				}
 
-				internalState.Machine.Send(MtvRoomPauseEvent)
+				args := NewMtvRoomPauseEventArgs{
+					UserID: message.UserID,
+				}
+				internalState.Machine.Send(NewMtvRoomPauseEvent(args))
 
 			case shared.SignalRouteJoin:
 				var message shared.JoinSignal
@@ -940,8 +946,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					logger.Error("Validation error: %v", err)
 					return
 				}
-
-				internalState.Machine.Send(MtvRoomGoToNextTrackEvent)
+				args := NewMtvRoomGoToNextTrackEventArgs{
+					UserID: message.UserID,
+				}
+				internalState.Machine.Send(NewMtvRoomGoToNextTrackEvent(args))
 
 			case shared.SignalRouteChangeUserEmittingDevice:
 				var message shared.ChangeUserEmittingDeviceSignal

@@ -228,3 +228,63 @@ func NewMtvRoomUpdateControlAndDelegationPermissionEvent(args NewMtvRoomUpdateCo
 		HasControlAndDelegationPermission: args.HasControlAndDelegationPermission,
 	}
 }
+
+type MtvRoomPlayEvent struct {
+	brainy.EventWithType
+
+	UserID string
+}
+
+type NewMtvRoomPlayEventArgs struct {
+	UserID string
+}
+
+func NewMtvRoomPlayEvent(args NewMtvRoomPlayEventArgs) MtvRoomPlayEvent {
+	return MtvRoomPlayEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MtvRoomPlay,
+		},
+
+		UserID: args.UserID,
+	}
+}
+
+type MtvRoomPauseEvent struct {
+	brainy.EventWithType
+
+	UserID string
+}
+
+type NewMtvRoomPauseEventArgs struct {
+	UserID string
+}
+
+func NewMtvRoomPauseEvent(args NewMtvRoomPauseEventArgs) MtvRoomPauseEvent {
+	return MtvRoomPauseEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MtvRoomPause,
+		},
+
+		UserID: args.UserID,
+	}
+}
+
+type MtvRoomGoToNextTrackEvent struct {
+	brainy.EventWithType
+
+	UserID string
+}
+
+type NewMtvRoomGoToNextTrackEventArgs struct {
+	UserID string
+}
+
+func NewMtvRoomGoToNextTrackEvent(args NewMtvRoomGoToNextTrackEventArgs) MtvRoomGoToNextTrackEvent {
+	return MtvRoomGoToNextTrackEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MtvRoomGoToNextTrack,
+		},
+
+		UserID: args.UserID,
+	}
+}

@@ -1,13 +1,10 @@
 import { Foundation } from '@expo/vector-icons';
-import {
-    BottomSheetFlatList,
-    BottomSheetHandle,
-    BottomSheetModal,
-} from '@gorhom/bottom-sheet';
+import { BottomSheetHandle, BottomSheetModal } from '@gorhom/bottom-sheet';
 import { Sender } from '@xstate/react/lib/types';
 import { Text, useSx, View } from 'dripsy';
 import React, { useRef } from 'react';
 import { TouchableOpacity } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
     AppMusicPlayerMachineContext,
@@ -37,6 +34,8 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
     //Bottom sheet related
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
     const snapPoints = [200];
+    const HANDLE_HEIGHT = 24; // From https://gorhom.github.io/react-native-bottom-sheet/props#handleheight
+    const contentHeightForFirstSnapPoint = snapPoints[0] - HANDLE_HEIGHT;
 
     function handlePresentDevicesModalPress() {
         bottomSheetModalRef.current?.present();
@@ -106,8 +105,12 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                     />
                 )}
             >
-                {userContext.devices.length > 0 ? (
-                    <BottomSheetFlatList
+                <View
+                    sx={{
+                        height: contentHeightForFirstSnapPoint,
+                    }}
+                >
+                    <FlatList
                         testID="change-emitting-device-bottom-sheet-flat-list"
                         data={userContext.devices}
                         renderItem={({ item: { deviceID, name } }) => {
@@ -172,15 +175,21 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                             );
                         }}
                         keyExtractor={(item) => item.deviceID}
+                        ListEmptyComponent={() => {
+                            return (
+                                <View>
+                                    <Text>Couldn't find any device</Text>
+                                </View>
+                            );
+                        }}
                         contentContainerStyle={{
                             paddingBottom: insets.bottom,
                         }}
+                        style={{
+                            flex: 1,
+                        }}
                     />
-                ) : (
-                    <View>
-                        <Text>Couldn't find any device</Text>
-                    </View>
-                )}
+                </View>
             </BottomSheetModal>
         </View>
     );

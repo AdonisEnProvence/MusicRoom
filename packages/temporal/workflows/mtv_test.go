@@ -3540,6 +3540,145 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionPlay() {
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
+func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionPause() {
+
+	var (
+		joiningUserID       = faker.UUIDHyphenated()
+		joiningUserDeviceID = faker.UUIDHyphenated()
+	)
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+
+	tracksIDs := []string{tracks[0].ID}
+	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	defaultDuration := 1 * time.Millisecond
+
+	params.PlayingMode = shared.MtvPlayingModeDirect
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.PlayActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	//First call after initial tracks fetch
+	//Second call after Custom emit pause signal
+	s.env.OnActivity(
+		activities.PauseActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Times(2)
+
+	init := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: true,
+		}
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+	}, init)
+
+	emitJoinSignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+	}, emitJoinSignal)
+
+	checkJoinWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(joiningUserID)
+
+		expectedJoiningUser := &shared.InternalStateUser{
+			UserID:                            joiningUserID,
+			DeviceID:                          joiningUserDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: false,
+		}
+		s.Equal(expectedJoiningUser, mtvState.UserRelatedInformation)
+	}, checkJoinWorked)
+
+	emitPlaySignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitPlaySignal(shared.NewPlaySignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
+	}, emitPlaySignal)
+
+	checkPlayWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		s.True(mtvState.Playing)
+	}, checkPlayWorked)
+
+	emitPauseSignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitPlaySignal(shared.NewPlaySignalArgs{
+			UserID: joiningUserID,
+		})
+	}, emitPauseSignal)
+
+	checkPauseFailed := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(shared.NoRelatedUserID)
+
+		s.True(mtvState.Playing)
+	}, checkPauseFailed)
+
+	emitUpdateUserControlAndDelegationPermission := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitUpdateControlAndDelegationPermissionSignal(shared.NewUpdateControlAndDelegationPermissionSignalArgs{
+			HasControlAndDelegationPermission: true,
+			ToUpdateUserID:                    joiningUserID,
+		})
+	}, emitUpdateUserControlAndDelegationPermission)
+
+	secondEmitPauseSignal := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitPauseSignal(shared.NewPauseSignalArgs{
+			UserID: joiningUserID,
+		})
+	}, secondEmitPauseSignal)
+
+	checkEmitPauseWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(joiningUserID)
+
+		s.True(mtvState.UserRelatedInformation.HasControlAndDelegationPermission)
+		s.False(mtvState.Playing)
+	}, checkEmitPauseWorked)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
 func TestUnitTestSuite(t *testing.T) {
 	suite.Run(t, new(UnitTestSuite))
 }

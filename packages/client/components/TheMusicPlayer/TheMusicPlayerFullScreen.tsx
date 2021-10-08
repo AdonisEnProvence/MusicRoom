@@ -17,9 +17,8 @@ import {
 import { AppScreen, AppScreenContainer, Typo } from '../kit';
 import AppModalHeader from '../kit/AppModalHeader';
 import { MusicPlayerRef } from './Player';
-import DevicesTab from './Tabs/Devices';
-import SettingsTab from './Tabs/Settings';
 import ChatTab from './Tabs/Chat';
+import SettingsTab from './Tabs/Settings';
 import TracksListTab from './Tabs/TracksList';
 import TheMusicPlayerWithControls from './TheMusicPlayerWithControls';
 
@@ -42,8 +41,6 @@ const fullscreenPlayerTabsMachineModel = createModel(
             GO_TO_CHAT: () => ({}),
 
             GO_TO_SETTINGS: () => ({}),
-
-            GO_TO_DEVICES: () => ({}),
         },
     },
 );
@@ -55,17 +52,9 @@ const fullscreenPlayerTabsMachine =
         states: {
             tracks: {},
 
-            chat: {
-                on: {},
-            },
+            chat: {},
 
-            settings: {
-                on: {},
-            },
-
-            devices: {
-                on: {},
-            },
+            settings: {},
         },
 
         on: {
@@ -80,15 +69,11 @@ const fullscreenPlayerTabsMachine =
             GO_TO_SETTINGS: {
                 target: 'settings',
             },
-
-            GO_TO_DEVICES: {
-                target: 'devices',
-            },
         },
     });
 
 interface Tab {
-    text: 'Tracks' | 'Chat' | 'Settings' | 'Devices';
+    text: 'Tracks' | 'Chat' | 'Settings';
     selected: boolean;
     onPress: () => void;
 }
@@ -119,15 +104,6 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
             onPress: () => {
                 tabsSend({
                     type: 'GO_TO_TRACKS',
-                });
-            },
-        },
-        {
-            text: 'Devices',
-            selected: tabsState.matches('devices'),
-            onPress: () => {
-                tabsSend({
-                    type: 'GO_TO_DEVICES',
                 });
             },
         },
@@ -164,17 +140,10 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                         sendToMachine={sendToMachine}
                     />
                 );
-            case 'Devices':
-                return (
-                    <DevicesTab
-                        userContext={userContext}
-                        sendToMachine={sendToMachine}
-                        context={context}
-                    />
-                );
             case 'Settings':
                 return (
                     <SettingsTab
+                        userContext={userContext}
                         sendToMachine={sendToMachine}
                         sendToUserMachine={sendToUserMachine}
                         context={context}

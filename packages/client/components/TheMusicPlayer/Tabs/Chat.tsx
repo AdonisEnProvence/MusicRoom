@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { TouchableOpacity, FlatList } from 'react-native';
-import { View, TextInput, useSx, Text } from 'dripsy';
 import { Ionicons } from '@expo/vector-icons';
+import { Text, TextInput, useSx, View } from 'dripsy';
 import { datatype, internet, lorem } from 'faker';
+import React, { useState } from 'react';
+import { FlatList, TouchableOpacity } from 'react-native';
 
 const ChatTab: React.FC = () => {
     const sx = useSx();

@@ -51,13 +51,6 @@ func (s *MtvRoomInternalState) GetTimeConstraintValue() *bool {
 	return &nowIsBetweenStartAndEnd
 }
 
-func (s *MtvRoomInternalState) GetUserRelatedInformation(userID string) *shared.InternalStateUser {
-	if userInformation, ok := s.Users[userID]; userID != shared.NoRelatedUserID && ok {
-		return userInformation
-	}
-	return nil
-}
-
 func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExposedState {
 	tracks := s.Tracks.Values()
 	exposedTracks := make([]shared.TrackMetadataWithScoreWithDuration, 0, len(tracks))
@@ -190,12 +183,21 @@ func (s *MtvRoomInternalState) UpdateUserDeviceID(user shared.InternalStateUser)
 	}
 }
 
-func (s *MtvRoomInternalState) GetUser(userID string) *shared.InternalStateUser {
-	user, exists := s.Users[userID]
-	if !exists {
-		return nil
+func (s *MtvRoomInternalState) GetUserRelatedInformation(userID string) *shared.InternalStateUser {
+	if userInformation, ok := s.Users[userID]; userID != shared.NoRelatedUserID && ok {
+		return userInformation
 	}
-	return user
+	return nil
+}
+
+func (s *MtvRoomInternalState) UserHasControlAndDelegationPermission(userID string) bool {
+
+	user := s.GetUserRelatedInformation(userID)
+	if user == nil {
+		return false
+	}
+
+	return user.HasControlAndDelegationPermission
 }
 
 func (s *MtvRoomInternalState) HasUser(userID string) bool {
@@ -375,7 +377,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					MtvRoomPlay: brainy.Transition{
 						Target: MtvRoomPlayingState,
 
-						Cond: canPlayCurrentTrack(&internalState),
+						Cond: checkUserPermissionAndCanPlayCurrentTrack(&internalState),
 					},
 
 					MtvRoomTracksListScoreUpdate: brainy.Transition{
@@ -532,6 +534,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							},
 
 							MtvRoomPause: brainy.Transition{
+								Cond: userHasPermissionToPauseCurrentTrack(&internalState),
+
 								Actions: brainy.Actions{
 									brainy.ActionFn(
 										func(c brainy.Context, e brainy.Event) error {
@@ -696,7 +700,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 						func(c brainy.Context, e brainy.Event) error {
 							event := e.(MtvRoomUpdateControlAndDelegationPermissionEvent)
 
-							userToUpdate := internalState.GetUser(event.ToUpdateUserID)
+							userToUpdate := internalState.GetUserRelatedInformation(event.ToUpdateUserID)
 
 							userToUpdate.HasControlAndDelegationPermission = event.HasControlAndDelegationPermission
 
@@ -743,7 +747,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 			MtvRoomGoToNextTrack: brainy.Transition{
 				Target: MtvRoomPlayingState,
 
-				Cond: hasNextTrackToPlay(&internalState),
+				Cond: userHasPermissionAndHasNextTrackToPlay(&internalState),
 
 				Actions: brainy.Actions{
 					brainy.ActionFn(

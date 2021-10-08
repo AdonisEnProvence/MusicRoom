@@ -82,6 +82,7 @@ func main() {
 type PlayRequestBody struct {
 	WorkflowID string `json:"workflowID" validate:"required,uuid"`
 	RunID      string `json:"runID" validate:"required,uuid"`
+	UserID     string `json:"userID" validate:"requied,uuid"`
 }
 
 func PlayHandler(w http.ResponseWriter, r *http.Request) {
@@ -98,7 +99,49 @@ func PlayHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	signal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
+	signal := shared.NewPlaySignal(shared.NewPlaySignalArgs{
+		UserID: body.UserID,
+	})
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		body.RunID,
+		shared.SignalChannelName,
+		signal,
+	); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	res := make(map[string]interface{})
+	res["ok"] = 1
+	json.NewEncoder(w).Encode(res)
+}
+
+type PauseRequestBody struct {
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
+	UserID     string `json:"userID" validate:"requied,uuid"`
+}
+
+func PauseHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var body PauseRequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	signal := shared.NewPauseSignal(shared.NewPauseSignalArgs{
+		UserID: body.UserID,
+	})
 	if err := temporal.SignalWorkflow(
 		context.Background(),
 		body.WorkflowID,
@@ -119,6 +162,7 @@ func PlayHandler(w http.ResponseWriter, r *http.Request) {
 type GoToNextTrackRequestBody struct {
 	WorkflowID string `json:"workflowID" validate:"required,uuid"`
 	RunID      string `json:"runID" validate:"required,uuid"`
+	UserID     string `json:"userID" validate:"requied,uuid"`
 }
 
 func GoToNextTrackHandler(w http.ResponseWriter, r *http.Request) {
@@ -135,7 +179,9 @@ func GoToNextTrackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	goToNextTrackSignal := shared.NewGoToNexTrackSignal()
+	goToNextTrackSignal := shared.NewGoToNexTrackSignal(shared.NewGoToNextTrackSignalArgs{
+		UserID: body.UserID,
+	})
 	if err := temporal.SignalWorkflow(
 		context.Background(),
 		body.WorkflowID,
@@ -313,43 +359,6 @@ func TerminateWorkflowHandler(w http.ResponseWriter, r *http.Request) {
 		body.RunID,
 		shared.SignalChannelName,
 		terminateSignal,
-	); err != nil {
-		WriteError(w, err)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	res := make(map[string]interface{})
-	res["ok"] = 1
-	json.NewEncoder(w).Encode(res)
-}
-
-type PauseRequestBody struct {
-	WorkflowID string `json:"workflowID" validate:"required,uuid"`
-	RunID      string `json:"runID" validate:"required,uuid"`
-}
-
-func PauseHandler(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	var body PauseRequestBody
-
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		WriteError(w, err)
-		return
-	}
-	if err := validate.Struct(body); err != nil {
-		WriteError(w, err)
-		return
-	}
-
-	signal := shared.NewPauseSignal(shared.NewPauseSignalArgs{})
-	if err := temporal.SignalWorkflow(
-		context.Background(),
-		body.WorkflowID,
-		body.RunID,
-		shared.SignalChannelName,
-		signal,
 	); err != nil {
 		WriteError(w, err)
 		return

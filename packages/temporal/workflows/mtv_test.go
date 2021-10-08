@@ -56,9 +56,9 @@ func (s *UnitTestSuite) getUsersList() []shared.ExposedInternalStateUserListElem
 	return usersList
 }
 
-func (s *UnitTestSuite) emitPlaySignal() {
+func (s *UnitTestSuite) emitPlaySignal(args shared.NewPlaySignalArgs) {
 	fmt.Println("-----EMIT PLAY CALLED IN TEST-----")
-	playSignal := shared.NewPlaySignal(shared.NewPlaySignalArgs{})
+	playSignal := shared.NewPlaySignal(args)
 	s.env.SignalWorkflow(shared.SignalChannelName, playSignal)
 }
 
@@ -143,16 +143,16 @@ func (s *UnitTestSuite) mockOnceSuggest(userID string, deviceID string, roomID s
 	).Return(nil).Once()
 }
 
-func (s *UnitTestSuite) emitPauseSignal() {
+func (s *UnitTestSuite) emitPauseSignal(args shared.NewPauseSignalArgs) {
 	fmt.Println("-----EMIT PAUSED CALLED IN TEST-----")
-	pauseSignal := shared.NewPauseSignal(shared.NewPauseSignalArgs{})
+	pauseSignal := shared.NewPauseSignal(args)
 
 	s.env.SignalWorkflow(shared.SignalChannelName, pauseSignal)
 }
 
-func (s *UnitTestSuite) emitGoToNextTrackSignal() {
+func (s *UnitTestSuite) emitGoToNextTrackSignal(args shared.NewGoToNextTrackSignalArgs) {
 	fmt.Println("-----EMIT GO TO NEXT TRACK IN TEST-----")
-	goToNextTrackSignal := shared.NewGoToNexTrackSignal()
+	goToNextTrackSignal := shared.NewGoToNexTrackSignal(args)
 
 	s.env.SignalWorkflow(shared.SignalChannelName, goToNextTrackSignal)
 }
@@ -273,14 +273,18 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		mtvState := s.getMtvState(shared.NoRelatedUserID)
 		s.False(mtvState.Playing)
 
-		s.emitPlaySignal()
+		s.emitPlaySignal(shared.NewPlaySignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, checkThatRoomIsNotPlaying)
 
 	emitPause := firstTrackDurationFirstThird
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(shared.NoRelatedUserID)
 		s.True(mtvState.Playing)
-		s.emitPauseSignal()
+		s.emitPauseSignal(shared.NewPauseSignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, emitPause)
 
 	checkThatOneThirdFirstTrackElapsed := defaultDuration
@@ -315,7 +319,9 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 	//Play alone because the signal is sent as last from registerDelayedCallback
 	registerDelayedCallbackWrapper(func() {
 		fmt.Println("*********VERIFICATION 3/3 first track*********")
-		s.emitPlaySignal()
+		s.emitPlaySignal(shared.NewPlaySignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, secondEmitPlaySignal)
 
 	// Important
@@ -514,7 +520,9 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 
 		s.NotEqual(shouldNotBeRegisterDeviceID, mtvState.UserRelatedInformation.DeviceID)
 		s.Equal(expectedInternalStateUser, mtvState.UserRelatedInformation)
-		s.emitPlaySignal()
+		s.emitPlaySignal(shared.NewPlaySignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, checkTwoUsersThenEmitPlay)
 
 	emitPauseSignal := firstTrackDuration - 200*defaultDuration
@@ -778,7 +786,9 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 	// 2. Send the first GoToNextTrack signal.
 	firstGoToNextTrackSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitGoToNextTrackSignal()
+		s.emitGoToNextTrackSignal(shared.NewGoToNextTrackSignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, firstGoToNextTrackSignal)
 
 	// 3. We expect the second initial track to be the current one
@@ -813,7 +823,9 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 	// 4. Send the second GoToNextTrack signal.
 	secondGoToNextTrackSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitGoToNextTrackSignal()
+		s.emitGoToNextTrackSignal(shared.NewGoToNextTrackSignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, secondGoToNextTrackSignal)
 
 	// 5. We expect the second initial track to still be the current one playing one
@@ -1005,7 +1017,9 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 		mtvState := s.getMtvState(shared.NoRelatedUserID)
 
 		s.False(mtvState.Playing)
-		s.emitPlaySignal()
+		s.emitPlaySignal(shared.NewPlaySignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, initialStateQueryDelay)
 
 	secondStateQueryAfterTotalTrackDuration := firstTrackDuration
@@ -1036,7 +1050,9 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 
 	secondPlaySignalDelay := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitPlaySignal()
+		s.emitPlaySignal(shared.NewPlaySignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, secondPlaySignalDelay)
 
 	thirdStateQueryAfterSecondPlaySignal := firstTrackDuration
@@ -1915,7 +1931,9 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 	//Test that a finished track can be suggest again and voted again
 	emitGoToNextTrackSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitGoToNextTrackSignal()
+		s.emitGoToNextTrackSignal(shared.NewGoToNextTrackSignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, emitGoToNextTrackSignal)
 
 	previousCurrentTrackToSuggest := []shared.TrackMetadata{
@@ -2056,7 +2074,9 @@ func (s *UnitTestSuite) Test_EmptyCurrentTrackAutoPlayAfterOneGetReadyToBePlayed
 
 	emitGoToNextTrack := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitGoToNextTrackSignal()
+		s.emitGoToNextTrackSignal(shared.NewGoToNextTrackSignalArgs{
+			UserID: params.RoomCreatorUserID,
+		})
 	}, emitGoToNextTrack)
 
 	checkNothingHappened := defaultDuration

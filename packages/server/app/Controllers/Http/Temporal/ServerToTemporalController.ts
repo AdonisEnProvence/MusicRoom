@@ -63,7 +63,9 @@ interface TemporalMtvLeaveWorkflowArgs extends TemporalBaseArgs {
     userID: string;
 }
 
-interface TemporalMtvGoToNextTrackArgs extends TemporalBaseArgs {}
+interface TemporalMtvGoToNextTrackArgs extends TemporalBaseArgs {
+    userID: string;
+}
 interface TemporalMtvPauseArgs extends TemporalBaseArgs {
     userID: string;
 }
@@ -188,6 +190,7 @@ export default class ServerToTemporalController {
     public static async pause({
         workflowID,
         runID,
+        userID,
     }: TemporalMtvPauseArgs): Promise<void> {
         try {
             const url = urlcat(TEMPORAL_ENDPOINT, '/pause');
@@ -196,6 +199,7 @@ export default class ServerToTemporalController {
                 json: {
                     workflowID,
                     runID,
+                    userID,
                 },
             });
         } catch (e) {
@@ -206,6 +210,7 @@ export default class ServerToTemporalController {
     public static async play({
         workflowID,
         runID,
+        userID,
     }: TemporalMtvPlayArgs): Promise<void> {
         try {
             const url = urlcat(TEMPORAL_ENDPOINT, '/play');
@@ -214,6 +219,7 @@ export default class ServerToTemporalController {
                 json: {
                     workflowID,
                     runID,
+                    userID,
                 },
             });
         } catch (e) {
@@ -272,6 +278,7 @@ export default class ServerToTemporalController {
     public static async goToNextTrack({
         workflowID,
         runID,
+        userID,
     }: TemporalMtvGoToNextTrackArgs): Promise<void> {
         const url = urlcat(TEMPORAL_ENDPOINT, '/go-to-next-track');
 
@@ -279,6 +286,7 @@ export default class ServerToTemporalController {
             json: {
                 workflowID,
                 runID,
+                userID,
             },
         });
     }

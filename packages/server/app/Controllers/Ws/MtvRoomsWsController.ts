@@ -58,7 +58,9 @@ interface OnGetUsersListArgs {
     roomID: string;
     userID: string;
 }
-interface OnGoToNextTrackArgs extends RoomID {}
+interface OnGoToNextTrackArgs extends RoomID {
+    userID: string;
+}
 interface OnChangeEmittingDeviceArgs extends RoomID, DeviceID, UserID {}
 interface OnSuggestTracksArgs extends RoomID, DeviceID, UserID {
     tracksToSuggest: string[];
@@ -330,12 +332,14 @@ export default class MtvRoomsWsController {
 
     public static async onGoToNextTrack({
         roomID,
+        userID,
     }: OnGoToNextTrackArgs): Promise<void> {
         const { runID } = await MtvRoom.findOrFail(roomID);
 
         await ServerToTemporalController.goToNextTrack({
             workflowID: roomID,
             runID,
+            userID,
         });
     }
 

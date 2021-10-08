@@ -306,10 +306,12 @@ Ws.io.on('connection', async (socket) => {
 
         socket.on('GO_TO_NEXT_TRACK', async () => {
             try {
-                const { mtvRoomID } =
-                    await SocketLifecycle.getSocketConnectionCredentials(
-                        socket,
-                    );
+                const {
+                    mtvRoomID,
+                    user: { uuid: userID },
+                } = await SocketLifecycle.getSocketConnectionCredentials(
+                    socket,
+                );
 
                 if (mtvRoomID === undefined) {
                     throw new Error(
@@ -319,6 +321,7 @@ Ws.io.on('connection', async (socket) => {
 
                 await MtvRoomsWsController.onGoToNextTrack({
                     roomID: mtvRoomID,
+                    userID,
                 });
             } catch (err) {
                 console.error(err);

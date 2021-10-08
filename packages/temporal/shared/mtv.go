@@ -549,6 +549,12 @@ type UpdateControlAndDelegationPermissionSignal struct {
 	HasControlAndDelegationPermission bool
 }
 
+//REMINDER:
+//Only the creator is allow to do this operation
+//The verification is done upper by adonis itself
+//It match a socket_id to a user and the user to a related room
+//Passing the creatorUserID in this payload is not a safe
+//as the creatorUserID is a public information
 type NewUpdateControlAndDelegationPermissionSignalArgs struct {
 	ToUpdateUserID                    string
 	HasControlAndDelegationPermission bool

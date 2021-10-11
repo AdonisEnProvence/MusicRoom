@@ -13,6 +13,7 @@ import UserService from 'App/Services/UserService';
 import Ws from 'App/Services/Ws';
 import { Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
+import { randomUUID } from 'crypto';
 
 Ws.boot();
 
@@ -54,6 +55,7 @@ Ws.io.on('connection', async (socket) => {
                     .except(socket.id)
                     .emit('RECEIVED_MESSAGE', {
                         message: {
+                            id: randomUUID(),
                             text: message,
                             authorID: userID,
                             authorName: userName,

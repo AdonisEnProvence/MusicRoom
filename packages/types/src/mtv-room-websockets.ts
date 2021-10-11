@@ -7,6 +7,7 @@ import {
 } from './mtv';
 
 export interface MtvRoomChatMessage {
+    id: string;
     authorID: string;
     authorName: string;
     text: string;

@@ -141,7 +141,6 @@ const ChatTab: React.FC<ChatTabProps> = ({
                             </View>
                         );
                     }}
-                    keyExtractor={({ text }) => text}
                     style={sx({
                         flex: 1,
                     })}

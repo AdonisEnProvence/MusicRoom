@@ -651,7 +651,6 @@ describe('User list tests', () => {
             isMeIsCreator: true,
         });
         serverSocket.on('GET_CONTEXT', () => {
-            console.log('1'.repeat(100));
             serverSocket.emit('RETRIEVE_CONTEXT', initialState);
         });
 

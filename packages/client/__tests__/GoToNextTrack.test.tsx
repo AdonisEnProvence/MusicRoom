@@ -15,7 +15,7 @@ import {
     within,
 } from '../tests/tests-utils';
 
-test(`When the user clicks on next track button, it should play the next track, if there is one`, async () => {
+it(`When the user clicks on next track button, it should play the next track, if there is one`, async () => {
     const tracksList = [generateTrackMetadata(), generateTrackMetadata()];
 
     const roomCreatorUserID = datatype.uuid();

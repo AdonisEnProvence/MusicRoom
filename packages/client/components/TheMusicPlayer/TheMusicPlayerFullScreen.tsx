@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { useMachine } from '@xstate/react';
-import { Text, useSx, View } from 'dripsy';
+import { Text, View } from 'dripsy';
 import React, { useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -30,6 +30,7 @@ type TheMusicPlayerFullScreenProps = {
     setPlayerRef: (ref: MusicPlayerRef) => void;
     isDeviceEmitting: boolean;
     userState: AppUserMachineState;
+    hideControlButtons: boolean;
 };
 
 const fullscreenPlayerTabsMachineModel = createModel(
@@ -85,17 +86,18 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     sendToUserMachine,
     setPlayerRef,
     isDeviceEmitting,
+    hideControlButtons,
     userState,
 }) => {
     // TODO: replace the hook by a prop
     const navigation = useNavigation();
-    const sx = useSx();
     const context = machineState.context;
     const userContext = userState.context;
 
     const insets = useSafeAreaInsets();
     const isPlaying = machineState.hasTag('playerOnPlay');
     const roomIsReady = machineState.hasTag('roomIsReady');
+
     const [tabsState, tabsSend] = useMachine(fullscreenPlayerTabsMachine);
     const tabs: Tab[] = [
         {
@@ -218,6 +220,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     }}
                 >
                     <TheMusicPlayerWithControls
+                        hideControlButtons={hideControlButtons}
                         isDeviceEmitting={isDeviceEmitting}
                         progressElapsedTime={context.progressElapsedTime}
                         currentTrack={context.currentTrack}

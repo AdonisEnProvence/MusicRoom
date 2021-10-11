@@ -373,7 +373,6 @@ export const createUserMachine = ({
                     },
 
                 getCurrentLocation: (context, event) => async (sendBack) => {
-                    console.log('_'.repeat(100));
                     try {
                         if (!context.locationPermission) {
                             throw new Error(

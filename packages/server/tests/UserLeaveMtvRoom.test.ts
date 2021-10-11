@@ -326,8 +326,6 @@ test.group(
                         usersLength: roomToLeaveState.usersLength - 1,
                     };
 
-                    console.log('*'.repeat(100));
-
                     await supertest(BASE_URL)
                         .post('/temporal/user-length-update')
                         .send(roomToLeaveState);
@@ -529,8 +527,6 @@ test.group(
                         roomID: workflowID,
                         usersLength: roomToLeaveState.usersLength - 1,
                     };
-
-                    console.log('*'.repeat(100));
 
                     await supertest(BASE_URL)
                         .post('/temporal/user-length-update')
@@ -783,8 +779,6 @@ test.group(
                         usersLength: 2,
                         minimumScoreToBePlayed: 1,
                     };
-
-                    console.log('*'.repeat(100));
 
                     await supertest(BASE_URL)
                         .post('/temporal/user-length-update')

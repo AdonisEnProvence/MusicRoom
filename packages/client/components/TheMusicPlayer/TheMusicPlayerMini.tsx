@@ -12,6 +12,7 @@ import MusicPlayerControlButton from './MusicPlayerControlButton';
 type TheMusicPlayerMiniProps = {
     height: number;
     machineState: AppMusicPlayerMachineState;
+    hideControlButtons: boolean;
     sendToMachine: Sender<AppMusicPlayerMachineEvent>;
     onPress: () => void;
 };
@@ -19,6 +20,7 @@ type TheMusicPlayerMiniProps = {
 const TheMusicPlayerMini: React.FC<TheMusicPlayerMiniProps> = ({
     machineState,
     height,
+    hideControlButtons,
     sendToMachine,
     onPress,
 }) => {
@@ -39,7 +41,7 @@ const TheMusicPlayerMini: React.FC<TheMusicPlayerMiniProps> = ({
         isInRoom === true && currentTrack
             ? `${currentTrack.title} • ${currentTrack.artistName}`
             : 'Track-Artist';
-
+    const showControlButton = !hideControlButtons;
     return (
         <TouchableWithoutFeedback onPress={onPress}>
             <View
@@ -71,16 +73,18 @@ const TheMusicPlayerMini: React.FC<TheMusicPlayerMiniProps> = ({
                     </Typo>
                 </View>
 
-                <MusicPlayerControlButton
-                    iconName={isPlaying ? 'pause' : 'play'}
-                    variant="normal"
-                    adjustIconHorizontally={2}
-                    disabled={!roomIsReady}
-                    accessibilityLabel={
-                        isPlaying ? 'Pause the video' : 'Play the video'
-                    }
-                    onPress={handlePlayPauseToggle}
-                />
+                {showControlButton && (
+                    <MusicPlayerControlButton
+                        iconName={isPlaying ? 'pause' : 'play'}
+                        variant="normal"
+                        adjustIconHorizontally={2}
+                        disabled={!roomIsReady}
+                        accessibilityLabel={
+                            isPlaying ? 'Pause the video' : 'Play the video'
+                        }
+                        onPress={handlePlayPauseToggle}
+                    />
+                )}
             </View>
         </TouchableWithoutFeedback>
     );

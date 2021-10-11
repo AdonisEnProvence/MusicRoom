@@ -14,6 +14,7 @@ type TheMusicPlayerWithControlsProps = {
     isDeviceEmitting: boolean;
     isPlaying: boolean;
     roomIsReady: boolean;
+    hideControlButtons: boolean;
     onTrackReady: () => void;
     onPlayingToggle: () => void;
     onNextTrackPress: () => void;
@@ -26,6 +27,7 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
     isDeviceEmitting,
     progressElapsedTime,
     roomIsReady,
+    hideControlButtons,
     onTrackReady,
     onPlayingToggle,
     onNextTrackPress,
@@ -41,6 +43,8 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
     );
     const controlDisabled = !roomIsReady;
     const muteDevice = isDeviceEmitting === false;
+
+    const showControlButtons = !hideControlButtons;
     return (
         <View onLayout={onContainerLayout}>
             {currentTrack && (
@@ -105,32 +109,34 @@ const TheMusicPlayerWithControls: React.FC<TheMusicPlayerWithControlsProps> = ({
                 </>
             )}
 
-            <View
-                sx={{
-                    marginTop: 'm',
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}
-            >
-                <MusicPlayerControlButton
-                    iconName={isPlaying ? 'pause' : 'play'}
-                    variant="prominent"
-                    adjustIconHorizontally={2}
-                    disabled={controlDisabled}
-                    accessibilityLabel={
-                        isPlaying ? 'Pause the video' : 'Play the video'
-                    }
-                    onPress={onPlayingToggle}
-                />
+            {showControlButtons && (
+                <View
+                    sx={{
+                        marginTop: 'm',
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <MusicPlayerControlButton
+                        iconName={isPlaying ? 'pause' : 'play'}
+                        variant="prominent"
+                        adjustIconHorizontally={2}
+                        disabled={controlDisabled}
+                        accessibilityLabel={
+                            isPlaying ? 'Pause the video' : 'Play the video'
+                        }
+                        onPress={onPlayingToggle}
+                    />
 
-                <MusicPlayerControlButton
-                    disabled={controlDisabled}
-                    iconName="play-forward"
-                    accessibilityLabel={`Play next track`}
-                    onPress={onNextTrackPress}
-                />
-            </View>
+                    <MusicPlayerControlButton
+                        disabled={controlDisabled}
+                        iconName="play-forward"
+                        accessibilityLabel={`Play next track`}
+                        onPress={onNextTrackPress}
+                    />
+                </View>
+            )}
         </View>
     );
 };

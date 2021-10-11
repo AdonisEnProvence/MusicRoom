@@ -96,6 +96,13 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     const insets = useSafeAreaInsets();
     const isPlaying = machineState.hasTag('playerOnPlay');
     const roomIsReady = machineState.hasTag('roomIsReady');
+    const userDoesNotHaveControlAndDelegationPermission =
+        context.userRelatedInformation
+            ? !context.userRelatedInformation.hasControlAndDelegationPermission
+            : false;
+    const hideControlButtons =
+        context.userRelatedInformation === null ||
+        userDoesNotHaveControlAndDelegationPermission;
     const [tabsState, tabsSend] = useMachine(fullscreenPlayerTabsMachine);
     const tabs: Tab[] = [
         {
@@ -218,6 +225,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     }}
                 >
                     <TheMusicPlayerWithControls
+                        hideControlButtons={hideControlButtons}
                         isDeviceEmitting={isDeviceEmitting}
                         progressElapsedTime={context.progressElapsedTime}
                         currentTrack={context.currentTrack}

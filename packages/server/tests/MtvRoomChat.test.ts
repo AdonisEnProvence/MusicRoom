@@ -73,4 +73,32 @@ test.group('MtvRoom Chat', (group) => {
 
         assert.isFalse(messageHasBeenReceivedByEmitter);
     });
+
+    test('Sent message is not received by users not in room', async (assert) => {
+        const senderUserID = datatype.uuid();
+        const otherUserID = datatype.uuid();
+        const mtvRoomID = datatype.uuid();
+
+        const senderSocket = await createUserAndGetSocket({
+            userID: senderUserID,
+            mtvRoomIDToAssociate: mtvRoomID,
+        });
+        const otherUserSocket = await createUserAndGetSocket({
+            userID: otherUserID,
+        });
+
+        let messageHasBeenReceivedByOtherUser = false;
+
+        otherUserSocket.on('RECEIVED_MESSAGE', () => {
+            messageHasBeenReceivedByOtherUser = true;
+        });
+
+        senderSocket.emit('NEW_MESSAGE', {
+            message: random.words(),
+        });
+
+        await waitForTimeout(200);
+
+        assert.isFalse(messageHasBeenReceivedByOtherUser);
+    });
 });

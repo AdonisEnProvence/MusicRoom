@@ -4,7 +4,7 @@ import {
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
-import uuid from 'react-native-uuid';
+import { nanoid } from 'nanoid/non-secure';
 import {
     assign,
     createMachine,
@@ -991,7 +991,7 @@ export const createAppMusicPlayerMachine = ({
                                                 // Messages must be prepend as they are displayed in reverse order.
                                                 return [
                                                     {
-                                                        id: uuid.v4(),
+                                                        id: nanoid(),
                                                         authorID:
                                                             userRelatedInformation.userID,
                                                         authorName: 'Me',

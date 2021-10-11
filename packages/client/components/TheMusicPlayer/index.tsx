@@ -20,6 +20,15 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
         useMusicPlayer();
     const { state: userState, sendToUserMachine } = useUserContext();
 
+    const userDoesNotHaveControlAndDelegationPermission = state.context
+        .userRelatedInformation
+        ? !state.context.userRelatedInformation
+              .hasControlAndDelegationPermission
+        : false;
+    const hideControlButtons =
+        state.context.userRelatedInformation === null ||
+        userDoesNotHaveControlAndDelegationPermission;
+
     const isInRoom = state.context.roomID !== '';
     function openPlayerInFullScreen() {
         if (isInRoom === true) {
@@ -51,6 +60,7 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
             }}
         >
             <TheMusicPlayerMini
+                hideControlButtons={hideControlButtons}
                 machineState={state}
                 sendToMachine={sendToMachine}
                 height={MINI_PLAYER_HEIGHT}
@@ -74,6 +84,7 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
                         dismissFullScreenPlayer={() => {
                             setIsFullScren(false);
                         }}
+                        hideControlButtons={hideControlButtons}
                         sendToUserMachine={sendToUserMachine}
                         userState={userState}
                         sendToMachine={sendToMachine}

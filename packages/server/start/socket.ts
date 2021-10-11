@@ -13,7 +13,7 @@ import UserService from 'App/Services/UserService';
 import Ws from 'App/Services/Ws';
 import { Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
-import { randomUUID } from 'crypto';
+import MtvRoomsChatController from 'App/Controllers/Ws/MtvRoomsChatController';
 
 Ws.boot();
 
@@ -36,31 +36,12 @@ Ws.io.on('connection', async (socket) => {
         }
 
         /// CHAT ///
-        socket.on('NEW_MESSAGE', async ({ message }) => {
+        socket.on('NEW_MESSAGE', async (payload) => {
             try {
-                const {
-                    mtvRoomID,
-                    user: { uuid: userID, nickname: userName },
-                } = await SocketLifecycle.getSocketConnectionCredentials(
+                await MtvRoomsChatController.onSendMessage({
                     socket,
-                );
-                if (mtvRoomID === undefined) {
-                    throw new Error(
-                        'User can not send message if not in a room',
-                    );
-                }
-
-                Ws.io
-                    .in(mtvRoomID)
-                    .except(socket.id)
-                    .emit('RECEIVED_MESSAGE', {
-                        message: {
-                            id: randomUUID(),
-                            text: message,
-                            authorID: userID,
-                            authorName: userName,
-                        },
-                    });
+                    payload,
+                });
             } catch (e) {
                 console.error('Error while broadcasting message', e);
             }

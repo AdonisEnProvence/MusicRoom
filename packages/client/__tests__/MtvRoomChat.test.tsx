@@ -1,4 +1,4 @@
-import { MtvWorkflowState, UserDevice } from '@musicroom/types';
+import { MtvRoomChatMessage, MtvWorkflowState } from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
 import { datatype, name, random, lorem } from 'faker';
 import React from 'react';
@@ -13,7 +13,7 @@ import { ContextFrom, EventFrom, State } from 'xstate';
 
 interface TestingContext {
     screen: ReturnType<typeof render>;
-    musicPlayerFullScreen: any;
+    musicPlayerFullScreen: unknown;
 }
 
 const mtvRoomChatModel = createModel(
@@ -25,6 +25,10 @@ const mtvRoomChatModel = createModel(
             TYPE_MESSAGE_AND_SUBMIT: (message: string) => ({ message }),
 
             TYPE_MESSAGE_AND_CLICK_ON_SEND: (message: string) => ({ message }),
+
+            RECEIVE_MESSAGE_FROM_OTHER_USER: (message: MtvRoomChatMessage) => ({
+                message,
+            }),
         },
     },
 );
@@ -46,6 +50,13 @@ const assignMessageFromClickingOnSend = mtvRoomChatModel.assign(
         message: (_, { message }) => message,
     },
     'TYPE_MESSAGE_AND_CLICK_ON_SEND',
+);
+
+const assignMessageFromServerBroadcasting = mtvRoomChatModel.assign(
+    {
+        message: (_, { message }) => message.text,
+    },
+    'RECEIVE_MESSAGE_FROM_OTHER_USER',
 );
 
 function isMessageEmpty(message: string): boolean {
@@ -112,6 +123,12 @@ const mtvRoomChatMachine = mtvRoomChatModel.createMachine({
                         actions: assignMessageFromClickingOnSend,
                     },
                 ],
+
+                RECEIVE_MESSAGE_FROM_OTHER_USER: {
+                    target: 'messageHasBeenAdded',
+
+                    actions: assignMessageFromServerBroadcasting,
+                },
             },
         },
 
@@ -169,6 +186,13 @@ const TypeMessageAndClickOnSendEvent = z
     .nonstrict();
 type TypeMessageAndClickOnSendEvent = z.infer<
     typeof TypeMessageAndClickOnSendEvent
+>;
+
+const ReceiveMessageFromOtherUserEvent = z
+    .object({ message: MtvRoomChatMessage })
+    .nonstrict();
+type ReceiveMessageFromOtherUserEvent = z.infer<
+    typeof ReceiveMessageFromOtherUserEvent
 >;
 
 const mtvRoomChatTestingModel = createTestingModel<TestingContext>(
@@ -237,6 +261,32 @@ const mtvRoomChatTestingModel = createTestingModel<TestingContext>(
                 message: lorem.sentences(),
             },
         ] as TypeMessageAndClickOnSendEvent[],
+    },
+
+    RECEIVE_MESSAGE_FROM_OTHER_USER: {
+        exec: ({ screen }, event) => {
+            try {
+                const { message } =
+                    ReceiveMessageFromOtherUserEvent.parse(event);
+
+                screen.serverSocket.emit('RECEIVED_MESSAGE', { message });
+            } catch (err) {
+                console.error(err);
+
+                throw err;
+            }
+        },
+
+        cases: [
+            {
+                message: {
+                    id: datatype.uuid(),
+                    authorID: datatype.uuid(),
+                    authorName: name.title(),
+                    text: lorem.sentences(),
+                },
+            },
+        ] as ReceiveMessageFromOtherUserEvent[],
     },
 });
 

@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { MtvRoomChatMessage } from '@musicroom/types';
+import { MtvRoomChatMessage, normalizeChatMessage } from '@musicroom/types';
 import { useMachine } from '@xstate/react';
 import { Text, TextInput, useSx, View } from 'dripsy';
 import React from 'react';
@@ -15,6 +15,7 @@ interface ChatTabProps {
 const chatModel = createModel(
     {
         previousMessage: '',
+        normalizedMessage: '',
         message: '',
     },
     {
@@ -34,26 +35,37 @@ const chatMachine = chatModel.createMachine(
             SET_MESSAGE: {
                 actions: chatModel.assign({
                     message: (_, { message }) => message,
+                    normalizedMessage: (_, { message }) =>
+                        normalizeChatMessage(message),
                 }),
             },
 
-            SEND: {
-                cond: 'isMessageNotEmpty',
+            SEND: [
+                {
+                    cond: 'isNormalizedMessageNotEmpty',
 
-                actions: [
-                    chatModel.assign({
-                        previousMessage: ({ message }) => message,
-                        message: '',
-                    }),
+                    actions: [
+                        chatModel.assign({
+                            previousMessage: ({ normalizedMessage }) =>
+                                normalizedMessage,
+                            message: '',
+                            normalizedMessage: '',
+                        }),
 
-                    'forwardMessage',
-                ],
-            },
+                        'forwardMessage',
+                    ],
+                },
+
+                {
+                    actions: chatModel.reset(),
+                },
+            ],
         },
     },
     {
         guards: {
-            isMessageNotEmpty: ({ message }) => message.length > 0,
+            isNormalizedMessageNotEmpty: ({ normalizedMessage }) =>
+                normalizedMessage.length > 0,
         },
     },
 );

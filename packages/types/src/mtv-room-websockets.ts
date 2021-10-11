@@ -6,12 +6,17 @@ import {
     MtvWorkflowStateWithUserRelatedInformation,
 } from './mtv';
 
-export interface MtvRoomChatMessage {
-    id: string;
-    authorID: string;
-    authorName: string;
-    text: string;
+export function normalizeChatMessage(message: string): string {
+    return message.trim();
 }
+
+export const MtvRoomChatMessage = z.object({
+    id: z.string(),
+    authorID: z.string(),
+    authorName: z.string(),
+    text: z.string(),
+});
+export type MtvRoomChatMessage = z.infer<typeof MtvRoomChatMessage>;
 
 export interface MtvRoomChatClientToServerNewMessageArgs {
     message: string;

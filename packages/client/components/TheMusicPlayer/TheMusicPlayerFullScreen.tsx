@@ -150,7 +150,20 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     />
                 );
             case 'Chat':
-                return <ChatTab />;
+                return (
+                    <ChatTab
+                        currentUserID={
+                            context.userRelatedInformation?.userID ?? ''
+                        }
+                        messages={context.chatMessages ?? []}
+                        sendMessage={(message) => {
+                            sendToMachine({
+                                type: 'SEND_CHAT_MESSAGE',
+                                message,
+                            });
+                        }}
+                    />
+                );
             default:
                 throw new Error('Reached unreachable state');
         }

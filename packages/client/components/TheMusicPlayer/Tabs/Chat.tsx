@@ -1,76 +1,88 @@
 import { Ionicons } from '@expo/vector-icons';
+import { MtvRoomChatMessage } from '@musicroom/types';
+import { useMachine } from '@xstate/react';
 import { Text, TextInput, useSx, View } from 'dripsy';
-import { datatype, internet, lorem } from 'faker';
-import React, { useState } from 'react';
+import React from 'react';
 import { FlatList, TouchableOpacity } from 'react-native';
+import { createModel } from 'xstate/lib/model';
 
-const ChatTab: React.FC = () => {
+interface ChatTabProps {
+    currentUserID: string;
+    messages?: MtvRoomChatMessage[];
+    sendMessage: (message: string) => void;
+}
+
+const chatModel = createModel(
+    {
+        previousMessage: '',
+        message: '',
+    },
+    {
+        events: {
+            SET_MESSAGE: (message: string) => ({ message }),
+
+            SEND: () => ({}),
+        },
+    },
+);
+
+const chatMachine = chatModel.createMachine(
+    {
+        context: chatModel.initialContext,
+
+        on: {
+            SET_MESSAGE: {
+                actions: chatModel.assign({
+                    message: (_, { message }) => message,
+                }),
+            },
+
+            SEND: {
+                cond: 'isMessageNotEmpty',
+
+                actions: [
+                    chatModel.assign({
+                        previousMessage: ({ message }) => message,
+                        message: '',
+                    }),
+
+                    'forwardMessage',
+                ],
+            },
+        },
+    },
+    {
+        guards: {
+            isMessageNotEmpty: ({ message }) => message.length > 0,
+        },
+    },
+);
+
+const ChatTab: React.FC<ChatTabProps> = ({
+    currentUserID,
+    messages,
+    sendMessage,
+}) => {
     const sx = useSx();
-    const [messages, setMessages] = useState<
-        {
-            content: string;
-            creatorName: string;
-            isMyMessage: boolean;
-        }[]
-    >([
-        {
-            content: `1 ${lorem.sentences()}`,
-            creatorName: internet.userName(),
-            isMyMessage: datatype.boolean(),
+    const [state, send] = useMachine(chatMachine, {
+        actions: {
+            forwardMessage: ({ previousMessage }) => {
+                sendMessage(previousMessage);
+            },
         },
-        {
-            content: lorem.sentences(),
-            creatorName: internet.userName(),
-            isMyMessage: datatype.boolean(),
-        },
-        {
-            content: lorem.sentences(),
-            creatorName: internet.userName(),
-            isMyMessage: datatype.boolean(),
-        },
-        {
-            content: lorem.sentences(),
-            creatorName: internet.userName(),
-            isMyMessage: datatype.boolean(),
-        },
-        {
-            content: lorem.sentences(),
-            creatorName: internet.userName(),
-            isMyMessage: datatype.boolean(),
-        },
-        {
-            content: lorem.sentences(),
-            creatorName: internet.userName(),
-            isMyMessage: datatype.boolean(),
-        },
-        {
-            content: lorem.sentences(),
-            creatorName: internet.userName(),
-            isMyMessage: datatype.boolean(),
-        },
-        {
-            content: lorem.sentences(),
-            creatorName: internet.userName(),
-            isMyMessage: datatype.boolean(),
-        },
-    ]);
-    const [message, setMessage] = useState('');
+    });
 
     function handleMessageSubmit() {
-        if (message === '') {
-            return;
-        }
+        send({
+            type: 'SEND',
+        });
+    }
 
-        setMessages((messages) => [
-            {
-                content: message,
-                creatorName: internet.userName(),
-                isMyMessage: true,
-            },
-            ...messages,
-        ]);
-
-        setMessage('');
+    function handleMessageOnChange(message: string) {
+        send({
+            type: 'SET_MESSAGE',
+            message,
+        });
     }
 
     return (
@@ -85,11 +97,12 @@ const ChatTab: React.FC = () => {
                     data={messages}
                     inverted
                     renderItem={({
-                        item: { content, creatorName, isMyMessage },
+                        item: { text, authorID, authorName },
                         index,
                     }) => {
                         const isFirstItem = index === 0;
                         const isNotFirstItem = !isFirstItem;
+                        const isMyMessage = authorID === currentUserID;
                         const isNotMyMessage = !isMyMessage;
 
                         return (
@@ -111,7 +124,7 @@ const ChatTab: React.FC = () => {
                                             fontSize: 'xxs',
                                         }}
                                     >
-                                        {creatorName}
+                                        {authorName}
                                     </Text>
                                 )}
 
@@ -123,14 +136,12 @@ const ChatTab: React.FC = () => {
                                         maxWidth: '80%',
                                     }}
                                 >
-                                    <Text sx={{ color: 'white' }}>
-                                        {content}
-                                    </Text>
+                                    <Text sx={{ color: 'white' }}>{text}</Text>
                                 </View>
                             </View>
                         );
                     }}
-                    keyExtractor={({ content }) => content}
+                    keyExtractor={({ text }) => text}
                     style={sx({
                         flex: 1,
                     })}
@@ -148,8 +159,8 @@ const ChatTab: React.FC = () => {
                 }}
             >
                 <TextInput
-                    value={message}
-                    onChangeText={setMessage}
+                    value={state.context.message}
+                    onChangeText={handleMessageOnChange}
                     onSubmitEditing={handleMessageSubmit}
                     placeholder="Write a message..."
                     // FIXME: From Colors.tsx file

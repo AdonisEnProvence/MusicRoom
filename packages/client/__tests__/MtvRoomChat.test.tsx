@@ -13,7 +13,7 @@ import { ContextFrom, EventFrom, State } from 'xstate';
 
 interface TestingContext {
     screen: ReturnType<typeof render>;
-    musicPlayerFullScreen: unknown;
+    chatScreen: unknown;
 }
 
 const mtvRoomChatModel = createModel(
@@ -71,23 +71,14 @@ const mtvRoomChatMachine = mtvRoomChatModel.createMachine({
     states: {
         chatView: {
             meta: {
-                test: async ({ musicPlayerFullScreen }: TestingContext) => {
+                test: ({ chatScreen }: TestingContext) => {
                     /**
                      * Toggle Devices tab
                      * And Search for listed user devices
                      */
 
-                    const goToChatTabButton = within(
-                        musicPlayerFullScreen,
-                    ).getByText(/chat/i);
-                    expect(goToChatTabButton).toBeTruthy();
-
-                    fireEvent.press(goToChatTabButton);
-
-                    const chatTextInput = await within(
-                        musicPlayerFullScreen,
-                    ).findByPlaceholderText(/write.*message/i);
-                    expect(chatTextInput).toBeTruthy();
+                    const screenTitle = within(chatScreen).getByText(/chat/i);
+                    expect(screenTitle).toBeTruthy();
                 },
             },
 
@@ -135,16 +126,16 @@ const mtvRoomChatMachine = mtvRoomChatModel.createMachine({
         messageHasBeenAdded: {
             meta: {
                 test: async (
-                    { musicPlayerFullScreen }: TestingContext,
+                    { chatScreen }: TestingContext,
                     { context: { message } }: MtvRoomChatMachineState,
                 ) => {
                     if (message === undefined) {
                         throw new Error('message from context must be defined');
                     }
 
-                    const addedMessage = await within(
-                        musicPlayerFullScreen,
-                    ).findByText(message);
+                    const addedMessage = await within(chatScreen).findByText(
+                        message,
+                    );
 
                     expect(addedMessage).toBeTruthy();
                 },
@@ -154,7 +145,7 @@ const mtvRoomChatMachine = mtvRoomChatModel.createMachine({
         messageHasBeenRejected: {
             meta: {
                 test: async (
-                    { musicPlayerFullScreen }: TestingContext,
+                    { chatScreen }: TestingContext,
                     { context: { message } }: MtvRoomChatMachineState,
                 ) => {
                     if (message === undefined) {
@@ -162,7 +153,7 @@ const mtvRoomChatMachine = mtvRoomChatModel.createMachine({
                     }
 
                     const messageThatShouldHaveNotBeenAdded = await within(
-                        musicPlayerFullScreen,
+                        chatScreen,
                     ).queryByText(message);
 
                     expect(messageThatShouldHaveNotBeenAdded).toBeNull();
@@ -199,12 +190,12 @@ const mtvRoomChatTestingModel = createTestingModel<TestingContext>(
     mtvRoomChatMachine,
 ).withEvents({
     TYPE_MESSAGE_AND_SUBMIT: {
-        exec: async ({ musicPlayerFullScreen }, event) => {
+        exec: async ({ chatScreen }, event) => {
             try {
                 const { message } = TypeMessageAndSubmitEvent.parse(event);
 
                 const chatTextInput = await within(
-                    musicPlayerFullScreen,
+                    chatScreen,
                 ).findByPlaceholderText(/write.*message/i);
                 expect(chatTextInput).toBeTruthy();
 
@@ -229,20 +220,19 @@ const mtvRoomChatTestingModel = createTestingModel<TestingContext>(
     },
 
     TYPE_MESSAGE_AND_CLICK_ON_SEND: {
-        exec: async ({ musicPlayerFullScreen }, event) => {
+        exec: async ({ chatScreen }, event) => {
             try {
                 const { message } = TypeMessageAndClickOnSendEvent.parse(event);
 
                 const chatTextInput = await within(
-                    musicPlayerFullScreen,
+                    chatScreen,
                 ).findByPlaceholderText(/write.*message/i);
                 expect(chatTextInput).toBeTruthy();
 
                 fireEvent.changeText(chatTextInput, message);
 
-                const submitButton = within(
-                    musicPlayerFullScreen,
-                ).getByA11yLabel(/send.*message/i);
+                const submitButton =
+                    within(chatScreen).getByA11yLabel(/send.*message/i);
 
                 fireEvent.press(submitButton);
             } catch (err) {
@@ -359,9 +349,21 @@ describe('Send and receive messages in MTV room chat', () => {
                     });
                     expect(musicPlayerFullScreen).toBeTruthy();
 
+                    const goToChatTabButton = within(
+                        musicPlayerFullScreen,
+                    ).getByText(/chat/i);
+                    expect(goToChatTabButton).toBeTruthy();
+
+                    fireEvent.press(goToChatTabButton);
+
+                    const chatScreen = await screen.findByTestId(
+                        'mtv-chat-screen',
+                    );
+                    expect(chatScreen).toBeTruthy();
+
                     await path.test({
                         screen,
-                        musicPlayerFullScreen,
+                        chatScreen,
                     });
                 });
             });

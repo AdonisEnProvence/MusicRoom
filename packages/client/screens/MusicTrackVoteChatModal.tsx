@@ -100,7 +100,7 @@ const ChatView: React.FC<ChatViewProps> = ({
     const sx = useSx();
 
     return (
-        <AppScreen>
+        <AppScreen testID="mtv-chat-screen">
             <AppScreenHeader
                 title="Chat"
                 insetTop={insets.top}

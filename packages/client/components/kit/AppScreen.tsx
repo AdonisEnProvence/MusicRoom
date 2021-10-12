@@ -3,15 +3,18 @@ import { View } from 'dripsy';
 import { View as MotiView } from 'moti';
 
 type AppScreenProps = {
+    testID?: string;
     screenOffsetY?: number;
 };
 
 const AppScreen: React.FC<AppScreenProps> = ({
+    testID,
     screenOffsetY = 0,
     children,
 }) => {
     return (
         <View
+            testID={testID}
             sx={{
                 flex: 1,
                 backgroundColor: 'primary',

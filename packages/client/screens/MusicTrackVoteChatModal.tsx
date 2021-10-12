@@ -20,6 +20,7 @@ import { MtvRoomChatMessage, normalizeChatMessage } from '@musicroom/types';
 import { useMachine } from '@xstate/react';
 import { Text, TextInput, useSx, View } from 'dripsy';
 import { createModel } from 'xstate/lib/model';
+import { MAX_CHAT_MESSAGE_LENGTH } from '@musicroom/types';
 
 const chatModel = createModel(
     {
@@ -42,6 +43,9 @@ const chatMachine = chatModel.createMachine(
 
         on: {
             SET_MESSAGE: {
+                cond: (_, { message }) =>
+                    message.length <= MAX_CHAT_MESSAGE_LENGTH,
+
                 actions: chatModel.assign({
                     message: (_, { message }) => message,
                     normalizedMessage: (_, { message }) =>
@@ -205,6 +209,7 @@ const ChatView: React.FC<ChatViewProps> = ({
                                 onChangeText={setCurrentMessage}
                                 onSubmitEditing={onSubmitEditing}
                                 placeholder="Write a message..."
+                                maxLength={MAX_CHAT_MESSAGE_LENGTH}
                                 // FIXME: From Colors.tsx file
                                 placeholderTextColor="rgb(149, 150, 156)"
                                 sx={{

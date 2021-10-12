@@ -1,4 +1,5 @@
 import {
+    MAX_CHAT_MESSAGE_LENGTH,
     MtvRoomChatClientToServerEvents,
     MtvRoomChatClientToServerNewMessageArgs,
     MtvRoomChatServerToClientEvents,
@@ -26,6 +27,7 @@ export default class MtvRoomsChatController {
         const message = z
             .string()
             .nonempty()
+            .max(MAX_CHAT_MESSAGE_LENGTH)
             .parse(normalizeChatMessage(rawMessage));
 
         const {

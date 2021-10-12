@@ -1,4 +1,8 @@
-import { MtvRoomChatMessage, MtvWorkflowState } from '@musicroom/types';
+import {
+    MAX_CHAT_MESSAGE_LENGTH,
+    MtvRoomChatMessage,
+    MtvWorkflowState,
+} from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
 import { datatype, name, random, lorem } from 'faker';
 import React from 'react';
@@ -63,6 +67,10 @@ function isMessageEmpty(message: string): boolean {
     return message === '';
 }
 
+function isTooLongMessage(message: string): boolean {
+    return message.length > MAX_CHAT_MESSAGE_LENGTH;
+}
+
 const mtvRoomChatMachine = mtvRoomChatModel.createMachine({
     context: mtvRoomChatModel.initialContext,
 
@@ -93,6 +101,14 @@ const mtvRoomChatMachine = mtvRoomChatModel.createMachine({
                     },
 
                     {
+                        cond: (_, { message }) => isTooLongMessage(message),
+
+                        target: 'messageHasBeenRejected',
+
+                        actions: assignMessageFromSubmission,
+                    },
+
+                    {
                         target: 'messageHasBeenAdded',
 
                         actions: assignMessageFromSubmission,
@@ -102,6 +118,14 @@ const mtvRoomChatMachine = mtvRoomChatModel.createMachine({
                 TYPE_MESSAGE_AND_CLICK_ON_SEND: [
                     {
                         cond: (_, { message }) => isMessageEmpty(message),
+
+                        target: 'messageHasBeenRejected',
+
+                        actions: assignMessageFromClickingOnSend,
+                    },
+
+                    {
+                        cond: (_, { message }) => isTooLongMessage(message),
 
                         target: 'messageHasBeenRejected',
 
@@ -214,6 +238,10 @@ const mtvRoomChatTestingModel = createTestingModel<TestingContext>(
             },
 
             {
+                message: lorem.paragraphs(10),
+            },
+
+            {
                 message: lorem.sentences(),
             },
         ] as TypeMessageAndSubmitEvent[],
@@ -245,6 +273,10 @@ const mtvRoomChatTestingModel = createTestingModel<TestingContext>(
         cases: [
             {
                 message: '',
+            },
+
+            {
+                message: lorem.paragraphs(10),
             },
 
             {

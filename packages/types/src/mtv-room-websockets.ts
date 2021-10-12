@@ -6,6 +6,8 @@ import {
     MtvWorkflowStateWithUserRelatedInformation,
 } from './mtv';
 
+export const MAX_CHAT_MESSAGE_LENGTH = 255;
+
 export function normalizeChatMessage(message: string): string {
     return message.trim();
 }

@@ -1,5 +1,5 @@
 import Database from '@ioc:Adonis/Lucid/Database';
-import { datatype, random } from 'faker';
+import { datatype, random, lorem } from 'faker';
 import test from 'japa';
 import { initTestUtils, waitForTimeout } from './utils/TestUtils';
 
@@ -124,6 +124,35 @@ test.group('MtvRoom Chat', (group) => {
 
         senderSocket.emit('NEW_MESSAGE', {
             message: '',
+        });
+
+        await waitForTimeout(200);
+
+        assert.isFalse(messageHasBeenReceivedByReceiver);
+    });
+
+    test('Too long messages are discarded', async (assert) => {
+        const senderUserID = datatype.uuid();
+        const receiverUserID = datatype.uuid();
+        const mtvRoomID = datatype.uuid();
+
+        const senderSocket = await createUserAndGetSocket({
+            userID: senderUserID,
+            mtvRoomIDToAssociate: mtvRoomID,
+        });
+        const receiverSocket = await createUserAndGetSocket({
+            userID: receiverUserID,
+            mtvRoomIDToAssociate: mtvRoomID,
+        });
+
+        let messageHasBeenReceivedByReceiver = false;
+
+        receiverSocket.on('RECEIVED_MESSAGE', () => {
+            messageHasBeenReceivedByReceiver = true;
+        });
+
+        senderSocket.emit('NEW_MESSAGE', {
+            message: lorem.paragraphs(10),
         });
 
         await waitForTimeout(200);

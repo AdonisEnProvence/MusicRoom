@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { MtvRoomSearchResult } from '@musicroom/types';
+import { MtvRoomSummary } from '@musicroom/types';
 import { useActor, useMachine } from '@xstate/react';
-import { useSx, View, Text } from 'dripsy';
+import { Text, useSx, View } from 'dripsy';
 import React, { useState } from 'react';
 import { FlatList, ListRenderItem, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,7 +20,7 @@ type SuggestionListProps = {
     bottomInset: number;
     onSuggestionPress: (id: string) => void;
     hasMoreRoomsToFetch: boolean;
-    suggestions: MtvRoomSearchResult[];
+    suggestions: MtvRoomSummary[];
     onEndReached: () => void;
     onLoadMore: () => void;
 };
@@ -36,7 +36,7 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
     const sx = useSx();
     const initialNumberOfItemsToRender = IS_TEST ? Infinity : 10;
 
-    const renderItem: ListRenderItem<MtvRoomSearchResult> = ({
+    const renderItem: ListRenderItem<MtvRoomSummary> = ({
         item: { roomID, roomName, creatorName, isOpen },
     }) => (
         <TouchableOpacity

@@ -1,12 +1,14 @@
 import {
     CreateWorkflowResponse,
     MtvRoomClientToServerCreateArgs,
+    MtvRoomSummary,
     MtvRoomUpdateControlAndDelegationPermissionArgs,
     MtvRoomUpdateDelegationOwnerArgs,
     MtvRoomUsersListElement,
     MtvWorkflowState,
 } from '@musicroom/types';
 import MtvRoom from 'App/Models/MtvRoom';
+import MtvRoomInvitation from 'App/Models/MtvRoomInvitation';
 import User from 'App/Models/User';
 import GeocodingService from 'App/Services/GeocodingService';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
@@ -73,6 +75,12 @@ interface OnUpdateDelegationOwner extends MtvRoomUpdateDelegationOwnerArgs {
 
 interface OnUpdateControlAndDelegationPermissionArgs
     extends MtvRoomUpdateControlAndDelegationPermissionArgs {
+    roomID: string;
+}
+
+interface OnCreatorInviteUserArgs {
+    invitedUserID: string;
+    emitterUserID: string;
     roomID: string;
 }
 
@@ -468,5 +476,47 @@ export default class MtvRoomsWsController {
             workflowID: room.uuid,
             userFitsPositionConstraint: oneDeviceFitTheConstraints,
         });
+    }
+
+    public static async onCreatorInviteUser({
+        invitedUserID,
+        emitterUserID,
+        roomID,
+    }: OnCreatorInviteUserArgs): Promise<void> {
+        const room = await MtvRoom.findOrFail(roomID);
+
+        const userIsNotRoomCreator = emitterUserID !== room.creatorID;
+
+        if (userIsNotRoomCreator) {
+            throw new Error(
+                `Emitter user does not appear to be the room creator`,
+            );
+        }
+
+        await room.load('creator');
+        if (room.creator === null) {
+            throw new Error(
+                'Should never occurs, creator relationship led to null',
+            );
+        }
+
+        await MtvRoomInvitation.create({
+            mtvRoomID: roomID,
+            invitedUserID,
+            invitingUserID: emitterUserID,
+        });
+
+        const roomSummary: MtvRoomSummary = {
+            creatorName: room.creator.nickname,
+            isOpen: room.isOpen,
+            roomID: room.uuid,
+            roomName: room.name,
+        };
+
+        await UserService.emitEventInEveryDeviceUser(
+            invitedUserID,
+            'RECEIVED_INVITATION',
+            [roomSummary],
+        );
     }
 }

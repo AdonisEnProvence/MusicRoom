@@ -17,7 +17,6 @@ import {
 import { AppScreen, AppScreenContainer, Typo } from '../kit';
 import AppModalHeader from '../kit/AppModalHeader';
 import { MusicPlayerRef } from './Player';
-import ChatTab from './Tabs/Chat';
 import SettingsTab from './Tabs/Settings';
 import TracksListTab from './Tabs/TracksList';
 import TheMusicPlayerWithControls from './TheMusicPlayerWithControls';
@@ -52,18 +51,12 @@ const fullscreenPlayerTabsMachine =
         states: {
             tracks: {},
 
-            chat: {},
-
             settings: {},
         },
 
         on: {
             GO_TO_TRACKS: {
                 target: 'tracks',
-            },
-
-            GO_TO_CHAT: {
-                target: 'chat',
             },
 
             GO_TO_SETTINGS: {
@@ -89,7 +82,6 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
 }) => {
     // TODO: replace the hook by a prop
     const navigation = useNavigation();
-    const sx = useSx();
     const context = machineState.context;
     const userContext = userState.context;
 
@@ -118,11 +110,9 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
         },
         {
             text: 'Chat',
-            selected: tabsState.matches('chat'),
+            selected: false,
             onPress: () => {
-                tabsSend({
-                    type: 'GO_TO_CHAT',
-                });
+                navigation.navigate('MusicTrackVoteChat');
             },
         },
     ];
@@ -147,21 +137,6 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                         sendToMachine={sendToMachine}
                         sendToUserMachine={sendToUserMachine}
                         context={context}
-                    />
-                );
-            case 'Chat':
-                return (
-                    <ChatTab
-                        currentUserID={
-                            context.userRelatedInformation?.userID ?? ''
-                        }
-                        messages={context.chatMessages ?? []}
-                        sendMessage={(message) => {
-                            sendToMachine({
-                                type: 'SEND_CHAT_MESSAGE',
-                                message,
-                            });
-                        }}
                     />
                 );
             default:

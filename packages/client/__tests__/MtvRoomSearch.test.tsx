@@ -1,4 +1,10 @@
+import { MtvRoomSummary } from '@musicroom/types';
+import { NavigationContainer } from '@react-navigation/native';
+import { datatype } from 'faker';
 import React from 'react';
+import { RootNavigator } from '../navigation';
+import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
+import { db } from '../tests/data';
 import {
     fireEvent,
     noop,
@@ -7,14 +13,8 @@ import {
     waitForElementToBeRemoved,
     within,
 } from '../tests/tests-utils';
-import { NavigationContainer } from '@react-navigation/native';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
-import { RootNavigator } from '../navigation';
-import { db } from '../tests/data';
-import { MtvRoomSearchResult } from '@musicroom/types';
-import { datatype } from 'faker';
 
-function createSearchableRooms(count: number): MtvRoomSearchResult[] {
+function createSearchableRooms(count: number): MtvRoomSummary[] {
     return Array.from({ length: count }).map(() => db.searchableRooms.create());
 }
 

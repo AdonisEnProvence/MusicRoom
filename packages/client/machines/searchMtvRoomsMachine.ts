@@ -1,11 +1,11 @@
+import { MtvRoomSummary } from '@musicroom/types';
 import { createModel } from 'xstate/lib/model';
-import { MtvRoomSearchResult } from '@musicroom/types';
 import { fetchMtvRooms } from '../services/MtvService';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 
 const searchMtvRoomsModel = createModel(
     {
-        rooms: [] as MtvRoomSearchResult[],
+        rooms: [] as MtvRoomSummary[],
         hasMore: true,
 
         nextPage: 1,
@@ -16,7 +16,7 @@ const searchMtvRoomsModel = createModel(
             SUBMITTED: (searchQuery: string) => ({ searchQuery }),
 
             FETCHED_ROOMS: (
-                rooms: MtvRoomSearchResult[],
+                rooms: MtvRoomSummary[],
                 hasMore: boolean,
                 page: number,
             ) => ({ rooms, hasMore, page }),

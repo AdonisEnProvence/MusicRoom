@@ -2,6 +2,7 @@ import {
     AllClientToServerEvents,
     AllServerToClientEvents,
     MtvRoomClientToServerCreateArgs,
+    MtvRoomCreatorInviteUserArgs,
     MtvRoomUpdateControlAndDelegationPermissionArgs,
     MtvRoomUpdateDelegationOwnerArgs,
     UserDevice,
@@ -525,6 +526,34 @@ Ws.io.on('connection', async (socket) => {
                     roomID: mtvRoomID,
                 });
                 callback(usersList);
+            } catch (e) {
+                console.error(e);
+            }
+        });
+
+        socket.on('CREATOR_INVITE_USER', async (rawPayload) => {
+            try {
+                const { invitedUserID } =
+                    MtvRoomCreatorInviteUserArgs.parse(rawPayload);
+
+                const {
+                    mtvRoomID,
+                    user: { uuid: emitterUserID },
+                } = await SocketLifecycle.getSocketConnectionCredentials(
+                    socket,
+                );
+
+                if (mtvRoomID === undefined) {
+                    throw new Error(
+                        'CREATOR_INVITE_USER user is not related to any room',
+                    );
+                }
+
+                await MtvRoomsWsController.onCreatorInviteUser({
+                    invitedUserID,
+                    emitterUserID,
+                    roomID: mtvRoomID,
+                });
             } catch (e) {
                 console.error(e);
             }

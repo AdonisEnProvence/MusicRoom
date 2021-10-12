@@ -1,6 +1,7 @@
 import * as z from 'zod';
 import {
     MtvPlayingModes,
+    MtvRoomSummary,
     MtvRoomUsersListElement,
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
@@ -82,6 +83,13 @@ export type MtvRoomUpdateControlAndDelegationPermissionArgs = z.infer<
     typeof MtvRoomUpdateControlAndDelegationPermissionArgs
 >;
 
+export const MtvRoomCreatorInviteUserArgs = z.object({
+    invitedUserID: z.string().uuid(),
+});
+export type MtvRoomCreatorInviteUserArgs = z.infer<
+    typeof MtvRoomCreatorInviteUserArgs
+>;
+
 export interface Track {
     name: string;
     artistName: string;
@@ -115,6 +123,7 @@ export interface MtvRoomClientToServerEvents {
     UPDATE_CONTROL_AND_DELEGATION_PERMISSION: (
         args: MtvRoomUpdateControlAndDelegationPermissionArgs,
     ) => void;
+    CREATOR_INVITE_USER: (args: MtvRoomCreatorInviteUserArgs) => void;
 }
 
 export interface MtvRoomServerToClientEvents {
@@ -138,4 +147,5 @@ export interface MtvRoomServerToClientEvents {
         state: MtvWorkflowStateWithUserRelatedInformation,
     ) => void;
     USERS_LIST_FORCED_REFRESH: () => void;
+    RECEIVED_INVITATION: (payload: MtvRoomSummary) => void;
 }

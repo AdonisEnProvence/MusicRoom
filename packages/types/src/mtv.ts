@@ -77,3 +77,11 @@ export const MtvRoomUsersListElement =
         avatar: z.string().optional(), //TODO
     });
 export type MtvRoomUsersListElement = z.infer<typeof MtvRoomUsersListElement>;
+
+export const MtvRoomSummary = z.object({
+    roomID: z.string(),
+    roomName: z.string(),
+    creatorName: z.string(),
+    isOpen: z.boolean(),
+});
+export type MtvRoomSummary = z.infer<typeof MtvRoomSummary>;

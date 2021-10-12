@@ -1,4 +1,5 @@
 import * as z from 'zod';
+import { MtvRoomSummary } from './mtv';
 
 const PositiveInteger = z.number().int().nonnegative();
 const StrictlyPositiveInteger = z.number().int().positive();
@@ -9,18 +10,10 @@ export const MtvRoomSearchRequestBody = z.object({
 });
 export type MtvRoomSearchRequestBody = z.infer<typeof MtvRoomSearchRequestBody>;
 
-export const MtvRoomSearchResult = z.object({
-    roomID: z.string(),
-    roomName: z.string(),
-    creatorName: z.string(),
-    isOpen: z.boolean(),
-});
-export type MtvRoomSearchResult = z.infer<typeof MtvRoomSearchResult>;
-
 export const MtvRoomSearchResponse = z.object({
     page: StrictlyPositiveInteger,
     totalEntries: PositiveInteger,
     hasMore: z.boolean(),
-    data: z.array(MtvRoomSearchResult),
+    data: z.array(MtvRoomSummary),
 });
 export type MtvRoomSearchResponse = z.infer<typeof MtvRoomSearchResponse>;

@@ -114,7 +114,11 @@ const ChatView: React.FC<ChatViewProps> = ({
                     // The height of the screen header.
                     // Not accurate on Android.
                     keyboardVerticalOffset={100}
-                    style={{ flex: 1 }}
+                    style={sx({
+                        flex: 1,
+                        width: ['auto', '70%'],
+                        marginX: [0, 'auto'],
+                    })}
                 >
                     <View sx={{ flex: 1, paddingBottom: insets.bottom }}>
                         <View

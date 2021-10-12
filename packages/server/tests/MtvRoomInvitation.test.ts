@@ -1,5 +1,6 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
+import MtvRoom from 'App/Models/MtvRoom';
 import MtvRoomInvitation from 'App/Models/MtvRoomInvitation';
 import { datatype } from 'faker';
 import test from 'japa';
@@ -12,6 +13,7 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         createSocketConnection,
+        disconnectSocket,
     } = initTestUtils();
 
     group.beforeEach(async () => {
@@ -65,7 +67,7 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         assert.equal(createdInvitation.mtvRoomID, roomID);
     });
 
-    test('It should faile to invite user as the inviting user is not the room creator', async (assert) => {
+    test('It should fail to invite user as the inviting user is not the room creator', async (assert) => {
         const invitedUserID = datatype.uuid();
         const normalUserID = datatype.uuid();
         const roomID = datatype.uuid();
@@ -101,7 +103,7 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         }
     });
 
-    test('It should faile to invite user as the inviting user is not the room creator', async (assert) => {
+    test('It should fail to invite user as invited user is already in the room', async (assert) => {
         const invitedUserID = datatype.uuid();
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
@@ -128,5 +130,46 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
             assert.equal((await MtvRoomInvitation.all()).length, 0);
             assert.equal(message, 'Invited user is already in the room');
         }
+    });
+
+    //Indeed we kinda test lucid relationship right here.
+    //But it's important to keep testing that no one breaks this behavior
+    test('It should remove every deleted room related invitations thanks to lucid relationships', async (assert) => {
+        const invitedUserID = datatype.uuid();
+        const creatorUserID = datatype.uuid();
+        const roomID = datatype.uuid();
+
+        const creatorSocket = await createUserAndGetSocket({
+            userID: creatorUserID,
+            mtvRoomIDToAssociate: roomID,
+        });
+        const invitedUserSocket = await createUserAndGetSocket({
+            userID: invitedUserID,
+        });
+
+        let callbackCalled = false;
+        invitedUserSocket.on('RECEIVED_INVITATION', () => {
+            callbackCalled = true;
+        });
+
+        creatorSocket.emit('CREATOR_INVITE_USER', {
+            invitedUserID,
+        });
+
+        await sleep();
+        assert.isTrue(callbackCalled);
+        const createdInvitation = await MtvRoomInvitation.findBy(
+            'invited_user_id',
+            invitedUserID,
+        );
+        assert.isNotNull(createdInvitation);
+
+        await disconnectSocket(creatorSocket);
+
+        await sleep();
+        const allRooms = await MtvRoom.all();
+        assert.equal(allRooms.length, 0);
+        const allInvitations = await MtvRoomInvitation.all();
+        assert.equal(allInvitations.length, 0);
     });
 });

@@ -7,7 +7,6 @@ import {
     MtvRoomUpdateDelegationOwnerArgs,
     UserDevice,
 } from '@musicroom/types';
-import ChatController from 'App/Controllers/Ws/ChatController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
@@ -15,6 +14,7 @@ import UserService from 'App/Services/UserService';
 import Ws from 'App/Services/Ws';
 import { Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
+import MtvRoomsChatController from 'App/Controllers/Ws/MtvRoomsChatController';
 
 Ws.boot();
 
@@ -28,8 +28,6 @@ export type TypedSocket = Socket<
 
 Ws.io.on('connection', async (socket) => {
     try {
-        ChatController.onConnect({ socket, payload: undefined });
-
         const hasDeviceNotBeenFound =
             (await Device.findBy('socket_id', socket.id)) === null;
         if (hasDeviceNotBeenFound) {
@@ -37,9 +35,17 @@ Ws.io.on('connection', async (socket) => {
         } else {
             console.log('socketID already registered');
         }
+
         /// CHAT ///
-        socket.on('NEW_MESSAGE', (payload) => {
-            ChatController.onWriteMessage({ socket, payload });
+        socket.on('NEW_MESSAGE', async (payload) => {
+            try {
+                await MtvRoomsChatController.onSendMessage({
+                    socket,
+                    payload,
+                });
+            } catch (e) {
+                console.error('Error while broadcasting message', e);
+            }
         });
         /// //// ///
 

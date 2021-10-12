@@ -9,7 +9,6 @@ import React, { useEffect } from 'react';
 import Toast from 'react-native-toast-message';
 import { navigationStyle } from '../constants/Colors';
 import { AlertScreen } from '../screens/AlertScreen';
-import ChatScreen from '../screens/ChatScreen';
 import MusicTrackVoteCreationFormConfirmation from '../screens/MusicTrackVoteCreationFormConfirmation';
 import MusicTrackVoteCreationFormName from '../screens/MusicTrackVoteCreationFormName';
 import MusicTrackVoteCreationFormOpeningStatus from '../screens/MusicTrackVoteCreationFormOpeningStatus';
@@ -18,11 +17,13 @@ import MusicTrackVoteCreationFormPlayingMode from '../screens/MusicTrackVoteCrea
 import MusicTrackVoteCreationFormVotesConstraints from '../screens/MusicTrackVoteCreationFormVotesConstraints';
 import MusicTrackVoteSearchScreen from '../screens/MusicTrackVoteSearchScreen';
 import MusicTrackVoteUsersListModal from '../screens/MusicTrackVoteUsersListModal';
+import MusicTrackVoteChatModal from '../screens/MusicTrackVoteChatModal';
 import SettingsScreen from '../screens/SettingsScreen';
 import SuggestTrackModal from '../screens/SuggestTrackModal';
 import SuggestTrackResultsModal from '../screens/SuggestTrackResultsModal';
 import {
     MainStackParamList,
+    MusicTrackVoteChatStackParamList,
     MusicTrackVoteCreationFormParamList,
     MusicTrackVoteUsersListStackParamList,
     RootStackParamList,
@@ -75,6 +76,8 @@ const MusicTrackVoteUsersListStack =
     createStackNavigator<MusicTrackVoteUsersListStackParamList>();
 const MusicTrackVoteCreationStack =
     createStackNavigator<MusicTrackVoteCreationFormParamList>();
+const MusicTrackVoteChatStack =
+    createStackNavigator<MusicTrackVoteChatStackParamList>();
 
 export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
     const style = navigationStyle(colorScheme);
@@ -106,6 +109,12 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
             <RootStack.Screen
                 name="MusicTrackVoteCreationForm"
                 component={MusicTrackVoteCreationFormNavigator}
+                options={{ headerShown: false }}
+            />
+
+            <RootStack.Screen
+                name="MusicTrackVoteChat"
+                component={MusicTrackVoteChatNavigator}
                 options={{ headerShown: false }}
             />
         </RootStack.Navigator>
@@ -173,6 +182,24 @@ export const SuggestTrackNavigator: React.FC<ColorModeProps> = ({
     );
 };
 
+export const MusicTrackVoteChatNavigator: React.FC<ColorModeProps> = ({
+    colorScheme,
+}) => {
+    const style = navigationStyle(colorScheme);
+
+    return (
+        <MusicTrackVoteChatStack.Navigator
+            initialRouteName="MusicTrackVoteChatModal"
+            screenOptions={{ ...style, headerShown: false }}
+        >
+            <MusicTrackVoteChatStack.Screen
+                name="MusicTrackVoteChatModal"
+                component={MusicTrackVoteChatModal}
+            />
+        </MusicTrackVoteChatStack.Navigator>
+    );
+};
+
 export const MusicTrackVoteUsersListNavigator: React.FC<ColorModeProps> = ({
     colorScheme,
 }) => {
@@ -213,12 +240,6 @@ const MainNavigator: React.FC<ColorModeProps> = ({
                 name="MusicTrackVoteSearch"
                 component={MusicTrackVoteSearchScreen}
                 options={{ title: 'Track Vote Search' }}
-            />
-
-            <MainStack.Screen
-                name="Chat"
-                component={ChatScreen}
-                options={{ title: 'Chat' }}
             />
 
             <MainStack.Screen name="Settings" options={{ title: 'Settings' }}>

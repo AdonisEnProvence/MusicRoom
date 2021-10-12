@@ -1,6 +1,6 @@
 import {
-    ChatClientToServerEvents,
-    ChatServerToClientEvents,
+    MtvRoomChatClientToServerEvents,
+    MtvRoomChatServerToClientEvents,
     MtvRoomClientToServerEvents,
     MtvRoomServerToClientEvents,
 } from './mtv-room-websockets';
@@ -10,9 +10,9 @@ import {
 } from './user-websockets';
 
 export type AllClientToServerEvents = MtvRoomClientToServerEvents &
-    ChatClientToServerEvents &
+    MtvRoomChatClientToServerEvents &
     UserClientToServerEvents;
 
-export type AllServerToClientEvents = ChatServerToClientEvents &
+export type AllServerToClientEvents = MtvRoomChatServerToClientEvents &
     MtvRoomServerToClientEvents &
     UserServerToClientEvents;

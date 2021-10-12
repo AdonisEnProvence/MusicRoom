@@ -7,30 +7,36 @@ import {
     MtvWorkflowStateWithUserRelatedInformation,
 } from './mtv';
 
-export interface ChatMessage {
-    author: string;
-    text: string;
+export const MAX_CHAT_MESSAGE_LENGTH = 255;
+
+export function normalizeChatMessage(message: string): string {
+    return message.trim();
 }
 
-export interface ChatClientToServerNewMessageArgs {
-    message: ChatMessage;
+export const MtvRoomChatMessage = z.object({
+    id: z.string(),
+    authorID: z.string(),
+    authorName: z.string(),
+    text: z.string(),
+});
+export type MtvRoomChatMessage = z.infer<typeof MtvRoomChatMessage>;
+
+export interface MtvRoomChatClientToServerNewMessageArgs {
+    message: string;
 }
 
-export interface ChatServerToClientLoadMessagesArgs {
-    messages: ChatMessage[];
+export interface MtvRoomChatServerToClientReceivedMessageArgs {
+    message: MtvRoomChatMessage;
 }
 
-export interface ChatServerToClientReceivedMessageArgs {
-    message: ChatMessage;
+export interface MtvRoomChatClientToServerEvents {
+    NEW_MESSAGE: (args: MtvRoomChatClientToServerNewMessageArgs) => void;
 }
 
-export interface ChatClientToServerEvents {
-    NEW_MESSAGE: (args: ChatClientToServerNewMessageArgs) => void;
-}
-
-export interface ChatServerToClientEvents {
-    LOAD_MESSAGES: (args: ChatServerToClientLoadMessagesArgs) => void;
-    RECEIVED_MESSAGE: (args: ChatServerToClientReceivedMessageArgs) => void;
+export interface MtvRoomChatServerToClientEvents {
+    RECEIVED_MESSAGE: (
+        args: MtvRoomChatServerToClientReceivedMessageArgs,
+    ) => void;
 }
 
 export interface MtvRoomClientToServerJoin {

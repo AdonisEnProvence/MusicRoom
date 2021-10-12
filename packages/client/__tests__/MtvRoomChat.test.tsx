@@ -1,4 +1,8 @@
-import { MtvWorkflowState, UserDevice } from '@musicroom/types';
+import {
+    MAX_CHAT_MESSAGE_LENGTH,
+    MtvRoomChatMessage,
+    MtvWorkflowState,
+} from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
 import { datatype, name, random, lorem } from 'faker';
 import React from 'react';
@@ -13,7 +17,7 @@ import { ContextFrom, EventFrom, State } from 'xstate';
 
 interface TestingContext {
     screen: ReturnType<typeof render>;
-    musicPlayerFullScreen: any;
+    chatScreen: unknown;
 }
 
 const mtvRoomChatModel = createModel(
@@ -25,6 +29,10 @@ const mtvRoomChatModel = createModel(
             TYPE_MESSAGE_AND_SUBMIT: (message: string) => ({ message }),
 
             TYPE_MESSAGE_AND_CLICK_ON_SEND: (message: string) => ({ message }),
+
+            RECEIVE_MESSAGE_FROM_OTHER_USER: (message: MtvRoomChatMessage) => ({
+                message,
+            }),
         },
     },
 );
@@ -36,20 +44,35 @@ type MtvRoomChatMachineState = State<
 
 const assignMessageFromSubmission = mtvRoomChatModel.assign(
     {
-        message: (_, { message }) => message,
+        message: (_, { message }) => normalizeMessage(message),
     },
     'TYPE_MESSAGE_AND_SUBMIT',
 );
 
 const assignMessageFromClickingOnSend = mtvRoomChatModel.assign(
     {
-        message: (_, { message }) => message,
+        message: (_, { message }) => normalizeMessage(message),
     },
     'TYPE_MESSAGE_AND_CLICK_ON_SEND',
 );
 
+const assignMessageFromServerBroadcasting = mtvRoomChatModel.assign(
+    {
+        message: (_, { message }) => message.text,
+    },
+    'RECEIVE_MESSAGE_FROM_OTHER_USER',
+);
+
+function normalizeMessage(message: string): string {
+    return message.trim();
+}
+
 function isMessageEmpty(message: string): boolean {
     return message === '';
+}
+
+function isTooLongMessage(message: string): boolean {
+    return message.length > MAX_CHAT_MESSAGE_LENGTH;
 }
 
 const mtvRoomChatMachine = mtvRoomChatModel.createMachine({
@@ -60,30 +83,31 @@ const mtvRoomChatMachine = mtvRoomChatModel.createMachine({
     states: {
         chatView: {
             meta: {
-                test: async ({ musicPlayerFullScreen }: TestingContext) => {
+                test: ({ chatScreen }: TestingContext) => {
                     /**
                      * Toggle Devices tab
                      * And Search for listed user devices
                      */
 
-                    const goToChatTabButton = within(
-                        musicPlayerFullScreen,
-                    ).getByText(/chat/i);
-                    expect(goToChatTabButton).toBeTruthy();
-
-                    fireEvent.press(goToChatTabButton);
-
-                    const chatTextInput = await within(
-                        musicPlayerFullScreen,
-                    ).findByPlaceholderText(/write.*message/i);
-                    expect(chatTextInput).toBeTruthy();
+                    const screenTitle = within(chatScreen).getByText(/chat/i);
+                    expect(screenTitle).toBeTruthy();
                 },
             },
 
             on: {
                 TYPE_MESSAGE_AND_SUBMIT: [
                     {
-                        cond: (_, { message }) => isMessageEmpty(message),
+                        cond: (_, { message }) =>
+                            isMessageEmpty(normalizeMessage(message)),
+
+                        target: 'messageHasBeenRejected',
+
+                        actions: assignMessageFromSubmission,
+                    },
+
+                    {
+                        cond: (_, { message }) =>
+                            isTooLongMessage(normalizeMessage(message)),
 
                         target: 'messageHasBeenRejected',
 
@@ -99,7 +123,17 @@ const mtvRoomChatMachine = mtvRoomChatModel.createMachine({
 
                 TYPE_MESSAGE_AND_CLICK_ON_SEND: [
                     {
-                        cond: (_, { message }) => isMessageEmpty(message),
+                        cond: (_, { message }) =>
+                            isMessageEmpty(normalizeMessage(message)),
+
+                        target: 'messageHasBeenRejected',
+
+                        actions: assignMessageFromClickingOnSend,
+                    },
+
+                    {
+                        cond: (_, { message }) =>
+                            isTooLongMessage(normalizeMessage(message)),
 
                         target: 'messageHasBeenRejected',
 
@@ -112,22 +146,28 @@ const mtvRoomChatMachine = mtvRoomChatModel.createMachine({
                         actions: assignMessageFromClickingOnSend,
                     },
                 ],
+
+                RECEIVE_MESSAGE_FROM_OTHER_USER: {
+                    target: 'messageHasBeenAdded',
+
+                    actions: assignMessageFromServerBroadcasting,
+                },
             },
         },
 
         messageHasBeenAdded: {
             meta: {
                 test: async (
-                    { musicPlayerFullScreen }: TestingContext,
+                    { chatScreen }: TestingContext,
                     { context: { message } }: MtvRoomChatMachineState,
                 ) => {
                     if (message === undefined) {
                         throw new Error('message from context must be defined');
                     }
 
-                    const addedMessage = await within(
-                        musicPlayerFullScreen,
-                    ).findByText(message);
+                    const addedMessage = await within(chatScreen).findByText(
+                        message,
+                    );
 
                     expect(addedMessage).toBeTruthy();
                 },
@@ -137,7 +177,7 @@ const mtvRoomChatMachine = mtvRoomChatModel.createMachine({
         messageHasBeenRejected: {
             meta: {
                 test: async (
-                    { musicPlayerFullScreen }: TestingContext,
+                    { chatScreen }: TestingContext,
                     { context: { message } }: MtvRoomChatMachineState,
                 ) => {
                     if (message === undefined) {
@@ -145,7 +185,7 @@ const mtvRoomChatMachine = mtvRoomChatModel.createMachine({
                     }
 
                     const messageThatShouldHaveNotBeenAdded = await within(
-                        musicPlayerFullScreen,
+                        chatScreen,
                     ).queryByText(message);
 
                     expect(messageThatShouldHaveNotBeenAdded).toBeNull();
@@ -171,16 +211,23 @@ type TypeMessageAndClickOnSendEvent = z.infer<
     typeof TypeMessageAndClickOnSendEvent
 >;
 
+const ReceiveMessageFromOtherUserEvent = z
+    .object({ message: MtvRoomChatMessage })
+    .nonstrict();
+type ReceiveMessageFromOtherUserEvent = z.infer<
+    typeof ReceiveMessageFromOtherUserEvent
+>;
+
 const mtvRoomChatTestingModel = createTestingModel<TestingContext>(
     mtvRoomChatMachine,
 ).withEvents({
     TYPE_MESSAGE_AND_SUBMIT: {
-        exec: async ({ musicPlayerFullScreen }, event) => {
+        exec: async ({ chatScreen }, event) => {
             try {
                 const { message } = TypeMessageAndSubmitEvent.parse(event);
 
                 const chatTextInput = await within(
-                    musicPlayerFullScreen,
+                    chatScreen,
                 ).findByPlaceholderText(/write.*message/i);
                 expect(chatTextInput).toBeTruthy();
 
@@ -199,26 +246,37 @@ const mtvRoomChatTestingModel = createTestingModel<TestingContext>(
             },
 
             {
+                message: '     ',
+            },
+
+            {
+                message: `  ${lorem.sentence()}   `,
+            },
+
+            {
+                message: lorem.paragraphs(10),
+            },
+
+            {
                 message: lorem.sentences(),
             },
         ] as TypeMessageAndSubmitEvent[],
     },
 
     TYPE_MESSAGE_AND_CLICK_ON_SEND: {
-        exec: async ({ musicPlayerFullScreen }, event) => {
+        exec: async ({ chatScreen }, event) => {
             try {
                 const { message } = TypeMessageAndClickOnSendEvent.parse(event);
 
                 const chatTextInput = await within(
-                    musicPlayerFullScreen,
+                    chatScreen,
                 ).findByPlaceholderText(/write.*message/i);
                 expect(chatTextInput).toBeTruthy();
 
                 fireEvent.changeText(chatTextInput, message);
 
-                const submitButton = within(
-                    musicPlayerFullScreen,
-                ).getByA11yLabel(/send.*message/i);
+                const submitButton =
+                    within(chatScreen).getByA11yLabel(/send.*message/i);
 
                 fireEvent.press(submitButton);
             } catch (err) {
@@ -234,9 +292,47 @@ const mtvRoomChatTestingModel = createTestingModel<TestingContext>(
             },
 
             {
+                message: '     ',
+            },
+
+            {
+                message: `  ${lorem.sentence()}   `,
+            },
+
+            {
+                message: lorem.paragraphs(10),
+            },
+
+            {
                 message: lorem.sentences(),
             },
         ] as TypeMessageAndClickOnSendEvent[],
+    },
+
+    RECEIVE_MESSAGE_FROM_OTHER_USER: {
+        exec: ({ screen }, event) => {
+            try {
+                const { message } =
+                    ReceiveMessageFromOtherUserEvent.parse(event);
+
+                screen.serverSocket.emit('RECEIVED_MESSAGE', { message });
+            } catch (err) {
+                console.error(err);
+
+                throw err;
+            }
+        },
+
+        cases: [
+            {
+                message: {
+                    id: datatype.uuid(),
+                    authorID: datatype.uuid(),
+                    authorName: name.title(),
+                    text: lorem.sentences(),
+                },
+            },
+        ] as ReceiveMessageFromOtherUserEvent[],
     },
 });
 
@@ -309,9 +405,21 @@ describe('Send and receive messages in MTV room chat', () => {
                     });
                     expect(musicPlayerFullScreen).toBeTruthy();
 
+                    const goToChatTabButton = within(
+                        musicPlayerFullScreen,
+                    ).getByText(/chat/i);
+                    expect(goToChatTabButton).toBeTruthy();
+
+                    fireEvent.press(goToChatTabButton);
+
+                    const chatScreen = await screen.findByTestId(
+                        'mtv-chat-screen',
+                    );
+                    expect(chatScreen).toBeTruthy();
+
                     await path.test({
                         screen,
-                        musicPlayerFullScreen,
+                        chatScreen,
                     });
                 });
             });

@@ -9,6 +9,13 @@ import User from 'App/Models/User';
 import { datatype, random } from 'faker';
 import sinon from 'sinon';
 import { io, Socket } from 'socket.io-client';
+import {
+    createMachine,
+    interpret,
+    StateFrom,
+    assign,
+    DoneInvokeEvent,
+} from 'xstate';
 
 export function waitForTimeout(ms: number): Promise<void> {
     return new Promise((resolve) => {
@@ -51,6 +58,10 @@ interface TestUtilsReturnedValue {
     createUserAndGetSocket: (
         args: CreateUserAndGetSocketArgs,
     ) => Promise<TypedTestSocket>;
+    waitFor: <ExpectReturn>(
+        expect: () => ExpectReturn | Promise<ExpectReturn>,
+        timeout?: number,
+    ) => Promise<ExpectReturn>;
 }
 
 export function initTestUtils(): TestUtilsReturnedValue {
@@ -158,12 +169,128 @@ export function initTestUtils(): TestUtilsReturnedValue {
         return await createSocketConnection({ userID, deviceName, browser });
     };
 
+    const createWaitForMachine = <ExpectReturn>(timeout: number) =>
+        createMachine(
+            {
+                initial: 'tryExpect',
+
+                context: {
+                    expectReturn: undefined as ExpectReturn | undefined,
+                },
+
+                after: {
+                    TIMEOUT: {
+                        target: 'cancelled',
+                    },
+                },
+
+                states: {
+                    tryExpect: {
+                        initial: 'assert',
+
+                        states: {
+                            assert: {
+                                invoke: {
+                                    src: 'expect',
+
+                                    onDone: {
+                                        target: 'succeeded',
+
+                                        actions: assign({
+                                            expectReturn: (
+                                                _,
+                                                {
+                                                    data,
+                                                }: DoneInvokeEvent<ExpectReturn>,
+                                            ) => data,
+                                        }),
+                                    },
+
+                                    onError: {
+                                        target: 'debouncing',
+                                    },
+                                },
+                            },
+
+                            debouncing: {
+                                after: {
+                                    10: {
+                                        target: 'assert',
+                                    },
+                                },
+                            },
+
+                            succeeded: {
+                                type: 'final',
+                            },
+                        },
+
+                        onDone: {
+                            target: 'succeeded',
+                        },
+
+                        on: {
+                            CANCELLED: {
+                                target: 'cancelled',
+                            },
+                        },
+                    },
+
+                    succeeded: {
+                        type: 'final',
+                    },
+
+                    cancelled: {
+                        type: 'final',
+                    },
+                },
+            },
+            {
+                delays: {
+                    TIMEOUT: timeout,
+                },
+            },
+        );
+
+    async function waitFor<ExpectReturn>(
+        expect: () => ExpectReturn | Promise<ExpectReturn>,
+        timeout?: number,
+    ): Promise<ExpectReturn> {
+        return new Promise((resolve, reject) => {
+            let state: StateFrom<typeof createWaitForMachine>;
+
+            interpret(
+                createWaitForMachine(timeout ?? 200).withConfig({
+                    services: {
+                        expect: async () => {
+                            return await expect();
+                        },
+                    },
+                }),
+            )
+                .onTransition((updatedState) => {
+                    state = updatedState;
+                })
+                .onDone(() => {
+                    if (state.matches('succeeded')) {
+                        resolve(state.context.expectReturn as ExpectReturn);
+
+                        return;
+                    }
+
+                    reject(new Error('Assertion timed out'));
+                })
+                .start();
+        });
+    }
+
     return {
         createSocketConnection,
         createUserAndGetSocket,
         disconnectSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
+        waitFor,
     };
 }
 

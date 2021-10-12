@@ -41,6 +41,8 @@ export type RootStackParamList = {
     MusicTrackVoteCreationForm: NavigatorScreenParams<MusicTrackVoteCreationFormParamList>;
 
     MusicTrackVoteUsersList: NavigatorScreenParams<MusicTrackVoteUsersListStackParamList>;
+
+    MusicTrackVoteChat: NavigatorScreenParams<MusicTrackVoteChatStackParamList>;
 };
 
 export type SuggestTrackStackParamList = {
@@ -61,13 +63,15 @@ export type MusicTrackVoteUsersListStackParamList = {
     MusicTrackVoteUsersListModal: undefined;
 };
 
+export type MusicTrackVoteChatStackParamList = {
+    MusicTrackVoteChatModal: undefined;
+};
+
 export type MainStackParamList = {
     Root: NavigatorScreenParams<BottomTabNavigatorParamList>;
 
     MusicTrackVoteSearch: undefined;
     MusicTrackVote: MusicTrackVoteParams;
-
-    Chat: undefined;
 
     Settings: undefined;
 
@@ -223,12 +227,18 @@ export type MusicTrackVoteSearchScreenProps = {
     route: RouteProp<MainStackParamList, 'MusicTrackVoteSearch'>;
 };
 
-export type ChatScreenProps = {
+export type MusicTrackVoteChatModalProps = {
     navigation: CompositeNavigationProp<
-        StackNavigationProp<RootStackParamList, 'Main'>,
-        StackNavigationProp<MainStackParamList, 'Chat'>
+        StackNavigationProp<RootStackParamList, 'MusicTrackVoteChat'>,
+        StackNavigationProp<
+            MusicTrackVoteChatStackParamList,
+            'MusicTrackVoteChatModal'
+        >
     >;
-    route: RouteProp<MainStackParamList, 'Chat'>;
+    route: RouteProp<
+        MusicTrackVoteChatStackParamList,
+        'MusicTrackVoteChatModal'
+    >;
 };
 
 export type SettingsScreenProps = {

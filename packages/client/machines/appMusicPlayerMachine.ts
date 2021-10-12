@@ -1,8 +1,10 @@
 import {
+    MtvRoomChatMessage,
     MtvRoomClientToServerCreateArgs,
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
+import { nanoid } from 'nanoid/non-secure';
 import {
     assign,
     createMachine,
@@ -29,6 +31,8 @@ export interface AppMusicPlayerMachineContext extends MtvWorkflowState {
     initialTracksIDs?: string[];
     closeSuggestionModal?: () => void;
     closeMtvRoomCreationModal?: () => void;
+
+    chatMessages?: MtvRoomChatMessage[];
 }
 
 export type AppMusicPlayerMachineState = State<
@@ -99,6 +103,14 @@ export type AppMusicPlayerMachineEvent =
           toUpdateUserID: string;
           hasControlAndDelegationPermission: boolean;
       }
+    | {
+          type: 'SEND_CHAT_MESSAGE';
+          message: string;
+      }
+    | {
+          type: 'RECEIVED_CHAT_MESSAGE';
+          message: MtvRoomChatMessage;
+      }
     | CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents;
 
 interface CreateAppMusicPlayerMachineArgs {
@@ -131,6 +143,7 @@ const rawContext: AppMusicPlayerMachineContext = {
     isOpenOnlyInvitedUsersCanVote: false,
     timeConstraintIsValid: null,
     minimumScoreToBePlayed: 1,
+    chatMessages: undefined,
 };
 
 export const createAppMusicPlayerMachine = ({
@@ -150,7 +163,7 @@ export const createAppMusicPlayerMachine = ({
             invoke: {
                 id: 'socketConnection',
                 src:
-                    (_context, _event) =>
+                    () =>
                     (
                         sendBack: Sender<AppMusicPlayerMachineEvent>,
                         onReceive: Receiver<AppMusicPlayerMachineEvent>,
@@ -264,16 +277,23 @@ export const createAppMusicPlayerMachine = ({
                             },
                         );
 
+                        socket.on('RECEIVED_MESSAGE', ({ message }) => {
+                            sendBack({
+                                type: 'RECEIVED_CHAT_MESSAGE',
+                                message,
+                            });
+                        });
+
                         socket.on('FORCED_DISCONNECTION', () => {
                             sendBack({
                                 type: 'FORCED_DISCONNECTION',
                             });
                         });
 
-                        onReceive((e) => {
-                            switch (e.type) {
+                        onReceive((event) => {
+                            switch (event.type) {
                                 case 'PLAY_PAUSE_TOGGLE': {
-                                    const { status } = e.params;
+                                    const { status } = event.params;
 
                                     if (status === 'play') {
                                         socket.emit('ACTION_PAUSE');
@@ -291,7 +311,8 @@ export const createAppMusicPlayerMachine = ({
                                 }
 
                                 case 'UPDATE_DELEGATION_OWNER': {
-                                    const { newDelegationOwnerUserID } = e;
+                                    const { newDelegationOwnerUserID } = event;
+
                                     socket.emit('UPDATE_DELEGATION_OWNER', {
                                         newDelegationOwnerUserID,
                                     });
@@ -307,14 +328,15 @@ export const createAppMusicPlayerMachine = ({
 
                                 case 'CHANGE_EMITTING_DEVICE': {
                                     socket.emit('CHANGE_EMITTING_DEVICE', {
-                                        newEmittingDeviceID: e.deviceID,
+                                        newEmittingDeviceID: event.deviceID,
                                     });
 
                                     break;
                                 }
 
                                 case 'SUGGEST_TRACKS': {
-                                    const tracksToSuggest = e.tracksToSuggest;
+                                    const tracksToSuggest =
+                                        event.tracksToSuggest;
 
                                     socket.emit('SUGGEST_TRACKS', {
                                         tracksToSuggest,
@@ -325,7 +347,7 @@ export const createAppMusicPlayerMachine = ({
 
                                 case 'VOTE_FOR_TRACK': {
                                     socket.emit('VOTE_FOR_TRACK', {
-                                        trackID: e.trackID,
+                                        trackID: event.trackID,
                                     });
 
                                     break;
@@ -335,7 +357,7 @@ export const createAppMusicPlayerMachine = ({
                                     const {
                                         toUpdateUserID,
                                         hasControlAndDelegationPermission,
-                                    } = e;
+                                    } = event;
 
                                     socket.emit(
                                         'UPDATE_CONTROL_AND_DELEGATION_PERMISSION',
@@ -344,6 +366,14 @@ export const createAppMusicPlayerMachine = ({
                                             hasControlAndDelegationPermission,
                                         },
                                     );
+
+                                    break;
+                                }
+
+                                case 'SEND_CHAT_MESSAGE': {
+                                    socket.emit('NEW_MESSAGE', {
+                                        message: event.message,
+                                    });
 
                                     break;
                                 }
@@ -933,6 +963,63 @@ export const createAppMusicPlayerMachine = ({
 
                                 UPDATE_DELEGATION_OWNER_CALLBACK: {
                                     actions: 'assignMergeNewState',
+                                },
+
+                                SEND_CHAT_MESSAGE: {
+                                    actions: [
+                                        forwardTo('socketConnection'),
+                                        assign({
+                                            chatMessages: (
+                                                {
+                                                    chatMessages,
+                                                    userRelatedInformation,
+                                                },
+                                                { message },
+                                            ) => {
+                                                if (
+                                                    userRelatedInformation ===
+                                                    null
+                                                ) {
+                                                    throw new Error(
+                                                        'userRelatedInformation must not be null to use chat',
+                                                    );
+                                                }
+
+                                                const previousMessages =
+                                                    chatMessages ?? [];
+
+                                                // Messages must be prepend as they are displayed in reverse order.
+                                                return [
+                                                    {
+                                                        id: nanoid(),
+                                                        authorID:
+                                                            userRelatedInformation.userID,
+                                                        authorName: 'Me',
+                                                        text: message,
+                                                    },
+                                                    ...previousMessages,
+                                                ];
+                                            },
+                                        }),
+                                    ],
+                                },
+
+                                RECEIVED_CHAT_MESSAGE: {
+                                    actions: assign({
+                                        chatMessages: (
+                                            { chatMessages },
+                                            { message },
+                                        ) => {
+                                            const previousMessages =
+                                                chatMessages ?? [];
+
+                                            // Messages must be prepend as they are displayed in reverse order.
+                                            return [
+                                                message,
+                                                ...previousMessages,
+                                            ];
+                                        },
+                                    }),
                                 },
                             },
                         },

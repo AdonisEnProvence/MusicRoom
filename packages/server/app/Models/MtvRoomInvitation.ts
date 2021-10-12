@@ -1,4 +1,11 @@
-import { BaseModel, BelongsTo, belongsTo, column } from '@ioc:Adonis/Lucid/Orm';
+import {
+    BaseModel,
+    beforeCreate,
+    BelongsTo,
+    belongsTo,
+    column,
+} from '@ioc:Adonis/Lucid/Orm';
+import { randomUUID } from 'crypto';
 import { DateTime } from 'luxon';
 import MtvRoom from './MtvRoom';
 import User from './User';
@@ -42,4 +49,9 @@ export default class MtvRoomInvitation extends BaseModel {
 
     @column.dateTime({ autoCreate: true, autoUpdate: true })
     public updatedAt: DateTime;
+
+    @beforeCreate()
+    public static assignUuid(invitation: MtvRoomInvitation): void {
+        invitation.uuid = randomUUID();
+    }
 }

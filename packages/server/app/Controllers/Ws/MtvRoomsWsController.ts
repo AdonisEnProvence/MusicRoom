@@ -484,6 +484,7 @@ export default class MtvRoomsWsController {
         roomID,
     }: OnCreatorInviteUserArgs): Promise<void> {
         const room = await MtvRoom.findOrFail(roomID);
+        const invitedUser = await User.findOrFail(invitedUserID);
 
         const userIsNotRoomCreator = emitterUserID !== room.creatorID;
 
@@ -491,6 +492,11 @@ export default class MtvRoomsWsController {
             throw new Error(
                 `Emitter user does not appear to be the room creator`,
             );
+        }
+
+        const invitedUserIsAlreadyInTheRoom = invitedUser.mtvRoomID === roomID;
+        if (invitedUserIsAlreadyInTheRoom) {
+            throw new Error('Invited user is already in the room');
         }
 
         await room.load('creator');

@@ -27,7 +27,7 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
-    test('It should create an invitation in base and send RECEIVED_INVITATION to the invited user clients', async (assert) => {
+    test('It should create only one invitation in base and send RECEIVED_INVITATION to the invited user clients', async (assert) => {
         const invitedUserID = datatype.uuid();
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
@@ -54,6 +54,7 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
             invitedUserID,
         });
         await sleep();
+
         assert.equal(receivedEvents.length, 2);
         const createdInvitation = await MtvRoomInvitation.findBy(
             'invited_user_id',
@@ -65,6 +66,15 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         assert.equal(createdInvitation.invitingUserID, creatorUserID);
         assert.equal(createdInvitation.invitedUserID, invitedUserID);
         assert.equal(createdInvitation.mtvRoomID, roomID);
+
+        //Again and check events are still called but only 1 entry in db
+        creatorSocket.emit('CREATOR_INVITE_USER', {
+            invitedUserID,
+        });
+        await sleep();
+        assert.equal(receivedEvents.length, 4);
+        const allInvitations = await MtvRoomInvitation.all();
+        assert.equal(allInvitations.length, 1);
     });
 
     test('It should fail to invite user as the inviting user is not the room creator', async (assert) => {

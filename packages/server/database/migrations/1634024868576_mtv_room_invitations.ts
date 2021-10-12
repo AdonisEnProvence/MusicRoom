@@ -22,6 +22,11 @@ export default class MtvRoomInvitations extends BaseSchema {
                 .references('users.uuid')
                 .onDelete('CASCADE'); //always roomID creator
             table.timestamps(true, true);
+            table.unique([
+                'mtv_room_id',
+                'invited_user_id',
+                'inviting_user_id',
+            ]);
         });
     }
 

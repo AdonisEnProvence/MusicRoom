@@ -506,7 +506,7 @@ export default class MtvRoomsWsController {
             );
         }
 
-        await MtvRoomInvitation.create({
+        await MtvRoomInvitation.firstOrCreate({
             mtvRoomID: roomID,
             invitedUserID,
             invitingUserID: emitterUserID,

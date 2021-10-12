@@ -44,14 +44,14 @@ type MtvRoomChatMachineState = State<
 
 const assignMessageFromSubmission = mtvRoomChatModel.assign(
     {
-        message: (_, { message }) => message,
+        message: (_, { message }) => normalizeMessage(message),
     },
     'TYPE_MESSAGE_AND_SUBMIT',
 );
 
 const assignMessageFromClickingOnSend = mtvRoomChatModel.assign(
     {
-        message: (_, { message }) => message,
+        message: (_, { message }) => normalizeMessage(message),
     },
     'TYPE_MESSAGE_AND_CLICK_ON_SEND',
 );
@@ -62,6 +62,10 @@ const assignMessageFromServerBroadcasting = mtvRoomChatModel.assign(
     },
     'RECEIVE_MESSAGE_FROM_OTHER_USER',
 );
+
+function normalizeMessage(message: string): string {
+    return message.trim();
+}
 
 function isMessageEmpty(message: string): boolean {
     return message === '';
@@ -93,7 +97,8 @@ const mtvRoomChatMachine = mtvRoomChatModel.createMachine({
             on: {
                 TYPE_MESSAGE_AND_SUBMIT: [
                     {
-                        cond: (_, { message }) => isMessageEmpty(message),
+                        cond: (_, { message }) =>
+                            isMessageEmpty(normalizeMessage(message)),
 
                         target: 'messageHasBeenRejected',
 
@@ -101,7 +106,8 @@ const mtvRoomChatMachine = mtvRoomChatModel.createMachine({
                     },
 
                     {
-                        cond: (_, { message }) => isTooLongMessage(message),
+                        cond: (_, { message }) =>
+                            isTooLongMessage(normalizeMessage(message)),
 
                         target: 'messageHasBeenRejected',
 
@@ -117,7 +123,8 @@ const mtvRoomChatMachine = mtvRoomChatModel.createMachine({
 
                 TYPE_MESSAGE_AND_CLICK_ON_SEND: [
                     {
-                        cond: (_, { message }) => isMessageEmpty(message),
+                        cond: (_, { message }) =>
+                            isMessageEmpty(normalizeMessage(message)),
 
                         target: 'messageHasBeenRejected',
 
@@ -125,7 +132,8 @@ const mtvRoomChatMachine = mtvRoomChatModel.createMachine({
                     },
 
                     {
-                        cond: (_, { message }) => isTooLongMessage(message),
+                        cond: (_, { message }) =>
+                            isTooLongMessage(normalizeMessage(message)),
 
                         target: 'messageHasBeenRejected',
 
@@ -238,6 +246,14 @@ const mtvRoomChatTestingModel = createTestingModel<TestingContext>(
             },
 
             {
+                message: '     ',
+            },
+
+            {
+                message: `  ${lorem.sentence()}   `,
+            },
+
+            {
                 message: lorem.paragraphs(10),
             },
 
@@ -273,6 +289,14 @@ const mtvRoomChatTestingModel = createTestingModel<TestingContext>(
         cases: [
             {
                 message: '',
+            },
+
+            {
+                message: '     ',
+            },
+
+            {
+                message: `  ${lorem.sentence()}   `,
             },
 
             {

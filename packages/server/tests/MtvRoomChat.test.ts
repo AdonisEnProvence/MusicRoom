@@ -50,6 +50,35 @@ test.group('MtvRoom Chat', (group) => {
         });
     });
 
+    test('Messages are trimmed', async (assert) => {
+        const senderUserID = datatype.uuid();
+        const receiverUserID = datatype.uuid();
+        const mtvRoomID = datatype.uuid();
+
+        const senderSocket = await createUserAndGetSocket({
+            userID: senderUserID,
+            mtvRoomIDToAssociate: mtvRoomID,
+        });
+        const receiverSocket = await createUserAndGetSocket({
+            userID: receiverUserID,
+            mtvRoomIDToAssociate: mtvRoomID,
+        });
+
+        let messageReceivedByReceiver: string | undefined;
+        receiverSocket.on('RECEIVED_MESSAGE', ({ message: { text } }) => {
+            messageReceivedByReceiver = text;
+        });
+
+        const messageToSend = random.words();
+        senderSocket.emit('NEW_MESSAGE', {
+            message: `  ${messageToSend}  `,
+        });
+
+        await waitFor(() => {
+            assert.equal(messageReceivedByReceiver, messageToSend);
+        });
+    });
+
     test('Sent message is not received by sender', async (assert) => {
         const senderUserID = datatype.uuid();
         const mtvRoomID = datatype.uuid();

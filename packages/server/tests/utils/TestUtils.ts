@@ -11,7 +11,6 @@ import sinon from 'sinon';
 import { io, Socket } from 'socket.io-client';
 import {
     createMachine,
-    send,
     interpret,
     StateFrom,
     assign,

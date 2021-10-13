@@ -74,6 +74,16 @@ const TracksListTab: React.FC<TracksListProps> = ({
         return null;
     }
 
+    const roomIsOpenAndOnlyInvitedUsersCanVote =
+        context.isOpen && context.isOpenOnlyInvitedUsersCanVote;
+    const userHasNotBeenInvited =
+        context.userRelatedInformation === null ||
+        (context.userRelatedInformation &&
+            context.userRelatedInformation.userHasBeenInvited === false);
+
+    const roomIsOpenAndOnlyInvitedUsersCanVoteAndUserHasNotBeenInvited =
+        roomIsOpenAndOnlyInvitedUsersCanVote && userHasNotBeenInvited;
+
     function generateTracksListItems(): (
         | { type: 'TRACK'; track: TrackMetadataWithScore }
         | { type: 'SEPARATOR' }
@@ -135,17 +145,22 @@ const TracksListTab: React.FC<TracksListProps> = ({
                     }
 
                     const { title, artistName, id: trackID } = item.track;
+
                     let userHasAlreadyVotedForTrack = false;
                     if (
                         musicPlayerMachineContext.userRelatedInformation !==
                         null
                     ) {
-                        userHasAlreadyVotedForTrack =
+                        userHasAlreadyVotedFoTrack =
                             musicPlayerMachineContext.userRelatedInformation.tracksVotedFor.some(
                                 (trackIDVotedFor) =>
                                     trackIDVotedFor === trackID,
                             );
                     }
+
+                    const disableTrackListItem =
+                        userHasAlreadyVotedForTrack ||
+                        roomIsOpenAndOnlyInvitedUsersCanVoteAndUserHasNotBeenInvited;
 
                     return (
                         <View

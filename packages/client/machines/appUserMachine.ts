@@ -1,4 +1,4 @@
-import { UserDevice } from '@musicroom/types';
+import { MtvRoomSummary, UserDevice } from '@musicroom/types';
 import {
     getCurrentPositionAsync,
     LocationObject,
@@ -61,6 +61,10 @@ export type AppUserMachineEvent =
           type: 'LOCATION_PERMISSION_DENIED';
       }
     | {
+          type: 'RECEIVED_MTV_ROOM_INVITATION';
+          invitation: MtvRoomSummary;
+      }
+    | {
           type: 'REQUEST_DEDUPLICATE_LOCATION_PERMISSION';
       }
     | {
@@ -99,6 +103,19 @@ export const createUserMachine = ({
                                 devices,
                             });
                         });
+
+                        socket.on(
+                            'RECEIVED_MTV_ROOM_INVITATION',
+                            (invitation) => {
+                                console.log(
+                                    'RECEIVED RECEIVED_MTV_ROOM_INVITATION',
+                                );
+                                sendBack({
+                                    type: 'RECEIVED_MTV_ROOM_INVITATION',
+                                    invitation,
+                                });
+                            },
+                        );
 
                         onReceive((e) => {
                             switch (e.type) {
@@ -257,6 +274,9 @@ export const createUserMachine = ({
                 },
                 SET_CURRENT_DEVICE_ID: {
                     actions: 'setCurrDeviceID',
+                },
+                RECEIVED_MTV_ROOM_INVITATION: {
+                    actions: 'showMtvRoomInvitationToast',
                 },
             },
         },

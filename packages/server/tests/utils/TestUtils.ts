@@ -64,6 +64,12 @@ interface TestUtilsReturnedValue {
     ) => Promise<ExpectReturn>;
 }
 
+export class AssertionTimeout extends Error {
+    constructor() {
+        super('Assertion timed out');
+    }
+}
+
 export function initTestUtils(): TestUtilsReturnedValue {
     let socketsConnections: TypedTestSocket[] = [];
 
@@ -256,32 +262,44 @@ export function initTestUtils(): TestUtilsReturnedValue {
         expect: () => ExpectReturn | Promise<ExpectReturn>,
         timeout?: number,
     ): Promise<ExpectReturn> {
-        return new Promise((resolve, reject) => {
-            let state: StateFrom<typeof createWaitForMachine>;
+        try {
+            return await new Promise((resolve, reject) => {
+                let state: StateFrom<typeof createWaitForMachine>;
 
-            interpret(
-                createWaitForMachine(timeout ?? 200).withConfig({
-                    services: {
-                        expect: async () => {
-                            return await expect();
+                interpret(
+                    createWaitForMachine(timeout ?? 200).withConfig({
+                        services: {
+                            expect: async () => {
+                                return await expect();
+                            },
                         },
-                    },
-                }),
-            )
-                .onTransition((updatedState) => {
-                    state = updatedState;
-                })
-                .onDone(() => {
-                    if (state.matches('succeeded')) {
-                        resolve(state.context.expectReturn as ExpectReturn);
+                    }),
+                )
+                    .onTransition((updatedState) => {
+                        state = updatedState;
+                    })
+                    .onDone(() => {
+                        if (state.matches('succeeded')) {
+                            resolve(state.context.expectReturn as ExpectReturn);
 
-                        return;
-                    }
+                            return;
+                        }
 
-                    reject(new Error('Assertion timed out'));
-                })
-                .start();
-        });
+                        reject(new AssertionTimeout());
+                    })
+                    .start();
+            });
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                // Replace err stack with the current stack minus
+                // all calls after waitFor function included.
+                Error.captureStackTrace(err, waitFor);
+
+                throw err;
+            }
+
+            throw new Error('Unexpected error occured in waitFor function');
+        }
     }
 
     return {

@@ -29,7 +29,7 @@ const creationMtvRoomFormModel = createModel(
         initialTracksMetadata: undefined as TrackMetadata[] | undefined,
 
         roomName: '',
-        isOpen: false,
+        isOpen: true,
         onlyInvitedUsersCanVote: false,
         hasPhysicalConstraints: false,
         physicalConstraintPlaceID: '',

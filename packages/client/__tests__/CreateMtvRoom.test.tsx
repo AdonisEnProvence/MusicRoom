@@ -27,7 +27,7 @@ import {
 const createMtvRoomWithSettingsModel = createModel(
     {
         roomName: '',
-        isPublic: false,
+        isPublic: true,
         onlyInvitedUsersCanVote: false,
         hasPhysicalConstraints: false,
         physicalConstraintsValues: undefined as

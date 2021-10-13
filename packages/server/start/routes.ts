@@ -24,6 +24,8 @@ Route.get('/search/track/:query', 'TracksSearchesController.searchTrackName');
 
 Route.post('/search/rooms', 'MtvRoomsHttpController.fetchMtvRooms');
 
+Route.post('/search/users', 'SearchUsersController.searchUsers');
+
 Route.get('/ping', () => console.log('pong'));
 
 /// Temporal Routes ///

@@ -26,6 +26,7 @@ export const UserRelatedInformation = z.object({
     tracksVotedFor: z.string().array(),
     userFitsPositionConstraint: z.boolean().nullable(),
     hasControlAndDelegationPermission: z.boolean(),
+    userHasBeenInvited: z.boolean(),
 });
 export type UserRelatedInformation = z.infer<typeof UserRelatedInformation>;
 

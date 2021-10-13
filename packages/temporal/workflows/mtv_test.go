@@ -4220,7 +4220,7 @@ func (s *UnitTestSuite) Test_OnlyInvitedUsersAndCreatorCanVoteInOpenRoom() {
 					},
 					Score: 1,
 				},
-				Duration: tracksToSuggest[0].Duration.Milliseconds(),
+				Duration: tracksToSuggest[1].Duration.Milliseconds(),
 			},
 			{
 				TrackMetadataWithScore: shared.TrackMetadataWithScore{

@@ -928,6 +928,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					TracksVotedFor:                    make([]string, 0),
 					UserFitsPositionConstraint:        nil,
 					HasControlAndDelegationPermission: false,
+					UserHasBeenInvited:                message.UserHasBeenInvited,
 				}
 
 				if internalState.initialParams.HasPhysicalAndTimeConstraints {

@@ -448,6 +448,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		TracksVotedFor:                    make([]string, 0),
 		UserFitsPositionConstraint:        nil,
 		HasControlAndDelegationPermission: true,
+		UserHasBeenInvited:                false,
 	}
 
 	if body.HasPhysicalAndTimeConstraints && body.PhysicalAndTimeConstraints != nil {
@@ -546,10 +547,11 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type JoinRoomHandlerBody struct {
-	UserID     string `json:"userID" validate:"required,uuid"`
-	DeviceID   string `json:"deviceID" validate:"required,uuid"`
-	WorkflowID string `json:"workflowID" validate:"required,uuid"`
-	RunID      string `json:"runID" validate:"required,uuid"`
+	UserID             string `json:"userID" validate:"required,uuid"`
+	DeviceID           string `json:"deviceID" validate:"required,uuid"`
+	WorkflowID         string `json:"workflowID" validate:"required,uuid"`
+	RunID              string `json:"runID" validate:"required,uuid"`
+	UserHasBeenInvited bool   `json:"userHasBeenInvited"`
 }
 
 func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
@@ -567,8 +569,9 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	signal := shared.NewJoinSignal(shared.NewJoinSignalArgs{
-		UserID:   body.UserID,
-		DeviceID: body.DeviceID,
+		UserID:             body.UserID,
+		DeviceID:           body.DeviceID,
+		UserHasBeenInvited: body.UserHasBeenInvited,
 	})
 
 	if err := temporal.SignalWorkflow(

@@ -94,11 +94,12 @@ func (s *UnitTestSuite) emitVoteSignal(args shared.NewVoteForTrackSignalArgs) {
 	s.env.SignalWorkflow(shared.SignalChannelName, voteForTrackSignal)
 }
 
-func (s *UnitTestSuite) emitJoinSignal(userID string, deviceID string) {
+func (s *UnitTestSuite) emitJoinSignal(args shared.NewJoinSignalArgs) {
 	fmt.Println("-----EMIT JOIN CALLED IN TEST-----")
 	signal := shared.NewJoinSignal(shared.NewJoinSignalArgs{
-		UserID:   userID,
-		DeviceID: deviceID,
+		UserID:             args.UserID,
+		DeviceID:           args.DeviceID,
+		UserHasBeenInvited: args.UserHasBeenInvited,
 	})
 
 	s.env.SignalWorkflow(shared.SignalChannelName, signal)
@@ -469,19 +470,34 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 
 	secondUserJoins := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(fakeUserID, fakeDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           fakeDeviceID,
+			UserID:             fakeUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, secondUserJoins)
 
 	shouldNotBeRegisterDeviceID := faker.UUIDHyphenated()
 	tryDuplicateOrOverrrideTheUser := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(fakeUserID, shouldNotBeRegisterDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           shouldNotBeRegisterDeviceID,
+			UserID:             fakeUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, tryDuplicateOrOverrrideTheUser)
 
 	emptyDeviceID := defaultDuration
 	randomUserID := faker.UUIDHyphenated()
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(randomUserID, "")
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           "",
+			UserID:             randomUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emptyDeviceID)
 
 	checkForEmptyDeviceIDInfo := defaultDuration
@@ -495,7 +511,12 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 	emptyUserID := defaultDuration
 	randomDeviceID := faker.UUIDHyphenated()
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal("", randomDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           randomDeviceID,
+			UserID:             "",
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emptyUserID)
 
 	checkForEmptyUserIDInfo := defaultDuration
@@ -642,7 +663,12 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 
 	emitJoin := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(fakeUserID, fakeDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           fakeDeviceID,
+			UserID:             fakeUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoin)
 
 	checkLatestUserRelatedInformation := defaultDuration
@@ -926,7 +952,12 @@ func (s *UnitTestSuite) Test_UserLeaveRoom() {
 	// 2. We send a join signal for a user
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, faker.UUIDHyphenated())
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           faker.UUIDHyphenated(),
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	// 3. check user joined
@@ -1174,7 +1205,12 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 
 	joinSuggesterUser := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(suggesterUserID, suggesterDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           suggesterDeviceID,
+			UserID:             suggesterUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, joinSuggesterUser)
 
 	firstSuggestTracksSignalDelay := defaultDuration
@@ -1544,7 +1580,12 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 
 	joinSuggesterUser := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(suggesterUserID, suggesterDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           suggesterDeviceID,
+			UserID:             suggesterUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, joinSuggesterUser)
 
 	firstSuggestTracksSignalDelay := defaultDuration
@@ -1729,7 +1770,12 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	checkJoinSuccess := defaultDuration
@@ -2096,7 +2142,12 @@ func (s *UnitTestSuite) Test_EmptyCurrentTrackAutoPlayAfterOneGetReadyToBePlayed
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	joiningUserVoteForTrack := defaultDuration
@@ -2230,7 +2281,12 @@ func (s *UnitTestSuite) Test_LoadedCurrentTrackAndReadyToBePlayedListNoAutoPlayA
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	joiningUserVoteForTrack := defaultDuration
@@ -2349,7 +2405,12 @@ func (s *UnitTestSuite) Test_LoadedAndEndedCurrentTrackAndNoTrackReadyToBePlayed
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	joiningUserVoteForTrack := defaultDuration
@@ -2945,7 +3006,12 @@ func (s *UnitTestSuite) Test_CreateDirectRoomAndUpdateDelegationOwner() {
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningUserDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	updateDelegationOwnerWithExistingUserWithoutPermissions := defaultDuration
@@ -3089,7 +3155,12 @@ func (s *UnitTestSuite) Test_CreateBroadcastRoomAndAttemptToExecuteDelegationOpe
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningUserDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	updateDelegationOwner := defaultDuration
@@ -3181,7 +3252,12 @@ func (s *UnitTestSuite) Test_CanUpdateControlAndDelegationPermission() {
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningUserDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	userHasBeenAddedAndHasNotControlAndDelegationPermissionByDefault := defaultDuration
@@ -3270,7 +3346,12 @@ func (s *UnitTestSuite) Test_GetUsersListQuery() {
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningUserDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	checkJoinWorked := defaultDuration
@@ -3361,7 +3442,12 @@ func (s *UnitTestSuite) Test_GetUsersListQueryInDirectRoom() {
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningUserDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	updateDelegationOwner := defaultDuration
@@ -3479,7 +3565,12 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionPlay() {
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningUserDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	checkJoinWorked := defaultDuration
@@ -3604,7 +3695,12 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionPause() {
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningUserDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	checkJoinWorked := defaultDuration
@@ -3741,7 +3837,12 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionGoToNextTrack(
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningUserDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	checkJoinWorked := defaultDuration

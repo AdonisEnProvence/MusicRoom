@@ -21,7 +21,7 @@ const TrackListItem: React.FC<TrackListItemProps> = ({
     return (
         <View
             sx={{
-                flex: 1,
+                flexShrink: 0,
                 padding: 'm',
                 backgroundColor: 'greyLight',
                 opacity: disabled ? 0.8 : 1,

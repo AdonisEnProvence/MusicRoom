@@ -26,71 +26,28 @@ test.group('Users Search Engine', (group) => {
     });
 
     test('Page must be strictly positive', async () => {
+        const user = await User.create({
+            uuid: datatype.uuid(),
+            nickname: internet.userName(),
+        });
+
         await supertest(BASE_URL)
             .post('/search/users')
             .send({
                 page: 0,
-                searchQuery: '',
+                searchQuery: user.nickname,
             } as SearchUsersRequestBody)
             .expect(500);
     });
 
-    test('Users are paginated', async (assert) => {
-        const usersCount = datatype.number({
-            min: 11,
-            max: 15,
-        });
-        const users = await User.createMany(
-            generateArray(usersCount, () => ({
-                uuid: datatype.uuid(),
-                nickname: internet.userName(),
-            })),
-        );
-        const usersSorted: UserSummary[] = sortBy(
-            users.map(({ uuid, nickname }) => ({ id: uuid, nickname })),
-            'nickname',
-        );
-
-        const { body: firstPageBodyRaw } = await supertest(BASE_URL)
+    test('Returns an error when search query is empty', async () => {
+        await supertest(BASE_URL)
             .post('/search/users')
             .send({
                 page: 1,
                 searchQuery: '',
             } as SearchUsersRequestBody)
-            .expect('Content-Type', /json/)
-            .expect(200);
-        const firstPageBodyParsed =
-            SearchUsersResponseBody.parse(firstPageBodyRaw);
-        assert.isTrue(firstPageBodyParsed.hasMore);
-        assert.equal(firstPageBodyParsed.page, 1);
-        assert.equal(firstPageBodyParsed.totalEntries, usersCount);
-        assert.equal(firstPageBodyParsed.data.length, PAGE_MAX_LENGTH);
-        assert.deepEqual(
-            firstPageBodyParsed.data,
-            usersSorted.slice(0, PAGE_MAX_LENGTH),
-        );
-
-        const { body: secondPageBodyRaw } = await supertest(BASE_URL)
-            .post('/search/users')
-            .send({
-                page: 2,
-                searchQuery: '',
-            } as SearchUsersRequestBody)
-            .expect('Content-Type', /json/)
-            .expect(200);
-        const secondPageBodyParsed =
-            SearchUsersResponseBody.parse(secondPageBodyRaw);
-        assert.isFalse(secondPageBodyParsed.hasMore);
-        assert.equal(secondPageBodyParsed.page, 2);
-        assert.equal(secondPageBodyParsed.totalEntries, usersCount);
-        assert.equal(
-            secondPageBodyParsed.data.length,
-            usersCount % PAGE_MAX_LENGTH,
-        );
-        assert.deepEqual(
-            secondPageBodyParsed.data,
-            usersSorted.slice(PAGE_MAX_LENGTH),
-        );
+            .expect(500);
     });
 
     test('Users are paginated and filtered', async (assert) => {
@@ -143,7 +100,7 @@ test.group('Users Search Engine', (group) => {
     test('Returns empty data if page is out of bound', async (assert) => {
         const PAGE_OUT_OF_BOUND = 100;
 
-        await User.create({
+        const user = await User.create({
             uuid: datatype.uuid(),
             nickname: internet.userName(),
         });
@@ -152,7 +109,7 @@ test.group('Users Search Engine', (group) => {
             .post('/search/users')
             .send({
                 page: PAGE_OUT_OF_BOUND,
-                searchQuery: '',
+                searchQuery: user.nickname,
             } as SearchUsersRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);

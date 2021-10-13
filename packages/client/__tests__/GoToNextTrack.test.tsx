@@ -34,6 +34,7 @@ it(`When the user clicks on next track button, it should play the next track, if
         userRelatedInformation: {
             hasControlAndDelegationPermission: true,
             userFitsPositionConstraint: null,
+            userHasBeenInvited: false,
             emittingDeviceID: datatype.uuid(),
             userID: roomCreatorUserID,
             tracksVotedFor: [],

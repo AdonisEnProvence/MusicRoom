@@ -6,7 +6,7 @@ import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
-import { fireEvent, render, within, noop } from '../tests/tests-utils';
+import { fireEvent, noop, render, within } from '../tests/tests-utils';
 
 test(`
 User should go to the musicPlayer into the tracks tab and hit a track card to vote for it
@@ -28,6 +28,7 @@ After the vote has been accepted the score will be updated and the card disabled
         delegationOwnerUserID: null,
         userRelatedInformation: {
             hasControlAndDelegationPermission: true,
+            userHasBeenInvited: false,
             userFitsPositionConstraint: null,
             emittingDeviceID: deviceID,
             userID,

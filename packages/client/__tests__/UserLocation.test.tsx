@@ -92,6 +92,7 @@ describe('User device location tests', () => {
             delegationOwnerUserID: null,
             userRelatedInformation: {
                 hasControlAndDelegationPermission: true,
+                userHasBeenInvited: false,
                 userFitsPositionConstraint: false,
                 emittingDeviceID: datatype.uuid(),
                 userID: roomCreatorUserID,

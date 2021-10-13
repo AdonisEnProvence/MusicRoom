@@ -27,6 +27,7 @@ if the user doesn't have the control and delegation permission`, async () => {
         userRelatedInformation: {
             hasControlAndDelegationPermission: false,
             userFitsPositionConstraint: null,
+            userHasBeenInvited: false,
             emittingDeviceID: datatype.uuid(),
             userID: roomCreatorUserID,
             tracksVotedFor: [],

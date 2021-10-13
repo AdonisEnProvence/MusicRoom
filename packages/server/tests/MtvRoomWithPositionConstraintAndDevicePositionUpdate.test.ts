@@ -82,6 +82,7 @@ test.group(
                             userID,
                             hasControlAndDelegationPermission: true,
                             emittingDeviceID: datatype.uuid(),
+                            userHasBeenInvited: false,
                             tracksVotedFor: [],
                             userFitsPositionConstraint: null,
                         },

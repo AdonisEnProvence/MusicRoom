@@ -1281,6 +1281,7 @@ describe('Create mtv room with custom settings', () => {
                         delegationOwnerUserID: null,
                         userRelatedInformation: {
                             hasControlAndDelegationPermission: true,
+                            userHasBeenInvited: false,
                             userFitsPositionConstraint: null,
                             emittingDeviceID: datatype.uuid(),
                             userID,

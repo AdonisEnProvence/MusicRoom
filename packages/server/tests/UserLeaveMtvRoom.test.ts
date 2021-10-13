@@ -117,6 +117,7 @@ test.group(
                     roomToJoinState.userRelatedInformation = {
                         hasControlAndDelegationPermission: true,
                         userFitsPositionConstraint: null,
+                        userHasBeenInvited: false,
                         userID: relatedUserID,
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],
@@ -342,6 +343,7 @@ test.group(
                     roomToJoinState.usersLength++;
                     roomToJoinState.userRelatedInformation = {
                         userFitsPositionConstraint: null,
+                        userHasBeenInvited: false,
                         userID: relatedUserID,
                         hasControlAndDelegationPermission: true,
                         emittingDeviceID: datatype.uuid(),
@@ -554,6 +556,7 @@ test.group(
                         timeConstraintIsValid: null,
                         userRelatedInformation: {
                             hasControlAndDelegationPermission: true,
+                            userHasBeenInvited: false,
                             userFitsPositionConstraint: null,
                             userID,
                             emittingDeviceID: datatype.uuid(),

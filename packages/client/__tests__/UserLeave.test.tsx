@@ -6,7 +6,7 @@ import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
-import { fireEvent, render, waitFor, within, noop } from '../tests/tests-utils';
+import { fireEvent, noop, render, waitFor, within } from '../tests/tests-utils';
 
 test(`
 User should go to the musicPlayer into the settings tab an hit the leave button
@@ -32,6 +32,7 @@ He will be redirected to the home and will view the default mini music player
         userRelatedInformation: {
             hasControlAndDelegationPermission: true,
             userFitsPositionConstraint: null,
+            userHasBeenInvited: false,
             emittingDeviceID: thisDevice.deviceID,
             userID,
             tracksVotedFor: [],

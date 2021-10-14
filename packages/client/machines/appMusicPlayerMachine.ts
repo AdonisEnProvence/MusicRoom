@@ -6,6 +6,7 @@ import {
 } from '@musicroom/types';
 import { nanoid } from 'nanoid/non-secure';
 import {
+    ActorRef,
     assign,
     createMachine,
     forwardTo,
@@ -34,6 +35,11 @@ export interface AppMusicPlayerMachineContext extends MtvWorkflowState {
 
     chatMessages?: MtvRoomChatMessage[];
 }
+
+export type AppMusicPlayerMachineActorRef = ActorRef<
+    AppMusicPlayerMachineEvent,
+    AppMusicPlayerMachineState
+>;
 
 export type AppMusicPlayerMachineState = State<
     AppMusicPlayerMachineContext,

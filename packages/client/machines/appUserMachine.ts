@@ -6,6 +6,7 @@ import {
 } from 'expo-location';
 import Toast from 'react-native-toast-message';
 import {
+    ActorRef,
     assign,
     createMachine,
     forwardTo,
@@ -16,6 +17,11 @@ import {
     StateMachine,
 } from 'xstate';
 import { SocketClient } from '../contexts/SocketContext';
+
+export type AppUserMachineActorRef = ActorRef<
+    AppUserMachineEvent,
+    AppUserMachineState
+>;
 
 export type AppUserMachineContext = {
     devices: UserDevice[];

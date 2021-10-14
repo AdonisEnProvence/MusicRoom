@@ -9,7 +9,7 @@ import {
 } from '../machines/appUserMachine';
 import { useSocketContext } from './SocketContext';
 
-type UserContextValue = {
+export type UserContextValue = {
     sendToUserMachine: Sender<AppUserMachineEvent>;
     state: AppUserMachineState;
 };

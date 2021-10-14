@@ -1,5 +1,6 @@
 import { UserSummary } from '@musicroom/types';
 import { createModel } from 'xstate/lib/model';
+import { fetchUsers } from '../services/UsersSearchService';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 
 const roomUsersSearchModel = createModel(
@@ -19,7 +20,11 @@ const roomUsersSearchModel = createModel(
 
             FETCHED_FRIENDS: (friends: UserSummary[]) => ({ friends }),
 
-            FETCHED_USERS: (users: UserSummary[]) => ({ users }),
+            FETCHED_USERS: (
+                users: UserSummary[],
+                hasMore: boolean,
+                page: number,
+            ) => ({ users, hasMore, page }),
 
             FETCH_MORE: () => ({}),
         },
@@ -149,7 +154,7 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                         states: {
                             deboucing: {
                                 after: {
-                                    200: {
+                                    300: {
                                         target: 'fetching',
                                     },
                                 },
@@ -233,21 +238,27 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                 },
 
             fetchUsers:
-                ({ filteredUsersPage }) =>
-                (sendBack) => {
-                    console.log('fetch friends');
+                ({ searchQuery, filteredUsersPage }) =>
+                async (sendBack) => {
+                    try {
+                        const {
+                            data: users,
+                            page,
+                            hasMore,
+                        } = await fetchUsers({
+                            searchQuery,
+                            page: filteredUsersPage,
+                        });
 
-                    setTimeout(() => {
                         sendBack({
                             type: 'FETCHED_USERS',
-                            users: [
-                                {
-                                    id: `lololol-${filteredUsersPage}`,
-                                    nickname: `Random Bastard77-${filteredUsersPage}`,
-                                },
-                            ],
+                            users,
+                            hasMore,
+                            page,
                         });
-                    }, 300);
+                    } catch (err) {
+                        console.error(err);
+                    }
                 },
         },
     },

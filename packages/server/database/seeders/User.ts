@@ -1,5 +1,8 @@
 import BaseSeeder from '@ioc:Adonis/Lucid/Seeder';
 import User from 'App/Models/User';
+import faker, { datatype, internet } from 'faker';
+
+faker.seed(42);
 
 export default class UserSeeder extends BaseSeeder {
     public static developmentOnly = true;
@@ -16,6 +19,10 @@ export default class UserSeeder extends BaseSeeder {
                 uuid: '9ed60e96-d5fc-40b3-b842-aeaa75e93972',
                 nickname: 'Mobile',
             },
+            ...Array.from({ length: 15 }).map(() => ({
+                uuid: datatype.uuid(),
+                nickname: `A${internet.userName()}`,
+            })),
         ]);
     }
 }

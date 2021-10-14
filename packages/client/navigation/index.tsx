@@ -26,12 +26,14 @@ import {
     MusicTrackVoteChatStackParamList,
     MusicTrackVoteCreationFormParamList,
     MusicTrackVoteUsersListStackParamList,
+    MusicTrackVoteUsersSearchStackParamList,
     RootStackParamList,
     SuggestTrackStackParamList,
 } from '../types';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
+import MusicTrackVoteUsersSearchModal from '../screens/MusicTrackVoteUsersSearchModal';
 
 export interface ColorModeProps {
     toggleColorScheme: () => void;
@@ -78,6 +80,8 @@ const MusicTrackVoteCreationStack =
     createStackNavigator<MusicTrackVoteCreationFormParamList>();
 const MusicTrackVoteChatStack =
     createStackNavigator<MusicTrackVoteChatStackParamList>();
+const MusicTrackVoteUsersSearchStack =
+    createStackNavigator<MusicTrackVoteUsersSearchStackParamList>();
 
 export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
     const style = navigationStyle(colorScheme);
@@ -115,6 +119,12 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
             <RootStack.Screen
                 name="MusicTrackVoteChat"
                 component={MusicTrackVoteChatNavigator}
+                options={{ headerShown: false }}
+            />
+
+            <RootStack.Screen
+                name="MusicTrackVoteUsersSearch"
+                component={MusicTrackVoteUsersSearchNavigator}
                 options={{ headerShown: false }}
             />
         </RootStack.Navigator>
@@ -197,6 +207,24 @@ export const MusicTrackVoteChatNavigator: React.FC<ColorModeProps> = ({
                 component={MusicTrackVoteChatModal}
             />
         </MusicTrackVoteChatStack.Navigator>
+    );
+};
+
+export const MusicTrackVoteUsersSearchNavigator: React.FC<ColorModeProps> = ({
+    colorScheme,
+}) => {
+    const style = navigationStyle(colorScheme);
+
+    return (
+        <MusicTrackVoteUsersSearchStack.Navigator
+            initialRouteName="MusicTrackVoteUsersSearchModal"
+            screenOptions={{ ...style, headerShown: false }}
+        >
+            <MusicTrackVoteUsersSearchStack.Screen
+                name="MusicTrackVoteUsersSearchModal"
+                component={MusicTrackVoteUsersSearchModal}
+            />
+        </MusicTrackVoteUsersSearchStack.Navigator>
     );
 };
 

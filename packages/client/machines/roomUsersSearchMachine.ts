@@ -1,4 +1,5 @@
 import { UserSummary } from '@musicroom/types';
+import { datatype, internet } from 'faker';
 import { send } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { fetchUsers } from '../services/UsersSearchService';
@@ -8,10 +9,12 @@ const roomUsersSearchModel = createModel(
     {
         usersToDisplay: [] as UserSummary[],
 
+        bufferUsersFriends: [] as UserSummary[],
         usersFriends: [] as UserSummary[],
         usersFriendsPage: 1,
         hasMoreUsersFriendsToFetch: true,
 
+        bufferFilteredUsers: [] as UserSummary[],
         filteredUsers: [] as UserSummary[],
         filteredUsersPage: 1,
         previousSearchQuery: '',
@@ -48,7 +51,7 @@ const assignSearchQueryToContext = roomUsersSearchModel.assign(
     'UPDATE_SEARCH_QUERY',
 );
 
-const assignFriendsToContext = roomUsersSearchModel.assign(
+const assignFirstFriendsToContext = roomUsersSearchModel.assign(
     {
         usersFriends: ({ usersFriends }, { friends }) => [
             ...usersFriends,
@@ -60,21 +63,55 @@ const assignFriendsToContext = roomUsersSearchModel.assign(
     'FETCHED_FRIENDS',
 );
 
-const assignUsersToContext = roomUsersSearchModel.assign(
+const assignFriendsToBufferOfContext = roomUsersSearchModel.assign(
     {
-        filteredUsers: ({ filteredUsers }, { users, page }) => {
-            const isFirstFetching = page === 1;
-            if (isFirstFetching === true) {
-                return users;
-            }
+        bufferUsersFriends: (_, { friends }) => friends,
+        usersFriendsPage: ({ usersFriendsPage }) => usersFriendsPage + 1,
+        hasMoreUsersFriendsToFetch: (_, { hasMore }) => hasMore,
+    },
+    'FETCHED_FRIENDS',
+);
 
-            return [...filteredUsers, ...users];
-        },
+const flushFriendsBuffer = roomUsersSearchModel.assign(
+    {
+        usersFriends: ({ usersFriends, bufferUsersFriends }) => [
+            ...usersFriends,
+            ...bufferUsersFriends,
+        ],
+        bufferUsersFriends: () => [],
+    },
+    undefined,
+);
+
+const assignFirstUsersToContext = roomUsersSearchModel.assign(
+    {
+        filteredUsers: (_, { users }) => users,
         filteredUsersPage: ({ filteredUsersPage }) => filteredUsersPage + 1,
         previousSearchQuery: ({ searchQuery }) => searchQuery,
         hasMoreFilteredUsersToFetch: (_, { hasMore }) => hasMore,
     },
     'FETCHED_USERS',
+);
+
+const assignUsersToBufferOfContext = roomUsersSearchModel.assign(
+    {
+        bufferFilteredUsers: (_, { users }) => users,
+        filteredUsersPage: ({ filteredUsersPage }) => filteredUsersPage + 1,
+        previousSearchQuery: ({ searchQuery }) => searchQuery,
+        hasMoreFilteredUsersToFetch: (_, { hasMore }) => hasMore,
+    },
+    'FETCHED_USERS',
+);
+
+const flushUsersBuffer = roomUsersSearchModel.assign(
+    {
+        filteredUsers: ({ filteredUsers, bufferFilteredUsers }) => [
+            ...filteredUsers,
+            ...bufferFilteredUsers,
+        ],
+        bufferFilteredUsers: () => [],
+    },
+    undefined,
 );
 
 const resetFilteredUsersFetchingDataFromContext = roomUsersSearchModel.assign(
@@ -154,7 +191,8 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                                             FETCHED_FRIENDS: {
                                                 target: 'debounceFirstFriendsFetching',
 
-                                                actions: assignFriendsToContext,
+                                                actions:
+                                                    assignFirstFriendsToContext,
                                             },
                                         },
                                     },
@@ -176,13 +214,18 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                                             idle: {
                                                 on: {
                                                     FETCH_MORE: {
-                                                        target: 'fetching',
+                                                        cond: ({
+                                                            hasMoreUsersFriendsToFetch,
+                                                        }) =>
+                                                            hasMoreUsersFriendsToFetch,
+
+                                                        target: 'fetchingMoreFriends',
                                                     },
                                                 },
                                             },
 
-                                            fetching: {
-                                                tags: 'isLoading',
+                                            fetchingMoreFriends: {
+                                                tags: 'isLoadingMore',
 
                                                 invoke: {
                                                     src: 'fetchFriends',
@@ -190,10 +233,31 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
 
                                                 on: {
                                                     FETCHED_FRIENDS: {
-                                                        target: 'idle',
+                                                        target: 'debouncing',
 
                                                         actions:
-                                                            assignFriendsToContext,
+                                                            assignFriendsToBufferOfContext,
+                                                    },
+                                                },
+                                            },
+
+                                            debouncing: {
+                                                tags: 'isLoadingMore',
+
+                                                /**
+                                                 * The debouncing state can exit because of those things:
+                                                 * - The timeout has ended
+                                                 * - The parent state must exit
+                                                 *
+                                                 * The first case could be handled in an action of the transition.
+                                                 * The second one must be handled in an exit action.
+                                                 * So we use an exit action.
+                                                 */
+                                                exit: flushFriendsBuffer,
+
+                                                after: {
+                                                    500: {
+                                                        target: 'idle',
                                                     },
                                                 },
                                             },
@@ -205,10 +269,10 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                             displayFilteredUsers: {
                                 tags: 'displayFilteredUsers',
 
-                                initial: 'fetching',
+                                initial: 'fetchingFirstUsers',
 
                                 states: {
-                                    fetching: {
+                                    fetchingFirstUsers: {
                                         always: {
                                             cond: ({
                                                 previousSearchQuery,
@@ -234,7 +298,8 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                                             FETCHED_USERS: {
                                                 target: 'debounceFetching',
 
-                                                actions: assignUsersToContext,
+                                                actions:
+                                                    assignFirstUsersToContext,
                                             },
                                         },
                                     },
@@ -250,9 +315,58 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                                     },
 
                                     waitingForLoadingMore: {
-                                        on: {
-                                            FETCH_MORE: {
-                                                target: 'fetching',
+                                        initial: 'idle',
+
+                                        states: {
+                                            idle: {
+                                                on: {
+                                                    FETCH_MORE: {
+                                                        cond: ({
+                                                            hasMoreFilteredUsersToFetch,
+                                                        }) =>
+                                                            hasMoreFilteredUsersToFetch,
+
+                                                        target: 'fetchingMoreUsers',
+                                                    },
+                                                },
+                                            },
+
+                                            fetchingMoreUsers: {
+                                                tags: 'isLoadingMore',
+
+                                                invoke: {
+                                                    src: 'fetchUsers',
+                                                },
+
+                                                on: {
+                                                    FETCHED_USERS: {
+                                                        target: 'debouncing',
+
+                                                        actions:
+                                                            assignUsersToBufferOfContext,
+                                                    },
+                                                },
+                                            },
+
+                                            debouncing: {
+                                                tags: 'isLoadingMore',
+
+                                                /**
+                                                 * The debouncing state can exit because of those things:
+                                                 * - The timeout has ended
+                                                 * - The parent state must exit
+                                                 *
+                                                 * The first case could be handled in an action of the transition.
+                                                 * The second one must be handled in an exit action.
+                                                 * So we use an exit action.
+                                                 */
+                                                exit: flushUsersBuffer,
+
+                                                after: {
+                                                    500: {
+                                                        target: 'idle',
+                                                    },
+                                                },
                                             },
                                         },
                                     },
@@ -310,17 +424,47 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                     console.log('fetch friends');
 
                     setTimeout(() => {
-                        sendBack({
-                            type: 'FETCHED_FRIENDS',
-                            friends: [
-                                {
-                                    id: `lololol-${usersFriendsPage}`,
-                                    nickname: `Friend Bastard77-${usersFriendsPage}`,
-                                },
-                            ],
-                            hasMore: false,
-                            page: 1,
-                        });
+                        if (usersFriendsPage === 1) {
+                            sendBack({
+                                type: 'FETCHED_FRIENDS',
+                                friends: Array.from({ length: 10 }).map(() => ({
+                                    id: datatype.uuid(),
+                                    nickname: `Friend ${internet.userName()}`,
+                                })),
+                                hasMore: true,
+                                page: 1,
+                            });
+                        } else if (usersFriendsPage === 2) {
+                            sendBack({
+                                type: 'FETCHED_FRIENDS',
+                                friends: Array.from({ length: 10 }).map(() => ({
+                                    id: datatype.uuid(),
+                                    nickname: `Friend ${internet.userName()}`,
+                                })),
+                                hasMore: true,
+                                page: 2,
+                            });
+                        } else if (usersFriendsPage === 3) {
+                            sendBack({
+                                type: 'FETCHED_FRIENDS',
+                                friends: Array.from({ length: 10 }).map(() => ({
+                                    id: datatype.uuid(),
+                                    nickname: `Friend ${internet.userName()}`,
+                                })),
+                                hasMore: true,
+                                page: 3,
+                            });
+                        } else if (usersFriendsPage === 4) {
+                            sendBack({
+                                type: 'FETCHED_FRIENDS',
+                                friends: Array.from({ length: 5 }).map(() => ({
+                                    id: datatype.uuid(),
+                                    nickname: `Friend ${internet.userName()}`,
+                                })),
+                                hasMore: false,
+                                page: 4,
+                            });
+                        }
                     }, 100);
                 },
 

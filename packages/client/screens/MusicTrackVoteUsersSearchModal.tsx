@@ -53,6 +53,7 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
 
         const displayFriends = state.hasTag('displayFriends');
         const isLoading = state.hasTag('isLoading');
+        const isLoadingMore = state.hasTag('isLoadingMore');
         const usersToDisplay =
             displayFriends === true
                 ? state.context.usersFriends
@@ -64,11 +65,9 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
         const showLoadMoreButton = hasMoreUsersToFetch === true;
 
         function onLoadMore() {
-            return undefined;
-        }
-
-        function onEndReached() {
-            return undefined;
+            send({
+                type: 'FETCH_MORE',
+            });
         }
 
         return (
@@ -131,43 +130,44 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
                         contentContainerStyle={{
                             paddingBottom: insets.bottom,
                         }}
-                        onEndReached={onEndReached}
+                        onEndReached={onLoadMore}
                         onEndReachedThreshold={0.5}
                         initialNumToRender={initialNumberOfItemsToRender}
                         ListFooterComponent={
-                            showLoadMoreButton === true
-                                ? () => {
-                                      return (
-                                          <View
-                                              sx={{
-                                                  flexDirection: 'row',
-                                                  justifyContent: 'center',
-                                                  alignItems: 'center',
-                                              }}
-                                          >
-                                              <TouchableOpacity
-                                                  onPress={onLoadMore}
-                                                  style={sx({
-                                                      borderRadius: 'full',
-                                                      borderWidth: 2,
-                                                      borderColor: 'secondary',
-                                                      paddingX: 'l',
-                                                      paddingY: 's',
-                                                  })}
-                                              >
-                                                  <Text
-                                                      sx={{
-                                                          color: 'secondary',
-                                                          fontWeight: 'bold',
-                                                      }}
-                                                  >
-                                                      Load more
-                                                  </Text>
-                                              </TouchableOpacity>
-                                          </View>
-                                      );
-                                  }
-                                : null
+                            isLoadingMore === true ? (
+                                <View sx={{ marginTop: 'm' }}>
+                                    <UsersListPlaceholder />
+                                </View>
+                            ) : showLoadMoreButton === true ? (
+                                <View
+                                    sx={{
+                                        flexDirection: 'row',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        marginTop: 'm',
+                                    }}
+                                >
+                                    <TouchableOpacity
+                                        onPress={onLoadMore}
+                                        style={sx({
+                                            borderRadius: 'full',
+                                            borderWidth: 2,
+                                            borderColor: 'secondary',
+                                            paddingX: 'l',
+                                            paddingY: 's',
+                                        })}
+                                    >
+                                        <Text
+                                            sx={{
+                                                color: 'secondary',
+                                                fontWeight: 'bold',
+                                            }}
+                                        >
+                                            Load more
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+                            ) : undefined
                         }
                     />
                 )}

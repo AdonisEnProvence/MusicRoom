@@ -69,7 +69,7 @@ test.group('Users Search Engine', (group) => {
         const filteredUsersWithNicknameFirstCharacterEqualToFirstUser: UserSummary[] =
             sortBy(
                 usersWithNicknameFirstCharacterEqualToFirstUser.map(
-                    ({ uuid, nickname }) => ({ id: uuid, nickname }),
+                    ({ uuid, nickname }) => ({ userID: uuid, nickname }),
                 ),
                 'nickname',
             );

@@ -21,7 +21,7 @@ export default class SearchUsersController {
         const totalUsersToLoad = usersPagination.total;
         const hasMoreUsersToLoad = usersPagination.hasMorePages;
         const formattedUsers = usersPagination.all().map((user) => ({
-            id: user.uuid,
+            userID: user.uuid,
             nickname: user.nickname,
         }));
 

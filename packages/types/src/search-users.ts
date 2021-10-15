@@ -2,7 +2,7 @@ import * as z from 'zod';
 import { PositiveInteger, StrictlyPositiveInteger } from './int';
 
 export const UserSummary = z.object({
-    id: z.string().uuid(),
+    userID: z.string().uuid(),
     nickname: z.string(),
 });
 export type UserSummary = z.infer<typeof UserSummary>;

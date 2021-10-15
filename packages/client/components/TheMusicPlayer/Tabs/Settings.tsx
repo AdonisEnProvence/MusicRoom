@@ -16,17 +16,17 @@ import {
 } from '../../../machines/appUserMachine';
 
 interface SettingsTabProps {
-    context: AppMusicPlayerMachineContext;
-    userContext: AppUserMachineContext;
-    sendToMachine: Sender<AppMusicPlayerMachineEvent>;
+    musicPlayerMachineContext: AppMusicPlayerMachineContext;
+    userMachineContext: AppUserMachineContext;
+    sendToMusicPlayerMachine: Sender<AppMusicPlayerMachineEvent>;
     sendToUserMachine: Sender<AppUserMachineEvent>;
 }
 
 const SettingsTab: React.FC<SettingsTabProps> = ({
-    context,
-    userContext,
+    musicPlayerMachineContext,
+    userMachineContext,
     sendToUserMachine,
-    sendToMachine,
+    sendToMusicPlayerMachine,
 }) => {
     const sx = useSx();
     const insets = useSafeAreaInsets();
@@ -45,7 +45,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
     return (
         <View>
             <Text sx={{ color: 'white' }}>Welcome to settings tab </Text>
-            {context.hasTimeAndPositionConstraints && (
+            {musicPlayerMachineContext.hasTimeAndPositionConstraints && (
                 <TouchableOpacity
                     onPress={() => {
                         sendToUserMachine({
@@ -77,7 +77,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
             <TouchableOpacity
                 onPress={() => {
-                    sendToMachine({
+                    sendToMusicPlayerMachine({
                         type: 'LEAVE_ROOM',
                     });
                 }}
@@ -112,14 +112,14 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                 >
                     <FlatList
                         testID="change-emitting-device-bottom-sheet-flat-list"
-                        data={userContext.devices}
+                        data={userMachineContext.devices}
                         renderItem={({ item: { deviceID, name } }) => {
                             const isDeviceEmitting =
                                 deviceID ===
-                                context.userRelatedInformation
+                                musicPlayerMachineContext.userRelatedInformation
                                     ?.emittingDeviceID;
                             const isThisDeviceMe =
-                                userContext.currDeviceID === deviceID;
+                                userMachineContext.currDeviceID === deviceID;
                             const deviceLabel = `${name}${
                                 isThisDeviceMe ? ' (This device)' : ''
                             }`;
@@ -137,7 +137,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                                 >
                                     <TouchableOpacity
                                         onPress={() => {
-                                            sendToMachine({
+                                            sendToMusicPlayerMachine({
                                                 type: 'CHANGE_EMITTING_DEVICE',
                                                 deviceID,
                                             });

@@ -1,8 +1,8 @@
 import { useBackHandler } from '@react-native-community/hooks';
 import { View } from 'dripsy';
 import React from 'react';
-import { useMusicPlayer } from '../../contexts/MusicPlayerContext';
-import { useUserContext } from '../../contexts/UserContext';
+import { useMusicPlayerContext } from '../../hooks/musicPlayerHooks';
+import { useUserContext } from '../../hooks/userHooks';
 import TheMusicPlayerFullScreen from './TheMusicPlayerFullScreen';
 import TheMusicPlayerMini from './TheMusicPlayerMini';
 
@@ -16,20 +16,24 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
     setIsFullScren,
 }) => {
     const MINI_PLAYER_HEIGHT = 52;
-    const { state, sendToMachine, setPlayerRef, isDeviceEmitting } =
-        useMusicPlayer();
-    const { state: userState, sendToUserMachine } = useUserContext();
+    const {
+        musicPlayerState,
+        sendToMusicPlayerMachine,
+        setPlayerRef,
+        isDeviceEmitting,
+    } = useMusicPlayerContext();
+    const { userState, sendToUserMachine } = useUserContext();
 
-    const userDoesNotHaveControlAndDelegationPermission = state.context
-        .userRelatedInformation
-        ? !state.context.userRelatedInformation
+    const userDoesNotHaveControlAndDelegationPermission = musicPlayerState
+        .context.userRelatedInformation
+        ? !musicPlayerState.context.userRelatedInformation
               .hasControlAndDelegationPermission
         : false;
     const hideControlButtons =
-        state.context.userRelatedInformation === null ||
+        musicPlayerState.context.userRelatedInformation === null ||
         userDoesNotHaveControlAndDelegationPermission;
 
-    const isInRoom = state.context.roomID !== '';
+    const isInRoom = musicPlayerState.context.roomID !== '';
     function openPlayerInFullScreen() {
         if (isInRoom === true) {
             setIsFullScren(true);
@@ -61,8 +65,8 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
         >
             <TheMusicPlayerMini
                 hideControlButtons={hideControlButtons}
-                machineState={state}
-                sendToMachine={sendToMachine}
+                musicPlayerState={musicPlayerState}
+                sendToMusicPlayerMachine={sendToMusicPlayerMachine}
                 height={MINI_PLAYER_HEIGHT}
                 onPress={openPlayerInFullScreen}
             />
@@ -87,9 +91,9 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
                         hideControlButtons={hideControlButtons}
                         sendToUserMachine={sendToUserMachine}
                         userState={userState}
-                        sendToMachine={sendToMachine}
+                        sendToMusicPlayerMachine={sendToMusicPlayerMachine}
                         isDeviceEmitting={isDeviceEmitting}
-                        machineState={state}
+                        musicPlayerState={musicPlayerState}
                         setPlayerRef={setPlayerRef}
                     />
                 </View>

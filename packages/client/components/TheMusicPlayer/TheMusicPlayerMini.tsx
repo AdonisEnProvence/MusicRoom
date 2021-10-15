@@ -1,7 +1,7 @@
+import { Sender } from '@xstate/react/lib/types';
 import { View } from 'dripsy';
 import React from 'react';
 import { TouchableWithoutFeedback } from 'react-native';
-import { Sender } from 'xstate';
 import {
     AppMusicPlayerMachineEvent,
     AppMusicPlayerMachineState,
@@ -11,27 +11,27 @@ import MusicPlayerControlButton from './MusicPlayerControlButton';
 
 type TheMusicPlayerMiniProps = {
     height: number;
-    machineState: AppMusicPlayerMachineState;
+    musicPlayerState: AppMusicPlayerMachineState;
     hideControlButtons: boolean;
-    sendToMachine: Sender<AppMusicPlayerMachineEvent>;
+    sendToMusicPlayerMachine: Sender<AppMusicPlayerMachineEvent>;
     onPress: () => void;
 };
 
 const TheMusicPlayerMini: React.FC<TheMusicPlayerMiniProps> = ({
-    machineState,
+    musicPlayerState,
     height,
     hideControlButtons,
-    sendToMachine,
+    sendToMusicPlayerMachine,
     onPress,
 }) => {
-    const { context } = machineState;
+    const { context } = musicPlayerState;
     const { currentTrack } = context;
     const isInRoom = context.roomID !== '';
-    const isPlaying = machineState.hasTag('playerOnPlay');
-    const roomIsReady = machineState.hasTag('roomIsReady');
+    const isPlaying = musicPlayerState.hasTag('playerOnPlay');
+    const roomIsReady = musicPlayerState.hasTag('roomIsReady');
 
     function handlePlayPauseToggle() {
-        sendToMachine('PLAY_PAUSE_TOGGLE');
+        sendToMusicPlayerMachine({ type: 'PLAY_PAUSE_TOGGLE' });
     }
 
     const firstLine = isInRoom

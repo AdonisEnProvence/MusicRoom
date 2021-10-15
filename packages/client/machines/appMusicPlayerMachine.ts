@@ -70,7 +70,7 @@ export type AppMusicPlayerMachineEvent =
       }
     | {
           type: 'PLAY_PAUSE_TOGGLE';
-          params: { status: 'play' | 'pause' };
+          params?: { status: 'play' | 'pause' };
       }
     | { type: 'GO_TO_NEXT_TRACK' }
     | { type: 'CHANGE_EMITTING_DEVICE'; deviceID: string }
@@ -299,6 +299,12 @@ export const createAppMusicPlayerMachine = ({
                         onReceive((event) => {
                             switch (event.type) {
                                 case 'PLAY_PAUSE_TOGGLE': {
+                                    if (event.params === undefined) {
+                                        console.error(
+                                            'You should specified params when directly forwarding PLAY_PAUSE_TOGGLE to sokectConnection',
+                                        );
+                                        break;
+                                    }
                                     const { status } = event.params;
 
                                     if (status === 'play') {

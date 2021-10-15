@@ -7,7 +7,7 @@ import { AppMusicPlayerMachineContext } from '../machines/appMusicPlayerMachine'
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 import { useUserContext } from './userHooks';
 
-export function useMusicPlayContext(): MusicPlayerContextValue {
+export function useMusicPlayerContext(): MusicPlayerContextValue {
     const {
         musicPlayerContext: {
             appMusicPlayerMachineActorRef,
@@ -144,7 +144,7 @@ export function useSuggestTracks(closeSuggestionModal: () => void): {
     showActivityIndicatorOnSuggestionsResultsScreen: boolean;
 } {
     const { musicPlayerState, sendToMusicPlayerMachine } =
-        useMusicPlayContext();
+        useMusicPlayerContext();
 
     function suggestTracks(tracksIDs: string[]) {
         sendToMusicPlayerMachine({
@@ -168,7 +168,7 @@ export function useSuggestTracks(closeSuggestionModal: () => void): {
 export function useCreationMtvRoomFormMachine():
     | CreationMtvRoomFormActorRef
     | undefined {
-    const { musicPlayerState } = useMusicPlayContext();
+    const { musicPlayerState } = useMusicPlayerContext();
     const actor: CreationMtvRoomFormActorRef =
         musicPlayerState.children.creationMtvRoomForm;
 

@@ -1,10 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import { useMachine } from '@xstate/react';
+import { Sender } from '@xstate/react/lib/types';
 import { Text, View } from 'dripsy';
 import React, { useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Sender } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import {
     AppMusicPlayerMachineEvent,
@@ -22,9 +22,9 @@ import TracksListTab from './Tabs/TracksList';
 import TheMusicPlayerWithControls from './TheMusicPlayerWithControls';
 
 type TheMusicPlayerFullScreenProps = {
-    machineState: AppMusicPlayerMachineState;
+    musicPlayerState: AppMusicPlayerMachineState;
     dismissFullScreenPlayer: () => void;
-    sendToMachine: Sender<AppMusicPlayerMachineEvent>;
+    sendToMusicPlayerMachine: Sender<AppMusicPlayerMachineEvent>;
     sendToUserMachine: Sender<AppUserMachineEvent>;
     setPlayerRef: (ref: MusicPlayerRef) => void;
     isDeviceEmitting: boolean;
@@ -73,9 +73,9 @@ interface Tab {
 }
 
 const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
-    machineState,
+    musicPlayerState,
     dismissFullScreenPlayer,
-    sendToMachine,
+    sendToMusicPlayerMachine,
     sendToUserMachine,
     setPlayerRef,
     isDeviceEmitting,
@@ -84,12 +84,12 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
 }) => {
     // TODO: replace the hook by a prop
     const navigation = useNavigation();
-    const context = machineState.context;
-    const userContext = userState.context;
+    const musicPlayerMachineContext = musicPlayerState.context;
+    const userMachineContext = userState.context;
 
     const insets = useSafeAreaInsets();
-    const isPlaying = machineState.hasTag('playerOnPlay');
-    const roomIsReady = machineState.hasTag('roomIsReady');
+    const isPlaying = musicPlayerState.hasTag('playerOnPlay');
+    const roomIsReady = musicPlayerState.hasTag('roomIsReady');
 
     const [tabsState, tabsSend] = useMachine(fullscreenPlayerTabsMachine);
     const tabs: Tab[] = [
@@ -129,28 +129,28 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
             case 'Tracks':
                 return (
                     <TracksListTab
-                        context={context}
-                        sendToMachine={sendToMachine}
+                        musicPlayerMachineContext={musicPlayerMachineContext}
+                        sendToMusicPlayerMachine={sendToMusicPlayerMachine}
                     />
                 );
             case 'Settings':
                 return (
                     <SettingsTab
-                        userContext={userContext}
-                        sendToMachine={sendToMachine}
+                        userMachineContext={userMachineContext}
+                        sendToMusicPlayerMachine={sendToMusicPlayerMachine}
                         sendToUserMachine={sendToUserMachine}
-                        context={context}
+                        musicPlayerMachineContext={musicPlayerMachineContext}
                     />
                 );
             default:
                 throw new Error('Reached unreachable state');
         }
     }, [
-        context,
+        musicPlayerMachineContext,
         selectedTab.text,
-        sendToMachine,
+        sendToMusicPlayerMachine,
         sendToUserMachine,
-        userContext,
+        userMachineContext,
     ]);
 
     function handleListenersPress() {
@@ -158,17 +158,17 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     }
 
     function handleTrackReady() {
-        sendToMachine({
+        sendToMusicPlayerMachine({
             type: 'TRACK_HAS_LOADED',
         });
     }
 
     function handlePlayPauseToggle() {
-        sendToMachine('PLAY_PAUSE_TOGGLE');
+        sendToMusicPlayerMachine({ type: 'PLAY_PAUSE_TOGGLE' });
     }
 
     function handleNextTrackPress() {
-        sendToMachine('GO_TO_NEXT_TRACK');
+        sendToMusicPlayerMachine({ type: 'GO_TO_NEXT_TRACK' });
     }
 
     return (
@@ -181,7 +181,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                 HeaderLeft={() => (
                     <View sx={{ flex: 1 }}>
                         <Typo numberOfLines={1} sx={{ fontSize: 'm' }}>
-                            {context.name}
+                            {musicPlayerMachineContext.name}
                         </Typo>
 
                         <TouchableOpacity onPress={handleListenersPress}>
@@ -192,7 +192,8 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                                     marginTop: 'xs',
                                 }}
                             >
-                                {context.usersLength} Listeners
+                                {musicPlayerMachineContext.usersLength}{' '}
+                                Listeners
                             </Typo>
                         </TouchableOpacity>
                     </View>
@@ -211,8 +212,10 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                     <TheMusicPlayerWithControls
                         hideControlButtons={hideControlButtons}
                         isDeviceEmitting={isDeviceEmitting}
-                        progressElapsedTime={context.progressElapsedTime}
-                        currentTrack={context.currentTrack}
+                        progressElapsedTime={
+                            musicPlayerMachineContext.progressElapsedTime
+                        }
+                        currentTrack={musicPlayerMachineContext.currentTrack}
                         setPlayerRef={setPlayerRef}
                         isPlaying={isPlaying}
                         roomIsReady={roomIsReady}

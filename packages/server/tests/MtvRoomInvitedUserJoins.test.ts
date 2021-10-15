@@ -107,6 +107,7 @@ test.group(`Invited user joins mtv room`, (group) => {
                 joiningRoom,
                 userID: joiningUserID,
             });
+            assert.isTrue(false);
         } catch ({ message }) {
             assert.equal(
                 message,

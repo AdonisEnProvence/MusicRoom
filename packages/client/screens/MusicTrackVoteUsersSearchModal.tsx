@@ -14,6 +14,20 @@ import {
 import { roomUsersSearchMachine } from '../machines/roomUsersSearchMachines';
 import { MusicTrackVoteUsersSearchModalProps } from '../types';
 
+const UsersListPlaceholder: React.FC = () => {
+    const fakeUsers = Array.from({ length: 3 });
+
+    return (
+        <View>
+            {fakeUsers.map((_, index) => (
+                <View key={index} sx={{ marginBottom: 'm' }}>
+                    <UserListItem loading />
+                </View>
+            ))}
+        </View>
+    );
+};
+
 const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalProps> =
     ({ navigation }) => {
         const initialNumberOfItemsToRender = IS_TEST ? Infinity : 10;
@@ -38,17 +52,16 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
         }
 
         const displayFriends = state.hasTag('displayFriends');
+        const isLoading = state.hasTag('isLoading');
         const usersToDisplay =
             displayFriends === true
                 ? state.context.usersFriends
                 : state.context.filteredUsers;
-        const isLoading = state.hasTag('isLoading');
         const hasMoreUsersToFetch =
             displayFriends === true
                 ? state.context.hasMoreUsersFriendsToFetch
-                : state.context.hasMoreUsersFriendsToFetch;
-        const showLoadMoreButton =
-            isLoading === false && hasMoreUsersToFetch === true;
+                : state.context.hasMoreFilteredUsersToFetch;
+        const showLoadMoreButton = hasMoreUsersToFetch === true;
 
         function onLoadMore() {
             return undefined;
@@ -70,86 +83,94 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
                 sendToSearch={sendToSearch}
                 goBack={handleGoBack}
             >
-                <FlatList
-                    data={usersToDisplay}
-                    renderItem={({ item: { id, nickname }, index }) => {
-                        const isLastItem =
-                            index === state.context.filteredUsers.length - 1;
+                {isLoading === true ? (
+                    <UsersListPlaceholder />
+                ) : (
+                    <FlatList
+                        data={usersToDisplay}
+                        renderItem={({ item: { id, nickname }, index }) => {
+                            const isLastItem =
+                                index ===
+                                state.context.filteredUsers.length - 1;
 
-                        return (
-                            <View
-                                sx={{
-                                    marginBottom: isLastItem ? undefined : 'm',
-                                }}
-                            >
-                                <UserListItem
-                                    user={{
-                                        hasControlAndDelegationPermission:
-                                            false,
-                                        isCreator: false,
-                                        isDelegationOwner: false,
-                                        isMe: false,
-                                        nickname,
-                                        userID: id,
+                            return (
+                                <View
+                                    sx={{
+                                        marginBottom: isLastItem
+                                            ? undefined
+                                            : 'm',
                                     }}
-                                    index={index}
-                                />
-                            </View>
-                        );
-                    }}
-                    ListEmptyComponent={() => {
-                        return (
-                            <Text sx={{ color: 'white' }}>
-                                {searchQueryIsNotEmpty
-                                    ? 'There are not users that match this request'
-                                    : 'No users found in this room'}
-                            </Text>
-                        );
-                    }}
-                    // This is here that we ensure the Flat List will not show items
-                    // on an unsafe area.
-                    contentContainerStyle={{
-                        paddingBottom: insets.bottom,
-                    }}
-                    onEndReached={onEndReached}
-                    onEndReachedThreshold={0.5}
-                    initialNumToRender={initialNumberOfItemsToRender}
-                    ListFooterComponent={
-                        showLoadMoreButton === true
-                            ? () => {
-                                  return (
-                                      <View
-                                          sx={{
-                                              flexDirection: 'row',
-                                              justifyContent: 'center',
-                                              alignItems: 'center',
-                                          }}
-                                      >
-                                          <TouchableOpacity
-                                              onPress={onLoadMore}
-                                              style={sx({
-                                                  borderRadius: 'full',
-                                                  borderWidth: 2,
-                                                  borderColor: 'secondary',
-                                                  paddingX: 'l',
-                                                  paddingY: 's',
-                                              })}
+                                >
+                                    <UserListItem
+                                        loading={false}
+                                        user={{
+                                            hasControlAndDelegationPermission:
+                                                false,
+                                            isCreator: false,
+                                            isDelegationOwner: false,
+                                            isMe: false,
+                                            nickname,
+                                            userID: id,
+                                        }}
+                                        index={index}
+                                    />
+                                </View>
+                            );
+                        }}
+                        ListEmptyComponent={() => {
+                            return (
+                                <Text sx={{ color: 'white' }}>
+                                    {searchQueryIsNotEmpty
+                                        ? 'There are not users that match this request'
+                                        : 'No users found in this room'}
+                                </Text>
+                            );
+                        }}
+                        // This is here that we ensure the Flat List will not show items
+                        // on an unsafe area.
+                        contentContainerStyle={{
+                            paddingBottom: insets.bottom,
+                        }}
+                        onEndReached={onEndReached}
+                        onEndReachedThreshold={0.5}
+                        initialNumToRender={initialNumberOfItemsToRender}
+                        ListFooterComponent={
+                            showLoadMoreButton === true
+                                ? () => {
+                                      return (
+                                          <View
+                                              sx={{
+                                                  flexDirection: 'row',
+                                                  justifyContent: 'center',
+                                                  alignItems: 'center',
+                                              }}
                                           >
-                                              <Text
-                                                  sx={{
-                                                      color: 'secondary',
-                                                      fontWeight: 'bold',
-                                                  }}
+                                              <TouchableOpacity
+                                                  onPress={onLoadMore}
+                                                  style={sx({
+                                                      borderRadius: 'full',
+                                                      borderWidth: 2,
+                                                      borderColor: 'secondary',
+                                                      paddingX: 'l',
+                                                      paddingY: 's',
+                                                  })}
                                               >
-                                                  Load more
-                                              </Text>
-                                          </TouchableOpacity>
-                                      </View>
-                                  );
-                              }
-                            : null
-                    }
-                />
+                                                  <Text
+                                                      sx={{
+                                                          color: 'secondary',
+                                                          fontWeight: 'bold',
+                                                      }}
+                                                  >
+                                                      Load more
+                                                  </Text>
+                                              </TouchableOpacity>
+                                          </View>
+                                      );
+                                  }
+                                : null
+                        }
+                    />
+                )}
             </AppScreenWithSearchBar>
         );
     };

@@ -147,9 +147,19 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
 
                                         on: {
                                             FETCHED_FRIENDS: {
-                                                target: 'waitingForLoadingMore',
+                                                target: 'debounceFirstFriendsFetching',
 
                                                 actions: assignFriendsToContext,
+                                            },
+                                        },
+                                    },
+
+                                    debounceFirstFriendsFetching: {
+                                        tags: 'isLoading',
+
+                                        after: {
+                                            500: {
+                                                target: 'waitingForLoadingMore',
                                             },
                                         },
                                     },
@@ -188,6 +198,8 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                             },
 
                             displayFilteredUsers: {
+                                tags: 'displayFilteredUsers',
+
                                 initial: 'fetching',
 
                                 states: {
@@ -207,10 +219,7 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                                             target: 'waitingForLoadingMore',
                                         },
 
-                                        tags: [
-                                            'isLoading',
-                                            'displayFilteredUsers',
-                                        ],
+                                        tags: 'isLoading',
 
                                         invoke: {
                                             src: 'fetchUsers',
@@ -218,16 +227,24 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
 
                                         on: {
                                             FETCHED_USERS: {
-                                                target: 'waitingForLoadingMore',
+                                                target: 'debounceFetching',
 
                                                 actions: assignUsersToContext,
                                             },
                                         },
                                     },
 
-                                    waitingForLoadingMore: {
-                                        tags: 'displayFilteredUsers',
+                                    debounceFetching: {
+                                        tags: 'isLoading',
 
+                                        after: {
+                                            500: {
+                                                target: 'waitingForLoadingMore',
+                                            },
+                                        },
+                                    },
+
+                                    waitingForLoadingMore: {
                                         on: {
                                             FETCH_MORE: {
                                                 target: 'fetching',
@@ -297,7 +314,7 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                                 },
                             ],
                         });
-                    }, 300);
+                    }, 100);
                 },
 
             fetchUsers:

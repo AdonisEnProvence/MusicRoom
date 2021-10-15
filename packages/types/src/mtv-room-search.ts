@@ -1,8 +1,6 @@
 import * as z from 'zod';
 import { MtvRoomSummary } from './mtv';
-
-const PositiveInteger = z.number().int().nonnegative();
-const StrictlyPositiveInteger = z.number().int().positive();
+import { PositiveInteger, StrictlyPositiveInteger } from './int';
 
 export const MtvRoomSearchRequestBody = z.object({
     searchQuery: z.string(),

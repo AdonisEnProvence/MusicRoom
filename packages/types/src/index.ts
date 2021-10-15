@@ -30,3 +30,4 @@ export * from './server-to-temporal';
 export * from './user-websockets';
 export * from './websockets';
 export * from './places-api';
+export * from './search-users';

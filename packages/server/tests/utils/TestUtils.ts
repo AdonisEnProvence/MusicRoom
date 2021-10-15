@@ -335,3 +335,12 @@ export function getDefaultMtvRoomCreateRoomArgs(
         playingMode: 'BROADCAST',
     };
 }
+
+export function sortBy<Collection, Key extends keyof Collection>(
+    items: Collection[],
+    key: Key,
+): Collection[] {
+    return [...items].sort((a, b) =>
+        a[key] > b[key] ? 1 : b[key] > a[key] ? -1 : 0,
+    );
+}

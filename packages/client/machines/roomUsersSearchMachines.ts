@@ -22,7 +22,11 @@ const roomUsersSearchModel = createModel(
         events: {
             UPDATE_SEARCH_QUERY: (searchQuery: string) => ({ searchQuery }),
 
-            FETCHED_FRIENDS: (friends: UserSummary[]) => ({ friends }),
+            FETCHED_FRIENDS: (
+                friends: UserSummary[],
+                hasMore: boolean,
+                page: number,
+            ) => ({ friends, hasMore, page }),
 
             FETCHED_USERS: (
                 users: UserSummary[],
@@ -51,6 +55,7 @@ const assignFriendsToContext = roomUsersSearchModel.assign(
             ...friends,
         ],
         usersFriendsPage: ({ usersFriendsPage }) => usersFriendsPage + 1,
+        hasMoreUsersFriendsToFetch: (_, { hasMore }) => hasMore,
     },
     'FETCHED_FRIENDS',
 );
@@ -67,6 +72,7 @@ const assignUsersToContext = roomUsersSearchModel.assign(
         },
         filteredUsersPage: ({ filteredUsersPage }) => filteredUsersPage + 1,
         previousSearchQuery: ({ searchQuery }) => searchQuery,
+        hasMoreFilteredUsersToFetch: (_, { hasMore }) => hasMore,
     },
     'FETCHED_USERS',
 );
@@ -74,7 +80,6 @@ const assignUsersToContext = roomUsersSearchModel.assign(
 const resetFilteredUsersFetchingDataFromContext = roomUsersSearchModel.assign(
     {
         filteredUsersPage: 1,
-        hasMoreFilteredUsersToFetch: true,
     },
     'UPDATE_SEARCH_QUERY',
 );
@@ -313,6 +318,8 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                                     nickname: `Friend Bastard77-${usersFriendsPage}`,
                                 },
                             ],
+                            hasMore: false,
+                            page: 1,
                         });
                     }, 100);
                 },

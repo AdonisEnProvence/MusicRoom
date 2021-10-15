@@ -40,6 +40,7 @@ interface AppContextValue {
             | AppMusicPlayerMachineActorRef
             | undefined;
         playerRef: React.MutableRefObject<MusicPlayerRef>;
+        testRef: (ref: MusicPlayerRef) => void;
     } & MusicPlayerFullScreenProps;
     appUserMachineActorRef: AppUserMachineActorRef | undefined;
 }
@@ -85,6 +86,10 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
 
     const userMachineOptions = getUserMachineOptions();
 
+    function testRef(ref: MusicPlayerRef) {
+        playerRef.current = ref;
+    }
+
     const appMusicPlayerMachine = createAppMachine({
         socket,
         locationPollingTickDelay,
@@ -97,6 +102,7 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
         appState.children.appMusicPlayerMachine;
     const appUserMachineActorRef = appState.children.appUserMachine;
 
+    console.log('AppContext');
     return (
         <AppContext.Provider
             value={{
@@ -107,6 +113,7 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
                     isFullScreen,
                     setIsFullScreen,
                     toggleIsFullScreen,
+                    testRef,
                 },
             }}
         >

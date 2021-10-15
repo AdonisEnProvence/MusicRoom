@@ -9,6 +9,7 @@ export function useUserContext(): UserContextValue {
 
     const [userState, sendToUserMachine] = useActor(appUserMachineActorRef);
 
+    console.log('user hook');
     return {
         userState,
         sendToUserMachine,

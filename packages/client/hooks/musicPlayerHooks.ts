@@ -15,6 +15,7 @@ export function useMusicPlayerContext(): MusicPlayerContextValue {
             toggleIsFullScreen,
             setIsFullScreen,
             isFullScreen,
+            testRef,
         },
     } = useAppContext();
 
@@ -22,11 +23,12 @@ export function useMusicPlayerContext(): MusicPlayerContextValue {
         throw new Error('MusicPlayer machine has not been invoked yet');
     }
 
+    console.log('musicPlayerContext');
     const { userState } = useUserContext();
 
     //MusicPlayer ref
     function setPlayerRef(ref: MusicPlayerRef) {
-        playerRef.current = ref;
+        testRef(ref);
 
         sendToMusicPlayerMachine({
             type: 'MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET',

@@ -1,11 +1,12 @@
 import { useActor, useMachine } from '@xstate/react';
 import { Text, useSx, View } from 'dripsy';
 import React, { useState } from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActorRef } from 'xstate';
 import { AppScreenWithSearchBar } from '../components/kit';
 import UserListItem from '../components/User/UserListItem';
+import { IS_TEST } from '../constants/Env';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
@@ -15,6 +16,7 @@ import { MusicTrackVoteUsersSearchModalProps } from '../types';
 
 const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalProps> =
     ({ navigation }) => {
+        const initialNumberOfItemsToRender = IS_TEST ? Infinity : 10;
         const sx = useSx();
         const insets = useSafeAreaInsets();
         const [screenOffsetY, setScreenOffsetY] = useState(0);
@@ -40,6 +42,21 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
             displayFriends === true
                 ? state.context.usersFriends
                 : state.context.filteredUsers;
+        const isLoading = state.hasTag('isLoading');
+        const hasMoreUsersToFetch =
+            displayFriends === true
+                ? state.context.hasMoreUsersFriendsToFetch
+                : state.context.hasMoreUsersFriendsToFetch;
+        const showLoadMoreButton =
+            isLoading === false && hasMoreUsersToFetch === true;
+
+        function onLoadMore() {
+            return undefined;
+        }
+
+        function onEndReached() {
+            return undefined;
+        }
 
         return (
             <AppScreenWithSearchBar
@@ -94,6 +111,44 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
                     contentContainerStyle={{
                         paddingBottom: insets.bottom,
                     }}
+                    onEndReached={onEndReached}
+                    onEndReachedThreshold={0.5}
+                    initialNumToRender={initialNumberOfItemsToRender}
+                    ListFooterComponent={
+                        showLoadMoreButton === true
+                            ? () => {
+                                  return (
+                                      <View
+                                          sx={{
+                                              flexDirection: 'row',
+                                              justifyContent: 'center',
+                                              alignItems: 'center',
+                                          }}
+                                      >
+                                          <TouchableOpacity
+                                              onPress={onLoadMore}
+                                              style={sx({
+                                                  borderRadius: 'full',
+                                                  borderWidth: 2,
+                                                  borderColor: 'secondary',
+                                                  paddingX: 'l',
+                                                  paddingY: 's',
+                                              })}
+                                          >
+                                              <Text
+                                                  sx={{
+                                                      color: 'secondary',
+                                                      fontWeight: 'bold',
+                                                  }}
+                                              >
+                                                  Load more
+                                              </Text>
+                                          </TouchableOpacity>
+                                      </View>
+                                  );
+                              }
+                            : null
+                    }
                 />
             </AppScreenWithSearchBar>
         );

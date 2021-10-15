@@ -1,4 +1,5 @@
 import { UserSummary } from '@musicroom/types';
+import { send } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { fetchUsers } from '../services/UsersSearchService';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
@@ -9,10 +10,13 @@ const roomUsersSearchModel = createModel(
 
         usersFriends: [] as UserSummary[],
         usersFriendsPage: 1,
+        hasMoreUsersFriendsToFetch: true,
 
         filteredUsers: [] as UserSummary[],
         filteredUsersPage: 1,
+        previousSearchQuery: '',
         searchQuery: '',
+        hasMoreFilteredUsersToFetch: true,
     },
     {
         events: {
@@ -27,6 +31,8 @@ const roomUsersSearchModel = createModel(
             ) => ({ users, hasMore, page }),
 
             FETCH_MORE: () => ({}),
+
+            DEBOUNCED_SEARCH: () => ({}),
         },
     },
 );
@@ -51,18 +57,24 @@ const assignFriendsToContext = roomUsersSearchModel.assign(
 
 const assignUsersToContext = roomUsersSearchModel.assign(
     {
-        filteredUsers: ({ filteredUsers }, { users }) => [
-            ...filteredUsers,
-            ...users,
-        ],
+        filteredUsers: ({ filteredUsers }, { users, page }) => {
+            const isFirstFetching = page === 1;
+            if (isFirstFetching === true) {
+                return users;
+            }
+
+            return [...filteredUsers, ...users];
+        },
         filteredUsersPage: ({ filteredUsersPage }) => filteredUsersPage + 1,
+        previousSearchQuery: ({ searchQuery }) => searchQuery,
     },
     'FETCHED_USERS',
 );
 
-const resetUsersFromContext = roomUsersSearchModel.assign(
+const resetFilteredUsersFetchingDataFromContext = roomUsersSearchModel.assign(
     {
-        filteredUsers: () => [],
+        filteredUsersPage: 1,
+        hasMoreFilteredUsersToFetch: true,
     },
     'UPDATE_SEARCH_QUERY',
 );
@@ -89,97 +101,148 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
             },
 
             users: {
-                initial: 'displayFriends',
+                type: 'parallel',
 
                 states: {
-                    displayFriends: {
-                        tags: 'displayFriends',
-
-                        initial: 'fetchFirstFriends',
+                    debounce: {
+                        initial: 'idle',
 
                         states: {
-                            hist: {
-                                type: 'history',
-                            },
+                            idle: {},
 
-                            fetchFirstFriends: {
-                                invoke: {
-                                    src: 'fetchFriends',
-                                },
+                            debouncing: {
+                                after: {
+                                    300: {
+                                        target: 'idle',
 
-                                on: {
-                                    FETCHED_FRIENDS: {
-                                        target: 'waitingForLoadingMore',
-
-                                        actions: assignFriendsToContext,
-                                    },
-                                },
-                            },
-
-                            waitingForLoadingMore: {
-                                initial: 'idle',
-
-                                states: {
-                                    idle: {
-                                        on: {
-                                            FETCH_MORE: {
-                                                target: 'fetching',
-                                            },
-                                        },
-                                    },
-
-                                    fetching: {
-                                        invoke: {
-                                            src: 'fetchFriends',
-                                        },
-
-                                        on: {
-                                            FETCHED_FRIENDS: {
-                                                target: 'idle',
-
-                                                actions: assignFriendsToContext,
-                                            },
-                                        },
+                                        actions: send({
+                                            type: 'DEBOUNCED_SEARCH',
+                                        }),
                                     },
                                 },
                             },
                         },
                     },
 
-                    displayFilteredUsers: {
-                        tags: 'displayFilteredUsers',
-
-                        initial: 'deboucing',
+                    display: {
+                        initial: 'displayFriends',
 
                         states: {
-                            deboucing: {
-                                after: {
-                                    300: {
-                                        target: 'fetching',
+                            displayFriends: {
+                                tags: 'displayFriends',
+
+                                initial: 'fetchFirstFriends',
+
+                                states: {
+                                    hist: {
+                                        type: 'history',
+                                    },
+
+                                    fetchFirstFriends: {
+                                        tags: 'isLoading',
+
+                                        invoke: {
+                                            src: 'fetchFriends',
+                                        },
+
+                                        on: {
+                                            FETCHED_FRIENDS: {
+                                                target: 'waitingForLoadingMore',
+
+                                                actions: assignFriendsToContext,
+                                            },
+                                        },
+                                    },
+
+                                    waitingForLoadingMore: {
+                                        initial: 'idle',
+
+                                        states: {
+                                            idle: {
+                                                on: {
+                                                    FETCH_MORE: {
+                                                        target: 'fetching',
+                                                    },
+                                                },
+                                            },
+
+                                            fetching: {
+                                                tags: 'isLoading',
+
+                                                invoke: {
+                                                    src: 'fetchFriends',
+                                                },
+
+                                                on: {
+                                                    FETCHED_FRIENDS: {
+                                                        target: 'idle',
+
+                                                        actions:
+                                                            assignFriendsToContext,
+                                                    },
+                                                },
+                                            },
+                                        },
                                     },
                                 },
                             },
 
-                            fetching: {
-                                invoke: {
-                                    src: 'fetchUsers',
-                                },
+                            displayFilteredUsers: {
+                                initial: 'fetching',
 
-                                on: {
-                                    FETCHED_USERS: {
-                                        target: 'waitingForLoadingMore',
+                                states: {
+                                    fetching: {
+                                        always: {
+                                            cond: ({
+                                                previousSearchQuery,
+                                                searchQuery,
+                                            }) => {
+                                                const triesToLoadSameUsers =
+                                                    previousSearchQuery ===
+                                                    searchQuery;
 
-                                        actions: assignUsersToContext,
+                                                return triesToLoadSameUsers;
+                                            },
+
+                                            target: 'waitingForLoadingMore',
+                                        },
+
+                                        tags: [
+                                            'isLoading',
+                                            'displayFilteredUsers',
+                                        ],
+
+                                        invoke: {
+                                            src: 'fetchUsers',
+                                        },
+
+                                        on: {
+                                            FETCHED_USERS: {
+                                                target: 'waitingForLoadingMore',
+
+                                                actions: assignUsersToContext,
+                                            },
+                                        },
+                                    },
+
+                                    waitingForLoadingMore: {
+                                        tags: 'displayFilteredUsers',
+
+                                        on: {
+                                            FETCH_MORE: {
+                                                target: 'fetching',
+                                            },
+                                        },
                                     },
                                 },
                             },
+                        },
 
-                            waitingForLoadingMore: {
-                                on: {
-                                    FETCH_MORE: {
-                                        target: 'fetching',
-                                    },
-                                },
+                        on: {
+                            DEBOUNCED_SEARCH: {
+                                target: '.displayFilteredUsers',
+
+                                internal: false,
                             },
                         },
                     },
@@ -195,7 +258,7 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                                 return isSearchQueryEmpty;
                             },
 
-                            target: '.displayFriends.hist',
+                            target: '.display.displayFriends.hist',
 
                             internal: false,
 
@@ -203,13 +266,13 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                         },
 
                         {
-                            target: '.displayFilteredUsers.deboucing',
+                            target: '.debounce.debouncing',
 
                             internal: false,
 
                             actions: [
                                 assignSearchQueryToContext,
-                                resetUsersFromContext,
+                                resetFilteredUsersFetchingDataFromContext,
                             ],
                         },
                     ],
@@ -249,6 +312,8 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                             searchQuery,
                             page: filteredUsersPage,
                         });
+
+                        console.log('fetched users', users, page, hasMore);
 
                         sendBack({
                             type: 'FETCHED_USERS',

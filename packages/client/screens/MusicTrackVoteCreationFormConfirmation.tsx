@@ -4,7 +4,7 @@ import { Text, View } from 'dripsy';
 import React from 'react';
 import MtvRoomCreationFormScreen from '../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
 import TrackListItem from '../components/Track/TrackListItem';
-import { useCreationMtvRoomFormMachine } from '../contexts/MusicPlayerContext';
+import { useCreationMtvRoomFormMachine } from '../hooks/musicPlayerHooks';
 import { formatDateTime } from '../hooks/useFormatDateTime';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 import { MusicTrackVoteCreationFormConfirmationScreenProps } from '../types';

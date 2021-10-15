@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActorRef } from 'xstate';
 import { AppScreenWithSearchBar, Typo } from '../components/kit';
 import { IS_TEST } from '../constants/Env';
-import { useMusicPlayer } from '../contexts/MusicPlayerContext';
+import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
@@ -146,7 +146,7 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
     > = mtvRoomState.children.searchBarMachine;
     const [searchState, sendToSearch] = useActor(searchBarActor);
     const showHeader = searchState.hasTag('showHeaderTitle');
-    const { sendToMachine: sendToMusicPlayerMachine } = useMusicPlayer();
+    const { sendToMusicPlayerMachine } = useMusicPlayerContext();
 
     function handleLoadMoreItems() {
         mtvRoomSend({

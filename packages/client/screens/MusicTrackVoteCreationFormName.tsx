@@ -1,11 +1,10 @@
 import { useActor } from '@xstate/react';
 import { Text, View } from 'dripsy';
-import React from 'react';
-import { useEffect } from 'react';
-import { useForm, Controller, SubmitHandler } from 'react-hook-form';
+import React, { useEffect } from 'react';
+import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { TextField } from '../components/kit';
 import MtvRoomCreationFormScreen from '../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
-import { useCreationMtvRoomFormMachine } from '../contexts/MusicPlayerContext';
+import { useCreationMtvRoomFormMachine } from '../hooks/musicPlayerHooks';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 import { MusicTrackVoteCreationFormNameScreenProps } from '../types';
 

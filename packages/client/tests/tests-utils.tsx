@@ -9,9 +9,8 @@ import { DripsyProvider } from 'dripsy';
 import { datatype } from 'faker';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { MusicPlayerContextProvider } from '../contexts/MusicPlayerContext';
+import { AppContextProvider } from '../contexts/AppContext';
 import { SocketContextProvider } from '../contexts/SocketContext';
-import { UserContextProvider } from '../contexts/UserContext';
 import { useTheme } from '../hooks/useTheme';
 import { ServerSocket, serverSocket } from '../services/websockets';
 
@@ -31,11 +30,9 @@ const AllTheProviders: React.FC = ({ children }) => {
             >
                 <BottomSheetModalProvider>
                     <SocketContextProvider>
-                        <UserContextProvider>
-                            <MusicPlayerContextProvider setDisplayModal={noop}>
-                                {children}
-                            </MusicPlayerContextProvider>
-                        </UserContextProvider>
+                        <AppContextProvider setDisplayModal={noop}>
+                            {children}
+                        </AppContextProvider>
                     </SocketContextProvider>
                 </BottomSheetModalProvider>
             </SafeAreaProvider>

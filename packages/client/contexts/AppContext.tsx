@@ -3,6 +3,7 @@ import { Sender } from '@xstate/react/lib/types';
 import React, { useContext, useRef } from 'react';
 import { MusicPlayerRef } from '../components/TheMusicPlayer/Player';
 import { IS_TEST } from '../constants/Env';
+import { useGetIsDeviceEmitting } from '../hooks/musicPlayerHooks';
 import {
     MusicPlayerFullScreenProps,
     useMusicPlayerToggleFullScreen,
@@ -18,24 +19,26 @@ import {
     AppUserMachineEvent,
     AppUserMachineState,
 } from '../machines/appUserMachine';
-import {
-    getUserMachineOptions,
-    useGetIsDeviceEmitting,
-} from './MusicPlayerContext';
+import { getMusicPlayerMachineOptions } from '../machines/options/appMusicPlayerMachineOptions';
+import { getUserMachineOptions } from '../machines/options/appUserMachineOptions';
 import { useSocketContext } from './SocketContext';
 
-type AppContextValue = {
-    userContext: {
-        sendToUserMachine: Sender<AppUserMachineEvent>;
-        userState: AppUserMachineState;
-    };
-    musicPlayerContext: {
-        sendToMusicPlayerMachine: Sender<AppMusicPlayerMachineEvent>;
-        musicPlayerState: AppMusicPlayerMachineState;
-        setPlayerRef: (ref: MusicPlayerRef) => void;
-        isDeviceEmitting: boolean;
-    } & MusicPlayerFullScreenProps;
-};
+export interface UserContextValue {
+    sendToUserMachine: Sender<AppUserMachineEvent>;
+    userState: AppUserMachineState;
+}
+
+export interface MusicPlayerContextValue extends MusicPlayerFullScreenProps {
+    sendToMusicPlayerMachine: Sender<AppMusicPlayerMachineEvent>;
+    musicPlayerState: AppMusicPlayerMachineState;
+    setPlayerRef: (ref: MusicPlayerRef) => void;
+    isDeviceEmitting: boolean;
+}
+
+interface AppContextValue {
+    userContext: UserContextValue;
+    musicPlayerContext: MusicPlayerContextValue;
+}
 
 type MusicPlayerContextProviderProps = {
     setDisplayModal: (display: boolean) => void;
@@ -78,24 +81,19 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
     }
     ///
 
-    const musicPlayerMachineOptions = getUserMachineOptions(
+    const musicPlayerMachineOptions = getMusicPlayerMachineOptions({
         setDisplayModal,
         fetchMusicPlayerElapsedTime,
         setIsFullScreen,
-    );
+    });
+
+    const userMachineOptions = getUserMachineOptions();
 
     const appMusicPlayerMachine = createAppMachine({
         socket,
         locationPollingTickDelay,
         musicPlayerMachineOptions,
-        //For commit lint TODO
-        userMachineOptions: {
-            actions: {},
-            activities: {},
-            delays: {},
-            guards: {},
-            services: {},
-        },
+        userMachineOptions,
     });
     const [appState, send] = useMachine(appMusicPlayerMachine);
 
@@ -108,8 +106,7 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
         useActor(appMusicPlayerActor);
     const [userState, sendToUserMachine] = useActor(appUserActor);
 
-    //MusicPlayer to export in specific hooks
-
+    //MusicPlayer specific hook
     const isDeviceEmitting = useGetIsDeviceEmitting({
         currDeviceID: userState.context.currDeviceID,
         musicPlayerDoesNotHaveRoomIsReadyTag:

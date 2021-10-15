@@ -1,21 +1,9 @@
-import {
-    createMachine,
-    forwardTo,
-    MachineOptions,
-    State,
-    StateMachine,
-} from 'xstate';
+import { createMachine, forwardTo, State, StateMachine } from 'xstate';
 import { SocketClient } from '../contexts/SocketContext';
-import {
-    AppMusicPlayerMachineContext,
-    AppMusicPlayerMachineEvent,
-    createAppMusicPlayerMachine,
-} from './appMusicPlayerMachine';
-import {
-    AppUserMachineContext,
-    AppUserMachineEvent,
-    createUserMachine,
-} from './appUserMachine';
+import { createAppMusicPlayerMachine } from './appMusicPlayerMachine';
+import { createUserMachine } from './appUserMachine';
+import { AppMusicPlayerMachineOptions } from './options/appMusicPlayerMachineOptions';
+import { AppUserMachineOptions } from './options/appUserMachineOptions';
 
 export type AppAppMachineContext = {
     eslint: boolean;
@@ -24,14 +12,8 @@ export type AppAppMachineContext = {
 type CreateAppMachineArgs = {
     locationPollingTickDelay: number;
     socket: SocketClient;
-    musicPlayerMachineOptions: MachineOptions<
-        AppMusicPlayerMachineContext,
-        AppMusicPlayerMachineEvent
-    >;
-    userMachineOptions: MachineOptions<
-        AppUserMachineContext,
-        AppUserMachineEvent
-    >;
+    musicPlayerMachineOptions: AppMusicPlayerMachineOptions;
+    userMachineOptions: AppUserMachineOptions;
 };
 
 export type AppAppMachineEvent = {
@@ -42,6 +24,7 @@ export const createAppMachine = ({
     locationPollingTickDelay,
     socket,
     musicPlayerMachineOptions,
+    userMachineOptions,
 }: CreateAppMachineArgs): StateMachine<
     AppAppMachineContext,
     any,
@@ -58,12 +41,13 @@ export const createAppMachine = ({
                         src: createUserMachine({
                             locationPollingTickDelay,
                             socket,
-                        }),
+                        }).withConfig(userMachineOptions),
                     },
                     {
                         id: 'appMusicPlayerMachine',
-                        src: createAppMusicPlayerMachine({ socket }),
-                        options: musicPlayerMachineOptions,
+                        src: createAppMusicPlayerMachine({ socket }).withConfig(
+                            musicPlayerMachineOptions,
+                        ),
                     },
                 ],
                 on: {

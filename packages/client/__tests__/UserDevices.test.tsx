@@ -34,6 +34,7 @@ After clicking on one not emitting device card it should set the clicked one as 
         userRelatedInformation: {
             hasControlAndDelegationPermission: true,
             userFitsPositionConstraint: null,
+            userHasBeenInvited: false,
             emittingDeviceID: thisDevice.deviceID,
             userID,
             tracksVotedFor: [],

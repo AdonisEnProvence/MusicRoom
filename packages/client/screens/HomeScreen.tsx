@@ -73,6 +73,7 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                                 userFitsPositionConstraint: null,
                                 emittingDeviceID: 'EMITTING DEVICE',
                                 userID: 'JUST A USER ID',
+                                userHasBeenInvited: false,
                                 tracksVotedFor: [],
                             },
                             usersLength: 2,

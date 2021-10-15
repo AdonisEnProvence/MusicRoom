@@ -94,11 +94,12 @@ func (s *UnitTestSuite) emitVoteSignal(args shared.NewVoteForTrackSignalArgs) {
 	s.env.SignalWorkflow(shared.SignalChannelName, voteForTrackSignal)
 }
 
-func (s *UnitTestSuite) emitJoinSignal(userID string, deviceID string) {
+func (s *UnitTestSuite) emitJoinSignal(args shared.NewJoinSignalArgs) {
 	fmt.Println("-----EMIT JOIN CALLED IN TEST-----")
 	signal := shared.NewJoinSignal(shared.NewJoinSignalArgs{
-		UserID:   userID,
-		DeviceID: deviceID,
+		UserID:             args.UserID,
+		DeviceID:           args.DeviceID,
+		UserHasBeenInvited: args.UserHasBeenInvited,
 	})
 
 	s.env.SignalWorkflow(shared.SignalChannelName, signal)
@@ -469,19 +470,34 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 
 	secondUserJoins := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(fakeUserID, fakeDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           fakeDeviceID,
+			UserID:             fakeUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, secondUserJoins)
 
 	shouldNotBeRegisterDeviceID := faker.UUIDHyphenated()
 	tryDuplicateOrOverrrideTheUser := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(fakeUserID, shouldNotBeRegisterDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           shouldNotBeRegisterDeviceID,
+			UserID:             fakeUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, tryDuplicateOrOverrrideTheUser)
 
 	emptyDeviceID := defaultDuration
 	randomUserID := faker.UUIDHyphenated()
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(randomUserID, "")
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           "",
+			UserID:             randomUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emptyDeviceID)
 
 	checkForEmptyDeviceIDInfo := defaultDuration
@@ -495,7 +511,12 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 	emptyUserID := defaultDuration
 	randomDeviceID := faker.UUIDHyphenated()
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal("", randomDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           randomDeviceID,
+			UserID:             "",
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emptyUserID)
 
 	checkForEmptyUserIDInfo := defaultDuration
@@ -642,7 +663,12 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 
 	emitJoin := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(fakeUserID, fakeDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           fakeDeviceID,
+			UserID:             fakeUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoin)
 
 	checkLatestUserRelatedInformation := defaultDuration
@@ -926,7 +952,12 @@ func (s *UnitTestSuite) Test_UserLeaveRoom() {
 	// 2. We send a join signal for a user
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, faker.UUIDHyphenated())
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           faker.UUIDHyphenated(),
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	// 3. check user joined
@@ -1174,7 +1205,12 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 
 	joinSuggesterUser := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(suggesterUserID, suggesterDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           suggesterDeviceID,
+			UserID:             suggesterUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, joinSuggesterUser)
 
 	firstSuggestTracksSignalDelay := defaultDuration
@@ -1544,7 +1580,12 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 
 	joinSuggesterUser := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(suggesterUserID, suggesterDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           suggesterDeviceID,
+			UserID:             suggesterUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, joinSuggesterUser)
 
 	firstSuggestTracksSignalDelay := defaultDuration
@@ -1729,7 +1770,12 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	checkJoinSuccess := defaultDuration
@@ -2096,7 +2142,12 @@ func (s *UnitTestSuite) Test_EmptyCurrentTrackAutoPlayAfterOneGetReadyToBePlayed
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	joiningUserVoteForTrack := defaultDuration
@@ -2230,7 +2281,12 @@ func (s *UnitTestSuite) Test_LoadedCurrentTrackAndReadyToBePlayedListNoAutoPlayA
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	joiningUserVoteForTrack := defaultDuration
@@ -2349,7 +2405,12 @@ func (s *UnitTestSuite) Test_LoadedAndEndedCurrentTrackAndNoTrackReadyToBePlayed
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	joiningUserVoteForTrack := defaultDuration
@@ -2945,7 +3006,12 @@ func (s *UnitTestSuite) Test_CreateDirectRoomAndUpdateDelegationOwner() {
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningUserDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	updateDelegationOwnerWithExistingUserWithoutPermissions := defaultDuration
@@ -3089,7 +3155,12 @@ func (s *UnitTestSuite) Test_CreateBroadcastRoomAndAttemptToExecuteDelegationOpe
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningUserDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	updateDelegationOwner := defaultDuration
@@ -3181,7 +3252,12 @@ func (s *UnitTestSuite) Test_CanUpdateControlAndDelegationPermission() {
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningUserDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	userHasBeenAddedAndHasNotControlAndDelegationPermissionByDefault := defaultDuration
@@ -3270,7 +3346,12 @@ func (s *UnitTestSuite) Test_GetUsersListQuery() {
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningUserDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	checkJoinWorked := defaultDuration
@@ -3361,7 +3442,12 @@ func (s *UnitTestSuite) Test_GetUsersListQueryInDirectRoom() {
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningUserDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	updateDelegationOwner := defaultDuration
@@ -3479,7 +3565,12 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionPlay() {
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningUserDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	checkJoinWorked := defaultDuration
@@ -3604,7 +3695,12 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionPause() {
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningUserDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	checkJoinWorked := defaultDuration
@@ -3741,7 +3837,12 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionGoToNextTrack(
 
 	emitJoinSignal := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		s.emitJoinSignal(joiningUserID, joiningUserDeviceID)
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningUserDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
 	}, emitJoinSignal)
 
 	checkJoinWorked := defaultDuration
@@ -3816,6 +3917,336 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionGoToNextTrack(
 		s.True(mtvState.Playing)
 
 	}, checkEmitGoToNextTrackWorked)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *UnitTestSuite) Test_OnlyInvitedUsersAndCreatorCanVoteInOpenRoom() {
+
+	var (
+		joiningUserID       = faker.UUIDHyphenated()
+		joiningUserDeviceID = faker.UUIDHyphenated()
+		invitedUserID       = faker.UUIDHyphenated()
+		invitedUserDeviceID = faker.UUIDHyphenated()
+	)
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+
+	tracksToSuggest := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+
+	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
+	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	params.IsOpenOnlyInvitedUsersCanVote = true
+	defaultDuration := 1 * time.Millisecond
+
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
+	init := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		//TracksVotedFor with 1 element shows that creator even with UserHasBeenInvited to false can still vote
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{tracksIDs[1]},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: true,
+			UserHasBeenInvited:                false,
+		}
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+	}, init)
+
+	emitJoinSignalForJoiningUser := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningUserDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
+	}, emitJoinSignalForJoiningUser)
+
+	emitJoinSignalForInvitedUser := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           invitedUserDeviceID,
+			UserID:             invitedUserID,
+			UserHasBeenInvited: true,
+		}
+		s.emitJoinSignal(args)
+	}, emitJoinSignalForInvitedUser)
+
+	checkJoinWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(invitedUserID)
+
+		expectedJoiningUser := &shared.InternalStateUser{
+			UserID:                            invitedUserID,
+			DeviceID:                          invitedUserDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: false,
+			UserHasBeenInvited:                true,
+		}
+		s.Equal(expectedJoiningUser, mtvState.UserRelatedInformation)
+		s.Equal(3, mtvState.UsersLength)
+	}, checkJoinWorked)
+
+	//Emit vote for track with joiningUser
+	emitVoteForJoiningUser := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		args := shared.NewVoteForTrackSignalArgs{
+			TrackID: tracksIDs[1],
+			UserID:  joiningUserID,
+		}
+		s.emitVoteSignal(args)
+	}, emitVoteForJoiningUser)
+
+	checkDidntWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(joiningUserID)
+
+		expectedTracks := []shared.TrackMetadataWithScoreWithDuration{
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						Title:      tracks[1].Title,
+						ArtistName: tracks[1].ArtistName,
+						Duration:   0,
+					},
+					Score: 1,
+				},
+				Duration: tracks[1].Duration.Milliseconds(),
+			},
+		}
+		s.Equal(expectedTracks, mtvState.Tracks)
+
+		expectedJoiningUser := &shared.InternalStateUser{
+			UserID:                            joiningUserID,
+			DeviceID:                          joiningUserDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: false,
+			UserHasBeenInvited:                false,
+		}
+		s.Equal(expectedJoiningUser, mtvState.UserRelatedInformation)
+	}, checkDidntWorked)
+
+	//Emit vote for track with invitedUser
+	emitVoteForInvitedUser := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		args := shared.NewVoteForTrackSignalArgs{
+			TrackID: tracksIDs[1],
+			UserID:  invitedUserID,
+		}
+		s.emitVoteSignal(args)
+	}, emitVoteForInvitedUser)
+
+	checkWorked := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(invitedUserID)
+
+		expectedTracks := []shared.TrackMetadataWithScoreWithDuration{
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						Title:      tracks[1].Title,
+						ArtistName: tracks[1].ArtistName,
+						Duration:   0,
+					},
+					Score: 2,
+				},
+				Duration: tracks[1].Duration.Milliseconds(),
+			},
+		}
+		s.Equal(expectedTracks, mtvState.Tracks)
+
+		expectedInvitedUser := &shared.InternalStateUser{
+			UserID:                            invitedUserID,
+			DeviceID:                          invitedUserDeviceID,
+			TracksVotedFor:                    []string{tracksIDs[1]},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: false,
+			UserHasBeenInvited:                true,
+		}
+		s.Equal(expectedInvitedUser, mtvState.UserRelatedInformation)
+	}, checkWorked)
+
+	//Suggest for joiningUser
+	suggestedTracks := []shared.TrackMetadata{
+		tracksToSuggest[0],
+	}
+	s.mockOnceSuggest(joiningUserID, joiningUserDeviceID, params.RoomID, suggestedTracks)
+	emitSuggestForJoiningUser := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitSuggestTrackSignal(shared.SuggestTracksSignalArgs{
+			TracksToSuggest: []string{
+				tracksToSuggest[0].ID,
+			},
+			UserID:   joiningUserID,
+			DeviceID: joiningUserDeviceID,
+		})
+	}, emitSuggestForJoiningUser)
+
+	checkJoiningUserSuggestDidNotMakeHimVoteForSuggestedTrack := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(joiningUserID)
+
+		expectedTracks := []shared.TrackMetadataWithScoreWithDuration{
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						Title:      tracks[1].Title,
+						ArtistName: tracks[1].ArtistName,
+						Duration:   0,
+					},
+					Score: 2,
+				},
+				Duration: tracks[1].Duration.Milliseconds(),
+			},
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracksToSuggest[0].ID,
+						Title:      tracksToSuggest[0].Title,
+						ArtistName: tracksToSuggest[0].ArtistName,
+						Duration:   0,
+					},
+					Score: 0,
+				},
+				Duration: tracksToSuggest[0].Duration.Milliseconds(),
+			},
+		}
+		s.Equal(expectedTracks, mtvState.Tracks)
+
+		expectedJoiningUser := &shared.InternalStateUser{
+			UserID:                            joiningUserID,
+			DeviceID:                          joiningUserDeviceID,
+			TracksVotedFor:                    []string{},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: false,
+			UserHasBeenInvited:                false,
+		}
+		s.Equal(expectedJoiningUser, mtvState.UserRelatedInformation)
+	}, checkJoiningUserSuggestDidNotMakeHimVoteForSuggestedTrack)
+
+	//Suggest for invitedUser
+	invitedUserSuggestedTracks := []shared.TrackMetadata{
+		tracksToSuggest[1],
+	}
+	s.mockOnceSuggest(invitedUserID, invitedUserDeviceID, params.RoomID, invitedUserSuggestedTracks)
+	emitSuggestForInvitedUser := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitSuggestTrackSignal(shared.SuggestTracksSignalArgs{
+			TracksToSuggest: []string{
+				tracksToSuggest[1].ID,
+			},
+			UserID:   invitedUserID,
+			DeviceID: invitedUserDeviceID,
+		})
+	}, emitSuggestForInvitedUser)
+
+	checkInvitedUserSuggestDidMakeHimVoteForSuggestedTrack := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(invitedUserID)
+
+		expectedTracks := []shared.TrackMetadataWithScoreWithDuration{
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[1].ID,
+						Title:      tracks[1].Title,
+						ArtistName: tracks[1].ArtistName,
+						Duration:   0,
+					},
+					Score: 2,
+				},
+				Duration: tracks[1].Duration.Milliseconds(),
+			},
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracksToSuggest[1].ID,
+						Title:      tracksToSuggest[1].Title,
+						ArtistName: tracksToSuggest[1].ArtistName,
+						Duration:   0,
+					},
+					Score: 1,
+				},
+				Duration: tracksToSuggest[1].Duration.Milliseconds(),
+			},
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracksToSuggest[0].ID,
+						Title:      tracksToSuggest[0].Title,
+						ArtistName: tracksToSuggest[0].ArtistName,
+						Duration:   0,
+					},
+					Score: 0,
+				},
+				Duration: tracksToSuggest[0].Duration.Milliseconds(),
+			},
+		}
+		s.Equal(expectedTracks, mtvState.Tracks)
+
+		expectedInvitedUser := &shared.InternalStateUser{
+			UserID:                            invitedUserID,
+			DeviceID:                          invitedUserDeviceID,
+			TracksVotedFor:                    []string{tracks[1].ID, tracksToSuggest[1].ID},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: false,
+			UserHasBeenInvited:                true,
+		}
+		s.Equal(expectedInvitedUser, mtvState.UserRelatedInformation)
+	}, checkInvitedUserSuggestDidMakeHimVoteForSuggestedTrack)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
 

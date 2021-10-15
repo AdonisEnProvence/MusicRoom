@@ -4,16 +4,16 @@ import {
     MtvWorkflowState,
 } from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
-import { datatype, name, random, lorem } from 'faker';
-import React from 'react';
-import { createModel } from 'xstate/lib/model';
 import { createModel as createTestingModel } from '@xstate/test';
+import { datatype, lorem, name, random } from 'faker';
+import React from 'react';
+import { ContextFrom, EventFrom, State } from 'xstate';
+import { createModel } from 'xstate/lib/model';
 import * as z from 'zod';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
-import { fireEvent, render, within, noop } from '../tests/tests-utils';
-import { ContextFrom, EventFrom, State } from 'xstate';
+import { fireEvent, noop, render, within } from '../tests/tests-utils';
 
 interface TestingContext {
     screen: ReturnType<typeof render>;
@@ -358,6 +358,7 @@ describe('Send and receive messages in MTV room chat', () => {
                         userRelatedInformation: {
                             hasControlAndDelegationPermission: true,
                             userFitsPositionConstraint: null,
+                            userHasBeenInvited: false,
                             emittingDeviceID: datatype.uuid(),
                             userID,
                             tracksVotedFor: [],

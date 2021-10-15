@@ -156,6 +156,18 @@ func (s *MtvRoomInternalState) UserVoteForTrack(userID string, trackID string) b
 		}
 	}
 
+	roomIsOpenAndOnlyInvitedUsersCanVote := s.initialParams.IsOpen && s.initialParams.IsOpenOnlyInvitedUsersCanVote
+	if roomIsOpenAndOnlyInvitedUsersCanVote {
+		userIsNotRoomCreator := user.UserID != s.initialParams.RoomCreatorUserID
+		userHasNotBeenInvited := !user.UserHasBeenInvited
+
+		userIsNeitherInvitedOrCreator := userIsNotRoomCreator && userHasNotBeenInvited
+		if userIsNeitherInvitedOrCreator {
+			fmt.Println("vote aborted: room is open and only invited users can vote, voting user has not been invited")
+			return false
+		}
+	}
+
 	couldFindTrackInTracksList := s.Tracks.Has(trackID)
 	if !couldFindTrackInTracksList {
 		fmt.Println("vote aborted: couldnt find given trackID in the tracks list")
@@ -928,6 +940,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					TracksVotedFor:                    make([]string, 0),
 					UserFitsPositionConstraint:        nil,
 					HasControlAndDelegationPermission: false,
+					UserHasBeenInvited:                message.UserHasBeenInvited,
 				}
 
 				if internalState.initialParams.HasPhysicalAndTimeConstraints {

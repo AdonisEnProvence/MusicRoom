@@ -221,6 +221,7 @@ type InternalStateUser struct {
 	TracksVotedFor                    []string `json:"tracksVotedFor"`
 	UserFitsPositionConstraint        *bool    `json:"userFitsPositionConstraint"`
 	HasControlAndDelegationPermission bool     `json:"hasControlAndDelegationPermission"`
+	UserHasBeenInvited                bool     `json:"userHasBeenInvited"`
 }
 
 type ExposedInternalStateUserListElement struct {
@@ -399,21 +400,24 @@ func NewLeaveSignal(args NewLeaveSignalArgs) JoinSignal {
 }
 
 type JoinSignal struct {
-	Route    SignalRoute `validate:"required"`
-	UserID   string      `validate:"required,uuid"`
-	DeviceID string      `validate:"required,uuid"`
+	Route              SignalRoute `validate:"required"`
+	UserID             string      `validate:"required,uuid"`
+	DeviceID           string      `validate:"required,uuid"`
+	UserHasBeenInvited bool
 }
 
 type NewJoinSignalArgs struct {
-	UserID   string
-	DeviceID string
+	UserID             string
+	DeviceID           string
+	UserHasBeenInvited bool
 }
 
 func NewJoinSignal(args NewJoinSignalArgs) JoinSignal {
 	return JoinSignal{
-		Route:    SignalRouteJoin,
-		UserID:   args.UserID,
-		DeviceID: args.DeviceID,
+		Route:              SignalRouteJoin,
+		UserID:             args.UserID,
+		DeviceID:           args.DeviceID,
+		UserHasBeenInvited: args.UserHasBeenInvited,
 	}
 }
 

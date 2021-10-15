@@ -195,16 +195,44 @@ export default class MtvRoomsWsController {
 
     public static async onJoin({
         userID,
-        joiningRoom: { runID, uuid: roomID },
+        joiningRoom: { runID, uuid: roomID, isOpen, creatorID },
         deviceID,
     }: OnJoinArgs): Promise<void> {
         console.log(`USER ${userID} JOINS ${roomID}`);
+        const roomIsPrivate = !isOpen;
+
+        //Looking for an invitation
+        const userAndRoomRelatedInvitations = await MtvRoomInvitation.query()
+            .where('mtv_room_id', roomID)
+            .andWhere('invited_user_id', userID)
+            .andWhere('inviting_user_id', creatorID);
+
+        const foundSeveralInvitationForSameUserAndRoom =
+            userAndRoomRelatedInvitations.length > 1;
+        if (foundSeveralInvitationForSameUserAndRoom) {
+            throw new Error(
+                `onJoin failed, found several invitation for given user, should never occurs,
+                each invitation has unicity on it's content`,
+            );
+        }
+
+        const userHasNotBeenInvitedInPrivateRoom =
+            roomIsPrivate && userAndRoomRelatedInvitations.length === 0;
+        if (userHasNotBeenInvitedInPrivateRoom) {
+            throw new Error(
+                `onJoin failed, user has to be invited to join a private room`,
+            );
+        }
+
+        const userHasBeenInvited = userAndRoomRelatedInvitations.length === 1;
+        ///
 
         await ServerToTemporalController.joinWorkflow({
             workflowID: roomID,
             runID: runID,
             userID,
             deviceID,
+            userHasBeenInvited,
         });
     }
 

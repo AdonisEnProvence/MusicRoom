@@ -38,6 +38,7 @@ describe('User list tests', () => {
             userRelatedInformation: {
                 hasControlAndDelegationPermission: true,
                 userFitsPositionConstraint: null,
+                userHasBeenInvited: false,
                 emittingDeviceID: datatype.uuid(),
                 userID: roomCreatorUserID,
                 tracksVotedFor: [],
@@ -205,6 +206,7 @@ describe('User list tests', () => {
             userRelatedInformation: {
                 hasControlAndDelegationPermission: true,
                 userFitsPositionConstraint: null,
+                userHasBeenInvited: false,
                 emittingDeviceID: datatype.uuid(),
                 userID: roomCreatorUserID,
                 tracksVotedFor: [],
@@ -342,6 +344,7 @@ describe('User list tests', () => {
                 userFitsPositionConstraint: null,
                 emittingDeviceID: datatype.uuid(),
                 userID: roomCreatorUserID,
+                userHasBeenInvited: false,
                 tracksVotedFor: [],
             },
             usersLength: 1,
@@ -505,6 +508,7 @@ describe('User list tests', () => {
                 hasControlAndDelegationPermission: true,
                 userFitsPositionConstraint: null,
                 emittingDeviceID: datatype.uuid(),
+                userHasBeenInvited: false,
                 userID: roomCreatorUserID,
                 tracksVotedFor: [],
             },

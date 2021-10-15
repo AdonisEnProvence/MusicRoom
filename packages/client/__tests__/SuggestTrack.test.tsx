@@ -34,6 +34,7 @@ test(`A user can suggest tracks to play`, async () => {
         delegationOwnerUserID: null,
         userRelatedInformation: {
             hasControlAndDelegationPermission: true,
+            userHasBeenInvited: false,
             userFitsPositionConstraint: null,
             emittingDeviceID: datatype.uuid(),
             userID: roomCreatorUserID,

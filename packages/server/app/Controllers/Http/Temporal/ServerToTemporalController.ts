@@ -52,6 +52,7 @@ interface TemporalBaseArgs {
 interface TemporalMtvJoinWorklowArgs extends TemporalBaseArgs {
     deviceID: string;
     userID: string;
+    userHasBeenInvited: boolean;
 }
 
 interface TemporalMtvChangeUserEmittingDeviceArgs extends TemporalBaseArgs {
@@ -148,6 +149,7 @@ export default class ServerToTemporalController {
         runID,
         userID,
         deviceID,
+        userHasBeenInvited,
     }: TemporalMtvJoinWorklowArgs): Promise<void> {
         try {
             const url = urlcat(TEMPORAL_ENDPOINT, '/join');
@@ -157,6 +159,7 @@ export default class ServerToTemporalController {
                     deviceID,
                     runID,
                     workflowID,
+                    userHasBeenInvited,
                 },
                 responseType: 'json',
             });

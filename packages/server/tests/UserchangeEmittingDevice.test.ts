@@ -53,6 +53,7 @@ test.group(
                         userRelatedInformation: {
                             hasControlAndDelegationPermission: true,
                             userFitsPositionConstraint: null,
+                            userHasBeenInvited: false,
                             userID: userID,
                             emittingDeviceID: deviceID,
                             tracksVotedFor: [],
@@ -106,6 +107,7 @@ test.group(
                         {
                             userFitsPositionConstraint: null,
                             hasControlAndDelegationPermission: true,
+                            userHasBeenInvited: false,
                             userID: userID,
                             emittingDeviceID: deviceB.uuid,
                             tracksVotedFor: [],
@@ -134,6 +136,7 @@ test.group(
                         {
                             userFitsPositionConstraint: null,
                             hasControlAndDelegationPermission: true,
+                            userHasBeenInvited: false,
                             userID: userID,
                             emittingDeviceID: deviceB.uuid,
                             tracksVotedFor: [],
@@ -208,6 +211,7 @@ test.group(
                         userRelatedInformation: {
                             userFitsPositionConstraint: null,
                             hasControlAndDelegationPermission: true,
+                            userHasBeenInvited: false,
                             userID: userID,
                             emittingDeviceID: deviceID,
                             tracksVotedFor: [],
@@ -280,6 +284,7 @@ test.group(
                         userRelatedInformation: {
                             userFitsPositionConstraint: null,
                             hasControlAndDelegationPermission: true,
+                            userHasBeenInvited: false,
                             userID: userID,
                             emittingDeviceID: deviceID,
                             tracksVotedFor: [],

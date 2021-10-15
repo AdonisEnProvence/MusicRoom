@@ -43,6 +43,7 @@ function getBasicState({
                   hasControlAndDelegationPermission: true,
                   userID: userID,
                   emittingDeviceID: datatype.uuid(),
+                  userHasBeenInvited: false,
                   tracksVotedFor: [],
                   userFitsPositionConstraint: null,
               }

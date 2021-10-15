@@ -6,7 +6,7 @@ import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
-import { fireEvent, render, within, noop } from '../tests/tests-utils';
+import { fireEvent, noop, render, within } from '../tests/tests-utils';
 
 test(`
     After the client receives a USER_LENGTH_UPDATE we expect the player to display
@@ -31,6 +31,7 @@ test(`
         delegationOwnerUserID: null,
         userRelatedInformation: {
             hasControlAndDelegationPermission: true,
+            userHasBeenInvited: false,
             userFitsPositionConstraint: null,
             emittingDeviceID: thisDevice.deviceID,
             userID,

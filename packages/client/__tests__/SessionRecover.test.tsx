@@ -30,6 +30,7 @@ test(`It should display the music player corresponding to the injected state on 
         delegationOwnerUserID: null,
         userRelatedInformation: {
             hasControlAndDelegationPermission: true,
+            userHasBeenInvited: false,
             userFitsPositionConstraint: null,
             emittingDeviceID: datatype.uuid(),
             userID,
@@ -135,6 +136,7 @@ test(`It should display the music player corresponding to the injected state on 
         timeConstraintIsValid: null,
         userRelatedInformation: {
             hasControlAndDelegationPermission: true,
+            userHasBeenInvited: false,
             userFitsPositionConstraint: null,
             emittingDeviceID: datatype.uuid(),
             userID,
@@ -226,6 +228,7 @@ test(`It should display the already elapsed track duration and player should be 
         timeConstraintIsValid: null,
         userRelatedInformation: {
             hasControlAndDelegationPermission: true,
+            userHasBeenInvited: false,
             userFitsPositionConstraint: null,
             emittingDeviceID: datatype.uuid(),
             userID,

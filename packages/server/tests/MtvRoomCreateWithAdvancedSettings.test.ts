@@ -2,7 +2,7 @@ import Database from '@ioc:Adonis/Lucid/Database';
 import { MtvRoomClientToServerCreateArgs } from '@musicroom/types';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import MtvRoom from 'App/Models/MtvRoom';
-import { datatype, random, name } from 'faker';
+import { datatype, name, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import {
@@ -120,6 +120,7 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
                             tracksVotedFor: [],
                             userFitsPositionConstraint: null,
                             hasControlAndDelegationPermission: true,
+                            userHasBeenInvited: false,
                         },
                         usersLength: 1,
                         tracks: [
@@ -176,6 +177,7 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
                             emittingDeviceID: datatype.uuid(),
                             tracksVotedFor: [],
                             userFitsPositionConstraint: null,
+                            userHasBeenInvited: false,
                             hasControlAndDelegationPermission: true,
                         },
                         usersLength: 1,

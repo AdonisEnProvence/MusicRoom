@@ -62,6 +62,7 @@ test.group(`User service socket handler tests`, (group) => {
                         ...state,
                         userRelatedInformation: {
                             hasControlAndDelegationPermission: true,
+                            userHasBeenInvited: false,
                             userFitsPositionConstraint: null,
                             emittingDeviceID: datatype.uuid(),
                             tracksVotedFor: [trackID],

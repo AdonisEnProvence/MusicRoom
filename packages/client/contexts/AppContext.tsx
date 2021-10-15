@@ -1,9 +1,8 @@
-import { useActor, useMachine } from '@xstate/react';
+import { useMachine } from '@xstate/react';
 import { Sender } from '@xstate/react/lib/types';
 import React, { useContext, useRef } from 'react';
 import { MusicPlayerRef } from '../components/TheMusicPlayer/Player';
 import { IS_TEST } from '../constants/Env';
-import { useGetIsDeviceEmitting } from '../hooks/musicPlayerHooks';
 import {
     MusicPlayerFullScreenProps,
     useMusicPlayerToggleFullScreen,
@@ -36,8 +35,13 @@ export interface MusicPlayerContextValue extends MusicPlayerFullScreenProps {
 }
 
 interface AppContextValue {
-    userContext: UserContextValue;
-    musicPlayerContext: MusicPlayerContextValue;
+    musicPlayerContext: {
+        appMusicPlayerMachineActorRef:
+            | AppMusicPlayerMachineActorRef
+            | undefined;
+        playerRef: React.MutableRefObject<MusicPlayerRef>;
+    } & MusicPlayerFullScreenProps;
+    appUserMachineActorRef: AppUserMachineActorRef | undefined;
 }
 
 type MusicPlayerContextProviderProps = {
@@ -58,14 +62,6 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
         useMusicPlayerToggleFullScreen(false);
 
     const playerRef = useRef<MusicPlayerRef | null>(null);
-
-    function setPlayerRef(ref: MusicPlayerRef) {
-        playerRef.current = ref;
-
-        sendToMusicPlayerMachine({
-            type: 'MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET',
-        });
-    }
 
     async function fetchMusicPlayerElapsedTime(): Promise<number> {
         const player = playerRef.current;
@@ -95,41 +91,22 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
         musicPlayerMachineOptions,
         userMachineOptions,
     });
-    const [appState, send] = useMachine(appMusicPlayerMachine);
+    const [appState] = useMachine(appMusicPlayerMachine);
 
-    const appMusicPlayerActor: AppMusicPlayerMachineActorRef =
+    const appMusicPlayerMachineActorRef =
         appState.children.appMusicPlayerMachine;
-    const appUserActor: AppUserMachineActorRef =
-        appState.children.appUserMachine;
-
-    const [musicPlayerState, sendToMusicPlayerMachine] =
-        useActor(appMusicPlayerActor);
-    const [userState, sendToUserMachine] = useActor(appUserActor);
-
-    //MusicPlayer specific hook
-    const isDeviceEmitting = useGetIsDeviceEmitting({
-        currDeviceID: userState.context.currDeviceID,
-        musicPlayerDoesNotHaveRoomIsReadyTag:
-            !musicPlayerState.hasTag('roomIsReady'),
-        musicPlayerMachineContext: musicPlayerState.context,
-    });
-    ///
+    const appUserMachineActorRef = appState.children.appUserMachine;
 
     return (
         <AppContext.Provider
             value={{
-                userContext: {
-                    sendToUserMachine,
-                    userState,
-                },
+                appUserMachineActorRef,
                 musicPlayerContext: {
-                    sendToMusicPlayerMachine,
-                    musicPlayerState,
-                    isDeviceEmitting,
+                    appMusicPlayerMachineActorRef,
+                    playerRef,
                     isFullScreen,
                     setIsFullScreen,
                     toggleIsFullScreen,
-                    setPlayerRef,
                 },
             }}
         >

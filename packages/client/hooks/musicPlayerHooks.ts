@@ -1,13 +1,61 @@
 import { MtvPlayingModes } from '@musicroom/types';
+import { useActor } from '@xstate/react';
 import { useCallback, useMemo } from 'react';
+import { MusicPlayerRef } from '../components/TheMusicPlayer/Player';
 import { MusicPlayerContextValue, useAppContext } from '../contexts/AppContext';
 import { AppMusicPlayerMachineContext } from '../machines/appMusicPlayerMachine';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
+import { useUserContext } from './userHooks';
 
 export function useMusicPlayContext(): MusicPlayerContextValue {
-    const { musicPlayerContext } = useAppContext();
+    const {
+        musicPlayerContext: {
+            appMusicPlayerMachineActorRef,
+            playerRef,
+            toggleIsFullScreen,
+            setIsFullScreen,
+            isFullScreen,
+        },
+    } = useAppContext();
 
-    return musicPlayerContext;
+    if (appMusicPlayerMachineActorRef === undefined) {
+        throw new Error('MusicPlayer machine has not been invoked yet');
+    }
+
+    const { userState } = useUserContext();
+
+    //MusicPlayer ref
+    function setPlayerRef(ref: MusicPlayerRef) {
+        playerRef.current = ref;
+
+        sendToMusicPlayerMachine({
+            type: 'MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET',
+        });
+    }
+    ///
+
+    const [musicPlayerState, sendToMusicPlayerMachine] = useActor(
+        appMusicPlayerMachineActorRef,
+    );
+
+    //MusicPlayer specific hook
+    const isDeviceEmitting = useGetIsDeviceEmitting({
+        currDeviceID: userState.context.currDeviceID,
+        musicPlayerDoesNotHaveRoomIsReadyTag:
+            !musicPlayerState.hasTag('roomIsReady'),
+        musicPlayerMachineContext: musicPlayerState.context,
+    });
+    ///
+
+    return {
+        isDeviceEmitting,
+        isFullScreen,
+        musicPlayerState,
+        sendToMusicPlayerMachine,
+        setIsFullScreen,
+        setPlayerRef,
+        toggleIsFullScreen,
+    };
 }
 
 interface UserGetIsDeviceEmittingArgs {

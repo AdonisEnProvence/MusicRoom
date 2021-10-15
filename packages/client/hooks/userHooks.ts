@@ -1,7 +1,16 @@
+import { useActor } from '@xstate/react';
 import { useAppContext, UserContextValue } from '../contexts/AppContext';
 
 export function useUserContext(): UserContextValue {
-    const { userContext } = useAppContext();
+    const { appUserMachineActorRef } = useAppContext();
+    if (appUserMachineActorRef === undefined) {
+        throw new Error('User machine has not been invoked yet');
+    }
 
-    return userContext;
+    const [userState, sendToUserMachine] = useActor(appUserMachineActorRef);
+
+    return {
+        userState,
+        sendToUserMachine,
+    };
 }

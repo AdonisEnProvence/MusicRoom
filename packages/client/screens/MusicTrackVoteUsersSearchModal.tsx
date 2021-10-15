@@ -11,7 +11,7 @@ import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
 } from '../machines/appScreenHeaderWithSearchBarMachine';
-import { roomUsersSearchMachine } from '../machines/roomUsersSearchMachines';
+import { roomUsersSearchMachine } from '../machines/roomUsersSearchMachine';
 import { MusicTrackVoteUsersSearchModalProps } from '../types';
 
 const UsersListPlaceholder: React.FC = () => {

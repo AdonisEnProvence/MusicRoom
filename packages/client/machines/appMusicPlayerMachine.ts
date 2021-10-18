@@ -117,9 +117,6 @@ export type AppMusicPlayerMachineEvent =
           type: 'RECEIVED_CHAT_MESSAGE';
           message: MtvRoomChatMessage;
       }
-    | {
-          type: 'SEND_PARENT_REQUEST_LOCATION_PERMISSION';
-      }
     | CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents;
 
 interface CreateAppMusicPlayerMachineArgs {
@@ -629,21 +626,26 @@ export const createAppMusicPlayerMachine = ({
 
                             tags: 'roomIsReady',
 
-                            invoke: {
-                                src: (context, _) => (sendBack) => {
-                                    if (context.hasTimeAndPositionConstraints) {
-                                        sendBack({
-                                            type: 'SEND_PARENT_REQUEST_LOCATION_PERMISSION',
-                                        });
-                                    }
-                                },
-                            },
-
                             states: {
                                 playerState: {
-                                    initial: 'waitingForTrackToLoad',
+                                    initial: 'init',
 
                                     states: {
+                                        init: {
+                                            always: [
+                                                {
+                                                    target: 'waitingForTrackToLoad',
+                                                    cond: 'roomHasPositionAndTimeConstraints',
+                                                    actions: sendParent(
+                                                        'REQUEST_LOCATION_PERMISSION',
+                                                    ),
+                                                },
+                                                {
+                                                    target: 'waitingForTrackToLoad',
+                                                },
+                                            ],
+                                        },
+
                                         waitingForTrackToLoad: {
                                             on: {
                                                 TRACK_HAS_LOADED: {
@@ -886,12 +888,6 @@ export const createAppMusicPlayerMachine = ({
                             },
 
                             on: {
-                                SEND_PARENT_REQUEST_LOCATION_PERMISSION: {
-                                    actions: sendParent(
-                                        'REQUEST_LOCATION_PERMISSION',
-                                    ),
-                                },
-
                                 FORCED_DISCONNECTION: {
                                     target: 'waitingForJoinOrCreateRoom',
                                     actions: [
@@ -1147,6 +1143,9 @@ export const createAppMusicPlayerMachine = ({
                 }),
             },
             guards: {
+                roomHasPositionAndTimeConstraints: (context, event) => {
+                    return context.hasTimeAndPositionConstraints;
+                },
                 canVoteForTrack: (context, event) => {
                     if (event.type !== 'VOTE_FOR_TRACK') {
                         return false;

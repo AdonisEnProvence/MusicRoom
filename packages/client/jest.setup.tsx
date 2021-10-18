@@ -53,10 +53,18 @@ jest.mock('react-native-youtube-iframe', () => {
                 },
             }));
 
+            const { onReady } = props;
+
             // Call onReady props directly when the component is mounted
             useEffect(() => {
-                props.onReady?.();
-            });
+                const id = setTimeout(() => {
+                    onReady?.();
+                }, 10);
+
+                return () => {
+                    clearTimeout(id);
+                };
+            }, [onReady]);
 
             return <View {...props} />;
         },

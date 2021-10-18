@@ -87,7 +87,8 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
                 ) : (
                     <FlatList
                         data={usersToDisplay}
-                        renderItem={({ item: { id, nickname }, index }) => {
+                        keyExtractor={({ userID }) => userID}
+                        renderItem={({ item: { userID, nickname }, index }) => {
                             const isLastItem =
                                 index ===
                                 state.context.filteredUsers.length - 1;
@@ -109,7 +110,7 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
                                             isDelegationOwner: false,
                                             isMe: false,
                                             nickname,
-                                            userID: id,
+                                            userID,
                                         }}
                                         index={index}
                                     />

@@ -1,7 +1,6 @@
 import { MtvPlayingModes } from '@musicroom/types';
 import { useActor } from '@xstate/react';
 import { useCallback, useMemo } from 'react';
-import { MusicPlayerRef } from '../components/TheMusicPlayer/Player';
 import { MusicPlayerContextValue, useAppContext } from '../contexts/AppContext';
 import { AppMusicPlayerMachineContext } from '../machines/appMusicPlayerMachine';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
@@ -11,11 +10,10 @@ export function useMusicPlayerContext(): MusicPlayerContextValue {
     const {
         musicPlayerContext: {
             appMusicPlayerMachineActorRef,
-            playerRef,
             toggleIsFullScreen,
             setIsFullScreen,
             isFullScreen,
-            testRef,
+            setPlayerRef,
         },
     } = useAppContext();
 
@@ -25,16 +23,6 @@ export function useMusicPlayerContext(): MusicPlayerContextValue {
 
     console.log('musicPlayerContext');
     const { userState } = useUserContext();
-
-    //MusicPlayer ref
-    function setPlayerRef(ref: MusicPlayerRef) {
-        testRef(ref);
-
-        sendToMusicPlayerMachine({
-            type: 'MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET',
-        });
-    }
-    ///
 
     const [musicPlayerState, sendToMusicPlayerMachine] = useActor(
         appMusicPlayerMachineActorRef,

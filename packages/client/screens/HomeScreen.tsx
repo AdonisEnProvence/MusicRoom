@@ -55,7 +55,14 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                     title="Inject fake room"
                     onPress={() => {
                         const fakeState: MtvWorkflowState = {
-                            currentTrack: null,
+                            currentTrack: {
+                                artistName: 'artistName',
+                                title: 'title',
+                                duration: 1000,
+                                elapsed: 1,
+                                score: 1,
+                                id: 'sDNwx9XYWIs',
+                            },
                             name: 'JUST A FAKE ROOM',
                             playing: false,
                             roomCreatorUserID: 'JUST A CREATOR ID',

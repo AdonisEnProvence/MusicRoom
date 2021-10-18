@@ -39,7 +39,7 @@ interface AppContextValue {
         appMusicPlayerMachineActorRef:
             | AppMusicPlayerMachineActorRef
             | undefined;
-        playerRef: React.MutableRefObject<MusicPlayerRef>;
+        setPlayerRef: (ref: MusicPlayerRef) => void;
         testRef: (ref: MusicPlayerRef) => void;
     } & MusicPlayerFullScreenProps;
     appUserMachineActorRef: AppUserMachineActorRef | undefined;
@@ -63,6 +63,10 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
         useMusicPlayerToggleFullScreen(false);
 
     const playerRef = useRef<MusicPlayerRef | null>(null);
+
+    const setPlayerRef = (ref: MusicPlayerRef): void => {
+        playerRef.current = ref;
+    };
 
     async function fetchMusicPlayerElapsedTime(): Promise<number> {
         const player = playerRef.current;
@@ -109,7 +113,7 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
                 appUserMachineActorRef,
                 musicPlayerContext: {
                     appMusicPlayerMachineActorRef,
-                    playerRef,
+                    setPlayerRef,
                     isFullScreen,
                     setIsFullScreen,
                     toggleIsFullScreen,

@@ -62,7 +62,6 @@ export type AppMusicPlayerMachineEvent =
     | { type: 'JOINED_CREATED_ROOM'; state: MtvWorkflowState }
     | { type: 'ROOM_IS_READY'; state: MtvWorkflowState }
     | { type: 'JOIN_ROOM'; roomID: string }
-    | { type: 'MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET' }
     | { type: 'TRACK_HAS_LOADED' }
     | {
           type: 'UPDATE_CURRENT_TRACK_ELAPSED_TIME';
@@ -633,18 +632,9 @@ export const createAppMusicPlayerMachine = ({
 
                             states: {
                                 playerState: {
-                                    initial: 'waitingForPlayerToBeSet',
+                                    initial: 'waitingForTrackToLoad',
 
                                     states: {
-                                        waitingForPlayerToBeSet: {
-                                            on: {
-                                                MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET:
-                                                    {
-                                                        target: 'waitingForTrackToLoad',
-                                                    },
-                                            },
-                                        },
-
                                         waitingForTrackToLoad: {
                                             on: {
                                                 TRACK_HAS_LOADED: {

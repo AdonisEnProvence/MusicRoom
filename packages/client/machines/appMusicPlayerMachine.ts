@@ -670,6 +670,8 @@ export const createAppMusicPlayerMachine = ({
                                         activatedPlayer: {
                                             initial: 'pause',
 
+                                            tags: 'playerIsReady',
+
                                             states: {
                                                 pause: {
                                                     tags: 'playerOnPause',

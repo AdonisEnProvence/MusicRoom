@@ -21,7 +21,6 @@ export function useMusicPlayerContext(): MusicPlayerContextValue {
         throw new Error('MusicPlayer machine has not been invoked yet');
     }
 
-    console.log('musicPlayerContext');
     const { userState } = useUserContext();
 
     const [musicPlayerState, sendToMusicPlayerMachine] = useActor(

@@ -52,7 +52,7 @@ export const createAppMachine = ({
                 ],
                 on: {
                     REQUEST_LOCATION_PERMISSION: {
-                        actions: forwardTo('userMachine'),
+                        actions: forwardTo('appUserMachine'),
                     },
                 },
             },

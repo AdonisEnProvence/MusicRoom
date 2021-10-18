@@ -106,7 +106,6 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
         appState.children.appMusicPlayerMachine;
     const appUserMachineActorRef = appState.children.appUserMachine;
 
-    console.log('AppContext');
     return (
         <AppContext.Provider
             value={{

@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import Toast from 'react-native-toast-message';
-import { MachineOptions, sendParent } from 'xstate';
+import { MachineOptions } from 'xstate';
 import { navigateFromRef } from '../../navigation/RootNavigation';
 import {
     AppMusicPlayerMachineContext,
@@ -68,14 +68,6 @@ export function getMusicPlayerMachineOptions({
             },
         },
         actions: {
-            ifRoomHasPositionConstraintsAskForLocationPermission: (context) => {
-                if (context.hasTimeAndPositionConstraints) {
-                    sendParent({
-                        type: 'REQUEST_LOCATION_PERMISSION',
-                    });
-                }
-            },
-
             leaveRoomFromLeaveRoomButton: () => {
                 setIsFullScreen(false);
                 navigateFromRef('HomeScreen');

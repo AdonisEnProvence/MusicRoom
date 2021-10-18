@@ -13,6 +13,7 @@ import {
     Receiver,
     send,
     Sender,
+    sendParent,
     State,
     StateMachine,
 } from 'xstate';
@@ -115,6 +116,9 @@ export type AppMusicPlayerMachineEvent =
     | {
           type: 'RECEIVED_CHAT_MESSAGE';
           message: MtvRoomChatMessage;
+      }
+    | {
+          type: 'SEND_PARENT_REQUEST_LOCATION_PERMISSION';
       }
     | CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents;
 
@@ -586,8 +590,6 @@ export const createAppMusicPlayerMachine = ({
 
                             onDone: {
                                 target: 'connectedToRoom',
-                                actions:
-                                    'ifRoomHasPositionConstraintsAskForLocationPermission',
                             },
                         },
 
@@ -617,10 +619,7 @@ export const createAppMusicPlayerMachine = ({
                                         );
                                     },
 
-                                    actions: [
-                                        'assignMergeNewState',
-                                        'ifRoomHasPositionConstraintsAskForLocationPermission',
-                                    ],
+                                    actions: 'assignMergeNewState',
                                 },
                             },
                         },
@@ -629,6 +628,16 @@ export const createAppMusicPlayerMachine = ({
                             type: 'parallel',
 
                             tags: 'roomIsReady',
+
+                            invoke: {
+                                src: (context, _) => (sendBack) => {
+                                    if (context.hasTimeAndPositionConstraints) {
+                                        sendBack({
+                                            type: 'SEND_PARENT_REQUEST_LOCATION_PERMISSION',
+                                        });
+                                    }
+                                },
+                            },
 
                             states: {
                                 playerState: {
@@ -877,6 +886,12 @@ export const createAppMusicPlayerMachine = ({
                             },
 
                             on: {
+                                SEND_PARENT_REQUEST_LOCATION_PERMISSION: {
+                                    actions: sendParent(
+                                        'REQUEST_LOCATION_PERMISSION',
+                                    ),
+                                },
+
                                 FORCED_DISCONNECTION: {
                                     target: 'waitingForJoinOrCreateRoom',
                                     actions: [
@@ -1056,10 +1071,7 @@ export const createAppMusicPlayerMachine = ({
                         RETRIEVE_CONTEXT: {
                             target: '.connectedToRoom',
 
-                            actions: [
-                                'assignMergeNewState',
-                                'ifRoomHasPositionConstraintsAskForLocationPermission',
-                            ],
+                            actions: 'assignMergeNewState',
                         },
 
                         JOINED_CREATED_ROOM: {

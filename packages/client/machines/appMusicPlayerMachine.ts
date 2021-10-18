@@ -70,7 +70,12 @@ export type AppMusicPlayerMachineEvent =
       }
     | {
           type: 'PLAY_PAUSE_TOGGLE';
-          params?: { status: 'play' | 'pause' };
+      }
+    | {
+          type: 'EMIT_ACTION_PLAY';
+      }
+    | {
+          type: 'EMIT_ACTION_PAUSE';
       }
     | { type: 'GO_TO_NEXT_TRACK' }
     | { type: 'CHANGE_EMITTING_DEVICE'; deviceID: string }
@@ -298,20 +303,14 @@ export const createAppMusicPlayerMachine = ({
 
                         onReceive((event) => {
                             switch (event.type) {
-                                case 'PLAY_PAUSE_TOGGLE': {
-                                    if (event.params === undefined) {
-                                        console.error(
-                                            'You should specified params when directly forwarding PLAY_PAUSE_TOGGLE to sokectConnection',
-                                        );
-                                        break;
-                                    }
-                                    const { status } = event.params;
+                                case 'EMIT_ACTION_PLAY': {
+                                    socket.emit('ACTION_PLAY');
 
-                                    if (status === 'play') {
-                                        socket.emit('ACTION_PAUSE');
-                                    } else {
-                                        socket.emit('ACTION_PLAY');
-                                    }
+                                    break;
+                                }
+
+                                case 'EMIT_ACTION_PAUSE': {
+                                    socket.emit('ACTION_PAUSE');
 
                                     break;
                                 }
@@ -690,14 +689,8 @@ export const createAppMusicPlayerMachine = ({
                                                         waitingServerAcknowledgement:
                                                             {
                                                                 entry: send(
-                                                                    (
-                                                                        context,
-                                                                        _event,
-                                                                    ) => ({
-                                                                        type: 'PLAY_PAUSE_TOGGLE',
-                                                                        params: {
-                                                                            status: 'pause',
-                                                                        },
+                                                                    () => ({
+                                                                        type: 'EMIT_ACTION_PLAY',
                                                                     }),
                                                                     {
                                                                         to: 'socketConnection',
@@ -729,14 +722,8 @@ export const createAppMusicPlayerMachine = ({
                                                         waitingServerAcknowledgement:
                                                             {
                                                                 entry: send(
-                                                                    (
-                                                                        _context,
-                                                                        _event,
-                                                                    ) => ({
-                                                                        type: 'PLAY_PAUSE_TOGGLE',
-                                                                        params: {
-                                                                            status: 'play',
-                                                                        },
+                                                                    () => ({
+                                                                        type: 'EMIT_ACTION_PAUSE',
                                                                     }),
                                                                     {
                                                                         to: 'socketConnection',

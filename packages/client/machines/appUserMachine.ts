@@ -13,6 +13,7 @@ import {
     Receiver,
     send,
     Sender,
+    sendParent,
     State,
     StateMachine,
 } from 'xstate';
@@ -62,6 +63,10 @@ export type AppUserMachineEvent =
       }
     | {
           type: 'RECEIVED_MTV_ROOM_INVITATION';
+          invitation: MtvRoomSummary;
+      }
+    | {
+          type: 'USER_ACCEPTED_MTV_ROOM_INVITATION';
           invitation: MtvRoomSummary;
       }
     | {
@@ -266,6 +271,39 @@ export const createUserMachine = ({
                         },
                     },
                 },
+
+                mtvRoomInvitationHandler: {
+                    initial: 'idle',
+
+                    states: {
+                        idle: {},
+
+                        displayInvitation: {
+                            invoke: {
+                                src: 'showMtvRoomInvitationToast',
+                            },
+
+                            after: {
+                                MTV_ROOM_INVITATION_DELAY_DEBOUNCE: {
+                                    target: 'idle',
+                                },
+                            },
+                        },
+                    },
+
+                    on: {
+                        RECEIVED_MTV_ROOM_INVITATION: {
+                            target: '.displayInvitation',
+                        },
+
+                        USER_ACCEPTED_MTV_ROOM_INVITATION: {
+                            actions: sendParent((_context, event) => ({
+                                type: 'JOIN_ROOM',
+                                roomID: event.invitation.roomID,
+                            })),
+                        },
+                    },
+                },
             },
 
             on: {
@@ -274,9 +312,6 @@ export const createUserMachine = ({
                 },
                 SET_CURRENT_DEVICE_ID: {
                     actions: 'setCurrDeviceID',
-                },
-                RECEIVED_MTV_ROOM_INVITATION: {
-                    actions: 'showMtvRoomInvitationToast',
                 },
             },
         },
@@ -355,6 +390,7 @@ export const createUserMachine = ({
             delays: {
                 LOCATION_POLLING_TICK_DELAY: locationPollingTickDelay,
                 REQUEST_LOCATION_PERMISSION_DEDUPLICATE_DELAY: 2000,
+                MTV_ROOM_INVITATION_DELAY_DEBOUNCE: 1000,
             },
 
             guards: {

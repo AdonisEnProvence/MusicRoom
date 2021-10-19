@@ -1,36 +1,39 @@
-import { createMachine, forwardTo, State, StateMachine } from 'xstate';
+import { ContextFrom, EventFrom, forwardTo, StateMachine } from 'xstate';
+import { createModel } from 'xstate/lib/model';
 import { SocketClient } from '../contexts/SocketContext';
 import { createAppMusicPlayerMachine } from './appMusicPlayerMachine';
 import { createUserMachine } from './appUserMachine';
 import { AppMusicPlayerMachineOptions } from './options/appMusicPlayerMachineOptions';
 import { AppUserMachineOptions } from './options/appUserMachineOptions';
 
-export type AppAppMachineContext = {
-    eslint: boolean;
-};
+const appMachineModel = createModel(
+    {},
+    {
+        events: {
+            JOIN_ROOM: (roomID: string) => ({ roomID }),
+            REQUEST_LOCATION_PERMISSION: () => ({}),
+        },
+    },
+);
 
-type CreateAppMachineArgs = {
+interface CreateAppMachineArgs {
     locationPollingTickDelay: number;
     socket: SocketClient;
     musicPlayerMachineOptions: AppMusicPlayerMachineOptions;
     userMachineOptions: AppUserMachineOptions;
-};
-
-export type AppAppMachineEvent = {
-    type: 'REQUEST_LOCATION_PERMISSION';
-};
+}
 
 export const createAppMachine = ({
-    locationPollingTickDelay,
     socket,
+    locationPollingTickDelay,
     musicPlayerMachineOptions,
     userMachineOptions,
 }: CreateAppMachineArgs): StateMachine<
-    AppAppMachineContext,
+    ContextFrom<typeof appMachineModel>,
     any,
-    AppAppMachineEvent
-> =>
-    createMachine<AppAppMachineContext, AppAppMachineEvent>({
+    EventFrom<typeof appMachineModel>
+> => {
+    return appMachineModel.createMachine({
         initial: 'childMachineProxy',
 
         states: {
@@ -54,12 +57,12 @@ export const createAppMachine = ({
                     REQUEST_LOCATION_PERMISSION: {
                         actions: forwardTo('appUserMachine'),
                     },
+
+                    JOIN_ROOM: {
+                        actions: forwardTo('appMusicPlayerMachine'),
+                    },
                 },
             },
         },
     });
-
-export type AppAppMachineState = State<
-    AppAppMachineContext,
-    AppAppMachineEvent
->;
+};

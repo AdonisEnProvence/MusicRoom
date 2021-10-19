@@ -75,11 +75,13 @@ const TracksListTab: React.FC<TracksListProps> = ({
     }
 
     const roomIsOpenAndOnlyInvitedUsersCanVote =
-        context.isOpen && context.isOpenOnlyInvitedUsersCanVote;
+        musicPlayerMachineContext.isOpen &&
+        musicPlayerMachineContext.isOpenOnlyInvitedUsersCanVote;
     const userHasNotBeenInvited =
-        context.userRelatedInformation === null ||
-        (context.userRelatedInformation &&
-            context.userRelatedInformation.userHasBeenInvited === false);
+        musicPlayerMachineContext.userRelatedInformation === null ||
+        (musicPlayerMachineContext.userRelatedInformation &&
+            musicPlayerMachineContext.userRelatedInformation
+                .userHasBeenInvited === false);
 
     const roomIsOpenAndOnlyInvitedUsersCanVoteAndUserHasNotBeenInvited =
         roomIsOpenAndOnlyInvitedUsersCanVote && userHasNotBeenInvited;
@@ -151,7 +153,7 @@ const TracksListTab: React.FC<TracksListProps> = ({
                         musicPlayerMachineContext.userRelatedInformation !==
                         null
                     ) {
-                        userHasAlreadyVotedFoTrack =
+                        userHasAlreadyVotedForTrack =
                             musicPlayerMachineContext.userRelatedInformation.tracksVotedFor.some(
                                 (trackIDVotedFor) =>
                                     trackIDVotedFor === trackID,

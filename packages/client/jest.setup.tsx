@@ -34,11 +34,16 @@ jest.mock('react-native-youtube-iframe', () => {
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
 
+    /**
+     * PlayerMachine has the following behaviour, when coupled to a
+     * `useEffect` that only send a message when videoId changes:
+     *
+     * - Always debounce calls to `callOnReady` action, by 10 milliseconds.
+     * - Keep reference to `onReady` via `callOnReady` up to date. (Done automatically by @xstate/react)
+     *   It can change between renders, we want to always call the newest one.
+     * - Call `callOnReady` action each time a new `videoId` is set.
+     */
     const playerMachine = createMachine({
-        context: {
-            onReady: () => undefined,
-        },
-
         initial: 'idle',
 
         states: {
@@ -47,25 +52,15 @@ jest.mock('react-native-youtube-iframe', () => {
             waiting: {
                 after: {
                     10: {
-                        target: 'isReady',
+                        target: 'idle',
+
+                        actions: 'callOnReady',
                     },
                 },
-            },
-
-            isReady: {
-                // @ts-expect-error onReady is not typed correcty
-                entry: ({ onReady }) => onReady(),
             },
         },
 
         on: {
-            SET_ON_READY: {
-                actions: assign({
-                    // @ts-expect-error assign parameters are not typed correctly
-                    onReady: (_, { onReady }) => onReady,
-                }),
-            },
-
             VIDEO_ID_CHANGED: {
                 target: 'waiting',
             },
@@ -98,21 +93,21 @@ jest.mock('react-native-youtube-iframe', () => {
 
             const { onReady, videoId } = props;
 
-            const [_, send] = useMachine(playerMachine);
+            // `callOnReady` action will always use the most recent version of `onReady`
+            // as described here: https://xstate.js.org/docs/recipes/react.html#other-hooks.
+            const [, send] = useMachine(playerMachine, {
+                actions: {
+                    callOnReady: onReady,
+                },
+            });
 
-            // Call onReady props directly when the component is mounted
+            // The effect will be called on the first render and each time
+            // videoId prop changes.
             useEffect(() => {
                 send({
                     type: 'VIDEO_ID_CHANGED',
                 });
             }, [videoId, send]);
-
-            useEffect(() => {
-                send({
-                    type: 'SET_ON_READY',
-                    onReady,
-                });
-            }, [onReady, send]);
 
             return <View {...props} />;
         },

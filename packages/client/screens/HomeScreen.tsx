@@ -7,14 +7,14 @@ import {
     AppScreenContainer,
     AppScreenHeader,
 } from '../components/kit';
-import { useMusicPlayer } from '../contexts/MusicPlayerContext';
-import { useUserContext } from '../contexts/UserContext';
+import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
+import { useUserContext } from '../hooks/userHooks';
 import { HomeTabHomeScreenScreenProps } from '../types';
 
 const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
-    const musicPlayerMachine = useMusicPlayer();
-    const { sendToUserMachine, state } = useUserContext();
+    const { sendToMusicPlayerMachine } = useMusicPlayerContext();
+    const { sendToUserMachine } = useUserContext();
     return (
         <AppScreen>
             <AppScreenHeader title="Home" insetTop={insets.top} />
@@ -55,7 +55,14 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                     title="Inject fake room"
                     onPress={() => {
                         const fakeState: MtvWorkflowState = {
-                            currentTrack: null,
+                            currentTrack: {
+                                artistName: 'artistName',
+                                title: 'title',
+                                duration: 1000,
+                                elapsed: 1,
+                                score: 1,
+                                id: 'sDNwx9XYWIs',
+                            },
                             name: 'JUST A FAKE ROOM',
                             playing: false,
                             roomCreatorUserID: 'JUST A CREATOR ID',
@@ -79,7 +86,7 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                             usersLength: 2,
                         };
 
-                        musicPlayerMachine.sendToMachine({
+                        sendToMusicPlayerMachine({
                             type: 'RETRIEVE_CONTEXT',
                             state: fakeState,
                         });

@@ -6,12 +6,14 @@ import {
 } from '@musicroom/types';
 import { nanoid } from 'nanoid/non-secure';
 import {
+    ActorRef,
     assign,
     createMachine,
     forwardTo,
     Receiver,
     send,
     Sender,
+    sendParent,
     State,
     StateMachine,
 } from 'xstate';
@@ -35,6 +37,11 @@ export interface AppMusicPlayerMachineContext extends MtvWorkflowState {
     chatMessages?: MtvRoomChatMessage[];
 }
 
+export type AppMusicPlayerMachineActorRef = ActorRef<
+    AppMusicPlayerMachineEvent,
+    AppMusicPlayerMachineState
+>;
+
 export type AppMusicPlayerMachineState = State<
     AppMusicPlayerMachineContext,
     AppMusicPlayerMachineEvent
@@ -56,7 +63,6 @@ export type AppMusicPlayerMachineEvent =
     | { type: 'JOINED_CREATED_ROOM'; state: MtvWorkflowState }
     | { type: 'ROOM_IS_READY'; state: MtvWorkflowState }
     | { type: 'JOIN_ROOM'; roomID: string }
-    | { type: 'MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET' }
     | { type: 'TRACK_HAS_LOADED' }
     | {
           type: 'UPDATE_CURRENT_TRACK_ELAPSED_TIME';
@@ -64,7 +70,12 @@ export type AppMusicPlayerMachineEvent =
       }
     | {
           type: 'PLAY_PAUSE_TOGGLE';
-          params: { status: 'play' | 'pause' };
+      }
+    | {
+          type: 'EMIT_ACTION_PLAY';
+      }
+    | {
+          type: 'EMIT_ACTION_PAUSE';
       }
     | { type: 'GO_TO_NEXT_TRACK' }
     | { type: 'CHANGE_EMITTING_DEVICE'; deviceID: string }
@@ -292,14 +303,14 @@ export const createAppMusicPlayerMachine = ({
 
                         onReceive((event) => {
                             switch (event.type) {
-                                case 'PLAY_PAUSE_TOGGLE': {
-                                    const { status } = event.params;
+                                case 'EMIT_ACTION_PLAY': {
+                                    socket.emit('ACTION_PLAY');
 
-                                    if (status === 'play') {
-                                        socket.emit('ACTION_PAUSE');
-                                    } else {
-                                        socket.emit('ACTION_PLAY');
-                                    }
+                                    break;
+                                }
+
+                                case 'EMIT_ACTION_PAUSE': {
+                                    socket.emit('ACTION_PAUSE');
 
                                     break;
                                 }
@@ -575,8 +586,6 @@ export const createAppMusicPlayerMachine = ({
 
                             onDone: {
                                 target: 'connectedToRoom',
-                                actions:
-                                    'ifRoomHasPositionConstraintsAskForLocationPermission',
                             },
                         },
 
@@ -606,10 +615,7 @@ export const createAppMusicPlayerMachine = ({
                                         );
                                     },
 
-                                    actions: [
-                                        'assignMergeNewState',
-                                        'ifRoomHasPositionConstraintsAskForLocationPermission',
-                                    ],
+                                    actions: 'assignMergeNewState',
                                 },
                             },
                         },
@@ -621,16 +627,22 @@ export const createAppMusicPlayerMachine = ({
 
                             states: {
                                 playerState: {
-                                    initial: 'waitingForPlayerToBeSet',
+                                    initial: 'init',
 
                                     states: {
-                                        waitingForPlayerToBeSet: {
-                                            on: {
-                                                MUSIC_PLAYER_REFERENCE_HAS_BEEN_SET:
-                                                    {
-                                                        target: 'waitingForTrackToLoad',
-                                                    },
-                                            },
+                                        init: {
+                                            always: [
+                                                {
+                                                    target: 'waitingForTrackToLoad',
+                                                    cond: 'roomHasPositionAndTimeConstraints',
+                                                    actions: sendParent(
+                                                        'REQUEST_LOCATION_PERMISSION',
+                                                    ),
+                                                },
+                                                {
+                                                    target: 'waitingForTrackToLoad',
+                                                },
+                                            ],
                                         },
 
                                         waitingForTrackToLoad: {
@@ -658,6 +670,8 @@ export const createAppMusicPlayerMachine = ({
                                         activatedPlayer: {
                                             initial: 'pause',
 
+                                            tags: 'playerIsReady',
+
                                             states: {
                                                 pause: {
                                                     tags: 'playerOnPause',
@@ -677,14 +691,8 @@ export const createAppMusicPlayerMachine = ({
                                                         waitingServerAcknowledgement:
                                                             {
                                                                 entry: send(
-                                                                    (
-                                                                        context,
-                                                                        _event,
-                                                                    ) => ({
-                                                                        type: 'PLAY_PAUSE_TOGGLE',
-                                                                        params: {
-                                                                            status: 'pause',
-                                                                        },
+                                                                    () => ({
+                                                                        type: 'EMIT_ACTION_PLAY',
                                                                     }),
                                                                     {
                                                                         to: 'socketConnection',
@@ -716,14 +724,8 @@ export const createAppMusicPlayerMachine = ({
                                                         waitingServerAcknowledgement:
                                                             {
                                                                 entry: send(
-                                                                    (
-                                                                        _context,
-                                                                        _event,
-                                                                    ) => ({
-                                                                        type: 'PLAY_PAUSE_TOGGLE',
-                                                                        params: {
-                                                                            status: 'play',
-                                                                        },
+                                                                    () => ({
+                                                                        type: 'EMIT_ACTION_PAUSE',
                                                                     }),
                                                                     {
                                                                         to: 'socketConnection',
@@ -1054,10 +1056,7 @@ export const createAppMusicPlayerMachine = ({
                         RETRIEVE_CONTEXT: {
                             target: '.connectedToRoom',
 
-                            actions: [
-                                'assignMergeNewState',
-                                'ifRoomHasPositionConstraintsAskForLocationPermission',
-                            ],
+                            actions: 'assignMergeNewState',
                         },
 
                         JOINED_CREATED_ROOM: {
@@ -1133,6 +1132,9 @@ export const createAppMusicPlayerMachine = ({
                 }),
             },
             guards: {
+                roomHasPositionAndTimeConstraints: (context, event) => {
+                    return context.hasTimeAndPositionConstraints;
+                },
                 canVoteForTrack: (context, event) => {
                     if (event.type !== 'VOTE_FOR_TRACK') {
                         return false;

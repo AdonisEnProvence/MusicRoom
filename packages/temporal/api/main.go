@@ -82,7 +82,7 @@ func main() {
 type PlayRequestBody struct {
 	WorkflowID string `json:"workflowID" validate:"required,uuid"`
 	RunID      string `json:"runID" validate:"required,uuid"`
-	UserID     string `json:"userID" validate:"requied,uuid"`
+	UserID     string `json:"userID" validate:"required,uuid"`
 }
 
 func PlayHandler(w http.ResponseWriter, r *http.Request) {
@@ -122,7 +122,7 @@ func PlayHandler(w http.ResponseWriter, r *http.Request) {
 type PauseRequestBody struct {
 	WorkflowID string `json:"workflowID" validate:"required,uuid"`
 	RunID      string `json:"runID" validate:"required,uuid"`
-	UserID     string `json:"userID" validate:"requied,uuid"`
+	UserID     string `json:"userID" validate:"required,uuid"`
 }
 
 func PauseHandler(w http.ResponseWriter, r *http.Request) {
@@ -162,7 +162,7 @@ func PauseHandler(w http.ResponseWriter, r *http.Request) {
 type GoToNextTrackRequestBody struct {
 	WorkflowID string `json:"workflowID" validate:"required,uuid"`
 	RunID      string `json:"runID" validate:"required,uuid"`
-	UserID     string `json:"userID" validate:"requied,uuid"`
+	UserID     string `json:"userID" validate:"required,uuid"`
 }
 
 func GoToNextTrackHandler(w http.ResponseWriter, r *http.Request) {

@@ -3,7 +3,7 @@ import { View } from 'dripsy';
 import React from 'react';
 import MtvRoomCreationFormOptionButton from '../components/MtvRoomCreationForm/MtvRoomCreationFormOptionButton';
 import MtvRoomCreationFormScreen from '../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
-import { useCreationMtvRoomFormMachine } from '../contexts/MusicPlayerContext';
+import { useCreationMtvRoomFormMachine } from '../hooks/musicPlayerHooks';
 import {
     CreationMtvRoomFormActorRef,
     MtvRoomMinimumVotesForATrackToBePlayed,

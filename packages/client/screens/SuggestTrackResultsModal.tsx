@@ -8,7 +8,7 @@ import {
     AppScreenHeader,
 } from '../components/kit';
 import TrackListItem from '../components/Track/TrackListItem';
-import { useSuggestTracks } from '../contexts/MusicPlayerContext';
+import { useSuggestTracks } from '../hooks/musicPlayerHooks';
 import { SearchTrackResultsScreenProps } from '../types';
 
 const SuggestTrackResultsModal: React.FC<SearchTrackResultsScreenProps> = ({

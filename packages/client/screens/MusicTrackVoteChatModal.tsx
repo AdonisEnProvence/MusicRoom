@@ -1,12 +1,12 @@
-import React from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import {
-    AppScreen,
-    AppScreenContainer,
-    AppScreenHeader,
-} from '../components/kit';
-import { MusicTrackVoteChatModalProps } from '../types';
-import { useMusicPlayer } from '../contexts/MusicPlayerContext';
+    MAX_CHAT_MESSAGE_LENGTH,
+    MtvRoomChatMessage,
+    normalizeChatMessage,
+} from '@musicroom/types';
+import { useMachine } from '@xstate/react';
+import { Text, TextInput, useSx, View } from 'dripsy';
+import React from 'react';
 import {
     FlatList,
     Keyboard,
@@ -15,12 +15,15 @@ import {
     TouchableOpacity,
     TouchableWithoutFeedback,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { MtvRoomChatMessage, normalizeChatMessage } from '@musicroom/types';
-import { useMachine } from '@xstate/react';
-import { Text, TextInput, useSx, View } from 'dripsy';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createModel } from 'xstate/lib/model';
-import { MAX_CHAT_MESSAGE_LENGTH } from '@musicroom/types';
+import {
+    AppScreen,
+    AppScreenContainer,
+    AppScreenHeader,
+} from '../components/kit';
+import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
+import { MusicTrackVoteChatModalProps } from '../types';
 
 const chatModel = createModel(
     {
@@ -242,9 +245,11 @@ const ChatView: React.FC<ChatViewProps> = ({
 const MusicTrackVoteChatModal: React.FC<MusicTrackVoteChatModalProps> = ({
     navigation,
 }) => {
-    const { state: mtvState, sendToMachine: mtvSend } = useMusicPlayer();
-    const currentUserID = mtvState.context.userRelatedInformation?.userID ?? '';
-    const messages = mtvState.context.chatMessages ?? [];
+    const { musicPlayerState, sendToMusicPlayerMachine } =
+        useMusicPlayerContext();
+    const currentUserID =
+        musicPlayerState.context.userRelatedInformation?.userID ?? '';
+    const messages = musicPlayerState.context.chatMessages ?? [];
     const [state, send] = useMachine(chatMachine, {
         actions: {
             forwardMessage: ({ previousMessage }) => {
@@ -254,7 +259,7 @@ const MusicTrackVoteChatModal: React.FC<MusicTrackVoteChatModalProps> = ({
     });
 
     function forwardMessageToMtvMachine(message: string) {
-        mtvSend({
+        sendToMusicPlayerMachine({
             type: 'SEND_CHAT_MESSAGE',
             message,
         });

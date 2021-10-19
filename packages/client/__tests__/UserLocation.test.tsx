@@ -37,7 +37,7 @@ describe('User device location tests', () => {
             async () => {
                 const res: LocationPermissionResponse = {
                     canAskAgain: true,
-                    expires: 20,
+                    expires: 'never',
                     granted: true,
                     status: 'granted' as PermissionStatus.GRANTED,
                 };

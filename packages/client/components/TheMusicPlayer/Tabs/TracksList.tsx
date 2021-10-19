@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { TrackMetadataWithScore } from '@musicroom/types';
 import { useNavigation } from '@react-navigation/core';
+import { Sender } from '@xstate/react/lib/types';
 import { useSx, View } from 'dripsy';
 import React from 'react';
 import { FlatList, TouchableOpacity } from 'react-native';
-import { Sender } from 'xstate';
 import {
     AppMusicPlayerMachineContext,
     AppMusicPlayerMachineEvent,
@@ -12,8 +12,8 @@ import {
 import TrackListItemWithScore from '../../Track/TrackListItemWithScore';
 
 interface TracksListProps {
-    context: AppMusicPlayerMachineContext;
-    sendToMachine: Sender<AppMusicPlayerMachineEvent>;
+    musicPlayerMachineContext: AppMusicPlayerMachineContext;
+    sendToMusicPlayerMachine: Sender<AppMusicPlayerMachineEvent>;
 }
 
 interface AddSongButtonProps {
@@ -65,12 +65,12 @@ const AddSongButton: React.FC<AddSongButtonProps> = ({ onPress }) => {
 };
 
 const TracksListTab: React.FC<TracksListProps> = ({
-    context,
-    sendToMachine,
+    musicPlayerMachineContext,
+    sendToMusicPlayerMachine,
 }) => {
     const navigation = useNavigation();
 
-    if (context.tracks === null) {
+    if (musicPlayerMachineContext.tracks === null) {
         return null;
     }
 
@@ -78,24 +78,28 @@ const TracksListTab: React.FC<TracksListProps> = ({
         | { type: 'TRACK'; track: TrackMetadataWithScore }
         | { type: 'SEPARATOR' }
     )[] {
-        if (context.tracks === null) {
+        if (musicPlayerMachineContext.tracks === null) {
             return [];
         }
 
-        const formattedTracksListItem = context.tracks.map<{
+        const formattedTracksListItem = musicPlayerMachineContext.tracks.map<{
             type: 'TRACK';
             track: TrackMetadataWithScore;
         }>((track) => ({
             type: 'TRACK',
             track,
         }));
-        const firstSuggestedTrackIndex = context.tracks.findIndex(
-            (track) => track.score < context.minimumScoreToBePlayed,
-        );
+        const firstSuggestedTrackIndex =
+            musicPlayerMachineContext.tracks.findIndex(
+                (track) =>
+                    track.score <
+                    musicPlayerMachineContext.minimumScoreToBePlayed,
+            );
 
         if (
             firstSuggestedTrackIndex === -1 ||
-            firstSuggestedTrackIndex === context.tracks.length - 1
+            firstSuggestedTrackIndex ===
+                musicPlayerMachineContext.tracks.length - 1
         ) {
             return formattedTracksListItem;
         }
@@ -132,9 +136,12 @@ const TracksListTab: React.FC<TracksListProps> = ({
 
                     const { title, artistName, id: trackID } = item.track;
                     let userHasAlreadyVotedForTrack = false;
-                    if (context.userRelatedInformation !== null) {
+                    if (
+                        musicPlayerMachineContext.userRelatedInformation !==
+                        null
+                    ) {
                         userHasAlreadyVotedForTrack =
-                            context.userRelatedInformation.tracksVotedFor.some(
+                            musicPlayerMachineContext.userRelatedInformation.tracksVotedFor.some(
                                 (trackIDVotedFor) =>
                                     trackIDVotedFor === trackID,
                             );
@@ -151,10 +158,12 @@ const TracksListTab: React.FC<TracksListProps> = ({
                                 title={title}
                                 artistName={artistName}
                                 score={item.track.score}
-                                minimumScore={context.minimumScoreToBePlayed}
+                                minimumScore={
+                                    musicPlayerMachineContext.minimumScoreToBePlayed
+                                }
                                 disabled={userHasAlreadyVotedForTrack}
                                 onPress={() => {
-                                    sendToMachine({
+                                    sendToMusicPlayerMachine({
                                         type: 'VOTE_FOR_TRACK',
                                         trackID,
                                     });
@@ -163,7 +172,7 @@ const TracksListTab: React.FC<TracksListProps> = ({
                         </View>
                     );
                 }}
-                extraData={context}
+                extraData={musicPlayerMachineContext}
                 keyExtractor={(item, _) => {
                     if (item.type === 'TRACK') {
                         return item.track.id;

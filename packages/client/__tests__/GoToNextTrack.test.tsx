@@ -94,10 +94,14 @@ it(`When the user clicks on next track button, it should play the next track, if
     );
     expect(firstTrackDurationTime).not.toHaveTextContent('00:00');
 
-    const nextTrackButton = within(musicPlayerFullScreen).getByLabelText(
-        /play.*next.*track/i,
-    );
-    expect(nextTrackButton).toBeTruthy();
+    const nextTrackButton = await waitFor(() => {
+        const goToNextButton = within(musicPlayerFullScreen).getByLabelText(
+            /play.*next.*track/i,
+        );
+        expect(goToNextButton).toBeTruthy();
+        expect(goToNextButton).toBeEnabled();
+        return goToNextButton;
+    });
 
     fireEvent.press(nextTrackButton);
 

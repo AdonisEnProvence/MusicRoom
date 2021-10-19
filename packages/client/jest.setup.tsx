@@ -15,11 +15,16 @@ import {
 import { cleanup } from './services/websockets';
 import { dropDatabase } from './tests/data';
 import { server } from './tests/server/test-server';
+
 jest.setTimeout(20_000);
 
 jest.mock('react-native-youtube-iframe', () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const React = require('react');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { createMachine, assign } = require('xstate');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { useMachine } = require('@xstate/react');
     const { useState, useImperativeHandle, useEffect } = React;
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { View } = require('react-native');
@@ -28,6 +33,39 @@ jest.mock('react-native-youtube-iframe', () => {
         // min and max included
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
+
+    /**
+     * PlayerMachine has the following behaviour, when coupled to a
+     * `useEffect` that only send a message when videoId changes:
+     *
+     * - Always debounce calls to `callOnReady` action, by 10 milliseconds.
+     * - Keep reference to `onReady` via `callOnReady` up to date. (Done automatically by @xstate/react)
+     *   It can change between renders, we want to always call the newest one.
+     * - Call `callOnReady` action each time a new `videoId` is set.
+     */
+    const playerMachine = createMachine({
+        initial: 'idle',
+
+        states: {
+            idle: {},
+
+            waiting: {
+                after: {
+                    10: {
+                        target: 'idle',
+
+                        actions: 'callOnReady',
+                    },
+                },
+            },
+        },
+
+        on: {
+            VIDEO_ID_CHANGED: {
+                target: 'waiting',
+            },
+        },
+    });
 
     return React.forwardRef(
         (props: YoutubeIframeProps, ref: YoutubeIframeRef) => {
@@ -53,10 +91,23 @@ jest.mock('react-native-youtube-iframe', () => {
                 },
             }));
 
-            // Call onReady props directly when the component is mounted
-            useEffect(() => {
-                props.onReady?.();
+            const { onReady, videoId } = props;
+
+            // `callOnReady` action will always use the most recent version of `onReady`
+            // as described here: https://xstate.js.org/docs/recipes/react.html#other-hooks.
+            const [, send] = useMachine(playerMachine, {
+                actions: {
+                    callOnReady: onReady,
+                },
             });
+
+            // The effect will be called on the first render and each time
+            // videoId prop changes.
+            useEffect(() => {
+                send({
+                    type: 'VIDEO_ID_CHANGED',
+                });
+            }, [videoId, send]);
 
             return <View {...props} />;
         },
@@ -169,5 +220,5 @@ beforeEach(() => {
     dropDatabase();
 });
 
-// jest.spyOn(console, 'warn').mockImplementation(() => {});
-// jest.spyOn(console, 'error').mockImplementation(() => {});
+// jest.spyOn(console, 'warn').mockImplementation();
+// jest.spyOn(console, 'error').mockImplementation();

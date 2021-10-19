@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ColorModeProps } from '.';
 import TheMusicPlayer from '../components/TheMusicPlayer';
 import { tabStyle } from '../constants/Colors';
-import { useMusicPlayer } from '../contexts/MusicPlayerContext';
+import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import HomeScreen from '../screens/HomeScreen';
 import SearchTrackResultsScreen from '../screens/SearchTrackResultsScreen';
 import SearchTrackScreen from '../screens/SearchTrackScreen';
@@ -32,7 +32,9 @@ const Tab = createBottomTabNavigator<BottomTabNavigatorParamList>();
  * See https://reactnavigation.org/docs/bottom-tab-navigator#tabbar.
  */
 function MyTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-    const { isFullScreen, setIsFullScreen } = useMusicPlayer();
+    //This will becomes a problem if we block the app for not loged in user
+    //Or this means we wont be displaying the bottomBar if user is not loged in
+    const { isFullScreen, setIsFullScreen } = useMusicPlayerContext();
 
     const insets = useSafeAreaInsets();
     const { theme } = useDripsyTheme();

@@ -1,25 +1,25 @@
+import { View } from 'dripsy';
 import React from 'react';
+import { FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
     AppScreen,
     AppScreenContainer,
     AppScreenHeader,
 } from '../components/kit';
-import { SearchTrackResultsScreenProps } from '../types';
-import { useMusicPlayer } from '../contexts/MusicPlayerContext';
-import { FlatList } from 'react-native';
 import TrackListItem from '../components/Track/TrackListItem';
-import { View } from 'dripsy';
+import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
+import { SearchTrackResultsScreenProps } from '../types';
 
 const SearchTracksResultsScreen: React.FC<SearchTrackResultsScreenProps> = ({
     route,
 }) => {
     const tracks = route.params.tracks;
     const insets = useSafeAreaInsets();
-    const { sendToMachine } = useMusicPlayer();
+    const { sendToMusicPlayerMachine } = useMusicPlayerContext();
 
     function handleTrackPress(trackId: string) {
-        sendToMachine({
+        sendToMusicPlayerMachine({
             type: 'CREATE_ROOM',
             roomName: trackId,
             initialTracksIDs: [trackId],

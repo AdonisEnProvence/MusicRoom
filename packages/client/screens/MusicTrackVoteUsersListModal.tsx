@@ -9,8 +9,8 @@ import { ActorRef } from 'xstate';
 import { AppScreenWithSearchBar } from '../components/kit';
 import MtvRoomUserListElementSettings from '../components/User/MtvRoomUserListElementSettings';
 import UserListItemWithThreeDots from '../components/User/UserListItemWithThreeDots';
-import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import { useSocketContext } from '../contexts/SocketContext';
+import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
@@ -24,10 +24,8 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
         const insets = useSafeAreaInsets();
         const [screenOffsetY, setScreenOffsetY] = useState(0);
         const socket = useSocketContext();
-        const {
-            state: musicPlayerState,
-            sendToMachine: sendToMusicPlayerMachine,
-        } = useMusicPlayer();
+        const { musicPlayerState, sendToMusicPlayerMachine } =
+            useMusicPlayerContext();
         const roomPlayingMode = musicPlayerState.context.playingMode;
 
         //Init room users list machine

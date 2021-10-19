@@ -15,11 +15,16 @@ import {
 import { cleanup } from './services/websockets';
 import { dropDatabase } from './tests/data';
 import { server } from './tests/server/test-server';
+
 jest.setTimeout(20_000);
 
 jest.mock('react-native-youtube-iframe', () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const React = require('react');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { createMachine, assign } = require('xstate');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { useMachine } = require('@xstate/react');
     const { useState, useImperativeHandle, useEffect } = React;
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { View } = require('react-native');
@@ -28,6 +33,44 @@ jest.mock('react-native-youtube-iframe', () => {
         // min and max included
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
+
+    const playerMachine = createMachine({
+        context: {
+            onReady: () => undefined,
+        },
+
+        initial: 'idle',
+
+        states: {
+            idle: {},
+
+            waiting: {
+                after: {
+                    10: {
+                        target: 'isReady',
+                    },
+                },
+            },
+
+            isReady: {
+                // @ts-expect-error onReady is not typed correcty
+                entry: ({ onReady }) => onReady(),
+            },
+        },
+
+        on: {
+            SET_ON_READY: {
+                actions: assign({
+                    // @ts-expect-error assign parameters are not typed correctly
+                    onReady: (_, { onReady }) => onReady,
+                }),
+            },
+
+            VIDEO_ID_CHANGED: {
+                target: 'waiting',
+            },
+        },
+    });
 
     return React.forwardRef(
         (props: YoutubeIframeProps, ref: YoutubeIframeRef) => {
@@ -53,18 +96,23 @@ jest.mock('react-native-youtube-iframe', () => {
                 },
             }));
 
-            const { onReady } = props;
+            const { onReady, videoId } = props;
+
+            const [_, send] = useMachine(playerMachine);
 
             // Call onReady props directly when the component is mounted
             useEffect(() => {
-                const id = setTimeout(() => {
-                    onReady?.();
-                }, 10);
+                send({
+                    type: 'VIDEO_ID_CHANGED',
+                });
+            }, [videoId, send]);
 
-                return () => {
-                    clearTimeout(id);
-                };
-            }, [onReady]);
+            useEffect(() => {
+                send({
+                    type: 'SET_ON_READY',
+                    onReady,
+                });
+            }, [onReady, send]);
 
             return <View {...props} />;
         },

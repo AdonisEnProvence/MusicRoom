@@ -1,8 +1,7 @@
 import { UserSummary } from '@musicroom/types';
-import { datatype, internet } from 'faker';
 import { send } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { fetchUsers } from '../services/UsersSearchService';
+import { fetchFriends, fetchUsers } from '../services/UsersSearchService';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 
 const roomUsersSearchModel = createModel(
@@ -423,49 +422,23 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                 (sendBack) => {
                     console.log('fetch friends');
 
-                    setTimeout(() => {
-                        if (usersFriendsPage === 1) {
-                            sendBack({
-                                type: 'FETCHED_FRIENDS',
-                                friends: Array.from({ length: 10 }).map(() => ({
-                                    id: datatype.uuid(),
-                                    nickname: `Friend ${internet.userName()}`,
-                                })),
-                                hasMore: true,
-                                page: 1,
-                            });
-                        } else if (usersFriendsPage === 2) {
-                            sendBack({
-                                type: 'FETCHED_FRIENDS',
-                                friends: Array.from({ length: 10 }).map(() => ({
-                                    id: datatype.uuid(),
-                                    nickname: `Friend ${internet.userName()}`,
-                                })),
-                                hasMore: true,
-                                page: 2,
-                            });
-                        } else if (usersFriendsPage === 3) {
-                            sendBack({
-                                type: 'FETCHED_FRIENDS',
-                                friends: Array.from({ length: 10 }).map(() => ({
-                                    id: datatype.uuid(),
-                                    nickname: `Friend ${internet.userName()}`,
-                                })),
-                                hasMore: true,
-                                page: 3,
-                            });
-                        } else if (usersFriendsPage === 4) {
-                            sendBack({
-                                type: 'FETCHED_FRIENDS',
-                                friends: Array.from({ length: 5 }).map(() => ({
-                                    id: datatype.uuid(),
-                                    nickname: `Friend ${internet.userName()}`,
-                                })),
-                                hasMore: false,
-                                page: 4,
-                            });
+                    async function handle() {
+                        if (usersFriendsPage > 4) {
+                            return;
                         }
-                    }, 100);
+
+                        sendBack({
+                            type: 'FETCHED_FRIENDS',
+                            friends: await fetchFriends({
+                                page: usersFriendsPage,
+                            }),
+                            hasMore: usersFriendsPage < 4,
+                            page: 1,
+                        });
+                    }
+
+                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                    setTimeout(handle, 100);
                 },
 
             fetchUsers:

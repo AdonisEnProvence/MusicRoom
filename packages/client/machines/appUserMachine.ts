@@ -62,6 +62,9 @@ export type AppUserMachineEvent =
           type: 'LOCATION_PERMISSION_DENIED';
       }
     | {
+          type: 'USER_IGNORED_MTV_ROOM_INVITATION';
+      }
+    | {
           type: 'RECEIVED_MTV_ROOM_INVITATION';
           invitation: MtvRoomSummary;
       }
@@ -283,8 +286,16 @@ export const createUserMachine = ({
                                 src: 'showMtvRoomInvitationToast',
                             },
 
-                            after: {
-                                MTV_ROOM_INVITATION_DELAY_DEBOUNCE: {
+                            on: {
+                                USER_ACCEPTED_MTV_ROOM_INVITATION: {
+                                    target: 'idle',
+                                    actions: sendParent((_context, event) => ({
+                                        type: 'JOIN_ROOM',
+                                        roomID: event.invitation.roomID,
+                                    })),
+                                },
+
+                                USER_IGNORED_MTV_ROOM_INVITATION: {
                                     target: 'idle',
                                 },
                             },
@@ -293,14 +304,7 @@ export const createUserMachine = ({
 
                     on: {
                         RECEIVED_MTV_ROOM_INVITATION: {
-                            target: '.displayInvitation',
-                        },
-
-                        USER_ACCEPTED_MTV_ROOM_INVITATION: {
-                            actions: sendParent((_context, event) => ({
-                                type: 'JOIN_ROOM',
-                                roomID: event.invitation.roomID,
-                            })),
+                            target: 'mtvRoomInvitationHandler.displayInvitation',
                         },
                     },
                 },
@@ -390,7 +394,6 @@ export const createUserMachine = ({
             delays: {
                 LOCATION_POLLING_TICK_DELAY: locationPollingTickDelay,
                 REQUEST_LOCATION_PERMISSION_DEDUPLICATE_DELAY: 2000,
-                MTV_ROOM_INVITATION_DELAY_DEBOUNCE: 1000,
             },
 
             guards: {

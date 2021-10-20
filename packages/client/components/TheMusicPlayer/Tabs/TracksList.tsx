@@ -160,22 +160,9 @@ const TracksListTab: React.FC<TracksListProps> = ({
                             );
                     }
 
-                    console.log('*'.repeat(10));
-                    console.log({
-                        roomIsOpenAndOnlyInvitedUsersCanVoteAndUserHasNotBeenInvited,
-                    });
-                    console.log('*'.repeat(10));
-
                     const disableTrackListItem =
                         userHasAlreadyVotedForTrack ||
                         roomIsOpenAndOnlyInvitedUsersCanVoteAndUserHasNotBeenInvited;
-
-                    console.log('*'.repeat(10));
-                    console.log({
-                        roomIsOpenAndOnlyInvitedUsersCanVoteAndUserHasNotBeenInvited,
-                        disableTrackListItem,
-                    });
-                    console.log('*'.repeat(10));
 
                     return (
                         <View

@@ -7,8 +7,8 @@ import { serverSocket } from '../services/websockets';
 import { generateMtvRoomSummary } from '../tests/data';
 import { noop, render, waitFor, waitForTimeout } from '../tests/tests-utils';
 
-it(`It should hide control button ( play or pause and go to next track )
-if the user doesn't have the control and delegation permission`, async () => {
+it(`It should display an invitation toast to the user
+then press it and emit a JOIN_ROOM client socket event`, async () => {
     const mtvRoomSummary = generateMtvRoomSummary();
 
     const screen = render(
@@ -39,6 +39,8 @@ if the user doesn't have the control and delegation permission`, async () => {
             text1: `${mtvRoomSummary.creatorName} sent you an invitation !`,
             text2: `TAP ON ME to join ${mtvRoomSummary.roomName} Music Track vote room`,
             onPress: expect.anything(),
+            onHide: expect.anything(),
+            visibilityTime: 10000,
         });
     });
 
@@ -51,7 +53,6 @@ if the user doesn't have the control and delegation permission`, async () => {
     if (call.onPress == null) {
         throw new Error('call.OnPress is null');
     }
-    console.log(call.onPress.toString());
     call.onPress();
 
     await waitFor(() => {

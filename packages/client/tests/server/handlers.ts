@@ -2,6 +2,8 @@ import {
     MtvRoomSearchRequestBody,
     MtvRoomSearchResponse,
     PlaceAutocompleteResponse,
+    SearchUsersRequestBody,
+    SearchUsersResponseBody,
     TrackMetadata,
 } from '@musicroom/types';
 import { datatype } from 'faker';
@@ -79,6 +81,36 @@ export const handlers = [
                     data: paginatedRooms,
                     totalEntries: roomsMatching.length,
                     hasMore: roomsMatching.length > page * PAGE_SIZE,
+                    page,
+                }),
+            );
+        },
+    ),
+
+    rest.post<SearchUsersRequestBody, SearchUsersResponseBody>(
+        `${SERVER_ENDPOINT}/search/users`,
+        (req, res, ctx) => {
+            const PAGE_SIZE = 10;
+            const { page, searchQuery } = req.body;
+
+            if (searchQuery === '') {
+                return res(ctx.status(400));
+            }
+
+            const allUsers = db.searchableUsers.getAll();
+            const usersMatching = allUsers.filter(({ nickname }) =>
+                nickname.toLowerCase().startsWith(searchQuery.toLowerCase()),
+            );
+            const paginatedUsers = usersMatching.slice(
+                (page - 1) * PAGE_SIZE,
+                page * PAGE_SIZE,
+            );
+
+            return res(
+                ctx.json({
+                    data: paginatedUsers,
+                    totalEntries: usersMatching.length,
+                    hasMore: usersMatching.length > page * PAGE_SIZE,
                     page,
                 }),
             );

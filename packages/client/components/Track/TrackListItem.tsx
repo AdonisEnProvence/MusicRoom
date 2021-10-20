@@ -5,6 +5,7 @@ import { TouchableOpacity } from 'react-native';
 interface TrackListItemProps {
     index: number;
     title: string;
+    trackID: string;
     artistName: string;
     disabled?: boolean;
     onPress?: () => void;
@@ -15,6 +16,7 @@ const TrackListItem: React.FC<TrackListItemProps> = ({
     title,
     artistName,
     disabled,
+    trackID,
     onPress,
     Actions,
 }) => {
@@ -30,6 +32,7 @@ const TrackListItem: React.FC<TrackListItemProps> = ({
             }}
         >
             <TouchableOpacity
+                testID={`${trackID}-track-card`}
                 disabled={disabled}
                 onPress={onPress}
                 style={{ flex: 1 }}

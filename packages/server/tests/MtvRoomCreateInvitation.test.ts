@@ -27,7 +27,7 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
-    test('It should create only one invitation in base and send RECEIVED_INVITATION to the invited user clients', async (assert) => {
+    test('It should create only one invitation in base and send RECEIVED_MTV_ROOM_INVITATION to the invited user clients', async (assert) => {
         const invitedUserID = datatype.uuid();
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
@@ -43,11 +43,11 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         });
 
         const receivedEvents: string[] = [];
-        invitedUserSocketB.on('RECEIVED_INVITATION', () =>
-            receivedEvents.push('RECEIVED_INVITATION'),
+        invitedUserSocketB.on('RECEIVED_MTV_ROOM_INVITATION', () =>
+            receivedEvents.push('RECEIVED_MTV_ROOM_INVITATION'),
         );
-        invitedUserSocket.on('RECEIVED_INVITATION', () =>
-            receivedEvents.push('RECEIVED_INVITATION'),
+        invitedUserSocket.on('RECEIVED_MTV_ROOM_INVITATION', () =>
+            receivedEvents.push('RECEIVED_MTV_ROOM_INVITATION'),
         );
 
         creatorSocket.emit('CREATOR_INVITE_USER', {
@@ -95,7 +95,9 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
             userID: invitedUserID,
         });
 
-        invitedUserSocket.on('RECEIVED_INVITATION', () => assert.isTrue(false));
+        invitedUserSocket.on('RECEIVED_MTV_ROOM_INVITATION', () =>
+            assert.isTrue(false),
+        );
 
         try {
             await MtvRoomsWsController.onCreatorInviteUser({
@@ -127,7 +129,9 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
             mtvRoomIDToAssociate: roomID,
         });
 
-        invitedUserSocket.on('RECEIVED_INVITATION', () => assert.isTrue(false));
+        invitedUserSocket.on('RECEIVED_MTV_ROOM_INVITATION', () =>
+            assert.isTrue(false),
+        );
 
         try {
             await MtvRoomsWsController.onCreatorInviteUser({
@@ -158,7 +162,7 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         });
 
         let callbackCalled = false;
-        invitedUserSocket.on('RECEIVED_INVITATION', () => {
+        invitedUserSocket.on('RECEIVED_MTV_ROOM_INVITATION', () => {
             callbackCalled = true;
         });
 

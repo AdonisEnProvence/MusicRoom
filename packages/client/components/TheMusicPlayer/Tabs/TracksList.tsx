@@ -74,6 +74,18 @@ const TracksListTab: React.FC<TracksListProps> = ({
         return null;
     }
 
+    const roomIsOpenAndOnlyInvitedUsersCanVote =
+        musicPlayerMachineContext.isOpen &&
+        musicPlayerMachineContext.isOpenOnlyInvitedUsersCanVote;
+    const userHasNotBeenInvited =
+        musicPlayerMachineContext.userRelatedInformation === null ||
+        (musicPlayerMachineContext.userRelatedInformation &&
+            musicPlayerMachineContext.userRelatedInformation
+                .userHasBeenInvited === false);
+
+    const roomIsOpenAndOnlyInvitedUsersCanVoteAndUserHasNotBeenInvited =
+        roomIsOpenAndOnlyInvitedUsersCanVote && userHasNotBeenInvited;
+
     function generateTracksListItems(): (
         | { type: 'TRACK'; track: TrackMetadataWithScore }
         | { type: 'SEPARATOR' }
@@ -134,7 +146,8 @@ const TracksListTab: React.FC<TracksListProps> = ({
                         );
                     }
 
-                    const { title, artistName, id: trackID } = item.track;
+                    const { id: trackID } = item.track;
+
                     let userHasAlreadyVotedForTrack = false;
                     if (
                         musicPlayerMachineContext.userRelatedInformation !==
@@ -147,6 +160,10 @@ const TracksListTab: React.FC<TracksListProps> = ({
                             );
                     }
 
+                    const disableTrackListItem =
+                        userHasAlreadyVotedForTrack ||
+                        roomIsOpenAndOnlyInvitedUsersCanVoteAndUserHasNotBeenInvited;
+
                     return (
                         <View
                             sx={{
@@ -155,13 +172,14 @@ const TracksListTab: React.FC<TracksListProps> = ({
                         >
                             <TrackListItemWithScore
                                 index={index + 1}
-                                title={title}
-                                artistName={artistName}
-                                score={item.track.score}
+                                track={item.track}
+                                userHasAlreadyVotedForTrack={
+                                    userHasAlreadyVotedForTrack
+                                }
                                 minimumScore={
                                     musicPlayerMachineContext.minimumScoreToBePlayed
                                 }
-                                disabled={userHasAlreadyVotedForTrack}
+                                disabled={disableTrackListItem}
                                 onPress={() => {
                                     sendToMusicPlayerMachine({
                                         type: 'VOTE_FOR_TRACK',

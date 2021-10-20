@@ -1,5 +1,5 @@
 import { drop, factory, primaryKey } from '@mswjs/data';
-import { TrackMetadataWithScore } from '@musicroom/types';
+import { MtvRoomSummary, TrackMetadataWithScore } from '@musicroom/types';
 import { datatype, name, random } from 'faker';
 
 export const db = factory({
@@ -27,6 +27,19 @@ export function generateTrackMetadata(
         duration: 42000 as number,
         title: random.words(),
         score: datatype.number(),
+
+        ...overrides,
+    };
+}
+
+export function generateMtvRoomSummary(
+    overrides?: Partial<MtvRoomSummary>,
+): MtvRoomSummary {
+    return {
+        creatorName: random.word(),
+        isOpen: datatype.boolean(),
+        roomID: datatype.uuid(),
+        roomName: random.words(3),
 
         ...overrides,
     };

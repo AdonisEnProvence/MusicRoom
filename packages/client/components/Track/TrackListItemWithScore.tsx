@@ -1,28 +1,28 @@
 import { AntDesign } from '@expo/vector-icons';
+import { TrackMetadataWithScore } from '@musicroom/types';
 import { Text, useSx, View } from 'dripsy';
 import React from 'react';
 import TrackListItem from './TrackListItem';
 
 interface TrackListItemWithScoreProps {
     index: number;
-    title: string;
-    artistName: string;
-    score: number;
+    track: TrackMetadataWithScore;
     minimumScore: number;
     disabled: boolean;
+    userHasAlreadyVotedForTrack: boolean;
     onPress?: () => void;
 }
 
 const TrackListItemWithScore: React.FC<TrackListItemWithScoreProps> = ({
-    title,
-    artistName,
     index,
-    score,
+    track,
     minimumScore,
+    userHasAlreadyVotedForTrack,
     disabled,
     onPress,
 }) => {
     const sx = useSx();
+    const { artistName, id, title } = track;
     const Score = () => (
         <View
             sx={{
@@ -33,7 +33,7 @@ const TrackListItemWithScore: React.FC<TrackListItemWithScoreProps> = ({
                 paddingLeft: 's',
             }}
         >
-            {disabled && (
+            {userHasAlreadyVotedForTrack && (
                 <AntDesign
                     name="checkcircle"
                     size={24}
@@ -43,7 +43,7 @@ const TrackListItemWithScore: React.FC<TrackListItemWithScoreProps> = ({
                 />
             )}
             <Text sx={{ color: 'greyLighter', paddingLeft: 's' }}>
-                {score}/{minimumScore}
+                {track.score}/{minimumScore}
             </Text>
         </View>
     );
@@ -52,6 +52,7 @@ const TrackListItemWithScore: React.FC<TrackListItemWithScoreProps> = ({
         <TrackListItem
             title={title}
             artistName={artistName}
+            trackID={id}
             index={index}
             disabled={disabled}
             onPress={onPress}

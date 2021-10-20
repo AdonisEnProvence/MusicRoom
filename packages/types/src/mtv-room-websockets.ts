@@ -153,5 +153,5 @@ export interface MtvRoomServerToClientEvents {
         state: MtvWorkflowStateWithUserRelatedInformation,
     ) => void;
     USERS_LIST_FORCED_REFRESH: () => void;
-    RECEIVED_INVITATION: (payload: MtvRoomSummary) => void;
+    RECEIVED_MTV_ROOM_INVITATION: (payload: MtvRoomSummary) => void;
 }

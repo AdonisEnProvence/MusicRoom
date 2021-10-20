@@ -549,7 +549,7 @@ export default class MtvRoomsWsController {
 
         await UserService.emitEventInEveryDeviceUser(
             invitedUserID,
-            'RECEIVED_INVITATION',
+            'RECEIVED_MTV_ROOM_INVITATION',
             [roomSummary],
         );
     }

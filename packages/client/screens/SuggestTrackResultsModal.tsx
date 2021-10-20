@@ -57,6 +57,7 @@ const SuggestTrackResultsModal: React.FC<SearchTrackResultsScreenProps> = ({
                             <TrackListItem
                                 index={index + 1}
                                 title={title}
+                                trackID={id}
                                 artistName={artistName}
                                 onPress={() => {
                                     handleTrackPress(id);

@@ -1,4 +1,4 @@
-import { UserDevice } from '@musicroom/types';
+import { MtvRoomSummary, UserDevice } from '@musicroom/types';
 import {
     getCurrentPositionAsync,
     LocationObject,
@@ -13,6 +13,7 @@ import {
     Receiver,
     send,
     Sender,
+    sendParent,
     State,
     StateMachine,
 } from 'xstate';
@@ -61,6 +62,17 @@ export type AppUserMachineEvent =
           type: 'LOCATION_PERMISSION_DENIED';
       }
     | {
+          type: 'USER_IGNORED_MTV_ROOM_INVITATION';
+      }
+    | {
+          type: 'RECEIVED_MTV_ROOM_INVITATION';
+          invitation: MtvRoomSummary;
+      }
+    | {
+          type: 'USER_ACCEPTED_MTV_ROOM_INVITATION';
+          invitation: MtvRoomSummary;
+      }
+    | {
           type: 'REQUEST_DEDUPLICATE_LOCATION_PERMISSION';
       }
     | {
@@ -99,6 +111,19 @@ export const createUserMachine = ({
                                 devices,
                             });
                         });
+
+                        socket.on(
+                            'RECEIVED_MTV_ROOM_INVITATION',
+                            (invitation) => {
+                                console.log(
+                                    'RECEIVED RECEIVED_MTV_ROOM_INVITATION',
+                                );
+                                sendBack({
+                                    type: 'RECEIVED_MTV_ROOM_INVITATION',
+                                    invitation,
+                                });
+                            },
+                        );
 
                         onReceive((e) => {
                             switch (e.type) {
@@ -246,6 +271,40 @@ export const createUserMachine = ({
                     on: {
                         REQUEST_LOCATION_PERMISSION: {
                             target: '.locationService.requestingLocationPermissions',
+                        },
+                    },
+                },
+
+                mtvRoomInvitationHandler: {
+                    initial: 'idle',
+
+                    states: {
+                        idle: {},
+
+                        displayInvitation: {
+                            invoke: {
+                                src: 'showMtvRoomInvitationToast',
+                            },
+
+                            on: {
+                                USER_ACCEPTED_MTV_ROOM_INVITATION: {
+                                    target: 'idle',
+                                    actions: sendParent((_context, event) => ({
+                                        type: 'JOIN_ROOM',
+                                        roomID: event.invitation.roomID,
+                                    })),
+                                },
+
+                                USER_IGNORED_MTV_ROOM_INVITATION: {
+                                    target: 'idle',
+                                },
+                            },
+                        },
+                    },
+
+                    on: {
+                        RECEIVED_MTV_ROOM_INVITATION: {
+                            target: 'mtvRoomInvitationHandler.displayInvitation',
                         },
                     },
                 },

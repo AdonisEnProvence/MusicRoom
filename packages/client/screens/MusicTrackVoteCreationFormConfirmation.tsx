@@ -143,6 +143,7 @@ const MusicTrackVoteCreationFormConfirmation: React.FC<
                                                 index,
                                             ) => (
                                                 <TrackListItem
+                                                    trackID={id}
                                                     index={index}
                                                     key={id}
                                                     title={title}

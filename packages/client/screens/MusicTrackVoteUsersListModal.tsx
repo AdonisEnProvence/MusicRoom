@@ -21,11 +21,11 @@ import { createRoomUsersListMachine } from '../machines/roomUsersListMachine';
 import { assertEventType } from '../machines/utils';
 import { MusicTrackVoteUsersListModalProps } from '../types';
 
-interface InviteFriendButtonProps {
+interface InviteUserButtonProps {
     onInviteUser: () => void;
 }
 
-const InviteFriendButton: React.FC<InviteFriendButtonProps> = ({
+const InviteUserButton: React.FC<InviteUserButtonProps> = ({
     onInviteUser,
 }) => {
     return (
@@ -145,9 +145,11 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                 sendToSearch={sendToSearch}
                 goBack={handleGoBack}
                 HeaderActionRight={
-                    <InviteFriendButton
-                        onInviteUser={handleInviteUserButtonPressed}
-                    />
+                    deviceOwnerIsRoomCreator === true ? (
+                        <InviteUserButton
+                            onInviteUser={handleInviteUserButtonPressed}
+                        />
+                    ) : undefined
                 }
             >
                 <FlatList

@@ -7,12 +7,19 @@ import { datatype, internet } from 'faker';
 import { NavigationContainer } from '@react-navigation/native';
 import { UserSummary } from '@musicroom/types';
 import {
+    fireEvent,
+    noop,
+    render,
+    within,
+    waitFor,
+    getFakeUsersList,
+} from '../tests/tests-utils';
+import {
     db,
     generateArray,
     generateMtvWorklowState,
     generateUserSummary,
 } from '../tests/data';
-import { fireEvent, noop, render, within, waitFor } from '../tests/tests-utils';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { friends } from '../services/UsersSearchService';
@@ -25,32 +32,27 @@ interface TestingContext {
 const FRIENDS_PAGE_LENGTH = 10;
 const USERS_PAGE_LENGTH = 10;
 
-const fakeFriends = generateArray(
-    datatype.number({
-        min: 30,
-        max: 39,
-    }),
-    generateUserSummary,
-);
+const fakeFriends = generateArray({
+    minLength: 30,
+    maxLength: 39,
+    fill: generateUserSummary,
+});
 const fakeFriendsPagesCount = Math.floor(
     fakeFriends.length / FRIENDS_PAGE_LENGTH + 1,
 );
 
 const fakeUsers = [
-    ...generateArray(
-        datatype.number({
-            min: 10,
-            max: 19,
-        }),
-        () => generateUserSummary({ nickname: `A${internet.userName()}` }),
-    ),
-    ...generateArray(
-        datatype.number({
-            min: 10,
-            max: 19,
-        }),
-        generateUserSummary,
-    ),
+    ...generateArray({
+        minLength: 10,
+        maxLength: 19,
+        fill: () =>
+            generateUserSummary({ nickname: `A${internet.userName()}` }),
+    }),
+    ...generateArray({
+        minLength: 10,
+        maxLength: 19,
+        fill: generateUserSummary,
+    }),
 ];
 
 function filterUsersByNickname(
@@ -351,6 +353,10 @@ describe('Display friends and search users', () => {
                     const initialState = generateMtvWorklowState({
                         userType: 'CREATOR',
                     });
+                    const fakeUsersArray = getFakeUsersList({
+                        directMode: false,
+                        isMeIsCreator: true,
+                    });
 
                     friends.length = 0;
                     friends.push(...fakeFriends);
@@ -361,6 +367,10 @@ describe('Display friends and search users', () => {
 
                     serverSocket.on('GET_CONTEXT', () => {
                         serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+                    });
+
+                    serverSocket.on('GET_USERS_LIST', (cb) => {
+                        cb(fakeUsersArray);
                     });
 
                     const screen = render(
@@ -442,4 +452,57 @@ describe('Display friends and search users', () => {
             filter: (state) => typeof state.meta?.test === 'function',
         });
     });
+});
+
+test('Users outside of creator can not access to users search', async () => {
+    const initialState = generateMtvWorklowState({
+        userType: 'USER',
+    });
+
+    serverSocket.on('GET_CONTEXT', () => {
+        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    });
+
+    const screen = render(
+        <NavigationContainer
+            ref={navigationRef}
+            onReady={() => {
+                isReadyRef.current = true;
+            }}
+        >
+            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
+        </NavigationContainer>,
+    );
+
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+    const musicPlayerMini = screen.getByTestId('music-player-mini');
+    expect(musicPlayerMini).toBeTruthy();
+
+    const miniPlayerTrackTitle = await within(musicPlayerMini).findByText(
+        `${initialState.currentTrack?.title} • ${initialState.currentTrack?.artistName}`,
+    );
+    expect(miniPlayerTrackTitle).toBeTruthy();
+
+    fireEvent.press(miniPlayerTrackTitle);
+
+    const musicPlayerFullScreen = await screen.findByA11yState({
+        expanded: true,
+    });
+    expect(musicPlayerFullScreen).toBeTruthy();
+
+    const listenersButton = within(musicPlayerFullScreen).getByText(
+        /listeners/i,
+    );
+    expect(listenersButton).toBeTruthy();
+
+    fireEvent.press(listenersButton);
+
+    await waitFor(() => {
+        const usersListScreen = screen.getByText(/users.*list/i);
+        expect(usersListScreen).toBeTruthy();
+    });
+
+    const inviteUserButton = screen.queryByA11yLabel(/invite.*user/i);
+    expect(inviteUserButton).toBeNull();
 });

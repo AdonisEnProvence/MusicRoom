@@ -5,17 +5,14 @@ import {
 } from '@musicroom/types';
 import urlcat from 'urlcat';
 import redaxios from 'redaxios';
-import { datatype } from 'faker';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
 import { generateArray, generateUserSummary } from '../tests/data';
 
-export const friends = generateArray(
-    datatype.number({
-        min: 30,
-        max: 39,
-    }),
-    generateUserSummary,
-);
+export const friends = generateArray({
+    minLength: 30,
+    maxLength: 39,
+    fill: generateUserSummary,
+});
 
 interface FetchFriendsArgs {
     page: number;

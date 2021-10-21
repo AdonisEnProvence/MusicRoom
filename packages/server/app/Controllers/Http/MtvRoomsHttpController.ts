@@ -48,12 +48,23 @@ export default class MtvRoomsHttpController {
                     )
                     .as('derivated_table'),
             )
-            .where('derivated_table.roomName', 'ilike', `${searchQuery}%`)
             .where((query) => {
                 query.where('derivated_table.isOpen', false);
-                query.where('derivated_table.isInvited', true);
+                query.andWhere('derivated_table.isInvited', true);
+                query.andWhere(
+                    'derivated_table.roomName',
+                    'ilike',
+                    `${searchQuery}%`,
+                );
             })
-            .orWhere('derivated_table.isOpen', true)
+            .orWhere((query) => {
+                query.where('derivated_table.isOpen', true);
+                query.andWhere(
+                    'derivated_table.roomName',
+                    'ilike',
+                    `${searchQuery}%`,
+                );
+            })
             .orderBy([
                 {
                     column: 'derivated_table.isInvited',
@@ -71,7 +82,12 @@ export default class MtvRoomsHttpController {
         const hasMoreRoomsToLoad = roomsPagination.hasMorePages;
         const formattedRooms: MtvRoomSummary[] = roomsPagination
             .all()
-            .map((room) => MtvRoomSummary.parse(room));
+            .map((room) => {
+                return MtvRoomSummary.parse({
+                    ...room,
+                    isInvited: room.isInvited === null ? false : room.isInvited,
+                });
+            });
         console.log('*******');
         console.log(formattedRooms);
         console.log('*******');

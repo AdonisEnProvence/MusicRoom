@@ -547,6 +547,7 @@ export default class MtvRoomsWsController {
             isOpen: room.isOpen,
             roomID: room.uuid,
             roomName: room.name,
+            isInvited: true,
         };
 
         await UserService.emitEventInEveryDeviceUser(

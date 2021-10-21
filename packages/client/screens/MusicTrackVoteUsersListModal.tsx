@@ -31,7 +31,12 @@ const InviteFriendButton: React.FC<InviteFriendButtonProps> = ({
     return (
         <AppScreenHeaderActionButton>
             <TouchableOpacity onPress={onInviteUser}>
-                <AntDesign name="adduser" size={24} color="white" />
+                <AntDesign
+                    name="adduser"
+                    size={24}
+                    color="white"
+                    accessibilityLabel="Invite a user"
+                />
             </TouchableOpacity>
         </AppScreenHeaderActionButton>
     );

@@ -6,11 +6,17 @@ import * as z from 'zod';
 import { datatype, internet } from 'faker';
 import { NavigationContainer } from '@react-navigation/native';
 import { UserSummary } from '@musicroom/types';
-import { fireEvent, noop, render } from '../tests/tests-utils';
-import { db, generateArray, generateUserSummary } from '../tests/data';
+import {
+    db,
+    generateArray,
+    generateMtvWorklowState,
+    generateUserSummary,
+} from '../tests/data';
+import { fireEvent, noop, render, within, waitFor } from '../tests/tests-utils';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { friends } from '../services/UsersSearchService';
+import { serverSocket } from '../services/websockets';
 
 interface TestingContext {
     screen: ReturnType<typeof render>;
@@ -300,7 +306,7 @@ const mtvRoomUsersSearchTestingModel = createTestingModel<
         exec: async ({ screen }, event) => {
             const { nickname } = SearchUsersByNicknameEvent.parse(event);
 
-            const searchUsersInput = await screen.findByPlaceholderText(
+            const [, searchUsersInput] = await screen.findAllByPlaceholderText(
                 /search.*user.*by.*name/i,
             );
             expect(searchUsersInput).toBeTruthy();
@@ -342,12 +348,20 @@ describe('Display friends and search users', () => {
         describe(plan.description, () => {
             plan.paths.forEach((path) => {
                 it(path.description, async () => {
+                    const initialState = generateMtvWorklowState({
+                        userType: 'CREATOR',
+                    });
+
                     friends.length = 0;
                     friends.push(...fakeFriends);
 
                     for (const fakeUser of fakeUsers) {
                         db.searchableUsers.create(fakeUser);
                     }
+
+                    serverSocket.on('GET_CONTEXT', () => {
+                        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+                    });
 
                     const screen = render(
                         <NavigationContainer
@@ -367,17 +381,50 @@ describe('Display friends and search users', () => {
                         screen.getAllByText(/home/i).length,
                     ).toBeGreaterThanOrEqual(1);
 
-                    const goToUsersSearchButton = screen.getByText(
-                        /go.*to.*users.*search/i,
-                    );
-                    expect(goToUsersSearchButton).toBeTruthy();
+                    const musicPlayerMini =
+                        screen.getByTestId('music-player-mini');
+                    expect(musicPlayerMini).toBeTruthy();
 
-                    fireEvent.press(goToUsersSearchButton);
-
-                    const usersSearchInput = await screen.findByPlaceholderText(
-                        /search.*user.*by.*name/i,
+                    const miniPlayerTrackTitle = await within(
+                        musicPlayerMini,
+                    ).findByText(
+                        `${initialState.currentTrack?.title} • ${initialState.currentTrack?.artistName}`,
                     );
-                    expect(usersSearchInput).toBeTruthy();
+                    expect(miniPlayerTrackTitle).toBeTruthy();
+
+                    fireEvent.press(miniPlayerTrackTitle);
+
+                    const musicPlayerFullScreen = await screen.findByA11yState({
+                        expanded: true,
+                    });
+                    expect(musicPlayerFullScreen).toBeTruthy();
+
+                    const listenersButton = within(
+                        musicPlayerFullScreen,
+                    ).getByText(/listeners/i);
+                    expect(listenersButton).toBeTruthy();
+
+                    fireEvent.press(listenersButton);
+
+                    await waitFor(() => {
+                        const usersListScreen =
+                            screen.getByText(/users.*list/i);
+                        expect(usersListScreen).toBeTruthy();
+                    });
+
+                    const inviteUserButton =
+                        screen.getByA11yLabel(/invite.*user/i);
+                    expect(inviteUserButton).toBeTruthy();
+
+                    fireEvent.press(inviteUserButton);
+
+                    await waitFor(() => {
+                        const [, usersSearchInput] =
+                            screen.getAllByPlaceholderText(
+                                /search.*user.*by.*name/i,
+                            );
+                        expect(usersSearchInput).toBeTruthy();
+                    });
 
                     await path.test({
                         screen,

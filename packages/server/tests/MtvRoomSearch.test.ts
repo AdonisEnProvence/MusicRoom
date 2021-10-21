@@ -4,6 +4,7 @@ import {
     MtvRoomSearchResponse,
 } from '@musicroom/types';
 import MtvRoom from 'App/Models/MtvRoom';
+import MtvRoomInvitation from 'App/Models/MtvRoomInvitation';
 import User from 'App/Models/User';
 import { datatype, internet, random } from 'faker';
 import test from 'japa';
@@ -33,17 +34,26 @@ test.group('MtvRoom Search Engine', (group) => {
             .expect(500);
     });
 
-    test('Rooms are paginated', async (assert) => {
+    test.only('Rooms are paginated', async (assert) => {
         const PAGE_MAX_LENGTH = 10;
+        const userID = datatype.uuid();
+        const creatorUserID = datatype.uuid();
+
         const creator = await User.create({
-            uuid: datatype.uuid(),
+            uuid: creatorUserID,
             nickname: internet.userName(),
         });
+        const invitedUser = await User.create({
+            uuid: userID,
+            nickname: internet.userName(),
+        });
+
         const roomsCount = datatype.number({
             min: 11,
             max: 15,
         });
-        await MtvRoom.createMany(
+
+        const rooms = await MtvRoom.createMany(
             generateArray(roomsCount, () => ({
                 uuid: datatype.uuid(),
                 runID: datatype.uuid(),
@@ -52,12 +62,26 @@ test.group('MtvRoom Search Engine', (group) => {
                 isOpen: datatype.boolean(),
             })),
         );
+        const firstPrivateRoom = rooms.find((room) => !room.isOpen);
+        if (firstPrivateRoom === undefined) {
+            throw new Error('could fint a private room');
+        }
+
+        const invitation = await MtvRoomInvitation.firstOrCreate({
+            mtvRoomID: firstPrivateRoom.uuid,
+            invitedUserID: invitedUser.uuid,
+            invitingUserID: creator.uuid,
+        });
+
+        console.log(creator.nickname);
+        await firstPrivateRoom.related('invitations').save(invitation);
 
         const { body: firstPageBodyRaw } = await supertest(BASE_URL)
             .post('/search/rooms')
             .send({
                 page: 1,
                 searchQuery: '',
+                userID,
             } as MtvRoomSearchRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
@@ -73,6 +97,7 @@ test.group('MtvRoom Search Engine', (group) => {
             .send({
                 page: 2,
                 searchQuery: '',
+                userID,
             } as MtvRoomSearchRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);

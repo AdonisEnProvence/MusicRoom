@@ -128,17 +128,10 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
 
         states: {
             searchBar: {
-                invoke: [
-                    {
-                        id: 'searchBarMachine',
-                        src: appScreenHeaderWithSearchBarMachine,
-                    },
-                    {
-                        src: () => () => {
-                            console.log('root service reinvoked');
-                        },
-                    },
-                ],
+                invoke: {
+                    id: 'searchBarMachine',
+                    src: appScreenHeaderWithSearchBarMachine,
+                },
             },
 
             users: {
@@ -444,6 +437,8 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
             fetchUsers:
                 ({ searchQuery, filteredUsersPage }) =>
                 async (sendBack) => {
+                    console.log('in fetch users service');
+
                     try {
                         const {
                             data: users,

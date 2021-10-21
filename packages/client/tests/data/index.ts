@@ -1,6 +1,7 @@
 import { drop, factory, primaryKey } from '@mswjs/data';
 import {
     MtvRoomSummary,
+    MtvWorkflowState,
     TrackMetadataWithScore,
     UserSummary,
 } from '@musicroom/types';
@@ -65,6 +66,71 @@ export function generateUserSummary(
 
         ...overrides,
     };
+}
+
+interface GenerateMtvWorklowStateArgs {
+    userType: 'CREATOR';
+
+    overrides?: Partial<MtvWorkflowState>;
+}
+
+function generateMtvWorkflowStateForRoomCreator(
+    overrides?: Partial<MtvWorkflowState>,
+): MtvWorkflowState {
+    const tracksList = generateArray(
+        datatype.number({
+            min: 2,
+            max: 6,
+        }),
+        generateTrackMetadata,
+    );
+    const roomCreatorUserID = datatype.uuid();
+
+    return {
+        name: random.words(),
+        roomID: datatype.uuid(),
+        playing: false,
+        roomCreatorUserID,
+        usersLength: 1,
+        playingMode: 'BROADCAST',
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanVote: false,
+        hasTimeAndPositionConstraints: false,
+        delegationOwnerUserID: null,
+        timeConstraintIsValid: null,
+        userRelatedInformation: {
+            hasControlAndDelegationPermission: true,
+            userFitsPositionConstraint: null,
+            userHasBeenInvited: false,
+            emittingDeviceID: datatype.uuid(),
+            userID: roomCreatorUserID,
+            tracksVotedFor: [],
+        },
+        currentTrack: {
+            ...tracksList[0],
+            elapsed: 0,
+        },
+        tracks: tracksList.slice(1),
+        minimumScoreToBePlayed: 1,
+
+        ...overrides,
+    };
+}
+
+export function generateMtvWorklowState({
+    userType,
+
+    overrides,
+}: GenerateMtvWorklowStateArgs): MtvWorkflowState {
+    switch (userType) {
+        case 'CREATOR': {
+            return generateMtvWorkflowStateForRoomCreator(overrides);
+        }
+
+        default: {
+            throw new Error('Reached unreachable state');
+        }
+    }
 }
 
 export function generateArray<Item>(length: number, fill: () => Item): Item[] {

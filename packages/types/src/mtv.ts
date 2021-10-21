@@ -83,6 +83,7 @@ export const MtvRoomSummary = z.object({
     roomID: z.string(),
     roomName: z.string(),
     creatorName: z.string(),
+    isInvited: z.boolean(),
     isOpen: z.boolean(),
 });
 export type MtvRoomSummary = z.infer<typeof MtvRoomSummary>;

@@ -6,6 +6,7 @@ import {
     MtvRoomSummary,
 } from '@musicroom/types';
 import MtvRoom from 'App/Models/MtvRoom';
+import MtvRoomInvitation from 'App/Models/MtvRoomInvitation';
 import User from 'App/Models/User';
 
 const MTV_ROOMS_SEARCH_LIMIT = 10;
@@ -23,47 +24,44 @@ export default class MtvRoomsHttpController {
         const { searchQuery, page, userID } =
             MtvRoomSearchRequestBody.parse(rawBody);
 
-        // Database.raw(
-        //     `
-        //     (SELECT mtv_room_invitations.invited_user_id = ? AND mtv_room_invitations.mtv_room_id = mtv_rooms_uuid AS isInvited)
-        //     `,
-        //     [userID],
-        // ),
-
-        // const rooms = await Database.query().from('mtv_rooms').select;
-        // .with('aliased_table', (query) => {
-        //     query.from('users').select('*')
-        //   })
-        //   .select('*')
-        //   .from('aliased_table')
-
-        const roomsPagination = await MtvRoom.query()
-            .preload('invitations')
-            .select(
-                'uuid',
-                'name',
-                'is_open',
-                User.query()
-                    .select('nickname')
-                    .whereColumn('users.uuid', 'mtv_rooms.creator')
-                    .as('creatorName'),
-                Database.raw(
-                    `
-                    (SELECT mtv_room_invitations.invited_user_id = ? AND mtv_room_invitations.mtv_room_id = mtv_rooms.uuid AS isInvited FROM mtv_room_invitations)
-                    `,
-                    [userID],
-                ),
+        const roomsPagination = await Database.query()
+            .select('*')
+            .from(
+                MtvRoom.query()
+                    .preload('invitations')
+                    .select(
+                        'uuid as roomID',
+                        'name as roomName',
+                        'is_open as isOpen',
+                        User.query()
+                            .select('nickname')
+                            .whereColumn('users.uuid', 'mtv_rooms.creator')
+                            .as('creatorName'),
+                        MtvRoomInvitation.query()
+                            .select(
+                                Database.raw(
+                                    `mtv_room_invitations.invited_user_id = ? AND mtv_room_invitations.mtv_room_id = mtv_rooms.uuid`,
+                                    [userID],
+                                ),
+                            )
+                            .as('isInvited'),
+                    )
+                    .as('derivated_table'),
             )
-            .where('name', 'ilike', `${searchQuery}%`)
-            .where('is_open', false)
-            .whereHas('invitations', (query) => {
-                query.where('invited_user_id', userID);
+            .where('derivated_table.roomName', 'ilike', `${searchQuery}%`)
+            .where((query) => {
+                query.where('derivated_table.isOpen', false);
+                query.where('derivated_table.isInvited', true);
             })
-            .orWhere('is_open', true)
+            .orWhere('derivated_table.isOpen', true)
             .orderBy([
                 {
-                    column: 'is_open',
-                    order: 'asc',
+                    column: 'derivated_table.isInvited',
+                    order: 'desc',
+                },
+                {
+                    column: 'derivated_table.isOpen',
+                    order: 'desc',
                 },
             ])
             .debug(true)
@@ -73,15 +71,7 @@ export default class MtvRoomsHttpController {
         const hasMoreRoomsToLoad = roomsPagination.hasMorePages;
         const formattedRooms: MtvRoomSummary[] = roomsPagination
             .all()
-            .map((room) => {
-                console.log(room.$extras);
-                return {
-                    creatorName: room.$extras.creatorName as string,
-                    isOpen: room.isOpen,
-                    roomID: room.uuid,
-                    roomName: room.name,
-                };
-            });
+            .map((room) => MtvRoomSummary.parse(room));
         console.log('*******');
         console.log(formattedRooms);
         console.log('*******');

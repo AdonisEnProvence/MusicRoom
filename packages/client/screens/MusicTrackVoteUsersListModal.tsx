@@ -25,12 +25,12 @@ interface InviteFriendButtonProps {
     onInviteUser: () => void;
 }
 
-const InviteFriendButton: React.FC<InviteFriendButtonProps> = () => {
-    const sx = useSx();
-
+const InviteFriendButton: React.FC<InviteFriendButtonProps> = ({
+    onInviteUser,
+}) => {
     return (
         <AppScreenHeaderActionButton>
-            <TouchableOpacity style={sx({})}>
+            <TouchableOpacity onPress={onInviteUser}>
                 <AntDesign name="adduser" size={24} color="white" />
             </TouchableOpacity>
         </AppScreenHeaderActionButton>
@@ -121,7 +121,9 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
         ///
 
         function handleInviteUserButtonPressed() {
-            return undefined;
+            navigation.navigate('MusicTrackVoteUsersSearch', {
+                screen: 'MusicTrackVoteUsersSearchModal',
+            });
         }
 
         const searchQueryIsNotEmpty = usersListState.context.searchQuery !== '';

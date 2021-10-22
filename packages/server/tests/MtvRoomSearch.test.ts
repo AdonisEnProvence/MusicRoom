@@ -9,7 +9,7 @@ import User from 'App/Models/User';
 import { datatype, internet, random } from 'faker';
 import test from 'japa';
 import supertest from 'supertest';
-import { BASE_URL } from './utils/TestUtils';
+import { BASE_URL, initTestUtils } from './utils/TestUtils';
 
 function generateArray<Item>(
     length: number,
@@ -19,11 +19,21 @@ function generateArray<Item>(
 }
 
 test.group('MtvRoom Search Engine', (group) => {
+    const {
+        disconnectEveryRemainingSocketConnection,
+        initSocketConnection,
+        createSocketConnection,
+        createUserAndGetSocket,
+        waitFor,
+    } = initTestUtils();
+
     group.beforeEach(async () => {
+        initSocketConnection();
         await Database.beginGlobalTransaction();
     });
 
     group.afterEach(async () => {
+        await disconnectEveryRemainingSocketConnection();
         await Database.rollbackGlobalTransaction();
     });
 
@@ -177,5 +187,146 @@ test.group('MtvRoom Search Engine', (group) => {
         assert.equal(pageBodyParsed.totalEntries, 1);
         assert.isFalse(pageBodyParsed.hasMore);
         assert.isEmpty(pageBodyParsed.data);
+    });
+
+    test('Rooms should be ordered by private room first, public but invited room in second and then some public rooms', async (assert) => {
+        const PAGE_MAX_LENGTH = 10;
+        const userID = datatype.uuid();
+        const creatorUserID = datatype.uuid();
+
+        await createUserAndGetSocket({
+            userID: creatorUserID,
+        });
+        await createUserAndGetSocket({
+            userID,
+        });
+
+        let roomsCount = datatype.number({
+            min: 12,
+            max: 22,
+        });
+
+        //To make it easier to determine and understand how
+        //many entries we expect we want roomsCount to be even
+        //from now
+        const roomsCountsIsOdd = roomsCount % 2 !== 0;
+        if (roomsCountsIsOdd) {
+            roomsCount++;
+        }
+
+        const publicRoomCount = roomsCount / 2;
+        let privateRoomWithInvitationCount = 0;
+
+        //Rooms with even index will be public room
+        const rooms = await MtvRoom.createMany(
+            generateArray(roomsCount, (index) => {
+                const isIndexEven = index % 2 === 0;
+                const isIndexZero = index === 0;
+
+                return {
+                    uuid: datatype.uuid(),
+                    runID: datatype.uuid(),
+                    name: random.words(2),
+                    //Adding some complexity to the query
+                    creatorID: isIndexZero ? userID : creatorUserID,
+                    isOpen: isIndexEven,
+                };
+            }),
+        );
+
+        //Public room with invitation
+        const publicRoom = rooms[10];
+        const firstInvitationForPublicRoom = await MtvRoomInvitation.create({
+            mtvRoomID: publicRoom.uuid,
+            invitedUserID: userID,
+            invitingUserID: creatorUserID,
+            uuid: datatype.uuid(),
+        });
+        await publicRoom
+            .related('invitations')
+            .save(firstInvitationForPublicRoom);
+
+        //Private room with invitation
+        const privateRoom = rooms[7];
+        const firstInvitationForPrivateRoom = await MtvRoomInvitation.create({
+            mtvRoomID: privateRoom.uuid,
+            invitedUserID: userID,
+            invitingUserID: creatorUserID,
+            uuid: datatype.uuid(),
+        });
+        await privateRoom
+            .related('invitations')
+            .save(firstInvitationForPrivateRoom);
+        privateRoomWithInvitationCount++;
+
+        const secondPrivateRoom = rooms[11];
+        const secondInvitationForPrivateRoom = await MtvRoomInvitation.create({
+            mtvRoomID: secondPrivateRoom.uuid,
+            invitedUserID: userID,
+            invitingUserID: creatorUserID,
+            uuid: datatype.uuid(),
+        });
+        await secondPrivateRoom
+            .related('invitations')
+            .save(secondInvitationForPrivateRoom);
+        privateRoomWithInvitationCount++;
+        ///
+
+        const { body: firstPageBodyRaw } = await supertest(BASE_URL)
+            .post('/search/rooms')
+            .send({
+                page: 1,
+                searchQuery: '',
+                userID,
+            } as MtvRoomSearchRequestBody)
+            .expect('Content-Type', /json/)
+            .expect(200);
+        const firstPageBodyParsed =
+            MtvRoomSearchResponse.parse(firstPageBodyRaw);
+
+        //Pagination assertions
+        const expectedEntries =
+            privateRoomWithInvitationCount + publicRoomCount;
+        const shouldHasMore = expectedEntries > 10;
+        assert.equal(firstPageBodyParsed.hasMore, shouldHasMore);
+        assert.equal(firstPageBodyParsed.page, 1);
+        assert.equal(firstPageBodyParsed.totalEntries, expectedEntries);
+        assert.isFalse(firstPageBodyParsed.data.length > PAGE_MAX_LENGTH);
+
+        //Results assertions
+        const expectedFirstPageBodyParsedRoomID = (
+            index: number,
+            expectedValues: string[],
+        ): boolean => {
+            const invalidIndex = index < 0 || index > roomsCount - 1;
+            assert.isFalse(invalidIndex);
+            if (invalidIndex) {
+                throw new Error('invalid index');
+            }
+
+            return expectedValues.some(
+                (expectedValue) =>
+                    firstPageBodyParsed.data[index].roomID === expectedValue,
+            );
+        };
+
+        assert.isTrue(
+            expectedFirstPageBodyParsedRoomID(0, [
+                privateRoom.uuid,
+                secondPrivateRoom.uuid,
+            ]),
+        );
+        assert.isTrue(
+            expectedFirstPageBodyParsedRoomID(1, [
+                privateRoom.uuid,
+                secondPrivateRoom.uuid,
+            ]),
+        );
+        assert.isTrue(expectedFirstPageBodyParsedRoomID(2, [publicRoom.uuid]));
+
+        const firstPublicAndNotInvitedRoom = firstPageBodyParsed.data[3];
+        assert.isFalse(firstPublicAndNotInvitedRoom.isInvited);
+        assert.isTrue(firstPublicAndNotInvitedRoom.isOpen);
+        ///
     });
 });

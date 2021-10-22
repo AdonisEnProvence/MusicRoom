@@ -28,51 +28,47 @@ export default class MtvRoomsHttpController {
             .select('*')
             .from(
                 MtvRoom.query()
-                    .preload('invitations')
                     .select(
                         'uuid as roomID',
                         'name as roomName',
                         'is_open as isOpen',
+                        MtvRoomInvitation.query()
+                            .where(
+                                'mtv_room_invitations.invited_user_id',
+                                userID,
+                            )
+                            .whereColumn(
+                                'mtv_room_invitations.inviting_user_id',
+                                'mtv_rooms.creator',
+                            )
+                            .whereColumn(
+                                'mtv_room_invitations.mtv_room_id',
+                                'mtv_rooms.uuid',
+                            )
+                            .select(`mtv_room_invitations.uuid`)
+                            .as('invitationID'),
                         User.query()
                             .select('nickname')
-                            .whereColumn('users.uuid', 'mtv_rooms.creator')
+                            .whereColumn('mtv_rooms.creator', 'users.uuid')
                             .as('creatorName'),
-                        MtvRoomInvitation.query()
-                            .select(
-                                Database.raw(
-                                    `mtv_room_invitations.invited_user_id = ? AND mtv_room_invitations.mtv_room_id = mtv_rooms.uuid`,
-                                    [userID],
-                                ),
-                            )
-                            .as('isInvited'),
                     )
+                    .where('name', 'ilike', `${searchQuery}%`)
+                    .debug(true)
                     .as('derivated_table'),
             )
             .where((query) => {
                 query.where('derivated_table.isOpen', false);
-                query.andWhere('derivated_table.isInvited', true);
-                query.andWhere(
-                    'derivated_table.roomName',
-                    'ilike',
-                    `${searchQuery}%`,
-                );
+                query.andWhereNotNull('derivated_table.invitationID');
             })
-            .orWhere((query) => {
-                query.where('derivated_table.isOpen', true);
-                query.andWhere(
-                    'derivated_table.roomName',
-                    'ilike',
-                    `${searchQuery}%`,
-                );
-            })
+            .orWhere('derivated_table.isOpen', true)
             .orderBy([
                 {
-                    column: 'derivated_table.isInvited',
-                    order: 'desc',
+                    column: 'derivated_table.isOpen',
+                    order: 'asc',
                 },
                 {
-                    column: 'derivated_table.isOpen',
-                    order: 'desc',
+                    column: 'derivated_table.invitationID',
+                    order: 'asc',
                 },
             ])
             .debug(true)
@@ -83,15 +79,12 @@ export default class MtvRoomsHttpController {
         const formattedRooms: MtvRoomSummary[] = roomsPagination
             .all()
             .map((room) => {
+                const { invitationID, ...rest } = room;
                 return MtvRoomSummary.parse({
-                    ...room,
-                    isInvited: room.isInvited === null ? false : room.isInvited,
+                    ...rest,
+                    isInvited: room.invitationID !== null,
                 });
             });
-        console.log('*******');
-        console.log(formattedRooms);
-        console.log('*******');
-
         return {
             page,
             hasMore: hasMoreRoomsToLoad,

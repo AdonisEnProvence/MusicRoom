@@ -7,6 +7,7 @@ import { ActorRef } from 'xstate';
 import { AppScreenWithSearchBar } from '../components/kit';
 import UserListItem from '../components/User/UserListItem';
 import { IS_TEST } from '../constants/Env';
+import { useMusicPlayerSend } from '../hooks/musicPlayerHooks';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
@@ -34,6 +35,7 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
         const sx = useSx();
         const insets = useSafeAreaInsets();
         const [screenOffsetY, setScreenOffsetY] = useState(0);
+        const sendToMusicPlayer = useMusicPlayerSend();
 
         const [state, send] = useMachine(roomUsersSearchMachine);
 
@@ -68,6 +70,15 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
             send({
                 type: 'FETCH_MORE',
             });
+        }
+
+        function handleUserCardPressed(userID: string) {
+            return () => {
+                sendToMusicPlayer({
+                    type: 'CREATOR_INVITE_USER',
+                    invitedUserID: userID,
+                });
+            };
         }
 
         return (
@@ -113,6 +124,7 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
                                             userID,
                                         }}
                                         index={index}
+                                        onPress={handleUserCardPressed(userID)}
                                     />
                                 </View>
                             );

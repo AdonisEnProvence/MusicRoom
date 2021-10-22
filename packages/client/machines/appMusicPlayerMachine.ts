@@ -122,6 +122,7 @@ export type AppMusicPlayerMachineEvent =
           type: 'RECEIVED_CHAT_MESSAGE';
           message: MtvRoomChatMessage;
       }
+    | { type: 'CREATOR_INVITE_USER'; invitedUserID: string }
     | CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents;
 
 interface CreateAppMusicPlayerMachineArgs {
@@ -384,6 +385,16 @@ export const createAppMusicPlayerMachine = ({
                                 case 'SEND_CHAT_MESSAGE': {
                                     socket.emit('NEW_MESSAGE', {
                                         message: event.message,
+                                    });
+
+                                    break;
+                                }
+
+                                case 'CREATOR_INVITE_USER': {
+                                    const { invitedUserID } = event;
+
+                                    socket.emit('CREATOR_INVITE_USER', {
+                                        invitedUserID,
                                     });
 
                                     break;
@@ -1022,6 +1033,10 @@ export const createAppMusicPlayerMachine = ({
                                             ];
                                         },
                                     }),
+                                },
+
+                                CREATOR_INVITE_USER: {
+                                    actions: forwardTo('socketConnection'),
                                 },
                             },
                         },

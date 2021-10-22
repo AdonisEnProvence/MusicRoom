@@ -13,7 +13,6 @@ import { Text, useDripsyTheme, View } from 'dripsy';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ColorModeProps } from '.';
 import TheMusicPlayer from '../components/TheMusicPlayer';
 import { tabStyle } from '../constants/Colors';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
@@ -25,6 +24,7 @@ import {
     HomeParamsList,
     SearchTracksParamsList,
 } from '../types';
+import { ColorModeProps } from '.';
 
 const Tab = createBottomTabNavigator<BottomTabNavigatorParamList>();
 

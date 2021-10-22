@@ -30,10 +30,10 @@ import {
     RootStackParamList,
     SuggestTrackStackParamList,
 } from '../types';
+import MusicTrackVoteUsersSearchModal from '../screens/MusicTrackVoteUsersSearchModal';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
-import MusicTrackVoteUsersSearchModal from '../screens/MusicTrackVoteUsersSearchModal';
 
 export interface ColorModeProps {
     toggleColorScheme: () => void;

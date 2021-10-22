@@ -3,12 +3,12 @@ import { useSx, View } from 'dripsy';
 import { View as MotiView } from 'moti';
 import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import AppScreenHeaderTitle from './AppScreenHeaderTitle';
-import { useLayout } from '../../hooks/useLayout';
-import AppScreenHeaderSearchBar from './AppScreenHeaderSearchBar';
-import { AppScreenHeaderWithSearchBarMachineEvent } from '../../machines/appScreenHeaderWithSearchBarMachine';
 import { Sender } from '@xstate/react/lib/types';
+import { useLayout } from '../../hooks/useLayout';
+import { AppScreenHeaderWithSearchBarMachineEvent } from '../../machines/appScreenHeaderWithSearchBarMachine';
 import { GLOBAL_THEME_CONSTANTS } from '../../hooks/useTheme';
+import AppScreenHeaderTitle from './AppScreenHeaderTitle';
+import AppScreenHeaderSearchBar from './AppScreenHeaderSearchBar';
 
 type AppScreenHeaderWithSearchBarPropsBase = {
     insetTop: number;

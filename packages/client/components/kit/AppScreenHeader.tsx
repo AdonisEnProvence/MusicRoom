@@ -1,8 +1,8 @@
 import React from 'react';
 import { useSx, View } from 'dripsy';
-import AppScreenHeaderTitle from './AppScreenHeaderTitle';
 import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AppScreenHeaderTitle from './AppScreenHeaderTitle';
 
 type AppScreenHeaderPropsBase = {
     insetTop: number;

@@ -4,10 +4,10 @@ import {
     UserSummary,
 } from '@musicroom/types';
 import urlcat from 'urlcat';
-import { SERVER_ENDPOINT } from '../constants/Endpoints';
 import redaxios from 'redaxios';
-import { generateArray, generateUserSummary } from '../tests/data';
 import { datatype } from 'faker';
+import { SERVER_ENDPOINT } from '../constants/Endpoints';
+import { generateArray, generateUserSummary } from '../tests/data';
 
 export const friends = generateArray(
     datatype.number({

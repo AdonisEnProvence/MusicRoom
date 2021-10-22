@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import {
     MAX_CHAT_MESSAGE_LENGTH,
     MtvRoomChatClientToServerEvents,
@@ -8,7 +9,6 @@ import {
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import Ws from 'App/Services/Ws';
 import { Socket } from 'socket.io';
-import { randomUUID } from 'crypto';
 import * as z from 'zod';
 
 interface WsControllerMethodArgs<Payload> {

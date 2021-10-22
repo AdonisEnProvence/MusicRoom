@@ -7,6 +7,7 @@
         "eslint:recommended",
         "plugin:@typescript-eslint/recommended",
         "plugin:@typescript-eslint/recommended-requiring-type-checking",
+        "plugin:import/recommended",
         "plugin:prettier/recommended"
     ],
 
@@ -28,6 +29,12 @@
             {
                 "ignoreStatic": true
             }
-        ]
+        ],
+        "import/no-unresolved": ["off"],
+        "import/named": ["off"],
+        "import/namespace": ["off"],
+        "import/order": ["error", {
+            "newlines-between": "never"
+        }]
     }
 }

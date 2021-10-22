@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import {
     BaseModel,
     beforeCreate,
@@ -5,7 +6,6 @@ import {
     belongsTo,
     column,
 } from '@ioc:Adonis/Lucid/Orm';
-import { randomUUID } from 'crypto';
 import { DateTime } from 'luxon';
 import User from './User';
 

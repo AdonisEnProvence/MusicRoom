@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import {
     BaseModel,
     beforeCreate,
@@ -7,7 +8,6 @@ import {
     HasMany,
     hasMany,
 } from '@ioc:Adonis/Lucid/Orm';
-import { randomUUID } from 'crypto';
 import { DateTime } from 'luxon';
 import Device from './Device';
 import MtvRoom from './MtvRoom';

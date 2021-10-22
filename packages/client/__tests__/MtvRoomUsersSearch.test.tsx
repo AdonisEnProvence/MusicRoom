@@ -3,14 +3,14 @@ import { createModel } from 'xstate/lib/model';
 import { createModel as createTestingModel } from '@xstate/test';
 import { ContextFrom, StateFrom } from 'xstate';
 import * as z from 'zod';
-import { fireEvent, noop, render } from '../tests/tests-utils';
-import { db, generateArray, generateUserSummary } from '../tests/data';
 import { datatype, internet } from 'faker';
 import { NavigationContainer } from '@react-navigation/native';
+import { UserSummary } from '@musicroom/types';
+import { fireEvent, noop, render } from '../tests/tests-utils';
+import { db, generateArray, generateUserSummary } from '../tests/data';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { friends } from '../services/UsersSearchService';
-import { UserSummary } from '@musicroom/types';
 
 interface TestingContext {
     screen: ReturnType<typeof render>;

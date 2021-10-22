@@ -3,9 +3,9 @@ import { createModel } from 'xstate/lib/model';
 import { createModel as createTestingModel } from '@xstate/test';
 import { ContextFrom, StateFrom } from 'xstate';
 import * as z from 'zod';
-import { datatype, internet } from 'faker';
+import { internet } from 'faker';
 import { NavigationContainer } from '@react-navigation/native';
-import { UserSummary } from '@musicroom/types';
+import { UserSummary, MtvRoomCreatorInviteUserArgs } from '@musicroom/types';
 import {
     fireEvent,
     noop,
@@ -27,6 +27,7 @@ import { serverSocket } from '../services/websockets';
 
 interface TestingContext {
     screen: ReturnType<typeof render>;
+    creatorInviteUserMock: jest.Mock<void, [MtvRoomCreatorInviteUserArgs]>;
 }
 
 const FRIENDS_PAGE_LENGTH = 10;
@@ -77,12 +78,19 @@ const mtvRoomUsersSearchModel = createModel(
         searchQuery: '',
         friendsPage: 1,
         usersPage: 1,
+
+        invitedFriendNickname: '',
+        invitedUserNickname: '',
     },
     {
         events: {
             LOAD_MORE: () => ({}),
 
             SEARCH_USERS_BY_NICKNAME: (nickname: string) => ({ nickname }),
+
+            INVITE_FRIEND: (nickname: string) => ({ nickname }),
+
+            INVITE_USER: (nickname: string) => ({ nickname }),
         },
     },
 );
@@ -93,6 +101,20 @@ const SearchUsersByNicknameEvent = z
     })
     .nonstrict();
 type SearchUsersByNicknameEvent = z.infer<typeof SearchUsersByNicknameEvent>;
+
+const InviteFriendEvent = z
+    .object({
+        nickname: z.string(),
+    })
+    .nonstrict();
+type InviteFriendEvent = z.infer<typeof InviteFriendEvent>;
+
+const InviteUserEvent = z
+    .object({
+        nickname: z.string(),
+    })
+    .nonstrict();
+type InviteUserEvent = z.infer<typeof InviteUserEvent>;
 
 const incrementFriendsPageToContext = mtvRoomUsersSearchModel.assign(
     {
@@ -113,6 +135,20 @@ const assignSearchQueryToContext = mtvRoomUsersSearchModel.assign(
         searchQuery: (_, { nickname }) => nickname,
     },
     'SEARCH_USERS_BY_NICKNAME',
+);
+
+const assignInvitedFriendNicknameToContext = mtvRoomUsersSearchModel.assign(
+    {
+        invitedFriendNickname: (_, { nickname }) => nickname,
+    },
+    'INVITE_FRIEND',
+);
+
+const assignInvitedUserNicknameToContext = mtvRoomUsersSearchModel.assign(
+    {
+        invitedUserNickname: (_, { nickname }) => nickname,
+    },
+    'INVITE_USER',
 );
 
 type MtvRoomUsersSearchMachineState = StateFrom<
@@ -159,6 +195,45 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                     on: {
                         LOAD_MORE: {
                             actions: incrementFriendsPageToContext,
+                        },
+
+                        INVITE_FRIEND: {
+                            target: 'invitedFriend',
+
+                            actions: assignInvitedFriendNicknameToContext,
+                        },
+                    },
+                },
+
+                invitedFriend: {
+                    type: 'final',
+
+                    meta: {
+                        test: async (
+                            { creatorInviteUserMock }: TestingContext,
+                            {
+                                context: { invitedFriendNickname },
+                            }: MtvRoomUsersSearchMachineState,
+                        ) => {
+                            const invitedFriend = fakeFriends.find(
+                                ({ nickname: friendNickname }) =>
+                                    friendNickname === invitedFriendNickname,
+                            );
+                            if (invitedFriend === undefined) {
+                                throw new Error(
+                                    `Could not find a friend with nickname: ${invitedFriendNickname}`,
+                                );
+                            }
+
+                            await waitFor(() => {
+                                expect(
+                                    creatorInviteUserMock,
+                                ).toHaveBeenNthCalledWith<
+                                    [MtvRoomCreatorInviteUserArgs]
+                                >(1, {
+                                    invitedUserID: invitedFriend.userID,
+                                });
+                            });
                         },
                     },
                 },
@@ -251,6 +326,45 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                         LOAD_MORE: {
                             actions: incrementUsersPageToContext,
                         },
+
+                        INVITE_USER: {
+                            target: 'invitedUser',
+
+                            actions: assignInvitedUserNicknameToContext,
+                        },
+                    },
+                },
+
+                invitedUser: {
+                    type: 'final',
+
+                    meta: {
+                        test: async (
+                            { creatorInviteUserMock }: TestingContext,
+                            {
+                                context: { invitedUserNickname },
+                            }: MtvRoomUsersSearchMachineState,
+                        ) => {
+                            const invitedUser = fakeUsers.find(
+                                ({ nickname: friendNickname }) =>
+                                    friendNickname === invitedUserNickname,
+                            );
+                            if (invitedUser === undefined) {
+                                throw new Error(
+                                    `Could not find a user with nickname: ${invitedUserNickname}`,
+                                );
+                            }
+
+                            await waitFor(() => {
+                                expect(
+                                    creatorInviteUserMock,
+                                ).toHaveBeenNthCalledWith<
+                                    [MtvRoomCreatorInviteUserArgs]
+                                >(1, {
+                                    invitedUserID: invitedUser.userID,
+                                });
+                            });
+                        },
                     },
                 },
 
@@ -323,12 +437,56 @@ const mtvRoomUsersSearchTestingModel = createTestingModel<
             },
         ] as SearchUsersByNicknameEvent[],
     },
+
+    INVITE_FRIEND: {
+        exec: async ({ screen }, event) => {
+            const { nickname } = InviteFriendEvent.parse(event);
+
+            const userCard = await screen.findByTestId(`${nickname}-user-card`);
+            expect(userCard).toBeTruthy();
+            expect(userCard).toHaveTextContent(nickname);
+
+            fireEvent.press(userCard);
+        },
+
+        cases: [
+            {
+                nickname: fakeFriends[0].nickname,
+            },
+        ] as InviteUserEvent[],
+    },
+
+    INVITE_USER: {
+        exec: async ({ screen }, event) => {
+            const { nickname } = InviteUserEvent.parse(event);
+
+            const userCard = await screen.findByTestId(`${nickname}-user-card`);
+            expect(userCard).toBeTruthy();
+            expect(userCard).toHaveTextContent(nickname);
+
+            fireEvent.press(userCard);
+        },
+
+        cases: [
+            {
+                nickname: fakeUsers[0].nickname,
+            },
+        ] as InviteUserEvent[],
+    },
 });
 
 describe('Display friends and search users', () => {
     const testPlans = mtvRoomUsersSearchTestingModel.getSimplePathPlansTo(
         (state) => {
-            const { friendsPage } = state.context;
+            const { friendsPage, invitedFriendNickname } = state.context;
+
+            const invitedOneUser = state.matches({ usersView: 'invitedUser' });
+            if (invitedOneUser === true) {
+                const didNotLoadMoreFriends = friendsPage === 1;
+                const didNotInviteFriend = invitedFriendNickname === '';
+
+                return didNotLoadMoreFriends && didNotInviteFriend;
+            }
 
             /**
              * Go to final state of usersView after:
@@ -372,6 +530,16 @@ describe('Display friends and search users', () => {
                     serverSocket.on('GET_USERS_LIST', (cb) => {
                         cb(fakeUsersArray);
                     });
+
+                    const creatorInviteUserMock: jest.Mock<
+                        void,
+                        [MtvRoomCreatorInviteUserArgs]
+                    > = jest.fn();
+
+                    serverSocket.on(
+                        'CREATOR_INVITE_USER',
+                        creatorInviteUserMock,
+                    );
 
                     const screen = render(
                         <NavigationContainer
@@ -438,6 +606,7 @@ describe('Display friends and search users', () => {
 
                     await path.test({
                         screen,
+                        creatorInviteUserMock,
                     });
                 });
             });

@@ -43,6 +43,8 @@ export type RootStackParamList = {
     MusicTrackVoteUsersList: NavigatorScreenParams<MusicTrackVoteUsersListStackParamList>;
 
     MusicTrackVoteChat: NavigatorScreenParams<MusicTrackVoteChatStackParamList>;
+
+    MusicTrackVoteUsersSearch: NavigatorScreenParams<MusicTrackVoteUsersSearchStackParamList>;
 };
 
 export type SuggestTrackStackParamList = {
@@ -65,6 +67,10 @@ export type MusicTrackVoteUsersListStackParamList = {
 
 export type MusicTrackVoteChatStackParamList = {
     MusicTrackVoteChatModal: undefined;
+};
+
+export type MusicTrackVoteUsersSearchStackParamList = {
+    MusicTrackVoteUsersSearchModal: undefined;
 };
 
 export type MainStackParamList = {
@@ -238,6 +244,20 @@ export type MusicTrackVoteChatModalProps = {
     route: RouteProp<
         MusicTrackVoteChatStackParamList,
         'MusicTrackVoteChatModal'
+    >;
+};
+
+export type MusicTrackVoteUsersSearchModalProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'MusicTrackVoteUsersSearch'>,
+        StackNavigationProp<
+            MusicTrackVoteUsersSearchStackParamList,
+            'MusicTrackVoteUsersSearchModal'
+        >
+    >;
+    route: RouteProp<
+        MusicTrackVoteUsersSearchStackParamList,
+        'MusicTrackVoteUsersSearchModal'
     >;
 };
 

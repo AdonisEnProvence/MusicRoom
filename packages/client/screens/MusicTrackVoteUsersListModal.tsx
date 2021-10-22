@@ -126,6 +126,7 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                                 }}
                             >
                                 <UserListItemWithThreeDots
+                                    loading={false}
                                     hideThreeDots={
                                         hideDeviceOwnerUserCardThreeDotsButton ||
                                         hideThreeDots

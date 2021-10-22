@@ -1,6 +1,10 @@
 import { drop, factory, primaryKey } from '@mswjs/data';
-import { MtvRoomSummary, TrackMetadataWithScore } from '@musicroom/types';
-import { datatype, name, random } from 'faker';
+import {
+    MtvRoomSummary,
+    TrackMetadataWithScore,
+    UserSummary,
+} from '@musicroom/types';
+import { datatype, name, random, internet } from 'faker';
 
 export const db = factory({
     searchableTracks: {
@@ -15,6 +19,11 @@ export const db = factory({
         roomName: () => random.words(datatype.number({ min: 1, max: 5 })),
         creatorName: () => name.title(),
         isOpen: () => datatype.boolean(),
+    },
+
+    searchableUsers: {
+        userID: primaryKey(() => datatype.uuid()),
+        nickname: () => internet.userName(),
     },
 });
 
@@ -43,6 +52,21 @@ export function generateMtvRoomSummary(
 
         ...overrides,
     };
+}
+
+export function generateUserSummary(
+    overrides?: Partial<UserSummary>,
+): UserSummary {
+    return {
+        userID: datatype.uuid(),
+        nickname: internet.userName(),
+
+        ...overrides,
+    };
+}
+
+export function generateArray<Item>(length: number, fill: () => Item): Item[] {
+    return Array.from({ length }).map(() => fill());
 }
 
 export function dropDatabase(): void {

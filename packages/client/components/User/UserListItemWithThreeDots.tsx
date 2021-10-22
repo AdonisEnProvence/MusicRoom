@@ -5,14 +5,19 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import UserListItem from './UserListItem';
 
-interface UserListItemWithThreeDotsProps {
-    index: number;
-    onPress?: () => void;
-    threeDotsAccessibilityLabel: string;
-    onThreeDotsPress: () => void;
-    hideThreeDots: boolean;
-    user: MtvRoomUsersListElement;
-}
+type UserListItemWithThreeDotsProps =
+    | {
+          loading: true;
+      }
+    | {
+          loading: false;
+          index: number;
+          onPress?: () => void;
+          threeDotsAccessibilityLabel: string;
+          onThreeDotsPress: () => void;
+          hideThreeDots: boolean;
+          user: MtvRoomUsersListElement;
+      };
 
 interface ThreeDotsButtonProps {
     accessibilityLabel: string;
@@ -41,16 +46,25 @@ const ThreeDotsButton: React.FC<ThreeDotsButtonProps> = ({
     );
 };
 
-const UserListItemWithThreeDots: React.FC<UserListItemWithThreeDotsProps> = ({
-    index,
-    onPress,
-    threeDotsAccessibilityLabel,
-    onThreeDotsPress,
-    hideThreeDots,
-    user,
-}) => {
+const UserListItemWithThreeDots: React.FC<UserListItemWithThreeDotsProps> = (
+    props,
+) => {
+    if (props.loading === true) {
+        return <UserListItem loading />;
+    }
+
+    const {
+        index,
+        onPress,
+        threeDotsAccessibilityLabel,
+        onThreeDotsPress,
+        hideThreeDots,
+        user,
+    } = props;
+
     return (
         <UserListItem
+            loading={false}
             index={index}
             user={user}
             onPress={onPress}

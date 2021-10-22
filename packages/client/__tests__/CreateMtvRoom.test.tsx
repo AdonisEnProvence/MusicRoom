@@ -949,7 +949,7 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
     ContextFrom<typeof createMtvRoomWithSettingsMachine>
 >(createMtvRoomWithSettingsMachine).withEvents({
     GO_TO_SEARCH_TRACKS: ({ screen }) => {
-        const searchScreenLink = screen.getByText(/search/i);
+        const searchScreenLink = screen.getByText(/^search$/i);
 
         fireEvent.press(searchScreenLink);
     },

@@ -2,13 +2,13 @@ import { View } from 'dripsy';
 import React from 'react';
 import { FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import TrackListItem from '../components/Track/TrackListItem';
+import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import {
     AppScreen,
     AppScreenContainer,
     AppScreenHeader,
 } from '../components/kit';
-import TrackListItem from '../components/Track/TrackListItem';
-import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import { SearchTrackResultsScreenProps } from '../types';
 
 const SearchTracksResultsScreen: React.FC<SearchTrackResultsScreenProps> = ({

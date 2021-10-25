@@ -4,9 +4,9 @@ import { View as MotiView } from 'moti';
 import { useSx, View } from 'dripsy';
 import { Ionicons } from '@expo/vector-icons';
 import { useLayout } from '../../hooks/useLayout';
+import { GLOBAL_THEME_CONSTANTS } from '../../hooks/useTheme';
 import Typo from './Typo';
 import TextField from './TextField';
-import { GLOBAL_THEME_CONSTANTS } from '../../hooks/useTheme';
 
 type AppScreenHeaderSearchBarProps = {
     searchInputPlaceholder: string;

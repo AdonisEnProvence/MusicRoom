@@ -1,8 +1,8 @@
 import urlcat from 'urlcat';
 import * as z from 'zod';
 import redaxios from 'redaxios';
-import { SERVER_ENDPOINT } from '../constants/Endpoints';
 import { TrackMetadata } from '@musicroom/types';
+import { SERVER_ENDPOINT } from '../constants/Endpoints';
 
 interface FetchTracksArgs {
     searchQuery: string;

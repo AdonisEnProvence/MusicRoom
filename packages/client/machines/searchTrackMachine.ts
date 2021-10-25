@@ -1,7 +1,7 @@
 import { createModel } from 'xstate/lib/model';
 import { TrackMetadata } from '@musicroom/types';
-import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 import { fetchTracksSuggestions } from '../services/search-tracks';
+import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 
 const searchTrackModel = createModel(
     {

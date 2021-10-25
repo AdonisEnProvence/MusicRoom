@@ -19,6 +19,7 @@ export const db = factory({
         roomName: () => random.words(datatype.number({ min: 1, max: 5 })),
         creatorName: () => name.title(),
         isOpen: () => datatype.boolean(),
+        isInvited: () => datatype.boolean(),
     },
 
     searchableUsers: {
@@ -49,7 +50,7 @@ export function generateMtvRoomSummary(
         isOpen: datatype.boolean(),
         roomID: datatype.uuid(),
         roomName: random.words(3),
-
+        isInvited: datatype.boolean(),
         ...overrides,
     };
 }

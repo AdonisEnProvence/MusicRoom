@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Entypo, FontAwesome, Ionicons } from '@expo/vector-icons';
 import { MtvRoomSummary } from '@musicroom/types';
 import { useActor, useMachine } from '@xstate/react';
 import { Text, useSx, View } from 'dripsy';
@@ -37,7 +37,7 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
     const initialNumberOfItemsToRender = IS_TEST ? Infinity : 10;
 
     const renderItem: ListRenderItem<MtvRoomSummary> = ({
-        item: { roomID, roomName, creatorName, isOpen },
+        item: { roomID, roomName, creatorName, isOpen, isInvited },
     }) => (
         <TouchableOpacity
             testID={`mtv-room-search-${roomID}`}
@@ -55,7 +55,38 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
             >
                 <View>
                     <Typo sx={{ fontSize: 's' }}>
-                        {roomName} • {isOpen === true ? 'Public' : 'Private'}
+                        {roomName} •{' '}
+                        {isOpen === true ? (
+                            <>
+                                <Entypo
+                                    name="globe"
+                                    style={sx({
+                                        color: 'greyLighter',
+                                        fontSize: 'm',
+                                    })}
+                                    accessibilityLabel={`${roomName} is a public room`}
+                                />
+                                {isInvited && (
+                                    <FontAwesome
+                                        name="envelope"
+                                        style={sx({
+                                            color: 'greyLighter',
+                                            fontSize: 'm',
+                                        })}
+                                        accessibilityLabel={`You're invited to ${roomName}`}
+                                    />
+                                )}
+                            </>
+                        ) : (
+                            <Entypo
+                                name="lock"
+                                style={sx({
+                                    color: 'greyLighter',
+                                    fontSize: 'm',
+                                })}
+                                accessibilityLabel={`${roomName} is a private room where you've been invited`}
+                            />
+                        )}
                     </Typo>
                     <Typo sx={{ fontSize: 'xs', color: 'greyLighter' }}>
                         {creatorName}

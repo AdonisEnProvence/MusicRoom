@@ -22,9 +22,7 @@ test.group('MtvRoom Search Engine', (group) => {
     const {
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
-        createSocketConnection,
         createUserAndGetSocket,
-        waitFor,
     } = initTestUtils();
 
     group.beforeEach(async () => {
@@ -131,7 +129,7 @@ test.group('MtvRoom Search Engine', (group) => {
                     runID: datatype.uuid(),
                     name: datatype.uuid(),
                     creatorID: creatorUserID,
-                    isOpen: true,
+                    isOpen: datatype.boolean(),
                 }),
             ),
         );
@@ -328,5 +326,55 @@ test.group('MtvRoom Search Engine', (group) => {
         assert.isFalse(firstPublicAndNotInvitedRoom.isInvited);
         assert.isTrue(firstPublicAndNotInvitedRoom.isOpen);
         ///
+    });
+
+    test("It should not list the user's current room", async (assert) => {
+        const userID = datatype.uuid();
+        const mtvRoomIDToAssociate = datatype.uuid();
+        const creatorUserID = datatype.uuid();
+
+        await createUserAndGetSocket({
+            userID: creatorUserID,
+        });
+        await createUserAndGetSocket({
+            userID,
+            mtvRoomIDToAssociate,
+        });
+
+        const roomsCount = datatype.number({
+            min: 10,
+            max: 15,
+        });
+        const generatedRooms = await MtvRoom.createMany(
+            generateArray(roomsCount, () => ({
+                uuid: datatype.uuid(),
+                runID: datatype.uuid(),
+                name: datatype.uuid(),
+                creatorID: creatorUserID,
+                isOpen: datatype.boolean(),
+            })),
+        );
+        const expectedDataEntriesLength = generatedRooms.filter(
+            (room) => room.isOpen,
+        ).length;
+
+        const { body: pageBodyRaw } = await supertest(BASE_URL)
+            .post('/search/rooms')
+            .send({
+                page: 1,
+                searchQuery: '',
+                userID,
+            } as MtvRoomSearchRequestBody)
+            .expect('Content-Type', /json/)
+            .expect(200);
+        const pageBodyParsed = MtvRoomSearchResponse.parse(pageBodyRaw);
+        assert.equal(pageBodyParsed.page, 1);
+        assert.equal(pageBodyParsed.totalEntries, expectedDataEntriesLength);
+        assert.equal(pageBodyParsed.data.length, expectedDataEntriesLength);
+
+        const currUserRoomIsListed = pageBodyParsed.data.some(
+            (room) => room.roomID === mtvRoomIDToAssociate,
+        );
+        assert.isFalse(currUserRoomIsListed);
     });
 });

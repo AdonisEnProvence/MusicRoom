@@ -28,6 +28,7 @@ export default class MtvRoomsHttpController {
             .select('*')
             .from(
                 MtvRoom.query()
+                    .preload('members')
                     .select(
                         'uuid as roomID',
                         'name as roomName',
@@ -53,12 +54,15 @@ export default class MtvRoomsHttpController {
                             .as('creatorName'),
                     )
                     .where('name', 'ilike', `${searchQuery}%`)
-                    .debug(true)
+                    .andWhereDoesntHave('members', (userQuery) => {
+                        userQuery.where('uuid', userID);
+                    })
                     .as('derivated_table'),
             )
             .where((query) => {
-                query.where('derivated_table.isOpen', false);
-                query.andWhereNotNull('derivated_table.invitationID');
+                query
+                    .where('derivated_table.isOpen', false)
+                    .andWhereNotNull('derivated_table.invitationID');
             })
             .orWhere('derivated_table.isOpen', true)
             .orderBy([

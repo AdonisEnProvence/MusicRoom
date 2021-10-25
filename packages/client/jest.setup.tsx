@@ -191,14 +191,20 @@ jest.mock('react-native-toast-message', () => ({
 }));
 
 //Location mock//
-jest.mock('expo-location', () => ({
-    getCurrentPositionAsync: jest.fn(),
-    requestForegroundPermissionsAsync: jest.fn(() => {
-        return {
-            status: 'notGranted',
-        };
-    }),
-}));
+jest.mock('expo-location', () => {
+    const originalModule = jest.requireActual('expo-location');
+
+    return {
+        ...originalModule,
+
+        getCurrentPositionAsync: jest.fn(),
+        requestForegroundPermissionsAsync: jest.fn(() => {
+            return {
+                status: 'denied',
+            };
+        }),
+    };
+});
 export const requestForegroundPermissionsAsyncMocked =
     requestForegroundPermissionsAsync as jest.MockedFunction<
         typeof requestForegroundPermissionsAsync

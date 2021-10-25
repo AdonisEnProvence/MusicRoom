@@ -39,51 +39,79 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
     const renderItem: ListRenderItem<MtvRoomSummary> = ({
         item: { roomID, roomName, creatorName, isOpen, isInvited },
     }) => (
-        <TouchableOpacity
-            testID={`mtv-room-search-${roomID}`}
-            onPress={() => {
-                onSuggestionPress(roomID);
+        <View
+            sx={{
+                marginBottom: 'm',
             }}
         >
-            <View
-                sx={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: 'm',
+            <TouchableOpacity
+                testID={`mtv-room-search-${roomID}`}
+                onPress={() => {
+                    onSuggestionPress(roomID);
                 }}
             >
-                <View>
+                <View
+                    sx={{
+                        flexDirection: 'row',
+                        flexShrink: 0,
+                        justifyContent: 'space-between',
+                    }}
+                >
                     <View
                         sx={{
                             display: 'flex',
-                            flexDirection: 'row',
-                            alignItems: 'center',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            flexShrink: 1,
                         }}
                     >
-                        <Typo sx={{ fontSize: 's' }}>{roomName}</Typo>
+                        <Typo
+                            numberOfLines={1}
+                            sx={{
+                                fontSize: 's',
+                            }}
+                        >
+                            {roomName}
+                        </Typo>
+                        <Typo
+                            numberOfLines={1}
+                            sx={{
+                                fontSize: 'xs',
+                                color: 'greyLighter',
+                            }}
+                        >
+                            {creatorName}
+                        </Typo>
+                    </View>
+                    <View
+                        sx={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            flexShrink: 0,
+                            paddingLeft: 'm',
+                        }}
+                    >
                         {isOpen === true ? (
                             <>
-                                <Entypo
-                                    name="globe"
-                                    style={sx({
-                                        padding: 's',
-                                        color: 'greyLighter',
-                                        fontSize: 'm',
-                                    })}
-                                    accessibilityLabel={`${roomName} is a public room`}
-                                />
                                 {isInvited && (
                                     <FontAwesome
                                         name="envelope"
                                         style={sx({
                                             color: 'greyLighter',
                                             fontSize: 'm',
-                                            padding: 's',
                                         })}
                                         accessibilityLabel={`You're invited to ${roomName}`}
                                     />
                                 )}
+                                <Entypo
+                                    name="globe"
+                                    style={sx({
+                                        color: 'greyLighter',
+                                        fontSize: 'm',
+                                        paddingLeft: 'm',
+                                    })}
+                                    accessibilityLabel={`${roomName} is a public room`}
+                                />
                             </>
                         ) : (
                             <Entypo
@@ -91,26 +119,21 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
                                 style={sx({
                                     color: 'greyLighter',
                                     fontSize: 'm',
-                                    padding: 's',
                                 })}
                                 accessibilityLabel={`${roomName} is a private room where you've been invited`}
                             />
                         )}
+                        <Ionicons
+                            name="chevron-forward"
+                            style={sx({
+                                color: 'greyLighter',
+                                fontSize: 'm',
+                            })}
+                        />
                     </View>
-                    <Typo sx={{ fontSize: 'xs', color: 'greyLighter' }}>
-                        {creatorName}
-                    </Typo>
                 </View>
-
-                <Ionicons
-                    name="chevron-forward"
-                    style={sx({
-                        color: 'greyLighter',
-                        fontSize: 'm',
-                    })}
-                />
-            </View>
-        </TouchableOpacity>
+            </TouchableOpacity>
+        </View>
     );
 
     return (

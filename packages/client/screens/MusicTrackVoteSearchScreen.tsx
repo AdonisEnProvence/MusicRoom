@@ -65,14 +65,62 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
                             flexShrink: 1,
                         }}
                     >
-                        <Typo
-                            numberOfLines={1}
-                            sx={{
-                                fontSize: 's',
-                            }}
+                        <View
+                            sx={{ flexDirection: 'row', alignItems: 'center' }}
                         >
-                            {roomName}
-                        </Typo>
+                            <Typo
+                                numberOfLines={1}
+                                sx={{
+                                    fontSize: 's',
+                                    flexShrink: 1,
+                                }}
+                            >
+                                {roomName}
+                            </Typo>
+                            <View
+                                sx={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    flexShrink: 0,
+                                }}
+                            >
+                                {isOpen === true ? (
+                                    <>
+                                        {isInvited && (
+                                            <FontAwesome
+                                                name="envelope"
+                                                style={sx({
+                                                    color: 'greyLighter',
+                                                    fontSize: 'm',
+                                                    paddingLeft: 'm',
+                                                })}
+                                                accessibilityLabel={`You're invited to ${roomName}`}
+                                            />
+                                        )}
+                                        <Entypo
+                                            name="globe"
+                                            style={sx({
+                                                color: 'greyLighter',
+                                                fontSize: 'm',
+                                                paddingLeft: 'm',
+                                            })}
+                                            accessibilityLabel={`${roomName} is a public room`}
+                                        />
+                                    </>
+                                ) : (
+                                    <Entypo
+                                        name="lock"
+                                        style={sx({
+                                            color: 'greyLighter',
+                                            fontSize: 'm',
+                                            paddingLeft: 'm',
+                                        })}
+                                        accessibilityLabel={`${roomName} is a private room where you've been invited`}
+                                    />
+                                )}
+                            </View>
+                        </View>
+
                         <Typo
                             numberOfLines={1}
                             sx={{
@@ -91,38 +139,6 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
                             paddingLeft: 'm',
                         }}
                     >
-                        {isOpen === true ? (
-                            <>
-                                {isInvited && (
-                                    <FontAwesome
-                                        name="envelope"
-                                        style={sx({
-                                            color: 'greyLighter',
-                                            fontSize: 'm',
-                                        })}
-                                        accessibilityLabel={`You're invited to ${roomName}`}
-                                    />
-                                )}
-                                <Entypo
-                                    name="globe"
-                                    style={sx({
-                                        color: 'greyLighter',
-                                        fontSize: 'm',
-                                        paddingLeft: 'm',
-                                    })}
-                                    accessibilityLabel={`${roomName} is a public room`}
-                                />
-                            </>
-                        ) : (
-                            <Entypo
-                                name="lock"
-                                style={sx({
-                                    color: 'greyLighter',
-                                    fontSize: 'm',
-                                })}
-                                accessibilityLabel={`${roomName} is a private room where you've been invited`}
-                            />
-                        )}
                         <Ionicons
                             name="chevron-forward"
                             style={sx({

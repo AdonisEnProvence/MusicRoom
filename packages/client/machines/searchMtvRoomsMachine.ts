@@ -117,6 +117,8 @@ export const searchMtvRoomsMachine = searchMtvRoomsModel.createMachine(
                 ({ nextPage, searchQuery }) =>
                 async (sendBack) => {
                     try {
+                        //This is temporary
+                        //Later we will use the session cookie as auth
                         const userID = getFakeUserID();
                         const fetchedRoomResponse = await fetchMtvRooms({
                             page: nextPage,

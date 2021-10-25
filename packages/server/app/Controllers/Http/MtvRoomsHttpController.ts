@@ -21,6 +21,8 @@ export default class MtvRoomsHttpController {
         request,
     }: HttpContextContract): Promise<MtvRoomSearchResponse> {
         const rawBody = request.body();
+        //TODO The userID raw in the request body is temporary
+        //Later it will be a session cookie to avoid any security issues
         const { searchQuery, page, userID } =
             MtvRoomSearchRequestBody.parse(rawBody);
 

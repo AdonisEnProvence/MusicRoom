@@ -13,6 +13,7 @@ import {
     AppScreenHeaderWithSearchBarMachineState,
 } from '../machines/appScreenHeaderWithSearchBarMachine';
 import { roomUsersSearchMachine } from '../machines/roomUsersSearchMachine';
+import { assertEventType } from '../machines/utils';
 import { MusicTrackVoteUsersSearchModalProps } from '../types';
 
 const UsersListPlaceholder: React.FC = () => {
@@ -37,7 +38,20 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
         const [screenOffsetY, setScreenOffsetY] = useState(0);
         const sendToMusicPlayer = useMusicPlayerSend();
 
-        const [state, send] = useMachine(roomUsersSearchMachine);
+        const [state, send] = useMachine(roomUsersSearchMachine, {
+            actions: {
+                userHasBeenSelected: (_, event) => {
+                    assertEventType(event, 'SELECT_USER');
+
+                    const { userID } = event;
+
+                    sendToMusicPlayer({
+                        type: 'CREATOR_INVITE_USER',
+                        invitedUserID: userID,
+                    });
+                },
+            },
+        });
 
         //Search bar
         const searchBarActor: ActorRef<
@@ -74,9 +88,9 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
 
         function handleUserCardPressed(userID: string) {
             return () => {
-                sendToMusicPlayer({
-                    type: 'CREATOR_INVITE_USER',
-                    invitedUserID: userID,
+                send({
+                    type: 'SELECT_USER',
+                    userID,
                 });
             };
         }

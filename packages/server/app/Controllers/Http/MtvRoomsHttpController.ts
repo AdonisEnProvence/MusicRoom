@@ -26,6 +26,7 @@ export default class MtvRoomsHttpController {
         const { searchQuery, page, userID } =
             MtvRoomSearchRequestBody.parse(rawBody);
 
+        /* eslint-disable @typescript-eslint/no-floating-promises */
         const roomsPagination = await Database.query()
             .select('*')
             .from(
@@ -79,6 +80,7 @@ export default class MtvRoomsHttpController {
             ])
             .debug(true)
             .paginate(page, MTV_ROOMS_SEARCH_LIMIT);
+        /* eslint-enable @typescript-eslint/no-floating-promises */
 
         const totalRoomsToLoad = roomsPagination.total;
         const hasMoreRoomsToLoad = roomsPagination.hasMorePages;

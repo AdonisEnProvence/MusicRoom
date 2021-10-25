@@ -26,7 +26,6 @@ export default class MtvRoomsHttpController {
         const { searchQuery, page, userID } =
             MtvRoomSearchRequestBody.parse(rawBody);
 
-        /* eslint-disable @typescript-eslint/no-floating-promises */
         const roomsPagination = await Database.query()
             .select('*')
             .from(
@@ -58,12 +57,12 @@ export default class MtvRoomsHttpController {
                     )
                     .where('name', 'ilike', `${searchQuery}%`)
                     .andWhereDoesntHave('members', (userQuery) => {
-                        userQuery.where('uuid', userID);
+                        return userQuery.where('uuid', userID);
                     })
                     .as('derivated_table'),
             )
             .where((query) => {
-                query
+                return query
                     .where('derivated_table.isOpen', false)
                     .andWhereNotNull('derivated_table.invitationID');
             })
@@ -80,7 +79,6 @@ export default class MtvRoomsHttpController {
             ])
             .debug(true)
             .paginate(page, MTV_ROOMS_SEARCH_LIMIT);
-        /* eslint-enable @typescript-eslint/no-floating-promises */
 
         const totalRoomsToLoad = roomsPagination.total;
         const hasMoreRoomsToLoad = roomsPagination.hasMorePages;

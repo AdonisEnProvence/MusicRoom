@@ -77,6 +77,11 @@ const TracksListTab: React.FC<TracksListProps> = ({
     const roomIsOpenAndOnlyInvitedUsersCanVote =
         musicPlayerMachineContext.isOpen &&
         musicPlayerMachineContext.isOpenOnlyInvitedUsersCanVote;
+    const userOutsideOfTimeAndPhysicalBounds =
+        musicPlayerMachineContext.hasTimeAndPositionConstraints === true &&
+        (musicPlayerMachineContext.timeConstraintIsValid === false ||
+            musicPlayerMachineContext.userRelatedInformation
+                ?.userHasBeenInvited !== true);
     const userHasNotBeenInvited =
         musicPlayerMachineContext.userRelatedInformation === null ||
         (musicPlayerMachineContext.userRelatedInformation &&
@@ -162,7 +167,8 @@ const TracksListTab: React.FC<TracksListProps> = ({
 
                     const disableTrackListItem =
                         userHasAlreadyVotedForTrack ||
-                        roomIsOpenAndOnlyInvitedUsersCanVoteAndUserHasNotBeenInvited;
+                        roomIsOpenAndOnlyInvitedUsersCanVoteAndUserHasNotBeenInvited ||
+                        userOutsideOfTimeAndPhysicalBounds;
 
                     return (
                         <View

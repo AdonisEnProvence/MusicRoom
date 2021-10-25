@@ -4,6 +4,7 @@ import {
     TrackMetadataWithScore,
     UserSummary,
 } from '@musicroom/types';
+import { LocationObject } from 'expo-location';
 import { datatype, name, random, internet } from 'faker';
 
 export const db = factory({
@@ -67,6 +68,31 @@ export function generateUserSummary(
 
 export function generateArray<Item>(length: number, fill: () => Item): Item[] {
     return Array.from({ length }).map(() => fill());
+}
+
+export function generateLocationObject(
+    overrides?: LocationObject,
+): LocationObject {
+    return {
+        timestamp: datatype.number(),
+        coords: {
+            accuracy: 4,
+            altitude: null,
+            altitudeAccuracy: null,
+            heading: null,
+            latitude: datatype.number({
+                min: -80,
+                max: 75,
+            }),
+            longitude: datatype.number({
+                min: -180,
+                max: 175,
+            }),
+            speed: null,
+        },
+
+        ...overrides,
+    };
 }
 
 export function dropDatabase(): void {

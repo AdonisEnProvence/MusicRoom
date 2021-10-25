@@ -54,13 +54,20 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
                 }}
             >
                 <View>
-                    <Typo sx={{ fontSize: 's' }}>
-                        {roomName} •{' '}
+                    <View
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <Typo sx={{ fontSize: 's' }}>{roomName}</Typo>
                         {isOpen === true ? (
                             <>
                                 <Entypo
                                     name="globe"
                                     style={sx({
+                                        padding: 's',
                                         color: 'greyLighter',
                                         fontSize: 'm',
                                     })}
@@ -72,6 +79,7 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
                                         style={sx({
                                             color: 'greyLighter',
                                             fontSize: 'm',
+                                            padding: 's',
                                         })}
                                         accessibilityLabel={`You're invited to ${roomName}`}
                                     />
@@ -83,11 +91,12 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
                                 style={sx({
                                     color: 'greyLighter',
                                     fontSize: 'm',
+                                    padding: 's',
                                 })}
                                 accessibilityLabel={`${roomName} is a private room where you've been invited`}
                             />
                         )}
-                    </Typo>
+                    </View>
                     <Typo sx={{ fontSize: 'xs', color: 'greyLighter' }}>
                         {creatorName}
                     </Typo>

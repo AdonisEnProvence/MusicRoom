@@ -26,8 +26,9 @@ test.group('Users Search Engine', (group) => {
     });
 
     test('Page must be strictly positive', async () => {
+        const userID = datatype.uuid();
         const user = await User.create({
-            uuid: datatype.uuid(),
+            uuid: userID,
             nickname: internet.userName(),
         });
 
@@ -36,11 +37,35 @@ test.group('Users Search Engine', (group) => {
             .send({
                 page: 0,
                 searchQuery: user.nickname,
+                userID,
             } as SearchUsersRequestBody)
             .expect(500);
     });
 
     test('Returns an error when search query is empty', async () => {
+        const userID = datatype.uuid();
+        await User.create({
+            uuid: userID,
+            nickname: internet.userName(),
+        });
+
+        await supertest(BASE_URL)
+            .post('/search/users')
+            .send({
+                page: 1,
+                searchQuery: '',
+                userID,
+            } as SearchUsersRequestBody)
+            .expect(500);
+    });
+
+    test('Returns an error when userID is empty', async () => {
+        const userID = datatype.uuid();
+        await User.create({
+            uuid: userID,
+            nickname: internet.userName(),
+        });
+
         await supertest(BASE_URL)
             .post('/search/users')
             .send({
@@ -51,6 +76,12 @@ test.group('Users Search Engine', (group) => {
     });
 
     test('Users are paginated and filtered', async (assert) => {
+        const userID = datatype.uuid();
+        await User.create({
+            uuid: userID,
+            nickname: internet.userName(),
+        });
+
         const usersCount = datatype.number({
             min: 11,
             max: 15,
@@ -81,6 +112,7 @@ test.group('Users Search Engine', (group) => {
             .send({
                 page: 1,
                 searchQuery: firstUserNicknameFirstCharacter,
+                userID,
             } as SearchUsersRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
@@ -97,11 +129,11 @@ test.group('Users Search Engine', (group) => {
         );
     });
 
-    test('Returns empty data if page is out of bound', async (assert) => {
+    test('Returns empty data if page is out of bound, also expect user to do not find himself in totalEntries', async (assert) => {
         const PAGE_OUT_OF_BOUND = 100;
-
+        const userID = datatype.uuid();
         const user = await User.create({
-            uuid: datatype.uuid(),
+            uuid: userID,
             nickname: internet.userName(),
         });
 
@@ -110,13 +142,14 @@ test.group('Users Search Engine', (group) => {
             .send({
                 page: PAGE_OUT_OF_BOUND,
                 searchQuery: user.nickname,
+                userID,
             } as SearchUsersRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
         const pageBodyParsed = SearchUsersResponseBody.parse(pageBodyRaw);
 
         assert.equal(pageBodyParsed.page, PAGE_OUT_OF_BOUND);
-        assert.equal(pageBodyParsed.totalEntries, 1);
+        assert.equal(pageBodyParsed.totalEntries, 0);
         assert.isFalse(pageBodyParsed.hasMore);
         assert.isEmpty(pageBodyParsed.data);
     });

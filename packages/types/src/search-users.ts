@@ -9,6 +9,7 @@ export type UserSummary = z.infer<typeof UserSummary>;
 
 export const SearchUsersRequestBody = z.object({
     searchQuery: z.string().nonempty(),
+    userID: z.string().uuid(),
     page: StrictlyPositiveInteger,
 });
 export type SearchUsersRequestBody = z.infer<typeof SearchUsersRequestBody>;

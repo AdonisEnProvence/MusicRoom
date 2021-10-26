@@ -79,7 +79,6 @@ export type MainStackParamList = {
     Root: NavigatorScreenParams<BottomTabNavigatorParamList>;
 
     MusicTrackVoteSearch: undefined;
-    // MusicTrackVote: MusicTrackVoteParams;
 
     Settings: undefined;
 
@@ -89,9 +88,6 @@ export type MainStackParamList = {
 interface AlertParams {
     reason: 'FORCED_DISCONNECTION';
 }
-// interface MusicTrackVoteParams {
-//     roomId: string;
-// }
 interface UserProfileParams {
     userID: string;
 }

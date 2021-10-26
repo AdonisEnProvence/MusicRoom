@@ -3,48 +3,57 @@ import { createModel } from 'xstate/lib/model';
 import { createModel as createTestingModel } from '@xstate/test';
 import { ContextFrom, StateFrom } from 'xstate';
 import * as z from 'zod';
-import { datatype, internet } from 'faker';
+import { internet } from 'faker';
 import { NavigationContainer } from '@react-navigation/native';
-import { UserSummary } from '@musicroom/types';
-import { fireEvent, noop, render } from '../tests/tests-utils';
-import { db, generateArray, generateUserSummary } from '../tests/data';
+import { UserSummary, MtvRoomCreatorInviteUserArgs } from '@musicroom/types';
+import {
+    fireEvent,
+    noop,
+    render,
+    within,
+    waitFor,
+    getFakeUsersList,
+} from '../tests/tests-utils';
+import {
+    db,
+    generateArray,
+    generateMtvWorklowState,
+    generateUserSummary,
+} from '../tests/data';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { friends } from '../services/UsersSearchService';
+import { serverSocket } from '../services/websockets';
 
 interface TestingContext {
     screen: ReturnType<typeof render>;
+    creatorInviteUserMock: jest.Mock<void, [MtvRoomCreatorInviteUserArgs]>;
 }
 
 const FRIENDS_PAGE_LENGTH = 10;
 const USERS_PAGE_LENGTH = 10;
 
-const fakeFriends = generateArray(
-    datatype.number({
-        min: 30,
-        max: 39,
-    }),
-    generateUserSummary,
-);
+const fakeFriends = generateArray({
+    minLength: 30,
+    maxLength: 39,
+    fill: generateUserSummary,
+});
 const fakeFriendsPagesCount = Math.floor(
     fakeFriends.length / FRIENDS_PAGE_LENGTH + 1,
 );
 
 const fakeUsers = [
-    ...generateArray(
-        datatype.number({
-            min: 10,
-            max: 19,
-        }),
-        () => generateUserSummary({ nickname: `A${internet.userName()}` }),
-    ),
-    ...generateArray(
-        datatype.number({
-            min: 10,
-            max: 19,
-        }),
-        generateUserSummary,
-    ),
+    ...generateArray({
+        minLength: 10,
+        maxLength: 19,
+        fill: () =>
+            generateUserSummary({ nickname: `A${internet.userName()}` }),
+    }),
+    ...generateArray({
+        minLength: 10,
+        maxLength: 19,
+        fill: generateUserSummary,
+    }),
 ];
 
 function filterUsersByNickname(
@@ -69,12 +78,19 @@ const mtvRoomUsersSearchModel = createModel(
         searchQuery: '',
         friendsPage: 1,
         usersPage: 1,
+
+        invitedFriendNickname: '',
+        invitedUserNickname: '',
     },
     {
         events: {
             LOAD_MORE: () => ({}),
 
             SEARCH_USERS_BY_NICKNAME: (nickname: string) => ({ nickname }),
+
+            INVITE_FRIEND: (nickname: string) => ({ nickname }),
+
+            INVITE_USER: (nickname: string) => ({ nickname }),
         },
     },
 );
@@ -85,6 +101,20 @@ const SearchUsersByNicknameEvent = z
     })
     .nonstrict();
 type SearchUsersByNicknameEvent = z.infer<typeof SearchUsersByNicknameEvent>;
+
+const InviteFriendEvent = z
+    .object({
+        nickname: z.string(),
+    })
+    .nonstrict();
+type InviteFriendEvent = z.infer<typeof InviteFriendEvent>;
+
+const InviteUserEvent = z
+    .object({
+        nickname: z.string(),
+    })
+    .nonstrict();
+type InviteUserEvent = z.infer<typeof InviteUserEvent>;
 
 const incrementFriendsPageToContext = mtvRoomUsersSearchModel.assign(
     {
@@ -105,6 +135,20 @@ const assignSearchQueryToContext = mtvRoomUsersSearchModel.assign(
         searchQuery: (_, { nickname }) => nickname,
     },
     'SEARCH_USERS_BY_NICKNAME',
+);
+
+const assignInvitedFriendNicknameToContext = mtvRoomUsersSearchModel.assign(
+    {
+        invitedFriendNickname: (_, { nickname }) => nickname,
+    },
+    'INVITE_FRIEND',
+);
+
+const assignInvitedUserNicknameToContext = mtvRoomUsersSearchModel.assign(
+    {
+        invitedUserNickname: (_, { nickname }) => nickname,
+    },
+    'INVITE_USER',
 );
 
 type MtvRoomUsersSearchMachineState = StateFrom<
@@ -151,6 +195,106 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                     on: {
                         LOAD_MORE: {
                             actions: incrementFriendsPageToContext,
+                        },
+
+                        INVITE_FRIEND: {
+                            target: 'invitedFriend',
+
+                            actions: assignInvitedFriendNicknameToContext,
+                        },
+                    },
+                },
+
+                invitedFriend: {
+                    initial: 'firstFriendInvitation',
+
+                    states: {
+                        firstFriendInvitation: {
+                            meta: {
+                                test: async (
+                                    {
+                                        screen,
+                                        creatorInviteUserMock,
+                                    }: TestingContext,
+                                    {
+                                        context: { invitedFriendNickname },
+                                    }: MtvRoomUsersSearchMachineState,
+                                ) => {
+                                    const invitedFriend = fakeFriends.find(
+                                        ({ nickname: friendNickname }) =>
+                                            friendNickname ===
+                                            invitedFriendNickname,
+                                    );
+                                    if (invitedFriend === undefined) {
+                                        throw new Error(
+                                            `Could not find a friend with nickname: ${invitedFriendNickname}`,
+                                        );
+                                    }
+
+                                    await waitFor(() => {
+                                        expect(
+                                            creatorInviteUserMock,
+                                        ).toHaveBeenNthCalledWith<
+                                            [MtvRoomCreatorInviteUserArgs]
+                                        >(1, {
+                                            invitedUserID: invitedFriend.userID,
+                                        });
+                                    });
+
+                                    const friendCard = screen.getByTestId(
+                                        `${invitedFriendNickname}-user-card`,
+                                    );
+                                    expect(friendCard).toBeTruthy();
+
+                                    await waitFor(() => {
+                                        const invitedCheckMarkIcon =
+                                            within(friendCard).getByA11yLabel(
+                                                /has.*been.*invited/i,
+                                            );
+                                        expect(
+                                            invitedCheckMarkIcon,
+                                        ).toBeTruthy();
+                                    });
+                                },
+                            },
+
+                            on: {
+                                INVITE_FRIEND: {
+                                    target: 'secondFriendInvitation',
+                                },
+                            },
+                        },
+
+                        secondFriendInvitation: {
+                            type: 'final',
+
+                            meta: {
+                                test: (
+                                    { creatorInviteUserMock }: TestingContext,
+                                    {
+                                        context: { invitedFriendNickname },
+                                    }: MtvRoomUsersSearchMachineState,
+                                ) => {
+                                    const invitedFriend = fakeFriends.find(
+                                        ({ nickname: friendNickname }) =>
+                                            friendNickname ===
+                                            invitedFriendNickname,
+                                    );
+                                    if (invitedFriend === undefined) {
+                                        throw new Error(
+                                            `Could not find a friend with nickname: ${invitedFriendNickname}`,
+                                        );
+                                    }
+
+                                    expect(
+                                        creatorInviteUserMock,
+                                    ).toHaveBeenNthCalledWith<
+                                        [MtvRoomCreatorInviteUserArgs]
+                                    >(1, {
+                                        invitedUserID: invitedFriend.userID,
+                                    });
+                                },
+                            },
                         },
                     },
                 },
@@ -243,6 +387,106 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                         LOAD_MORE: {
                             actions: incrementUsersPageToContext,
                         },
+
+                        INVITE_USER: {
+                            target: 'invitedUser',
+
+                            actions: assignInvitedUserNicknameToContext,
+                        },
+                    },
+                },
+
+                invitedUser: {
+                    initial: 'firstUserInvitation',
+
+                    states: {
+                        firstUserInvitation: {
+                            meta: {
+                                test: async (
+                                    {
+                                        screen,
+                                        creatorInviteUserMock,
+                                    }: TestingContext,
+                                    {
+                                        context: { invitedUserNickname },
+                                    }: MtvRoomUsersSearchMachineState,
+                                ) => {
+                                    const invitedUser = fakeUsers.find(
+                                        ({ nickname: friendNickname }) =>
+                                            friendNickname ===
+                                            invitedUserNickname,
+                                    );
+                                    if (invitedUser === undefined) {
+                                        throw new Error(
+                                            `Could not find a user with nickname: ${invitedUserNickname}`,
+                                        );
+                                    }
+
+                                    await waitFor(() => {
+                                        expect(
+                                            creatorInviteUserMock,
+                                        ).toHaveBeenNthCalledWith<
+                                            [MtvRoomCreatorInviteUserArgs]
+                                        >(1, {
+                                            invitedUserID: invitedUser.userID,
+                                        });
+                                    });
+
+                                    const userCard = screen.getByTestId(
+                                        `${invitedUserNickname}-user-card`,
+                                    );
+                                    expect(userCard).toBeTruthy();
+
+                                    await waitFor(() => {
+                                        const invitedCheckMarkIcon =
+                                            within(userCard).getByA11yLabel(
+                                                /has.*been.*invited/i,
+                                            );
+                                        expect(
+                                            invitedCheckMarkIcon,
+                                        ).toBeTruthy();
+                                    });
+                                },
+                            },
+
+                            on: {
+                                INVITE_USER: {
+                                    target: 'secondUserInvitation',
+                                },
+                            },
+                        },
+
+                        secondUserInvitation: {
+                            type: 'final',
+
+                            meta: {
+                                test: (
+                                    { creatorInviteUserMock }: TestingContext,
+                                    {
+                                        context: { invitedUserNickname },
+                                    }: MtvRoomUsersSearchMachineState,
+                                ) => {
+                                    const invitedUser = fakeUsers.find(
+                                        ({ nickname: friendNickname }) =>
+                                            friendNickname ===
+                                            invitedUserNickname,
+                                    );
+                                    if (invitedUser === undefined) {
+                                        throw new Error(
+                                            `Could not find a user with nickname: ${invitedUserNickname}`,
+                                        );
+                                    }
+
+                                    expect(
+                                        creatorInviteUserMock,
+                                    ).toHaveBeenNthCalledWith<
+                                        [MtvRoomCreatorInviteUserArgs]
+                                    >(1, {
+                                        invitedUserID: invitedUser.userID,
+                                    });
+                                },
+                            },
+                        },
                     },
                 },
 
@@ -300,7 +544,7 @@ const mtvRoomUsersSearchTestingModel = createTestingModel<
         exec: async ({ screen }, event) => {
             const { nickname } = SearchUsersByNicknameEvent.parse(event);
 
-            const searchUsersInput = await screen.findByPlaceholderText(
+            const [, searchUsersInput] = await screen.findAllByPlaceholderText(
                 /search.*user.*by.*name/i,
             );
             expect(searchUsersInput).toBeTruthy();
@@ -315,12 +559,58 @@ const mtvRoomUsersSearchTestingModel = createTestingModel<
             },
         ] as SearchUsersByNicknameEvent[],
     },
+
+    INVITE_FRIEND: {
+        exec: async ({ screen }, event) => {
+            const { nickname } = InviteFriendEvent.parse(event);
+
+            const userCard = await screen.findByTestId(`${nickname}-user-card`);
+            expect(userCard).toBeTruthy();
+            expect(userCard).toHaveTextContent(nickname);
+
+            fireEvent.press(userCard);
+        },
+
+        cases: [
+            {
+                nickname: fakeFriends[0].nickname,
+            },
+        ] as InviteUserEvent[],
+    },
+
+    INVITE_USER: {
+        exec: async ({ screen }, event) => {
+            const { nickname } = InviteUserEvent.parse(event);
+
+            const userCard = await screen.findByTestId(`${nickname}-user-card`);
+            expect(userCard).toBeTruthy();
+            expect(userCard).toHaveTextContent(nickname);
+
+            fireEvent.press(userCard);
+        },
+
+        cases: [
+            {
+                nickname: fakeUsers[0].nickname,
+            },
+        ] as InviteUserEvent[],
+    },
 });
 
 describe('Display friends and search users', () => {
     const testPlans = mtvRoomUsersSearchTestingModel.getSimplePathPlansTo(
         (state) => {
-            const { friendsPage } = state.context;
+            const { friendsPage, invitedFriendNickname } = state.context;
+
+            const invitedOneUser = state.matches({
+                usersView: { invitedUser: 'secondUserInvitation' },
+            });
+            if (invitedOneUser === true) {
+                const didNotLoadMoreFriends = friendsPage === 1;
+                const didNotInviteFriend = invitedFriendNickname === '';
+
+                return didNotLoadMoreFriends && didNotInviteFriend;
+            }
 
             /**
              * Go to final state of usersView after:
@@ -342,12 +632,38 @@ describe('Display friends and search users', () => {
         describe(plan.description, () => {
             plan.paths.forEach((path) => {
                 it(path.description, async () => {
+                    const initialState = generateMtvWorklowState({
+                        userType: 'CREATOR',
+                    });
+                    const fakeUsersArray = getFakeUsersList({
+                        directMode: false,
+                        isMeIsCreator: true,
+                    });
+
                     friends.length = 0;
                     friends.push(...fakeFriends);
 
                     for (const fakeUser of fakeUsers) {
                         db.searchableUsers.create(fakeUser);
                     }
+
+                    serverSocket.on('GET_CONTEXT', () => {
+                        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+                    });
+
+                    serverSocket.on('GET_USERS_LIST', (cb) => {
+                        cb(fakeUsersArray);
+                    });
+
+                    const creatorInviteUserMock: jest.Mock<
+                        void,
+                        [MtvRoomCreatorInviteUserArgs]
+                    > = jest.fn();
+
+                    serverSocket.on(
+                        'CREATOR_INVITE_USER',
+                        creatorInviteUserMock,
+                    );
 
                     const screen = render(
                         <NavigationContainer
@@ -367,20 +683,54 @@ describe('Display friends and search users', () => {
                         screen.getAllByText(/home/i).length,
                     ).toBeGreaterThanOrEqual(1);
 
-                    const goToUsersSearchButton = screen.getByText(
-                        /go.*to.*users.*search/i,
-                    );
-                    expect(goToUsersSearchButton).toBeTruthy();
+                    const musicPlayerMini =
+                        screen.getByTestId('music-player-mini');
+                    expect(musicPlayerMini).toBeTruthy();
 
-                    fireEvent.press(goToUsersSearchButton);
-
-                    const usersSearchInput = await screen.findByPlaceholderText(
-                        /search.*user.*by.*name/i,
+                    const miniPlayerTrackTitle = await within(
+                        musicPlayerMini,
+                    ).findByText(
+                        `${initialState.currentTrack?.title} • ${initialState.currentTrack?.artistName}`,
                     );
-                    expect(usersSearchInput).toBeTruthy();
+                    expect(miniPlayerTrackTitle).toBeTruthy();
+
+                    fireEvent.press(miniPlayerTrackTitle);
+
+                    const musicPlayerFullScreen = await screen.findByA11yState({
+                        expanded: true,
+                    });
+                    expect(musicPlayerFullScreen).toBeTruthy();
+
+                    const listenersButton = within(
+                        musicPlayerFullScreen,
+                    ).getByText(/listeners/i);
+                    expect(listenersButton).toBeTruthy();
+
+                    fireEvent.press(listenersButton);
+
+                    await waitFor(() => {
+                        const usersListScreen =
+                            screen.getByText(/users.*list/i);
+                        expect(usersListScreen).toBeTruthy();
+                    });
+
+                    const inviteUserButton =
+                        screen.getByA11yLabel(/invite.*user/i);
+                    expect(inviteUserButton).toBeTruthy();
+
+                    fireEvent.press(inviteUserButton);
+
+                    await waitFor(() => {
+                        const [, usersSearchInput] =
+                            screen.getAllByPlaceholderText(
+                                /search.*user.*by.*name/i,
+                            );
+                        expect(usersSearchInput).toBeTruthy();
+                    });
 
                     await path.test({
                         screen,
+                        creatorInviteUserMock,
                     });
                 });
             });
@@ -395,4 +745,57 @@ describe('Display friends and search users', () => {
             filter: (state) => typeof state.meta?.test === 'function',
         });
     });
+});
+
+test('Users outside of creator can not access to users search', async () => {
+    const initialState = generateMtvWorklowState({
+        userType: 'USER',
+    });
+
+    serverSocket.on('GET_CONTEXT', () => {
+        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    });
+
+    const screen = render(
+        <NavigationContainer
+            ref={navigationRef}
+            onReady={() => {
+                isReadyRef.current = true;
+            }}
+        >
+            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
+        </NavigationContainer>,
+    );
+
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+    const musicPlayerMini = screen.getByTestId('music-player-mini');
+    expect(musicPlayerMini).toBeTruthy();
+
+    const miniPlayerTrackTitle = await within(musicPlayerMini).findByText(
+        `${initialState.currentTrack?.title} • ${initialState.currentTrack?.artistName}`,
+    );
+    expect(miniPlayerTrackTitle).toBeTruthy();
+
+    fireEvent.press(miniPlayerTrackTitle);
+
+    const musicPlayerFullScreen = await screen.findByA11yState({
+        expanded: true,
+    });
+    expect(musicPlayerFullScreen).toBeTruthy();
+
+    const listenersButton = within(musicPlayerFullScreen).getByText(
+        /listeners/i,
+    );
+    expect(listenersButton).toBeTruthy();
+
+    fireEvent.press(listenersButton);
+
+    await waitFor(() => {
+        const usersListScreen = screen.getByText(/users.*list/i);
+        expect(usersListScreen).toBeTruthy();
+    });
+
+    const inviteUserButton = screen.queryByA11yLabel(/invite.*user/i);
+    expect(inviteUserButton).toBeNull();
 });

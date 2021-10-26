@@ -17,6 +17,7 @@ type UserListItemWithThreeDotsProps =
           onThreeDotsPress: () => void;
           hideThreeDots: boolean;
           user: MtvRoomUsersListElement;
+          disabled?: boolean;
       };
 
 interface ThreeDotsButtonProps {
@@ -60,6 +61,7 @@ const UserListItemWithThreeDots: React.FC<UserListItemWithThreeDotsProps> = (
         onThreeDotsPress,
         hideThreeDots,
         user,
+        disabled,
     } = props;
 
     return (
@@ -67,6 +69,7 @@ const UserListItemWithThreeDots: React.FC<UserListItemWithThreeDotsProps> = (
             loading={false}
             index={index}
             user={user}
+            disabled={disabled}
             onPress={onPress}
             Actions={() => {
                 if (hideThreeDots) {

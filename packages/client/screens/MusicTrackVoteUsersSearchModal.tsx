@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useActor, useMachine } from '@xstate/react';
 import { Text, useSx, View } from 'dripsy';
 import React, { useState } from 'react';
@@ -7,11 +8,13 @@ import { ActorRef } from 'xstate';
 import { AppScreenWithSearchBar } from '../components/kit';
 import UserListItem from '../components/User/UserListItem';
 import { IS_TEST } from '../constants/Env';
+import { useMusicPlayerSend } from '../hooks/musicPlayerHooks';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
 } from '../machines/appScreenHeaderWithSearchBarMachine';
 import { roomUsersSearchMachine } from '../machines/roomUsersSearchMachine';
+import { assertEventType } from '../machines/utils';
 import { MusicTrackVoteUsersSearchModalProps } from '../types';
 
 const UsersListPlaceholder: React.FC = () => {
@@ -28,14 +31,44 @@ const UsersListPlaceholder: React.FC = () => {
     );
 };
 
+const UserListItemInvitedActions = () => {
+    const sx = useSx();
+
+    return (
+        <View accessibilityLabel="Has been invited">
+            <Ionicons
+                name="checkmark"
+                size={20}
+                style={sx({
+                    color: 'secondary',
+                })}
+            />
+        </View>
+    );
+};
+
 const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalProps> =
     ({ navigation }) => {
         const initialNumberOfItemsToRender = IS_TEST ? Infinity : 10;
         const sx = useSx();
         const insets = useSafeAreaInsets();
         const [screenOffsetY, setScreenOffsetY] = useState(0);
+        const sendToMusicPlayer = useMusicPlayerSend();
 
-        const [state, send] = useMachine(roomUsersSearchMachine);
+        const [state, send] = useMachine(roomUsersSearchMachine, {
+            actions: {
+                userHasBeenSelected: (_, event) => {
+                    assertEventType(event, 'SELECT_USER');
+
+                    const { userID } = event;
+
+                    sendToMusicPlayer({
+                        type: 'CREATOR_INVITE_USER',
+                        invitedUserID: userID,
+                    });
+                },
+            },
+        });
 
         //Search bar
         const searchBarActor: ActorRef<
@@ -54,10 +87,22 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
         const displayFriends = state.hasTag('displayFriends');
         const isLoading = state.hasTag('isLoading');
         const isLoadingMore = state.hasTag('isLoadingMore');
+        const selectedUsers = state.context.selectedUsers;
         const usersToDisplay =
             displayFriends === true
                 ? state.context.usersFriends
                 : state.context.filteredUsers;
+        const usersToDisplayWithDisabling = usersToDisplay.map((user) => {
+            const hasAlreadyBeenInvited = selectedUsers.some(
+                (selectedUserID) => selectedUserID === user.userID,
+            );
+            const disabled = hasAlreadyBeenInvited === true;
+
+            return {
+                ...user,
+                disabled,
+            };
+        });
         const hasMoreUsersToFetch =
             displayFriends === true
                 ? state.context.hasMoreUsersFriendsToFetch
@@ -68,6 +113,15 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
             send({
                 type: 'FETCH_MORE',
             });
+        }
+
+        function handleUserCardPressed(userID: string) {
+            return () => {
+                send({
+                    type: 'SELECT_USER',
+                    userID,
+                });
+            };
         }
 
         return (
@@ -86,12 +140,20 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
                     <UsersListPlaceholder />
                 ) : (
                     <FlatList
-                        data={usersToDisplay}
+                        data={usersToDisplayWithDisabling}
                         keyExtractor={({ userID }) => userID}
-                        renderItem={({ item: { userID, nickname }, index }) => {
+                        renderItem={({
+                            item: { userID, nickname, disabled },
+                            index,
+                        }) => {
                             const isLastItem =
                                 index ===
                                 state.context.filteredUsers.length - 1;
+
+                            const Actions =
+                                disabled === true
+                                    ? UserListItemInvitedActions
+                                    : undefined;
 
                             return (
                                 <View
@@ -112,7 +174,10 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
                                             nickname,
                                             userID,
                                         }}
+                                        disabled={disabled}
                                         index={index}
+                                        Actions={Actions}
+                                        onPress={handleUserCardPressed(userID)}
                                     />
                                 </View>
                             );

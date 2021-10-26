@@ -1,12 +1,14 @@
+import { AntDesign } from '@expo/vector-icons';
 import { BottomSheetHandle, BottomSheetModal } from '@gorhom/bottom-sheet';
 import { MtvPlayingModes, MtvRoomUsersListElement } from '@musicroom/types';
 import { useActor, useMachine } from '@xstate/react';
 import { Text, useSx, View } from 'dripsy';
 import React, { useMemo, useRef, useState } from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActorRef } from 'xstate';
 import { AppScreenWithSearchBar } from '../components/kit';
+import AppScreenHeaderActionButton from '../components/kit/AppScreenHeaderActionButton';
 import MtvRoomUserListElementSettings from '../components/User/MtvRoomUserListElementSettings';
 import UserListItemWithThreeDots from '../components/User/UserListItemWithThreeDots';
 import { useSocketContext } from '../contexts/SocketContext';
@@ -18,6 +20,27 @@ import {
 import { createRoomUsersListMachine } from '../machines/roomUsersListMachine';
 import { assertEventType } from '../machines/utils';
 import { MusicTrackVoteUsersListModalProps } from '../types';
+
+interface InviteUserButtonProps {
+    onInviteUser: () => void;
+}
+
+const InviteUserButton: React.FC<InviteUserButtonProps> = ({
+    onInviteUser,
+}) => {
+    return (
+        <AppScreenHeaderActionButton>
+            <TouchableOpacity onPress={onInviteUser}>
+                <AntDesign
+                    name="adduser"
+                    size={24}
+                    color="white"
+                    accessibilityLabel="Invite a user"
+                />
+            </TouchableOpacity>
+        </AppScreenHeaderActionButton>
+    );
+};
 
 const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> =
     ({ navigation }) => {
@@ -102,7 +125,14 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
         }
         ///
 
+        function handleInviteUserButtonPressed() {
+            navigation.navigate('MusicTrackVoteUsersSearch', {
+                screen: 'MusicTrackVoteUsersSearchModal',
+            });
+        }
+
         const searchQueryIsNotEmpty = usersListState.context.searchQuery !== '';
+
         return (
             <AppScreenWithSearchBar
                 canGoBack
@@ -114,6 +144,13 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                 searchQuery={searchState.context.searchQuery}
                 sendToSearch={sendToSearch}
                 goBack={handleGoBack}
+                HeaderActionRight={
+                    deviceOwnerIsRoomCreator === true ? (
+                        <InviteUserButton
+                            onInviteUser={handleInviteUserButtonPressed}
+                        />
+                    ) : undefined
+                }
             >
                 <FlatList
                     data={

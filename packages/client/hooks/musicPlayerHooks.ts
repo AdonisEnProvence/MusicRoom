@@ -1,8 +1,12 @@
 import { MtvPlayingModes } from '@musicroom/types';
 import { useActor } from '@xstate/react';
+import { Sender } from '@xstate/react/lib/types';
 import { useCallback, useMemo } from 'react';
 import { MusicPlayerContextValue, useAppContext } from '../contexts/AppContext';
-import { AppMusicPlayerMachineContext } from '../machines/appMusicPlayerMachine';
+import {
+    AppMusicPlayerMachineContext,
+    AppMusicPlayerMachineEvent,
+} from '../machines/appMusicPlayerMachine';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 import { useUserContext } from './userHooks';
 
@@ -45,6 +49,17 @@ export function useMusicPlayerContext(): MusicPlayerContextValue {
         setPlayerRef,
         toggleIsFullScreen,
     };
+}
+
+export function useMusicPlayerSend(): Sender<AppMusicPlayerMachineEvent> {
+    const {
+        musicPlayerContext: { appMusicPlayerMachineActorRef },
+    } = useAppContext();
+    if (appMusicPlayerMachineActorRef === undefined) {
+        throw new Error('MusicPlayer machine has not been invoked yet');
+    }
+
+    return appMusicPlayerMachineActorRef.send;
 }
 
 interface UserGetIsDeviceEmittingArgs {

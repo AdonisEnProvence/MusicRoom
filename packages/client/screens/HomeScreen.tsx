@@ -42,15 +42,6 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                     }}
                 />
                 <Button
-                    title="Go to users search"
-                    onPress={() => {
-                        navigation.navigate('MusicTrackVoteUsersSearch', {
-                            screen: 'MusicTrackVoteUsersSearchModal',
-                        });
-                    }}
-                />
-
-                <Button
                     title="Ask for geoloc"
                     onPress={() => {
                         sendToUserMachine({

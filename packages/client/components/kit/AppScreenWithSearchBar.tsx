@@ -15,6 +15,7 @@ type AppScreenWithSearchBarProps = {
     setScreenOffsetY: (offsetY: number) => void;
     searchQuery: string;
     sendToSearch: Sender<AppScreenHeaderWithSearchBarMachineEvent>;
+    HeaderActionRight?: React.ReactElement;
 } & (
     | {
           canGoBack: true;
@@ -31,6 +32,7 @@ const AppScreenWithSearchBar: React.FC<AppScreenWithSearchBarProps> = ({
     setScreenOffsetY,
     searchQuery,
     sendToSearch,
+    HeaderActionRight,
     children,
     ...args
 }) => {
@@ -46,6 +48,7 @@ const AppScreenWithSearchBar: React.FC<AppScreenWithSearchBarProps> = ({
                 searchQuery={searchQuery}
                 sendToMachine={sendToSearch}
                 showHeader={showHeader}
+                HeaderActionRight={HeaderActionRight}
                 {...args}
             />
 

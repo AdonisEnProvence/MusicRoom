@@ -1,7 +1,9 @@
 import { drop, factory, primaryKey } from '@mswjs/data';
 import {
     MtvRoomSummary,
+    MtvWorkflowState,
     TrackMetadataWithScore,
+    UserDevice,
     UserSummary,
 } from '@musicroom/types';
 import { LocationObject } from 'expo-location';
@@ -67,8 +69,138 @@ export function generateUserSummary(
     };
 }
 
-export function generateArray<Item>(length: number, fill: () => Item): Item[] {
-    return Array.from({ length }).map(() => fill());
+interface GenerateMtvWorklowStateArgs {
+    userType: 'CREATOR' | 'USER';
+
+    overrides?: Partial<MtvWorkflowState>;
+}
+
+export function generateUserDevice(
+    overrides?: Partial<UserDevice>,
+): UserDevice {
+    return {
+        deviceID: datatype.uuid(),
+        name: random.words(),
+
+        ...overrides,
+    };
+}
+
+function generateMtvWorkflowStateForRoomCreator(
+    overrides?: Partial<MtvWorkflowState>,
+): MtvWorkflowState {
+    const tracksList = generateArray({
+        minLength: 2,
+        maxLength: 6,
+        fill: generateTrackMetadata,
+    });
+    const roomCreatorUserID = datatype.uuid();
+
+    return {
+        name: random.words(),
+        roomID: datatype.uuid(),
+        playing: false,
+        roomCreatorUserID,
+        usersLength: 1,
+        playingMode: 'BROADCAST',
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanVote: false,
+        hasTimeAndPositionConstraints: false,
+        delegationOwnerUserID: null,
+        timeConstraintIsValid: null,
+        userRelatedInformation: {
+            hasControlAndDelegationPermission: true,
+            userFitsPositionConstraint: null,
+            userHasBeenInvited: false,
+            emittingDeviceID: datatype.uuid(),
+            userID: roomCreatorUserID,
+            tracksVotedFor: [],
+        },
+        currentTrack: {
+            ...tracksList[0],
+            elapsed: 0,
+        },
+        tracks: tracksList.slice(1),
+        minimumScoreToBePlayed: 1,
+
+        ...overrides,
+    };
+}
+
+function generateMtvWorkflowStateForUser(
+    overrides?: Partial<MtvWorkflowState>,
+): MtvWorkflowState {
+    const tracksList = generateArray({
+        minLength: 2,
+        maxLength: 6,
+        fill: generateTrackMetadata,
+    });
+
+    return {
+        name: random.words(),
+        roomID: datatype.uuid(),
+        playing: false,
+        roomCreatorUserID: datatype.uuid(),
+        usersLength: 2,
+        playingMode: 'BROADCAST',
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanVote: false,
+        hasTimeAndPositionConstraints: false,
+        delegationOwnerUserID: null,
+        timeConstraintIsValid: null,
+        userRelatedInformation: {
+            hasControlAndDelegationPermission: true,
+            userFitsPositionConstraint: null,
+            userHasBeenInvited: false,
+            emittingDeviceID: datatype.uuid(),
+            userID: datatype.uuid(),
+            tracksVotedFor: [],
+        },
+        currentTrack: {
+            ...tracksList[0],
+            elapsed: 0,
+        },
+        tracks: tracksList.slice(1),
+        minimumScoreToBePlayed: 1,
+
+        ...overrides,
+    };
+}
+
+export function generateMtvWorklowState({
+    userType,
+
+    overrides,
+}: GenerateMtvWorklowStateArgs): MtvWorkflowState {
+    switch (userType) {
+        case 'CREATOR': {
+            return generateMtvWorkflowStateForRoomCreator(overrides);
+        }
+
+        case 'USER': {
+            return generateMtvWorkflowStateForUser(overrides);
+        }
+
+        default: {
+            throw new Error('Reached unreachable state');
+        }
+    }
+}
+
+interface GenerateArrayArgs<Item> {
+    minLength: number;
+    maxLength: number;
+    fill: () => Item;
+}
+
+export function generateArray<Item>({
+    minLength,
+    maxLength,
+    fill,
+}: GenerateArrayArgs<Item>): Item[] {
+    return Array.from({
+        length: datatype.number({ min: minLength, max: maxLength }),
+    }).map(() => fill());
 }
 
 export function generateLocationObject(

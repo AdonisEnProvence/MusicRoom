@@ -26,11 +26,14 @@ After the vote has been accepted the score will be updated and the card disabled
     const deviceID = datatype.uuid();
     const userID = datatype.uuid();
 
-    const tracksList = generateArray(9, () =>
-        generateTrackMetadata({
-            score: 0,
-        }),
-    );
+    const tracksList = generateArray({
+        minLength: 9,
+        maxLength: 9,
+        fill: () =>
+            generateTrackMetadata({
+                score: 0,
+            }),
+    });
     const state: MtvWorkflowStateWithUserRelatedInformation = {
         roomID: datatype.uuid(),
         name: random.word(),
@@ -146,11 +149,14 @@ test('Voting is disabled for users outside of physical constraints bounds', asyn
     const deviceID = datatype.uuid();
     const userID = datatype.uuid();
 
-    const tracksList = generateArray(9, () =>
-        generateTrackMetadata({
-            score: 0,
-        }),
-    );
+    const tracksList = generateArray({
+        minLength: 9,
+        maxLength: 9,
+        fill: () =>
+            generateTrackMetadata({
+                score: 0,
+            }),
+    });
     const state: MtvWorkflowStateWithUserRelatedInformation = {
         roomID: datatype.uuid(),
         name: random.word(),
@@ -249,11 +255,14 @@ test('Voting is disabled for users outside of time bounds', async () => {
     const deviceID = datatype.uuid();
     const userID = datatype.uuid();
 
-    const tracksList = generateArray(9, () =>
-        generateTrackMetadata({
-            score: 0,
-        }),
-    );
+    const tracksList = generateArray({
+        minLength: 9,
+        maxLength: 9,
+        fill: () =>
+            generateTrackMetadata({
+                score: 0,
+            }),
+    });
     const state: MtvWorkflowStateWithUserRelatedInformation = {
         roomID: datatype.uuid(),
         name: random.word(),

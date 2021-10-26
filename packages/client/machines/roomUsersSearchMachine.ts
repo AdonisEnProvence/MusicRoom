@@ -20,6 +20,8 @@ const roomUsersSearchModel = createModel(
         previousSearchQuery: '',
         searchQuery: '',
         hasMoreFilteredUsersToFetch: true,
+
+        selectedUsers: [] as string[],
     },
     {
         events: {
@@ -40,6 +42,8 @@ const roomUsersSearchModel = createModel(
             FETCH_MORE: () => ({}),
 
             DEBOUNCED_SEARCH: () => ({}),
+
+            SELECT_USER: (userID: string) => ({ userID }),
         },
     },
 );
@@ -119,6 +123,16 @@ const resetFilteredUsersFetchingDataFromContext = roomUsersSearchModel.assign(
         filteredUsersPage: 1,
     },
     'UPDATE_SEARCH_QUERY',
+);
+
+const assignSelectedUserToContext = roomUsersSearchModel.assign(
+    {
+        selectedUsers: ({ selectedUsers }, { userID }) => [
+            ...selectedUsers,
+            userID,
+        ],
+    },
+    'SELECT_USER',
 );
 
 export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
@@ -372,6 +386,13 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                                 target: '.displayFilteredUsers',
 
                                 internal: false,
+                            },
+
+                            SELECT_USER: {
+                                actions: [
+                                    assignSelectedUserToContext,
+                                    'userHasBeenSelected',
+                                ],
                             },
                         },
                     },

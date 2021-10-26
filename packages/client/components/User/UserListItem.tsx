@@ -15,6 +15,7 @@ type UserListItemProps =
           loading: false;
           index: number;
           user: MtvRoomUsersListElement;
+          disabled?: boolean;
           onPress?: () => void;
           Actions?: () => React.ReactElement;
       };
@@ -34,11 +35,12 @@ const UserListItem: React.FC<UserListItemProps> = (props) => {
                         borderRadius: 's',
                         flexDirection: 'row',
                         alignItems: 'center',
+                        opacity: props.disabled ? 0.8 : 1,
                     }}
                     testID={`${props.user.nickname}-user-card`}
                 >
                     <TouchableOpacity
-                        // disabled={disabled}
+                        disabled={props.disabled}
                         onPress={props.onPress}
                         style={{ flex: 1 }}
                     >

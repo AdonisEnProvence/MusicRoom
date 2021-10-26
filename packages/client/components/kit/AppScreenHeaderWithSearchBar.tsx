@@ -18,6 +18,7 @@ type AppScreenHeaderWithSearchBarPropsBase = {
     showHeader: boolean;
     searchQuery: string;
     sendToMachine: Sender<AppScreenHeaderWithSearchBarMachineEvent>;
+    HeaderActionRight?: React.ReactElement;
 };
 
 type AppScreenHeaderWithSearchBarProps = AppScreenHeaderWithSearchBarPropsBase &
@@ -38,6 +39,7 @@ const AppScreenHeaderWithSearchBar: React.FC<AppScreenHeaderWithSearchBarProps> 
         searchInputPlaceholder,
         searchQuery,
         sendToMachine,
+        HeaderActionRight,
         ...props
     }) => {
         const [{ height }, onLayout] = useLayout();
@@ -112,6 +114,8 @@ const AppScreenHeaderWithSearchBar: React.FC<AppScreenHeaderWithSearchBarProps> 
                         )}
 
                         <AppScreenHeaderTitle>{title}</AppScreenHeaderTitle>
+
+                        {HeaderActionRight}
                     </MotiView>
 
                     <View sx={{ flexDirection: 'row' }}>

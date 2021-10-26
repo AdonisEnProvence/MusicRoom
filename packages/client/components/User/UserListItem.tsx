@@ -35,6 +35,7 @@ const UserListItem: React.FC<UserListItemProps> = (props) => {
                         borderRadius: 's',
                         flexDirection: 'row',
                         alignItems: 'center',
+                        opacity: props.disabled ? 0.8 : 1,
                     }}
                     testID={`${props.user.nickname}-user-card`}
                 >

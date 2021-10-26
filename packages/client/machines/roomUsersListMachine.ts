@@ -29,6 +29,12 @@ const roomUsersListModel = createModel(
             SET_SELECTED_USER: (selectedUser: MtvRoomUsersListElement) => ({
                 selectedUser,
             }),
+
+            USER_CLICK_ON_USER_CARD: (
+                pressedUser: MtvRoomUsersListElement,
+            ) => ({
+                pressedUser,
+            }),
         },
     },
 );
@@ -209,6 +215,10 @@ export const createRoomUsersListMachine = ({
             ASSIGN_RETRIEVED_USERS_LIST: {
                 target: '.machineIsReady',
                 actions: assignRetrievedUsersListToContext,
+            },
+
+            USER_CLICK_ON_USER_CARD: {
+                actions: 'redirectToUserProfile',
             },
         },
     });

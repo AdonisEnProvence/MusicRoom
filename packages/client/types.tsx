@@ -2,6 +2,7 @@
  * Learn more about using TypeScript with React Navigation:
  * https://reactnavigation.org/docs/typescript/
  */
+import { TrackMetadata } from '@musicroom/types';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import {
     CompositeNavigationProp,
@@ -9,7 +10,6 @@ import {
     RouteProp,
 } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { TrackMetadata } from '@musicroom/types';
 
 export type NavigateFromRefParams = {
     Alert: AlertParams;
@@ -77,9 +77,11 @@ export type MainStackParamList = {
     Root: NavigatorScreenParams<BottomTabNavigatorParamList>;
 
     MusicTrackVoteSearch: undefined;
-    MusicTrackVote: MusicTrackVoteParams;
+    // MusicTrackVote: MusicTrackVoteParams;
 
     Settings: undefined;
+
+    UserProfile: UserProfileParams;
 
     Alert: AlertParams;
 };
@@ -87,8 +89,11 @@ export type MainStackParamList = {
 interface AlertParams {
     reason: 'FORCED_DISCONNECTION';
 }
-interface MusicTrackVoteParams {
-    roomId: string;
+// interface MusicTrackVoteParams {
+//     roomId: string;
+// }
+interface UserProfileParams {
+    userID: string;
 }
 interface SearchTracksResultsParams {
     tracks?: TrackMetadata[];
@@ -275,6 +280,14 @@ export type AlertScreenProps = {
         StackNavigationProp<MainStackParamList, 'Alert'>
     >;
     route: RouteProp<MainStackParamList, 'Alert'>;
+};
+
+export type UserProfileScreenProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'Main'>,
+        StackNavigationProp<MainStackParamList, 'UserProfile'>
+    >;
+    route: RouteProp<MainStackParamList, 'UserProfile'>;
 };
 
 export type HomeTabProps = {

@@ -9,6 +9,7 @@ import React, { useEffect } from 'react';
 import Toast from 'react-native-toast-message';
 import { navigationStyle } from '../constants/Colors';
 import { AlertScreen } from '../screens/AlertScreen';
+import MusicTrackVoteChatModal from '../screens/MusicTrackVoteChatModal';
 import MusicTrackVoteCreationFormConfirmation from '../screens/MusicTrackVoteCreationFormConfirmation';
 import MusicTrackVoteCreationFormName from '../screens/MusicTrackVoteCreationFormName';
 import MusicTrackVoteCreationFormOpeningStatus from '../screens/MusicTrackVoteCreationFormOpeningStatus';
@@ -17,10 +18,11 @@ import MusicTrackVoteCreationFormPlayingMode from '../screens/MusicTrackVoteCrea
 import MusicTrackVoteCreationFormVotesConstraints from '../screens/MusicTrackVoteCreationFormVotesConstraints';
 import MusicTrackVoteSearchScreen from '../screens/MusicTrackVoteSearchScreen';
 import MusicTrackVoteUsersListModal from '../screens/MusicTrackVoteUsersListModal';
-import MusicTrackVoteChatModal from '../screens/MusicTrackVoteChatModal';
+import MusicTrackVoteUsersSearchModal from '../screens/MusicTrackVoteUsersSearchModal';
 import SettingsScreen from '../screens/SettingsScreen';
 import SuggestTrackModal from '../screens/SuggestTrackModal';
 import SuggestTrackResultsModal from '../screens/SuggestTrackResultsModal';
+import UserProfileScreen from '../screens/UserProfile';
 import {
     MainStackParamList,
     MusicTrackVoteChatStackParamList,
@@ -30,7 +32,6 @@ import {
     RootStackParamList,
     SuggestTrackStackParamList,
 } from '../types';
-import MusicTrackVoteUsersSearchModal from '../screens/MusicTrackVoteUsersSearchModal';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
@@ -279,6 +280,12 @@ const MainNavigator: React.FC<ColorModeProps> = ({
                     />
                 )}
             </MainStack.Screen>
+
+            <MainStack.Screen
+                name="UserProfile"
+                options={{ title: 'User Profile' }}
+                component={UserProfileScreen}
+            />
 
             <MainStack.Screen name="Alert" component={AlertScreen} />
         </MainStack.Navigator>

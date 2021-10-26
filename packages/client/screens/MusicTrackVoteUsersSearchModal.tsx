@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useActor, useMachine } from '@xstate/react';
 import { Text, useSx, View } from 'dripsy';
 import React, { useState } from 'react';
@@ -26,6 +27,22 @@ const UsersListPlaceholder: React.FC = () => {
                     <UserListItem loading />
                 </View>
             ))}
+        </View>
+    );
+};
+
+const UserListItemInvitedActions = () => {
+    const sx = useSx();
+
+    return (
+        <View accessibilityLabel="Has been invited">
+            <Ionicons
+                name="checkmark"
+                size={20}
+                style={sx({
+                    color: 'secondary',
+                })}
+            />
         </View>
     );
 };
@@ -133,6 +150,11 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
                                 index ===
                                 state.context.filteredUsers.length - 1;
 
+                            const Actions =
+                                disabled === true
+                                    ? UserListItemInvitedActions
+                                    : undefined;
+
                             return (
                                 <View
                                     sx={{
@@ -154,6 +176,7 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
                                         }}
                                         disabled={disabled}
                                         index={index}
+                                        Actions={Actions}
                                         onPress={handleUserCardPressed(userID)}
                                     />
                                 </View>

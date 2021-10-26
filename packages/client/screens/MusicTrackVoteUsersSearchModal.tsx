@@ -70,10 +70,22 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
         const displayFriends = state.hasTag('displayFriends');
         const isLoading = state.hasTag('isLoading');
         const isLoadingMore = state.hasTag('isLoadingMore');
+        const selectedUsers = state.context.selectedUsers;
         const usersToDisplay =
             displayFriends === true
                 ? state.context.usersFriends
                 : state.context.filteredUsers;
+        const usersToDisplayWithDisabling = usersToDisplay.map((user) => {
+            const hasAlreadyBeenInvited = selectedUsers.some(
+                (selectedUserID) => selectedUserID === user.userID,
+            );
+            const disabled = hasAlreadyBeenInvited === true;
+
+            return {
+                ...user,
+                disabled,
+            };
+        });
         const hasMoreUsersToFetch =
             displayFriends === true
                 ? state.context.hasMoreUsersFriendsToFetch
@@ -111,9 +123,12 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
                     <UsersListPlaceholder />
                 ) : (
                     <FlatList
-                        data={usersToDisplay}
+                        data={usersToDisplayWithDisabling}
                         keyExtractor={({ userID }) => userID}
-                        renderItem={({ item: { userID, nickname }, index }) => {
+                        renderItem={({
+                            item: { userID, nickname, disabled },
+                            index,
+                        }) => {
                             const isLastItem =
                                 index ===
                                 state.context.filteredUsers.length - 1;
@@ -137,6 +152,7 @@ const MusicTrackVoteUsersSearchModal: React.FC<MusicTrackVoteUsersSearchModalPro
                                             nickname,
                                             userID,
                                         }}
+                                        disabled={disabled}
                                         index={index}
                                         onPress={handleUserCardPressed(userID)}
                                     />

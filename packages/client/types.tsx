@@ -45,6 +45,8 @@ export type RootStackParamList = {
     MusicTrackVoteChat: NavigatorScreenParams<MusicTrackVoteChatStackParamList>;
 
     MusicTrackVoteUsersSearch: NavigatorScreenParams<MusicTrackVoteUsersSearchStackParamList>;
+
+    UserProfile: UserProfileParams;
 };
 
 export type SuggestTrackStackParamList = {
@@ -80,8 +82,6 @@ export type MainStackParamList = {
     // MusicTrackVote: MusicTrackVoteParams;
 
     Settings: undefined;
-
-    UserProfile: UserProfileParams;
 
     Alert: AlertParams;
 };
@@ -283,11 +283,8 @@ export type AlertScreenProps = {
 };
 
 export type UserProfileScreenProps = {
-    navigation: CompositeNavigationProp<
-        StackNavigationProp<RootStackParamList, 'Main'>,
-        StackNavigationProp<MainStackParamList, 'UserProfile'>
-    >;
-    route: RouteProp<MainStackParamList, 'UserProfile'>;
+    navigation: StackNavigationProp<RootStackParamList, 'UserProfile'>;
+    route: RouteProp<RootStackParamList, 'UserProfile'>;
 };
 
 export type HomeTabProps = {

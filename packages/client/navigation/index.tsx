@@ -128,6 +128,12 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
                 component={MusicTrackVoteUsersSearchNavigator}
                 options={{ headerShown: false }}
             />
+
+            <RootStack.Screen
+                name="UserProfile"
+                options={{ title: 'User Profile', headerShown: false }}
+                component={UserProfileScreen}
+            />
         </RootStack.Navigator>
     );
 };
@@ -280,12 +286,6 @@ const MainNavigator: React.FC<ColorModeProps> = ({
                     />
                 )}
             </MainStack.Screen>
-
-            <MainStack.Screen
-                name="UserProfile"
-                options={{ title: 'User Profile' }}
-                component={UserProfileScreen}
-            />
 
             <MainStack.Screen name="Alert" component={AlertScreen} />
         </MainStack.Navigator>

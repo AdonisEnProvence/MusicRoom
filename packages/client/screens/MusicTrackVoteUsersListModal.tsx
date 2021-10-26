@@ -16,6 +16,7 @@ import {
     AppScreenHeaderWithSearchBarMachineState,
 } from '../machines/appScreenHeaderWithSearchBarMachine';
 import { createRoomUsersListMachine } from '../machines/roomUsersListMachine';
+import { assertEventType } from '../machines/utils';
 import { MusicTrackVoteUsersListModalProps } from '../types';
 
 const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> =
@@ -33,13 +34,25 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
             () =>
                 createRoomUsersListMachine({
                     socket,
+                }).withConfig({
+                    actions: {
+                        redirectToUserProfile: (_, event) => {
+                            assertEventType(event, 'USER_CLICK_ON_USER_CARD');
+
+                            const { userID } = event.pressedUser;
+                            navigation.navigate('UserProfile', {
+                                userID,
+                            });
+                        },
+                    },
                 }),
-            [socket],
+            [socket, navigation],
         );
-        const [state, sendToMachine] = useMachine(roomUsersListMachine);
+        const [usersListState, sendToUsersListMachine] =
+            useMachine(roomUsersListMachine);
         ///
 
-        const { deviceOwnerUser } = state.context;
+        const { deviceOwnerUser } = usersListState.context;
         //Maybe here we should redirect the user to the home if the deviceOwner is not found in the users list ?
 
         let hideThreeDots = true;
@@ -64,7 +77,7 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
         const searchBarActor: ActorRef<
             AppScreenHeaderWithSearchBarMachineEvent,
             AppScreenHeaderWithSearchBarMachineState
-        > = state.children.searchBarMachine;
+        > = usersListState.children.searchBarMachine;
         const [searchState, sendToSearch] = useActor(searchBarActor);
         const showHeader = searchState.hasTag('showHeaderTitle');
         ///
@@ -76,7 +89,7 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
         function handlePresentModalPress(
             selectedUser: MtvRoomUsersListElement,
         ) {
-            sendToMachine({ type: 'SET_SELECTED_USER', selectedUser });
+            sendToUsersListMachine({ type: 'SET_SELECTED_USER', selectedUser });
             bottomSheetModalRef.current?.present();
         }
 
@@ -89,7 +102,7 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
         }
         ///
 
-        const searchQueryIsNotEmpty = state.context.searchQuery !== '';
+        const searchQueryIsNotEmpty = usersListState.context.searchQuery !== '';
         return (
             <AppScreenWithSearchBar
                 canGoBack
@@ -105,14 +118,15 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                 <FlatList
                     data={
                         searchQueryIsNotEmpty
-                            ? state.context.filteredUsers
-                            : state.context.allUsers
+                            ? usersListState.context.filteredUsers
+                            : usersListState.context.allUsers
                     }
                     key={'mtv_room_users_list'}
                     keyExtractor={(item) => item.userID}
                     renderItem={({ item, index }) => {
                         const isLastItem =
-                            index === state.context.filteredUsers.length - 1;
+                            index ===
+                            usersListState.context.filteredUsers.length - 1;
 
                         const hideDeviceOwnerUserCardThreeDotsButton =
                             deviceOwnerIsRoomCreator &&
@@ -126,6 +140,12 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                                 }}
                             >
                                 <UserListItemWithThreeDots
+                                    onPress={() => {
+                                        sendToUsersListMachine({
+                                            type: 'USER_CLICK_ON_USER_CARD',
+                                            pressedUser: item,
+                                        });
+                                    }}
                                     loading={false}
                                     hideThreeDots={
                                         hideDeviceOwnerUserCardThreeDotsButton ||
@@ -188,8 +208,8 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                                     !user.hasControlAndDelegationPermission,
                             });
                         }}
-                        selectedUser={state.context.selectedUser}
-                        deviceOwnerUser={state.context.deviceOwnerUser}
+                        selectedUser={usersListState.context.selectedUser}
+                        deviceOwnerUser={usersListState.context.deviceOwnerUser}
                     />
                 </BottomSheetModal>
             </AppScreenWithSearchBar>

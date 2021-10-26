@@ -752,4 +752,106 @@ describe('User list tests', () => {
             expect(newSearchAbleUserCard).toBeTruthy();
         });
     });
+
+    it(`After user has pressed a user card, it should redirect him to the pressed user profile screen`, async () => {
+        const tracksList = [generateTrackMetadata(), generateTrackMetadata()];
+
+        const roomCreatorUserID = datatype.uuid();
+        const initialState: MtvWorkflowState = {
+            name: random.words(),
+            roomID: datatype.uuid(),
+            playing: false,
+            playingMode: MtvPlayingModes.Values.BROADCAST,
+            roomCreatorUserID,
+            isOpen: true,
+            isOpenOnlyInvitedUsersCanVote: false,
+            hasTimeAndPositionConstraints: false,
+            timeConstraintIsValid: null,
+            delegationOwnerUserID: null,
+            userRelatedInformation: {
+                hasControlAndDelegationPermission: true,
+                userFitsPositionConstraint: null,
+                emittingDeviceID: datatype.uuid(),
+                userID: roomCreatorUserID,
+                userHasBeenInvited: false,
+                tracksVotedFor: [],
+            },
+            usersLength: 1,
+            currentTrack: {
+                ...tracksList[0],
+                elapsed: 0,
+            },
+            tracks: tracksList.slice(1),
+            minimumScoreToBePlayed: 1,
+        };
+
+        const fakeUsersArray = getFakeUsersList({
+            directMode: false,
+            isMeIsCreator: true,
+        });
+
+        serverSocket.on('GET_CONTEXT', () => {
+            serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+        });
+
+        serverSocket.on('GET_USERS_LIST', (cb) => {
+            cb(fakeUsersArray);
+        });
+
+        const screen = render(
+            <NavigationContainer
+                ref={navigationRef}
+                onReady={() => {
+                    isReadyRef.current = true;
+                }}
+            >
+                <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
+            </NavigationContainer>,
+        );
+
+        expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+        const musicPlayerMini = screen.getByTestId('music-player-mini');
+        expect(musicPlayerMini).toBeTruthy();
+
+        const miniPlayerTrackTitle = await within(musicPlayerMini).findByText(
+            new RegExp(`${tracksList[0].title}.*${tracksList[0].artistName}`),
+        );
+        expect(miniPlayerTrackTitle).toBeTruthy();
+
+        fireEvent.press(miniPlayerTrackTitle);
+
+        const musicPlayerFullScreen = await screen.findByA11yState({
+            expanded: true,
+        });
+        expect(musicPlayerFullScreen).toBeTruthy();
+        expect(
+            within(musicPlayerFullScreen).getByText(tracksList[0].title),
+        ).toBeTruthy();
+
+        const listenersButton = await screen.getByText(/listeners/i);
+        expect(listenersButton).toBeTruthy();
+
+        fireEvent.press(listenersButton);
+
+        await waitFor(() => {
+            const usersListScreen = screen.getByText(/users.*list/i);
+            expect(usersListScreen).toBeTruthy();
+        });
+
+        const pressedUser = fakeUsersArray[0];
+        const userListItem = screen.getByTestId(
+            `${pressedUser.nickname}-user-card`,
+        );
+        expect(userListItem).toBeTruthy();
+
+        fireEvent.press(userListItem);
+
+        await waitFor(() => {
+            const profileScreen = screen.getByText(
+                new RegExp(`${pressedUser.userID} Profile Screen`),
+            );
+            expect(profileScreen).toBeTruthy();
+        });
+    });
 });

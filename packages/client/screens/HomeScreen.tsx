@@ -60,6 +60,15 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                 />
 
                 <Button
+                    title="Go to my profile screen"
+                    onPress={() => {
+                        navigation.navigate('UserProfile', {
+                            userID: 'just a fake user id',
+                        });
+                    }}
+                />
+
+                <Button
                     title="Inject fake room"
                     onPress={() => {
                         const fakeState: MtvWorkflowState = {

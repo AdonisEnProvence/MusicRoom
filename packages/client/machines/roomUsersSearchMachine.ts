@@ -1,6 +1,7 @@
 import { UserSummary } from '@musicroom/types';
 import { send } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { getFakeUserID } from '../contexts/SocketContext';
 import { fetchFriends, fetchUsers } from '../services/UsersSearchService';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 
@@ -440,6 +441,8 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                     console.log('in fetch users service');
 
                     try {
+                        const userID = getFakeUserID();
+
                         const {
                             data: users,
                             page,
@@ -447,6 +450,7 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                         } = await fetchUsers({
                             searchQuery,
                             page: filteredUsersPage,
+                            userID,
                         });
 
                         console.log('fetched users', users, page, hasMore);

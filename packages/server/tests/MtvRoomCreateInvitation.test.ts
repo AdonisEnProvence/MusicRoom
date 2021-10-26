@@ -77,6 +77,37 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         assert.equal(allInvitations.length, 1);
     });
 
+    test('It should fail to invite user as invitedUser is creator himself', async (assert) => {
+        const invitedUserID = datatype.uuid();
+        const creatorUserID = datatype.uuid();
+        const roomID = datatype.uuid();
+
+        await createUserAndGetSocket({
+            userID: creatorUserID,
+            mtvRoomIDToAssociate: roomID,
+        });
+
+        const invitedUserSocket = await createUserAndGetSocket({
+            userID: invitedUserID,
+        });
+
+        invitedUserSocket.on('RECEIVED_MTV_ROOM_INVITATION', () =>
+            assert.isTrue(false),
+        );
+
+        try {
+            await MtvRoomsWsController.onCreatorInviteUser({
+                emitterUserID: creatorUserID,
+                invitedUserID: creatorUserID,
+                roomID,
+            });
+            assert.isTrue(false);
+        } catch ({ message }) {
+            assert.equal((await MtvRoomInvitation.all()).length, 0);
+            assert.equal(message, 'Creator cannot invite himself in his room');
+        }
+    });
+
     test('It should fail to invite user as the inviting user is not the room creator', async (assert) => {
         const invitedUserID = datatype.uuid();
         const normalUserID = datatype.uuid();

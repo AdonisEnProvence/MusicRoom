@@ -522,6 +522,11 @@ export default class MtvRoomsWsController {
             );
         }
 
+        const creatorIsInvitingHimself = invitedUser.uuid === emitterUserID;
+        if (creatorIsInvitingHimself) {
+            throw new Error('Creator cannot invite himself in his room');
+        }
+
         const invitedUserIsAlreadyInTheRoom = invitedUser.mtvRoomID === roomID;
         if (invitedUserIsAlreadyInTheRoom) {
             throw new Error('Invited user is already in the room');

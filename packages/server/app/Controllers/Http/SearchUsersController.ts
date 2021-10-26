@@ -12,10 +12,12 @@ export default class SearchUsersController {
         request,
     }: HttpContextContract): Promise<SearchUsersResponseBody> {
         const rawBody = request.body();
-        const { searchQuery, page } = SearchUsersRequestBody.parse(rawBody);
+        const { searchQuery, page, userID } =
+            SearchUsersRequestBody.parse(rawBody);
 
         const usersPagination = await User.query()
-            .where('nickname', 'ilike', `${searchQuery}%`)
+            .whereNot('uuid', userID)
+            .andWhere('nickname', 'ilike', `${searchQuery}%`)
             .orderBy('nickname', 'asc')
             .paginate(page, SEARCH_USERS_LIMIT);
         const totalUsersToLoad = usersPagination.total;

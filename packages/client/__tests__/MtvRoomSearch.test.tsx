@@ -1,6 +1,6 @@
 import { MtvRoomSummary } from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
-import { datatype } from 'faker';
+import { datatype, random } from 'faker';
 import React from 'react';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
@@ -60,16 +60,18 @@ test('Rooms are listed when coming to the screen and infinitely loaded', async (
 
         switch (isOpen) {
             case true: {
-                const publicStatusElement =
-                    within(listItem).getByText(/public/i);
-                expect(publicStatusElement).toBeTruthy();
+                const publicStatusIcon = within(listItem).getByA11yLabel(
+                    new RegExp(`${roomName}.*public`),
+                );
+                expect(publicStatusIcon).toBeTruthy();
 
                 break;
             }
             case false: {
-                const privateStatusElement =
-                    within(listItem).getByText(/private/i);
-                expect(privateStatusElement).toBeTruthy();
+                const privateStatusIcon = within(listItem).getByA11yLabel(
+                    new RegExp(`${roomName}.*private`),
+                );
+                expect(privateStatusIcon).toBeTruthy();
 
                 break;
             }
@@ -103,17 +105,19 @@ test('Rooms are listed when coming to the screen and infinitely loaded', async (
 
         switch (isOpen) {
             case true: {
-                const publicStatusElement =
-                    within(listItem).getByText(/public/i);
-                expect(publicStatusElement).toBeTruthy();
+                const publicStatusIcon = within(listItem).getByA11yLabel(
+                    new RegExp(`${roomName}.*public`),
+                );
+                expect(publicStatusIcon).toBeTruthy();
 
                 break;
             }
 
             case false: {
-                const privateStatusElement =
-                    within(listItem).getByText(/private/i);
-                expect(privateStatusElement).toBeTruthy();
+                const privateStatusIcon = within(listItem).getByA11yLabel(
+                    new RegExp(`${roomName}.*private`),
+                );
+                expect(privateStatusIcon).toBeTruthy();
 
                 break;
             }
@@ -190,19 +194,19 @@ test('Rooms are filtered and infinitely loaded', async () => {
 
     switch (roomToFind.isOpen) {
         case true: {
-            const publicStatusElement = within(roomToFindListElement).getByText(
-                /public/i,
-            );
-            expect(publicStatusElement).toBeTruthy();
+            const publicStatusIcon = within(
+                roomToFindListElement,
+            ).getByA11yLabel(new RegExp(`${roomToFind.roomName}.*public`));
+            expect(publicStatusIcon).toBeTruthy();
 
             break;
         }
 
         case false: {
-            const privateStatusElement = within(
+            const privateStatusIcon = within(
                 roomToFindListElement,
-            ).getByText(/private/i);
-            expect(privateStatusElement).toBeTruthy();
+            ).getByA11yLabel(new RegExp(`${roomToFind.roomName}.*private`));
+            expect(privateStatusIcon).toBeTruthy();
 
             break;
         }
@@ -238,4 +242,80 @@ test('Displays empty state when no rooms match the query', async () => {
         /no.*rooms.*match.*request/i,
     );
     expect(emptyStateElement).toBeTruthy();
+});
+
+function generateArray<Item>(
+    length: number,
+    fill: (index: number) => Item,
+): Item[] {
+    return Array.from({ length }).map((_, index) => fill(index));
+}
+
+test('Room card specific icon for isOpen isInvited', async () => {
+    const searchableRooms = generateArray(10, (index): MtvRoomSummary => {
+        const indexIsEven = index % 2 === 0;
+        const indexIsZeroOrFive = index === 5 || index === 0;
+        const room = {
+            roomID: datatype.uuid(),
+            isInvited: indexIsZeroOrFive,
+            roomName: random.words(5),
+            creatorName: datatype.uuid(),
+            isOpen: indexIsEven,
+        };
+        db.searchableRooms.create(room);
+        return room;
+    });
+
+    const screen = render(
+        <NavigationContainer
+            ref={navigationRef}
+            onReady={() => {
+                isReadyRef.current = true;
+            }}
+        >
+            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
+        </NavigationContainer>,
+    );
+
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+    const goToMtvSearchScreenButton = screen.getByText(
+        /go.*to.*music.*track.*vote/i,
+    );
+    expect(goToMtvSearchScreenButton).toBeTruthy();
+
+    fireEvent.press(goToMtvSearchScreenButton);
+
+    // Wait for first element of the list to be displayed
+    await waitFor(() => {
+        const firstRoomBeforeFilteringElement = screen.getByTestId(
+            `mtv-room-search-${searchableRooms[0].roomID}`,
+        );
+        expect(firstRoomBeforeFilteringElement).toBeTruthy();
+    });
+
+    for (const room of searchableRooms) {
+        const { roomID, roomName, isOpen, isInvited } = room;
+        const roomCard = screen.getByTestId(`mtv-room-search-${roomID}`);
+        expect(roomCard).toBeTruthy();
+
+        if (isOpen) {
+            const publicStatusIcon = within(roomCard).getByA11yLabel(
+                new RegExp(`${roomName}.*public`),
+            );
+            expect(publicStatusIcon).toBeTruthy();
+
+            if (isInvited) {
+                const invitationIcon = within(roomCard).getByA11yLabel(
+                    `You're invited to ${roomName}`,
+                );
+                expect(invitationIcon).toBeTruthy();
+            }
+        } else {
+            const privateStatusIcon = within(roomCard).getByA11yLabel(
+                new RegExp(`${roomName}.*private`),
+            );
+            expect(privateStatusIcon).toBeTruthy();
+        }
+    }
 });

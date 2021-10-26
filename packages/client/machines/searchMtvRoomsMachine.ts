@@ -1,5 +1,6 @@
 import { MtvRoomSummary } from '@musicroom/types';
 import { createModel } from 'xstate/lib/model';
+import { getFakeUserID } from '../contexts/SocketContext';
 import { fetchMtvRooms } from '../services/MtvService';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 
@@ -116,9 +117,13 @@ export const searchMtvRoomsMachine = searchMtvRoomsModel.createMachine(
                 ({ nextPage, searchQuery }) =>
                 async (sendBack) => {
                     try {
+                        //This is temporary
+                        //Later we will use the session cookie as auth
+                        const userID = getFakeUserID();
                         const fetchedRoomResponse = await fetchMtvRooms({
                             page: nextPage,
                             searchQuery,
+                            userID,
                         });
 
                         sendBack({

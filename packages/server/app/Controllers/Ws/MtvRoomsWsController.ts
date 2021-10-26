@@ -534,17 +534,20 @@ export default class MtvRoomsWsController {
             );
         }
 
-        await MtvRoomInvitation.firstOrCreate({
+        const createdInvitation = await MtvRoomInvitation.firstOrCreate({
             mtvRoomID: roomID,
             invitedUserID,
             invitingUserID: emitterUserID,
         });
+
+        await room.related('invitations').save(createdInvitation);
 
         const roomSummary: MtvRoomSummary = {
             creatorName: room.creator.nickname,
             isOpen: room.isOpen,
             roomID: room.uuid,
             roomName: room.name,
+            isInvited: true,
         };
 
         await UserService.emitEventInEveryDeviceUser(

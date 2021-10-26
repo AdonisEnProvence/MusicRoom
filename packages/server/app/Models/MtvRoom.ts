@@ -7,6 +7,7 @@ import {
     hasOne,
 } from '@ioc:Adonis/Lucid/Orm';
 import { DateTime } from 'luxon';
+import MtvRoomInvitation from './MtvRoomInvitation';
 import User from './User';
 
 export default class MtvRoom extends BaseModel {
@@ -32,6 +33,11 @@ export default class MtvRoom extends BaseModel {
         foreignKey: 'mtvRoomID',
     })
     public members: HasMany<typeof User>;
+
+    @hasMany(() => MtvRoomInvitation, {
+        foreignKey: 'mtvRoomID',
+    })
+    public invitations: HasMany<typeof MtvRoomInvitation>;
 
     @column()
     public constraintLng: number | null;

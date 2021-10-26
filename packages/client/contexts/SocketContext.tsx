@@ -35,7 +35,7 @@ export function useSocket(): SocketClient {
     return socket;
 }
 
-function getFakeUserID(): string {
+export function getFakeUserID(): string {
     return Platform.OS === 'web'
         ? 'f5ddbf01-cc01-4422-b347-67988342b558'
         : '9ed60e96-d5fc-40b3-b842-aeaa75e93972';

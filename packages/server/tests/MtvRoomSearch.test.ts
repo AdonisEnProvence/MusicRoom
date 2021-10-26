@@ -4,22 +4,34 @@ import {
     MtvRoomSearchResponse,
 } from '@musicroom/types';
 import MtvRoom from 'App/Models/MtvRoom';
+import MtvRoomInvitation from 'App/Models/MtvRoomInvitation';
 import User from 'App/Models/User';
 import { datatype, internet, random } from 'faker';
 import test from 'japa';
 import supertest from 'supertest';
-import { BASE_URL } from './utils/TestUtils';
+import { BASE_URL, initTestUtils } from './utils/TestUtils';
 
-function generateArray<Item>(length: number, fill: () => Item): Item[] {
-    return Array.from({ length }).map(() => fill());
+function generateArray<Item>(
+    length: number,
+    fill: (index: number) => Item,
+): Item[] {
+    return Array.from({ length }).map((_, index) => fill(index));
 }
 
 test.group('MtvRoom Search Engine', (group) => {
+    const {
+        disconnectEveryRemainingSocketConnection,
+        initSocketConnection,
+        createUserAndGetSocket,
+    } = initTestUtils();
+
     group.beforeEach(async () => {
+        initSocketConnection();
         await Database.beginGlobalTransaction();
     });
 
     group.afterEach(async () => {
+        await disconnectEveryRemainingSocketConnection();
         await Database.rollbackGlobalTransaction();
     });
 
@@ -35,29 +47,41 @@ test.group('MtvRoom Search Engine', (group) => {
 
     test('Rooms are paginated', async (assert) => {
         const PAGE_MAX_LENGTH = 10;
-        const creator = await User.create({
-            uuid: datatype.uuid(),
+        const userID = datatype.uuid();
+        const creatorUserID = datatype.uuid();
+
+        await User.create({
+            uuid: creatorUserID,
             nickname: internet.userName(),
         });
+        await User.create({
+            uuid: userID,
+            nickname: internet.userName(),
+        });
+
         const roomsCount = datatype.number({
             min: 11,
             max: 15,
         });
+
         await MtvRoom.createMany(
             generateArray(roomsCount, () => ({
                 uuid: datatype.uuid(),
                 runID: datatype.uuid(),
                 name: random.words(2),
-                creatorID: creator.uuid,
-                isOpen: datatype.boolean(),
+                creatorID: creatorUserID,
+                isOpen: true,
             })),
         );
+
+        console.log((await MtvRoom.all()).length);
 
         const { body: firstPageBodyRaw } = await supertest(BASE_URL)
             .post('/search/rooms')
             .send({
                 page: 1,
                 searchQuery: '',
+                userID,
             } as MtvRoomSearchRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
@@ -73,6 +97,7 @@ test.group('MtvRoom Search Engine', (group) => {
             .send({
                 page: 2,
                 searchQuery: '',
+                userID,
             } as MtvRoomSearchRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
@@ -88,8 +113,9 @@ test.group('MtvRoom Search Engine', (group) => {
     });
 
     test('Rooms are paginated and filtered', async (assert) => {
-        const creator = await User.create({
-            uuid: datatype.uuid(),
+        const creatorUserID = datatype.uuid();
+        await User.create({
+            uuid: creatorUserID,
             nickname: internet.userName(),
         });
         const rooms = await MtvRoom.createMany(
@@ -102,22 +128,25 @@ test.group('MtvRoom Search Engine', (group) => {
                     uuid: datatype.uuid(),
                     runID: datatype.uuid(),
                     name: datatype.uuid(),
-                    creatorID: creator.uuid,
+                    creatorID: creatorUserID,
                     isOpen: datatype.boolean(),
                 }),
             ),
         );
         const firstRoomNameFirstCharacter = rooms[0].name.charAt(0);
-        const roomsWithNameFirstCharacterEqualToFirstRoom = rooms.filter(
-            ({ name }) => name.charAt(0) === firstRoomNameFirstCharacter,
+        const publicRoomsWithNameFirstCharacterEqualToFirstRoom = rooms.filter(
+            ({ name, isOpen }) =>
+                name.charAt(0) === firstRoomNameFirstCharacter && isOpen,
         );
-        const roomsCount = roomsWithNameFirstCharacterEqualToFirstRoom.length;
+        const roomsCount =
+            publicRoomsWithNameFirstCharacterEqualToFirstRoom.length;
 
         const { body: pageBodyRaw } = await supertest(BASE_URL)
             .post('/search/rooms')
             .send({
                 page: 1,
                 searchQuery: firstRoomNameFirstCharacter,
+                userID: datatype.uuid(),
             } as MtvRoomSearchRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
@@ -138,7 +167,7 @@ test.group('MtvRoom Search Engine', (group) => {
             runID: datatype.uuid(),
             name: random.words(2),
             creatorID: creator.uuid,
-            isOpen: datatype.boolean(),
+            isOpen: true,
         });
 
         const { body: pageBodyRaw } = await supertest(BASE_URL)
@@ -146,6 +175,7 @@ test.group('MtvRoom Search Engine', (group) => {
             .send({
                 page: PAGE_OUT_OF_BOUND,
                 searchQuery: '',
+                userID: datatype.uuid(),
             } as MtvRoomSearchRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
@@ -155,5 +185,196 @@ test.group('MtvRoom Search Engine', (group) => {
         assert.equal(pageBodyParsed.totalEntries, 1);
         assert.isFalse(pageBodyParsed.hasMore);
         assert.isEmpty(pageBodyParsed.data);
+    });
+
+    test('Rooms should be ordered by private room first, public but invited room in second and then some public rooms', async (assert) => {
+        const PAGE_MAX_LENGTH = 10;
+        const userID = datatype.uuid();
+        const creatorUserID = datatype.uuid();
+
+        await createUserAndGetSocket({
+            userID: creatorUserID,
+        });
+        await createUserAndGetSocket({
+            userID,
+        });
+
+        let roomsCount = datatype.number({
+            min: 12,
+            max: 22,
+        });
+
+        //To make it easier to determine and understand how
+        //many entries we expect we want roomsCount to be even
+        //from now
+        const roomsCountsIsOdd = roomsCount % 2 !== 0;
+        if (roomsCountsIsOdd) {
+            roomsCount++;
+        }
+
+        const publicRoomCount = roomsCount / 2;
+        let privateRoomWithInvitationCount = 0;
+
+        //Rooms with even index will be public room
+        const rooms = await MtvRoom.createMany(
+            generateArray(roomsCount, (index) => {
+                const isIndexEven = index % 2 === 0;
+                const isIndexZero = index === 0;
+
+                return {
+                    uuid: datatype.uuid(),
+                    runID: datatype.uuid(),
+                    name: random.words(2),
+                    //Adding some complexity to the query
+                    creatorID: isIndexZero ? userID : creatorUserID,
+                    isOpen: isIndexEven,
+                };
+            }),
+        );
+
+        //Public room with invitation
+        const publicRoom = rooms[10];
+        const firstInvitationForPublicRoom = await MtvRoomInvitation.create({
+            mtvRoomID: publicRoom.uuid,
+            invitedUserID: userID,
+            invitingUserID: creatorUserID,
+            uuid: datatype.uuid(),
+        });
+        await publicRoom
+            .related('invitations')
+            .save(firstInvitationForPublicRoom);
+
+        //Private room with invitation
+        const privateRoom = rooms[7];
+        const firstInvitationForPrivateRoom = await MtvRoomInvitation.create({
+            mtvRoomID: privateRoom.uuid,
+            invitedUserID: userID,
+            invitingUserID: creatorUserID,
+            uuid: datatype.uuid(),
+        });
+        await privateRoom
+            .related('invitations')
+            .save(firstInvitationForPrivateRoom);
+        privateRoomWithInvitationCount++;
+
+        const secondPrivateRoom = rooms[11];
+        const secondInvitationForPrivateRoom = await MtvRoomInvitation.create({
+            mtvRoomID: secondPrivateRoom.uuid,
+            invitedUserID: userID,
+            invitingUserID: creatorUserID,
+            uuid: datatype.uuid(),
+        });
+        await secondPrivateRoom
+            .related('invitations')
+            .save(secondInvitationForPrivateRoom);
+        privateRoomWithInvitationCount++;
+        ///
+
+        const { body: firstPageBodyRaw } = await supertest(BASE_URL)
+            .post('/search/rooms')
+            .send({
+                page: 1,
+                searchQuery: '',
+                userID,
+            } as MtvRoomSearchRequestBody)
+            .expect('Content-Type', /json/)
+            .expect(200);
+        const firstPageBodyParsed =
+            MtvRoomSearchResponse.parse(firstPageBodyRaw);
+
+        //Pagination assertions
+        const expectedEntries =
+            privateRoomWithInvitationCount + publicRoomCount;
+        const shouldHasMore = expectedEntries > 10;
+        assert.equal(firstPageBodyParsed.hasMore, shouldHasMore);
+        assert.equal(firstPageBodyParsed.page, 1);
+        assert.equal(firstPageBodyParsed.totalEntries, expectedEntries);
+        assert.isFalse(firstPageBodyParsed.data.length > PAGE_MAX_LENGTH);
+
+        //Results assertions
+        const expectedFirstPageBodyParsedRoomID = (
+            index: number,
+            expectedValues: string[],
+        ): boolean => {
+            const invalidIndex = index < 0 || index > roomsCount - 1;
+            assert.isFalse(invalidIndex);
+            if (invalidIndex) {
+                throw new Error('invalid index');
+            }
+
+            return expectedValues.some(
+                (expectedValue) =>
+                    firstPageBodyParsed.data[index].roomID === expectedValue,
+            );
+        };
+
+        assert.isTrue(
+            expectedFirstPageBodyParsedRoomID(0, [
+                privateRoom.uuid,
+                secondPrivateRoom.uuid,
+            ]),
+        );
+        assert.isTrue(
+            expectedFirstPageBodyParsedRoomID(1, [
+                privateRoom.uuid,
+                secondPrivateRoom.uuid,
+            ]),
+        );
+        assert.isTrue(expectedFirstPageBodyParsedRoomID(2, [publicRoom.uuid]));
+
+        const firstPublicAndNotInvitedRoom = firstPageBodyParsed.data[3];
+        assert.isFalse(firstPublicAndNotInvitedRoom.isInvited);
+        assert.isTrue(firstPublicAndNotInvitedRoom.isOpen);
+        ///
+    });
+
+    test("It should not list the user's current room", async (assert) => {
+        const userID = datatype.uuid();
+        const mtvRoomIDToAssociate = datatype.uuid();
+        const creatorUserID = datatype.uuid();
+
+        await createUserAndGetSocket({
+            userID: creatorUserID,
+        });
+        await createUserAndGetSocket({
+            userID,
+            mtvRoomIDToAssociate,
+        });
+
+        const roomsCount = datatype.number({
+            min: 10,
+            max: 15,
+        });
+        const generatedRooms = await MtvRoom.createMany(
+            generateArray(roomsCount, () => ({
+                uuid: datatype.uuid(),
+                runID: datatype.uuid(),
+                name: datatype.uuid(),
+                creatorID: creatorUserID,
+                isOpen: datatype.boolean(),
+            })),
+        );
+        const expectedDataEntriesLength = generatedRooms.filter(
+            (room) => room.isOpen,
+        ).length;
+
+        const { body: pageBodyRaw } = await supertest(BASE_URL)
+            .post('/search/rooms')
+            .send({
+                page: 1,
+                searchQuery: '',
+                userID,
+            } as MtvRoomSearchRequestBody)
+            .expect('Content-Type', /json/)
+            .expect(200);
+        const pageBodyParsed = MtvRoomSearchResponse.parse(pageBodyRaw);
+        assert.equal(pageBodyParsed.page, 1);
+        assert.equal(pageBodyParsed.totalEntries, expectedDataEntriesLength);
+        assert.equal(pageBodyParsed.data.length, expectedDataEntriesLength);
+
+        const currUserRoomIsListed = pageBodyParsed.data.some(
+            (room) => room.roomID === mtvRoomIDToAssociate,
+        );
+        assert.isFalse(currUserRoomIsListed);
     });
 });

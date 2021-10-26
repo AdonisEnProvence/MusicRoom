@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Entypo, FontAwesome, Ionicons } from '@expo/vector-icons';
 import { MtvRoomSummary } from '@musicroom/types';
 import { useActor, useMachine } from '@xstate/react';
 import { Text, useSx, View } from 'dripsy';
@@ -37,40 +37,119 @@ const SuggestionsList: React.FC<SuggestionListProps> = ({
     const initialNumberOfItemsToRender = IS_TEST ? Infinity : 10;
 
     const renderItem: ListRenderItem<MtvRoomSummary> = ({
-        item: { roomID, roomName, creatorName, isOpen },
+        item: { roomID, roomName, creatorName, isOpen, isInvited },
     }) => (
-        <TouchableOpacity
-            testID={`mtv-room-search-${roomID}`}
-            onPress={() => {
-                onSuggestionPress(roomID);
+        <View
+            sx={{
+                marginBottom: 'm',
             }}
         >
-            <View
-                sx={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: 'm',
+            <TouchableOpacity
+                testID={`mtv-room-search-${roomID}`}
+                onPress={() => {
+                    onSuggestionPress(roomID);
                 }}
             >
-                <View>
-                    <Typo sx={{ fontSize: 's' }}>
-                        {roomName} • {isOpen === true ? 'Public' : 'Private'}
-                    </Typo>
-                    <Typo sx={{ fontSize: 'xs', color: 'greyLighter' }}>
-                        {creatorName}
-                    </Typo>
-                </View>
+                <View
+                    sx={{
+                        flexDirection: 'row',
+                        flexShrink: 0,
+                        justifyContent: 'space-between',
+                    }}
+                >
+                    <View
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            flexShrink: 1,
+                        }}
+                    >
+                        <View
+                            sx={{ flexDirection: 'row', alignItems: 'center' }}
+                        >
+                            <Typo
+                                numberOfLines={1}
+                                sx={{
+                                    fontSize: 's',
+                                    flexShrink: 1,
+                                }}
+                            >
+                                {roomName}
+                            </Typo>
+                            <View
+                                sx={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    flexShrink: 0,
+                                }}
+                            >
+                                {isOpen === true ? (
+                                    <>
+                                        {isInvited && (
+                                            <FontAwesome
+                                                name="envelope"
+                                                style={sx({
+                                                    color: 'greyLighter',
+                                                    fontSize: 'm',
+                                                    paddingLeft: 'm',
+                                                })}
+                                                accessibilityLabel={`You're invited to ${roomName}`}
+                                            />
+                                        )}
+                                        <Entypo
+                                            name="globe"
+                                            style={sx({
+                                                color: 'greyLighter',
+                                                fontSize: 'm',
+                                                paddingLeft: 'm',
+                                            })}
+                                            accessibilityLabel={`${roomName} is a public room`}
+                                        />
+                                    </>
+                                ) : (
+                                    <Entypo
+                                        name="lock"
+                                        style={sx({
+                                            color: 'greyLighter',
+                                            fontSize: 'm',
+                                            paddingLeft: 'm',
+                                        })}
+                                        accessibilityLabel={`${roomName} is a private room where you've been invited`}
+                                    />
+                                )}
+                            </View>
+                        </View>
 
-                <Ionicons
-                    name="chevron-forward"
-                    style={sx({
-                        color: 'greyLighter',
-                        fontSize: 'm',
-                    })}
-                />
-            </View>
-        </TouchableOpacity>
+                        <Typo
+                            numberOfLines={1}
+                            sx={{
+                                fontSize: 'xs',
+                                color: 'greyLighter',
+                            }}
+                        >
+                            {creatorName}
+                        </Typo>
+                    </View>
+                    <View
+                        sx={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            flexShrink: 0,
+                            paddingLeft: 'm',
+                        }}
+                    >
+                        <Ionicons
+                            name="chevron-forward"
+                            style={sx({
+                                color: 'greyLighter',
+                                fontSize: 'm',
+                            })}
+                        />
+                    </View>
+                </View>
+            </TouchableOpacity>
+        </View>
     );
 
     return (

@@ -20,7 +20,8 @@
     "postinstall": "expo-yarn-workspaces postinstall && yarn install:react-youtube",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
-    "install:react-youtube": "cd ../../node_modules/react-youtube && yarn && yarn compile"
+    "install:react-youtube": "cd ../../node_modules/react-youtube && yarn && yarn compile",
+    "test:e2e": "playwright test"
   },
   "jest": {
     "preset": "jest-expo"

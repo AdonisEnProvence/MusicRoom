@@ -20,7 +20,10 @@
     "lint": "scripty",
     "test": "scripty",
     "prepare": "husky install",
-    "e2e-setup": "scripty"
+    "test:e2e": "scripty",
+    "test:e2e:start": "scripty",
+    "test:e2e:run": "scripty",
+    "test:e2e:stop": "scripty"
   },
   "volta": {
     "node": "16.8.0",

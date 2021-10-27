@@ -40,9 +40,9 @@ async function stopServices() {
 }
 
 async function runE2eTests() {
-    await sleep(10_000);
+    cd('packages/client');
 
-    await $`echo run tests`;
+    await $`yarn test:e2e`;
 }
 
 async function script() {

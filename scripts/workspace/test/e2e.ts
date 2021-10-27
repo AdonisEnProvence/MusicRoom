@@ -1,42 +1,37 @@
 #!/usr/bin/env tsm
-import { $, cd, sleep, nothrow, ProcessPromise, ProcessOutput, fs } from 'zx';
+import { $, cd, nothrow, ProcessPromise, ProcessOutput } from 'zx';
+import { startTemporal, startClient } from './e2e/_functions';
 
-let temporalService: ProcessPromise<ProcessOutput>;
-let temporalWorker: ProcessPromise<ProcessOutput>;
-let temporalApi: ProcessPromise<ProcessOutput>;
-let clientServer: ProcessPromise<ProcessOutput>;
+let temporalDockerComposeService: ProcessPromise<ProcessOutput>;
+let temporalWorkerService: ProcessPromise<ProcessOutput>;
+let temporalApiService: ProcessPromise<ProcessOutput>;
+let clientServerService: ProcessPromise<ProcessOutput>;
 
-async function startTemporal() {
-    cd('packages/temporal/docker-compose');
+async function waitTemporal() {
+    const { dockerCompose, worker, api } = await startTemporal();
 
-    temporalService = nothrow(
-        $`docker-compose up`.pipe(fs.createWriteStream('/dev/null')),
-    );
-
-    // Wait 10 seconds for Temporal to launch
-    await Promise.all([sleep(10_000), $`yarn worker:build`, $`yarn api:build`]);
-
-    temporalWorker = nothrow($`yarn worker:launch`);
-    temporalApi = nothrow($`yarn api:launch`);
+    temporalDockerComposeService = nothrow(dockerCompose);
+    temporalWorkerService = nothrow(worker);
+    temporalApiService = nothrow(api);
 }
 
-async function startClient() {
-    cd('packages/client');
+async function waitClient() {
+    const { client } = await startClient();
 
-    await $`yarn web:production:build`;
-
-    clientServer = nothrow($`yarn web:production:serve`);
+    clientServerService = nothrow(client);
 }
 
 async function startServices() {
-    await Promise.all([startTemporal(), startClient()]);
+    await Promise.all([waitTemporal(), waitClient()]);
 }
 
 async function stopServices() {
-    await temporalService.kill();
-    await temporalWorker.kill();
-    await temporalApi.kill();
-    await clientServer.kill();
+    await Promise.all([
+        temporalDockerComposeService.kill(),
+        temporalWorkerService.kill(),
+        temporalApiService.kill(),
+        clientServerService.kill(),
+    ]);
 }
 
 async function runE2eTests() {

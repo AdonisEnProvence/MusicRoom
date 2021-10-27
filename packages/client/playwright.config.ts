@@ -1,0 +1,7 @@
+import { PlaywrightTestConfig } from '@playwright/test';
+
+const config: PlaywrightTestConfig = {
+    testMatch: 'e2e/**/*.spec.ts',
+};
+
+export default config;

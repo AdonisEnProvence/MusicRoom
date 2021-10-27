@@ -9,7 +9,7 @@ function startTemporalDockerCompose() {
 
 async function startTemporalWorkerAfterDelay() {
     // Wait for Temporal server to start
-    await sleep(10_000);
+    await sleep(15_000);
 
     cd('packages/temporal');
     return {
@@ -19,7 +19,7 @@ async function startTemporalWorkerAfterDelay() {
 
 async function startTemporalApiAfterDelay() {
     // Wait for Temporal server to start
-    await sleep(10_000);
+    await sleep(15_000);
 
     cd('packages/temporal');
     return {

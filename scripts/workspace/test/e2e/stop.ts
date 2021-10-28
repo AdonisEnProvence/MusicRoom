@@ -6,4 +6,13 @@ async function stopTemporalDockerCompose() {
     await $`docker compose down`;
 }
 
-void stopTemporalDockerCompose();
+async function stopServerDockerCompose() {
+    cd('packages/server');
+    await $`docker compose down`;
+}
+
+async function stopServices() {
+    await Promise.all([stopTemporalDockerCompose(), stopServerDockerCompose()]);
+}
+
+void stopServices();

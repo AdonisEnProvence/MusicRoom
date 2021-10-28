@@ -1,4 +1,4 @@
-import { $, cd, ProcessOutput, ProcessPromise, sleep } from 'zx';
+import { $, cd, fetch, ProcessOutput, ProcessPromise, sleep } from 'zx';
 
 function startTemporalDockerCompose() {
     cd('packages/temporal/docker-compose');
@@ -7,9 +7,34 @@ function startTemporalDockerCompose() {
     });
 }
 
+async function waitForTemporalToBeStarted() {
+    let isStarted = false;
+    while (isStarted === false) {
+        let hasFailed = true;
+        try {
+            const namespaceResponse = await fetch(
+                'http://localhost:8088/api/namespaces/default',
+            );
+
+            const isInvalidStatusCode = namespaceResponse.ok === false;
+            hasFailed = isInvalidStatusCode === true;
+        } catch (err) {
+            hasFailed = true;
+        }
+
+        if (hasFailed === true) {
+            await sleep(5_000);
+
+            continue;
+        }
+
+        isStarted = true;
+    }
+}
+
 async function startTemporalWorkerAfterDelay() {
     // Wait for Temporal server to start
-    await sleep(15_000);
+    await waitForTemporalToBeStarted();
 
     cd('packages/temporal');
     return {
@@ -19,7 +44,7 @@ async function startTemporalWorkerAfterDelay() {
 
 async function startTemporalApiAfterDelay() {
     // Wait for Temporal server to start
-    await sleep(15_000);
+    await waitForTemporalToBeStarted();
 
     cd('packages/temporal');
     return {
@@ -39,6 +64,39 @@ export async function startTemporal(): Promise<{
         ...(await startTemporalDockerCompose()),
         ...(await startTemporalWorkerAfterDelay()),
         ...(await startTemporalApiAfterDelay()),
+    };
+}
+
+async function startServerDockerCompose() {
+    cd('packages/server');
+    return Promise.resolve({
+        dockerCompose: $`docker-compose up`,
+    });
+}
+
+async function startServerApiAfterDelay() {
+    cd('packages/server');
+    await $`yarn build`;
+
+    // Wait for server services to start
+    await sleep(10_000);
+
+    cd('packages/server');
+    await $`env-cmd -f ./.env.testing yarn setup:database`;
+
+    cd('packages/server/dist');
+    return {
+        api: $`env-cmd -f ../.env.testing yarn start`,
+    };
+}
+
+export async function startServer(): Promise<{
+    api: ProcessPromise<ProcessOutput>;
+    dockerCompose: ProcessPromise<ProcessOutput>;
+}> {
+    return {
+        ...(await startServerDockerCompose()),
+        ...(await startServerApiAfterDelay()),
     };
 }
 

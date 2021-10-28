@@ -36,6 +36,13 @@ export function useSocket(): SocketClient {
 }
 
 export function getFakeUserID(): string {
+    if (typeof window !== 'undefined') {
+        const userIDFromLocalStorage = localStorage.getItem('USER_ID');
+        if (typeof userIDFromLocalStorage === 'string') {
+            return userIDFromLocalStorage;
+        }
+    }
+
     return Platform.OS === 'web'
         ? 'f5ddbf01-cc01-4422-b347-67988342b558'
         : '9ed60e96-d5fc-40b3-b842-aeaa75e93972';

@@ -63,7 +63,7 @@ const MusicTrackVoteCreationFormOpeningStatus: React.FC<
 
     return (
         <MtvRoomCreationFormScreen
-            title="What is the opening status of the room ?"
+            title="What is the opening status of the room?"
             onBackButtonPress={handleGoBack}
             onNextButtonPress={handleGoNext}
             Content={

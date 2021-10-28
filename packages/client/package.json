@@ -12,7 +12,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "web:production:build": "expo build:web",
-    "web:production:serve": "sirv web-build --single",
+    "web:production:serve": "sirv web-build --single --port 4000",
     "eject": "expo eject",
     "build:tsc": "scripty",
     "lint": "yarn eslint . --ext ts,tsx --fix",

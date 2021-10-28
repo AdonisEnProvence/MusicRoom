@@ -197,9 +197,7 @@ async function joinerJoinsRoom({
 
     await matchingRoom.click();
 
-    console.log('has joined room');
-
-    await joinerPage.waitForTimeout(10_000);
+    await joinerPage.click('css=[aria-label="Go back"] >> visible=true');
 }
 
 test('Room creation', async ({ browser }) => {

@@ -43,6 +43,7 @@ const AppScreenHeader: React.FC<AppScreenHeaderProps> = ({
             >
                 {props.canGoBack === true && (
                     <TouchableOpacity
+                        accessibilityLabel="Go back"
                         onPress={props.goBack}
                         style={sx({
                             marginRight: 'l',

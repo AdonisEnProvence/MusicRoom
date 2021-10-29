@@ -10,6 +10,10 @@
     "scripts": {
         "dev": "nodemon --signal SIGTERM --ext go --exec env-cmd go run api/*.go",
         "worker": "nodemon --signal SIGTERM --ext go --exec env-cmd go run worker/*.go",
+        "api:build": "go build -o bin_api api/*",
+        "api:launch": "./bin_api",
+        "worker:build": "go build -o bin_worker worker/*",
+        "worker:launch": "./bin_worker",
         "temporal": "cd docker-compose && docker-compose up -d",
         "test": "go test ./..."
     },

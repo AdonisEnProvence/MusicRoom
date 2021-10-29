@@ -11,6 +11,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "web:production:build": "expo build:web",
+    "web:production:serve": "sirv web-build --single",
     "eject": "expo eject",
     "build:tsc": "scripty",
     "lint": "yarn eslint . --ext ts,tsx --fix",
@@ -18,7 +20,8 @@
     "postinstall": "expo-yarn-workspaces postinstall && yarn install:react-youtube",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
-    "install:react-youtube": "cd ../../node_modules/react-youtube && yarn && yarn compile"
+    "install:react-youtube": "cd ../../node_modules/react-youtube && yarn && yarn compile",
+    "test:e2e": "playwright test"
   },
   "jest": {
     "preset": "jest-expo"
@@ -79,6 +82,7 @@
     "@babel/core": "^7.9.0",
     "@expo/webpack-config": "^0.12.76",
     "@mswjs/data": "^0.3.0",
+    "@playwright/test": "^1.16.1",
     "@react-native-community/eslint-config": "^2.0.0",
     "@testing-library/jest-native": "^4.0.1",
     "@testing-library/react-native": "^7.2.0",
@@ -95,6 +99,7 @@
     "metro-config": "^0.59.0",
     "msw": "^0.29.0",
     "node-fetch": "^2.6.1",
+    "sirv-cli": "^1.0.14",
     "typescript": "~4.4.3",
     "xhr2": "^0.2.1",
     "youtube-player": "^5.5.2"

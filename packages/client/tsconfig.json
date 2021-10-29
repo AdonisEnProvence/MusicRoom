@@ -24,6 +24,8 @@
         "./types.tsx",
         "./global.d.ts",
         "./__tests__",
-        "./tests"
+        "./tests",
+        "./e2e",
+        "./playwright.config.ts",
     ]
 }

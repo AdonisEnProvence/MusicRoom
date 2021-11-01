@@ -12,11 +12,14 @@ import {
     YoutubeIframeProps,
     YoutubeIframeRef,
 } from 'react-native-youtube-iframe';
+import faker from 'faker';
 import { cleanup } from './services/websockets';
 import { dropDatabase } from './tests/data';
 import { server } from './tests/server/test-server';
 
 jest.setTimeout(20_000);
+
+faker.seed(42);
 
 jest.mock('react-native-youtube-iframe', () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires

@@ -197,7 +197,60 @@ async function joinerJoinsRoom({
 
     await matchingRoom.click();
 
+    // Close MTV Search
     await joinerPage.click('css=[aria-label="Go back"] >> visible=true');
+
+    // Open player full screen
+    const miniPlayerWithRoomName = joinerPage
+        .locator(`text="${roomName}"`)
+        .first();
+    await expect(miniPlayerWithRoomName).toBeVisible();
+
+    await miniPlayerWithRoomName.click();
+}
+
+async function joinerSuggestsTrack({ joinerPage }: { joinerPage: Page }) {
+    const suggestTrackButton = joinerPage.locator(
+        'css=[aria-label="Suggest a track"]',
+    );
+    await expect(suggestTrackButton).toBeVisible();
+
+    await suggestTrackButton.click();
+
+    await expect(
+        joinerPage.locator('text="Suggest Track" >> visible=true'),
+    ).toBeVisible();
+
+    const searchTrackInput = joinerPage.locator(
+        'css=[placeholder*="Search a track"]',
+    );
+    await expect(searchTrackInput).toBeVisible();
+
+    const searchedTrackName = 'Biolay - Vendredi 12';
+    await searchTrackInput.fill(searchedTrackName);
+    await joinerPage.keyboard.press('Enter');
+
+    await expect(joinerPage.locator('text="Results"')).toBeVisible();
+
+    const firstMatchingSong = joinerPage
+        .locator(`text=${searchedTrackName}`)
+        .first();
+    const selectedSongTitle = await firstMatchingSong.textContent();
+    await expect(firstMatchingSong).toBeVisible();
+
+    await firstMatchingSong.click();
+
+    const successfulToast = joinerPage.locator(
+        'text=Your suggestion has been accepted',
+    );
+    await expect(successfulToast).toBeVisible();
+
+    const suggestTrackInTracksList = joinerPage.locator(
+        `text=${selectedSongTitle}`,
+    );
+    await expect(suggestTrackInTracksList).toBeVisible();
+
+    console.log('selectedSongTitle', selectedSongTitle);
 }
 
 test('Room creation', async ({ browser }) => {
@@ -209,6 +262,8 @@ test('Room creation', async ({ browser }) => {
     const { roomName } = await createRoom({ creatorPage });
 
     await joinerJoinsRoom({ joinerPage, roomName });
+
+    await joinerSuggestsTrack({ joinerPage });
 
     await creatorPage.waitForTimeout(100_000);
 });

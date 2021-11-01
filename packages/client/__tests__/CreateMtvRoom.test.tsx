@@ -9,10 +9,7 @@ import { createModel } from 'xstate/lib/model';
 import * as z from 'zod';
 import { formatDateTime } from '../hooks/useFormatDateTime';
 import { requestForegroundPermissionsAsyncMocked } from '../jest.setup';
-import {
-    defaultMtvRoomMinimumVotesForATrackToBePlayed,
-    MtvRoomMinimumVotesForATrackToBePlayed,
-} from '../machines/creationMtvRoomForm';
+import { MtvRoomMinimumVotesForATrackToBePlayed } from '../machines/creationMtvRoomForm';
 import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
@@ -27,6 +24,8 @@ import {
     within,
 } from '../tests/tests-utils';
 
+const defaultMtvRoomMinimumVotesForATrackToBePlayed: MtvRoomMinimumVotesForATrackToBePlayed = 1;
+
 const createMtvRoomWithSettingsModel = createModel(
     {
         roomName: '',
@@ -37,7 +36,8 @@ const createMtvRoomWithSettingsModel = createModel(
             | undefined
             | SetPhysicalConstraintsValuesEvent,
         playingMode: 'BROADCAST' as 'BROADCAST' | 'DIRECT',
-        minimumVotesConstraint: defaultMtvRoomMinimumVotesForATrackToBePlayed,
+        minimumVotesConstraint:
+            defaultMtvRoomMinimumVotesForATrackToBePlayed as MtvRoomMinimumVotesForATrackToBePlayed,
     },
     {
         events: {

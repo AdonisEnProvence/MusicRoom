@@ -22,7 +22,7 @@ export const MtvRoomMinimumVotesForATrackToBePlayed = z.union([
 export type MtvRoomMinimumVotesForATrackToBePlayed = z.infer<
     typeof MtvRoomMinimumVotesForATrackToBePlayed
 >;
-export const defaultMtvRoomMinimumVotesForATrackToBePlayed: MtvRoomMinimumVotesForATrackToBePlayed = 1;
+const defaultMtvRoomMinimumVotesForATrackToBePlayed: MtvRoomMinimumVotesForATrackToBePlayed = 1;
 
 const creationMtvRoomFormModel = createModel(
     {

@@ -98,6 +98,7 @@ const AppScreenHeaderWithSearchBar: React.FC<AppScreenHeaderWithSearchBarProps> 
                     >
                         {props.canGoBack === true && (
                             <TouchableOpacity
+                                accessibilityLabel="Go back"
                                 onPress={props.goBack}
                                 style={sx({
                                     marginRight: 'l',

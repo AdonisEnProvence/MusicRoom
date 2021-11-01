@@ -1,0 +1,12 @@
+{
+    "[typescript]": {
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": false
+        }
+    },
+    "[typescriptreact]": {
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": false
+        }
+    }
+}

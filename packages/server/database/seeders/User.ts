@@ -19,6 +19,25 @@ export default class UserSeeder extends BaseSeeder {
                 uuid: '9ed60e96-d5fc-40b3-b842-aeaa75e93972',
                 nickname: 'Mobile',
             },
+
+            // Copy-pasted from packages/client/e2e/home.spec.ts
+            {
+                uuid: '8d71dcb3-9638-4b7a-89ad-838e2310686c',
+                nickname: internet.userName(),
+            },
+            {
+                uuid: '71bc3025-b765-4f84-928d-b4dca8871370',
+                nickname: internet.userName(),
+            },
+            {
+                uuid: 'd125ecde-b0ee-4ab8-a488-c0e7a8dac7c5',
+                nickname: internet.userName(),
+            },
+            {
+                uuid: '7f4bc598-c5be-4412-acc4-515a87b797e7',
+                nickname: internet.userName(),
+            },
+
             ...Array.from({ length: 15 }).map(() => ({
                 uuid: datatype.uuid(),
                 nickname: `A${internet.userName()}`,

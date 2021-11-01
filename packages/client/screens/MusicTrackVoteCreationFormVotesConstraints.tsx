@@ -28,17 +28,17 @@ const MusicTrackVoteCreationFormVotesConstraints: React.FC<
         },
 
         {
-            text: '10',
+            text: '2',
             subtext: `Friendly online event`,
-            selected: minimumVotesForATrackToBePlayed === 10,
-            onPress: setVotesConstraints(10),
+            selected: minimumVotesForATrackToBePlayed === 2,
+            onPress: setVotesConstraints(2),
         },
 
         {
-            text: '50',
+            text: '10',
             subtext: `Massive online event`,
-            selected: minimumVotesForATrackToBePlayed === 50,
-            onPress: setVotesConstraints(50),
+            selected: minimumVotesForATrackToBePlayed === 10,
+            onPress: setVotesConstraints(10),
         },
     ];
 

@@ -16,12 +16,13 @@ import { CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents } from './appMu
 
 export const MtvRoomMinimumVotesForATrackToBePlayed = z.union([
     z.literal(1),
+    z.literal(2),
     z.literal(10),
-    z.literal(50),
 ]);
 export type MtvRoomMinimumVotesForATrackToBePlayed = z.infer<
     typeof MtvRoomMinimumVotesForATrackToBePlayed
 >;
+export const defaultMtvRoomMinimumVotesForATrackToBePlayed: MtvRoomMinimumVotesForATrackToBePlayed = 1;
 
 const creationMtvRoomFormModel = createModel(
     {
@@ -39,7 +40,7 @@ const creationMtvRoomFormModel = createModel(
         physicalConstraintEndsAt: new Date(),
         playingMode: 'BROADCAST' as MtvPlayingModes,
         minimumVotesForATrackToBePlayed:
-            1 as MtvRoomMinimumVotesForATrackToBePlayed,
+            defaultMtvRoomMinimumVotesForATrackToBePlayed as MtvRoomMinimumVotesForATrackToBePlayed,
     },
 
     {

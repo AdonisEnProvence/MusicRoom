@@ -276,6 +276,34 @@ async function creatorVotesForTrack({
     await trackToVoteForElement.click();
 }
 
+async function creatorPausesTrack({
+    creatorPage,
+    joinerPage,
+}: {
+    creatorPage: Page;
+    joinerPage: Page;
+}) {
+    const pauseButton = creatorPage
+        .locator('css=[aria-label="Pause the video"]:not(:disabled)')
+        .first();
+    await expect(pauseButton).toBeVisible();
+
+    await creatorPage.waitForTimeout(5_000);
+
+    await pauseButton.click().then(() => {
+        console.log('pause button clicked');
+    });
+
+    await Promise.all([
+        expect(
+            creatorPage.locator('text="Play the video"').first(),
+        ).toBeVisible(),
+        expect(
+            joinerPage.locator('text="Play the video"').first(),
+        ).toBeVisible(),
+    ]);
+}
+
 test('Room creation', async ({ browser }) => {
     const [{ creatorPage }, { joinerPage }] = await Promise.all([
         setupCreatorPages({ browser }),
@@ -305,6 +333,8 @@ test('Room creation', async ({ browser }) => {
             trackToVoteFor: joinerSuggestedTrack,
         }),
     ]);
+
+    await creatorPausesTrack({ creatorPage, joinerPage });
 
     await creatorPage.waitForTimeout(100_000);
 });

@@ -24,6 +24,8 @@ import {
     within,
 } from '../tests/tests-utils';
 
+const defaultMtvRoomMinimumVotesForATrackToBePlayed: MtvRoomMinimumVotesForATrackToBePlayed = 1;
+
 const createMtvRoomWithSettingsModel = createModel(
     {
         roomName: '',
@@ -34,7 +36,8 @@ const createMtvRoomWithSettingsModel = createModel(
             | undefined
             | SetPhysicalConstraintsValuesEvent,
         playingMode: 'BROADCAST' as 'BROADCAST' | 'DIRECT',
-        minimumVotesConstraint: 1 as MtvRoomMinimumVotesForATrackToBePlayed,
+        minimumVotesConstraint:
+            defaultMtvRoomMinimumVotesForATrackToBePlayed as MtvRoomMinimumVotesForATrackToBePlayed,
     },
     {
         events: {
@@ -578,7 +581,7 @@ const createMtvRoomWithSettingsMachine =
                                     ];
                                 expect(
                                     selectedVotingConstraintOption,
-                                ).toHaveTextContent(/10/i);
+                                ).toHaveTextContent(/2/i);
                             },
                         },
                     },
@@ -597,7 +600,7 @@ const createMtvRoomWithSettingsMachine =
                                     ];
                                 expect(
                                     selectedVotingConstraintOption,
-                                ).toHaveTextContent(/50/i);
+                                ).toHaveTextContent(/10/i);
                             },
                         },
                     },
@@ -616,7 +619,7 @@ const createMtvRoomWithSettingsMachine =
 
                         {
                             cond: (_context, { constraint }) =>
-                                constraint === 10,
+                                constraint === 2,
 
                             target: '.medium',
 
@@ -625,7 +628,7 @@ const createMtvRoomWithSettingsMachine =
 
                         {
                             cond: (_context, { constraint }) =>
-                                constraint === 50,
+                                constraint === 10,
 
                             target: '.large',
 
@@ -1200,18 +1203,18 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
                     break;
                 }
 
-                case 10: {
+                case 2: {
                     const mediumVotingConstraintButton =
-                        screen.getByText(/^10$/i);
+                        screen.getByText(/^2$/i);
 
                     fireEvent.press(mediumVotingConstraintButton);
 
                     break;
                 }
 
-                case 50: {
+                case 10: {
                     const largeVotingConstraintButton =
-                        screen.getByText(/^50$/i);
+                        screen.getByText(/^10$/i);
 
                     fireEvent.press(largeVotingConstraintButton);
 
@@ -1230,11 +1233,11 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
             } as SetVotingConstraintEvent,
 
             {
-                constraint: 10,
+                constraint: 2,
             } as SetVotingConstraintEvent,
 
             {
-                constraint: 50,
+                constraint: 10,
             } as SetVotingConstraintEvent,
         ],
     },

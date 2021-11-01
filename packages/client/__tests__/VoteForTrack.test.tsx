@@ -17,8 +17,6 @@ import {
 } from '../tests/data';
 import { fireEvent, noop, render, within } from '../tests/tests-utils';
 
-faker.seed(42);
-
 test(`
 User should go to the musicPlayer into the tracks tab and hit a track card to vote for it
 After the vote has been accepted the score will be updated and the card disabled

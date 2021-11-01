@@ -235,8 +235,12 @@ async function joinerSuggestsTrack({ joinerPage }: { joinerPage: Page }) {
     const firstMatchingSong = joinerPage
         .locator(`text=${searchedTrackName}`)
         .first();
-    const selectedSongTitle = await firstMatchingSong.textContent();
     await expect(firstMatchingSong).toBeVisible();
+
+    const selectedSongTitle = await firstMatchingSong.textContent();
+    if (selectedSongTitle === null) {
+        throw new Error('Selected song is empty');
+    }
 
     await firstMatchingSong.click();
 
@@ -251,6 +255,23 @@ async function joinerSuggestsTrack({ joinerPage }: { joinerPage: Page }) {
     await expect(suggestTrackInTracksList).toBeVisible();
 
     console.log('selectedSongTitle', selectedSongTitle);
+
+    return {
+        joinerSuggestedTrack: selectedSongTitle,
+    };
+}
+
+async function creatorVotesForTrack({
+    creatorPage,
+    trackToVoteFor,
+}: {
+    creatorPage: Page;
+    trackToVoteFor: string;
+}) {
+    const trackToVoteForElement = creatorPage.locator(`text=${trackToVoteFor}`);
+    await expect(trackToVoteForElement).toBeVisible();
+
+    await trackToVoteForElement.click();
 }
 
 test('Room creation', async ({ browser }) => {
@@ -263,7 +284,12 @@ test('Room creation', async ({ browser }) => {
 
     await joinerJoinsRoom({ joinerPage, roomName });
 
-    await joinerSuggestsTrack({ joinerPage });
+    const { joinerSuggestedTrack } = await joinerSuggestsTrack({ joinerPage });
+
+    await creatorVotesForTrack({
+        creatorPage,
+        trackToVoteFor: joinerSuggestedTrack,
+    });
 
     await creatorPage.waitForTimeout(100_000);
 });

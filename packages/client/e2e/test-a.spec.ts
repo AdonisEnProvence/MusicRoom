@@ -121,10 +121,12 @@ async function createRoom({ creatorPage }: { creatorPage: Page }) {
     await expect(broadcastMode).toBeVisible();
     await creatorPage.click('text="Next" >> visible=true');
 
-    const smallestVotesConstraint = creatorPage.locator(
-        `css=[aria-selected="true"] >> text="Party at Kitty and Stud's"`,
+    const twoVotesConstraintButton = creatorPage.locator(
+        `text="Friendly online event"`,
     );
-    await expect(smallestVotesConstraint).toBeVisible();
+    await expect(twoVotesConstraintButton).toBeVisible();
+    await twoVotesConstraintButton.click();
+
     await creatorPage.click('text="Next" >> visible=true');
 
     await expect(
@@ -286,10 +288,23 @@ test('Room creation', async ({ browser }) => {
 
     const { joinerSuggestedTrack } = await joinerSuggestsTrack({ joinerPage });
 
-    await creatorVotesForTrack({
-        creatorPage,
-        trackToVoteFor: joinerSuggestedTrack,
-    });
+    await Promise.all([
+        /**
+         * At time of writing (11-01-2021), a request is made by YouTube player to
+         * https://r1---sn-a0jpm-a0ms.googlevideo.com/videoplayback when launching a video.
+         */
+        creatorPage.waitForResponse((response) =>
+            response.url().includes('videoplayback'),
+        ),
+        joinerPage.waitForResponse((response) =>
+            response.url().includes('videoplayback'),
+        ),
+
+        creatorVotesForTrack({
+            creatorPage,
+            trackToVoteFor: joinerSuggestedTrack,
+        }),
+    ]);
 
     await creatorPage.waitForTimeout(100_000);
 });

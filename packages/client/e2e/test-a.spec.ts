@@ -454,6 +454,20 @@ async function joinerVotesForInitialTrack({
     await trackToVoteForElement.click();
 }
 
+async function waitForYouTubeVideoToLoad(page: Page) {
+    await page.waitForResponse((response) => {
+        /**
+         * At time of writing (11-01-2021), a request is made by YouTube player to
+         * https://r1---sn-a0jpm-a0ms.googlevideo.com/videoplayback when launching a video.
+         */
+        const isReponseToYouTubeVideoLoading = response
+            .url()
+            .includes('videoplayback');
+
+        return isReponseToYouTubeVideoLoading === true;
+    });
+}
+
 test('Room creation', async ({ browser }) => {
     const [{ creatorPage }, { joinerPage }] = await Promise.all([
         setupCreatorPages({ browser }),
@@ -467,16 +481,8 @@ test('Room creation', async ({ browser }) => {
     const { joinerSuggestedTrack } = await joinerSuggestsTrack({ joinerPage });
 
     await Promise.all([
-        /**
-         * At time of writing (11-01-2021), a request is made by YouTube player to
-         * https://r1---sn-a0jpm-a0ms.googlevideo.com/videoplayback when launching a video.
-         */
-        creatorPage.waitForResponse((response) =>
-            response.url().includes('videoplayback'),
-        ),
-        joinerPage.waitForResponse((response) =>
-            response.url().includes('videoplayback'),
-        ),
+        waitForYouTubeVideoToLoad(creatorPage),
+        waitForYouTubeVideoToLoad(joinerPage),
 
         creatorVotesForTrack({
             creatorPage,
@@ -492,16 +498,8 @@ test('Room creation', async ({ browser }) => {
     });
 
     await Promise.all([
-        /**
-         * At time of writing (11-01-2021), a request is made by YouTube player to
-         * https://r1---sn-a0jpm-a0ms.googlevideo.com/videoplayback when launching a video.
-         */
-        creatorPage.waitForResponse((response) =>
-            response.url().includes('videoplayback'),
-        ),
-        joinerPage.waitForResponse((response) =>
-            response.url().includes('videoplayback'),
-        ),
+        waitForYouTubeVideoToLoad(creatorPage),
+        waitForYouTubeVideoToLoad(joinerPage),
 
         creatorGoesToNextTrack({
             creatorPage,

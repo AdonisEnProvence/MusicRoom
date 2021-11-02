@@ -403,25 +403,18 @@ async function creatorPausesTrack({
     creatorPage: Page;
     joinerPage: Page;
 }) {
-    const pauseButton = creatorPage
-        .locator('css=[aria-label="Pause the video"]:not(:disabled)')
-        .first();
-    await expect(pauseButton).toBeVisible();
+    const fullScreenPlayerPauseButton = creatorPage.locator(
+        'css=[aria-label="Pause the video"]:not(:disabled) >> nth=1',
+    );
+    await expect(fullScreenPlayerPauseButton).toBeVisible();
 
-    await creatorPage.waitForTimeout(5_000);
+    await fullScreenPlayerPauseButton.click();
 
-    await pauseButton.click().then(() => {
-        console.log('pause button clicked');
-    });
-
-    await Promise.all([
-        expect(
-            creatorPage.locator('text="Play the video"').first(),
-        ).toBeVisible(),
-        expect(
-            joinerPage.locator('text="Play the video"').first(),
-        ).toBeVisible(),
-    ]);
+    const fullScreenPlayerPlayButton = creatorPage.locator(
+        'css=[aria-label="Play the video"] >> nth=1',
+    );
+    await expect(fullScreenPlayerPlayButton).toBeVisible();
+    await expect(fullScreenPlayerPlayButton).toBeEnabled();
 }
 
 test('Room creation', async ({ browser }) => {

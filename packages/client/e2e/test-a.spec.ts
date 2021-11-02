@@ -16,6 +16,15 @@ function assertIsNotUndefined<ValueType>(
     }
 }
 
+function assertIsNotNull<ValueType>(
+    value: ValueType | null,
+    label?: string,
+): asserts value is ValueType {
+    if (value === undefined) {
+        throw new Error(label ?? 'value must not be null');
+    }
+}
+
 const AVAILABLE_USERS_LIST = [
     '8d71dcb3-9638-4b7a-89ad-838e2310686c',
     '71bc3025-b765-4f84-928d-b4dca8871370',
@@ -203,8 +212,13 @@ async function createRoom({ creatorPage }: { creatorPage: Page }) {
     await expect(creatorPage.locator('text="Results"')).toBeVisible();
 
     const firstMatchingSong = creatorPage.locator('text=BB Brunes').first();
-    const selectedSongTitle = await firstMatchingSong.textContent();
     await expect(firstMatchingSong).toBeVisible();
+
+    const selectedSongTitle = await firstMatchingSong.textContent();
+    assertIsNotNull(
+        selectedSongTitle,
+        'The selected song must exist and have a text content',
+    );
 
     await firstMatchingSong.click();
 
@@ -277,6 +291,7 @@ async function createRoom({ creatorPage }: { creatorPage: Page }) {
 
     return {
         roomName,
+        initialTrack: selectedSongTitle,
     };
 }
 
@@ -417,13 +432,35 @@ async function creatorPausesTrack({
     await expect(fullScreenPlayerPlayButton).toBeEnabled();
 }
 
+async function creatorGoesToNextTrack({ creatorPage }: { creatorPage: Page }) {
+    const goToNextTrackButton = creatorPage.locator(
+        'css=[aria-label="Play next track"]',
+    );
+    await expect(goToNextTrackButton).toBeVisible();
+
+    await goToNextTrackButton.click();
+}
+
+async function joinerVotesForInitialTrack({
+    joinerPage,
+    initialTrack,
+}: {
+    joinerPage: Page;
+    initialTrack: string;
+}) {
+    const trackToVoteForElement = joinerPage.locator(`text=${initialTrack}`);
+    await expect(trackToVoteForElement).toBeVisible();
+
+    await trackToVoteForElement.click();
+}
+
 test('Room creation', async ({ browser }) => {
     const [{ creatorPage }, { joinerPage }] = await Promise.all([
         setupCreatorPages({ browser }),
         setupJoinerPages({ browser }),
     ]);
 
-    const { roomName } = await createRoom({ creatorPage });
+    const { roomName, initialTrack } = await createRoom({ creatorPage });
 
     await joinerJoinsRoom({ joinerPage, roomName });
 
@@ -448,6 +485,33 @@ test('Room creation', async ({ browser }) => {
     ]);
 
     await creatorPausesTrack({ creatorPage, joinerPage });
+
+    await joinerVotesForInitialTrack({
+        joinerPage,
+        initialTrack,
+    });
+
+    await Promise.all([
+        /**
+         * At time of writing (11-01-2021), a request is made by YouTube player to
+         * https://r1---sn-a0jpm-a0ms.googlevideo.com/videoplayback when launching a video.
+         */
+        creatorPage.waitForResponse((response) =>
+            response.url().includes('videoplayback'),
+        ),
+        joinerPage.waitForResponse((response) =>
+            response.url().includes('videoplayback'),
+        ),
+
+        creatorGoesToNextTrack({
+            creatorPage,
+        }),
+    ]);
+
+    const fullScreenPlayerPauseButton = creatorPage.locator(
+        'css=[aria-label="Pause the video"]:not(:disabled) >> nth=1',
+    );
+    await expect(fullScreenPlayerPauseButton).toBeVisible();
 
     await creatorPage.waitForTimeout(100_000);
 });

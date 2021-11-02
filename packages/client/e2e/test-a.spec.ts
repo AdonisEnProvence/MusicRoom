@@ -391,8 +391,6 @@ async function joinerSuggestsTrack({ joinerPage }: { joinerPage: Page }) {
     );
     await expect(suggestTrackInTracksList).toBeVisible();
 
-    console.log('selectedSongTitle', selectedSongTitle);
-
     return {
         joinerSuggestedTrack: selectedSongTitle,
     };
@@ -430,6 +428,9 @@ async function creatorPausesTrack({
     );
     await expect(fullScreenPlayerPlayButton).toBeVisible();
     await expect(fullScreenPlayerPlayButton).toBeEnabled();
+
+    // TODO: ensure video is paused in joinerPage
+    void joinerPage;
 }
 
 async function creatorGoesToNextTrack({ creatorPage }: { creatorPage: Page }) {
@@ -466,6 +467,14 @@ async function waitForYouTubeVideoToLoad(page: Page) {
 
         return isReponseToYouTubeVideoLoading === true;
     });
+}
+
+async function waitForVideoToBePausedForUserWithControl(page: Page) {
+    const fullScreenPlayerPauseButton = page.locator(
+        'css=[aria-label="Pause the video"]:not(:disabled) >> nth=1',
+    );
+
+    await expect(fullScreenPlayerPauseButton).toBeVisible();
 }
 
 test('Room creation', async ({ browser }) => {
@@ -506,10 +515,5 @@ test('Room creation', async ({ browser }) => {
         }),
     ]);
 
-    const fullScreenPlayerPauseButton = creatorPage.locator(
-        'css=[aria-label="Pause the video"]:not(:disabled) >> nth=1',
-    );
-    await expect(fullScreenPlayerPauseButton).toBeVisible();
-
-    await creatorPage.waitForTimeout(100_000);
+    await waitForVideoToBePausedForUserWithControl(creatorPage);
 });

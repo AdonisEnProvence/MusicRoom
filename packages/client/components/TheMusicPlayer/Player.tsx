@@ -27,14 +27,19 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
     seekToInSeconds,
     mute,
 }) => {
+    const playing = videoState === 'playing';
+    const playingTestIDSection = playing ? 'playing' : 'not-playing';
+    const muteTestIDSection = mute ? 'muted' : 'emitting';
+    const testID = `music-player-${playingTestIDSection}-device-${muteTestIDSection}`;
+
     return (
         <Pressable onPress={noop} onLongPress={noop}>
-            <View pointerEvents="none">
+            <View pointerEvents="none" testID={testID}>
                 <YouTubePlayer
                     seekToInSeconds={seekToInSeconds}
                     ref={setPlayerRef}
                     height={playerHeight}
-                    playing={videoState === 'playing'}
+                    playing={playing}
                     videoId={videoId}
                     onReady={onTrackReady}
                     mute={mute}

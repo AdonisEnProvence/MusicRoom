@@ -1,4 +1,12 @@
-import { test, expect, Browser, Page, Locator } from '@playwright/test';
+import { TrackMetadata } from '@musicroom/types';
+import {
+    test,
+    expect,
+    Browser,
+    Page,
+    Locator,
+    BrowserContext,
+} from '@playwright/test';
 
 function assertIsNotUndefined<ValueType>(
     value: ValueType | undefined,
@@ -15,6 +23,44 @@ const AVAILABLE_USERS_LIST = [
     '7f4bc598-c5be-4412-acc4-515a87b797e7',
 ];
 
+async function mockSearchRooms({
+    context,
+    knownSearches,
+}: {
+    context: BrowserContext;
+    knownSearches: Record<string, TrackMetadata[]>;
+}) {
+    await context.route(
+        'http://localhost:3333/search/track/*',
+        (route, request) => {
+            console.log('request', request.url(), request.method());
+            const requestMethod = request.method();
+            if (requestMethod !== 'GET') {
+                void route.abort('failed');
+                return;
+            }
+
+            const urlChunks = request.url().split('/');
+            const searchQuery = urlChunks[urlChunks.length - 1];
+            const decodedSearchQuery = decodeURIComponent(searchQuery);
+            const searchResults = knownSearches[decodedSearchQuery];
+            if (searchResults === undefined) {
+                void route.abort('failed');
+                return;
+            }
+
+            void route.fulfill({
+                headers: {
+                    'access-control-allow-credentials': 'true',
+                    'access-control-allow-origin': 'http://localhost:4000',
+                },
+                contentType: 'application/json; charset=utf-8',
+                body: JSON.stringify(searchResults),
+            });
+        },
+    );
+}
+
 async function setupCreatorPages({ browser }: { browser: Browser }) {
     const creatorContext = await browser.newContext({
         storageState: {
@@ -28,6 +74,43 @@ async function setupCreatorPages({ browser }: { browser: Browser }) {
                             value: AVAILABLE_USERS_LIST[0],
                         },
                     ],
+                },
+            ],
+        },
+    });
+    await mockSearchRooms({
+        context: creatorContext,
+        knownSearches: {
+            'BB Brunes': [
+                {
+                    id: 'X3VNRVo7irM',
+                    title: 'BB BRUNES - Dis-Moi [Clip Officiel]',
+                    artistName: 'BBBrunesMusic',
+                    duration: 0,
+                },
+                {
+                    id: 'mF5etHMRMMM',
+                    title: 'BB BRUNES - Coups et Blessures [Clip Officiel]',
+                    artistName: 'BBBrunesMusic',
+                    duration: 0,
+                },
+                {
+                    id: '1d3etBBSSfw',
+                    title: 'BB BRUNES - Lalalove You [Clip Officiel]',
+                    artistName: 'BBBrunesMusic',
+                    duration: 0,
+                },
+                {
+                    id: 'DyRDeEWhW6M',
+                    title: 'BB BRUNES - Aficionado [Clip Officiel]',
+                    artistName: 'BBBrunesMusic',
+                    duration: 0,
+                },
+                {
+                    id: 'Qs-ucIS2B-0',
+                    title: 'BB BRUNES - Stéréo [Clip Officiel]',
+                    artistName: 'BBBrunesMusic',
+                    duration: 0,
                 },
             ],
         },
@@ -54,6 +137,43 @@ async function setupJoinerPages({ browser }: { browser: Browser }) {
                             value: AVAILABLE_USERS_LIST[1],
                         },
                     ],
+                },
+            ],
+        },
+    });
+    await mockSearchRooms({
+        context: joinerContext,
+        knownSearches: {
+            'Biolay - Vendredi 12': [
+                {
+                    id: 'eD-ORVUQ-pw',
+                    title: 'Benjamin Biolay - Vendredi 12 (Clip Officiel)',
+                    artistName: 'BenjaminBiolayVEVO',
+                    duration: 0,
+                },
+                {
+                    id: 'H8GDdTX8Cww',
+                    title: 'Vendredi 12',
+                    artistName: 'Benjamin Biolay - Topic',
+                    duration: 0,
+                },
+                {
+                    id: '7aW8iGoqi1o',
+                    title: 'Benjamin Biolay - Vendredi 12',
+                    artistName: 'Bruno Gaillardo',
+                    duration: 0,
+                },
+                {
+                    id: 'O8HyyYxbznQ',
+                    title: 'Vendredi 12 - Benjamin Biolay (reprise)',
+                    artistName: 'Clémence Bnt',
+                    duration: 0,
+                },
+                {
+                    id: 'LZ6EkzDQbiY',
+                    title: 'Benjamin Biolay - Où est passée la tendresse (Live) - Le Grand Studio RTL',
+                    artistName: 'Le Grand Studio RTL',
+                    duration: 0,
                 },
             ],
         },

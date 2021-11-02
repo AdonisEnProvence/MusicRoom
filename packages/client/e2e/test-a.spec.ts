@@ -206,7 +206,10 @@ async function createRoom({ creatorPage }: { creatorPage: Page }) {
     await goToTracksSearch.click();
 
     const trackQuery = 'BB Brunes';
-    await creatorPage.fill('css=[placeholder*="Search a track"]', trackQuery);
+    await creatorPage.fill(
+        'css=[placeholder*="Search a track"] >> visible=true',
+        trackQuery,
+    );
     await creatorPage.keyboard.press('Enter');
 
     await expect(creatorPage.locator('text="Results"')).toBeVisible();

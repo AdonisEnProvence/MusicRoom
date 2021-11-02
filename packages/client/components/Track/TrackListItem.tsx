@@ -33,6 +33,7 @@ const TrackListItem: React.FC<TrackListItemProps> = ({
         >
             <TouchableOpacity
                 testID={`${trackID}-track-card`}
+                accessibilityLabel={`Press to vote for this track`}
                 disabled={disabled}
                 onPress={onPress}
                 style={{ flex: 1 }}

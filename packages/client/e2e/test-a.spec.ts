@@ -432,8 +432,10 @@ async function creatorPausesTrack({
     await expect(fullScreenPlayerPlayButton).toBeVisible();
     await expect(fullScreenPlayerPlayButton).toBeEnabled();
 
-    // TODO: ensure video is paused in joinerPage
-    void joinerPage;
+    const joinerMusicPlayerNotPlaying = joinerPage.locator(
+        'css=[data-testid="music-player-not-playing-device-emitting"]',
+    );
+    await expect(joinerMusicPlayerNotPlaying).toBeVisible();
 }
 
 async function creatorGoesToNextTrack({ creatorPage }: { creatorPage: Page }) {

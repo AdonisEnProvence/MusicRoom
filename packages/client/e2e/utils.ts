@@ -27,7 +27,7 @@ export function assertIsNotNull<ValueType>(
     }
 }
 
-export async function mockSearchRooms({
+export async function mockSearchTracks({
     context,
     knownSearches,
 }: {

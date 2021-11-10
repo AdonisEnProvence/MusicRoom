@@ -1,9 +1,5 @@
 import { test, expect, Browser, Page, Locator } from '@playwright/test';
-import {
-    KnownSearchesElement,
-    KnownSearchesRecord,
-    mockSearchRooms,
-} from './utils';
+import { KnownSearchesRecord, mockSearchTracks } from './utils';
 
 function assertIsNotUndefined<ValueType>(
     value: ValueType | undefined,
@@ -48,7 +44,7 @@ async function setupAndGetUserContext({
     });
     const page = await joinerContext.newPage();
 
-    await mockSearchRooms({
+    await mockSearchTracks({
         context: joinerContext,
         knownSearches,
     });

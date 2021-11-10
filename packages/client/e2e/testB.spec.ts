@@ -1,4 +1,9 @@
 import { test, expect, Browser, Page, Locator } from '@playwright/test';
+import {
+    KnownSearchesElement,
+    KnownSearchesRecord,
+    mockSearchRooms,
+} from './utils';
 
 function assertIsNotUndefined<ValueType>(
     value: ValueType | undefined,
@@ -18,10 +23,12 @@ const AVAILABLE_USERS_LIST = [
 type SetupAndGetUserContextArgs = {
     browser: Browser;
     userIndex: number;
+    knownSearches: KnownSearchesRecord;
 };
 async function setupAndGetUserContext({
     browser,
     userIndex,
+    knownSearches,
 }: SetupAndGetUserContextArgs): Promise<{ page: Page }> {
     const joinerContext = await browser.newContext({
         storageState: {
@@ -41,6 +48,10 @@ async function setupAndGetUserContext({
     });
     const page = await joinerContext.newPage();
 
+    await mockSearchRooms({
+        context: joinerContext,
+        knownSearches,
+    });
     await page.goto('/');
 
     return { page };
@@ -59,9 +70,10 @@ async function findMiniPlayerWithRoomNameAndGoFullscreen({
     await miniPlayerWithRoomName.click();
 }
 
-type CreateRoomArgs = { creatorPage: Page };
+type CreateRoomArgs = { creatorPage: Page; trackName: string };
 async function createDirectRoomAndGoFullscreen({
     creatorPage,
+    trackName,
 }: CreateRoomArgs) {
     const focusTrap = creatorPage.locator('text="Click"').first();
     await focusTrap.click();
@@ -72,16 +84,19 @@ async function createDirectRoomAndGoFullscreen({
     const goToTracksSearch = creatorPage.locator('text="Search"');
     await goToTracksSearch.click();
 
-    const trackQuery = 'BB Brunes';
+    const trackQuery = trackName;
     await creatorPage.fill(
         'css=[placeholder*="Search a track"] >> visible=true',
         trackQuery,
     );
     await creatorPage.keyboard.press('Enter');
 
-    await expect(creatorPage.locator('text="Results"')).toBeVisible();
+    await expect(
+        creatorPage.locator('text="Results" >> visible=true').first(),
+    ).toBeVisible();
 
-    const firstMatchingSong = creatorPage.locator('text=BB Brunes').first();
+    //I have no idea why but text selector below have to be written without \"\"
+    const firstMatchingSong = creatorPage.locator(`text=${trackName}`).first();
     const selectedSongTitle = await firstMatchingSong.textContent();
     if (selectedSongTitle === null) {
         throw new Error('SelectedSongTitle is null');
@@ -264,7 +279,7 @@ async function userSuggestATrackFromFullscreen({
     );
     await page.keyboard.press('Enter');
 
-    await expect(page.locator('text="Results"')).toBeVisible();
+    await expect(page.locator('text="Results" >> visible=true')).toBeVisible();
 
     const firstMatchingSong = page.locator(`text=${trackName}`).first();
     await expect(firstMatchingSong).toBeVisible();
@@ -361,6 +376,73 @@ async function openUserSettings({ page, userNickname }: GoToUserSettingsArgs) {
 test('Test B see following link for more information: https://3.basecamp.com/4704981/buckets/22220886/messages/4292491228#:~:text=Test%20end-,Test%20B/,-UserA%20Section%20full', async ({
     browser,
 }) => {
+    const knownSearches: KnownSearchesRecord = {
+        'Biolay - Vendredi 12': [
+            {
+                id: 'eD-ORVUQ-pw',
+                title: 'Benjamin Biolay - Vendredi 12 (Clip Officiel)',
+                artistName: 'BenjaminBiolayVEVO',
+                duration: 0,
+            },
+            {
+                id: 'H8GDdTX8Cww',
+                title: 'Vendredi 12',
+                artistName: 'Benjamin Biolay - Topic',
+                duration: 0,
+            },
+            {
+                id: '7aW8iGoqi1o',
+                title: 'Benjamin Biolay - Vendredi 12',
+                artistName: 'Bruno Gaillardo',
+                duration: 0,
+            },
+            {
+                id: 'O8HyyYxbznQ',
+                title: 'Vendredi 12 - Benjamin Biolay (reprise)',
+                artistName: 'Clémence Bnt',
+                duration: 0,
+            },
+            {
+                id: 'LZ6EkzDQbiY',
+                title: 'Benjamin Biolay - Où est passée la tendresse (Live) - Le Grand Studio RTL',
+                artistName: 'Le Grand Studio RTL',
+                duration: 0,
+            },
+        ],
+        'BB Brunes': [
+            {
+                id: 'X3VNRVo7irM',
+                title: 'BB BRUNES - Dis-Moi [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+            {
+                id: 'mF5etHMRMMM',
+                title: 'BB BRUNES - Coups et Blessures [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+            {
+                id: '1d3etBBSSfw',
+                title: 'BB BRUNES - Lalalove You [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+            {
+                id: 'DyRDeEWhW6M',
+                title: 'BB BRUNES - Aficionado [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+            {
+                id: 'Qs-ucIS2B-0',
+                title: 'BB BRUNES - Stéréo [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+        ],
+    };
+
     let userIndex = 0;
     const [
         { page: creatorUserA },
@@ -370,14 +452,24 @@ test('Test B see following link for more information: https://3.basecamp.com/470
         setupAndGetUserContext({
             browser,
             userIndex: userIndex++,
+            knownSearches,
         }),
-        setupAndGetUserContext({ browser, userIndex: userIndex++ }),
-        setupAndGetUserContext({ browser, userIndex: userIndex++ }),
+        setupAndGetUserContext({
+            browser,
+            userIndex: userIndex++,
+            knownSearches,
+        }),
+        setupAndGetUserContext({
+            browser,
+            userIndex: userIndex++,
+            knownSearches,
+        }),
     ]);
 
     const { roomName, selectedSongTitle } =
         await createDirectRoomAndGoFullscreen({
             creatorPage: creatorUserA,
+            trackName: 'BB Brunes',
         });
 
     await userJoinsGivenRoomAndGoFullscreen({
@@ -391,8 +483,7 @@ test('Test B see following link for more information: https://3.basecamp.com/470
         expectedListenersCounterValue: 3,
     });
 
-    const suggestedTrackName = 'poussin piou';
-
+    const suggestedTrackName = 'Biolay - Vendredi 12';
     const { selectedSongTitle: suggestedSongTitle } =
         await userSuggestATrackFromFullscreen({
             page: creatorUserA,

@@ -1,6 +1,7 @@
 import { test, expect, Browser, Page, Locator } from '@playwright/test';
 import { assertIsNotNull, assertIsNotUndefined } from './_utils/assert';
 import { mockSearchRooms } from './_utils/mock-http';
+import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
 const AVAILABLE_USERS_LIST = [
     '8d71dcb3-9638-4b7a-89ad-838e2310686c',
@@ -399,20 +400,6 @@ async function joinerVotesForInitialTrack({
     await trackToVoteForElement.click();
 }
 
-async function waitForYouTubeVideoToLoad(page: Page) {
-    await page.waitForResponse((response) => {
-        /**
-         * At time of writing (11-01-2021), a request is made by YouTube player to
-         * https://r1---sn-a0jpm-a0ms.googlevideo.com/videoplayback when launching a video.
-         */
-        const isReponseToYouTubeVideoLoading = response
-            .url()
-            .includes('videoplayback');
-
-        return isReponseToYouTubeVideoLoading === true;
-    });
-}
-
 async function waitForVideoToBePausedForUserWithControl(page: Page) {
     const fullScreenPlayerPauseButton = page.locator(
         'css=[aria-label="Pause the video"]:not(:disabled) >> nth=1',
@@ -421,7 +408,7 @@ async function waitForVideoToBePausedForUserWithControl(page: Page) {
     await expect(fullScreenPlayerPauseButton).toBeVisible();
 }
 
-test('Room creation', async ({ browser }) => {
+test('Test A', async ({ browser }) => {
     const [{ creatorPage }, { joinerPage }] = await Promise.all([
         setupCreatorPages({ browser }),
         setupJoinerPages({ browser }),

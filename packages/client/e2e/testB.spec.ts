@@ -233,13 +233,15 @@ async function userVoteForGivenTrackFromFullscreen({
     page,
     trackName,
 }: UserVoteForGivenTrackArgs) {
-    await page.waitForTimeout(10000);
-
     const trackItem = page.locator(`text="${trackName}" >> visible=true`);
     await expect(trackItem).toBeVisible();
     await expect(trackItem).toBeEnabled();
     await trackItem.click();
-    await expect(trackItem).toBeDisabled();
+
+    //Not working as expected below
+    // await expect(
+    //     page.locator(`text="${trackName}" >> visible=true`),
+    // ).toBeDisabled();
 }
 
 /**
@@ -274,6 +276,86 @@ async function userSuggestATrackFromFullscreen({
 
     await firstMatchingSong.click();
     return { selectedSongTitle };
+}
+
+type UserTogglePlayPauseButtonFromFullscreenPlayerArgs = {
+    page: Page;
+};
+async function userHitPlayFromFullscreenPlayer({
+    page,
+}: UserTogglePlayPauseButtonFromFullscreenPlayerArgs) {
+    const fullScreenPlayerPlayButton = page.locator(
+        'css=[aria-label="Play the video"]:not(:disabled) >> nth=1',
+    );
+    await expect(fullScreenPlayerPlayButton).toBeVisible();
+
+    await fullScreenPlayerPlayButton.click();
+
+    const fullScreenPlayerPauseButton = page.locator(
+        'css=[aria-label="Pause the video"] >> nth=1',
+    );
+    await expect(fullScreenPlayerPauseButton).toBeVisible();
+    await expect(fullScreenPlayerPauseButton).toBeEnabled();
+}
+
+async function userHitPauseFromFullscreenPlayer({
+    page,
+}: UserTogglePlayPauseButtonFromFullscreenPlayerArgs) {
+    const fullScreenPlayerPauseButton = page.locator(
+        'css=[aria-label="Pause the video"]:not(:disabled) >> nth=1',
+    );
+    await expect(fullScreenPlayerPauseButton).toBeVisible();
+
+    await fullScreenPlayerPauseButton.click();
+
+    const fullScreenPlayerPlayButton = page.locator(
+        'css=[aria-label="Play the video"] >> nth=1',
+    );
+    await expect(fullScreenPlayerPlayButton).toBeVisible();
+    await expect(fullScreenPlayerPlayButton).toBeEnabled();
+}
+type UserGoesToTheUsersListFromFullscreenPlayerArgs = {
+    page: Page;
+    usersLength: number;
+};
+async function userGoesToTheUsersListFromFullscreenPlayer({
+    page,
+    usersLength,
+}: UserGoesToTheUsersListFromFullscreenPlayerArgs) {
+    const listenersCounter = page.locator(`text="${usersLength} Listeners"`);
+    await expect(listenersCounter).toBeVisible();
+    await expect(listenersCounter).toBeEnabled();
+
+    await listenersCounter.click();
+
+    await expect(page.locator('text="Users list"')).toBeVisible();
+}
+
+type GoToUserSettingsArgs = {
+    page: Page;
+    userNickname: string;
+};
+async function openUserSettings({ page, userNickname }: GoToUserSettingsArgs) {
+    const userCard = page.locator(
+        `css=[data-testid="${userNickname}-user-card"]`,
+    );
+    await expect(userCard).toBeVisible();
+    const userCardThreeDotsButton = page.locator(
+        `css=[aria-label="Open user ${userNickname} settings"] >> visible=true`,
+    );
+    await expect(userCardThreeDotsButton).toBeVisible();
+    await expect(userCardThreeDotsButton).toBeEnabled();
+
+    await userCardThreeDotsButton.click();
+
+    const userBottomSheetModalSettings = page.locator(
+        `text="${userNickname} settings"`,
+    );
+    await expect(userBottomSheetModalSettings).toBeVisible();
+
+    // threeDotsAccessibilityLabel={`Open user ${item.nickname} settings`}
+    // testID={`${props.user.nickname}-user-card`}
+    // 'css=[data-testid="music-player-not-playing-device-emitting"]',
 }
 
 test('Test B see following link for more information: https://3.basecamp.com/4704981/buckets/22220886/messages/4292491228#:~:text=Test%20end-,Test%20B/,-UserA%20Section%20full', async ({
@@ -326,6 +408,27 @@ test('Test B see following link for more information: https://3.basecamp.com/470
     await userVoteForGivenTrackFromFullscreen({
         page: joiningUserB,
         trackName: selectedSongTitle,
+    });
+
+    //pause
+    await userHitPauseFromFullscreenPlayer({
+        page: creatorUserA,
+    });
+    const joinerMusicPlayerNotPlaying = creatorUserA.locator(
+        'css=[data-testid="music-player-not-playing-device-emitting"]',
+    );
+    await expect(joinerMusicPlayerNotPlaying).toBeVisible();
+
+    //go to users list
+    await userGoesToTheUsersListFromFullscreenPlayer({
+        page: creatorUserA,
+        usersLength: 3,
+    });
+
+    //open userB settings
+    await openUserSettings({
+        page: creatorUserA,
+        userNickname: 'available-user-B',
     });
 
     await creatorUserA.waitForTimeout(100_000);

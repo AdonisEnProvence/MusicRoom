@@ -1,5 +1,9 @@
 import { test, expect, Browser, Page, Locator } from '@playwright/test';
-import { KnownSearchesRecord, mockSearchTracks } from './utils';
+import {
+    assertMusicPlayerStatusIs,
+    KnownSearchesRecord,
+    mockSearchTracks,
+} from './utils';
 
 function assertIsNotUndefined<ValueType>(
     value: ValueType | undefined,
@@ -248,11 +252,6 @@ async function userVoteForGivenTrackFromFullscreen({
     await expect(trackItem).toBeVisible();
     await expect(trackItem).toBeEnabled();
     await trackItem.click();
-
-    //Not working as expected below
-    // await expect(
-    //     page.locator(`text="${trackName}" >> visible=true`),
-    // ).toBeDisabled();
 }
 
 /**
@@ -275,7 +274,9 @@ async function userSuggestATrackFromFullscreen({
     );
     await page.keyboard.press('Enter');
 
-    await expect(page.locator('text="Results" >> visible=true')).toBeVisible();
+    await expect(
+        page.locator('text="Results" >> visible=true').first(),
+    ).toBeVisible();
 
     const firstMatchingSong = page.locator(`text=${trackName}`).first();
     await expect(firstMatchingSong).toBeVisible();
@@ -292,7 +293,7 @@ async function userSuggestATrackFromFullscreen({
 type UserTogglePlayPauseButtonFromFullscreenPlayerArgs = {
     page: Page;
 };
-async function userHitPlayFromFullscreenPlayer({
+async function userHitsPlayFromFullscreenPlayer({
     page,
 }: UserTogglePlayPauseButtonFromFullscreenPlayerArgs) {
     const fullScreenPlayerPlayButton = page.locator(
@@ -309,7 +310,7 @@ async function userHitPlayFromFullscreenPlayer({
     await expect(fullScreenPlayerPauseButton).toBeEnabled();
 }
 
-async function userHitPauseFromFullscreenPlayer({
+async function userHitsPauseFromFullscreenPlayer({
     page,
 }: UserTogglePlayPauseButtonFromFullscreenPlayerArgs) {
     const fullScreenPlayerPauseButton = page.locator(
@@ -346,13 +347,16 @@ type GoToUserSettingsArgs = {
     page: Page;
     userNickname: string;
 };
-async function openUserSettings({ page, userNickname }: GoToUserSettingsArgs) {
+async function openUserSettingsFromUsersList({
+    page,
+    userNickname,
+}: GoToUserSettingsArgs) {
     const userCard = page.locator(
         `css=[data-testid="${userNickname}-user-card"]`,
     );
     await expect(userCard).toBeVisible();
     const userCardThreeDotsButton = page.locator(
-        `css=[aria-label="Open user ${userNickname} settings"] >> visible=true`,
+        `css=[aria-label="Open user ${userNickname} settings"]`,
     );
     await expect(userCardThreeDotsButton).toBeVisible();
     await expect(userCardThreeDotsButton).toBeEnabled();
@@ -363,10 +367,93 @@ async function openUserSettings({ page, userNickname }: GoToUserSettingsArgs) {
         `text="${userNickname} settings"`,
     );
     await expect(userBottomSheetModalSettings).toBeVisible();
+}
 
-    // threeDotsAccessibilityLabel={`Open user ${item.nickname} settings`}
-    // testID={`${props.user.nickname}-user-card`}
-    // 'css=[data-testid="music-player-not-playing-device-emitting"]',
+async function openUserSettingsAndToggleOnControlDelegationPermission({
+    page,
+    userNickname,
+}: GoToUserSettingsArgs) {
+    await openUserSettingsFromUsersList({
+        page,
+        userNickname,
+    });
+
+    const controlAndDelegationSwitch = page.locator(
+        `css=[aria-label="Set delegation and control permission"] >> visible=true`,
+    );
+    await expect(controlAndDelegationSwitch).toBeVisible();
+    await controlAndDelegationSwitch.click();
+
+    const controlAndDelegationSwitchCopy = page.locator(
+        `css=[aria-label="Remove delegation and control permission"] >> visible=true`,
+    );
+    await expect(controlAndDelegationSwitchCopy).toBeVisible();
+}
+
+async function openUserSettingsAndGiveHimTheDelegationOwnership({
+    userNickname,
+    page,
+}: GoToUserSettingsArgs) {
+    await openUserSettingsFromUsersList({
+        page,
+        userNickname,
+    });
+
+    const delegationOwnerButton = page.locator(
+        `text="Set as delegation owner" >> visible=true`,
+    );
+    await expect(delegationOwnerButton).toBeVisible();
+    await expect(delegationOwnerButton).toBeEnabled();
+    await delegationOwnerButton.click();
+}
+
+/**
+ * /!\ User should have the control and delegation permission
+ * and should see the music player fullscreen /!\
+ */
+async function userHitsGoToNextTrackButton({
+    page,
+    nextTrackID,
+    nextTrackName,
+}: {
+    page: Page;
+    nextTrackID: string;
+    nextTrackName: string;
+}) {
+    const goToNextTrackButton = page.locator(
+        'css=[aria-label="Play next track"] >> visible=true',
+    );
+    await expect(goToNextTrackButton).toBeVisible();
+    await expect(goToNextTrackButton).toBeEnabled();
+
+    //Checking current track has changed
+    await goToNextTrackButton.click();
+    const newCurrentTrackTrackItem = page.locator(`${nextTrackID}-track-card`);
+    await expect(newCurrentTrackTrackItem).not.toBeVisible();
+
+    await expect(
+        page.locator(`text="${nextTrackName}" >> visible=true`),
+    ).toBeVisible();
+}
+
+async function userGoesToSettingsTabFromMusicPlayerFullscreenAndLeaveRoom({
+    page,
+}: {
+    page: Page;
+}) {
+    const settingsTab = page.locator('text="Settings" >> visible=true');
+    await expect(settingsTab).toBeVisible();
+    await settingsTab.click();
+    const leaveRoomButton = page.locator(
+        'text="Leave the room" >> visible=true',
+    );
+    await expect(leaveRoomButton).toBeVisible();
+    await expect(leaveRoomButton).toBeEnabled();
+    await leaveRoomButton.click();
+
+    await expect(
+        page.locator('text="Home" >> visible=true').first(),
+    ).toBeVisible();
 }
 
 test('Test B see following link for more information: https://3.basecamp.com/4704981/buckets/22220886/messages/4292491228#:~:text=Test%20end-,Test%20B/,-UserA%20Section%20full', async ({
@@ -498,13 +585,14 @@ test('Test B see following link for more information: https://3.basecamp.com/470
     });
 
     //pause
-    await userHitPauseFromFullscreenPlayer({
+    await userHitsPauseFromFullscreenPlayer({
         page: creatorUserA,
     });
-    const joinerMusicPlayerNotPlaying = creatorUserA.locator(
-        'css=[data-testid="music-player-not-playing-device-emitting"]',
-    );
-    await expect(joinerMusicPlayerNotPlaying).toBeVisible();
+    await creatorUserA.waitForTimeout(100);
+    await assertMusicPlayerStatusIs({
+        page: creatorUserA,
+        testID: 'music-player-not-playing-device-emitting',
+    });
 
     //go to users list
     await userGoesToTheUsersListFromFullscreenPlayer({
@@ -512,11 +600,83 @@ test('Test B see following link for more information: https://3.basecamp.com/470
         usersLength: 3,
     });
 
-    //open userB settings
-    await openUserSettings({
+    //open userB settings and creator toggles on the userB control and delegation switch
+    await openUserSettingsAndToggleOnControlDelegationPermission({
         page: creatorUserA,
         userNickname: 'available-user-B',
     });
 
-    await creatorUserA.waitForTimeout(100_000);
+    //UserB hits pause button as he has control and delegation permission
+    await userHitsPlayFromFullscreenPlayer({
+        page: joiningUserB,
+    });
+    await assertMusicPlayerStatusIs({
+        page: creatorUserA,
+        testID: 'music-player-playing-device-emitting',
+    });
+    await assertMusicPlayerStatusIs({
+        page: joiningUserB,
+        testID: 'music-player-playing-device-muted',
+    });
+    await assertMusicPlayerStatusIs({
+        page: joiningUserC,
+        testID: 'music-player-playing-device-muted',
+    });
+
+    //UserC votes for the suggested track
+    await userVoteForGivenTrackFromFullscreen({
+        page: joiningUserC,
+        trackName: suggestedSongTitle,
+    });
+
+    //UserB hits go to next track
+    const suggestedTrack = knownSearches[suggestedTrackName].find(
+        (track) => track.title === suggestedSongTitle,
+    );
+    if (suggestedTrack === undefined) {
+        console.log('ABOUT TO FAIL');
+        throw new Error('suggestedTrack is undefined');
+    }
+    await userHitsGoToNextTrackButton({
+        nextTrackID: suggestedTrack.id,
+        nextTrackName: suggestedTrack.title,
+        page: joiningUserB,
+    });
+
+    //UserB goes to the user list
+    await userGoesToTheUsersListFromFullscreenPlayer({
+        page: joiningUserB,
+        usersLength: 3,
+    });
+
+    //UserB gives the UserC the delegationOwnership
+    await openUserSettingsAndGiveHimTheDelegationOwnership({
+        page: joiningUserB,
+        userNickname: 'available-user-C',
+    });
+    await assertMusicPlayerStatusIs({
+        page: joiningUserC,
+        testID: 'music-player-playing-device-emitting',
+    });
+    await assertMusicPlayerStatusIs({
+        page: creatorUserA,
+        testID: 'music-player-playing-device-muted',
+    });
+    await assertMusicPlayerStatusIs({
+        page: joiningUserB,
+        testID: 'music-player-playing-device-muted',
+    });
+
+    //UserC leaves the room, creator should now be emitting
+    await userGoesToSettingsTabFromMusicPlayerFullscreenAndLeaveRoom({
+        page: joiningUserC,
+    });
+    await assertMusicPlayerStatusIs({
+        page: creatorUserA,
+        testID: 'music-player-playing-device-emitting',
+    });
+    await assertMusicPlayerStatusIs({
+        page: joiningUserB,
+        testID: 'music-player-playing-device-muted',
+    });
 });

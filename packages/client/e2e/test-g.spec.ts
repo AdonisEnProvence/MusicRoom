@@ -13,7 +13,7 @@ const AVAILABLE_USERS_LIST = [
     },
     {
         uuid: 'd125ecde-b0ee-4ab8-a488-c0e7a8dac7c5',
-        nickname: 'Leïla',
+        nickname: 'Leila',
     },
     {
         uuid: '7f4bc598-c5be-4412-acc4-515a87b797e7',

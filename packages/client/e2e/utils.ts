@@ -38,6 +38,7 @@ export async function assertMusicPlayerStatusIs({
     page,
     testID,
 }: assertMusicPlayerStatusIs): Promise<void> {
+    //Waiting for timeout as the following assertion can bring some race condition
     await new Promise((r) => setTimeout(r, 100));
 
     await expect(

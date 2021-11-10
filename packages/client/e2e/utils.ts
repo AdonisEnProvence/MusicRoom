@@ -1,5 +1,5 @@
 import { TrackMetadata } from '@musicroom/types';
-import { BrowserContext } from '@playwright/test';
+import { BrowserContext, expect, Page } from '@playwright/test';
 
 export interface KnownSearchesElement {
     id: string;
@@ -25,6 +25,24 @@ export function assertIsNotNull<ValueType>(
     if (value === undefined) {
         throw new Error(label ?? 'value must not be null');
     }
+}
+
+interface assertMusicPlayerStatusIs {
+    page: Page;
+    testID: `music-player-${'playing' | 'not-playing'}-device-${
+        | 'emitting'
+        | 'muted'}`;
+}
+
+export async function assertMusicPlayerStatusIs({
+    page,
+    testID,
+}: assertMusicPlayerStatusIs): Promise<void> {
+    await new Promise((r) => setTimeout(r, 100));
+
+    await expect(
+        page.locator(`css=[data-testid="${testID}"] >> visible=true`),
+    ).toBeVisible();
 }
 
 export async function mockSearchTracks({

@@ -1,5 +1,9 @@
 import { test, expect, Browser, Page, Locator } from '@playwright/test';
-import { assertIsNotNull, assertIsNotUndefined } from './_utils/assert';
+import {
+    assertIsNotNull,
+    assertIsNotUndefined,
+    assertMusicPlayerStatusIs,
+} from './_utils/assert';
 import { mockSearchTracks } from './_utils/mock-http';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 

@@ -1,9 +1,6 @@
 import { test, expect, Browser, Page, Locator } from '@playwright/test';
-import {
-    assertMusicPlayerStatusIs,
-    KnownSearchesRecord,
-    mockSearchTracks,
-} from './utils';
+import { assertMusicPlayerStatusIs } from './_utils/assert';
+import { KnownSearchesRecord, mockSearchTracks } from './_utils/mock-http';
 
 function assertIsNotUndefined<ValueType>(
     value: ValueType | undefined,

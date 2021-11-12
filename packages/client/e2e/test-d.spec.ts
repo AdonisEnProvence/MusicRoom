@@ -7,7 +7,7 @@ import {
     Locator,
 } from '@playwright/test';
 import { assertIsNotNull, assertIsNotUndefined } from './_utils/assert';
-import { mockSearchRooms } from './_utils/mock-http';
+import { mockSearchTracks } from './_utils/mock-http';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
 const AVAILABLE_USERS_LIST = [
@@ -53,7 +53,7 @@ async function createContext({
             ],
         },
     });
-    await mockSearchRooms({
+    await mockSearchTracks({
         context,
         knownSearches: {
             'BB Brunes': [
@@ -300,20 +300,18 @@ async function changeEmittingDevice({
     await changeEmittingDeviceButton.click();
 
     const deviceToMakeEmitter = page.locator(
-        `text="Web Player (Firefox)" >> nth=${emittingDeviceIndex}`,
+        `text=Web Player >> nth=${emittingDeviceIndex}`,
     );
     await expect(deviceToMakeEmitter).toBeVisible();
     await deviceToMakeEmitter.click();
 }
 
 test('Test C', async ({ browser }) => {
-    const [
-        { context: userAContext, userName: userAName },
-        { context: userBContext, userName: userBName },
-    ] = await Promise.all([
-        createContext({ browser, index: 0 }),
-        createContext({ browser, index: 1 }),
-    ]);
+    const [{ context: userAContext }, { context: userBContext }] =
+        await Promise.all([
+            createContext({ browser, index: 0 }),
+            createContext({ browser, index: 1 }),
+        ]);
     const [{ page: userADevice1Page }, { page: userBPage }] = await Promise.all(
         [
             setupPageFromContext(userAContext),
@@ -402,6 +400,4 @@ test('Test C', async ({ browser }) => {
             testID: 'music-player-playing-device-emitting',
         }),
     ]);
-
-    await userBPage.waitForTimeout(100_000);
 });

@@ -1,6 +1,6 @@
 import { test, expect, Browser, Page, Locator } from '@playwright/test';
 import { assertIsNotNull, assertIsNotUndefined } from './_utils/assert';
-import { mockSearchRooms } from './_utils/mock-http';
+import { mockSearchTracks } from './_utils/mock-http';
 
 const AVAILABLE_USERS_LIST = [
     {
@@ -45,7 +45,7 @@ async function setupPage({
             ],
         },
     });
-    await mockSearchRooms({
+    await mockSearchTracks({
         context,
         knownSearches: {
             'BB Brunes': [

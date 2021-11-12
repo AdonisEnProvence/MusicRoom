@@ -1,7 +1,16 @@
 import { TrackMetadata } from '@musicroom/types';
 import { BrowserContext } from '@playwright/test';
 
-export async function mockSearchRooms({
+export interface KnownSearchesElement {
+    id: string;
+    title: string;
+    artistName: string;
+    duration: number;
+}
+
+export type KnownSearchesRecord = Record<string, KnownSearchesElement[]>;
+
+export async function mockSearchTracks({
     context,
     knownSearches,
 }: {

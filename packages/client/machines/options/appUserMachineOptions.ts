@@ -17,7 +17,7 @@ export function getUserMachineOptions(): AppUserMachineOptions {
                 Toast.show({
                     type: 'info',
                     visibilityTime: 10000,
-                    text1: `${creatorName} sent you an invitation !`,
+                    text1: `${creatorName} sent you an invitation`,
                     text2: `TAP ON ME to join ${roomName} Music Track vote room`,
                     onPress: () => {
                         sendBack({

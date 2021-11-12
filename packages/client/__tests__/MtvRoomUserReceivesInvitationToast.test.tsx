@@ -36,7 +36,7 @@ then press it and emit a JOIN_ROOM client socket event`, async () => {
     await waitFor(() => {
         expect(Toast.show).toHaveBeenNthCalledWith(1, {
             type: 'info',
-            text1: `${mtvRoomSummary.creatorName} sent you an invitation !`,
+            text1: `${mtvRoomSummary.creatorName} sent you an invitation`,
             text2: `TAP ON ME to join ${mtvRoomSummary.roomName} Music Track vote room`,
             onPress: expect.anything(),
             onHide: expect.anything(),

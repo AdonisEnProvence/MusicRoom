@@ -1,29 +1,7 @@
-import { TrackMetadata } from '@musicroom/types';
-import {
-    test,
-    expect,
-    Browser,
-    Page,
-    Locator,
-    BrowserContext,
-} from '@playwright/test';
-
-function assertIsNotUndefined<ValueType>(
-    value: ValueType | undefined,
-): asserts value is ValueType {
-    if (value === undefined) {
-        throw new Error('value must not be undefined');
-    }
-}
-
-function assertIsNotNull<ValueType>(
-    value: ValueType | null,
-    label?: string,
-): asserts value is ValueType {
-    if (value === undefined) {
-        throw new Error(label ?? 'value must not be null');
-    }
-}
+import { test, expect, Browser, Page, Locator } from '@playwright/test';
+import { assertIsNotNull, assertIsNotUndefined } from './_utils/assert';
+import { mockSearchRooms } from './_utils/mock-http';
+import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
 const AVAILABLE_USERS_LIST = [
     '8d71dcb3-9638-4b7a-89ad-838e2310686c',
@@ -31,44 +9,6 @@ const AVAILABLE_USERS_LIST = [
     'd125ecde-b0ee-4ab8-a488-c0e7a8dac7c5',
     '7f4bc598-c5be-4412-acc4-515a87b797e7',
 ];
-
-async function mockSearchRooms({
-    context,
-    knownSearches,
-}: {
-    context: BrowserContext;
-    knownSearches: Record<string, TrackMetadata[]>;
-}) {
-    await context.route(
-        'http://localhost:3333/search/track/*',
-        (route, request) => {
-            console.log('request', request.url(), request.method());
-            const requestMethod = request.method();
-            if (requestMethod !== 'GET') {
-                void route.abort('failed');
-                return;
-            }
-
-            const urlChunks = request.url().split('/');
-            const searchQuery = urlChunks[urlChunks.length - 1];
-            const decodedSearchQuery = decodeURIComponent(searchQuery);
-            const searchResults = knownSearches[decodedSearchQuery];
-            if (searchResults === undefined) {
-                void route.abort('failed');
-                return;
-            }
-
-            void route.fulfill({
-                headers: {
-                    'access-control-allow-credentials': 'true',
-                    'access-control-allow-origin': 'http://localhost:4000',
-                },
-                contentType: 'application/json; charset=utf-8',
-                body: JSON.stringify(searchResults),
-            });
-        },
-    );
-}
 
 async function setupCreatorPages({ browser }: { browser: Browser }) {
     const creatorContext = await browser.newContext({
@@ -460,20 +400,6 @@ async function joinerVotesForInitialTrack({
     await trackToVoteForElement.click();
 }
 
-async function waitForYouTubeVideoToLoad(page: Page) {
-    await page.waitForResponse((response) => {
-        /**
-         * At time of writing (11-01-2021), a request is made by YouTube player to
-         * https://r1---sn-a0jpm-a0ms.googlevideo.com/videoplayback when launching a video.
-         */
-        const isReponseToYouTubeVideoLoading = response
-            .url()
-            .includes('videoplayback');
-
-        return isReponseToYouTubeVideoLoading === true;
-    });
-}
-
 async function waitForVideoToBePausedForUserWithControl(page: Page) {
     const fullScreenPlayerPauseButton = page.locator(
         'css=[aria-label="Pause the video"]:not(:disabled) >> nth=1',
@@ -482,7 +408,7 @@ async function waitForVideoToBePausedForUserWithControl(page: Page) {
     await expect(fullScreenPlayerPauseButton).toBeVisible();
 }
 
-test('Room creation', async ({ browser }) => {
+test('Test A', async ({ browser }) => {
     const [{ creatorPage }, { joinerPage }] = await Promise.all([
         setupCreatorPages({ browser }),
         setupJoinerPages({ browser }),

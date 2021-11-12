@@ -87,8 +87,8 @@ export const createUserMachine = ({
     AppUserMachineContext,
     any,
     AppUserMachineEvent
-> =>
-    createMachine<AppUserMachineContext, AppUserMachineEvent>(
+> => {
+    return createMachine<AppUserMachineContext, AppUserMachineEvent>(
         {
             context: {
                 devices: [],
@@ -490,7 +490,7 @@ export const createUserMachine = ({
             },
         },
     );
-
+};
 export type AppUserMachineState = State<
     AppUserMachineContext,
     AppUserMachineEvent

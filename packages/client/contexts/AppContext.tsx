@@ -1,6 +1,6 @@
 import { useInterpret, useSelector } from '@xstate/react';
 import { Sender } from '@xstate/react/lib/types';
-import React, { useContext, useRef } from 'react';
+import React, { useContext, useMemo, useRef } from 'react';
 import { MusicPlayerRef } from '../components/TheMusicPlayer/Player';
 import { IS_TEST } from '../constants/Env';
 import {
@@ -99,16 +99,10 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
     });
     const appService = useInterpret(appMusicPlayerMachine);
 
-    const applicationState = useSelector(
-        appService,
-        (state): ApplicationState => {
-            if (state.hasTag('showApplicationLoader')) {
-                return 'SHOW_APPLICATION_LOADER';
-            }
-
-            return 'AUTHENTICATED';
-        },
+    const hasShowApplicationLoaderTag = useSelector(appService, (state) =>
+        state.hasTag('showApplicationLoader'),
     );
+
     const appMusicPlayerMachineActorRef = useSelector(
         appService,
         (state) => state.children.appMusicPlayerMachine,
@@ -117,6 +111,21 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
         appService,
         (state) => state.children.appUserMachine,
     );
+
+    const applicationState: ApplicationState = useMemo((): ApplicationState => {
+        const shouldShowSplashScreen =
+            hasShowApplicationLoaderTag ||
+            appMusicPlayerMachineActorRef === undefined ||
+            appUserMachineActorRef === undefined;
+        if (shouldShowSplashScreen) {
+            return 'SHOW_APPLICATION_LOADER';
+        }
+        return 'AUTHENTICATED';
+    }, [
+        hasShowApplicationLoaderTag,
+        appMusicPlayerMachineActorRef,
+        appUserMachineActorRef,
+    ]);
 
     return (
         <AppContext.Provider

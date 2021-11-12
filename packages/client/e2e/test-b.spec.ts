@@ -1,6 +1,7 @@
 import { test, expect, Browser, Page, Locator } from '@playwright/test';
 import { assertMusicPlayerStatusIs } from './_utils/assert';
 import { KnownSearchesRecord, mockSearchTracks } from './_utils/mock-http';
+import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
 function assertIsNotUndefined<ValueType>(
     value: ValueType | undefined,
@@ -11,10 +12,22 @@ function assertIsNotUndefined<ValueType>(
 }
 
 const AVAILABLE_USERS_LIST = [
-    '8d71dcb3-9638-4b7a-89ad-838e2310686c',
-    '71bc3025-b765-4f84-928d-b4dca8871370',
-    'd125ecde-b0ee-4ab8-a488-c0e7a8dac7c5',
-    '7f4bc598-c5be-4412-acc4-515a87b797e7',
+    {
+        uuid: '8d71dcb3-9638-4b7a-89ad-838e2310686c',
+        nickname: 'Francis',
+    },
+    {
+        uuid: '71bc3025-b765-4f84-928d-b4dca8871370',
+        nickname: 'Moris',
+    },
+    {
+        uuid: 'd125ecde-b0ee-4ab8-a488-c0e7a8dac7c5',
+        nickname: 'Leila',
+    },
+    {
+        uuid: '7f4bc598-c5be-4412-acc4-515a87b797e7',
+        nickname: 'Manon',
+    },
 ];
 
 type SetupAndGetUserContextArgs = {
@@ -26,7 +39,7 @@ async function setupAndGetUserContext({
     browser,
     userIndex,
     knownSearches,
-}: SetupAndGetUserContextArgs): Promise<{ page: Page }> {
+}: SetupAndGetUserContextArgs): Promise<{ page: Page; userNickname: string }> {
     const joinerContext = await browser.newContext({
         storageState: {
             cookies: [],
@@ -36,7 +49,7 @@ async function setupAndGetUserContext({
                     localStorage: [
                         {
                             name: 'USER_ID',
-                            value: AVAILABLE_USERS_LIST[userIndex],
+                            value: AVAILABLE_USERS_LIST[userIndex].uuid,
                         },
                     ],
                 },
@@ -51,7 +64,7 @@ async function setupAndGetUserContext({
     });
     await page.goto('/');
 
-    return { page };
+    return { page, userNickname: AVAILABLE_USERS_LIST[userIndex].nickname };
 }
 
 type FindMiniPlayerWithRoomNameAndGoFullscreenArgs = {
@@ -293,34 +306,44 @@ type UserTogglePlayPauseButtonFromFullscreenPlayerArgs = {
 async function userHitsPlayFromFullscreenPlayer({
     page,
 }: UserTogglePlayPauseButtonFromFullscreenPlayerArgs) {
-    const fullScreenPlayerPlayButton = page.locator(
-        'css=[aria-label="Play the video"]:not(:disabled) >> nth=1',
-    );
-    await expect(fullScreenPlayerPlayButton).toBeVisible();
+    const fullScreenPlayerPlayButton = page
+        .locator('css=[aria-label="Play the video"]')
+        .nth(1);
+    await expect(fullScreenPlayerPlayButton).toBeVisible({
+        timeout: 20_000,
+    });
+    await expect(fullScreenPlayerPlayButton).toBeEnabled();
 
     await fullScreenPlayerPlayButton.click();
 
-    const fullScreenPlayerPauseButton = page.locator(
-        'css=[aria-label="Pause the video"] >> nth=1',
-    );
-    await expect(fullScreenPlayerPauseButton).toBeVisible();
+    const fullScreenPlayerPauseButton = page
+        .locator('css=[aria-label="Pause the video"]')
+        .nth(1);
+    await expect(fullScreenPlayerPauseButton).toBeVisible({
+        timeout: 20_000,
+    });
     await expect(fullScreenPlayerPauseButton).toBeEnabled();
 }
 
 async function userHitsPauseFromFullscreenPlayer({
     page,
 }: UserTogglePlayPauseButtonFromFullscreenPlayerArgs) {
-    const fullScreenPlayerPauseButton = page.locator(
-        'css=[aria-label="Pause the video"]:not(:disabled) >> nth=1',
-    );
-    await expect(fullScreenPlayerPauseButton).toBeVisible();
+    const fullScreenPlayerPauseButton = page
+        .locator('css=[aria-label="Pause the video"]')
+        .nth(1);
+    await expect(fullScreenPlayerPauseButton).toBeVisible({
+        timeout: 20_000,
+    });
+    await expect(fullScreenPlayerPauseButton).toBeEnabled();
 
     await fullScreenPlayerPauseButton.click();
 
-    const fullScreenPlayerPlayButton = page.locator(
-        'css=[aria-label="Play the video"] >> nth=1',
-    );
-    await expect(fullScreenPlayerPlayButton).toBeVisible();
+    const fullScreenPlayerPlayButton = page
+        .locator('css=[aria-label="Play the video"]')
+        .nth(1);
+    await expect(fullScreenPlayerPlayButton).toBeVisible({
+        timeout: 20_000,
+    });
     await expect(fullScreenPlayerPlayButton).toBeEnabled();
 }
 type UserGoesToTheUsersListFromFullscreenPlayerArgs = {
@@ -410,11 +433,9 @@ async function openUserSettingsAndGiveHimTheDelegationOwnership({
  */
 async function userHitsGoToNextTrackButton({
     page,
-    nextTrackID,
     nextTrackName,
 }: {
     page: Page;
-    nextTrackID: string;
     nextTrackName: string;
 }) {
     const goToNextTrackButton = page.locator(
@@ -424,13 +445,12 @@ async function userHitsGoToNextTrackButton({
     await expect(goToNextTrackButton).toBeEnabled();
 
     //Checking current track has changed
-    await goToNextTrackButton.click();
-    const newCurrentTrackTrackItem = page.locator(`${nextTrackID}-track-card`);
-    await expect(newCurrentTrackTrackItem).not.toBeVisible();
-
-    await expect(
-        page.locator(`text="${nextTrackName}" >> visible=true`),
-    ).toBeVisible();
+    const nextTrackNameMatchingLocator = page.locator(
+        `text="${nextTrackName}" >> visible=true`,
+    );
+    const counter = await nextTrackNameMatchingLocator.count();
+    expect(counter).toBe(1);
+    await expect(nextTrackNameMatchingLocator).toBeVisible();
 }
 
 async function userGoesToSettingsTabFromMusicPlayerFullscreenAndLeaveRoom({
@@ -525,9 +545,9 @@ test('Test B see following link for more information: https://3.basecamp.com/470
 
     let userIndex = 0;
     const [
-        { page: creatorUserA },
-        { page: joiningUserB },
-        { page: joiningUserC },
+        { page: creatorUserA, userNickname: creatorUserANickname },
+        { page: joiningUserB, userNickname: joiningUserBNickname },
+        { page: joiningUserC, userNickname: joiningUserCNickname },
     ] = await Promise.all([
         setupAndGetUserContext({
             browser,
@@ -563,11 +583,11 @@ test('Test B see following link for more information: https://3.basecamp.com/470
         expectedListenersCounterValue: 3,
     });
 
-    const suggestedTrackName = 'Biolay - Vendredi 12';
+    const suggestedTrackQuery = 'Biolay - Vendredi 12';
     const { selectedSongTitle: suggestedSongTitle } =
         await userSuggestATrackFromFullscreen({
             page: creatorUserA,
-            trackName: suggestedTrackName,
+            trackName: suggestedTrackQuery,
         });
     await expect(
         joiningUserB.locator(`text="${suggestedSongTitle}" >> visible=true`),
@@ -582,14 +602,23 @@ test('Test B see following link for more information: https://3.basecamp.com/470
     });
 
     //pause
-    await userHitsPauseFromFullscreenPlayer({
-        page: creatorUserA,
-    });
-    await creatorUserA.waitForTimeout(100);
-    await assertMusicPlayerStatusIs({
-        page: creatorUserA,
-        testID: 'music-player-not-playing-device-emitting',
-    });
+    await Promise.all([
+        assertMusicPlayerStatusIs({
+            page: creatorUserA,
+            testID: 'music-player-not-playing-device-emitting',
+        }),
+        assertMusicPlayerStatusIs({
+            page: joiningUserB,
+            testID: 'music-player-not-playing-device-muted',
+        }),
+        assertMusicPlayerStatusIs({
+            page: joiningUserC,
+            testID: 'music-player-not-playing-device-muted',
+        }),
+        userHitsPauseFromFullscreenPlayer({
+            page: creatorUserA,
+        }),
+    ]);
 
     //go to users list
     await userGoesToTheUsersListFromFullscreenPlayer({
@@ -600,25 +629,34 @@ test('Test B see following link for more information: https://3.basecamp.com/470
     //open userB settings and creator toggles on the userB control and delegation switch
     await openUserSettingsAndToggleOnControlDelegationPermission({
         page: creatorUserA,
-        userNickname: 'available-user-B',
+        userNickname: joiningUserBNickname,
     });
 
+    //Waiting for each page to have the player loaded
+    await Promise.all([
+        waitForYouTubeVideoToLoad(creatorUserA),
+        waitForYouTubeVideoToLoad(joiningUserB),
+        waitForYouTubeVideoToLoad(joiningUserC),
+    ]);
+
     //UserB hits pause button as he has control and delegation permission
-    await userHitsPlayFromFullscreenPlayer({
-        page: joiningUserB,
-    });
-    await assertMusicPlayerStatusIs({
-        page: creatorUserA,
-        testID: 'music-player-playing-device-emitting',
-    });
-    await assertMusicPlayerStatusIs({
-        page: joiningUserB,
-        testID: 'music-player-playing-device-muted',
-    });
-    await assertMusicPlayerStatusIs({
-        page: joiningUserC,
-        testID: 'music-player-playing-device-muted',
-    });
+    await Promise.all([
+        assertMusicPlayerStatusIs({
+            page: creatorUserA,
+            testID: 'music-player-playing-device-emitting',
+        }),
+        assertMusicPlayerStatusIs({
+            page: joiningUserB,
+            testID: 'music-player-playing-device-muted',
+        }),
+        assertMusicPlayerStatusIs({
+            page: joiningUserC,
+            testID: 'music-player-playing-device-muted',
+        }),
+        userHitsPlayFromFullscreenPlayer({
+            page: joiningUserB,
+        }),
+    ]);
 
     //UserC votes for the suggested track
     await userVoteForGivenTrackFromFullscreen({
@@ -627,16 +665,8 @@ test('Test B see following link for more information: https://3.basecamp.com/470
     });
 
     //UserB hits go to next track
-    const suggestedTrack = knownSearches[suggestedTrackName].find(
-        (track) => track.title === suggestedSongTitle,
-    );
-    if (suggestedTrack === undefined) {
-        console.log('ABOUT TO FAIL');
-        throw new Error('suggestedTrack is undefined');
-    }
     await userHitsGoToNextTrackButton({
-        nextTrackID: suggestedTrack.id,
-        nextTrackName: suggestedTrack.title,
+        nextTrackName: suggestedSongTitle,
         page: joiningUserB,
     });
 
@@ -647,33 +677,38 @@ test('Test B see following link for more information: https://3.basecamp.com/470
     });
 
     //UserB gives the UserC the delegationOwnership
-    await openUserSettingsAndGiveHimTheDelegationOwnership({
-        page: joiningUserB,
-        userNickname: 'available-user-C',
-    });
-    await assertMusicPlayerStatusIs({
-        page: joiningUserC,
-        testID: 'music-player-playing-device-emitting',
-    });
-    await assertMusicPlayerStatusIs({
-        page: creatorUserA,
-        testID: 'music-player-playing-device-muted',
-    });
-    await assertMusicPlayerStatusIs({
-        page: joiningUserB,
-        testID: 'music-player-playing-device-muted',
-    });
+
+    await Promise.all([
+        assertMusicPlayerStatusIs({
+            page: joiningUserC,
+            testID: 'music-player-playing-device-emitting',
+        }),
+        assertMusicPlayerStatusIs({
+            page: creatorUserA,
+            testID: 'music-player-playing-device-muted',
+        }),
+        assertMusicPlayerStatusIs({
+            page: joiningUserB,
+            testID: 'music-player-playing-device-muted',
+        }),
+        openUserSettingsAndGiveHimTheDelegationOwnership({
+            page: joiningUserB,
+            userNickname: joiningUserCNickname,
+        }),
+    ]);
 
     //UserC leaves the room, creator should now be emitting
-    await userGoesToSettingsTabFromMusicPlayerFullscreenAndLeaveRoom({
-        page: joiningUserC,
-    });
-    await assertMusicPlayerStatusIs({
-        page: creatorUserA,
-        testID: 'music-player-playing-device-emitting',
-    });
-    await assertMusicPlayerStatusIs({
-        page: joiningUserB,
-        testID: 'music-player-playing-device-muted',
-    });
+    await Promise.all([
+        assertMusicPlayerStatusIs({
+            page: creatorUserA,
+            testID: 'music-player-playing-device-emitting',
+        }),
+        assertMusicPlayerStatusIs({
+            page: joiningUserB,
+            testID: 'music-player-playing-device-muted',
+        }),
+        userGoesToSettingsTabFromMusicPlayerFullscreenAndLeaveRoom({
+            page: joiningUserC,
+        }),
+    ]);
 });

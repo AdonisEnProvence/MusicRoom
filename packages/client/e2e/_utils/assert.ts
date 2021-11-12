@@ -29,10 +29,9 @@ export async function assertMusicPlayerStatusIs({
     page,
     testID,
 }: assertMusicPlayerStatusIs): Promise<void> {
-    //Waiting for timeout as the following assertion can bring some race condition
-    await new Promise((r) => setTimeout(r, 100));
-
     await expect(
         page.locator(`css=[data-testid="${testID}"] >> visible=true`),
-    ).toBeVisible();
+    ).toBeVisible({
+        timeout: 20_000,
+    });
 }

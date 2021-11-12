@@ -432,14 +432,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		ID:        body.WorkflowID,
 		TaskQueue: shared.ControlTaskQueue,
 	}
-
-	seedTracksIDs := []string{
-		"JK7WLK3ZSu8",
-		"9Tfciw7QM3c",
-		"H3s1mt7aFlc",
-		"rUWxSEwctFU",
-	}
-	initialTracksIDsList := append(body.InitialTracksIDs, seedTracksIDs...)
+	initialTracksIDsList := body.InitialTracksIDs
 
 	initialUsers := make(map[string]*shared.InternalStateUser)
 	initialUsers[body.UserID] = &shared.InternalStateUser{

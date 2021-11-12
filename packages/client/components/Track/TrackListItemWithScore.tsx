@@ -35,6 +35,7 @@ const TrackListItemWithScore: React.FC<TrackListItemWithScoreProps> = ({
         >
             {userHasAlreadyVotedForTrack && (
                 <AntDesign
+                    accessibilityLabel={`You've voted for this track`}
                     name="checkcircle"
                     size={24}
                     style={sx({

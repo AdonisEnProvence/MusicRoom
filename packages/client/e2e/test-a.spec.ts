@@ -1,5 +1,9 @@
 import { test, expect, Browser, Page, Locator } from '@playwright/test';
-import { assertIsNotNull, assertIsNotUndefined } from './_utils/assert';
+import {
+    assertIsNotNull,
+    assertIsNotUndefined,
+    assertMusicPlayerStatusIs,
+} from './_utils/assert';
 import { mockSearchTracks } from './_utils/mock-http';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
@@ -372,10 +376,10 @@ async function creatorPausesTrack({
     await expect(fullScreenPlayerPlayButton).toBeVisible();
     await expect(fullScreenPlayerPlayButton).toBeEnabled();
 
-    const joinerMusicPlayerNotPlaying = joinerPage.locator(
-        'css=[data-testid="music-player-not-playing-device-emitting"]',
-    );
-    await expect(joinerMusicPlayerNotPlaying).toBeVisible();
+    await assertMusicPlayerStatusIs({
+        page: joinerPage,
+        testID: 'music-player-not-playing-device-emitting',
+    });
 }
 
 async function creatorGoesToNextTrack({ creatorPage }: { creatorPage: Page }) {

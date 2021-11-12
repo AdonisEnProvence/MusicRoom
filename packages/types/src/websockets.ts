@@ -1,3 +1,4 @@
+import { GlobalClientToServerEvents } from './global-websockets';
 import {
     MtvRoomChatClientToServerEvents,
     MtvRoomChatServerToClientEvents,
@@ -11,7 +12,8 @@ import {
 
 export type AllClientToServerEvents = MtvRoomClientToServerEvents &
     MtvRoomChatClientToServerEvents &
-    UserClientToServerEvents;
+    UserClientToServerEvents &
+    GlobalClientToServerEvents;
 
 export type AllServerToClientEvents = MtvRoomChatServerToClientEvents &
     MtvRoomServerToClientEvents &

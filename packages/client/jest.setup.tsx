@@ -13,7 +13,7 @@ import {
     YoutubeIframeRef,
 } from 'react-native-youtube-iframe';
 import faker from 'faker';
-import { cleanup } from './services/websockets';
+import { cleanup, serverSocket } from './services/websockets';
 import { dropDatabase } from './tests/data';
 import { server } from './tests/server/test-server';
 
@@ -227,6 +227,9 @@ afterEach(() => {
 beforeEach(() => {
     cleanup();
     dropDatabase();
+    serverSocket.on('GET_HAS_ACKNOWLEDGED_CONNECTION', (onAcknowledged) => {
+        onAcknowledged();
+    });
 });
 
 // jest.spyOn(console, 'warn').mockImplementation();

@@ -1,6 +1,6 @@
-import { useMachine } from '@xstate/react';
+import { useInterpret, useSelector } from '@xstate/react';
 import { Sender } from '@xstate/react/lib/types';
-import React, { useContext, useRef } from 'react';
+import React, { useContext, useMemo, useRef } from 'react';
 import { MusicPlayerRef } from '../components/TheMusicPlayer/Player';
 import { IS_TEST } from '../constants/Env';
 import {
@@ -20,6 +20,7 @@ import {
 } from '../machines/appUserMachine';
 import { getMusicPlayerMachineOptions } from '../machines/options/appMusicPlayerMachineOptions';
 import { getUserMachineOptions } from '../machines/options/appUserMachineOptions';
+import { ApplicationState } from '../types';
 import { useSocketContext } from './SocketContext';
 
 export interface UserContextValue {
@@ -35,6 +36,7 @@ export interface MusicPlayerContextValue extends MusicPlayerFullScreenProps {
 }
 
 interface AppContextValue {
+    applicationState: ApplicationState;
     musicPlayerContext: {
         appMusicPlayerMachineActorRef:
             | AppMusicPlayerMachineActorRef
@@ -95,15 +97,40 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
         musicPlayerMachineOptions,
         userMachineOptions,
     });
-    const [appState] = useMachine(appMusicPlayerMachine);
+    const appService = useInterpret(appMusicPlayerMachine);
 
-    const appMusicPlayerMachineActorRef =
-        appState.children.appMusicPlayerMachine;
-    const appUserMachineActorRef = appState.children.appUserMachine;
+    const hasShowApplicationLoaderTag = useSelector(appService, (state) =>
+        state.hasTag('showApplicationLoader'),
+    );
+
+    const appMusicPlayerMachineActorRef = useSelector(
+        appService,
+        (state) => state.children.appMusicPlayerMachine,
+    );
+    const appUserMachineActorRef = useSelector(
+        appService,
+        (state) => state.children.appUserMachine,
+    );
+
+    const applicationState: ApplicationState = useMemo((): ApplicationState => {
+        const shouldShowSplashScreen =
+            hasShowApplicationLoaderTag ||
+            appMusicPlayerMachineActorRef === undefined ||
+            appUserMachineActorRef === undefined;
+        if (shouldShowSplashScreen) {
+            return 'SHOW_APPLICATION_LOADER';
+        }
+        return 'AUTHENTICATED';
+    }, [
+        hasShowApplicationLoaderTag,
+        appMusicPlayerMachineActorRef,
+        appUserMachineActorRef,
+    ]);
 
     return (
         <AppContext.Provider
             value={{
+                applicationState,
                 appUserMachineActorRef,
                 musicPlayerContext: {
                     appMusicPlayerMachineActorRef,

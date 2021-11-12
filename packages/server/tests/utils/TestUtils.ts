@@ -31,12 +31,15 @@ type TypedTestSocket = Socket<AllServerToClientEvents, AllClientToServerEvents>;
 
 type AvailableBrowsersMocks = 'Firefox' | 'Chrome' | 'Safari';
 
-interface CreateUserAndGetSocketArgs {
+interface CreateUserForSocketConnectionArgs {
     userID: string;
-    deviceName?: string;
-    browser?: AvailableBrowsersMocks;
     mtvRoomIDToAssociate?: string;
     roomName?: string;
+}
+
+interface CreateUserAndGetSocketArgs extends CreateUserForSocketConnectionArgs {
+    deviceName?: string;
+    browser?: AvailableBrowsersMocks;
 }
 
 interface CreateSocketConnectionArgs {
@@ -54,6 +57,9 @@ interface TestUtilsReturnedValue {
     disconnectSocket: (socket: TypedTestSocket) => Promise<void>;
     createSocketConnection: (
         args: CreateSocketConnectionArgs,
+    ) => Promise<TypedTestSocket>;
+    createUserAndGetSocketWithoutConnectionAcknowledgement: (
+        args: CreateUserAndGetSocketArgs,
     ) => Promise<TypedTestSocket>;
     createUserAndGetSocket: (
         args: CreateUserAndGetSocketArgs,
@@ -105,18 +111,20 @@ export function initTestUtils(): TestUtilsReturnedValue {
         await sleep();
     };
 
-    const createSocketConnection = async ({
+    function createSocketConnectionWithoutAcknowledgement({
         userID,
         browser,
         deviceName,
         requiredEventListeners,
-    }: CreateSocketConnectionArgs): Promise<TypedTestSocket> => {
-        const query: { [key: string]: string } = {
+    }: CreateSocketConnectionArgs): TypedTestSocket {
+        const query: Record<string, string> = {
             userID,
         };
-        if (deviceName) query.deviceName = deviceName;
+        if (deviceName) {
+            query.deviceName = deviceName;
+        }
 
-        const extraHeaders: { [key: string]: string } = {};
+        const extraHeaders: Record<string, string> = {};
         if (browser !== undefined) {
             switch (browser) {
                 case 'Chrome':
@@ -143,17 +151,117 @@ export function initTestUtils(): TestUtilsReturnedValue {
         });
         socketsConnections.push(socket);
         if (requiredEventListeners) requiredEventListeners(socket);
-        await sleep();
-        return socket;
-    };
 
-    const createUserAndGetSocket = async ({
+        return socket;
+    }
+
+    async function waitForSocketToBeAcknowledged(socket: TypedTestSocket) {
+        const pollConnectionAcknowledgementMachine = createMachine<
+            unknown,
+            { type: 'CONNECTION_ACKNOWLEDGED' }
+        >({
+            id: 'pollConnectionAcknowledgement',
+
+            after: {
+                1_000: {
+                    target: 'timedOut',
+                },
+            },
+
+            initial: 'fetching',
+
+            states: {
+                fetching: {
+                    after: {
+                        50: {
+                            target: 'deboucing',
+                        },
+                    },
+
+                    invoke: {
+                        id: 'fetchingAcknowledgement',
+
+                        src: () => (sendBack) => {
+                            socket.emit(
+                                'GET_HAS_ACKNOWLEDGED_CONNECTION',
+                                () => {
+                                    sendBack({
+                                        type: 'CONNECTION_ACKNOWLEDGED',
+                                    });
+                                },
+                            );
+                        },
+                    },
+
+                    on: {
+                        CONNECTION_ACKNOWLEDGED: {
+                            target: 'connectionIsAcknowledged',
+                        },
+                    },
+                },
+
+                deboucing: {
+                    after: {
+                        100: {
+                            target: 'fetching',
+                        },
+                    },
+                },
+
+                connectionIsAcknowledged: {
+                    type: 'final',
+                },
+
+                timedOut: {
+                    type: 'final',
+                },
+            },
+        });
+
+        let state = pollConnectionAcknowledgementMachine.initialState;
+        const service = interpret(pollConnectionAcknowledgementMachine)
+            .onTransition((updatedState) => {
+                state = updatedState;
+            })
+            .start();
+
+        await new Promise<void>((resolve, reject) => {
+            service.onDone(() => {
+                if (state.matches('connectionIsAcknowledged')) {
+                    resolve();
+
+                    return;
+                }
+
+                reject(new Error('Connection has never been acknowledged'));
+            });
+        });
+    }
+
+    /**
+     * We create a socket connection and wait for the server to acknowledge
+     * its creation.
+     *
+     * The server sends a `CONNECTION_ACKNOWLEDGED` event when the creation is acknowledged.
+     * We wait for this event to be received by the socket.
+     * We use `socket.once` to do not make this function produce unexpected behaviours
+     * after it ends.
+     */
+    async function createSocketConnection(
+        args: CreateSocketConnectionArgs,
+    ): Promise<TypedTestSocket> {
+        const socket = createSocketConnectionWithoutAcknowledgement(args);
+
+        await waitForSocketToBeAcknowledged(socket);
+
+        return socket;
+    }
+
+    async function createUserForSocketConnection({
         userID,
-        deviceName,
-        browser,
         mtvRoomIDToAssociate,
         roomName,
-    }: CreateUserAndGetSocketArgs): Promise<TypedTestSocket> => {
+    }: CreateUserForSocketConnectionArgs) {
         const createdUser = await User.create({
             uuid: userID,
             nickname: random.word(),
@@ -171,9 +279,53 @@ export function initTestUtils(): TestUtilsReturnedValue {
             }
             await createdUser.related('mtvRoom').associate(mtvRoomToAssociate);
         }
+    }
+
+    async function createUserAndGetSocketWithoutConnectionAcknowledgement({
+        userID,
+        deviceName,
+        browser,
+        mtvRoomIDToAssociate,
+        roomName,
+    }: CreateUserAndGetSocketArgs): Promise<TypedTestSocket> {
+        await createUserForSocketConnection({
+            userID,
+            mtvRoomIDToAssociate,
+            roomName,
+        });
+
         //No need to remoteJoin the created socket as SocketLifeCycle.registerDevice will do it for us
-        return await createSocketConnection({ userID, deviceName, browser });
-    };
+        const socket = createSocketConnectionWithoutAcknowledgement({
+            userID,
+            deviceName,
+            browser,
+        });
+
+        return socket;
+    }
+
+    async function createUserAndGetSocket({
+        userID,
+        deviceName,
+        browser,
+        mtvRoomIDToAssociate,
+        roomName,
+    }: CreateUserAndGetSocketArgs): Promise<TypedTestSocket> {
+        await createUserForSocketConnection({
+            userID,
+            mtvRoomIDToAssociate,
+            roomName,
+        });
+
+        //No need to remoteJoin the created socket as SocketLifeCycle.registerDevice will do it for us
+        const socket = await createSocketConnection({
+            userID,
+            deviceName,
+            browser,
+        });
+
+        return socket;
+    }
 
     const createWaitForMachine = <ExpectReturn>(timeout: number) =>
         createMachine(
@@ -305,6 +457,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
     return {
         createSocketConnection,
         createUserAndGetSocket,
+        createUserAndGetSocketWithoutConnectionAcknowledgement,
         disconnectSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,

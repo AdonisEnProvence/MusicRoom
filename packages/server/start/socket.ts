@@ -36,6 +36,10 @@ Ws.io.on('connection', async (socket) => {
             console.log('socketID already registered');
         }
 
+        socket.on('GET_HAS_ACKNOWLEDGED_CONNECTION', (onAcknowledged) => {
+            onAcknowledged();
+        });
+
         /// CHAT ///
         socket.on('NEW_MESSAGE', async (payload) => {
             try {

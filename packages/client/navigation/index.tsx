@@ -8,6 +8,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import React, { useEffect } from 'react';
 import Toast from 'react-native-toast-message';
 import { navigationStyle } from '../constants/Colors';
+import { useAppContext } from '../contexts/AppContext';
 import { AlertScreen } from '../screens/AlertScreen';
 import MusicTrackVoteChatModal from '../screens/MusicTrackVoteChatModal';
 import MusicTrackVoteCreationFormConfirmation from '../screens/MusicTrackVoteCreationFormConfirmation';
@@ -32,6 +33,7 @@ import {
     RootStackParamList,
     SuggestTrackStackParamList,
 } from '../types';
+import { SplashScreen } from '../screens/SplashScreen';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
@@ -86,6 +88,11 @@ const MusicTrackVoteUsersSearchStack =
 
 export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
     const style = navigationStyle(colorScheme);
+    const { applicationState } = useAppContext();
+
+    if (applicationState === 'SHOW_APPLICATION_LOADER') {
+        return <SplashScreen />;
+    }
 
     return (
         <RootStack.Navigator

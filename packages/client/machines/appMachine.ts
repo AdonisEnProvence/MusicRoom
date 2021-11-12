@@ -10,6 +10,8 @@ const appMachineModel = createModel(
     {},
     {
         events: {
+            ACKNOWLEDGE_SOCKET_CONNECTION: () => ({}),
+
             JOIN_ROOM: (roomID: string) => ({ roomID }),
             REQUEST_LOCATION_PERMISSION: () => ({}),
         },
@@ -34,9 +36,54 @@ export const createAppMachine = ({
     EventFrom<typeof appMachineModel>
 > => {
     return appMachineModel.createMachine({
-        initial: 'childMachineProxy',
+        initial: 'waitingForServerToAcknowledgeSocketConnection',
 
         states: {
+            waitingForServerToAcknowledgeSocketConnection: {
+                tags: 'showApplicationLoader',
+
+                initial: 'fetching',
+
+                states: {
+                    fetching: {
+                        after: {
+                            500: {
+                                target: 'deboucing',
+                            },
+                        },
+
+                        invoke: {
+                            id: 'fetchAcknowledgementStatus',
+
+                            src: () => (sendBack) => {
+                                socket.emit(
+                                    'GET_HAS_ACKNOWLEDGED_CONNECTION',
+                                    () => {
+                                        sendBack(
+                                            appMachineModel.events.ACKNOWLEDGE_SOCKET_CONNECTION(),
+                                        );
+                                    },
+                                );
+                            },
+                        },
+                    },
+
+                    deboucing: {
+                        after: {
+                            500: {
+                                target: 'fetching',
+                            },
+                        },
+                    },
+                },
+
+                on: {
+                    ACKNOWLEDGE_SOCKET_CONNECTION: {
+                        target: 'childMachineProxy',
+                    },
+                },
+            },
+
             childMachineProxy: {
                 invoke: [
                     {

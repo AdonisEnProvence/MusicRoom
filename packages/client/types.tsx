@@ -11,6 +11,8 @@ import {
 } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 
+export type ApplicationState = 'SHOW_APPLICATION_LOADER' | 'AUTHENTICATED';
+
 export type NavigateFromRefParams = {
     Alert: AlertParams;
     HomeScreen: undefined;

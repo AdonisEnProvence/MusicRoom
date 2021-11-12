@@ -3,11 +3,14 @@
  * https://reactnavigation.org/docs/getting-started
  *
  */
+import { View, Text } from 'dripsy';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useEffect } from 'react';
 import Toast from 'react-native-toast-message';
+import { AppScreen } from '../components/kit';
 import { navigationStyle } from '../constants/Colors';
+import { useAppContext } from '../contexts/AppContext';
 import { AlertScreen } from '../screens/AlertScreen';
 import MusicTrackVoteChatModal from '../screens/MusicTrackVoteChatModal';
 import MusicTrackVoteCreationFormConfirmation from '../screens/MusicTrackVoteCreationFormConfirmation';
@@ -84,8 +87,29 @@ const MusicTrackVoteChatStack =
 const MusicTrackVoteUsersSearchStack =
     createStackNavigator<MusicTrackVoteUsersSearchStackParamList>();
 
+const SplashScreen: React.FC = () => {
+    return (
+        <AppScreen>
+            <View
+                sx={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}
+            >
+                <Text sx={{ color: 'white' }}>Loading</Text>
+            </View>
+        </AppScreen>
+    );
+};
+
 export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
     const style = navigationStyle(colorScheme);
+    const { applicationState } = useAppContext();
+
+    if (applicationState === 'SHOW_APPLICATION_LOADER') {
+        return <SplashScreen />;
+    }
 
     return (
         <RootStack.Navigator

@@ -132,22 +132,18 @@ describe('Room with constraints tests', () => {
         });
         expect(musicPlayerFullScreen).toBeTruthy();
 
-        //Track cards should be disabled
-        const trackCard = screen.getByText(tracksList[0].title);
-        expect(trackCard).toBeTruthy();
-        // let touchableTrackCard = within(musicPlayerFullScreen).getByTestId(
-        //     `${tracksList[0].id}-track-card`,
-        // );
-        console.log(trackCard.props);
         console.log('0');
-        //should be disabled
-        expect(trackCard).toBeEnabled();
+        //Track cards should be disabled
+        await waitFor(() => {
+            expect(screen.getByText(tracksList[0].title)).toBeTruthy();
+            expect(
+                screen.getByTestId(`${tracksList[0].id}-track-card`),
+            ).toBeEnabled();
+            expect(screen.getByText(tracksList[0].title)).toBeEnabled();
+            expect(screen.getByText(new RegExp(`0/1`))).toBeTruthy();
+        });
 
-        const touchableTrackElement = screen.getByTestId(
-            `${tracksList[0].id}-track-card`,
-        );
-        expect(touchableTrackElement).toBeDisabled();
-        expect(screen.getByText(new RegExp(`0/1`))).toBeTruthy();
+        //Emit new permission server socket event
         const initialStateCpyA = {
             ...initialState,
             timeConstraintIsValid: true,
@@ -158,10 +154,16 @@ describe('Room with constraints tests', () => {
         };
         serverSocket.emit('USER_PERMISSIONS_UPDATE', initialStateCpyA);
 
-        //Track cards should be disabled
         console.log('1');
-        //should be disabled
-        expect(screen.getByText(tracksList[0].title)).toBeEnabled();
+        //Track cards should be disabled
+        await waitFor(() => {
+            expect(
+                screen.getByTestId(`${tracksList[0].id}-track-card`),
+            ).toBeEnabled();
+            expect(screen.getByText(tracksList[0].title)).toBeEnabled();
+        });
+
+        //Emit new permission server socket event
 
         const initialStateCpyB = {
             ...initialStateCpyA,
@@ -173,7 +175,12 @@ describe('Room with constraints tests', () => {
         serverSocket.emit('USER_PERMISSIONS_UPDATE', initialStateCpyB);
 
         console.log('2');
-        //should be enabled
-        expect(screen.getByText(tracksList[0].title)).toBeEnabled();
+        //Track cards should be enabled
+        await waitFor(() => {
+            expect(
+                screen.getByTestId(`${tracksList[0].id}-track-card`),
+            ).toBeEnabled();
+            expect(screen.getByText(tracksList[0].title)).toBeEnabled();
+        });
     });
 });

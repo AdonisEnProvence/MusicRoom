@@ -6,7 +6,11 @@ import {
     Page,
     Locator,
 } from '@playwright/test';
-import { assertIsNotNull, assertIsNotUndefined } from './_utils/assert';
+import {
+    assertIsNotNull,
+    assertIsNotUndefined,
+    assertMusicPlayerStatusIs,
+} from './_utils/assert';
 import { mockSearchTracks } from './_utils/mock-http';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
@@ -258,21 +262,6 @@ async function joinRoom({ page, roomName }: { page: Page; roomName: string }) {
     await miniPlayerWithRoomName.click();
 }
 
-async function waitForPlayerState({
-    page,
-    testID,
-}: {
-    page: Page;
-    testID: `music-player-${'playing' | 'not-playing'}-device-${
-        | 'emitting'
-        | 'muted'}`;
-}) {
-    const player = page.locator(
-        `css=[data-testid="${testID}"] >> visible=true`,
-    );
-    await expect(player).toBeVisible();
-}
-
 async function playTrack(page: Page) {
     const fullScreenPlayerPlayButton = page.locator(
         'css=[aria-label="Play the video"] >> nth=1',
@@ -299,14 +288,16 @@ async function changeEmittingDevice({
     await expect(changeEmittingDeviceButton).toBeVisible();
     await changeEmittingDeviceButton.click();
 
-    const deviceToMakeEmitter = page.locator(
-        `text=Web Player >> nth=${emittingDeviceIndex}`,
-    );
+    const deviceToMakeEmitter = page
+        .locator(`text=Web Player`)
+        .nth(emittingDeviceIndex);
     await expect(deviceToMakeEmitter).toBeVisible();
     await deviceToMakeEmitter.click();
 }
 
-test('Test C', async ({ browser }) => {
+test('Test D see following link for more informations https://3.basecamp.com/4704981/buckets/22220886/messages/4292491228#:~:text=Test%20end-,Test%20D/,-UserA_Device1%20Section%20full', async ({
+    browser,
+}) => {
     const [{ context: userAContext }, { context: userBContext }] =
         await Promise.all([
             createContext({ browser, index: 0 }),
@@ -337,24 +328,23 @@ test('Test C', async ({ browser }) => {
         waitForYouTubeVideoToLoad(userADevice2Page),
         waitForYouTubeVideoToLoad(userADevice3Page),
         waitForYouTubeVideoToLoad(userBPage),
+        playTrack(userADevice2Page),
     ]);
 
     await Promise.all([
-        playTrack(userADevice2Page),
-
-        waitForPlayerState({
+        assertMusicPlayerStatusIs({
             page: userADevice1Page,
             testID: 'music-player-playing-device-emitting',
         }),
-        waitForPlayerState({
+        assertMusicPlayerStatusIs({
             page: userADevice2Page,
             testID: 'music-player-playing-device-muted',
         }),
-        waitForPlayerState({
+        assertMusicPlayerStatusIs({
             page: userADevice3Page,
             testID: 'music-player-playing-device-muted',
         }),
-        waitForPlayerState({
+        assertMusicPlayerStatusIs({
             page: userBPage,
             testID: 'music-player-playing-device-emitting',
         }),
@@ -366,19 +356,19 @@ test('Test C', async ({ browser }) => {
             emittingDeviceIndex: 1,
         }),
 
-        waitForPlayerState({
+        assertMusicPlayerStatusIs({
             page: userADevice1Page,
             testID: 'music-player-playing-device-muted',
         }),
-        waitForPlayerState({
+        assertMusicPlayerStatusIs({
             page: userADevice2Page,
             testID: 'music-player-playing-device-emitting',
         }),
-        waitForPlayerState({
+        assertMusicPlayerStatusIs({
             page: userADevice3Page,
             testID: 'music-player-playing-device-muted',
         }),
-        waitForPlayerState({
+        assertMusicPlayerStatusIs({
             page: userBPage,
             testID: 'music-player-playing-device-emitting',
         }),
@@ -387,17 +377,24 @@ test('Test C', async ({ browser }) => {
     await Promise.all([
         userADevice2Page.close(),
 
-        waitForPlayerState({
+        assertMusicPlayerStatusIs({
             page: userADevice1Page,
             testID: 'music-player-playing-device-emitting',
         }),
-        waitForPlayerState({
+        assertMusicPlayerStatusIs({
             page: userADevice3Page,
             testID: 'music-player-playing-device-muted',
         }),
-        waitForPlayerState({
+        assertMusicPlayerStatusIs({
             page: userBPage,
             testID: 'music-player-playing-device-emitting',
         }),
+    ]);
+
+    //UserB should see the forced disconnection modal
+    await Promise.all([
+        userADevice1Page.close(),
+        userADevice3Page.close(),
+        expect(userBPage.locator('text="FORCED_DISCONNECTION"')).toBeVisible(),
     ]);
 });

@@ -744,6 +744,9 @@ const createMtvRoomWithSettingsMachine =
                                 const endsAtFormatted = formatDateTime(
                                     new Date(endsAt),
                                 );
+                                const radiusFormatted = formatRadius(
+                                    Number(radius),
+                                );
 
                                 expect(
                                     screen.getAllByText(/yes/i).length,
@@ -751,7 +754,7 @@ const createMtvRoomWithSettingsMachine =
 
                                 expect(screen.getByText(place)).toBeTruthy();
                                 expect(
-                                    screen.getByText(String(radius)),
+                                    screen.getByText(radiusFormatted),
                                 ).toBeTruthy();
                                 expect(
                                     screen.getByText(startsAtFormatted),
@@ -1142,7 +1145,7 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
         cases: [
             {
                 place: '96 Boulevard Bessières, Paris',
-                radius: '30',
+                radius: '1000',
                 startsAt: addMinutes(new Date(), 5).toISOString(),
                 endsAt: addHours(new Date(), 2).toISOString(),
             } as SetPhysicalConstraintsValuesEvent,
@@ -1257,6 +1260,21 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
         fireEvent.press(goNextButton);
     },
 });
+
+function formatRadius(radius: number): string {
+    const radii: Record<number, string> = {
+        1000: '1 km',
+        5000: '5 km',
+        10000: '10 km',
+    };
+
+    const radiusLabel = radii[radius];
+    if (radiusLabel === undefined) {
+        throw new Error(`Unknown radius: ${radius}`);
+    }
+
+    return radiusLabel;
+}
 
 describe('Create mtv room with custom settings', () => {
     const testPlans = createMtvRoomWithSettingsTestModel.getShortestPathPlans();

@@ -424,17 +424,17 @@ const physicalConstraintsValidationTestModel = createTestModel<TestingContext>(
             } as SelectRadiusEvent,
 
             {
-                radius: '30',
+                radius: '1000',
                 index: 0,
             } as SelectRadiusEvent,
 
             {
-                radius: '50',
+                radius: '5000',
                 index: 1,
             } as SelectRadiusEvent,
 
             {
-                radius: '70',
+                radius: '10000',
                 index: 2,
             } as SelectRadiusEvent,
         ],

@@ -68,6 +68,23 @@ export const MusicTrackVoteCreationFormPhysicalConstraintsContent: React.FC<Musi
                 onPress: handleSetPhysicalConstraintsStatus(false),
             },
         ];
+        const availableRadii = [
+            {
+                key: '1',
+                label: '1 km',
+                value: '1000',
+            },
+            {
+                key: '5',
+                label: '5 km',
+                value: '5000',
+            },
+            {
+                key: '10',
+                label: '10 km',
+                value: '10000',
+            },
+        ];
 
         return (
             <MtvRoomCreationFormScreen
@@ -200,42 +217,27 @@ export const MusicTrackVoteCreationFormPhysicalConstraintsContent: React.FC<Musi
                                         return (
                                             <PickerSelect
                                                 placeholder={{
-                                                    label: 'Radius',
+                                                    label: 'Radius (in km)',
                                                     value: undefined,
                                                     color: '#9EA0A4',
                                                 }}
-                                                items={[
-                                                    {
-                                                        key: '30',
-                                                        label: '30',
-                                                        value: '30',
-                                                    },
-                                                    {
-                                                        key: '50',
-                                                        label: '50',
-                                                        value: '50',
-                                                    },
-                                                    {
-                                                        key: '70',
-                                                        label: '70',
-                                                        value: '70',
-                                                    },
-                                                ]}
+                                                items={availableRadii}
                                                 value={value}
                                                 onValueChange={(radius) => {
                                                     if (radius === undefined) {
                                                         return;
                                                     }
 
-                                                    const availableRadii = [
-                                                        '30',
-                                                        '50',
-                                                        '70',
-                                                    ];
+                                                    const doesRadiusExist =
+                                                        availableRadii.some(
+                                                            ({
+                                                                value: availableRadiusValue,
+                                                            }) =>
+                                                                availableRadiusValue ===
+                                                                radius,
+                                                        );
                                                     if (
-                                                        availableRadii.includes(
-                                                            radius,
-                                                        )
+                                                        doesRadiusExist === true
                                                     ) {
                                                         onChange(radius);
 

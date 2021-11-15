@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/core';
 import { Sender } from '@xstate/react/lib/types';
 import { useSx, View } from 'dripsy';
 import { music } from 'faker';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { FlatList, TouchableOpacity } from 'react-native';
 import {
     AppMusicPlayerMachineContext,
@@ -98,9 +98,31 @@ function getUserHasNotBeenInvited(
     return userHasNotBeenInvited;
 }
 
-// function getTimeAndPositionConstraintsAreMet(
-//     musicPlayerMachineContext: AppMusicPlayerMachineContext,
-// );
+/**
+ *
+ * @param musicPlayerMachineContext
+ * @returns false if user mets the constraints or if room doesn't have constraints
+ * true if user doesn't fit constraints
+ */
+function getTimeAndPositionConstraintsAreNotMet(
+    musicPlayerMachineContext: AppMusicPlayerMachineContext,
+) {
+    if (musicPlayerMachineContext.userRelatedInformation === null) {
+        return true;
+    }
+
+    const timeConstraintIsInvalid =
+        musicPlayerMachineContext.timeConstraintIsValid === false;
+    const positionConstraintIsInvalid =
+        musicPlayerMachineContext.userRelatedInformation
+            .userFitsPositionConstraint === false;
+
+    if (timeConstraintIsInvalid || positionConstraintIsInvalid) {
+        return true;
+    }
+
+    return false;
+}
 
 const TracksListTab: React.FC<TracksListProps> = ({
     musicPlayerMachineContext,
@@ -108,22 +130,35 @@ const TracksListTab: React.FC<TracksListProps> = ({
 }) => {
     const navigation = useNavigation();
 
+    const roomHasConstraintAndUserIsOutsideOfTimeAndPhysicalBounds =
+        useMemo(() => {
+            const roomHasPositionAndTimeConstraint =
+                musicPlayerMachineContext.hasTimeAndPositionConstraints;
+
+            if (roomHasPositionAndTimeConstraint) {
+                return getTimeAndPositionConstraintsAreNotMet(
+                    musicPlayerMachineContext,
+                );
+            }
+
+            return false;
+        }, [musicPlayerMachineContext]);
+
+    const roomIsOpenAndOnlyInvitedUsersCanVoteAndUserHasNotBeenInvited =
+        useMemo(() => {
+            const roomIsOpenAndOnlyInvitedUsersCanVote =
+                getRoomIsOpenAndOnlyInvitedUsersCanVote(
+                    musicPlayerMachineContext,
+                );
+
+            if (roomIsOpenAndOnlyInvitedUsersCanVote) {
+                return getUserHasNotBeenInvited(musicPlayerMachineContext);
+            }
+            return false;
+        }, [musicPlayerMachineContext]);
+
     if (musicPlayerMachineContext.tracks === null) {
         return null;
-    }
-
-    const userOutsideOfTimeAndPhysicalBounds =
-        musicPlayerMachineContext.hasTimeAndPositionConstraints === true &&
-        (musicPlayerMachineContext.timeConstraintIsValid === false ||
-            musicPlayerMachineContext.userRelatedInformation
-                ?.userFitsPositionConstraint !== true);
-
-    const roomIsOpenAndOnlyInvitedUsersCanVote =
-        getRoomIsOpenAndOnlyInvitedUsersCanVote(musicPlayerMachineContext);
-    let roomIsOpenAndOnlyInvitedUsersCanVoteAndUserHasNotBeenInvited = false;
-    if (roomIsOpenAndOnlyInvitedUsersCanVote) {
-        roomIsOpenAndOnlyInvitedUsersCanVoteAndUserHasNotBeenInvited =
-            getUserHasNotBeenInvited(musicPlayerMachineContext);
     }
 
     function generateTracksListItems(): (
@@ -203,8 +238,9 @@ const TracksListTab: React.FC<TracksListProps> = ({
                     const disableTrackListItem =
                         userHasAlreadyVotedForTrack ||
                         roomIsOpenAndOnlyInvitedUsersCanVoteAndUserHasNotBeenInvited ||
-                        userOutsideOfTimeAndPhysicalBounds;
+                        roomHasConstraintAndUserIsOutsideOfTimeAndPhysicalBounds;
 
+                    console.log({ disableTrackListItem });
                     return (
                         <View
                             sx={{

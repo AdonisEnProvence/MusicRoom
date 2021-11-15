@@ -2,6 +2,8 @@ import { test, expect, Browser, Page, Locator } from '@playwright/test';
 import { assertIsNotNull, assertIsNotUndefined } from './_utils/assert';
 import { mockSearchTracks } from './_utils/mock-http';
 
+test.afterEach(async ({ browser }) => await browser.close());
+
 const AVAILABLE_USERS_LIST = [
     {
         uuid: '8d71dcb3-9638-4b7a-89ad-838e2310686c',

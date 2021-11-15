@@ -14,6 +14,8 @@ import {
 import { mockSearchTracks } from './_utils/mock-http';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
+test.afterEach(async ({ browser }) => await browser.close());
+
 const AVAILABLE_USERS_LIST = [
     {
         uuid: '8d71dcb3-9638-4b7a-89ad-838e2310686c',

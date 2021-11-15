@@ -3,6 +3,8 @@ import { assertMusicPlayerStatusIs } from './_utils/assert';
 import { KnownSearchesRecord, mockSearchTracks } from './_utils/mock-http';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
+test.afterEach(async ({ browser }) => await browser.close());
+
 function assertIsNotUndefined<ValueType>(
     value: ValueType | undefined,
 ): asserts value is ValueType {

@@ -2,6 +2,8 @@ import { test, expect, Browser, Page, Locator } from '@playwright/test';
 import { lorem } from 'faker';
 import { KnownSearchesRecord, mockSearchTracks } from './_utils/mock-http';
 
+test.afterEach(async ({ browser }) => await browser.close());
+
 function assertIsNotUndefined<ValueType>(
     value: ValueType | undefined,
 ): asserts value is ValueType {

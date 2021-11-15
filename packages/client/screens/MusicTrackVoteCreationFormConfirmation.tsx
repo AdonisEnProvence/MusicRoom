@@ -9,6 +9,21 @@ import { formatDateTime } from '../hooks/useFormatDateTime';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 import { MusicTrackVoteCreationFormConfirmationScreenProps } from '../types';
 
+function formatRadius(radius: number): string {
+    const radii: Record<number, string> = {
+        1000: '1 km',
+        5000: '5 km',
+        10000: '10 km',
+    };
+
+    const radiusLabel = radii[radius];
+    if (radiusLabel === undefined) {
+        throw new Error(`Unknown radius: ${radius}`);
+    }
+
+    return radiusLabel;
+}
+
 const MusicTrackVoteCreationFormConfirmation: React.FC<
     MusicTrackVoteCreationFormConfirmationScreenProps & {
         mtvRoomCreationActor: CreationMtvRoomFormActorRef;
@@ -51,7 +66,9 @@ const MusicTrackVoteCreationFormConfirmation: React.FC<
 
                   {
                       title: 'Radius',
-                      value: state.context.physicalConstraintRadius,
+                      value: formatRadius(
+                          state.context.physicalConstraintRadius,
+                      ),
                   },
 
                   {

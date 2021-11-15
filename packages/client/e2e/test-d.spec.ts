@@ -215,14 +215,18 @@ async function createPublicRoomWithInvitation({
 async function waitForJoiningRoom({
     page,
     roomName,
+    toggleFullscreen,
 }: {
     page: Page;
     roomName: string;
+    toggleFullscreen?: boolean;
 }) {
     const miniPlayerWithRoomName = page.locator(`text="${roomName}"`).first();
     await expect(miniPlayerWithRoomName).toBeVisible();
 
-    await miniPlayerWithRoomName.click();
+    if (toggleFullscreen !== false) {
+        await miniPlayerWithRoomName.click();
+    }
 }
 
 async function joinRoom({ page, roomName }: { page: Page; roomName: string }) {
@@ -263,12 +267,21 @@ async function joinRoom({ page, roomName }: { page: Page; roomName: string }) {
 }
 
 async function playTrack(page: Page) {
-    const fullScreenPlayerPlayButton = page.locator(
-        'css=[aria-label="Play the video"] >> nth=1',
-    );
+    const fullScreenPlayerPlayButton = page
+        .locator('css=[aria-label="Play the video"]')
+        .nth(1);
     await expect(fullScreenPlayerPlayButton).toBeVisible();
 
     await fullScreenPlayerPlayButton.click();
+}
+
+async function minimizeMusicPlayer({ page }: { page: Page }) {
+    const hideFullscreenButton = page.locator(
+        'css=[aria-label="Minimize the music player"]',
+    );
+    await expect(hideFullscreenButton).toBeVisible();
+    await expect(hideFullscreenButton).toBeEnabled();
+    await hideFullscreenButton.click();
 }
 
 async function changeEmittingDevice({
@@ -391,10 +404,35 @@ test('Test D see following link for more informations https://3.basecamp.com/470
         }),
     ]);
 
-    //UserB should see the forced disconnection modal
+    //UserA creates a new room
+    const newRoomName = 'second room';
+    await minimizeMusicPlayer({
+        page: userADevice3Page,
+    });
+    await minimizeMusicPlayer({
+        page: userADevice1Page,
+    });
+
     await Promise.all([
-        userADevice1Page.close(),
-        userADevice3Page.close(),
+        createPublicRoomWithInvitation({
+            page: userADevice3Page,
+            roomName: newRoomName,
+        }),
+        //I don't want to toggle the fullscreen as a bottomsheet modal will
+        //block any click event
+        waitForJoiningRoom({
+            page: userADevice1Page,
+            roomName: newRoomName,
+            toggleFullscreen: false,
+        }),
         expect(userBPage.locator('text="FORCED_DISCONNECTION"')).toBeVisible(),
+        assertMusicPlayerStatusIs({
+            page: userADevice3Page,
+            testID: 'music-player-not-playing-device-emitting',
+        }),
+        assertMusicPlayerStatusIs({
+            page: userADevice1Page,
+            testID: 'music-player-not-playing-device-muted',
+        }),
     ]);
 });

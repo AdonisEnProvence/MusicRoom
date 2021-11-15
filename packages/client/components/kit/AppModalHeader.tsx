@@ -42,6 +42,7 @@ const AppModalHeader: React.FC<AppModalHeaderProps> = ({
                         backgroundColor: 'rgba(0, 0, 0, 0.3)',
                         marginLeft: 'xl',
                     })}
+                    accessibilityLabel={'Minimize the music player'}
                     onPress={dismiss}
                 >
                     <Ionicons

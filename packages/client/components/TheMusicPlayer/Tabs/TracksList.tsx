@@ -3,6 +3,7 @@ import { TrackMetadataWithScore } from '@musicroom/types';
 import { useNavigation } from '@react-navigation/core';
 import { Sender } from '@xstate/react/lib/types';
 import { useSx, View } from 'dripsy';
+import { music } from 'faker';
 import React from 'react';
 import { FlatList, TouchableOpacity } from 'react-native';
 import {
@@ -64,6 +65,43 @@ const AddSongButton: React.FC<AddSongButtonProps> = ({ onPress }) => {
     );
 };
 
+function getRoomIsOpenAndOnlyInvitedUsersCanVote(
+    musicPlayerMachineContext: AppMusicPlayerMachineContext,
+) {
+    //The room should be open
+    const roomIsNotOpen = musicPlayerMachineContext.isOpen === false;
+    if (roomIsNotOpen) {
+        return false;
+    }
+
+    //The room should be on Only invited users can vote
+    const onlyInvitedUsersCanVoteIsNotEnabled =
+        musicPlayerMachineContext.isOpenOnlyInvitedUsersCanVote === false;
+    if (onlyInvitedUsersCanVoteIsNotEnabled) {
+        return false;
+    }
+}
+
+function getUserHasNotBeenInvited(
+    musicPlayerMachineContext: AppMusicPlayerMachineContext,
+) {
+    //The userRelatedInformation should be defined
+    if (musicPlayerMachineContext.userRelatedInformation === null) {
+        return true;
+    }
+
+    //The user should be invited to the room
+    const userHasNotBeenInvited =
+        musicPlayerMachineContext.userRelatedInformation.userHasBeenInvited ===
+        false;
+
+    return userHasNotBeenInvited;
+}
+
+// function getTimeAndPositionConstraintsAreMet(
+//     musicPlayerMachineContext: AppMusicPlayerMachineContext,
+// );
+
 const TracksListTab: React.FC<TracksListProps> = ({
     musicPlayerMachineContext,
     sendToMusicPlayerMachine,
@@ -74,22 +112,19 @@ const TracksListTab: React.FC<TracksListProps> = ({
         return null;
     }
 
-    const roomIsOpenAndOnlyInvitedUsersCanVote =
-        musicPlayerMachineContext.isOpen &&
-        musicPlayerMachineContext.isOpenOnlyInvitedUsersCanVote;
     const userOutsideOfTimeAndPhysicalBounds =
         musicPlayerMachineContext.hasTimeAndPositionConstraints === true &&
         (musicPlayerMachineContext.timeConstraintIsValid === false ||
             musicPlayerMachineContext.userRelatedInformation
-                ?.userHasBeenInvited !== true);
-    const userHasNotBeenInvited =
-        musicPlayerMachineContext.userRelatedInformation === null ||
-        (musicPlayerMachineContext.userRelatedInformation &&
-            musicPlayerMachineContext.userRelatedInformation
-                .userHasBeenInvited === false);
+                ?.userFitsPositionConstraint !== true);
 
-    const roomIsOpenAndOnlyInvitedUsersCanVoteAndUserHasNotBeenInvited =
-        roomIsOpenAndOnlyInvitedUsersCanVote && userHasNotBeenInvited;
+    const roomIsOpenAndOnlyInvitedUsersCanVote =
+        getRoomIsOpenAndOnlyInvitedUsersCanVote(musicPlayerMachineContext);
+    let roomIsOpenAndOnlyInvitedUsersCanVoteAndUserHasNotBeenInvited = false;
+    if (roomIsOpenAndOnlyInvitedUsersCanVote) {
+        roomIsOpenAndOnlyInvitedUsersCanVoteAndUserHasNotBeenInvited =
+            getUserHasNotBeenInvited(musicPlayerMachineContext);
+    }
 
     function generateTracksListItems(): (
         | { type: 'TRACK'; track: TrackMetadataWithScore }

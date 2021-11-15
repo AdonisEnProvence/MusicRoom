@@ -22,6 +22,7 @@ const TrackListItem: React.FC<TrackListItemProps> = ({
     onPress,
     Actions,
 }) => {
+    console.log({ disabled });
     return (
         <View
             sx={{
@@ -34,6 +35,7 @@ const TrackListItem: React.FC<TrackListItemProps> = ({
             }}
         >
             <TouchableOpacity
+                disabled={disabled}
                 testID={`${trackID}-track-card`}
                 accessibilityLabel={accessibilityLabel}
                 disabled={disabled}

@@ -7,7 +7,10 @@ import { KnownSearchesRecord } from './_utils/mock-http';
 import { setupAndGetUserPage } from './_utils/page';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
-test.afterEach(async ({ browser }) => await browser.close());
+test.afterEach(async ({ browser }) => {
+    const contexts = browser.contexts();
+    await Promise.all(contexts.map(async (context) => await context.close()));
+});
 
 type FindMiniPlayerWithRoomNameAndGoFullscreenArgs = {
     roomName: string;

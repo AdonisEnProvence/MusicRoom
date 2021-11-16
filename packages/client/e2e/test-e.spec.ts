@@ -2,8 +2,10 @@ import { test, expect, Browser, Page, Locator } from '@playwright/test';
 import { lorem } from 'faker';
 import { KnownSearchesRecord, mockSearchTracks } from './_utils/mock-http';
 
-test.afterEach(async ({ browser }) => await browser.close());
-
+test.afterEach(async ({ browser }) => {
+    const contexts = browser.contexts();
+    await Promise.all(contexts.map(async (context) => await context.close()));
+});
 function assertIsNotUndefined<ValueType>(
     value: ValueType | undefined,
 ): asserts value is ValueType {

@@ -8,8 +8,10 @@ import { KnownSearchesRecord, mockSearchTracks } from './_utils/mock-http';
 import { setupAndGetUserPage } from './_utils/page';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
-test.afterEach(async ({ browser }) => await browser.close());
-
+test.afterEach(async ({ browser }) => {
+    const contexts = browser.contexts();
+    await Promise.all(contexts.map(async (context) => await context.close()));
+});
 async function createRoom({ creatorPage }: { creatorPage: Page }) {
     const focusTrap = creatorPage.locator('text="Click"').first();
     await focusTrap.click();

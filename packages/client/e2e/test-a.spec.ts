@@ -1,10 +1,10 @@
-import { test, expect, Browser, Page, Locator } from '@playwright/test';
+import { test, expect, Page, Locator } from '@playwright/test';
 import {
     assertIsNotNull,
     assertIsNotUndefined,
     assertMusicPlayerStatusIs,
 } from './_utils/assert';
-import { KnownSearchesRecord, mockSearchTracks } from './_utils/mock-http';
+import { KnownSearchesRecord } from './_utils/mock-http';
 import { setupAndGetUserPage } from './_utils/page';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
@@ -13,9 +13,6 @@ test.afterEach(async ({ browser }) => {
     await Promise.all(contexts.map(async (context) => await context.close()));
 });
 async function createRoom({ creatorPage }: { creatorPage: Page }) {
-    const focusTrap = creatorPage.locator('text="Click"').first();
-    await focusTrap.click();
-
     await expect(creatorPage.locator('text="Home"').first()).toBeVisible();
 
     const goToTracksSearch = creatorPage.locator('text="Search"');
@@ -121,9 +118,6 @@ async function joinerJoinsRoom({
     joinerPage: Page;
     roomName: string;
 }) {
-    const focusTrap = joinerPage.locator('text="Click"').first();
-    await focusTrap.click();
-
     await joinerPage.click('text="Go to Music Track Vote"');
 
     // Code to use infinite scroll

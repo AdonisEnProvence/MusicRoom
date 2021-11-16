@@ -1,6 +1,6 @@
-import { test, expect, Browser, Page, Locator } from '@playwright/test';
+import { test, expect, Page, Locator } from '@playwright/test';
 import { assertIsNotNull, assertIsNotUndefined } from './_utils/assert';
-import { KnownSearchesRecord, mockSearchTracks } from './_utils/mock-http';
+import { KnownSearchesRecord } from './_utils/mock-http';
 import { setupAndGetUserPage } from './_utils/page';
 
 test.afterEach(async ({ browser }) => {

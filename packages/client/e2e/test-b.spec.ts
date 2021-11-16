@@ -30,9 +30,6 @@ async function createDirectRoomAndGoFullscreen({
     creatorPage,
     trackName,
 }: CreateRoomArgs) {
-    const focusTrap = creatorPage.locator('text="Click"').first();
-    await focusTrap.click();
-
     await expect(creatorPage.locator('text="Home"').first()).toBeVisible();
 
     //Searching for a track
@@ -145,9 +142,6 @@ async function userJoinsGivenRoomAndGoFullscreen({
     roomName,
     expectedListenersCounterValue,
 }: JoinGivenRoomAndGoFullscreenArgs) {
-    const focusTrap = joiningUserPage.locator('text="Click"').first();
-    await focusTrap.click();
-
     await joiningUserPage.click('text="Go to Music Track Vote"');
 
     // Code to use infinite scroll

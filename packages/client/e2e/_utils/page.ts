@@ -1,4 +1,4 @@
-import { Browser, Page } from '@playwright/test';
+import { Browser, Page, BrowserContext } from '@playwright/test';
 import { KnownSearchesRecord, mockSearchTracks } from './mock-http';
 
 export const AVAILABLE_USERS_LIST = [
@@ -30,11 +30,12 @@ export async function setupAndGetUserPage({
     userIndex,
     knownSearches,
 }: SetupAndGetUserContextArgs): Promise<{
+    context: BrowserContext;
     page: Page;
     userNickname: string;
     userID: string;
 }> {
-    const joinerContext = await browser.newContext({
+    const context = await browser.newContext({
         storageState: {
             cookies: [],
             origins: [
@@ -50,17 +51,39 @@ export async function setupAndGetUserPage({
             ],
         },
     });
-    const page = await joinerContext.newPage();
+    const page = await context.newPage();
 
     await mockSearchTracks({
-        context: joinerContext,
+        context: context,
         knownSearches,
     });
     await page.goto('/');
 
+    const focusTrap = page.locator('text="Click"').first();
+    await focusTrap.click();
+
     return {
+        context,
         page,
         userNickname: AVAILABLE_USERS_LIST[userIndex].nickname,
         userID: AVAILABLE_USERS_LIST[userIndex].uuid,
+    };
+}
+
+/**
+ * Use this function to create tab
+ */
+export async function createNewTabFromExistingContext(
+    context: BrowserContext,
+): Promise<{ page: Page }> {
+    const page = await context.newPage();
+
+    await page.goto('/');
+
+    const focusTrap = page.locator('text="Click"').first();
+    await focusTrap.click();
+
+    return {
+        page,
     };
 }

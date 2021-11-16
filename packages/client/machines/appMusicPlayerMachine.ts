@@ -27,7 +27,6 @@ import {
 import { assertEventType } from './utils';
 
 export interface AppMusicPlayerMachineContext extends MtvWorkflowState {
-    waitingRoomID?: string;
     progressElapsedTime: number;
 
     initialTracksIDs?: string[];
@@ -143,7 +142,6 @@ const rawContext: AppMusicPlayerMachineContext = {
     userRelatedInformation: null,
     usersLength: 0,
     currentTrack: null,
-    waitingRoomID: undefined,
     progressElapsedTime: 0,
     initialTracksIDs: undefined,
     delegationOwnerUserID: null,
@@ -619,13 +617,6 @@ export const createAppMusicPlayerMachine = ({
                                 JOINED_ROOM: {
                                     target: 'connectedToRoom',
 
-                                    cond: (context, event) => {
-                                        return (
-                                            event.state.roomID ===
-                                            context.waitingRoomID
-                                        );
-                                    },
-
                                     actions: 'assignMergeNewState',
                                 },
                             },
@@ -1045,17 +1036,6 @@ export const createAppMusicPlayerMachine = ({
                     on: {
                         JOIN_ROOM: {
                             target: '.joiningRoom',
-
-                            actions: assign((context, event) => {
-                                if (event.type !== 'JOIN_ROOM') {
-                                    return context;
-                                }
-
-                                return {
-                                    ...rawContext,
-                                    waitingRoomID: event.roomID,
-                                };
-                            }),
                         },
 
                         CREATE_ROOM: {
@@ -1082,6 +1062,12 @@ export const createAppMusicPlayerMachine = ({
 
                         ROOM_IS_READY: {
                             target: '.creatingRoom.roomIsReady',
+
+                            actions: 'assignMergeNewState',
+                        },
+
+                        JOINED_ROOM: {
+                            target: 'pageHasBeenFocused.connectedToRoom',
 
                             actions: 'assignMergeNewState',
                         },

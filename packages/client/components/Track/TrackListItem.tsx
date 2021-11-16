@@ -22,7 +22,6 @@ const TrackListItem: React.FC<TrackListItemProps> = ({
     onPress,
     Actions,
 }) => {
-    console.log({ disabled });
     return (
         <View
             sx={{

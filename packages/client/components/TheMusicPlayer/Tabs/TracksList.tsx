@@ -242,7 +242,6 @@ const TracksListTab: React.FC<TracksListProps> = ({
                         roomIsOpenAndOnlyInvitedUsersCanVoteAndUserHasNotBeenInvited ||
                         roomHasConstraintAndUserIsOutsideOfTimeAndPhysicalBounds;
 
-                    console.log({ disableTrackListItem });
                     return (
                         <View
                             sx={{

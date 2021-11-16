@@ -116,7 +116,7 @@ test(`It should display the music player corresponding to the injected state on 
         /play.*video/i,
     );
     expect(pauseButton).toBeTruthy();
-    expect(pauseButton).toBeEnabled();
+    expect(pauseButton).not.toBeDisabled();
 });
 
 test(`It should display the music player corresponding to the injected state on both RETRIEVE_CONTEXT server socket event`, async () => {
@@ -191,7 +191,7 @@ test(`It should display the music player corresponding to the injected state on 
     const miniPlayerPlayButton =
         within(musicPlayerMini).getByLabelText(/play.*video/i);
     expect(miniPlayerPlayButton).toBeTruthy();
-    expect(miniPlayerPlayButton).toBeEnabled();
+    expect(miniPlayerPlayButton).not.toBeDisabled();
 
     fireEvent.press(miniPlayerRoomName);
 
@@ -204,7 +204,7 @@ test(`It should display the music player corresponding to the injected state on 
         /play.*video/i,
     );
     expect(playButton).toBeTruthy();
-    expect(playButton).toBeEnabled();
+    expect(playButton).not.toBeDisabled();
 
     expect(
         within(musicPlayerFullScreen).getByText(fakeTrack.title),
@@ -279,7 +279,7 @@ test(`It should display the already elapsed track duration and player should be 
     const miniPlayerPauseButton =
         within(musicPlayerMini).getByLabelText(/pause.*video/i);
     expect(miniPlayerPauseButton).toBeTruthy();
-    expect(miniPlayerPauseButton).toBeEnabled();
+    expect(miniPlayerPauseButton).not.toBeDisabled();
 
     fireEvent.press(miniPlayerRoomName);
 
@@ -296,7 +296,7 @@ test(`It should display the already elapsed track duration and player should be 
         /pause.*video/i,
     );
     expect(pauseButton).toBeTruthy();
-    expect(pauseButton).toBeEnabled();
+    expect(pauseButton).not.toBeDisabled();
 
     const nonZeroCurrentTime = within(musicPlayerFullScreen).getByLabelText(
         /elapsed/i,

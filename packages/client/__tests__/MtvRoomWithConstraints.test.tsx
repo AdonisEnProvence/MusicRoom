@@ -37,7 +37,7 @@ describe('Room with constraints tests', () => {
         getCurrentPositionAsyncMocked.mockClear();
     });
 
-    it(`TOTO S AMERE`, async () => {
+    it(`Depending on time and position constraint it should disable or not track card`, async () => {
         requestForegroundPermissionsAsyncMocked.mockImplementationOnce(
             async () => {
                 const res: LocationPermissionResponse = {

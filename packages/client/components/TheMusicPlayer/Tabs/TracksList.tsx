@@ -67,7 +67,7 @@ const AddSongButton: React.FC<AddSongButtonProps> = ({ onPress }) => {
 
 function getRoomIsOpenAndOnlyInvitedUsersCanVote(
     musicPlayerMachineContext: AppMusicPlayerMachineContext,
-) {
+): boolean {
     //The room should be open
     const roomIsNotOpen = musicPlayerMachineContext.isOpen === false;
     if (roomIsNotOpen) {
@@ -80,11 +80,13 @@ function getRoomIsOpenAndOnlyInvitedUsersCanVote(
     if (onlyInvitedUsersCanVoteIsNotEnabled) {
         return false;
     }
+
+    return true;
 }
 
 function getUserHasNotBeenInvited(
     musicPlayerMachineContext: AppMusicPlayerMachineContext,
-) {
+): boolean {
     //The userRelatedInformation should be defined
     if (musicPlayerMachineContext.userRelatedInformation === null) {
         return true;
@@ -106,7 +108,7 @@ function getUserHasNotBeenInvited(
  */
 function getTimeAndPositionConstraintsAreNotMet(
     musicPlayerMachineContext: AppMusicPlayerMachineContext,
-) {
+): boolean {
     if (musicPlayerMachineContext.userRelatedInformation === null) {
         return true;
     }

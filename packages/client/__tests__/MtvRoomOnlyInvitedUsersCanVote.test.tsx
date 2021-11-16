@@ -6,7 +6,16 @@ import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
-import { fireEvent, noop, render, within } from '../tests/tests-utils';
+import { fireEvent, noop, render, within, waitFor } from '../tests/tests-utils';
+
+/**
+ * Concerning the element .toBeDisabled and .toBeEnabled assertions.
+ * We're following a global rule:
+ * - element.toBeDisabled checks the element and his parent.
+ * - element.toBeEnabled checks the element only
+ * We prefer checking the element and it's parents, then we will using element.toBeDisabled only.
+ * In this way to check if an element is enabled we will use element.not.disabled
+ */
 
 it(`It should disable voting for a track as room is in OnlyInvitedUsers can vote mode
 as user is not invited`, async () => {
@@ -81,6 +90,7 @@ as user is not invited`, async () => {
     const trackCardList = within(musicPlayerFullScreen).getByTestId(
         `${tracksList[1].id}-track-card`,
     );
+    expect(trackCardList).toBeTruthy();
     expect(trackCardList).toBeDisabled();
 });
 
@@ -157,5 +167,5 @@ as user is invited`, async () => {
     const trackCardList = within(musicPlayerFullScreen).getByTestId(
         `${tracksList[1].id}-track-card`,
     );
-    expect(trackCardList).toBeEnabled();
+    expect(trackCardList).not.toBeDisabled();
 });

@@ -1,7 +1,5 @@
 import {
     MtvPlayingModes,
-    MtvRoomUsersListElement,
-    MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
@@ -20,16 +18,18 @@ import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
-import {
-    fireEvent,
-    getFakeUsersList,
-    noop,
-    render,
-    waitFor,
-    within,
-} from '../tests/tests-utils';
+import { fireEvent, noop, render, waitFor } from '../tests/tests-utils';
 
 /* eslint-disable @typescript-eslint/require-await */
+
+/**
+ * Concerning the element .toBeDisabled and .toBeEnabled assertions.
+ * We're following a global rule:
+ * - element.toBeDisabled checks the element and his parent.
+ * - element.toBeEnabled checks the element only
+ * We prefer checking the element and it's parents, then we will using element.toBeDisabled only.
+ * In this way to check if an element is enabled we will use element.not.disabled
+ */
 
 describe('Room with constraints tests', () => {
     afterAll(() => {
@@ -138,8 +138,8 @@ describe('Room with constraints tests', () => {
             expect(screen.getByText(tracksList[0].title)).toBeTruthy();
             expect(
                 screen.getByTestId(`${tracksList[0].id}-track-card`),
-            ).toBeEnabled();
-            expect(screen.getByText(tracksList[0].title)).toBeEnabled();
+            ).toBeDisabled();
+            expect(screen.getByText(tracksList[0].title)).toBeDisabled();
             expect(screen.getByText(new RegExp(`0/1`))).toBeTruthy();
         });
 
@@ -159,8 +159,8 @@ describe('Room with constraints tests', () => {
         await waitFor(() => {
             expect(
                 screen.getByTestId(`${tracksList[0].id}-track-card`),
-            ).toBeEnabled();
-            expect(screen.getByText(tracksList[0].title)).toBeEnabled();
+            ).toBeDisabled();
+            expect(screen.getByText(tracksList[0].title)).toBeDisabled();
         });
 
         //Emit new permission server socket event
@@ -179,8 +179,8 @@ describe('Room with constraints tests', () => {
         await waitFor(() => {
             expect(
                 screen.getByTestId(`${tracksList[0].id}-track-card`),
-            ).toBeEnabled();
-            expect(screen.getByText(tracksList[0].title)).toBeEnabled();
+            ).not.toBeDisabled();
+            expect(screen.getByText(tracksList[0].title)).not.toBeDisabled();
         });
     });
 });

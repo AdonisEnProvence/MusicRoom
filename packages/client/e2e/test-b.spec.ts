@@ -1,73 +1,13 @@
-import { test, expect, Browser, Page, Locator } from '@playwright/test';
-import { assertMusicPlayerStatusIs } from './_utils/assert';
-import { KnownSearchesRecord, mockSearchTracks } from './_utils/mock-http';
+import { test, expect, Page, Locator } from '@playwright/test';
+import {
+    assertIsNotUndefined,
+    assertMusicPlayerStatusIs,
+} from './_utils/assert';
+import { KnownSearchesRecord } from './_utils/mock-http';
+import { setupAndGetUserPage } from './_utils/page';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
 test.afterEach(async ({ browser }) => await browser.close());
-
-function assertIsNotUndefined<ValueType>(
-    value: ValueType | undefined,
-): asserts value is ValueType {
-    if (value === undefined) {
-        throw new Error('value must not be undefined');
-    }
-}
-
-const AVAILABLE_USERS_LIST = [
-    {
-        uuid: '8d71dcb3-9638-4b7a-89ad-838e2310686c',
-        nickname: 'Francis',
-    },
-    {
-        uuid: '71bc3025-b765-4f84-928d-b4dca8871370',
-        nickname: 'Moris',
-    },
-    {
-        uuid: 'd125ecde-b0ee-4ab8-a488-c0e7a8dac7c5',
-        nickname: 'Leila',
-    },
-    {
-        uuid: '7f4bc598-c5be-4412-acc4-515a87b797e7',
-        nickname: 'Manon',
-    },
-];
-
-type SetupAndGetUserContextArgs = {
-    browser: Browser;
-    userIndex: number;
-    knownSearches: KnownSearchesRecord;
-};
-async function setupAndGetUserContext({
-    browser,
-    userIndex,
-    knownSearches,
-}: SetupAndGetUserContextArgs): Promise<{ page: Page; userNickname: string }> {
-    const joinerContext = await browser.newContext({
-        storageState: {
-            cookies: [],
-            origins: [
-                {
-                    origin: 'http://localhost:4000',
-                    localStorage: [
-                        {
-                            name: 'USER_ID',
-                            value: AVAILABLE_USERS_LIST[userIndex].uuid,
-                        },
-                    ],
-                },
-            ],
-        },
-    });
-    const page = await joinerContext.newPage();
-
-    await mockSearchTracks({
-        context: joinerContext,
-        knownSearches,
-    });
-    await page.goto('/');
-
-    return { page, userNickname: AVAILABLE_USERS_LIST[userIndex].nickname };
-}
 
 type FindMiniPlayerWithRoomNameAndGoFullscreenArgs = {
     roomName: string;
@@ -545,25 +485,24 @@ test('Test B see following link for more information: https://3.basecamp.com/470
         ],
     };
 
-    let userIndex = 0;
     const [
         { page: creatorUserA, userNickname: creatorUserANickname },
         { page: joiningUserB, userNickname: joiningUserBNickname },
         { page: joiningUserC, userNickname: joiningUserCNickname },
     ] = await Promise.all([
-        setupAndGetUserContext({
+        setupAndGetUserPage({
             browser,
-            userIndex: userIndex++,
+            userIndex: 0,
             knownSearches,
         }),
-        setupAndGetUserContext({
+        setupAndGetUserPage({
             browser,
-            userIndex: userIndex++,
+            userIndex: 1,
             knownSearches,
         }),
-        setupAndGetUserContext({
+        setupAndGetUserPage({
             browser,
-            userIndex: userIndex++,
+            userIndex: 2,
             knownSearches,
         }),
     ]);

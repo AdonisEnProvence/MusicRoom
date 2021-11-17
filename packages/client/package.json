@@ -18,7 +18,7 @@
     "lint": "yarn eslint . --ext ts,tsx --fix",
     "generate:xstate": "xstate-codegen machines/*.ts",
     "postinstall": "expo-yarn-workspaces postinstall && yarn install:react-youtube",
-    "test": "jest --coverage",
+    "test": "jest --reporters jest-silent-reporter",
     "test:watch": "jest --watch",
     "install:react-youtube": "cd ../../node_modules/react-youtube && yarn && yarn compile",
     "test:e2e": "playwright test"
@@ -79,6 +79,7 @@
     "zod": "^1.11.17"
   },
   "devDependencies": {
+    "jest-silent-reporter": "^0.5.0",
     "@babel/core": "^7.9.0",
     "@expo/webpack-config": "^0.12.76",
     "@mswjs/data": "^0.3.0",

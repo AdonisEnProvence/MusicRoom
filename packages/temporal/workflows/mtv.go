@@ -379,7 +379,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				OnEntry: brainy.Actions{
 					brainy.ActionFn(
 						func(c brainy.Context, e brainy.Event) error {
-							sendPauseActivity(ctx, params.RoomID)
+							exposedInternalState := internalState.Export(shared.NoRelatedUserID)
+							sendPauseActivity(ctx, exposedInternalState)
 
 							return nil
 						},

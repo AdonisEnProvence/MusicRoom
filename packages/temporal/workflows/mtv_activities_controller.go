@@ -198,7 +198,7 @@ func sendChangeUserEmittingDeviceActivity(ctx workflow.Context, state shared.Mtv
 	)
 }
 
-func sendPauseActivity(ctx workflow.Context, roomID string) {
+func sendPauseActivity(ctx workflow.Context, state shared.MtvRoomExposedState) {
 	options := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
 		StartToCloseTimeout:    time.Minute,
@@ -208,7 +208,7 @@ func sendPauseActivity(ctx workflow.Context, roomID string) {
 	workflow.ExecuteActivity(
 		ctx,
 		activities.PauseActivity,
-		roomID,
+		state,
 	)
 }
 

@@ -99,7 +99,7 @@ it(`When the user clicks on next track button, it should play the next track, if
             /play.*next.*track/i,
         );
         expect(goToNextButton).toBeTruthy();
-        expect(goToNextButton).toBeEnabled();
+        expect(goToNextButton).not.toBeDisabled();
         return goToNextButton;
     });
 
@@ -119,7 +119,7 @@ it(`When the user clicks on next track button, it should play the next track, if
         /pause.*video/i,
     );
     expect(pauseButton).toBeTruthy();
-    expect(pauseButton).toBeEnabled();
+    expect(pauseButton).not.toBeDisabled();
 
     /**
      * Wait for the video player to load

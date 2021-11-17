@@ -871,9 +871,9 @@ const createMtvRoomWithSettingsMachine =
 
                         const pauseButton = await within(
                             musicPlayerFullScreen,
-                        ).findByLabelText(/pause.*video/i);
+                        ).findByA11yLabel(/pause.*video/i);
                         expect(pauseButton).toBeTruthy();
-                        expect(pauseButton).toBeEnabled();
+                        expect(pauseButton).not.toBeDisabled();
 
                         const nonZeroCurrentTime = within(
                             musicPlayerFullScreen,

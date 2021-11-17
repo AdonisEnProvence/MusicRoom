@@ -1155,6 +1155,21 @@ export const createAppMusicPlayerMachine = ({
                         return false;
                     }
 
+                    if (context.hasTimeAndPositionConstraints) {
+                        const userDoesntFitPositionConstraint =
+                            context.userRelatedInformation
+                                .userFitsPositionConstraint === false;
+                        const roomTimeConstraintIsOver =
+                            context.timeConstraintIsValid === false;
+
+                        if (
+                            roomTimeConstraintIsOver ||
+                            userDoesntFitPositionConstraint
+                        ) {
+                            return false;
+                        }
+                    }
+
                     const { trackID } = event;
                     const payloadIsEmpty = trackID === '';
                     if (payloadIsEmpty) {

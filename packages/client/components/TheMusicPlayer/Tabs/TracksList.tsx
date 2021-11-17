@@ -186,6 +186,7 @@ const TracksListTab: React.FC<TracksListProps> = ({
                                     musicPlayerMachineContext.minimumScoreToBePlayed
                                 }
                                 disabled={disableTrackListItem}
+                                accessibilityLabel="Press to vote for this track"
                                 onPress={() => {
                                     sendToMusicPlayerMachine({
                                         type: 'VOTE_FOR_TRACK',

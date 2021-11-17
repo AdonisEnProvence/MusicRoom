@@ -9,6 +9,7 @@ interface TrackListItemWithScoreProps {
     track: TrackMetadataWithScore;
     minimumScore: number;
     disabled: boolean;
+    accessibilityLabel?: string;
     userHasAlreadyVotedForTrack: boolean;
     onPress?: () => void;
 }
@@ -19,6 +20,7 @@ const TrackListItemWithScore: React.FC<TrackListItemWithScoreProps> = ({
     minimumScore,
     userHasAlreadyVotedForTrack,
     disabled,
+    accessibilityLabel,
     onPress,
 }) => {
     const sx = useSx();
@@ -56,6 +58,7 @@ const TrackListItemWithScore: React.FC<TrackListItemWithScoreProps> = ({
             trackID={id}
             index={index}
             disabled={disabled}
+            accessibilityLabel={accessibilityLabel}
             onPress={onPress}
             Actions={Score}
         />

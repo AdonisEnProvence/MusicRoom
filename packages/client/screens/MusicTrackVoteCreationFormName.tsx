@@ -2,7 +2,7 @@ import { useActor } from '@xstate/react';
 import { Text, View } from 'dripsy';
 import React, { useEffect } from 'react';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
-import { TextField } from '../components/kit';
+import { AppScreen, TextField } from '../components/kit';
 import MtvRoomCreationFormScreen from '../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
 import { useCreationMtvRoomFormMachine } from '../hooks/musicPlayerHooks';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
@@ -129,7 +129,9 @@ const MusicTrackVoteCreationFormNameWrapper: React.FC<MusicTrackVoteCreationForm
         const mtvRoomCreationActor = useCreationMtvRoomFormMachine();
 
         if (mtvRoomCreationActor === undefined) {
-            return null;
+            return (
+                <AppScreen testID="music-track-vote-creation-form-name-screen-default" />
+            );
         }
 
         return (

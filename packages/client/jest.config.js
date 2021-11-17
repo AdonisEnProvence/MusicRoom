@@ -1,5 +1,6 @@
 module.exports = {
     preset: 'jest-expo',
+    reporters: ["default",["jest-silent-reporter", { "useDots": true }]],
     transformIgnorePatterns: [
         'node_modules/(?!(jest-)?react-native|react-clone-referenced-element|dripsy|@dripsy/.*|@react-native-community|@react-native-picker|expo(nent)?|@expo(nent)?/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|@sentry/.*)',
     ],

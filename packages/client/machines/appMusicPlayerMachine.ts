@@ -1081,6 +1081,8 @@ export const createAppMusicPlayerMachine = ({
                     },
                 },
             },
+
+            preserveActionOrder: true,
         },
         {
             actions: {

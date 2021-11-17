@@ -36,8 +36,8 @@ export function useSocket(): SocketClient {
 }
 
 export function getFakeUserID(): string {
-    if (typeof window !== 'undefined') {
-        const userIDFromLocalStorage = localStorage.getItem('USER_ID');
+    if (typeof window !== 'undefined' && 'localStorage' in window) {
+        const userIDFromLocalStorage = window.localStorage.getItem('USER_ID');
         if (typeof userIDFromLocalStorage === 'string') {
             return userIDFromLocalStorage;
         }

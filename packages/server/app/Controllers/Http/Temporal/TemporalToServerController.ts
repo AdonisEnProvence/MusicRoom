@@ -29,9 +29,12 @@ export type TemporalToServerLeaveBody = z.infer<
 
 export default class TemporalToServerController {
     public pause({ request }: HttpContextContract): void {
-        const roomID = decodeURIComponent(request.param('roomID'));
+        const state = MtvWorkflowState.parse(request.body());
+        const roomID = state.roomID;
 
-        Ws.io.to(roomID).emit('ACTION_PAUSE_CALLBACK');
+        console.log('received play from temporal', state);
+
+        Ws.io.to(roomID).emit('ACTION_PAUSE_CALLBACK', state);
     }
 
     public play({ request }: HttpContextContract): void {

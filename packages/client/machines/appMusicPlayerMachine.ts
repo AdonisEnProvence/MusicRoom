@@ -94,7 +94,7 @@ export type AppMusicPlayerMachineEvent =
           type: 'RETRIEVE_CONTEXT';
           state: MtvWorkflowState;
       }
-    | { type: 'PAUSE_CALLBACK' }
+    | { type: 'PAUSE_CALLBACK'; state: MtvWorkflowState }
     | {
           type: 'SUGGEST_TRACKS';
           tracksToSuggest: string[];
@@ -231,9 +231,10 @@ export const createAppMusicPlayerMachine = ({
                             });
                         });
 
-                        socket.on('ACTION_PAUSE_CALLBACK', () => {
+                        socket.on('ACTION_PAUSE_CALLBACK', (state) => {
                             sendBack({
                                 type: 'PAUSE_CALLBACK',
+                                state,
                             });
                         });
 
@@ -749,6 +750,8 @@ export const createAppMusicPlayerMachine = ({
                                             on: {
                                                 PAUSE_CALLBACK: {
                                                     target: 'activatedPlayer.pause',
+                                                    actions:
+                                                        'assignMergeNewState',
                                                 },
 
                                                 PLAY_CALLBACK: [
@@ -1088,6 +1091,7 @@ export const createAppMusicPlayerMachine = ({
                         event.type !== 'RETRIEVE_CONTEXT' &&
                         event.type !== 'ROOM_IS_READY' &&
                         event.type !== 'PLAY_CALLBACK' &&
+                        event.type !== 'PAUSE_CALLBACK' &&
                         event.type !== 'CHANGE_EMITTING_DEVICE_CALLBACK' &&
                         event.type !== 'USER_LENGTH_UPDATE' &&
                         event.type !== 'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE' &&

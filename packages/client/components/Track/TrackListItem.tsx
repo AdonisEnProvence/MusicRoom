@@ -8,6 +8,7 @@ interface TrackListItemProps {
     trackID: string;
     artistName: string;
     disabled?: boolean;
+    accessibilityLabel?: string;
     onPress?: () => void;
     Actions?: () => React.ReactElement;
 }
@@ -17,6 +18,7 @@ const TrackListItem: React.FC<TrackListItemProps> = ({
     artistName,
     disabled,
     trackID,
+    accessibilityLabel,
     onPress,
     Actions,
 }) => {
@@ -33,7 +35,7 @@ const TrackListItem: React.FC<TrackListItemProps> = ({
         >
             <TouchableOpacity
                 testID={`${trackID}-track-card`}
-                accessibilityLabel={`Press to vote for this track`}
+                accessibilityLabel={accessibilityLabel}
                 disabled={disabled}
                 onPress={onPress}
                 style={{ flex: 1 }}

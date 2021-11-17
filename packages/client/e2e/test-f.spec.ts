@@ -272,10 +272,11 @@ async function createPublicRoomWithTimeAndPhysicalConstraints({
     await expect(broadcastMode).toBeVisible();
     await page.click('text="Next" >> visible=true');
 
-    const oneVoteConstraintButton = page.locator(
-        `css=[aria-selected="true"] >> text="Party at Kitty and Stud's"`,
+    const twoVotesConstraintButton = page.locator(
+        `text="Friendly online event"`,
     );
-    await expect(oneVoteConstraintButton).toBeVisible();
+    await expect(twoVotesConstraintButton).toBeVisible();
+    await twoVotesConstraintButton.click();
 
     await page.click('text="Next" >> visible=true');
 
@@ -443,6 +444,21 @@ async function userSuggestsATrackFromFullscreen({
     return { selectedSongTitle };
 }
 
+async function voteForEnabledTrackInMusicPlayerFullScreen({
+    page,
+    trackToVoteFor,
+}: {
+    page: Page;
+    trackToVoteFor: string;
+}) {
+    const trackToVoteForElement = page.locator(
+        `css=:not([aria-disabled="true"]) >> text=${trackToVoteFor} >> css=[aria-label^="Press"]`,
+    );
+    await expect(trackToVoteForElement).toBeVisible();
+
+    await trackToVoteForElement.click();
+}
+
 async function voteForTrackInMusicPlayerFullScreen({
     page,
     trackToVoteFor,
@@ -450,7 +466,7 @@ async function voteForTrackInMusicPlayerFullScreen({
     page: Page;
     trackToVoteFor: string;
 }) {
-    const trackToVoteForElement = page.locator(`text=${trackToVoteFor}`);
+    const trackToVoteForElement = page.locator(`text=${trackToVoteFor}`).last();
     await expect(trackToVoteForElement).toBeVisible();
 
     await trackToVoteForElement.click();
@@ -533,6 +549,11 @@ test('Test F', async ({ browser }) => {
         roomName,
     });
 
+    await voteForEnabledTrackInMusicPlayerFullScreen({
+        page: userADevice1Page,
+        trackToVoteFor: initialTrack,
+    });
+
     await Promise.all([
         voteForTrackInMusicPlayerFullScreen({
             page: userBDevice1Page,
@@ -541,15 +562,17 @@ test('Test F', async ({ browser }) => {
 
         waitForYouTubeVideoToLoad(userADevice1Page),
         waitForYouTubeVideoToLoad(userBDevice1Page),
+    ]);
 
-        // waitForPlayerState({
-        //     page: userADevice1Page,
-        //     testID: 'music-player-playing-device-emitting',
-        // }),
-        // waitForPlayerState({
-        //     page: userBDevice1Page,
-        //     testID: 'music-player-playing-device-emitting',
-        // }),
+    await Promise.all([
+        waitForPlayerState({
+            page: userADevice1Page,
+            testID: 'music-player-playing-device-emitting',
+        }),
+        waitForPlayerState({
+            page: userBDevice1Page,
+            testID: 'music-player-playing-device-emitting',
+        }),
     ]);
 
     // User B exits room area.
@@ -562,19 +585,31 @@ test('Test F', async ({ browser }) => {
         page: userBDevice1Page,
         roomName,
     });
+    // Close second user B's device so that the user is really outside of room area.
+    await userBDevice2Page.close();
 
-    const suggestedTrack = knownSearches['Biolay - Vendredi 12'][0].title;
-    await Promise.all([
-        userSuggestsATrackFromFullscreen({
+    // User B suggests a song while being outside of room area.
+    const suggestedTrackQuery = 'Biolay - Vendredi 12';
+    const { selectedSongTitle: suggestTrackTitle } =
+        await userSuggestsATrackFromFullscreen({
             page: userBDevice1Page,
-            trackName: suggestedTrack,
-        }),
+            trackName: suggestedTrackQuery,
+        });
 
-        voteForTrackInMusicPlayerFullScreen({
-            page: userBDevice1Page,
-            trackToVoteFor: suggestedTrack,
-        }),
-    ]);
+    // User A votes for the track
+    await voteForTrackInMusicPlayerFullScreen({
+        page: userADevice1Page,
+        trackToVoteFor: suggestTrackTitle,
+    });
+
+    await voteForTrackInMusicPlayerFullScreen({
+        page: userBDevice1Page,
+        trackToVoteFor: suggestTrackTitle,
+    });
+
+    await expect(
+        userBDevice1Page.locator(`text=${suggestTrackTitle} 1/2`),
+    ).toBeVisible();
 
     await userADevice1Page.waitForTimeout(100_000);
 });

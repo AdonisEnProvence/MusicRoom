@@ -48,11 +48,13 @@ func userHasPermissionToPauseCurrentTrack(internalState *MtvRoomInternalState) b
 
 func currentTrackEndedAndNextTrackIsReadyToBePlayed(internalState *MtvRoomInternalState) brainy.Cond {
 	return func(c brainy.Context, e brainy.Event) bool {
+		//We might need a delta ? between elapsed and maxDuration
 		nextTrackIsReadyToBePlayed := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.initialParams.MinimumScoreToBePlayed)
-		//See if we need a delta
-		//Remark: in case of all initials tracks fetching fails, we expect the room to autoplay
-		//the very next ready to be played track in the queue, in this way here we do not verify
-		//if the current is at it's default values aka internalState.CurrentTrack.Duration === 0
+		//Remark:
+		//If of all initials tracks fetching fails or not initial tracks are eligible to be
+		//load as currentTrack during room creation, we expect the room to autoplay
+		//the very next ready to be played track in the queue.
+		//In this way here we do not verify if the current track is at it's default value
 		currentTrackEnded := internalState.CurrentTrack.Duration == internalState.CurrentTrack.AlreadyElapsed
 
 		return currentTrackEnded && nextTrackIsReadyToBePlayed

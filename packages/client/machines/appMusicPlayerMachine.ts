@@ -755,6 +755,10 @@ export const createAppMusicPlayerMachine = ({
                                                     {
                                                         target: 'waitingForTrackToLoad',
 
+                                                        /**
+                                                         * Checking if we're on a new track
+                                                         * Which means to reload a video in the players
+                                                         */
                                                         cond: (
                                                             { currentTrack },
                                                             {

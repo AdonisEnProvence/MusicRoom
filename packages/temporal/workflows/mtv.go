@@ -17,14 +17,15 @@ import (
 type MtvRoomInternalState struct {
 	initialParams shared.MtvRoomParameters
 
-	Machine                          *brainy.Machine
-	Users                            map[string]*shared.InternalStateUser
-	CurrentTrack                     shared.CurrentTrack
-	Tracks                           shared.TracksMetadataWithScoreSet
-	Playing                          bool
-	Timer                            shared.MtvRoomTimer
-	TracksCheckForVoteUpdateLastSave shared.TracksMetadataWithScoreSet
-	DelegationOwnerUserID            *string
+	Machine                                *brainy.Machine
+	Users                                  map[string]*shared.InternalStateUser
+	CurrentTrack                           shared.CurrentTrack
+	Tracks                                 shared.TracksMetadataWithScoreSet
+	Playing                                bool
+	Timer                                  shared.MtvRoomTimer
+	TracksCheckForVoteUpdateLastSave       shared.TracksMetadataWithScoreSet
+	CurrentTrackCheckForVoteUpdateLastSave shared.CurrentTrack
+	DelegationOwnerUserID                  *string
 }
 
 func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
@@ -649,16 +650,19 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					brainy.ActionFn(
 						func(c brainy.Context, e brainy.Event) error {
 							tracksListsAreEqual := internalState.Tracks.DeepEqual(internalState.TracksCheckForVoteUpdateLastSave)
-							needToNotifySuggestOrVoteUpdateActivity := !tracksListsAreEqual
+							currentTrackAreEqual := internalState.CurrentTrack.DeepEqual(internalState.CurrentTrackCheckForVoteUpdateLastSave)
+							needToNotifySuggestOrVoteUpdateActivity := !(tracksListsAreEqual && currentTrackAreEqual)
 
 							if needToNotifySuggestOrVoteUpdateActivity {
 								sendNotifySuggestOrVoteUpdateActivity(ctx, internalState.Export(shared.NoRelatedUserID))
 
 								internalState.TracksCheckForVoteUpdateLastSave = internalState.Tracks
+								internalState.CurrentTrackCheckForVoteUpdateLastSave = internalState.CurrentTrack
 								voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
 							} else {
 								voteIntervalTimerFuture = nil
 								internalState.TracksCheckForVoteUpdateLastSave = shared.TracksMetadataWithScoreSet{}
+								internalState.CurrentTrackCheckForVoteUpdateLastSave = shared.CurrentTrack{}
 							}
 
 							return nil

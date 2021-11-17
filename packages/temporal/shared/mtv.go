@@ -173,7 +173,7 @@ func (s *TracksMetadataWithScoreSet) Shift() (TrackMetadataWithScore, bool) {
 	return firstElement, true
 }
 
-func (s *TracksMetadataWithScoreSet) DeepEqual(toCmpTracksList TracksMetadataWithScoreSet) bool {
+func (s TracksMetadataWithScoreSet) DeepEqual(toCmpTracksList TracksMetadataWithScoreSet) bool {
 	if len(s.tracks) != len(toCmpTracksList.tracks) {
 		return false
 	}
@@ -196,6 +196,10 @@ type CurrentTrack struct {
 	TrackMetadataWithScore
 
 	AlreadyElapsed time.Duration `json:"-"`
+}
+
+func (s CurrentTrack) DeepEqual(toCmpCurrentTrack CurrentTrack) bool {
+	return s == toCmpCurrentTrack
 }
 
 type ExposedCurrentTrack struct {

@@ -4255,6 +4255,140 @@ func (s *UnitTestSuite) Test_OnlyInvitedUsersAndCreatorCanVoteInOpenRoom() {
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
+func (s *UnitTestSuite) Test_SuggestOrVoteSentActivityBaseOnCurrentTrack() {
+
+	var (
+		joiningUserID       = faker.UUIDHyphenated()
+		joiningUserDeviceID = faker.UUIDHyphenated()
+	)
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+
+	tracksIDs := []string{tracks[0].ID}
+	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 2)
+	defaultDuration := 1 * time.Millisecond
+
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.NotifySuggestOrVoteUpdateActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
+	init := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		//TracksVotedFor with 1 element shows that creator even with UserHasBeenInvited to false can still vote
+		expectedCreator := &shared.InternalStateUser{
+			UserID:                            params.RoomCreatorUserID,
+			DeviceID:                          creatorDeviceID,
+			TracksVotedFor:                    []string{tracksIDs[0]},
+			UserFitsPositionConstraint:        nil,
+			HasControlAndDelegationPermission: true,
+			UserHasBeenInvited:                false,
+		}
+
+		expectedTracks := []shared.TrackMetadataWithScoreWithDuration{
+			{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[0].ID,
+						Title:      tracks[0].Title,
+						ArtistName: tracks[0].ArtistName,
+						Duration:   0,
+					},
+					Score: 1,
+				},
+				Duration: tracks[0].Duration.Milliseconds(),
+			},
+		}
+
+		var expectedExposedCurrentTrack *shared.ExposedCurrentTrack = nil
+
+		s.False(mtvState.Playing)
+		s.Equal(expectedExposedCurrentTrack, mtvState.CurrentTrack)
+		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
+		s.Equal(expectedTracks, mtvState.Tracks)
+	}, init)
+
+	//Emit join for joiningUser
+	emitJoinSignalForJoiningUser := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		args := shared.NewJoinSignalArgs{
+			DeviceID:           joiningUserDeviceID,
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		}
+		s.emitJoinSignal(args)
+	}, emitJoinSignalForJoiningUser)
+
+	//Emit vote for track with joiningUser
+	emitVoteForJoiningUser := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		args := shared.NewVoteForTrackSignalArgs{
+			TrackID: tracksIDs[0],
+			UserID:  joiningUserID,
+		}
+		s.emitVoteSignal(args)
+	}, emitVoteForJoiningUser)
+
+	waitForVoteOrSuggestInterval := shared.CheckForVoteUpdateIntervalDuration + defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+		expectedTracks := []shared.TrackMetadataWithScoreWithDuration{}
+
+		expectedExposedCurrentTrack := &shared.ExposedCurrentTrack{
+			CurrentTrack: shared.CurrentTrack{
+				TrackMetadataWithScore: shared.TrackMetadataWithScore{
+					TrackMetadata: shared.TrackMetadata{
+						ID:         tracks[0].ID,
+						ArtistName: tracks[0].ArtistName,
+						Title:      tracks[0].Title,
+						Duration:   0,
+					},
+
+					Score: 2,
+				},
+
+				AlreadyElapsed: 0,
+			},
+			Duration: tracks[0].Duration.Milliseconds(),
+			Elapsed:  waitForVoteOrSuggestInterval.Milliseconds(),
+		}
+
+		s.True(mtvState.Playing)
+		s.Equal(expectedExposedCurrentTrack, mtvState.CurrentTrack)
+		s.Equal(expectedTracks, mtvState.Tracks)
+	}, waitForVoteOrSuggestInterval)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
 func TestUnitTestSuite(t *testing.T) {
 	suite.Run(t, new(UnitTestSuite))
 }

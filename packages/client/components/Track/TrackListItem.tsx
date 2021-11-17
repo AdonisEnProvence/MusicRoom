@@ -37,7 +37,6 @@ const TrackListItem: React.FC<TrackListItemProps> = ({
                 disabled={disabled}
                 testID={`${trackID}-track-card`}
                 accessibilityLabel={accessibilityLabel}
-                disabled={disabled}
                 onPress={onPress}
                 style={{ flex: 1 }}
             >

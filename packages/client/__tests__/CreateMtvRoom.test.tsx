@@ -1351,7 +1351,7 @@ describe('Create mtv room with custom settings', () => {
                     });
 
                     serverSocket.on('ACTION_PAUSE', () => {
-                        serverSocket.emit('ACTION_PAUSE_CALLBACK');
+                        serverSocket.emit('ACTION_PAUSE_CALLBACK', state);
                     });
 
                     serverSocket.on('ACTION_PLAY', () => {

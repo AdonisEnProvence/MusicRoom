@@ -37,10 +37,7 @@ Route.post(
 
 Route.post('/temporal/play', 'Temporal/TemporalToServerController.play');
 
-Route.get(
-    '/temporal/pause/:roomID',
-    'Temporal/TemporalToServerController.pause',
-);
+Route.post('/temporal/pause', 'Temporal/TemporalToServerController.pause');
 
 Route.post('/temporal/join', 'Temporal/TemporalToServerController.join');
 

@@ -137,7 +137,7 @@ export interface MtvRoomServerToClientEvents {
     CREATE_ROOM_SYNCHED_CALLBACK: (state: MtvWorkflowState) => void;
     RETRIEVE_CONTEXT: (state: MtvWorkflowState) => void;
     ACTION_PLAY_CALLBACK: (state: MtvWorkflowState) => void;
-    ACTION_PAUSE_CALLBACK: () => void;
+    ACTION_PAUSE_CALLBACK: (state: MtvWorkflowState) => void;
     CREATE_ROOM_CALLBACK: (state: MtvWorkflowState) => void;
     FORCED_DISCONNECTION: () => void;
     VOTE_OR_SUGGEST_TRACK_CALLBACK: (

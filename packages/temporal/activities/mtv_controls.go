@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"net/url"
 
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 )
@@ -16,9 +15,16 @@ func PingActivity(_ context.Context) error {
 	return err
 }
 
-func PauseActivity(_ context.Context, roomID string) error {
-	url := ADONIS_ENDPOINT + "/temporal/pause/" + url.QueryEscape(roomID)
-	_, err := http.Get(url)
+func PauseActivity(_ context.Context, state shared.MtvRoomExposedState) error {
+	requestBody := state
+
+	marshaledBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	url := ADONIS_ENDPOINT + "/temporal/pause/"
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
 }

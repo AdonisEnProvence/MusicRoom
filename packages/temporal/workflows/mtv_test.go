@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/testsuite"
 	"go.temporal.io/sdk/workflow"
 )
@@ -4547,6 +4549,256 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartAfterNow() {
 	s.True(s.env.IsWorkflowCompleted())
 	err := s.env.GetWorkflowError()
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailPhysicalAndTimeConstraintsNilButHasPhysicalAndTimeConstraintsTrue() {
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	tracksIDs := []string{tracks[0].ID}
+	params, _ := getWokflowInitParams(tracksIDs, 2)
+
+	params.HasPhysicalAndTimeConstraints = true
+	params.PhysicalAndTimeConstraints = nil
+	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+
+	resetMock, _ := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.Error(err)
+	var applicationErr *temporal.ApplicationError
+	s.True(errors.As(err, &applicationErr))
+	s.Equal("PhysicalAndTimeConstraints nil but HasPhysicalAndTimeConstraints true", applicationErr.Error())
+}
+
+func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailPhysicalAndTimeConstraintsSetButHasPhysicalAndTimeConstraintsFalse() {
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	defaultDuration := 1 * time.Millisecond
+	tracksIDs := []string{tracks[0].ID}
+	params, _ := getWokflowInitParams(tracksIDs, 2)
+	start := time.Now().Add(defaultDuration * 5000)
+
+	end := start.Add(defaultDuration * 500)
+
+	physicalAndTimeConstraints := shared.MtvRoomPhysicalAndTimeConstraints{
+		PhysicalConstraintPosition: shared.MtvRoomCoords{
+			Lat: 42,
+			Lng: 42,
+		},
+		PhysicalConstraintRadius:   5000,
+		PhysicalConstraintEndsAt:   end,
+		PhysicalConstraintStartsAt: start,
+	}
+	params.HasPhysicalAndTimeConstraints = false
+	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
+	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+
+	resetMock, _ := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.Error(err)
+	var applicationErr *temporal.ApplicationError
+	s.True(errors.As(err, &applicationErr))
+	s.Equal("PhysicalAndTimeConstraints set but HasPhysicalAndTimeConstraints false", applicationErr.Error())
+}
+
+func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailStartIsAfterEnd() {
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	defaultDuration := 1 * time.Millisecond
+	tracksIDs := []string{tracks[0].ID}
+	params, _ := getWokflowInitParams(tracksIDs, 2)
+	start := time.Now().Add(defaultDuration * 5000)
+
+	end := start.Add(defaultDuration * 500)
+
+	physicalAndTimeConstraints := shared.MtvRoomPhysicalAndTimeConstraints{
+		PhysicalConstraintPosition: shared.MtvRoomCoords{
+			Lat: 42,
+			Lng: 42,
+		},
+		PhysicalConstraintRadius:   5000,
+		PhysicalConstraintEndsAt:   start,
+		PhysicalConstraintStartsAt: end,
+	}
+	params.HasPhysicalAndTimeConstraints = true
+	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
+	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+
+	resetMock, _ := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.Error(err)
+	var applicationErr *temporal.ApplicationError
+	s.True(errors.As(err, &applicationErr))
+	s.Equal("start is after end", applicationErr.Error())
+}
+
+func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailStartEqualEnd() {
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	defaultDuration := 1 * time.Millisecond
+	tracksIDs := []string{tracks[0].ID}
+	params, _ := getWokflowInitParams(tracksIDs, 2)
+	start := time.Now().Add(defaultDuration * 5000)
+
+	end := start.Add(defaultDuration * 500)
+
+	physicalAndTimeConstraints := shared.MtvRoomPhysicalAndTimeConstraints{
+		PhysicalConstraintPosition: shared.MtvRoomCoords{
+			Lat: 42,
+			Lng: 42,
+		},
+		PhysicalConstraintRadius:   5000,
+		PhysicalConstraintEndsAt:   end,
+		PhysicalConstraintStartsAt: end,
+	}
+	params.HasPhysicalAndTimeConstraints = true
+	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
+	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+
+	resetMock, _ := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.Error(err)
+	var applicationErr *temporal.ApplicationError
+	s.True(errors.As(err, &applicationErr))
+	s.Equal("start equal end", applicationErr.Error())
+}
+
+func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailEndIsBeforeNow() {
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	tracksIDs := []string{tracks[0].ID}
+	params, _ := getWokflowInitParams(tracksIDs, 2)
+	now := time.Now()
+	start := now.Add(time.Duration(-2) * time.Minute)
+
+	end := now.Add(time.Duration(-1) * time.Minute)
+	physicalAndTimeConstraints := shared.MtvRoomPhysicalAndTimeConstraints{
+		PhysicalConstraintPosition: shared.MtvRoomCoords{
+			Lat: 42,
+			Lng: 42,
+		},
+		PhysicalConstraintRadius:   5000,
+		PhysicalConstraintEndsAt:   end,
+		PhysicalConstraintStartsAt: start,
+	}
+	params.HasPhysicalAndTimeConstraints = true
+	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
+	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+
+	resetMock, _ := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.Error(err)
+	var applicationErr *temporal.ApplicationError
+	s.True(errors.As(err, &applicationErr))
+	s.Equal("end is before now", applicationErr.Error())
+}
+
+func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailEndEqualNow() {
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	tracksIDs := []string{tracks[0].ID}
+	params, _ := getWokflowInitParams(tracksIDs, 2)
+	//mocking now
+	resetMock, _ := s.initTestEnv()
+	///
+
+	now := TimeWrapper()
+	start := now.Add(time.Duration(-2) * time.Minute)
+	physicalAndTimeConstraints := shared.MtvRoomPhysicalAndTimeConstraints{
+		PhysicalConstraintPosition: shared.MtvRoomCoords{
+			Lat: 42,
+			Lng: 42,
+		},
+		PhysicalConstraintRadius:   5000,
+		PhysicalConstraintEndsAt:   now,
+		PhysicalConstraintStartsAt: start,
+	}
+	params.HasPhysicalAndTimeConstraints = true
+	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
+	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+
+	defer resetMock()
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.Error(err)
+	var applicationErr *temporal.ApplicationError
+	s.True(errors.As(err, &applicationErr))
+	s.Equal("end equal now", applicationErr.Error())
+
 }
 
 func TestUnitTestSuite(t *testing.T) {

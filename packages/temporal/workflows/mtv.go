@@ -710,7 +710,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							event := e.(MtvRoomTimeConstraintTimerExpirationEvent)
 
 							internalState.timeConstraintIsValid = &event.TimeConstraintValue
-							fmt.Println("UPDATED TIMECONSTRAINTISVALID ", &event.TimeConstraintValue)
 							sendAcknowledgeUpdateTimeConstraintActivity(ctx, internalState.Export(shared.NoRelatedUserID))
 							return nil
 						},

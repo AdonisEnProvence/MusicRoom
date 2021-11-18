@@ -2,7 +2,6 @@ package shared
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 	"time"
 )
@@ -310,12 +309,12 @@ func (p MtvRoomParameters) VerifyTimeConstraint(now time.Time) error {
 
 	PhysicalAndTimeConstraintsSetButBooleanFalse := !p.HasPhysicalAndTimeConstraints && p.PhysicalAndTimeConstraints != nil
 	if PhysicalAndTimeConstraintsSetButBooleanFalse {
-		return errors.New("corrupted payload HasPhysicalAndTimeConstraints false but has constraints informations")
+		return errors.New("PhysicalAndTimeConstraints set but HasPhysicalAndTimeConstraints false")
 	}
 
 	RoomHasConstraintButPhysicalAndTimeConstraintAreNil := p.HasPhysicalAndTimeConstraints && p.PhysicalAndTimeConstraints == nil
 	if RoomHasConstraintButPhysicalAndTimeConstraintAreNil {
-		return errors.New("corrupted payload HasPhysicalAndTimeConstraints true but no constraints informations")
+		return errors.New("PhysicalAndTimeConstraints nil but HasPhysicalAndTimeConstraints true")
 	}
 
 	start := p.PhysicalAndTimeConstraints.PhysicalConstraintStartsAt
@@ -331,7 +330,6 @@ func (p MtvRoomParameters) VerifyTimeConstraint(now time.Time) error {
 		return errors.New("start equal end")
 	}
 
-	fmt.Println("NOW FROM CREATION ", now)
 	endsAtIsBeforeNow := end.Before(now)
 	if endsAtIsBeforeNow {
 		return errors.New("end is before now")

@@ -90,6 +90,11 @@ Route.post(
     'Temporal/TemporalToServerController.acknowledgeUpdateControlAndDelegationPermission',
 );
 
+Route.post(
+    '/temporal/acknowledge-update-time-constraint',
+    'Temporal/TemporalToServerController.acknowledgeUpdateTimeConstraint',
+);
+
 /// //////// ////// ///
 
 Route.get('/', () => {

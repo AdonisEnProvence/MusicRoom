@@ -238,4 +238,12 @@ export default class TemporalToServerController {
         );
         Ws.io.to(state.roomID).emit('USERS_LIST_FORCED_REFRESH');
     }
+
+    public async acknowledgeUpdateTimeConstraint({
+        request,
+    }: HttpContextContract): Promise<void> {
+        const state = MtvWorkflowState.parse(request.body());
+
+        Ws.io.to(state.roomID).emit('TIME_CONSTRAINT_UPDATE', state);
+    }
 }

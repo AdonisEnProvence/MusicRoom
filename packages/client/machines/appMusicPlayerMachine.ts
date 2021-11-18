@@ -79,6 +79,7 @@ export type AppMusicPlayerMachineEvent =
     | { type: 'GO_TO_NEXT_TRACK' }
     | { type: 'CHANGE_EMITTING_DEVICE'; deviceID: string }
     | { type: 'PLAY_CALLBACK'; state: MtvWorkflowState }
+    | { type: 'TIME_CONSTRAINT_UPDATE'; state: MtvWorkflowState }
     | { type: 'FORCED_DISCONNECTION' }
     | { type: 'LEAVE_ROOM' }
     | { type: 'UPDATE_DELEGATION_OWNER'; newDelegationOwnerUserID: string }
@@ -298,6 +299,13 @@ export const createAppMusicPlayerMachine = ({
                         socket.on('FORCED_DISCONNECTION', () => {
                             sendBack({
                                 type: 'FORCED_DISCONNECTION',
+                            });
+                        });
+
+                        socket.on('TIME_CONSTRAINT_UPDATE', (state) => {
+                            sendBack({
+                                type: 'TIME_CONSTRAINT_UPDATE',
+                                state,
                             });
                         });
 
@@ -928,6 +936,10 @@ export const createAppMusicPlayerMachine = ({
                                     ],
                                 },
 
+                                TIME_CONSTRAINT_UPDATE: {
+                                    actions: 'assignMergeNewState',
+                                },
+
                                 CHANGE_EMITTING_DEVICE: {
                                     cond: (
                                         { userRelatedInformation },
@@ -1055,6 +1067,7 @@ export const createAppMusicPlayerMachine = ({
                                     actions: forwardTo('socketConnection'),
                                 },
                             },
+                            //End of connectedToRoom state transitions
                         },
                     },
 
@@ -1117,6 +1130,7 @@ export const createAppMusicPlayerMachine = ({
                         event.type !== 'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE' &&
                         event.type !== 'VOTE_OR_SUGGEST_TRACK_CALLBACK' &&
                         event.type !== 'USER_PERMISSIONS_UPDATE' &&
+                        event.type !== 'TIME_CONSTRAINT_UPDATE' &&
                         event.type !== 'UPDATE_DELEGATION_OWNER_CALLBACK'
                     ) {
                         return context;

@@ -541,9 +541,7 @@ export default class MtvRoomsWsController {
             (status) => status === true,
         );
 
-        const notifyTemporal =
-            persistToTemporalRequiredInformation !== undefined;
-        if (notifyTemporal) {
+        if (persistToTemporalRequiredInformation !== undefined) {
             await ServerToTemporalController.updateUserFitsPositionConstraints({
                 runID: persistToTemporalRequiredInformation.runID,
                 userID: user.uuid,

@@ -39,8 +39,9 @@ interface RunID {
     runID: string;
 }
 
-interface OnCreateArgs extends UserID, DeviceID {
+interface OnCreateArgs extends DeviceID {
     params: MtvRoomClientToServerCreateArgs;
+    user: User;
 }
 interface OnJoinArgs extends UserID, DeviceID {
     joiningRoom: MtvRoom;
@@ -88,15 +89,39 @@ interface OnVoteForTrackArgs extends RoomID, UserID {
     trackID: string;
 }
 
+type RoomConstraintInformation = Pick<
+    MtvRoom,
+    | 'constraintLat'
+    | 'constraintLng'
+    | 'constraintRadius'
+    | 'hasPositionAndTimeConstraints'
+>;
+interface CheckUserDevicesPositionIfRoomHasPositionConstraintsArgs {
+    user: User;
+    roomConstraintInformation: RoomConstraintInformation;
+    persistToTemporalRequiredInformation:
+        | {
+              runID: string;
+              roomID: string;
+          }
+        | undefined;
+}
+
 export default class MtvRoomsWsController {
     public static async onCreate({
         params,
-        userID,
+        user,
         deviceID,
     }: OnCreateArgs): Promise<CreateWorkflowResponse> {
         let physicalAndTimeConstraintsWithCoords:
             | MtvRoomPhysicalAndTimeConstraintsWithCoords
             | undefined;
+        let creatorFitsPositionConstraint: boolean | undefined;
+        const roomID = randomUUID();
+        const room = new MtvRoom();
+        let roomHasBeenSaved = false;
+        const userID = user.uuid;
+        console.log(`USER ${userID} CREATE_ROOM ${roomID}`);
 
         if (
             params.hasPhysicalAndTimeConstraints &&
@@ -109,12 +134,31 @@ export default class MtvRoomsWsController {
                 ...params.physicalAndTimeConstraints,
                 physicalConstraintPosition: coords,
             };
-        }
 
-        const roomID = randomUUID();
-        const room = new MtvRoom();
-        let roomHasBeenSaved = false;
-        console.log(`USER ${userID} CREATE_ROOM ${roomID}`);
+            //Checking for last known user position, and checking if it fits
+            //With currently creating room position constraint to allow the creator
+            //to vote for it's initial track
+            creatorFitsPositionConstraint =
+                await this.checkUserDevicesPositionIfRoomHasPositionConstraints(
+                    {
+                        user,
+                        roomConstraintInformation: {
+                            constraintLat:
+                                physicalAndTimeConstraintsWithCoords
+                                    .physicalConstraintPosition.lat,
+                            constraintLng:
+                                physicalAndTimeConstraintsWithCoords
+                                    .physicalConstraintPosition.lng,
+                            constraintRadius:
+                                physicalAndTimeConstraintsWithCoords.physicalConstraintRadius,
+                            hasPositionAndTimeConstraints:
+                                params.hasPhysicalAndTimeConstraints,
+                        },
+                        //The workflow isn't already created
+                        persistToTemporalRequiredInformation: undefined,
+                    },
+                );
+        }
 
         /**
          * We need to create the room before the workflow
@@ -149,6 +193,7 @@ export default class MtvRoomsWsController {
                         ...params,
                         physicalAndTimeConstraints:
                             physicalAndTimeConstraintsWithCoords,
+                        creatorFitsPositionConstraint,
                     },
                 });
 
@@ -456,18 +501,23 @@ export default class MtvRoomsWsController {
         });
     }
 
-    public static async checkUserDevicesPositionIfRoomHasPositionConstraints(
-        user: User,
-        mtvRoomID: string,
-    ): Promise<void> {
-        const room = await MtvRoom.findOrFail(mtvRoomID);
+    public static async checkUserDevicesPositionIfRoomHasPositionConstraints({
+        roomConstraintInformation: {
+            constraintLat,
+            constraintLng,
+            constraintRadius,
+            hasPositionAndTimeConstraints,
+        },
+        user,
+        persistToTemporalRequiredInformation,
+    }: CheckUserDevicesPositionIfRoomHasPositionConstraintsArgs): Promise<boolean> {
         if (
-            room.hasPositionAndTimeConstraints === false ||
-            room.constraintLng === null ||
-            room.constraintLat === null ||
-            room.constraintRadius === null
+            hasPositionAndTimeConstraints === false ||
+            constraintLng === null ||
+            constraintLat === null ||
+            constraintRadius === null
         ) {
-            return;
+            return false;
         }
 
         await user.load('devices');
@@ -476,21 +526,14 @@ export default class MtvRoomsWsController {
                 return false;
             }
 
-            if (
-                room.constraintLng === null ||
-                room.constraintLat === null ||
-                room.constraintRadius === null
-            )
-                return false;
-
             //radius is in meters
             return isPointWithinRadius(
                 { latitude: device.lat, longitude: device.lng },
                 {
-                    latitude: room.constraintLat,
-                    longitude: room.constraintLng,
+                    latitude: constraintLat,
+                    longitude: constraintLng,
                 },
-                room.constraintRadius,
+                constraintRadius,
             );
         });
 
@@ -498,12 +541,18 @@ export default class MtvRoomsWsController {
             (status) => status === true,
         );
 
-        await ServerToTemporalController.updateUserFitsPositionConstraints({
-            runID: room.runID,
-            userID: user.uuid,
-            workflowID: room.uuid,
-            userFitsPositionConstraint: oneDeviceFitTheConstraints,
-        });
+        const notifyTemporal =
+            persistToTemporalRequiredInformation !== undefined;
+        if (notifyTemporal) {
+            await ServerToTemporalController.updateUserFitsPositionConstraints({
+                runID: persistToTemporalRequiredInformation.runID,
+                userID: user.uuid,
+                workflowID: persistToTemporalRequiredInformation.roomID,
+                userFitsPositionConstraint: oneDeviceFitTheConstraints,
+            });
+        }
+
+        return oneDeviceFitTheConstraints;
     }
 
     public static async onCreatorInviteUser({

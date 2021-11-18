@@ -98,13 +98,39 @@ export default class SocketLifecycle {
         });
         await newDevice.related('user').associate(deviceOwner);
         if (deviceOwner.mtvRoomID) {
+            await deviceOwner.load('mtvRoom');
+            if (deviceOwner.mtvRoom === undefined) {
+                throw new Error(
+                    'should never occurs deviceOwner mtvRoom relationship is undefined',
+                );
+            }
+
+            const {
+                constraintLat,
+                constraintLng,
+                constraintRadius,
+                hasPositionAndTimeConstraints,
+                runID,
+                uuid: roomID,
+            } = deviceOwner.mtvRoom;
             console.log(
                 `User ${queryUserID} is already a mtv room member, retrieve context`,
             );
             await this.syncMtvRoomContext(socket, deviceOwner.mtvRoomID);
             await MtvRoomsWsController.checkUserDevicesPositionIfRoomHasPositionConstraints(
-                deviceOwner,
-                deviceOwner.mtvRoomID,
+                {
+                    user: deviceOwner,
+                    persistToTemporalRequiredInformation: {
+                        runID,
+                        roomID,
+                    },
+                    roomConstraintInformation: {
+                        constraintLat,
+                        constraintLng,
+                        constraintRadius,
+                        hasPositionAndTimeConstraints,
+                    },
+                },
             );
         }
         await UserService.emitConnectedDevicesUpdateToEveryUserDevices(
@@ -171,9 +197,35 @@ export default class SocketLifecycle {
                     }
                 }
 
+                await disconnectingDeviceOwner.load('mtvRoom');
+                if (disconnectingDeviceOwner.mtvRoom === null) {
+                    throw new Error(
+                        'User should still be associed to the mtvRoom',
+                    );
+                }
+
+                const {
+                    constraintLat,
+                    constraintLng,
+                    constraintRadius,
+                    hasPositionAndTimeConstraints,
+                    runID,
+                    uuid: roomID,
+                } = disconnectingDeviceOwner.mtvRoom;
                 await MtvRoomsWsController.checkUserDevicesPositionIfRoomHasPositionConstraints(
-                    disconnectingDeviceOwner,
-                    relatedMtvRoomID,
+                    {
+                        user: disconnectingDeviceOwner,
+                        roomConstraintInformation: {
+                            constraintLat,
+                            constraintLng,
+                            constraintRadius,
+                            hasPositionAndTimeConstraints,
+                        },
+                        persistToTemporalRequiredInformation: {
+                            runID,
+                            roomID,
+                        },
+                    },
                 );
             }
         }

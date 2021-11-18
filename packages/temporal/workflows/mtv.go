@@ -142,7 +142,7 @@ func (s *MtvRoomInternalState) UserVoteForTrack(userID string, trackID string) b
 		userPositionConstraintIsNotValid := user.UserFitsPositionConstraint == nil || !*(user.UserFitsPositionConstraint)
 
 		if timeConstraintIsNotValid || userPositionConstraintIsNotValid {
-			fmt.Println("vote aborted: user doesnt fit the room position nor time constraints")
+			fmt.Printf("\nvote aborted: user doesnt fit room constraint. timeConstraintIsNotValid=%t userPositionConstraintIsNotValid=%t \n", timeConstraintIsNotValid, userPositionConstraintIsNotValid)
 			return false
 		}
 	}

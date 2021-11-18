@@ -34,6 +34,7 @@ interface MtvRoomClientToServerCreateArgsWithCoords
         MtvRoomClientToServerCreateArgs,
         'physicalAndTimeConstraints'
     > {
+    creatorFitsPositionConstraint?: boolean;
     physicalAndTimeConstraints?: MtvRoomPhysicalAndTimeConstraintsWithCoords;
 }
 

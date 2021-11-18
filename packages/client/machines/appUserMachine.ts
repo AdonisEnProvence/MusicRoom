@@ -1,6 +1,7 @@
 import { MtvRoomSummary, UserDevice } from '@musicroom/types';
 import {
     getCurrentPositionAsync,
+    getForegroundPermissionsAsync,
     LocationObject,
     requestForegroundPermissionsAsync,
 } from 'expo-location';
@@ -155,7 +156,19 @@ export const createUserMachine = ({
                         locationService: {
                             initial: 'idle',
                             states: {
-                                idle: {},
+                                idle: {
+                                    invoke: {
+                                        src: 'areLocationPermissionAlreadyValid',
+                                    },
+
+                                    on: {
+                                        LOCATION_PERMISSION_GRANTED: {
+                                            target: 'locationWatcher',
+                                            actions:
+                                                'updateLocationPermissions',
+                                        },
+                                    },
+                                },
 
                                 requestingLocationPermissions: {
                                     invoke: {
@@ -417,6 +430,24 @@ export const createUserMachine = ({
                         },
                     );
                 },
+
+                areLocationPermissionAlreadyValid:
+                    (_context, _event) => async (sendBack, _onReceive) => {
+                        try {
+                            //If permission aren't in cache this prompt the classic popup...
+                            //Will have to find an other solution
+                            const { status } =
+                                await getForegroundPermissionsAsync();
+                            if (status === 'granted') {
+                                sendBack('LOCATION_PERMISSION_GRANTED');
+                            }
+                        } catch (e) {
+                            console.error(
+                                'error while getForegroundPermissionsAsync',
+                                e,
+                            );
+                        }
+                    },
 
                 requestLocationPermission:
                     (_context, _event) => async (sendBack, _onReceive) => {

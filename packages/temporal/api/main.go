@@ -456,7 +456,8 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		params.PhysicalAndTimeConstraints = body.PhysicalAndTimeConstraints
 	}
 
-	if err := params.VerifyTimeConstraint(); err != nil {
+	now := time.Now()
+	if err := params.VerifyTimeConstraint(now); err != nil {
 		WriteError(w, err)
 		return
 	}

@@ -2,6 +2,7 @@ package shared
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 	"time"
 )
@@ -12,6 +13,11 @@ const (
 	MtvRoomTimerExpiredReasonCanceled  MtvRoomTimerExpiredReason = "canceled"
 	MtvRoomTimerExpiredReasonFinished  MtvRoomTimerExpiredReason = "finished"
 	CheckForVoteUpdateIntervalDuration time.Duration             = 2000 * time.Millisecond
+)
+
+var (
+	TrueValue  bool = true
+	FalseValue bool = false
 )
 
 type MtvRoomTimer struct {
@@ -296,7 +302,7 @@ type MtvRoomParameters struct {
 	PlayingMode                   MtvPlayingModes
 }
 
-func (p MtvRoomParameters) VerifyTimeConstraint() error {
+func (p MtvRoomParameters) VerifyTimeConstraint(now time.Time) error {
 	roomIsNotConcernedByConstraints := !p.HasPhysicalAndTimeConstraints && p.PhysicalAndTimeConstraints == nil
 	if roomIsNotConcernedByConstraints {
 		return nil
@@ -316,20 +322,24 @@ func (p MtvRoomParameters) VerifyTimeConstraint() error {
 	end := p.PhysicalAndTimeConstraints.PhysicalConstraintEndsAt
 
 	startsAtIsAfterEndsAt := start.After(end)
-	startsAtEqualEndsAt := start.Equal(end)
-	startIsCorrupted := startsAtIsAfterEndsAt || startsAtEqualEndsAt
-
-	if startIsCorrupted {
-		return errors.New("start is after end or start is equal to end")
+	if startsAtIsAfterEndsAt {
+		return errors.New("start is after end")
 	}
 
-	now := time.Now()
-	endsAtIsBeforeNow := now.Before(end)
-	endsAtEqualNow := now.Equal(end)
-	endIsCorrupted := endsAtIsBeforeNow || endsAtEqualNow
+	startsAtEqualEndsAt := start.Equal(end)
+	if startsAtEqualEndsAt {
+		return errors.New("start equal end")
+	}
 
-	if endIsCorrupted {
-		return errors.New("end is before now or en is equal to now")
+	fmt.Println("NOW FROM CREATION ", now)
+	endsAtIsBeforeNow := end.Before(now)
+	if endsAtIsBeforeNow {
+		return errors.New("end is before now")
+	}
+
+	endsAtEqualNow := end.Equal(now)
+	if endsAtEqualNow {
+		return errors.New("end equal now")
 	}
 
 	return nil

@@ -205,6 +205,14 @@ async function createPublicRoomWithTimeAndPhysicalConstraints({
         selectedSongTitle,
         'The selected song must exist and have a text content',
     );
+    const selectedTrackEntry = knownSearches[trackQuery].find(
+        ({ title }) => title === selectedSongTitle,
+    );
+    assertIsNotUndefined(
+        selectedTrackEntry,
+        'The selected song does not exist in knownSearches',
+    );
+    const selectedSongID = selectedTrackEntry.id;
 
     await firstMatchingSong.click();
 
@@ -305,6 +313,7 @@ async function createPublicRoomWithTimeAndPhysicalConstraints({
     return {
         roomName,
         initialTrack: selectedSongTitle,
+        initialTrackID: selectedSongID,
     };
 }
 
@@ -446,15 +455,21 @@ async function userSuggestsATrackFromFullscreen({
 
 async function voteForEnabledTrackInMusicPlayerFullScreen({
     page,
-    trackToVoteFor,
+    trackToVoteForID,
 }: {
     page: Page;
-    trackToVoteFor: string;
+    trackToVoteForID: string;
 }) {
-    const trackToVoteForElement = page.locator(
-        `css=:not([aria-disabled="true"]) >> text=${trackToVoteFor} >> css=[aria-label^="Press"]`,
+    const trackToVoteForElement = page
+        .locator(`css=[data-testid="${trackToVoteForID}-track-card"]`)
+        .last();
+    await expect(trackToVoteForElement).not.toHaveAttribute(
+        'aria-disabled',
+        'true',
+        {
+            timeout: 10_000,
+        },
     );
-    await expect(trackToVoteForElement).toBeVisible();
 
     await trackToVoteForElement.click();
 }
@@ -503,12 +518,13 @@ test('Test F', async ({ browser }) => {
 
     const roomName = 'MusicRoom is the best';
 
-    const { initialTrack } =
+    const { initialTrack, initialTrackID } =
         await createPublicRoomWithTimeAndPhysicalConstraints({
             page: userADevice1Page,
             roomName,
             address: 'Manosque, France',
-            startsAt: addMinutes(new Date(), 1),
+            // startsAt: addMinutes(new Date(), 1),
+            startsAt: new Date(),
             endsAt: addHours(new Date(), 6),
         });
 
@@ -528,7 +544,7 @@ test('Test F', async ({ browser }) => {
     });
 
     // We wait for the room to allow votes according to time constraints.
-    await userBDevice1Page.waitForTimeout(60_000);
+    // await userBDevice1Page.waitForTimeout(60_000);
 
     // User B votes again for the initial track.
     // It should fail as the user does not yet match
@@ -549,15 +565,15 @@ test('Test F', async ({ browser }) => {
         roomName,
     });
 
-    await voteForEnabledTrackInMusicPlayerFullScreen({
-        page: userADevice1Page,
+    await voteForTrackInMusicPlayerFullScreen({
+        page: userBDevice1Page,
         trackToVoteFor: initialTrack,
     });
 
     await Promise.all([
-        voteForTrackInMusicPlayerFullScreen({
-            page: userBDevice1Page,
-            trackToVoteFor: initialTrack,
+        voteForEnabledTrackInMusicPlayerFullScreen({
+            page: userADevice1Page,
+            trackToVoteForID: initialTrackID,
         }),
 
         waitForYouTubeVideoToLoad(userADevice1Page),

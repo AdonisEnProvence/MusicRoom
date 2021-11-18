@@ -132,7 +132,6 @@ describe('Room with constraints tests', () => {
         });
         expect(musicPlayerFullScreen).toBeTruthy();
 
-        console.log('0');
         //Track cards should be disabled
         await waitFor(() => {
             expect(screen.getByText(tracksList[0].title)).toBeTruthy();
@@ -154,7 +153,6 @@ describe('Room with constraints tests', () => {
         };
         serverSocket.emit('USER_PERMISSIONS_UPDATE', initialStateCpyA);
 
-        console.log('1');
         //Track cards should be disabled
         await waitFor(() => {
             expect(
@@ -174,13 +172,27 @@ describe('Room with constraints tests', () => {
         };
         serverSocket.emit('USER_PERMISSIONS_UPDATE', initialStateCpyB);
 
-        console.log('2');
         //Track cards should be enabled
         await waitFor(() => {
             expect(
                 screen.getByTestId(`${tracksList[0].id}-track-card`),
             ).not.toBeDisabled();
             expect(screen.getByText(tracksList[0].title)).not.toBeDisabled();
+        });
+
+        //Revoking timeConstraintIsValid
+        const initialStateCpyC = {
+            ...initialStateCpyB,
+            timeConstraintIsValid: false,
+        };
+        serverSocket.emit('TIME_CONSTRAINT_UPDATE', initialStateCpyC);
+
+        //Track cards should be disabled
+        await waitFor(() => {
+            expect(
+                screen.getByTestId(`${tracksList[0].id}-track-card`),
+            ).toBeDisabled();
+            expect(screen.getByText(tracksList[0].title)).toBeDisabled();
         });
     });
 });

@@ -534,6 +534,24 @@ export const createAppMusicPlayerMachine = ({
                                                     minimumVotesForATrackToBePlayed,
                                                 },
                                             } = creationMtvRoomFormDoneInvokeEvent;
+                                            let physicalConstraintEndsAtFormatted =
+                                                '';
+                                            if (
+                                                hasPhysicalConstraints === true
+                                            ) {
+                                                if (
+                                                    physicalConstraintEndsAt ===
+                                                    undefined
+                                                ) {
+                                                    throw new Error(
+                                                        'physicalConstraintEndsAt is undefined',
+                                                    );
+                                                }
+
+                                                physicalConstraintEndsAtFormatted =
+                                                    physicalConstraintEndsAt.toISOString();
+                                            }
+
                                             const payload: MtvRoomClientToServerCreateArgs =
                                                 {
                                                     name: roomName,
@@ -557,7 +575,7 @@ export const createAppMusicPlayerMachine = ({
                                                                   physicalConstraintStartsAt:
                                                                       physicalConstraintStartsAt.toISOString(),
                                                                   physicalConstraintEndsAt:
-                                                                      physicalConstraintEndsAt.toISOString(),
+                                                                      physicalConstraintEndsAtFormatted,
                                                               }
                                                             : undefined,
                                                 };

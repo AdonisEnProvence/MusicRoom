@@ -1,7 +1,7 @@
 import { MtvWorkflowState } from '@musicroom/types';
 import { NavigationContainer } from '@react-navigation/native';
 import { createModel as createTestModel } from '@xstate/test';
-import { addHours, addMinutes } from 'date-fns';
+import { addHours, subMinutes } from 'date-fns';
 import { datatype, name, random } from 'faker';
 import React from 'react';
 import { ContextFrom, EventFrom, State } from 'xstate';
@@ -1146,7 +1146,7 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
             {
                 place: '96 Boulevard Bessières, Paris',
                 radius: '1000',
-                startsAt: addMinutes(new Date(), 5).toISOString(),
+                startsAt: subMinutes(new Date(), 5).toISOString(),
                 endsAt: addHours(new Date(), 2).toISOString(),
             } as SetPhysicalConstraintsValuesEvent,
         ],

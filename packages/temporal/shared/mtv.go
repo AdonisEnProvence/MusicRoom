@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"errors"
 	"sort"
 	"time"
 )
@@ -11,6 +12,11 @@ const (
 	MtvRoomTimerExpiredReasonCanceled  MtvRoomTimerExpiredReason = "canceled"
 	MtvRoomTimerExpiredReasonFinished  MtvRoomTimerExpiredReason = "finished"
 	CheckForVoteUpdateIntervalDuration time.Duration             = 2000 * time.Millisecond
+)
+
+var (
+	TrueValue  bool = true
+	FalseValue bool = false
 )
 
 type MtvRoomTimer struct {
@@ -293,6 +299,48 @@ type MtvRoomParameters struct {
 	HasPhysicalAndTimeConstraints bool
 	PhysicalAndTimeConstraints    *MtvRoomPhysicalAndTimeConstraints
 	PlayingMode                   MtvPlayingModes
+}
+
+func (p MtvRoomParameters) VerifyTimeConstraint(now time.Time) error {
+	roomIsNotConcernedByConstraints := !p.HasPhysicalAndTimeConstraints && p.PhysicalAndTimeConstraints == nil
+	if roomIsNotConcernedByConstraints {
+		return nil
+	}
+
+	PhysicalAndTimeConstraintsSetButBooleanFalse := !p.HasPhysicalAndTimeConstraints && p.PhysicalAndTimeConstraints != nil
+	if PhysicalAndTimeConstraintsSetButBooleanFalse {
+		return errors.New("PhysicalAndTimeConstraints set but HasPhysicalAndTimeConstraints false")
+	}
+
+	RoomHasConstraintButPhysicalAndTimeConstraintAreNil := p.HasPhysicalAndTimeConstraints && p.PhysicalAndTimeConstraints == nil
+	if RoomHasConstraintButPhysicalAndTimeConstraintAreNil {
+		return errors.New("PhysicalAndTimeConstraints nil but HasPhysicalAndTimeConstraints true")
+	}
+
+	start := p.PhysicalAndTimeConstraints.PhysicalConstraintStartsAt
+	end := p.PhysicalAndTimeConstraints.PhysicalConstraintEndsAt
+
+	startsAtIsAfterEndsAt := start.After(end)
+	if startsAtIsAfterEndsAt {
+		return errors.New("start is after end")
+	}
+
+	startsAtEqualEndsAt := start.Equal(end)
+	if startsAtEqualEndsAt {
+		return errors.New("start equal end")
+	}
+
+	endsAtIsBeforeNow := end.Before(now)
+	if endsAtIsBeforeNow {
+		return errors.New("end is before now")
+	}
+
+	endsAtEqualNow := end.Equal(now)
+	if endsAtEqualNow {
+		return errors.New("end equal now")
+	}
+
+	return nil
 }
 
 func (p MtvRoomParameters) Export() MtvRoomExposedState {

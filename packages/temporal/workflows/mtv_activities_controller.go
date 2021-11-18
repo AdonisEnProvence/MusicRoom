@@ -225,3 +225,17 @@ func sendPlayActivity(ctx workflow.Context, state shared.MtvRoomExposedState) {
 		state,
 	)
 }
+
+func sendAcknowledgeUpdateTimeConstraintActivity(ctx workflow.Context, state shared.MtvRoomExposedState) {
+	options := workflow.ActivityOptions{
+		ScheduleToStartTimeout: time.Minute,
+		StartToCloseTimeout:    time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, options)
+
+	workflow.ExecuteActivity(
+		ctx,
+		activities.AcknowledgeUpdateTimeConstraint,
+		state,
+	)
+}

@@ -25,6 +25,7 @@ type MtvRoomInternalState struct {
 	Timer                                  shared.MtvRoomTimer
 	TracksCheckForVoteUpdateLastSave       shared.TracksMetadataWithScoreSet
 	CurrentTrackCheckForVoteUpdateLastSave shared.CurrentTrack
+	timeConstraintIsValid                  *bool
 	DelegationOwnerUserID                  *string
 }
 
@@ -36,20 +37,10 @@ func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 	if params.PlayingMode == shared.MtvPlayingModeDirect {
 		s.DelegationOwnerUserID = &params.RoomCreatorUserID
 	}
-}
 
-func (s *MtvRoomInternalState) GetTimeConstraintValue() *bool {
-	if !s.initialParams.HasPhysicalAndTimeConstraints {
-		return nil
+	if params.HasPhysicalAndTimeConstraints {
+		s.timeConstraintIsValid = &shared.FalseValue
 	}
-
-	start := s.initialParams.PhysicalAndTimeConstraints.PhysicalConstraintStartsAt
-	end := s.initialParams.PhysicalAndTimeConstraints.PhysicalConstraintEndsAt
-	now := TimeWrapper()
-
-	nowIsBetweenStartAndEnd := now.After(start) && now.Before(end)
-
-	return &nowIsBetweenStartAndEnd
 }
 
 func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExposedState {
@@ -85,7 +76,7 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 		UsersLength:                       len(s.Users),
 		MinimumScoreToBePlayed:            s.initialParams.MinimumScoreToBePlayed,
 		RoomHasTimeAndPositionConstraints: s.initialParams.HasPhysicalAndTimeConstraints,
-		TimeConstraintIsValid:             s.GetTimeConstraintValue(),
+		TimeConstraintIsValid:             s.timeConstraintIsValid,
 		UserRelatedInformation:            s.GetUserRelatedInformation(RelatedUserID),
 		PlayingMode:                       s.initialParams.PlayingMode,
 		IsOpen:                            s.initialParams.IsOpen,
@@ -147,8 +138,7 @@ func (s *MtvRoomInternalState) UserVoteForTrack(userID string, trackID string) b
 	}
 
 	if s.initialParams.HasPhysicalAndTimeConstraints {
-		timeConstraintValue := s.GetTimeConstraintValue()
-		timeConstraintIsNotValid := timeConstraintValue == nil || !*(timeConstraintValue)
+		timeConstraintIsNotValid := s.timeConstraintIsValid == nil || !*(s.timeConstraintIsValid)
 		userPositionConstraintIsNotValid := user.UserFitsPositionConstraint == nil || !*(user.UserFitsPositionConstraint)
 
 		if timeConstraintIsNotValid || userPositionConstraintIsNotValid {
@@ -237,6 +227,7 @@ const (
 	MtvRoomInitialTracksFetched                   brainy.EventType = "INITIAL_TRACKS_FETCHED"
 	MtvRoomIsReady                                brainy.EventType = "MTV_ROOM_IS_READY"
 	MtvCheckForScoreUpdateIntervalExpirationEvent brainy.EventType = "VOTE_UPDATE_INTERVAL_EXPIRATION"
+	MtvHandlerTimeConstraintTimerExpirationEvent  brainy.EventType = "TIME_CONSTRAINT_TIMER_EXPIRATION"
 	MtvRoomGoToPausedEvent                        brainy.EventType = "GO_TO_PAUSED"
 	MtvRoomAddUserEvent                           brainy.EventType = "ADD_USER"
 	MtvRoomRemoveUserEvent                        brainy.EventType = "REMOVE_USER"
@@ -251,16 +242,20 @@ const (
 	MtvRoomControlAndDelegationPermission         brainy.EventType = "UPDATE_CONTROL_AND_DELEGATION_PERMISSION"
 )
 
+func getNowFromSideEffect(ctx workflow.Context) time.Time {
+	var now time.Time
+	encoded := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return TimeWrapper()
+	})
+	encoded.Get(&now)
+	return now
+}
+
 func GetElapsed(ctx workflow.Context, previous time.Time) time.Duration {
 	if previous.IsZero() {
 		return 0
 	}
-	encoded := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return TimeWrapper()
-	})
-	var now time.Time
-
-	encoded.Get(&now)
+	now := getNowFromSideEffect(ctx)
 
 	return now.Sub(previous)
 }
@@ -277,6 +272,13 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 		logger.Info("Workflow creation failed, playingMode is invalid", "Error", err)
 		return errors.New("workflow creation failed, playingMode is invalid")
 	}
+
+	rootNow := getNowFromSideEffect(ctx)
+	if err := params.VerifyTimeConstraint(rootNow); err != nil {
+		logger.Info("Workflow creation failed", err)
+		return err
+	}
+
 	internalState.FillWith(params)
 
 	if err := workflow.SetQueryHandler(
@@ -333,16 +335,45 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 		fetchedInitialTracksFuture               workflow.Future
 		fetchedSuggestedTracksInformationFutures []workflow.Future
 		voteIntervalTimerFuture                  workflow.Future
+
+		timeConstraintStartsAtTimer workflow.Future
+		timeConstraintEndsAtTimer   workflow.Future
 	)
 
 	internalState.Machine, err = brainy.NewMachine(brainy.StateNode{
 		Initial: MtvRoomFetchInitialTracks,
 
 		States: brainy.StateNodes{
+
 			MtvRoomFetchInitialTracks: &brainy.StateNode{
 				OnEntry: brainy.Actions{
 					brainy.ActionFn(
 						func(c brainy.Context, e brainy.Event) error {
+							//Create timers future
+
+							roomHasConstraint := internalState.initialParams.HasPhysicalAndTimeConstraints && internalState.initialParams.PhysicalAndTimeConstraints != nil
+							if roomHasConstraint {
+								start := internalState.initialParams.PhysicalAndTimeConstraints.PhysicalConstraintStartsAt
+								end := internalState.initialParams.PhysicalAndTimeConstraints.PhysicalConstraintEndsAt
+
+								//If start is in the future we will need to notify users about
+								//toggle on of the time constraint status
+								//If it's not no need to send any event as the creation will manage it
+								//But we then set the timeConstaintIsValid value to true
+								startIsAfterNow := start.After(rootNow)
+								if startIsAfterNow {
+									fmt.Println("Mtv room with constraint: start is after now creating a timer")
+									startLessNow := start.Sub(rootNow)
+									timeConstraintStartsAtTimer = workflow.NewTimer(ctx, startLessNow)
+								} else {
+									fmt.Println("Mtv room with constraint: start is before not creating a timer")
+									internalState.timeConstraintIsValid = &shared.TrueValue
+								}
+
+								endLessNow := end.Sub(rootNow)
+								timeConstraintEndsAtTimer = workflow.NewTimer(ctx, endLessNow)
+							}
+							///
 							fetchedInitialTracksFuture = sendFetchTracksInformationActivity(ctx, internalState.initialParams.InitialTracksIDsList)
 
 							return nil
@@ -666,6 +697,20 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								internalState.CurrentTrackCheckForVoteUpdateLastSave = shared.CurrentTrack{}
 							}
 
+							return nil
+						},
+					),
+				},
+			},
+
+			MtvHandlerTimeConstraintTimerExpirationEvent: brainy.Transition{
+				Actions: brainy.Actions{
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+							event := e.(MtvRoomTimeConstraintTimerExpirationEvent)
+
+							internalState.timeConstraintIsValid = &event.TimeConstraintValue
+							sendAcknowledgeUpdateTimeConstraintActivity(ctx, internalState.Export(shared.NoRelatedUserID))
 							return nil
 						},
 					),
@@ -1155,8 +1200,31 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 		/////
 
 		if voteIntervalTimerFuture != nil {
+			//Set as null inside the state machine NewMtvRoomCheckForScoreUpdateIntervalExpirationEvent listener
 			selector.AddFuture(voteIntervalTimerFuture, func(f workflow.Future) {
 				internalState.Machine.Send(NewMtvRoomCheckForScoreUpdateIntervalExpirationEvent())
+			})
+		}
+
+		if timeConstraintStartsAtTimer != nil {
+			selector.AddFuture(timeConstraintStartsAtTimer, func(f workflow.Future) {
+				timeConstraintStartsAtTimer = nil
+				args := NewMtvRoomTimeConstraintTimerExpirationEventArgs{
+					TimeConstraintValue: true,
+				}
+
+				internalState.Machine.Send(NewMtvHandlerTimeConstraintTimerExpirationEvent(args))
+			})
+		}
+
+		if timeConstraintEndsAtTimer != nil {
+			selector.AddFuture(timeConstraintEndsAtTimer, func(f workflow.Future) {
+				timeConstraintEndsAtTimer = nil
+				args := NewMtvRoomTimeConstraintTimerExpirationEventArgs{
+					TimeConstraintValue: false,
+				}
+
+				internalState.Machine.Send(NewMtvHandlerTimeConstraintTimerExpirationEvent(args))
 			})
 		}
 

@@ -288,3 +288,22 @@ func NewMtvRoomGoToNextTrackEvent(args NewMtvRoomGoToNextTrackEventArgs) MtvRoom
 		UserID: args.UserID,
 	}
 }
+
+type MtvRoomTimeConstraintTimerExpirationEvent struct {
+	brainy.EventWithType
+
+	TimeConstraintValue bool
+}
+
+type NewMtvRoomTimeConstraintTimerExpirationEventArgs struct {
+	TimeConstraintValue bool
+}
+
+func NewMtvHandlerTimeConstraintTimerExpirationEvent(args NewMtvRoomTimeConstraintTimerExpirationEventArgs) MtvRoomTimeConstraintTimerExpirationEvent {
+	return MtvRoomTimeConstraintTimerExpirationEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MtvHandlerTimeConstraintTimerExpirationEvent,
+		},
+		TimeConstraintValue: args.TimeConstraintValue,
+	}
+}

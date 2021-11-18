@@ -231,3 +231,17 @@ func AcknowledgeUpdateControlAndDelegationPermission(ctx context.Context, state 
 
 	return err
 }
+
+func AcknowledgeUpdateTimeConstraint(ctx context.Context, state shared.MtvRoomExposedState) error {
+	requestBody := state
+
+	marshaledBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	url := ADONIS_ENDPOINT + "/temporal/acknowledge-update-time-constraint"
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+
+	return err
+}

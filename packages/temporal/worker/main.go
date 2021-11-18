@@ -39,6 +39,7 @@ func main() {
 	w.RegisterActivity(activities.AcknowledgeUpdateUserFitsPositionConstraint)
 	w.RegisterActivity(activities.AcknowledgeUpdateDelegationOwner)
 	w.RegisterActivity(activities.AcknowledgeUpdateControlAndDelegationPermission)
+	w.RegisterActivity(activities.AcknowledgeUpdateTimeConstraint)
 	w.RegisterActivity(activities.LeaveActivity)
 
 	// Start listening to the Task Queue

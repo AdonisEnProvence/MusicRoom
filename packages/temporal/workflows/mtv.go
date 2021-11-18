@@ -138,8 +138,7 @@ func (s *MtvRoomInternalState) UserVoteForTrack(userID string, trackID string) b
 	}
 
 	if s.initialParams.HasPhysicalAndTimeConstraints {
-		timeConstraintValue := s.timeConstraintIsValid
-		timeConstraintIsNotValid := timeConstraintValue == nil || !*(timeConstraintValue)
+		timeConstraintIsNotValid := s.timeConstraintIsValid == nil || !*(s.timeConstraintIsValid)
 		userPositionConstraintIsNotValid := user.UserFitsPositionConstraint == nil || !*(user.UserFitsPositionConstraint)
 
 		if timeConstraintIsNotValid || userPositionConstraintIsNotValid {
@@ -363,9 +362,11 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								//But we then set the timeConstaintIsValid value to true
 								startIsAfterNow := start.After(rootNow)
 								if startIsAfterNow {
+									fmt.Println("Mtv room with constraint: start is after now creating a timer")
 									startLessNow := start.Sub(rootNow)
 									timeConstraintStartsAtTimer = workflow.NewTimer(ctx, startLessNow)
 								} else {
+									fmt.Println("Mtv room with constraint: start is before not creating a timer")
 									internalState.timeConstraintIsValid = &shared.TrueValue
 								}
 
@@ -709,6 +710,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							event := e.(MtvRoomTimeConstraintTimerExpirationEvent)
 
 							internalState.timeConstraintIsValid = &event.TimeConstraintValue
+							fmt.Println("UPDATED TIMECONSTRAINTISVALID ", &event.TimeConstraintValue)
 							sendAcknowledgeUpdateTimeConstraintActivity(ctx, internalState.Export(shared.NoRelatedUserID))
 							return nil
 						},

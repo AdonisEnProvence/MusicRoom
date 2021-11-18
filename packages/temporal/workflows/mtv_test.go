@@ -4327,6 +4327,7 @@ func (s *UnitTestSuite) Test_SuggestOrVoteSentActivityBaseOnCurrentTrack() {
 		var expectedExposedCurrentTrack *shared.ExposedCurrentTrack = nil
 
 		s.False(mtvState.Playing)
+		s.Nil(mtvState.TimeConstraintIsValid)
 		s.Equal(expectedExposedCurrentTrack, mtvState.CurrentTrack)
 		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
 		s.Equal(expectedTracks, mtvState.Tracks)
@@ -4381,6 +4382,165 @@ func (s *UnitTestSuite) Test_SuggestOrVoteSentActivityBaseOnCurrentTrack() {
 		s.Equal(expectedExposedCurrentTrack, mtvState.CurrentTrack)
 		s.Equal(expectedTracks, mtvState.Tracks)
 	}, waitForVoteOrSuggestInterval)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartBeforeNow() {
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	defaultDuration := 1 * time.Millisecond
+	tracksIDs := []string{tracks[0].ID}
+	params, _ := getWokflowInitParams(tracksIDs, 2)
+	start := time.Now()
+
+	end := start.Add(defaultDuration * 5000)
+
+	physicalAndTimeConstraints := shared.MtvRoomPhysicalAndTimeConstraints{
+		PhysicalConstraintPosition: shared.MtvRoomCoords{
+			Lat: 42,
+			Lng: 42,
+		},
+		PhysicalConstraintRadius:   5000,
+		PhysicalConstraintEndsAt:   end,
+		PhysicalConstraintStartsAt: start,
+	}
+	params.HasPhysicalAndTimeConstraints = true
+	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
+	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.AcknowledgeUpdateTimeConstraint,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
+	init := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		//TracksVotedFor with 1 element shows that creator even with UserHasBeenInvited to false can still vote
+		s.NotNil(mtvState.TimeConstraintIsValid)
+		s.True(*mtvState.TimeConstraintIsValid)
+	}, init)
+
+	checkTimeConstraintBecomesFalsy := defaultDuration * 5000
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		//TracksVotedFor with 1 element shows that creator even with UserHasBeenInvited to false can still vote
+		s.NotNil(mtvState.TimeConstraintIsValid)
+		s.False(*mtvState.TimeConstraintIsValid)
+	}, checkTimeConstraintBecomesFalsy)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartAfterNow() {
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	defaultDuration := 1 * time.Millisecond
+	tracksIDs := []string{tracks[0].ID}
+	params, _ := getWokflowInitParams(tracksIDs, 2)
+	start := time.Now().Add(defaultDuration * 5000)
+
+	end := start.Add(defaultDuration * 500)
+
+	physicalAndTimeConstraints := shared.MtvRoomPhysicalAndTimeConstraints{
+		PhysicalConstraintPosition: shared.MtvRoomCoords{
+			Lat: 42,
+			Lng: 42,
+		},
+		PhysicalConstraintRadius:   5000,
+		PhysicalConstraintEndsAt:   end,
+		PhysicalConstraintStartsAt: start,
+	}
+	params.HasPhysicalAndTimeConstraints = true
+	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
+	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.AcknowledgeUpdateTimeConstraint,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Twice()
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
+	init := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		//TracksVotedFor with 1 element shows that creator even with UserHasBeenInvited to false can still vote
+		s.NotNil(mtvState.TimeConstraintIsValid)
+		s.False(*mtvState.TimeConstraintIsValid)
+	}, init)
+
+	checkTimeConstraintBecomesTruthy := defaultDuration * 5000
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		//TracksVotedFor with 1 element shows that creator even with UserHasBeenInvited to false can still vote
+		s.NotNil(mtvState.TimeConstraintIsValid)
+		s.True(*mtvState.TimeConstraintIsValid)
+	}, checkTimeConstraintBecomesTruthy)
+
+	checkTimeConstraintBecomesFalsy := defaultDuration * 5000
+	registerDelayedCallbackWrapper(func() {
+		mtvState := s.getMtvState(params.RoomCreatorUserID)
+
+		//TracksVotedFor with 1 element shows that creator even with UserHasBeenInvited to false can still vote
+		s.NotNil(mtvState.TimeConstraintIsValid)
+		s.False(*mtvState.TimeConstraintIsValid)
+	}, checkTimeConstraintBecomesFalsy)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
 

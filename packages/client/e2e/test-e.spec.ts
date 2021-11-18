@@ -1,79 +1,13 @@
-import { test, expect, Browser, Page, Locator } from '@playwright/test';
+import { test, expect, Page, Locator } from '@playwright/test';
 import { lorem } from 'faker';
-import { KnownSearchesRecord, mockSearchTracks } from './_utils/mock-http';
+import { assertIsNotUndefined } from './_utils/assert';
+import { KnownSearchesRecord } from './_utils/mock-http';
+import { setupAndGetUserPage } from './_utils/page';
 
-function assertIsNotUndefined<ValueType>(
-    value: ValueType | undefined,
-): asserts value is ValueType {
-    if (value === undefined) {
-        throw new Error('value must not be undefined');
-    }
-}
-
-const AVAILABLE_USERS_LIST = [
-    {
-        uuid: '8d71dcb3-9638-4b7a-89ad-838e2310686c',
-        nickname: 'Francis',
-    },
-    {
-        uuid: '71bc3025-b765-4f84-928d-b4dca8871370',
-        nickname: 'Moris',
-    },
-    {
-        uuid: 'd125ecde-b0ee-4ab8-a488-c0e7a8dac7c5',
-        nickname: 'Leila',
-    },
-    {
-        uuid: '7f4bc598-c5be-4412-acc4-515a87b797e7',
-        nickname: 'Manon',
-    },
-];
-
-type SetupAndGetUserContextArgs = {
-    browser: Browser;
-    userIndex: number;
-    knownSearches: KnownSearchesRecord;
-};
-async function setupAndGetUserContext({
-    browser,
-    userIndex,
-    knownSearches,
-}: SetupAndGetUserContextArgs): Promise<{
-    page: Page;
-    userNickname: string;
-    userID: string;
-}> {
-    const userID = AVAILABLE_USERS_LIST[userIndex].uuid;
-    const joinerContext = await browser.newContext({
-        storageState: {
-            cookies: [],
-            origins: [
-                {
-                    origin: 'http://localhost:4000',
-                    localStorage: [
-                        {
-                            name: 'USER_ID',
-                            value: userID,
-                        },
-                    ],
-                },
-            ],
-        },
-    });
-    const page = await joinerContext.newPage();
-
-    await mockSearchTracks({
-        context: joinerContext,
-        knownSearches,
-    });
-    await page.goto('/');
-
-    return {
-        page,
-        userNickname: AVAILABLE_USERS_LIST[userIndex].nickname,
-        userID,
-    };
-}
+test.afterEach(async ({ browser }) => {
+    const contexts = browser.contexts();
+    await Promise.all(contexts.map(async (context) => await context.close()));
+});
 
 type FindMiniPlayerWithRoomNameAndGoFullscreenArgs = {
     roomName: string;
@@ -93,9 +27,6 @@ async function createDirectRoomAndGoFullscreen({
     creatorPage,
     trackName,
 }: CreateRoomArgs) {
-    const focusTrap = creatorPage.locator('text="Click"').first();
-    await focusTrap.click();
-
     await expect(creatorPage.locator('text="Home"').first()).toBeVisible();
 
     //Searching for a track
@@ -208,9 +139,6 @@ async function userJoinsGivenRoomAndGoFullscreen({
     roomName,
     expectedListenersCounterValue,
 }: JoinGivenRoomAndGoFullscreenArgs) {
-    const focusTrap = joiningUserPage.locator('text="Click"').first();
-    await focusTrap.click();
-
     await joiningUserPage.click('text="Go to Music Track Vote"');
 
     // Code to use infinite scroll
@@ -412,12 +340,12 @@ test('Test E see following link for more information: https://3.basecamp.com/470
             userID: joiningUserBID,
         },
     ] = await Promise.all([
-        setupAndGetUserContext({
+        setupAndGetUserPage({
             browser,
             userIndex: userIndex++,
             knownSearches,
         }),
-        setupAndGetUserContext({
+        setupAndGetUserPage({
             browser,
             userIndex: userIndex++,
             knownSearches,
@@ -425,11 +353,10 @@ test('Test E see following link for more information: https://3.basecamp.com/470
     ]);
 
     //UserA creates the room
-    const { roomName, selectedSongTitle } =
-        await createDirectRoomAndGoFullscreen({
-            creatorPage: creatorUserA,
-            trackName: 'BB Brunes',
-        });
+    const { roomName } = await createDirectRoomAndGoFullscreen({
+        creatorPage: creatorUserA,
+        trackName: 'BB Brunes',
+    });
 
     //UserA goes to the users list he should find only himself
     await userGoesToTheUsersListFromFullscreenPlayer({

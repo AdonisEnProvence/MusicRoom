@@ -1,149 +1,18 @@
-import { test, expect, Browser, Page, Locator } from '@playwright/test';
+import { test, expect, Page, Locator } from '@playwright/test';
 import {
     assertIsNotNull,
     assertIsNotUndefined,
     assertMusicPlayerStatusIs,
 } from './_utils/assert';
-import { mockSearchTracks } from './_utils/mock-http';
+import { KnownSearchesRecord } from './_utils/mock-http';
+import { setupAndGetUserPage } from './_utils/page';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
-const AVAILABLE_USERS_LIST = [
-    '8d71dcb3-9638-4b7a-89ad-838e2310686c',
-    '71bc3025-b765-4f84-928d-b4dca8871370',
-    'd125ecde-b0ee-4ab8-a488-c0e7a8dac7c5',
-    '7f4bc598-c5be-4412-acc4-515a87b797e7',
-];
-
-async function setupCreatorPages({ browser }: { browser: Browser }) {
-    const creatorContext = await browser.newContext({
-        storageState: {
-            cookies: [],
-            origins: [
-                {
-                    origin: 'http://localhost:4000',
-                    localStorage: [
-                        {
-                            name: 'USER_ID',
-                            value: AVAILABLE_USERS_LIST[0],
-                        },
-                    ],
-                },
-            ],
-        },
-    });
-    await mockSearchTracks({
-        context: creatorContext,
-        knownSearches: {
-            'BB Brunes': [
-                {
-                    id: 'X3VNRVo7irM',
-                    title: 'BB BRUNES - Dis-Moi [Clip Officiel]',
-                    artistName: 'BBBrunesMusic',
-                    duration: 0,
-                },
-                {
-                    id: 'mF5etHMRMMM',
-                    title: 'BB BRUNES - Coups et Blessures [Clip Officiel]',
-                    artistName: 'BBBrunesMusic',
-                    duration: 0,
-                },
-                {
-                    id: '1d3etBBSSfw',
-                    title: 'BB BRUNES - Lalalove You [Clip Officiel]',
-                    artistName: 'BBBrunesMusic',
-                    duration: 0,
-                },
-                {
-                    id: 'DyRDeEWhW6M',
-                    title: 'BB BRUNES - Aficionado [Clip Officiel]',
-                    artistName: 'BBBrunesMusic',
-                    duration: 0,
-                },
-                {
-                    id: 'Qs-ucIS2B-0',
-                    title: 'BB BRUNES - Stéréo [Clip Officiel]',
-                    artistName: 'BBBrunesMusic',
-                    duration: 0,
-                },
-            ],
-        },
-    });
-    const creatorPage = await creatorContext.newPage();
-
-    await creatorPage.goto('/');
-
-    return {
-        creatorPage,
-    };
-}
-
-async function setupJoinerPages({ browser }: { browser: Browser }) {
-    const joinerContext = await browser.newContext({
-        storageState: {
-            cookies: [],
-            origins: [
-                {
-                    origin: 'http://localhost:4000',
-                    localStorage: [
-                        {
-                            name: 'USER_ID',
-                            value: AVAILABLE_USERS_LIST[1],
-                        },
-                    ],
-                },
-            ],
-        },
-    });
-    await mockSearchTracks({
-        context: joinerContext,
-        knownSearches: {
-            'Biolay - Vendredi 12': [
-                {
-                    id: 'eD-ORVUQ-pw',
-                    title: 'Benjamin Biolay - Vendredi 12 (Clip Officiel)',
-                    artistName: 'BenjaminBiolayVEVO',
-                    duration: 0,
-                },
-                {
-                    id: 'H8GDdTX8Cww',
-                    title: 'Vendredi 12',
-                    artistName: 'Benjamin Biolay - Topic',
-                    duration: 0,
-                },
-                {
-                    id: '7aW8iGoqi1o',
-                    title: 'Benjamin Biolay - Vendredi 12',
-                    artistName: 'Bruno Gaillardo',
-                    duration: 0,
-                },
-                {
-                    id: 'O8HyyYxbznQ',
-                    title: 'Vendredi 12 - Benjamin Biolay (reprise)',
-                    artistName: 'Clémence Bnt',
-                    duration: 0,
-                },
-                {
-                    id: 'LZ6EkzDQbiY',
-                    title: 'Benjamin Biolay - Où est passée la tendresse (Live) - Le Grand Studio RTL',
-                    artistName: 'Le Grand Studio RTL',
-                    duration: 0,
-                },
-            ],
-        },
-    });
-    const joinerPage = await joinerContext.newPage();
-
-    await joinerPage.goto('/');
-
-    return {
-        joinerPage,
-    };
-}
-
+test.afterEach(async ({ browser }) => {
+    const contexts = browser.contexts();
+    await Promise.all(contexts.map(async (context) => await context.close()));
+});
 async function createRoom({ creatorPage }: { creatorPage: Page }) {
-    const focusTrap = creatorPage.locator('text="Click"').first();
-    await focusTrap.click();
-
     await expect(creatorPage.locator('text="Home"').first()).toBeVisible();
 
     const goToTracksSearch = creatorPage.locator('text="Search"');
@@ -249,9 +118,6 @@ async function joinerJoinsRoom({
     joinerPage: Page;
     roomName: string;
 }) {
-    const focusTrap = joinerPage.locator('text="Click"').first();
-    await focusTrap.click();
-
     await joinerPage.click('text="Go to Music Track Vote"');
 
     // Code to use infinite scroll
@@ -413,9 +279,76 @@ async function waitForVideoToBePausedForUserWithControl(page: Page) {
 }
 
 test('Test A', async ({ browser }) => {
-    const [{ creatorPage }, { joinerPage }] = await Promise.all([
-        setupCreatorPages({ browser }),
-        setupJoinerPages({ browser }),
+    const knownSearches: KnownSearchesRecord = {
+        'Biolay - Vendredi 12': [
+            {
+                id: 'eD-ORVUQ-pw',
+                title: 'Benjamin Biolay - Vendredi 12 (Clip Officiel)',
+                artistName: 'BenjaminBiolayVEVO',
+                duration: 0,
+            },
+            {
+                id: 'H8GDdTX8Cww',
+                title: 'Vendredi 12',
+                artistName: 'Benjamin Biolay - Topic',
+                duration: 0,
+            },
+            {
+                id: '7aW8iGoqi1o',
+                title: 'Benjamin Biolay - Vendredi 12',
+                artistName: 'Bruno Gaillardo',
+                duration: 0,
+            },
+            {
+                id: 'O8HyyYxbznQ',
+                title: 'Vendredi 12 - Benjamin Biolay (reprise)',
+                artistName: 'Clémence Bnt',
+                duration: 0,
+            },
+            {
+                id: 'LZ6EkzDQbiY',
+                title: 'Benjamin Biolay - Où est passée la tendresse (Live) - Le Grand Studio RTL',
+                artistName: 'Le Grand Studio RTL',
+                duration: 0,
+            },
+        ],
+        'BB Brunes': [
+            {
+                id: 'X3VNRVo7irM',
+                title: 'BB BRUNES - Dis-Moi [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+            {
+                id: 'mF5etHMRMMM',
+                title: 'BB BRUNES - Coups et Blessures [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+            {
+                id: '1d3etBBSSfw',
+                title: 'BB BRUNES - Lalalove You [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+            {
+                id: 'DyRDeEWhW6M',
+                title: 'BB BRUNES - Aficionado [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+            {
+                id: 'Qs-ucIS2B-0',
+                title: 'BB BRUNES - Stéréo [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+        ],
+    };
+
+    const [{ page: creatorPage }, { page: joinerPage }] = await Promise.all([
+        setupAndGetUserPage({ browser, knownSearches, userIndex: 0 }),
+        setupAndGetUserPage({ browser, knownSearches, userIndex: 1 }),
     ]);
 
     const { roomName, initialTrack } = await createRoom({ creatorPage });

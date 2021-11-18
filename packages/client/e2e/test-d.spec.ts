@@ -1,118 +1,20 @@
-import {
-    test,
-    expect,
-    Browser,
-    BrowserContext,
-    Page,
-    Locator,
-} from '@playwright/test';
+import { test, expect, Page, Locator } from '@playwright/test';
 import {
     assertIsNotNull,
     assertIsNotUndefined,
     assertMusicPlayerStatusIs,
 } from './_utils/assert';
-import { mockSearchTracks } from './_utils/mock-http';
+import { KnownSearchesRecord } from './_utils/mock-http';
+import {
+    createNewTabFromExistingContext,
+    setupAndGetUserPage,
+} from './_utils/page';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
-const AVAILABLE_USERS_LIST = [
-    {
-        uuid: '8d71dcb3-9638-4b7a-89ad-838e2310686c',
-        nickname: 'Francis',
-    },
-    {
-        uuid: '71bc3025-b765-4f84-928d-b4dca8871370',
-        nickname: 'Moris',
-    },
-    {
-        uuid: 'd125ecde-b0ee-4ab8-a488-c0e7a8dac7c5',
-        nickname: 'Leïla',
-    },
-    {
-        uuid: '7f4bc598-c5be-4412-acc4-515a87b797e7',
-        nickname: 'Manon',
-    },
-];
-
-async function createContext({
-    browser,
-    index,
-}: {
-    browser: Browser;
-    index: number;
-}) {
-    const user = AVAILABLE_USERS_LIST[index];
-    const context = await browser.newContext({
-        storageState: {
-            cookies: [],
-            origins: [
-                {
-                    origin: 'http://localhost:4000',
-                    localStorage: [
-                        {
-                            name: 'USER_ID',
-                            value: user.uuid,
-                        },
-                    ],
-                },
-            ],
-        },
-    });
-    await mockSearchTracks({
-        context,
-        knownSearches: {
-            'BB Brunes': [
-                {
-                    id: 'X3VNRVo7irM',
-                    title: 'BB BRUNES - Dis-Moi [Clip Officiel]',
-                    artistName: 'BBBrunesMusic',
-                    duration: 0,
-                },
-                {
-                    id: 'mF5etHMRMMM',
-                    title: 'BB BRUNES - Coups et Blessures [Clip Officiel]',
-                    artistName: 'BBBrunesMusic',
-                    duration: 0,
-                },
-                {
-                    id: '1d3etBBSSfw',
-                    title: 'BB BRUNES - Lalalove You [Clip Officiel]',
-                    artistName: 'BBBrunesMusic',
-                    duration: 0,
-                },
-                {
-                    id: 'DyRDeEWhW6M',
-                    title: 'BB BRUNES - Aficionado [Clip Officiel]',
-                    artistName: 'BBBrunesMusic',
-                    duration: 0,
-                },
-                {
-                    id: 'Qs-ucIS2B-0',
-                    title: 'BB BRUNES - Stéréo [Clip Officiel]',
-                    artistName: 'BBBrunesMusic',
-                    duration: 0,
-                },
-            ],
-        },
-    });
-
-    return {
-        context,
-        userName: user.nickname,
-    };
-}
-
-async function setupPageFromContext(context: BrowserContext) {
-    const page = await context.newPage();
-
-    await page.goto('/');
-
-    const focusTrap = page.locator('text="Click"').first();
-    await focusTrap.click();
-
-    return {
-        page,
-    };
-}
+test.afterEach(async ({ browser }) => {
+    const contexts = browser.contexts();
+    await Promise.all(contexts.map(async (context) => await context.close()));
+});
 
 async function createPublicRoomWithInvitation({
     page,
@@ -311,28 +213,64 @@ async function changeEmittingDevice({
 test('Test D see following link for more informations https://3.basecamp.com/4704981/buckets/22220886/messages/4292491228#:~:text=Test%20end-,Test%20D/,-UserA_Device1%20Section%20full', async ({
     browser,
 }) => {
-    const [{ context: userAContext }, { context: userBContext }] =
-        await Promise.all([
-            createContext({ browser, index: 0 }),
-            createContext({ browser, index: 1 }),
-        ]);
-    const [{ page: userADevice1Page }, { page: userBPage }] = await Promise.all(
-        [
-            setupPageFromContext(userAContext),
-
-            setupPageFromContext(userBContext),
+    const knownSearches: KnownSearchesRecord = {
+        'BB Brunes': [
+            {
+                id: 'X3VNRVo7irM',
+                title: 'BB BRUNES - Dis-Moi [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+            {
+                id: 'mF5etHMRMMM',
+                title: 'BB BRUNES - Coups et Blessures [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+            {
+                id: '1d3etBBSSfw',
+                title: 'BB BRUNES - Lalalove You [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+            {
+                id: 'DyRDeEWhW6M',
+                title: 'BB BRUNES - Aficionado [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+            {
+                id: 'Qs-ucIS2B-0',
+                title: 'BB BRUNES - Stéréo [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
         ],
-    );
+    };
+
+    const [
+        { context: userAContext, page: userADevice1Page },
+        { page: userBPage },
+    ] = await Promise.all([
+        setupAndGetUserPage({ browser, userIndex: 0, knownSearches }),
+        setupAndGetUserPage({ browser, userIndex: 1, knownSearches }),
+    ]);
 
     const roomName = 'MusicRoom is the best';
 
     await createPublicRoomWithInvitation({ page: userADevice1Page, roomName });
 
-    const { page: userADevice2Page } = await setupPageFromContext(userAContext);
+    //Creating tabs
+    const { page: userADevice2Page } = await createNewTabFromExistingContext(
+        userAContext,
+    );
     await waitForJoiningRoom({ page: userADevice2Page, roomName });
 
-    const { page: userADevice3Page } = await setupPageFromContext(userAContext);
+    const { page: userADevice3Page } = await createNewTabFromExistingContext(
+        userAContext,
+    );
     await waitForJoiningRoom({ page: userADevice3Page, roomName });
+    ///
 
     await joinRoom({ page: userBPage, roomName });
 

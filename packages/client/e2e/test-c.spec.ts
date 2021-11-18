@@ -1,100 +1,17 @@
-import { test, expect, Browser, Page, Locator } from '@playwright/test';
-import { assertIsNotNull, assertIsNotUndefined } from './_utils/assert';
-import { mockSearchTracks } from './_utils/mock-http';
+import { test, expect, Page, Locator } from '@playwright/test';
+import {
+    assertIsNotNull,
+    assertIsNotUndefined,
+    assertMusicPlayerStatusIs,
+} from './_utils/assert';
+import { KnownSearchesRecord } from './_utils/mock-http';
+import { setupAndGetUserPage } from './_utils/page';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
-const AVAILABLE_USERS_LIST = [
-    {
-        uuid: '8d71dcb3-9638-4b7a-89ad-838e2310686c',
-        nickname: 'Francis',
-    },
-    {
-        uuid: '71bc3025-b765-4f84-928d-b4dca8871370',
-        nickname: 'Moris',
-    },
-    {
-        uuid: 'd125ecde-b0ee-4ab8-a488-c0e7a8dac7c5',
-        nickname: 'Leila',
-    },
-    {
-        uuid: '7f4bc598-c5be-4412-acc4-515a87b797e7',
-        nickname: 'Manon',
-    },
-];
-
-async function setupPage({
-    browser,
-    index,
-}: {
-    browser: Browser;
-    index: number;
-}) {
-    const user = AVAILABLE_USERS_LIST[index];
-    const context = await browser.newContext({
-        storageState: {
-            cookies: [],
-            origins: [
-                {
-                    origin: 'http://localhost:4000',
-                    localStorage: [
-                        {
-                            name: 'USER_ID',
-                            value: user.uuid,
-                        },
-                    ],
-                },
-            ],
-        },
-    });
-    await mockSearchTracks({
-        context,
-        knownSearches: {
-            'BB Brunes': [
-                {
-                    id: 'X3VNRVo7irM',
-                    title: 'BB BRUNES - Dis-Moi [Clip Officiel]',
-                    artistName: 'BBBrunesMusic',
-                    duration: 0,
-                },
-                {
-                    id: 'mF5etHMRMMM',
-                    title: 'BB BRUNES - Coups et Blessures [Clip Officiel]',
-                    artistName: 'BBBrunesMusic',
-                    duration: 0,
-                },
-                {
-                    id: '1d3etBBSSfw',
-                    title: 'BB BRUNES - Lalalove You [Clip Officiel]',
-                    artistName: 'BBBrunesMusic',
-                    duration: 0,
-                },
-                {
-                    id: 'DyRDeEWhW6M',
-                    title: 'BB BRUNES - Aficionado [Clip Officiel]',
-                    artistName: 'BBBrunesMusic',
-                    duration: 0,
-                },
-                {
-                    id: 'Qs-ucIS2B-0',
-                    title: 'BB BRUNES - Stéréo [Clip Officiel]',
-                    artistName: 'BBBrunesMusic',
-                    duration: 0,
-                },
-            ],
-        },
-    });
-    const page = await context.newPage();
-
-    await page.goto('/');
-
-    const focusTrap = page.locator('text="Click"').first();
-    await focusTrap.click();
-
-    return {
-        page,
-        userName: user.nickname,
-    };
-}
+test.afterEach(async ({ browser }) => {
+    const contexts = browser.contexts();
+    await Promise.all(contexts.map(async (context) => await context.close()));
+});
 
 async function createPublicRoomWithInvitation(page: Page) {
     await expect(page.locator('text="Home"').first()).toBeVisible();
@@ -186,7 +103,7 @@ async function createPublicRoomWithInvitation(page: Page) {
 
     return {
         roomName,
-        initialTrack: selectedSongTitle,
+        initialTrackTitle: selectedSongTitle,
     };
 }
 
@@ -299,25 +216,58 @@ async function pressRoomInvitationToast({
 }
 
 test('Test C', async ({ browser }) => {
+    const knownSearches: KnownSearchesRecord = {
+        'BB Brunes': [
+            {
+                id: 'X3VNRVo7irM',
+                title: 'BB BRUNES - Dis-Moi [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+            {
+                id: 'mF5etHMRMMM',
+                title: 'BB BRUNES - Coups et Blessures [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+            {
+                id: '1d3etBBSSfw',
+                title: 'BB BRUNES - Lalalove You [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+            {
+                id: 'DyRDeEWhW6M',
+                title: 'BB BRUNES - Aficionado [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+            {
+                id: 'Qs-ucIS2B-0',
+                title: 'BB BRUNES - Stéréo [Clip Officiel]',
+                artistName: 'BBBrunesMusic',
+                duration: 0,
+            },
+        ],
+    };
     const [
-        { page: userAPage, userName: userAName },
+        { page: userAPage, userNickname: userAName },
         { page: userBPage },
-        { page: userCPage, userName: userCName },
+        { page: userCPage, userNickname: userCName },
     ] = await Promise.all([
-        setupPage({ browser, index: 0 }),
-        setupPage({ browser, index: 1 }),
-        setupPage({ browser, index: 2 }),
+        setupAndGetUserPage({ browser, userIndex: 0, knownSearches }),
+        setupAndGetUserPage({ browser, userIndex: 1, knownSearches }),
+        setupAndGetUserPage({ browser, userIndex: 2, knownSearches }),
     ]);
 
-    const { roomName, initialTrack } = await createPublicRoomWithInvitation(
-        userAPage,
-    );
+    const { roomName, initialTrackTitle } =
+        await createPublicRoomWithInvitation(userAPage);
 
     await joinRoom({ page: userBPage, roomName });
 
     await voteForTrackInMusicPlayerFullScreen({
         page: userBPage,
-        trackToVoteFor: initialTrack,
+        trackToVoteFor: initialTrackTitle,
     });
 
     await Promise.all([
@@ -333,11 +283,19 @@ test('Test C', async ({ browser }) => {
     await Promise.all([
         voteForTrackInMusicPlayerFullScreen({
             page: userCPage,
-            trackToVoteFor: initialTrack,
+            trackToVoteFor: initialTrackTitle,
         }),
-
-        waitForYouTubeVideoToLoad(userAPage),
-        waitForYouTubeVideoToLoad(userBPage),
-        waitForYouTubeVideoToLoad(userCPage),
+        assertMusicPlayerStatusIs({
+            page: userCPage,
+            testID: 'music-player-playing-device-emitting',
+        }),
+        assertMusicPlayerStatusIs({
+            page: userBPage,
+            testID: 'music-player-playing-device-emitting',
+        }),
+        assertMusicPlayerStatusIs({
+            page: userAPage,
+            testID: 'music-player-playing-device-emitting',
+        }),
     ]);
 });

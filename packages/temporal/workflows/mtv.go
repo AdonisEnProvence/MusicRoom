@@ -277,6 +277,12 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 		logger.Info("Workflow creation failed, playingMode is invalid", "Error", err)
 		return errors.New("workflow creation failed, playingMode is invalid")
 	}
+
+	if err := params.VerifyTimeConstraint(); err != nil {
+		logger.Info("Workflow creation failed", err)
+		return err
+	}
+
 	internalState.FillWith(params)
 
 	if err := workflow.SetQueryHandler(

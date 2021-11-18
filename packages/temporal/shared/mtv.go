@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"errors"
 	"sort"
 	"time"
 )
@@ -293,6 +294,45 @@ type MtvRoomParameters struct {
 	HasPhysicalAndTimeConstraints bool
 	PhysicalAndTimeConstraints    *MtvRoomPhysicalAndTimeConstraints
 	PlayingMode                   MtvPlayingModes
+}
+
+func (p MtvRoomParameters) VerifyTimeConstraint() error {
+	roomIsNotConcernedByConstraints := !p.HasPhysicalAndTimeConstraints && p.PhysicalAndTimeConstraints == nil
+	if roomIsNotConcernedByConstraints {
+		return nil
+	}
+
+	PhysicalAndTimeConstraintsSetButBooleanFalse := !p.HasPhysicalAndTimeConstraints && p.PhysicalAndTimeConstraints != nil
+	if PhysicalAndTimeConstraintsSetButBooleanFalse {
+		return errors.New("corrupted payload HasPhysicalAndTimeConstraints false but has constraints informations")
+	}
+
+	RoomHasConstraintButPhysicalAndTimeConstraintAreNil := p.HasPhysicalAndTimeConstraints && p.PhysicalAndTimeConstraints == nil
+	if RoomHasConstraintButPhysicalAndTimeConstraintAreNil {
+		return errors.New("corrupted payload HasPhysicalAndTimeConstraints true but no constraints informations")
+	}
+
+	start := p.PhysicalAndTimeConstraints.PhysicalConstraintStartsAt
+	end := p.PhysicalAndTimeConstraints.PhysicalConstraintEndsAt
+
+	startsAtIsAfterEndsAt := start.After(end)
+	startsAtEqualEndsAt := start.Equal(end)
+	startIsCorrupted := startsAtIsAfterEndsAt || startsAtEqualEndsAt
+
+	if startIsCorrupted {
+		return errors.New("start is after end or start is equal to end")
+	}
+
+	now := time.Now()
+	endsAtIsBeforeNow := now.Before(end)
+	endsAtEqualNow := now.Equal(end)
+	endIsCorrupted := endsAtIsBeforeNow || endsAtEqualNow
+
+	if endIsCorrupted {
+		return errors.New("end is before now or en is equal to now")
+	}
+
+	return nil
 }
 
 func (p MtvRoomParameters) Export() MtvRoomExposedState {

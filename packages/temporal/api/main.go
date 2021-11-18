@@ -416,18 +416,6 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if body.HasPhysicalAndTimeConstraints && body.PhysicalAndTimeConstraints != nil {
-		nowIsBeforeEnd := body.PhysicalAndTimeConstraints.PhysicalConstraintStartsAt.Before(body.PhysicalAndTimeConstraints.PhysicalConstraintEndsAt)
-		nowEqualEnd := body.PhysicalAndTimeConstraints.PhysicalConstraintStartsAt.Equal(body.PhysicalAndTimeConstraints.PhysicalConstraintEndsAt)
-		timeConstraintAreCorrupted := !nowIsBeforeEnd || nowEqualEnd
-
-		if timeConstraintAreCorrupted {
-			log.Println("time constraint are corrupted", err)
-			WriteError(w, err)
-			return
-		}
-	}
-
 	options := client.StartWorkflowOptions{
 		ID:        body.WorkflowID,
 		TaskQueue: shared.ControlTaskQueue,
@@ -459,17 +447,17 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		IsOpen:                        body.IsOpen,
 		IsOpenOnlyInvitedUsersCanVote: body.IsOpenOnlyInvitedUsersCanVote,
 		HasPhysicalAndTimeConstraints: body.HasPhysicalAndTimeConstraints,
-		PhysicalAndTimeConstraints:    nil,
-		PlayingMode:                   body.PlayingMode,
+		//letting the room creation mutate this field
+		PhysicalAndTimeConstraints: nil,
+		PlayingMode:                body.PlayingMode,
 	}
 
 	if body.PhysicalAndTimeConstraints != nil {
 		params.PhysicalAndTimeConstraints = body.PhysicalAndTimeConstraints
 	}
 
-	PhysicalAndTimeConstraintsSetButBooleanFalse := !params.HasPhysicalAndTimeConstraints && params.PhysicalAndTimeConstraints != nil
-	if PhysicalAndTimeConstraintsSetButBooleanFalse {
-		WriteError(w, errors.New("corrupted payload HasPhysicalAndTimeConstraints true but no constraints informations"))
+	if err := params.VerifyTimeConstraint(); err != nil {
+		WriteError(w, err)
 		return
 	}
 

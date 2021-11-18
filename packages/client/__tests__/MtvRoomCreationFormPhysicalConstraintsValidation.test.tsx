@@ -2,7 +2,16 @@ import React from 'react';
 import { createModel } from 'xstate/lib/model';
 import { createModel as createTestModel } from '@xstate/test';
 import * as z from 'zod';
-import { addHours, isAfter, isFuture, subDays } from 'date-fns';
+import {
+    addHours,
+    addMinutes,
+    isAfter,
+    isBefore,
+    isEqual,
+    setMilliseconds,
+    setSeconds,
+    subDays,
+} from 'date-fns';
 import {
     fireEvent,
     noop,
@@ -15,6 +24,8 @@ import {
     MusicTrackVoteCreationFormPhysicalConstraintsContent,
     MusicTrackVoteCreationFormPhysicalConstraintsFormFieldValues,
 } from '../screens/MusicTrackVoteCreationFormPhysicalConstraints';
+
+const TEST_TIMESTAMP = setMilliseconds(setSeconds(new Date(), 0), 0);
 
 interface TestingContext {
     triggerSubmit: () => void;
@@ -134,179 +145,164 @@ const physicalConstraintsValidationMachine =
                         },
 
                         {
-                            target: 'dateFields',
+                            target: 'startsAt',
                         },
                     ],
                 },
             },
 
-            dateFields: {
-                type: 'parallel',
-
-                always: [
-                    {
-                        cond: (_context, _event, meta) => {
-                            const allFieldsAreValid = meta.state.matches({
-                                dateFields: {
-                                    startsAt: 'isValid',
-                                    endsAt: 'isValid',
-                                },
-                            });
-
-                            return allFieldsAreValid;
-                        },
-
-                        target: 'fieldsAreValid',
+            startsAt: {
+                meta: {
+                    test: async ({ screen }: TestingContext) => {
+                        await waitFor(() => {
+                            const startsAtErrorsGroup = screen.queryByTestId(
+                                'start-at-errors-group',
+                            );
+                            expect(startsAtErrorsGroup).toBeNull();
+                        });
                     },
-                ],
+                },
+
+                on: {
+                    SET_STARTS_AT: {
+                        target: 'endsAt',
+
+                        actions: assignStartsAtToContext,
+                    },
+                },
+            },
+
+            endsAt: {
+                initial: 'init',
 
                 states: {
-                    startsAt: {
-                        initial: 'onError',
+                    init: {
+                        meta: {
+                            test: async ({
+                                screen,
+                                submitSpy,
+                            }: TestingContext) => {
+                                await waitFor(() => {
+                                    const endsAtErrorsGroup =
+                                        screen.getByTestId(
+                                            'ends-at-errors-group',
+                                        );
 
-                        states: {
-                            isValid: {
-                                meta: {
-                                    test: async ({
-                                        screen,
-                                    }: TestingContext) => {
-                                        await waitFor(() => {
-                                            const startsAtErrorsGroup =
-                                                screen.queryByTestId(
-                                                    'start-at-errors-group',
-                                                );
-                                            expect(
-                                                startsAtErrorsGroup,
-                                            ).toBeNull();
-                                        });
-                                    },
-                                },
-                            },
+                                    const requiredError =
+                                        within(endsAtErrorsGroup).getByRole(
+                                            'alert',
+                                        );
+                                    expect(requiredError).toBeTruthy();
+                                    expect(requiredError).toHaveTextContent(
+                                        /event.*end.*date.*must.*after.*beginning/i,
+                                    );
+                                });
 
-                            onError: {
-                                meta: {
-                                    test: async ({
-                                        screen,
-                                        submitSpy,
-                                    }: TestingContext) => {
-                                        await waitFor(() => {
-                                            const startsAtErrorsGroup =
-                                                screen.getByTestId(
-                                                    'start-at-errors-group',
-                                                );
-
-                                            const requiredError =
-                                                within(
-                                                    startsAtErrorsGroup,
-                                                ).getByRole('alert');
-                                            expect(requiredError).toBeTruthy();
-                                            expect(
-                                                requiredError,
-                                            ).toHaveTextContent(
-                                                /event.*should.*start.*future.*date/i,
-                                            );
-                                        });
-
-                                        expect(
-                                            submitSpy,
-                                        ).not.toHaveBeenCalled();
-                                    },
-                                },
-
-                                on: {
-                                    SET_STARTS_AT: [
-                                        {
-                                            cond: (_, { startsAt }) =>
-                                                isFuture(new Date(startsAt)),
-
-                                            target: 'isValid',
-
-                                            actions: assignStartsAtToContext,
-                                        },
-
-                                        {
-                                            target: 'onError',
-
-                                            actions: assignStartsAtToContext,
-                                        },
-                                    ],
-                                },
+                                expect(submitSpy).not.toHaveBeenCalled();
                             },
                         },
                     },
 
-                    endsAt: {
-                        initial: 'onError',
+                    onBeforeStartsAt: {
+                        meta: {
+                            test: async ({
+                                screen,
+                                submitSpy,
+                            }: TestingContext) => {
+                                await waitFor(() => {
+                                    const endsAtErrorsGroup =
+                                        screen.getByTestId(
+                                            'ends-at-errors-group',
+                                        );
 
-                        states: {
-                            isValid: {
-                                meta: {
-                                    test: async ({
-                                        screen,
-                                    }: TestingContext) => {
-                                        await waitFor(() => {
-                                            const endsAtErrorsGroup =
-                                                screen.queryByTestId(
-                                                    'ends-at-errors-group',
-                                                );
-                                            expect(
-                                                endsAtErrorsGroup,
-                                            ).toBeNull();
-                                        });
-                                    },
-                                },
-                            },
+                                    const requiredError =
+                                        within(endsAtErrorsGroup).getByRole(
+                                            'alert',
+                                        );
+                                    expect(requiredError).toBeTruthy();
+                                    expect(requiredError).toHaveTextContent(
+                                        /event.*end.*date.*must.*after.*beginning/i,
+                                    );
+                                });
 
-                            onError: {
-                                meta: {
-                                    test: async ({
-                                        screen,
-                                        submitSpy,
-                                    }: TestingContext) => {
-                                        await waitFor(() => {
-                                            const endsAtErrorsGroup =
-                                                screen.getByTestId(
-                                                    'ends-at-errors-group',
-                                                );
-
-                                            const requiredError =
-                                                within(
-                                                    endsAtErrorsGroup,
-                                                ).getByRole('alert');
-                                            expect(requiredError).toBeTruthy();
-                                            expect(
-                                                requiredError,
-                                            ).toHaveTextContent(
-                                                /event.*end.*date.*must.*after.*beginning/i,
-                                            );
-                                        });
-
-                                        expect(
-                                            submitSpy,
-                                        ).not.toHaveBeenCalled();
-                                    },
-                                },
-
-                                on: {
-                                    SET_ENDS_AT: [
-                                        {
-                                            cond: ({ startsAt }, { endsAt }) =>
-                                                isAfter(
-                                                    new Date(endsAt),
-                                                    startsAt,
-                                                ),
-
-                                            target: 'isValid',
-                                        },
-
-                                        {
-                                            target: 'onError',
-                                        },
-                                    ],
-                                },
+                                expect(submitSpy).not.toHaveBeenCalled();
                             },
                         },
                     },
+
+                    onBeforeOneHourAfterInitialMounting: {
+                        meta: {
+                            test: async ({
+                                screen,
+                                submitSpy,
+                            }: TestingContext) => {
+                                await waitFor(() => {
+                                    const endsAtErrorsGroup =
+                                        screen.getByTestId(
+                                            'ends-at-errors-group',
+                                        );
+
+                                    const requiredError =
+                                        within(endsAtErrorsGroup).getByRole(
+                                            'alert',
+                                        );
+                                    expect(requiredError).toBeTruthy();
+                                    expect(requiredError).toHaveTextContent(
+                                        /event.*end.*date.*must.*in.*one.*hour/i,
+                                    );
+                                });
+
+                                expect(submitSpy).not.toHaveBeenCalled();
+                            },
+                        },
+                    },
+                },
+
+                on: {
+                    SET_ENDS_AT: [
+                        {
+                            cond: ({ startsAt }, { endsAt }) => {
+                                const isBeforeStartsAt = isBefore(
+                                    new Date(endsAt),
+                                    startsAt,
+                                );
+
+                                return isBeforeStartsAt;
+                            },
+
+                            target: 'endsAt.onBeforeStartsAt',
+                        },
+
+                        {
+                            cond: (_, { endsAt }) => {
+                                const endsAtDate = new Date(endsAt);
+                                const oneHourAfterInitialMounting = addHours(
+                                    TEST_TIMESTAMP,
+                                    1,
+                                );
+
+                                const isOneHourAfterFormMounting =
+                                    isAfter(
+                                        endsAtDate,
+                                        oneHourAfterInitialMounting,
+                                    ) ||
+                                    isEqual(
+                                        endsAtDate,
+                                        oneHourAfterInitialMounting,
+                                    );
+                                const isNotOneHourAfterFormMounting =
+                                    isOneHourAfterFormMounting === false;
+
+                                return isNotOneHourAfterFormMounting;
+                            },
+
+                            target: 'endsAt.onBeforeOneHourAfterInitialMounting',
+                        },
+
+                        {
+                            target: 'fieldsAreValid',
+                        },
+                    ],
                 },
             },
 
@@ -509,6 +505,10 @@ const physicalConstraintsValidationTestModel = createTestModel<TestingContext>(
             {
                 endsAt: addHours(new Date(), 6).toISOString(),
             } as SetEndsAtEvent,
+
+            {
+                endsAt: addMinutes(new Date(), 5).toISOString(),
+            } as SetEndsAtEvent,
         ],
     },
 
@@ -517,7 +517,7 @@ const physicalConstraintsValidationTestModel = createTestModel<TestingContext>(
     },
 });
 
-describe('Physical constraints validation validation', () => {
+describe('Physical constraints validation', () => {
     const testPlans =
         physicalConstraintsValidationTestModel.getShortestPathPlans({});
 

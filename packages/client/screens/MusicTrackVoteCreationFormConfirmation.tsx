@@ -1,7 +1,7 @@
 import { Skeleton } from '@motify/skeleton';
 import { useActor } from '@xstate/react';
 import { Text, View } from 'dripsy';
-import React from 'react';
+import React, { useMemo } from 'react';
 import MtvRoomCreationFormScreen from '../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
 import TrackListItem from '../components/Track/TrackListItem';
 import { useCreationMtvRoomFormMachine } from '../hooks/musicPlayerHooks';
@@ -31,72 +31,101 @@ const MusicTrackVoteCreationFormConfirmation: React.FC<
 > = ({ mtvRoomCreationActor }) => {
     const [state, send] = useActor(mtvRoomCreationActor);
 
-    const summarySections = [
-        {
-            title: 'Name of the room',
-            value: state.context.roomName,
-        },
+    const summarySections = useMemo(() => {
+        const baseSections = [
+            {
+                title: 'Name of the room',
+                value: state.context.roomName,
+            },
 
-        {
-            title: 'Opening status of the room',
-            value: state.context.isOpen === true ? 'Public' : 'Private',
-        },
-        ...(state.context.isOpen === true
-            ? [
-                  {
-                      title: 'Can only invited users vote?',
-                      value:
-                          state.context.onlyInvitedUsersCanVote === true
-                              ? 'Yes'
-                              : 'No',
-                  },
-              ]
-            : []),
+            {
+                title: 'Opening status of the room',
+                value: state.context.isOpen === true ? 'Public' : 'Private',
+            },
+        ];
 
-        {
+        if (state.context.isOpen === true) {
+            baseSections.push({
+                title: 'Can only invited users vote?',
+                value:
+                    state.context.onlyInvitedUsersCanVote === true
+                        ? 'Yes'
+                        : 'No',
+            });
+        }
+
+        baseSections.push({
             title: 'Has physical constraints?',
             value: state.context.hasPhysicalConstraints === true ? 'Yes' : 'No',
-        },
-        ...(state.context.hasPhysicalConstraints === true
-            ? [
-                  {
-                      title: 'Geolocation',
-                      value: state.context.physicalConstraintPlace,
-                  },
+        });
 
-                  {
-                      title: 'Radius',
-                      value: formatRadius(
-                          state.context.physicalConstraintRadius,
-                      ),
-                  },
+        if (state.context.hasPhysicalConstraints === true) {
+            const physicalConstraintEndsAt =
+                state.context.physicalConstraintEndsAt;
+            if (physicalConstraintEndsAt === undefined) {
+                throw new Error(
+                    'physicalConstraintEndsAt is undefined; looks like it has not been saved correctly in physical constraints step',
+                );
+            }
 
-                  {
-                      title: 'Starts at',
-                      value: formatDateTime(
-                          state.context.physicalConstraintStartsAt,
-                      ),
-                  },
+            baseSections.push(
+                ...[
+                    {
+                        title: 'Geolocation',
+                        value: state.context.physicalConstraintPlace,
+                    },
 
-                  {
-                      title: 'Ends at',
-                      value: formatDateTime(
-                          state.context.physicalConstraintEndsAt,
-                      ),
-                  },
-              ]
-            : []),
+                    {
+                        title: 'Radius',
+                        value: formatRadius(
+                            state.context.physicalConstraintRadius,
+                        ),
+                    },
 
-        {
-            title: 'Playing mode',
-            value: state.context.playingMode,
-        },
+                    {
+                        title: 'Starts at',
+                        value: formatDateTime(
+                            state.context.physicalConstraintStartsAt,
+                        ),
+                    },
 
-        {
-            title: 'Minimum score',
-            value: state.context.minimumVotesForATrackToBePlayed,
-        },
-    ];
+                    {
+                        title: 'Ends at',
+                        value: formatDateTime(physicalConstraintEndsAt),
+                    },
+                ],
+            );
+        }
+
+        baseSections.push(
+            ...[
+                {
+                    title: 'Playing mode',
+                    value: state.context.playingMode,
+                },
+
+                {
+                    title: 'Minimum score',
+                    value: String(
+                        state.context.minimumVotesForATrackToBePlayed,
+                    ),
+                },
+            ],
+        );
+
+        return baseSections;
+    }, [
+        state.context.hasPhysicalConstraints,
+        state.context.isOpen,
+        state.context.minimumVotesForATrackToBePlayed,
+        state.context.onlyInvitedUsersCanVote,
+        state.context.physicalConstraintEndsAt,
+        state.context.physicalConstraintPlace,
+        state.context.physicalConstraintRadius,
+        state.context.physicalConstraintStartsAt,
+        state.context.playingMode,
+        state.context.roomName,
+    ]);
     const hasFetchedInitialTracksMetadata = state.hasTag(
         'hasFetchedInitialTracksInformation',
     );

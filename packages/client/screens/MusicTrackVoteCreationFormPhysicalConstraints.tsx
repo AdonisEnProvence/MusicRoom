@@ -1,7 +1,13 @@
 import { useActor } from '@xstate/react';
-import { isAfter, isFuture } from 'date-fns';
+import {
+    isAfter,
+    isEqual,
+    addHours,
+    setSeconds,
+    setMilliseconds,
+} from 'date-fns';
 import { Text, useSx, View } from 'dripsy';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import PickerSelect from 'react-native-picker-select';
@@ -26,7 +32,7 @@ export interface MusicTrackVoteCreationFormPhysicalConstraintsFormFieldValues {
 interface MusicTrackVoteCreationFormPhysicalConstraintsContentProps {
     hasPhysicalConstraints: boolean;
     physicalConstraintStartsAt: Date;
-    physicalConstraintEndsAt: Date;
+    physicalConstraintEndsAt?: Date;
     handleSetPhysicalConstraintsStatus(isRestricted: boolean): () => void;
     handleGoBack: () => void;
     handleGoNext: SubmitHandler<MusicTrackVoteCreationFormPhysicalConstraintsFormFieldValues>;
@@ -49,11 +55,15 @@ export const MusicTrackVoteCreationFormPhysicalConstraintsContent: React.FC<Musi
             control,
             handleSubmit,
             getValues,
-            watch,
             formState: { errors },
         } = useForm<MusicTrackVoteCreationFormPhysicalConstraintsFormFieldValues>();
         const sx = useSx();
         const textFieldStyles = useTextFieldStyles();
+        const oneHourAfterInitialMounting = useMemo(() => {
+            const now = setMilliseconds(setSeconds(new Date(), 0), 0);
+
+            return addHours(now, 1);
+        }, []);
 
         const physicalConstraintsOptions = [
             {
@@ -312,19 +322,6 @@ export const MusicTrackVoteCreationFormPhysicalConstraintsContent: React.FC<Musi
                                                         'The start date is required.'
                                                     );
                                                 },
-
-                                                isFuture: (startsAt) => {
-                                                    if (
-                                                        startsAt === undefined
-                                                    ) {
-                                                        return false;
-                                                    }
-
-                                                    return (
-                                                        isFuture(startsAt) ||
-                                                        'The event should start at a future date.'
-                                                    );
-                                                },
                                             },
                                         }}
                                         render={({
@@ -391,17 +388,44 @@ export const MusicTrackVoteCreationFormPhysicalConstraintsContent: React.FC<Musi
                                                         'The event end date must be after its beginning.'
                                                     );
                                                 },
+
+                                                isOneHourAfterFormBeginning: (
+                                                    endsAt,
+                                                ) => {
+                                                    console.log(
+                                                        'isOneHourAfterFormBeginning',
+                                                        {
+                                                            endsAt,
+                                                            oneHourAfterInitialMounting,
+                                                        },
+                                                    );
+
+                                                    const isOneHourAfterInitialMounting =
+                                                        isAfter(
+                                                            endsAt,
+                                                            oneHourAfterInitialMounting,
+                                                        ) ||
+                                                        isEqual(
+                                                            endsAt,
+                                                            oneHourAfterInitialMounting,
+                                                        );
+
+                                                    return (
+                                                        isOneHourAfterInitialMounting ||
+                                                        'The event end date must be more than in one hour.'
+                                                    );
+                                                },
                                             },
                                         }}
                                         render={({
                                             field: { onChange, value },
                                         }) => {
-                                            const startsAt = watch('startsAt');
-
                                             return (
                                                 <MtvRoomCreationFormDatePicker
                                                     date={value}
-                                                    minimiumDate={startsAt}
+                                                    minimiumDate={
+                                                        oneHourAfterInitialMounting
+                                                    }
                                                     title="Ends at"
                                                     onConfirm={onChange}
                                                     testID="ends-at-datetime-picker"
@@ -409,7 +433,10 @@ export const MusicTrackVoteCreationFormPhysicalConstraintsContent: React.FC<Musi
                                             );
                                         }}
                                         name="endsAt"
-                                        defaultValue={physicalConstraintEndsAt}
+                                        defaultValue={
+                                            physicalConstraintEndsAt ??
+                                            oneHourAfterInitialMounting
+                                        }
                                     />
                                     {errors.endsAt && (
                                         <View

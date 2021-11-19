@@ -895,8 +895,12 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								}
 
 								internalState.Tracks.Add(suggestedTrackInformation)
-								success := internalState.UserVoteForTrack(event.UserID, trackInformation.ID)
-								if success && voteIntervalTimerFuture == nil {
+								internalState.UserVoteForTrack(event.UserID, trackInformation.ID)
+
+								// We always try to schedule the vote interval timer as
+								// every user can suggest a song, and therefore, modify the tracks list.
+								// These modifications must be forwarded to every user.
+								if voteIntervalTimerFuture == nil {
 									voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
 								}
 							}

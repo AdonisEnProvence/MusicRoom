@@ -59,7 +59,9 @@ export default class TemporalToServerController {
     public async mtvCreationAcknowledgement({
         request,
     }: HttpContextContract): Promise<void> {
-        const state = MtvWorkflowState.parse(request.body());
+        const state = MtvWorkflowStateWithUserRelatedInformation.parse(
+            request.body(),
+        );
 
         Ws.io.to(state.roomID).emit('CREATE_ROOM_CALLBACK', state);
         const creator = await User.findOrFail(state.roomCreatorUserID);
@@ -67,6 +69,12 @@ export default class TemporalToServerController {
         if (creator.mtvRoom === null) {
             throw new Error('Should never occurs creator.mtvRoom is null');
         }
+
+        const emittingDevice = await Device.findOrFail(
+            state.userRelatedInformation.emittingDeviceID,
+        );
+        emittingDevice.isEmitting = true;
+        await emittingDevice.save();
 
         const {
             constraintLat,
@@ -113,6 +121,12 @@ export default class TemporalToServerController {
             'JOIN_ROOM_CALLBACK',
             [state],
         );
+
+        const emittingDevice = await Device.findOrFail(
+            state.userRelatedInformation.emittingDeviceID,
+        );
+        emittingDevice.isEmitting = true;
+        await emittingDevice.save();
 
         const {
             constraintLat,

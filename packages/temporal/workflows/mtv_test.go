@@ -198,8 +198,7 @@ func getWokflowInitParams(tracksIDs []string, minimumScoreToBePlayed int) (share
 		roomCreatorDeviceID = faker.UUIDHyphenated()
 	)
 
-	initialUsers := make(map[string]*shared.InternalStateUser)
-	initialUsers[roomCreatorUserID] = &shared.InternalStateUser{
+	creatorUserRelatedInformation := &shared.InternalStateUser{
 		UserID:                            roomCreatorUserID,
 		DeviceID:                          roomCreatorDeviceID,
 		TracksVotedFor:                    make([]string, 0),
@@ -210,7 +209,7 @@ func getWokflowInitParams(tracksIDs []string, minimumScoreToBePlayed int) (share
 		RoomID:                        workflowID,
 		RoomCreatorUserID:             roomCreatorUserID,
 		RoomName:                      faker.Word(),
-		InitialUsers:                  initialUsers,
+		CreatorUserRelatedInformation: creatorUserRelatedInformation,
 		InitialTracksIDsList:          tracksIDs,
 		MinimumScoreToBePlayed:        minimumScoreToBePlayed,
 		HasPhysicalAndTimeConstraints: false,
@@ -2604,7 +2603,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &falseValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &falseValue
 
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 
@@ -2762,7 +2761,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestTimeC
 
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &falseValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &falseValue
 
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 
@@ -4420,7 +4419,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartBeforeNow() {
 	}
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &shared.TrueValue
 
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 
@@ -4495,7 +4494,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartAfterNow() {
 	}
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &shared.TrueValue
 
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 
@@ -4566,7 +4565,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailPhysicalAndTimeConstraints
 
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = nil
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &shared.TrueValue
 
 	resetMock, _ := s.initTestEnv()
 
@@ -4610,7 +4609,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailPhysicalAndTimeConstraints
 	}
 	params.HasPhysicalAndTimeConstraints = false
 	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &shared.TrueValue
 
 	resetMock, _ := s.initTestEnv()
 
@@ -4654,7 +4653,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailStartIsAfterEnd() {
 	}
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &shared.TrueValue
 
 	resetMock, _ := s.initTestEnv()
 
@@ -4698,7 +4697,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailStartEqualEnd() {
 	}
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &shared.TrueValue
 
 	resetMock, _ := s.initTestEnv()
 
@@ -4741,7 +4740,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailEndIsBeforeNow() {
 	}
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &shared.TrueValue
 
 	resetMock, _ := s.initTestEnv()
 
@@ -4786,7 +4785,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailEndEqualNow() {
 	}
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &shared.TrueValue
 
 	defer resetMock()
 

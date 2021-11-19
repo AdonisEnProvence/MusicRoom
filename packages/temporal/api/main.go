@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -411,20 +410,13 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !body.PlayingMode.IsValid() {
-		log.Println("mode is invalid", err)
-		WriteError(w, err)
-		return
-	}
-
 	options := client.StartWorkflowOptions{
 		ID:        body.WorkflowID,
 		TaskQueue: shared.ControlTaskQueue,
 	}
 	initialTracksIDsList := body.InitialTracksIDs
 
-	initialUsers := make(map[string]*shared.InternalStateUser)
-	initialUsers[body.UserID] = &shared.InternalStateUser{
+	creatorUserRelatedInformation := &shared.InternalStateUser{
 		UserID:                            body.UserID,
 		DeviceID:                          body.DeviceID,
 		TracksVotedFor:                    make([]string, 0),
@@ -434,7 +426,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if body.HasPhysicalAndTimeConstraints && body.PhysicalAndTimeConstraints != nil {
-		initialUsers[body.UserID].UserFitsPositionConstraint = body.CreatorFitsPositionConstraint
+		creatorUserRelatedInformation.UserFitsPositionConstraint = body.CreatorFitsPositionConstraint
 	}
 
 	params := shared.MtvRoomParameters{
@@ -442,30 +434,17 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		RoomCreatorUserID:             body.UserID,
 		RoomName:                      body.Name,
 		MinimumScoreToBePlayed:        body.MinimumScoreToBePlayed,
-		InitialUsers:                  initialUsers,
+		CreatorUserRelatedInformation: creatorUserRelatedInformation,
 		InitialTracksIDsList:          initialTracksIDsList,
 		IsOpen:                        body.IsOpen,
 		IsOpenOnlyInvitedUsersCanVote: body.IsOpenOnlyInvitedUsersCanVote,
 		HasPhysicalAndTimeConstraints: body.HasPhysicalAndTimeConstraints,
-		//letting the room creation mutate this field
-		PhysicalAndTimeConstraints: nil,
-		PlayingMode:                body.PlayingMode,
+		PhysicalAndTimeConstraints:    nil,
+		PlayingMode:                   body.PlayingMode,
 	}
 
 	if body.PhysicalAndTimeConstraints != nil {
 		params.PhysicalAndTimeConstraints = body.PhysicalAndTimeConstraints
-	}
-
-	now := time.Now()
-	if err := params.VerifyTimeConstraint(now); err != nil {
-		WriteError(w, err)
-		return
-	}
-
-	onlyInvitedUserTrueButRoomIsNotPublic := params.IsOpenOnlyInvitedUsersCanVote && !params.IsOpen
-	if onlyInvitedUserTrueButRoomIsNotPublic {
-		WriteError(w, errors.New("corrupted payload IsOpenOnlyInvitedUsersCanVote true but IsOpen false, private room cannot have this setting"))
-		return
 	}
 
 	we, err := temporal.ExecuteWorkflow(context.Background(), options, workflows.MtvRoomWorkflow, params)
@@ -473,9 +452,20 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
+	args := PerformMtvGetStateQueryArgs{
+		WorkflowID: we.GetID(),
+		RunID:      we.GetRunID(),
+		UserID:     params.RoomCreatorUserID,
+	}
+
+	mtvRoomExposedState, err := PerformMtvGetStateQuery(args)
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
 
 	res := CreateRoomResponse{
-		State:      params.Export(),
+		State:      mtvRoomExposedState,
 		WorkflowID: we.GetID(),
 		RunID:      we.GetRunID(),
 	}
@@ -717,6 +707,25 @@ func UpdateControlAndDelegationPermissionHandler(w http.ResponseWriter, r *http.
 	json.NewEncoder(w).Encode(res)
 }
 
+type PerformMtvGetStateQueryArgs struct {
+	WorkflowID string
+	UserID     string
+	RunID      string
+}
+
+func PerformMtvGetStateQuery(params PerformMtvGetStateQueryArgs) (shared.MtvRoomExposedState, error) {
+	response, err := temporal.QueryWorkflow(context.Background(), params.WorkflowID, params.RunID, shared.MtvGetStateQuery, params.UserID)
+	if err != nil {
+		return shared.MtvRoomExposedState{}, err
+	}
+	var res shared.MtvRoomExposedState
+	if err := response.Get(&res); err != nil {
+		return shared.MtvRoomExposedState{}, err
+	}
+
+	return res, nil
+}
+
 type GetStateBody struct {
 	WorkflowID string `json:"workflowID" validate:"required,uuid"`
 	UserID     string `json:"userID,omitempty" validate:"required,uuid"`
@@ -737,13 +746,15 @@ func GetStateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := temporal.QueryWorkflow(context.Background(), body.WorkflowID, body.RunID, shared.MtvGetStateQuery, body.UserID)
-	if err != nil {
-		WriteError(w, err)
-		return
+	//Json marshall will set body.UserID default golang string value if it's empty
+	args := PerformMtvGetStateQueryArgs{
+		RunID:      body.RunID,
+		UserID:     body.UserID,
+		WorkflowID: body.WorkflowID,
 	}
-	var res shared.MtvRoomExposedState
-	if err := response.Get(&res); err != nil {
+
+	res, err := PerformMtvGetStateQuery(args)
+	if err != nil {
 		WriteError(w, err)
 		return
 	}

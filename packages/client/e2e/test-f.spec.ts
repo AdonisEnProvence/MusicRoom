@@ -6,9 +6,13 @@ import {
     Page,
     Locator,
 } from '@playwright/test';
-import { addHours, addMinutes, addSeconds, format } from 'date-fns';
-import { assertIsNotNull, assertIsNotUndefined } from './_utils/assert';
-import { KnownSearchesRecord, mockSearchTracks } from './_utils/mock-http';
+import { addHours, format } from 'date-fns';
+import {
+    assertIsNotNull,
+    assertIsNotUndefined,
+    assertMusicPlayerStatusIs,
+} from './_utils/assert';
+import { mockSearchTracks } from './_utils/mock-http';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
 const AVAILABLE_USERS_LIST = [
@@ -317,19 +321,6 @@ async function createPublicRoomWithTimeAndPhysicalConstraints({
     };
 }
 
-async function waitForJoiningRoom({
-    page,
-    roomName,
-}: {
-    page: Page;
-    roomName: string;
-}) {
-    const miniPlayerWithRoomName = page.locator(`text="${roomName}"`).first();
-    await expect(miniPlayerWithRoomName).toBeVisible();
-
-    await miniPlayerWithRoomName.click();
-}
-
 async function joinRoom({ page, roomName }: { page: Page; roomName: string }) {
     await page.click('text="Go to Music Track Vote"');
 
@@ -364,54 +355,6 @@ async function joinRoom({ page, roomName }: { page: Page; roomName: string }) {
         page,
         roomName,
     });
-}
-
-async function waitForPlayerState({
-    page,
-    testID,
-}: {
-    page: Page;
-    testID: `music-player-${'playing' | 'not-playing'}-device-${
-        | 'emitting'
-        | 'muted'}`;
-}) {
-    const player = page.locator(
-        `css=[data-testid="${testID}"] >> visible=true`,
-    );
-    await expect(player).toBeVisible();
-}
-
-async function playTrack(page: Page) {
-    const fullScreenPlayerPlayButton = page.locator(
-        'css=[aria-label="Play the video"] >> nth=1',
-    );
-    await expect(fullScreenPlayerPlayButton).toBeVisible();
-
-    await fullScreenPlayerPlayButton.click();
-}
-
-async function changeEmittingDevice({
-    page,
-    emittingDeviceIndex,
-}: {
-    page: Page;
-    emittingDeviceIndex: number;
-}) {
-    const settingsTab = page.locator('text="Settings" >> visible=true');
-    await expect(settingsTab).toBeVisible();
-    await settingsTab.click();
-
-    const changeEmittingDeviceButton = page.locator(
-        'text="Change emitting device" >> visible=true',
-    );
-    await expect(changeEmittingDeviceButton).toBeVisible();
-    await changeEmittingDeviceButton.click();
-
-    const deviceToMakeEmitter = page.locator(
-        `text=Web Player >> nth=${emittingDeviceIndex}`,
-    );
-    await expect(deviceToMakeEmitter).toBeVisible();
-    await deviceToMakeEmitter.click();
 }
 
 /**
@@ -482,7 +425,9 @@ async function voteForTrackInMusicPlayerFullScreen({
     trackToVoteFor: string;
 }) {
     const trackToVoteForElement = page.locator(`text=${trackToVoteFor}`).last();
-    await expect(trackToVoteForElement).toBeVisible();
+    await expect(trackToVoteForElement).toBeVisible({
+        timeout: 30_000,
+    });
 
     await trackToVoteForElement.click();
 }
@@ -578,15 +523,18 @@ test('Test F', async ({ browser }) => {
 
         waitForYouTubeVideoToLoad(userADevice1Page),
         waitForYouTubeVideoToLoad(userBDevice1Page),
+        waitForYouTubeVideoToLoad(userBDevice2Page),
     ]);
 
     await Promise.all([
-        waitForPlayerState({
+        assertMusicPlayerStatusIs({
             page: userADevice1Page,
             testID: 'music-player-playing-device-emitting',
         }),
-        waitForPlayerState({
-            page: userBDevice1Page,
+
+        // The device 2 has become the emitting device as device 1 exited.
+        assertMusicPlayerStatusIs({
+            page: userBDevice2Page,
             testID: 'music-player-playing-device-emitting',
         }),
     ]);
@@ -623,9 +571,12 @@ test('Test F', async ({ browser }) => {
         trackToVoteFor: suggestTrackTitle,
     });
 
-    await expect(
-        userBDevice1Page.locator(`text=${suggestTrackTitle} 1/2`),
-    ).toBeVisible();
+    const suggestedTrackCard = userBDevice1Page.locator(
+        `text="${suggestTrackTitle}"`,
+        // `css=:text("1/2"):right-of([data-testid="${suggestTrackTitle}"])`,
+    );
+    await expect(suggestedTrackCard).toBeVisible();
+    // await expect(suggestedTrackCard).toHaveText('1/2');
 
     await userADevice1Page.waitForTimeout(100_000);
 });

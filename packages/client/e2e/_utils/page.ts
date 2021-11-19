@@ -20,15 +20,34 @@ export const AVAILABLE_USERS_LIST = [
     },
 ];
 
+export const GEOLOCATION_POSITIONS = {
+    'Paris, France': {
+        latitude: 48.864716,
+        longitude: 2.349014,
+    },
+
+    'Soissons, France': {
+        latitude: 49.38167,
+        longitude: 3.32361,
+    },
+
+    'Manosque, France': {
+        latitude: 43.82883,
+        longitude: 5.78688,
+    },
+};
+
 type SetupAndGetUserContextArgs = {
     browser: Browser;
     userIndex: number;
     knownSearches: KnownSearchesRecord;
+    town?: keyof typeof GEOLOCATION_POSITIONS;
 };
 export async function setupAndGetUserPage({
     browser,
     userIndex,
     knownSearches,
+    town,
 }: SetupAndGetUserContextArgs): Promise<{
     context: BrowserContext;
     page: Page;
@@ -50,6 +69,9 @@ export async function setupAndGetUserPage({
                 },
             ],
         },
+        permissions: ['geolocation'],
+        geolocation:
+            town === undefined ? undefined : GEOLOCATION_POSITIONS[town],
     });
     const page = await context.newPage();
 

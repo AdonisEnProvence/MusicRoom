@@ -63,10 +63,33 @@ export default class TemporalToServerController {
 
         Ws.io.to(state.roomID).emit('CREATE_ROOM_CALLBACK', state);
         const creator = await User.findOrFail(state.roomCreatorUserID);
+        await creator.load('mtvRoom');
+        if (creator.mtvRoom === null) {
+            throw new Error('Should never occurs creator.mtvRoom is null');
+        }
 
+        const {
+            constraintLat,
+            constraintLng,
+            constraintRadius,
+            hasPositionAndTimeConstraints,
+            runID,
+            uuid: roomID,
+        } = creator.mtvRoom;
         await MtvRoomsWsController.checkUserDevicesPositionIfRoomHasPositionConstraints(
-            creator,
-            state.roomID,
+            {
+                user: creator,
+                roomConstraintInformation: {
+                    constraintLat,
+                    constraintLng,
+                    constraintRadius,
+                    hasPositionAndTimeConstraints,
+                },
+                persistToTemporalRequiredInformation: {
+                    runID,
+                    roomID,
+                },
+            },
         );
     }
 
@@ -91,9 +114,27 @@ export default class TemporalToServerController {
             [state],
         );
 
+        const {
+            constraintLat,
+            constraintLng,
+            constraintRadius,
+            hasPositionAndTimeConstraints,
+            runID,
+        } = mtvRoom;
         await MtvRoomsWsController.checkUserDevicesPositionIfRoomHasPositionConstraints(
-            joiningUser,
-            roomID,
+            {
+                user: joiningUser,
+                roomConstraintInformation: {
+                    constraintLat,
+                    constraintLng,
+                    constraintRadius,
+                    hasPositionAndTimeConstraints,
+                },
+                persistToTemporalRequiredInformation: {
+                    roomID,
+                    runID,
+                },
+            },
         );
     }
 

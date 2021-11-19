@@ -15,6 +15,7 @@ import Ws from 'App/Services/Ws';
 import { Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import MtvRoomsChatController from 'App/Controllers/Ws/MtvRoomsChatController';
+import MtvRoom from 'App/Models/MtvRoom';
 
 Ws.boot();
 
@@ -101,9 +102,30 @@ Ws.io.on('connection', async (socket) => {
                 await device.save();
 
                 if (mtvRoomID !== undefined) {
+                    const mtvRoom = await MtvRoom.findOrFail(mtvRoomID);
+
+                    const {
+                        constraintLat,
+                        constraintLng,
+                        constraintRadius,
+                        hasPositionAndTimeConstraints,
+                        runID,
+                        uuid: roomID,
+                    } = mtvRoom;
                     await MtvRoomsWsController.checkUserDevicesPositionIfRoomHasPositionConstraints(
-                        user,
-                        mtvRoomID,
+                        {
+                            user,
+                            persistToTemporalRequiredInformation: {
+                                roomID,
+                                runID,
+                            },
+                            roomConstraintInformation: {
+                                constraintLat,
+                                constraintLng,
+                                constraintRadius,
+                                hasPositionAndTimeConstraints,
+                            },
+                        },
                     );
                 }
             } catch (e) {
@@ -165,7 +187,7 @@ Ws.io.on('connection', async (socket) => {
 
                 const raw = await MtvRoomsWsController.onCreate({
                     params: payload,
-                    userID: user.uuid,
+                    user,
                     deviceID,
                 });
                 Ws.io

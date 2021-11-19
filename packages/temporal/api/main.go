@@ -371,11 +371,12 @@ func TerminateWorkflowHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type CreateRoomRequestBody struct {
-	WorkflowID       string   `json:"workflowID" validate:"required,uuid"`
-	UserID           string   `json:"userID" validate:"required,uuid"`
-	DeviceID         string   `json:"deviceID" validate:"required,uuid"`
-	Name             string   `json:"name" validate:"required"`
-	InitialTracksIDs []string `json:"initialTracksIDs" validate:"required,dive,required"`
+	WorkflowID                    string   `json:"workflowID" validate:"required,uuid"`
+	UserID                        string   `json:"userID" validate:"required,uuid"`
+	DeviceID                      string   `json:"deviceID" validate:"required,uuid"`
+	Name                          string   `json:"name" validate:"required"`
+	InitialTracksIDs              []string `json:"initialTracksIDs" validate:"required,dive,required"`
+	CreatorFitsPositionConstraint *bool    `json:"creatorFitsPositionConstraint"`
 
 	MinimumScoreToBePlayed        int                                       `json:"minimumScoreToBePlayed" validate:"required"`
 	IsOpen                        bool                                      `json:"isOpen"`
@@ -433,8 +434,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if body.HasPhysicalAndTimeConstraints && body.PhysicalAndTimeConstraints != nil {
-		falseValue := false
-		initialUsers[body.UserID].UserFitsPositionConstraint = &falseValue
+		initialUsers[body.UserID].UserFitsPositionConstraint = body.CreatorFitsPositionConstraint
 	}
 
 	params := shared.MtvRoomParameters{

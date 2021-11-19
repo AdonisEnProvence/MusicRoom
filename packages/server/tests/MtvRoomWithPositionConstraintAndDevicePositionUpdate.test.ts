@@ -65,38 +65,51 @@ test.group(
             /** Mocks */
             sinon
                 .stub(ServerToTemporalController, 'createMtvWorkflow')
-                .callsFake(async ({ workflowID }) => {
-                    const state: MtvWorkflowStateWithUserRelatedInformation = {
-                        roomID: workflowID,
-                        roomCreatorUserID: datatype.uuid(),
-                        playing: false,
-                        name: settings.name,
-                        playingMode: 'BROADCAST',
-                        currentTrack: null,
-                        isOpen: true,
-                        isOpenOnlyInvitedUsersCanVote: false,
-                        hasTimeAndPositionConstraints: false,
-                        timeConstraintIsValid: null,
-                        delegationOwnerUserID: null,
-                        userRelatedInformation: {
-                            userID,
-                            hasControlAndDelegationPermission: true,
-                            emittingDeviceID: datatype.uuid(),
-                            userHasBeenInvited: false,
-                            tracksVotedFor: [],
-                            userFitsPositionConstraint: null,
-                        },
-                        usersLength: 1,
-                        tracks: null,
-                        minimumScoreToBePlayed: 1,
-                    };
-
-                    return {
-                        runID: datatype.uuid(),
+                .callsFake(
+                    async ({
                         workflowID,
-                        state,
-                    };
-                });
+                        params: { creatorFitsPositionConstraint },
+                    }) => {
+                        //Checking that we tried to retrieve user last known position
+                        //By looking for false boolean and not a undefined
+                        assert.isFalse(creatorFitsPositionConstraint);
+                        assert.notEqual(
+                            creatorFitsPositionConstraint,
+                            undefined,
+                        );
+                        const state: MtvWorkflowStateWithUserRelatedInformation =
+                            {
+                                roomID: workflowID,
+                                roomCreatorUserID: datatype.uuid(),
+                                playing: false,
+                                name: settings.name,
+                                playingMode: 'BROADCAST',
+                                currentTrack: null,
+                                isOpen: true,
+                                isOpenOnlyInvitedUsersCanVote: false,
+                                hasTimeAndPositionConstraints: false,
+                                timeConstraintIsValid: null,
+                                delegationOwnerUserID: null,
+                                userRelatedInformation: {
+                                    userID,
+                                    hasControlAndDelegationPermission: true,
+                                    emittingDeviceID: datatype.uuid(),
+                                    userHasBeenInvited: false,
+                                    tracksVotedFor: [],
+                                    userFitsPositionConstraint: null,
+                                },
+                                usersLength: 1,
+                                tracks: null,
+                                minimumScoreToBePlayed: 1,
+                            };
+
+                        return {
+                            runID: datatype.uuid(),
+                            workflowID,
+                            state,
+                        };
+                    },
+                );
             sinon
                 .stub(GeocodingService, 'getCoordsFromAddress')
                 .callsFake(async (): Promise<LatlngCoords> => {

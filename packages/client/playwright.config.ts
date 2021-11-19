@@ -7,6 +7,7 @@ const config: PlaywrightTestConfig = {
         headless: false,
         baseURL: 'http://localhost:4000',
     },
+    timeout: 120_000,
 };
 
 export default config;

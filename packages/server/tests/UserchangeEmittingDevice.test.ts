@@ -1,12 +1,22 @@
 import Database from '@ioc:Adonis/Lucid/Database';
-import { MtvWorkflowState, UserRelatedInformation } from '@musicroom/types';
+import {
+    MtvPlayingModes,
+    MtvWorkflowState,
+    MtvWorkflowStateWithUserRelatedInformation,
+    UserRelatedInformation,
+} from '@musicroom/types';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
 import Device from 'App/Models/Device';
 import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
-import { BASE_URL, initTestUtils, sleep } from './utils/TestUtils';
+import {
+    BASE_URL,
+    getDefaultMtvRoomCreateRoomArgs,
+    initTestUtils,
+    sleep,
+} from './utils/TestUtils';
 
 test.group(
     `User change emitting device success and fail cases & eviction handler`,
@@ -17,6 +27,7 @@ test.group(
             disconnectEveryRemainingSocketConnection,
             disconnectSocket,
             initSocketConnection,
+            waitFor,
         } = initTestUtils();
 
         group.beforeEach(async () => {
@@ -332,6 +343,158 @@ test.group(
             await sleep();
 
             assert.isTrue(hasNeverBeenCalled);
+        });
+
+        test('After user creates a room emitting device should be updated in database', async (assert) => {
+            const creatorUserID = datatype.uuid();
+
+            /** Mocks */
+            sinon
+                .stub(ServerToTemporalController, 'createMtvWorkflow')
+                .callsFake(async ({ workflowID, userID, deviceID }) => {
+                    const state: MtvWorkflowStateWithUserRelatedInformation = {
+                        currentTrack: null,
+                        roomID: workflowID,
+                        roomCreatorUserID: userID,
+                        hasTimeAndPositionConstraints: false,
+                        isOpen: true,
+                        delegationOwnerUserID: null,
+
+                        isOpenOnlyInvitedUsersCanVote: false,
+                        timeConstraintIsValid: null,
+                        playingMode: MtvPlayingModes.Values.BROADCAST,
+                        tracks: null,
+                        playing: false,
+                        name: random.word(),
+                        userRelatedInformation: {
+                            hasControlAndDelegationPermission: true,
+                            userID,
+                            emittingDeviceID: deviceID,
+                            tracksVotedFor: [],
+                            userHasBeenInvited: false,
+                            userFitsPositionConstraint: null,
+                        },
+                        minimumScoreToBePlayed: 1,
+                        usersLength: 1,
+                    };
+
+                    await supertest(BASE_URL)
+                        .post('/temporal/mtv-creation-acknowledgement')
+                        .send(state);
+
+                    return {
+                        runID: datatype.uuid(),
+                        workflowID: workflowID,
+                        state,
+                    };
+                });
+            /** ***** */
+
+            const socket = await createUserAndGetSocket({
+                userID: creatorUserID,
+            });
+
+            let callbackHasBeenCalled = false;
+            const device = await Device.findBy('socket_id', socket.id);
+            assert.isNotNull(device);
+            if (device === null) {
+                throw new Error('device is null');
+            }
+            assert.isFalse(device.isEmitting);
+
+            socket.on('CREATE_ROOM_CALLBACK', () => {
+                callbackHasBeenCalled = true;
+            });
+
+            const settings = getDefaultMtvRoomCreateRoomArgs();
+            socket.emit('CREATE_ROOM', {
+                ...settings,
+            });
+
+            await waitFor(() => {
+                assert.isTrue(callbackHasBeenCalled);
+            });
+
+            await device.refresh();
+            assert.isTrue(device.isEmitting);
+        });
+
+        test('After user creates a room emitting device should be updated in database', async (assert) => {
+            const creatorUserID = datatype.uuid();
+            const joiningUserID = datatype.uuid();
+            const mtvRoomIDToAssociate = datatype.uuid();
+
+            /** Mocks */
+            sinon
+                .stub(ServerToTemporalController, 'joinWorkflow')
+                .callsFake(async ({ workflowID, userID, deviceID }) => {
+                    const state: MtvWorkflowStateWithUserRelatedInformation = {
+                        currentTrack: null,
+                        roomID: workflowID,
+                        roomCreatorUserID: userID,
+                        hasTimeAndPositionConstraints: false,
+                        isOpen: true,
+                        delegationOwnerUserID: null,
+
+                        isOpenOnlyInvitedUsersCanVote: false,
+                        timeConstraintIsValid: null,
+                        playingMode: MtvPlayingModes.Values.BROADCAST,
+                        tracks: null,
+                        playing: false,
+                        name: random.word(),
+                        userRelatedInformation: {
+                            hasControlAndDelegationPermission: true,
+                            userID,
+                            emittingDeviceID: deviceID,
+                            tracksVotedFor: [],
+                            userHasBeenInvited: false,
+                            userFitsPositionConstraint: null,
+                        },
+                        minimumScoreToBePlayed: 1,
+                        usersLength: 1,
+                    };
+                    await supertest(BASE_URL)
+                        .post('/temporal/join')
+                        .send({ state, joiningUserID: userID });
+                    return;
+                });
+
+            /** ***** */
+
+            await createUserAndGetSocket({
+                userID: creatorUserID,
+                mtvRoomIDToAssociate,
+            });
+
+            let callbackHasBeenCalled = false;
+            const joiningUserSocket = await createUserAndGetSocket({
+                userID: joiningUserID,
+            });
+
+            const joiningUserDevice = await Device.findBy(
+                'socket_id',
+                joiningUserSocket.id,
+            );
+            assert.isNotNull(joiningUserDevice);
+            if (joiningUserDevice === null) {
+                throw new Error('device is null');
+            }
+            assert.isFalse(joiningUserDevice.isEmitting);
+
+            joiningUserSocket.on('JOIN_ROOM_CALLBACK', () => {
+                callbackHasBeenCalled = true;
+            });
+
+            joiningUserSocket.emit('JOIN_ROOM', {
+                roomID: mtvRoomIDToAssociate,
+            });
+
+            await waitFor(() => {
+                assert.isTrue(callbackHasBeenCalled);
+            });
+
+            await joiningUserDevice.refresh();
+            assert.isTrue(joiningUserDevice.isEmitting);
         });
     },
 );

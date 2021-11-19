@@ -2619,11 +2619,16 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.AcknowledgeUpdateUserFitsPositionConstraint,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
 
 	init := defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(params.RoomCreatorUserID)
-
+		fmt.Printf("\n STATE =\n%+v\n", mtvState)
 		expectedCreator := &shared.InternalStateUser{
 			UserID:                            params.RoomCreatorUserID,
 			DeviceID:                          creatorDeviceID,
@@ -2662,7 +2667,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 		s.False(mtvState.Playing)
 		s.Equal(1, mtvState.MinimumScoreToBePlayed)
 		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
-		s.Equal(expectedTracks, mtvState.Tracks)
+		s.Equal(expectedTracks, mtvState.Tracks) //here
 		s.True(mtvState.RoomHasTimeAndPositionConstraints)
 	}, init)
 
@@ -4798,6 +4803,65 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailEndEqualNow() {
 	s.True(errors.As(err, &applicationErr))
 	s.Equal("end equal now", applicationErr.Error())
 
+}
+
+func (s *UnitTestSuite) Test_MtvRoomFailPlayingModeIsInvalid() {
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	tracksIDs := []string{tracks[0].ID}
+	params, _ := getWokflowInitParams(tracksIDs, 2)
+	//mocking now
+	resetMock, _ := s.initTestEnv()
+	///
+	params.PlayingMode = "UNKNOWN_PLAYING_MODE"
+
+	defer resetMock()
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.Error(err)
+	var applicationErr *temporal.ApplicationError
+	s.True(errors.As(err, &applicationErr))
+	s.Equal("PlayingMode is invalid", applicationErr.Error())
+}
+
+func (s *UnitTestSuite) Test_MtvRoomFailIsOpenOnlyInvitedUsersCanVoteTrueButIsOpenFalse() {
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	tracksIDs := []string{tracks[0].ID}
+	params, _ := getWokflowInitParams(tracksIDs, 2)
+	//mocking now
+	resetMock, _ := s.initTestEnv()
+	///
+	params.IsOpen = false
+	params.IsOpenOnlyInvitedUsersCanVote = true
+
+	defer resetMock()
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.Error(err)
+	var applicationErr *temporal.ApplicationError
+	s.True(errors.As(err, &applicationErr))
+	s.Equal("IsOpenOnlyInvitedUsersCanVote true but IsOpen false", applicationErr.Error())
 }
 
 func TestUnitTestSuite(t *testing.T) {

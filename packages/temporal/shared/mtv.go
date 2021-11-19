@@ -364,27 +364,6 @@ func (p MtvRoomParameters) VerifyTimeConstraint(now time.Time) error {
 	return nil
 }
 
-// func (p MtvRoomParameters) Export() MtvRoomExposedState {
-// 	exposedState := MtvRoomExposedState{
-// 		RoomID:                            p.RoomID,
-// 		Playing:                           false,
-// 		RoomCreatorUserID:                 p.RoomCreatorUserID,
-// 		RoomName:                          p.RoomName,
-// 		UserRelatedInformation:            p.CreatorUserRelatedInformation,
-// 		MinimumScoreToBePlayed:            p.MinimumScoreToBePlayed,
-// 		PlayingMode:                       p.PlayingMode,
-// 		IsOpen:                            p.IsOpen,
-// 		IsOpenOnlyInvitedUsersCanVotes:    p.IsOpenOnlyInvitedUsersCanVote,
-// 		RoomHasTimeAndPositionConstraints: p.HasPhysicalAndTimeConstraints,
-// 		DelegationOwnerUserID:             nil,
-// 	}
-// 	if p.PlayingMode == MtvPlayingModeDirect {
-// 		exposedState.DelegationOwnerUserID = &p.RoomCreatorUserID
-// 	}
-
-// 	return exposedState
-// }
-
 type MtvRoomExposedState struct {
 	RoomID                            string                               `json:"roomID"`
 	RoomCreatorUserID                 string                               `json:"roomCreatorUserID"`

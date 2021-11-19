@@ -1,7 +1,6 @@
 package workflows
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -29,10 +28,13 @@ type MtvRoomInternalState struct {
 	DelegationOwnerUserID                  *string
 }
 
+//This method will merge given params in the internalState
 func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 	s.initialParams = params
-	s.Users = params.InitialUsers
+	s.Users = make(map[string]*shared.InternalStateUser)
+	s.AddUser(*params.CreatorUserRelatedInformation)
 	s.DelegationOwnerUserID = nil
+	s.timeConstraintIsValid = nil
 
 	if params.PlayingMode == shared.MtvPlayingModeDirect {
 		s.DelegationOwnerUserID = &params.RoomCreatorUserID
@@ -43,6 +45,9 @@ func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
 	}
 }
 
+// In the internalState.Export method we do not use workflow.sideEffect for at least two reasons:
+// 1- we cannot use workflow.sideEffect in the getState queryHandler
+// 2- we never update our internalState depending on internalState.Export() results this data aims to be sent to adonis.
 func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExposedState {
 	tracks := s.Tracks.Values()
 	exposedTracks := make([]shared.TrackMetadataWithScoreWithDuration, 0, len(tracks))
@@ -268,27 +273,20 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 	logger := workflow.GetLogger(ctx)
 
-	if !params.PlayingMode.IsValid() {
-		logger.Info("Workflow creation failed, playingMode is invalid", "Error", err)
-		return errors.New("workflow creation failed, playingMode is invalid")
-	}
-
+	//Checking params
 	rootNow := getNowFromSideEffect(ctx)
-	if err := params.VerifyTimeConstraint(rootNow); err != nil {
-		logger.Info("Workflow creation failed", err)
+	if err := params.CheckParamsValidity(rootNow); err != nil {
+		logger.Info("Workflow creation failed", "Error", err)
 		return err
 	}
-
+	///
 	internalState.FillWith(params)
 
 	if err := workflow.SetQueryHandler(
 		ctx,
 		shared.MtvGetStateQuery,
 		func(userID string) (shared.MtvRoomExposedState, error) {
-			// Here we do not use workflow.sideEffect for at least two reasons:
-			// 1- we cannot use workflow.sideEffect in the getState queryHandler
-			// 2- we never update our internalState depending on internalState.Export() results
-			// this data aims to be sent to adonis.
+
 			exposedState := internalState.Export(userID)
 
 			return exposedState, nil

@@ -285,12 +285,12 @@ const (
 var MtvPlayingModesAllValues = [...]MtvPlayingModes{MtvPlayingModeDirect, MtvPlayingModeBroadcast}
 
 type MtvRoomParameters struct {
-	RoomID                 string
-	RoomCreatorUserID      string
-	RoomName               string
-	MinimumScoreToBePlayed int
-	InitialUsers           map[string]*InternalStateUser
-	InitialTracksIDsList   []string
+	RoomID                        string
+	RoomCreatorUserID             string
+	RoomName                      string
+	MinimumScoreToBePlayed        int
+	CreatorUserRelatedInformation *InternalStateUser
+	InitialTracksIDsList          []string
 
 	//Same as for PhysicalConstraintPosition IsOpen won't be usefull
 	//for temporal itself but for the adonis mtv room search engine
@@ -299,6 +299,27 @@ type MtvRoomParameters struct {
 	HasPhysicalAndTimeConstraints bool
 	PhysicalAndTimeConstraints    *MtvRoomPhysicalAndTimeConstraints
 	PlayingMode                   MtvPlayingModes
+}
+
+//This method will return an error if it determines that params are corrupted
+func (p MtvRoomParameters) CheckParamsValidity(now time.Time) error {
+	//Checking for unknown given playindMode label
+	if !p.PlayingMode.IsValid() {
+		return errors.New("PlayingMode is invalid")
+	}
+
+	//Looking for OnlyInvitedUsersCan vote enabled in private room error
+	onlyInvitedUserTrueButRoomIsNotPublic := p.IsOpenOnlyInvitedUsersCanVote && !p.IsOpen
+	if onlyInvitedUserTrueButRoomIsNotPublic {
+		return errors.New("IsOpenOnlyInvitedUsersCanVote true but IsOpen false")
+	}
+
+	//Parsing given timeConstraint
+	if err := p.VerifyTimeConstraint(now); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (p MtvRoomParameters) VerifyTimeConstraint(now time.Time) error {
@@ -341,27 +362,6 @@ func (p MtvRoomParameters) VerifyTimeConstraint(now time.Time) error {
 	}
 
 	return nil
-}
-
-func (p MtvRoomParameters) Export() MtvRoomExposedState {
-	exposedState := MtvRoomExposedState{
-		RoomID:                            p.RoomID,
-		Playing:                           false,
-		RoomCreatorUserID:                 p.RoomCreatorUserID,
-		RoomName:                          p.RoomName,
-		UserRelatedInformation:            p.InitialUsers[p.RoomCreatorUserID],
-		MinimumScoreToBePlayed:            p.MinimumScoreToBePlayed,
-		PlayingMode:                       p.PlayingMode,
-		IsOpen:                            p.IsOpen,
-		IsOpenOnlyInvitedUsersCanVotes:    p.IsOpenOnlyInvitedUsersCanVote,
-		RoomHasTimeAndPositionConstraints: p.HasPhysicalAndTimeConstraints,
-		DelegationOwnerUserID:             nil,
-	}
-	if p.PlayingMode == MtvPlayingModeDirect {
-		exposedState.DelegationOwnerUserID = &p.RoomCreatorUserID
-	}
-
-	return exposedState
 }
 
 type MtvRoomExposedState struct {

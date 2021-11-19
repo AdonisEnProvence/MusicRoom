@@ -198,8 +198,7 @@ func getWokflowInitParams(tracksIDs []string, minimumScoreToBePlayed int) (share
 		roomCreatorDeviceID = faker.UUIDHyphenated()
 	)
 
-	initialUsers := make(map[string]*shared.InternalStateUser)
-	initialUsers[roomCreatorUserID] = &shared.InternalStateUser{
+	creatorUserRelatedInformation := &shared.InternalStateUser{
 		UserID:                            roomCreatorUserID,
 		DeviceID:                          roomCreatorDeviceID,
 		TracksVotedFor:                    make([]string, 0),
@@ -210,7 +209,7 @@ func getWokflowInitParams(tracksIDs []string, minimumScoreToBePlayed int) (share
 		RoomID:                        workflowID,
 		RoomCreatorUserID:             roomCreatorUserID,
 		RoomName:                      faker.Word(),
-		InitialUsers:                  initialUsers,
+		CreatorUserRelatedInformation: creatorUserRelatedInformation,
 		InitialTracksIDsList:          tracksIDs,
 		MinimumScoreToBePlayed:        minimumScoreToBePlayed,
 		HasPhysicalAndTimeConstraints: false,
@@ -2604,7 +2603,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &falseValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &falseValue
 
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 
@@ -2620,11 +2619,16 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.AcknowledgeUpdateUserFitsPositionConstraint,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
 
 	init := defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(params.RoomCreatorUserID)
-
+		fmt.Printf("\n STATE =\n%+v\n", mtvState)
 		expectedCreator := &shared.InternalStateUser{
 			UserID:                            params.RoomCreatorUserID,
 			DeviceID:                          creatorDeviceID,
@@ -2663,7 +2667,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 		s.False(mtvState.Playing)
 		s.Equal(1, mtvState.MinimumScoreToBePlayed)
 		s.Equal(expectedCreator, mtvState.UserRelatedInformation)
-		s.Equal(expectedTracks, mtvState.Tracks)
+		s.Equal(expectedTracks, mtvState.Tracks) //here
 		s.True(mtvState.RoomHasTimeAndPositionConstraints)
 	}, init)
 
@@ -2762,7 +2766,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestTimeC
 
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &falseValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &falseValue
 
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 
@@ -4420,7 +4424,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartBeforeNow() {
 	}
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &shared.TrueValue
 
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 
@@ -4495,7 +4499,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartAfterNow() {
 	}
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &shared.TrueValue
 
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 
@@ -4566,7 +4570,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailPhysicalAndTimeConstraints
 
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = nil
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &shared.TrueValue
 
 	resetMock, _ := s.initTestEnv()
 
@@ -4610,7 +4614,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailPhysicalAndTimeConstraints
 	}
 	params.HasPhysicalAndTimeConstraints = false
 	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &shared.TrueValue
 
 	resetMock, _ := s.initTestEnv()
 
@@ -4654,7 +4658,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailStartIsAfterEnd() {
 	}
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &shared.TrueValue
 
 	resetMock, _ := s.initTestEnv()
 
@@ -4698,7 +4702,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailStartEqualEnd() {
 	}
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &shared.TrueValue
 
 	resetMock, _ := s.initTestEnv()
 
@@ -4741,7 +4745,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailEndIsBeforeNow() {
 	}
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &shared.TrueValue
 
 	resetMock, _ := s.initTestEnv()
 
@@ -4786,7 +4790,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailEndEqualNow() {
 	}
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
-	params.InitialUsers[params.RoomCreatorUserID].UserFitsPositionConstraint = &shared.TrueValue
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &shared.TrueValue
 
 	defer resetMock()
 
@@ -4799,6 +4803,65 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailEndEqualNow() {
 	s.True(errors.As(err, &applicationErr))
 	s.Equal("end equal now", applicationErr.Error())
 
+}
+
+func (s *UnitTestSuite) Test_MtvRoomFailPlayingModeIsInvalid() {
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	tracksIDs := []string{tracks[0].ID}
+	params, _ := getWokflowInitParams(tracksIDs, 2)
+	//mocking now
+	resetMock, _ := s.initTestEnv()
+	///
+	params.PlayingMode = "UNKNOWN_PLAYING_MODE"
+
+	defer resetMock()
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.Error(err)
+	var applicationErr *temporal.ApplicationError
+	s.True(errors.As(err, &applicationErr))
+	s.Equal("PlayingMode is invalid", applicationErr.Error())
+}
+
+func (s *UnitTestSuite) Test_MtvRoomFailIsOpenOnlyInvitedUsersCanVoteTrueButIsOpenFalse() {
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	tracksIDs := []string{tracks[0].ID}
+	params, _ := getWokflowInitParams(tracksIDs, 2)
+	//mocking now
+	resetMock, _ := s.initTestEnv()
+	///
+	params.IsOpen = false
+	params.IsOpenOnlyInvitedUsersCanVote = true
+
+	defer resetMock()
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.Error(err)
+	var applicationErr *temporal.ApplicationError
+	s.True(errors.As(err, &applicationErr))
+	s.Equal("IsOpenOnlyInvitedUsersCanVote true but IsOpen false", applicationErr.Error())
 }
 
 func TestUnitTestSuite(t *testing.T) {

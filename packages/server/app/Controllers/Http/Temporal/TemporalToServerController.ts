@@ -59,13 +59,27 @@ export default class TemporalToServerController {
     public async mtvCreationAcknowledgement({
         request,
     }: HttpContextContract): Promise<void> {
-        const state = MtvWorkflowState.parse(request.body());
+        const state = MtvWorkflowStateWithUserRelatedInformation.parse(
+            request.body(),
+        );
 
         Ws.io.to(state.roomID).emit('CREATE_ROOM_CALLBACK', state);
         const creator = await User.findOrFail(state.roomCreatorUserID);
-        await creator.load('mtvRoom');
-        if (creator.mtvRoom === null) {
-            throw new Error('Should never occurs creator.mtvRoom is null');
+
+        const emittingDevice = await Device.findOrFail(
+            state.userRelatedInformation.emittingDeviceID,
+        );
+        emittingDevice.isEmitting = true;
+        await emittingDevice.save();
+
+        //Not loading for creator.mtvRoom relationShips as we don't know if temporal
+        //will be faster to send back a response than adonis to execute the end of the
+        //onCreate MtvWsController method
+        //Also even if the room is created before the temporal response it's might not be updated
+        //This use case appears in test but rarely in reality
+        const mtvRoom = await MtvRoom.findOrFail(state.roomID);
+        if (mtvRoom === null) {
+            throw new Error('Should never occurs mtvRoom is null');
         }
 
         const {
@@ -113,6 +127,12 @@ export default class TemporalToServerController {
             'JOIN_ROOM_CALLBACK',
             [state],
         );
+
+        const emittingDevice = await Device.findOrFail(
+            state.userRelatedInformation.emittingDeviceID,
+        );
+        emittingDevice.isEmitting = true;
+        await emittingDevice.save();
 
         const {
             constraintLat,

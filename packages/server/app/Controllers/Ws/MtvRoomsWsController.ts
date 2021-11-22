@@ -521,7 +521,7 @@ export default class MtvRoomsWsController {
         }
 
         await user.load('devices', (devicesQuery) => {
-            devicesQuery
+            return devicesQuery
                 .whereNotNull('lat_lng_updated_at')
                 .andWhereNotNull('lat')
                 .andWhereNotNull('lng')

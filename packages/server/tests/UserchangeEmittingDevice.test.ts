@@ -419,7 +419,7 @@ test.group(
             assert.isTrue(device.isEmitting);
         });
 
-        test('After user creates a room emitting device should be updated in database', async (assert) => {
+        test('After user joins a room emitting device should be updated in database', async (assert) => {
             const creatorUserID = datatype.uuid();
             const joiningUserID = datatype.uuid();
             const mtvRoomIDToAssociate = datatype.uuid();

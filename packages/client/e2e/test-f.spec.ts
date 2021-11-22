@@ -360,6 +360,23 @@ async function openFullScreenPlayer({
     await miniPlayerWithRoomName.click();
 }
 
+async function waitForTrackCardToHaveScore({
+    page,
+    score,
+    trackID,
+}: {
+    page: Page;
+    score: string;
+    trackID: string;
+}) {
+    const suggestedTrackScore = page.locator(
+        `css=:text("${score}"):right-of([data-testid="${trackID}-track-card"])`,
+    );
+    await expect(suggestedTrackScore).toBeVisible({
+        timeout: 10_000,
+    });
+}
+
 test.afterEach(async ({ browser }) => {
     await closeAllContexts(browser);
 });
@@ -500,10 +517,16 @@ test('Test F', async ({ browser }) => {
         trackToVoteFor: suggestedTrackTitle,
     });
 
-    const suggestedTrackScore = userBDevice1Page.locator(
-        `css=:text("1/2"):right-of([data-testid="${suggestedTrackID}-track-card"])`,
-    );
-    await expect(suggestedTrackScore).toBeVisible({
-        timeout: 10_000,
-    });
+    await Promise.all([
+        waitForTrackCardToHaveScore({
+            page: userADevice1Page,
+            score: '1/2',
+            trackID: suggestedTrackID,
+        }),
+        waitForTrackCardToHaveScore({
+            page: userBDevice1Page,
+            score: '1/2',
+            trackID: suggestedTrackID,
+        }),
+    ]);
 });

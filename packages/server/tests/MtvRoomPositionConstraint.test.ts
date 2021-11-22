@@ -4,7 +4,6 @@ import {
     MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
 import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
-import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
 import GeocodingService from 'App/Services/GeocodingService';
 import { datatype } from 'faker';
@@ -129,38 +128,6 @@ test.group(
             console.log(createdRoom);
             assert.equal(createdRoom.constraintLat, mockedCoords.lat);
             assert.equal(createdRoom.constraintLng, mockedCoords.lng);
-        });
-
-        test('It should update device position', async (assert) => {
-            const mockedCoords: LatlngCoords = {
-                lat: datatype.number({
-                    min: 10,
-                    max: 50,
-                }),
-                lng: datatype.number({
-                    min: 10,
-                    max: 50,
-                }),
-            };
-
-            /** Mocks */
-            sinon
-                .stub(GeocodingService, 'getCoordsFromAddress')
-                .callsFake(async (): Promise<LatlngCoords> => {
-                    return mockedCoords;
-                });
-            /** ***** */
-
-            const userID = datatype.uuid();
-            const socket = await createUserAndGetSocket({ userID });
-
-            socket.emit('UPDATE_DEVICE_POSITION', mockedCoords);
-            await sleep();
-
-            const device = await Device.findBy('socket_id', socket.id);
-            assert.isNotNull(device);
-            assert.equal(device?.lat, mockedCoords.lat);
-            assert.equal(device?.lng, mockedCoords.lng);
         });
 
         test(`It should compute user permission to vote du too it's device position after

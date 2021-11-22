@@ -520,7 +520,16 @@ export default class MtvRoomsWsController {
             return false;
         }
 
-        await user.load('devices');
+        await user.load('devices', (devicesQuery) => {
+            devicesQuery
+                .whereNotNull('lat_lng_updated_at')
+                .andWhereNotNull('lat')
+                .andWhereNotNull('lng')
+                .andWhereRaw(`lat_lng_updated_at >= NOW() - INTERVAL '1 DAY'`);
+        });
+        if (user.devices === null) {
+            throw new Error('should never occurs user has no related devices');
+        }
         const everyDevicesResults: boolean[] = user.devices.map((device) => {
             if (device.lat === null || device.lng === null) {
                 return false;
@@ -537,6 +546,7 @@ export default class MtvRoomsWsController {
             );
         });
 
+        //If devices array is empty some will return false
         const oneDeviceFitTheConstraints = everyDevicesResults.some(
             (status) => status === true,
         );

@@ -2,6 +2,7 @@ import Database from '@ioc:Adonis/Lucid/Database';
 import {
     MtvRoomSearchRequestBody,
     MtvRoomSearchResponse,
+    MtvRoomSummary,
 } from '@musicroom/types';
 import MtvRoom from 'App/Models/MtvRoom';
 import MtvRoomInvitation from 'App/Models/MtvRoomInvitation';
@@ -376,5 +377,96 @@ test.group('MtvRoom Search Engine', (group) => {
             (room) => room.roomID === mtvRoomIDToAssociate,
         );
         assert.isFalse(currUserRoomIsListed);
+    });
+
+    test('It should not duplicate any result even after a lot of page', async (assert) => {
+        const userID = datatype.uuid();
+        await createUserAndGetSocket({
+            userID,
+        });
+
+        const creator = await User.firstOrCreate({
+            uuid: 'f5ddbf01-cc01-4422-b347-67988342b558',
+            nickname: 'Web',
+        });
+
+        const getFakeRoom = (
+            index: number,
+        ): {
+            creatorID: string;
+            uuid: string;
+            runID: string;
+            isOpen: boolean;
+            name: string;
+        } => {
+            return {
+                creatorID: creator.uuid,
+                uuid: datatype.uuid(),
+                runID: datatype.uuid(),
+                isOpen: true,
+                name: `${random.words(4)}_${index}`,
+            };
+        };
+        const rooms = Array.from({
+            length: datatype.number({
+                min: 41,
+                max: 101,
+            }),
+        }).map((_, index) => getFakeRoom(index));
+        const uniqueKey = 'uuid';
+        await MtvRoom.updateOrCreateMany(uniqueKey, [...rooms]);
+
+        const retrieveRoom = async ({
+            page,
+        }: {
+            page: number;
+        }): Promise<MtvRoomSearchResponse> => {
+            const { body: pageBodyRaw } = await supertest(BASE_URL)
+                .post('/search/rooms')
+                .send({
+                    page,
+                    searchQuery: '',
+                    userID,
+                } as MtvRoomSearchRequestBody)
+                .expect('Content-Type', /json/)
+                .expect(200);
+            return MtvRoomSearchResponse.parse(pageBodyRaw);
+        };
+        let iteratingHasMore = true;
+        let page = 1;
+        let allResults: MtvRoomSummary[] = [];
+
+        do {
+            const { data, hasMore, totalEntries } = await retrieveRoom({
+                page,
+            });
+
+            //Want to save order
+            allResults = allResults.concat(data);
+            iteratingHasMore = hasMore;
+            page++;
+
+            const lastPageReached = !hasMore;
+            if (lastPageReached) {
+                assert.equal(allResults.length, totalEntries);
+            }
+        } while (iteratingHasMore);
+
+        const foundAtLeastOneDuplicatedElement = allResults.some(
+            (currRoom, currRoomIndex) => {
+                const roomToCompareIndex = allResults.findIndex(
+                    (element) => element.roomID === currRoom.roomID,
+                );
+                assert.notEqual(roomToCompareIndex, -1);
+
+                const isDuplicate = roomToCompareIndex !== currRoomIndex;
+                if (isDuplicate) {
+                    console.log('Found duplicated result', { currRoom });
+                }
+                return isDuplicate;
+            },
+        );
+
+        assert.isFalse(foundAtLeastOneDuplicatedElement);
     });
 });

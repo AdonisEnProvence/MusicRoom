@@ -6,6 +6,10 @@ const config: PlaywrightTestConfig = {
     use: {
         headless: false,
         baseURL: 'http://localhost:4000',
+        viewport: {
+            height: 824,
+            width: 1024,
+        },
     },
     timeout: 120_000,
 };

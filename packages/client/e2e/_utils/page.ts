@@ -92,6 +92,13 @@ export async function setupAndGetUserPage({
     };
 }
 
+export async function initPage(page: Page): Promise<void> {
+    await page.goto('/');
+
+    const focusTrap = page.locator('text="Click"').first();
+    await focusTrap.click();
+}
+
 /**
  * Use this function to create tab
  */
@@ -100,12 +107,14 @@ export async function createNewTabFromExistingContext(
 ): Promise<{ page: Page }> {
     const page = await context.newPage();
 
-    await page.goto('/');
-
-    const focusTrap = page.locator('text="Click"').first();
-    await focusTrap.click();
+    await initPage(page);
 
     return {
         page,
     };
+}
+
+export async function closeAllContexts(browser: Browser): Promise<void> {
+    const contexts = browser.contexts();
+    await Promise.all(contexts.map(async (context) => await context.close()));
 }

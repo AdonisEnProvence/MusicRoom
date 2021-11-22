@@ -1,12 +1,7 @@
 import { test, expect, Page, Locator } from '@playwright/test';
 import { assertIsNotNull, assertIsNotUndefined } from './_utils/assert';
 import { KnownSearchesRecord } from './_utils/mock-http';
-import { setupAndGetUserPage } from './_utils/page';
-
-test.afterEach(async ({ browser }) => {
-    const contexts = browser.contexts();
-    await Promise.all(contexts.map(async (context) => await context.close()));
-});
+import { closeAllContexts, setupAndGetUserPage } from './_utils/page';
 
 async function createPrivateRoom(page: Page) {
     await expect(page.locator('text="Home"').first()).toBeVisible();
@@ -180,6 +175,10 @@ async function inviteUser({
     );
     await expect(hasBeenInvitedIcon).toBeVisible();
 }
+
+test.afterEach(async ({ browser }) => {
+    await closeAllContexts(browser);
+});
 
 test('Test G', async ({ browser }) => {
     const knownSearches: KnownSearchesRecord = {

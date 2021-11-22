@@ -2,12 +2,7 @@ import { test, expect, Page, Locator } from '@playwright/test';
 import { lorem } from 'faker';
 import { assertIsNotUndefined } from './_utils/assert';
 import { KnownSearchesRecord } from './_utils/mock-http';
-import { setupAndGetUserPage } from './_utils/page';
-
-test.afterEach(async ({ browser }) => {
-    const contexts = browser.contexts();
-    await Promise.all(contexts.map(async (context) => await context.close()));
-});
+import { closeAllContexts, setupAndGetUserPage } from './_utils/page';
 
 type FindMiniPlayerWithRoomNameAndGoFullscreenArgs = {
     roomName: string;
@@ -292,6 +287,10 @@ async function userSendMessageInTheChat({
     expect(await page.locator(`text="${message}"`).count()).toBe(1);
     await expect(page.locator(`text="${message}"`)).toBeVisible();
 }
+
+test.afterEach(async ({ browser }) => {
+    await closeAllContexts(browser);
+});
 
 test('Test E see following link for more information: https://3.basecamp.com/4704981/buckets/22220886/messages/4292491228#:~:text=Test%20end-,Test%20E/,-UserA%20Section%20full', async ({
     browser,

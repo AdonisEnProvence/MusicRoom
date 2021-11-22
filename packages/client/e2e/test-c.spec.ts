@@ -5,13 +5,7 @@ import {
     assertMusicPlayerStatusIs,
 } from './_utils/assert';
 import { KnownSearchesRecord } from './_utils/mock-http';
-import { setupAndGetUserPage } from './_utils/page';
-import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
-
-test.afterEach(async ({ browser }) => {
-    const contexts = browser.contexts();
-    await Promise.all(contexts.map(async (context) => await context.close()));
-});
+import { closeAllContexts, setupAndGetUserPage } from './_utils/page';
 
 async function createPublicRoomWithInvitation(page: Page) {
     await expect(page.locator('text="Home"').first()).toBeVisible();
@@ -214,6 +208,10 @@ async function pressRoomInvitationToast({
 
     await miniPlayerWithRoomName.click();
 }
+
+test.afterEach(async ({ browser }) => {
+    await closeAllContexts(browser);
+});
 
 test('Test C', async ({ browser }) => {
     const knownSearches: KnownSearchesRecord = {

@@ -5,13 +5,9 @@ import {
     assertMusicPlayerStatusIs,
 } from './_utils/assert';
 import { KnownSearchesRecord } from './_utils/mock-http';
-import { setupAndGetUserPage } from './_utils/page';
+import { closeAllContexts, setupAndGetUserPage } from './_utils/page';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
-test.afterEach(async ({ browser }) => {
-    const contexts = browser.contexts();
-    await Promise.all(contexts.map(async (context) => await context.close()));
-});
 async function createRoom({ creatorPage }: { creatorPage: Page }) {
     await expect(creatorPage.locator('text="Home"').first()).toBeVisible();
 
@@ -277,6 +273,10 @@ async function waitForVideoToBePausedForUserWithControl(page: Page) {
 
     await expect(fullScreenPlayerPauseButton).toBeVisible();
 }
+
+test.afterEach(async ({ browser }) => {
+    await closeAllContexts(browser);
+});
 
 test('Test A', async ({ browser }) => {
     const knownSearches: KnownSearchesRecord = {

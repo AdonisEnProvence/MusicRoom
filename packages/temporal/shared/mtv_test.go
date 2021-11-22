@@ -73,6 +73,12 @@ func (s *UnitTestSuite) Test_TracksMetadataWithScoreSetAllowsDeletion() {
 		set.Values(),
 	)
 	s.Equal(0, set.Len())
+
+	set.Add(setValues[0])
+
+	clone := set.Clone()
+	s.Equal(set.Values(), clone.Values())
+	s.NotSame(&set.Values()[0], &clone.Values()[0])
 }
 
 func TestUnitTestSuite(t *testing.T) {

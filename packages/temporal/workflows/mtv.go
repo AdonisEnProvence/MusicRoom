@@ -686,7 +686,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							if needToNotifySuggestOrVoteUpdateActivity {
 								sendNotifySuggestOrVoteUpdateActivity(ctx, internalState.Export(shared.NoRelatedUserID))
 
-								internalState.TracksCheckForVoteUpdateLastSave = internalState.Tracks
+								internalState.TracksCheckForVoteUpdateLastSave = internalState.Tracks.Clone()
 								internalState.CurrentTrackCheckForVoteUpdateLastSave = internalState.CurrentTrack
 								voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
 							} else {

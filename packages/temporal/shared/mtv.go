@@ -59,6 +59,17 @@ type TracksMetadataWithScoreSet struct {
 	tracks []TrackMetadataWithScore
 }
 
+func (s *TracksMetadataWithScoreSet) Clone() TracksMetadataWithScoreSet {
+	originalTracks := s.Values()
+	copiedTracks := make([]TrackMetadataWithScore, len(originalTracks))
+
+	copy(copiedTracks, originalTracks)
+
+	return TracksMetadataWithScoreSet{
+		tracks: copiedTracks,
+	}
+}
+
 func (s *TracksMetadataWithScoreSet) Clear() {
 	s.tracks = []TrackMetadataWithScore{}
 }

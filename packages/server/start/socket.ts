@@ -16,6 +16,7 @@ import { Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import MtvRoomsChatController from 'App/Controllers/Ws/MtvRoomsChatController';
 import MtvRoom from 'App/Models/MtvRoom';
+import { DateTime } from 'luxon';
 
 Ws.boot();
 
@@ -98,6 +99,7 @@ Ws.io.on('connection', async (socket) => {
                 const device = await Device.findOrFail(deviceID);
                 device.merge({
                     ...coords,
+                    latLngUpdatedAt: DateTime.now(),
                 });
                 await device.save();
 

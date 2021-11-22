@@ -62,5 +62,96 @@ test.group(
             assert.equal(device?.lng, mockedCoords.lng);
             assert.isNotNull(device?.latLngUpdatedAt);
         });
+
+        test(`It should find user fits position and then doesnot anymore as his device coords are more than 24hours old`, async (assert) => {
+            const roomID = datatype.uuid();
+            const userID = datatype.uuid();
+            await createUserAndGetSocket({
+                userID,
+                mtvRoomIDToAssociate: roomID,
+            });
+            const user = await User.findOrFail(userID);
+
+            await user.load('devices');
+            const relatedDevices = user.devices;
+            if (
+                relatedDevices === null ||
+                (relatedDevices !== null && relatedDevices.length !== 1)
+            ) {
+                throw new Error('related devices is corrupted');
+            }
+            const relatedDevice = relatedDevices[0];
+
+            await user.load('mtvRoom');
+            const relatedRoom = user.mtvRoom;
+            if (relatedRoom === null) {
+                throw new Error('mtv room is null');
+            }
+
+            const constraintLat = datatype.number({
+                min: 0,
+                max: 80,
+            });
+            const constraintLng = datatype.number({
+                min: 0,
+                max: 180,
+            });
+            const constraintRadius = 100;
+            const roomCoords = {
+                constraintLat,
+                constraintLng,
+            };
+            relatedRoom.merge({
+                hasPositionAndTimeConstraints: true,
+                constraintRadius,
+                ...roomCoords,
+            });
+            await relatedRoom.save();
+
+            relatedDevice.merge({
+                lat: constraintLat,
+                lng: constraintLng,
+                latLngUpdatedAt: DateTime.now(),
+            });
+            await relatedDevice.save();
+
+            assert.isTrue(
+                await MtvRoomsWsController.checkUserDevicesPositionIfRoomHasPositionConstraints(
+                    {
+                        persistToTemporalRequiredInformation: undefined,
+                        roomConstraintInformation: {
+                            constraintLat,
+                            constraintLng,
+                            constraintRadius,
+                            hasPositionAndTimeConstraints: true,
+                        },
+                        user,
+                    },
+                ),
+            );
+
+            relatedDevice.merge({
+                latLngUpdatedAt: DateTime.now().plus({
+                    days: -1,
+                    minutes: -1,
+                }),
+            });
+            await relatedDevice.save();
+
+            assert.isFalse(
+                await MtvRoomsWsController.checkUserDevicesPositionIfRoomHasPositionConstraints(
+                    {
+                        persistToTemporalRequiredInformation: undefined,
+                        roomConstraintInformation: {
+                            constraintLat,
+                            constraintLng,
+                            constraintRadius,
+                            hasPositionAndTimeConstraints: true,
+                        },
+                        user,
+                    },
+                ),
+            );
+        });
     },
 );

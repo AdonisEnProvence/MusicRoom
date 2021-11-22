@@ -87,6 +87,10 @@ export default class MtvRoomsHttpController {
                         column: 'derivated_table.invitationID',
                         order: 'asc',
                     },
+                    {
+                        column: 'derivated_table.roomID',
+                        order: 'asc',
+                    },
                 ])
                 .debug(true)
                 .paginate(page, MTV_ROOMS_SEARCH_LIMIT);

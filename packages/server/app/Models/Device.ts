@@ -39,6 +39,9 @@ export default class Device extends BaseModel {
     @column()
     public lng: number | null;
 
+    @column.dateTime()
+    public latLngUpdatedAt: DateTime | null;
+
     @column.dateTime({ autoCreate: true })
     public createdAt: DateTime;
 

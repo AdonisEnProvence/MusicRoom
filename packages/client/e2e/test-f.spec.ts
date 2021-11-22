@@ -1,38 +1,18 @@
-import {
-    test,
-    expect,
-    Browser,
-    BrowserContext,
-    Page,
-    Locator,
-} from '@playwright/test';
+import { test, expect, Page, Locator } from '@playwright/test';
 import { addHours, format } from 'date-fns';
 import {
     assertIsNotNull,
     assertIsNotUndefined,
     assertMusicPlayerStatusIs,
 } from './_utils/assert';
-import { mockSearchTracks } from './_utils/mock-http';
+import {
+    closeAllContexts,
+    createNewTabFromExistingContext,
+    GEOLOCATION_POSITIONS,
+    initPage,
+    setupAndGetUserPage,
+} from './_utils/page';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
-
-const AVAILABLE_USERS_LIST = [
-    {
-        uuid: '8d71dcb3-9638-4b7a-89ad-838e2310686c',
-        nickname: 'Francis',
-    },
-    {
-        uuid: '71bc3025-b765-4f84-928d-b4dca8871370',
-        nickname: 'Moris',
-    },
-    {
-        uuid: 'd125ecde-b0ee-4ab8-a488-c0e7a8dac7c5',
-        nickname: 'Leila',
-    },
-    {
-        uuid: '7f4bc598-c5be-4412-acc4-515a87b797e7',
-        nickname: 'Manon',
-    },
-];
 
 const knownSearches = {
     'Biolay - Vendredi 12': [
@@ -100,79 +80,6 @@ const knownSearches = {
         },
     ],
 };
-
-const GEOLOCATION_POSITIONS = {
-    'Paris, France': {
-        latitude: 48.864716,
-        longitude: 2.349014,
-    },
-
-    'Soissons, France': {
-        latitude: 49.38167,
-        longitude: 3.32361,
-    },
-
-    'Manosque, France': {
-        latitude: 43.82883,
-        longitude: 5.78688,
-    },
-};
-
-async function createContext({
-    browser,
-    index,
-    town,
-}: {
-    browser: Browser;
-    index: number;
-    town: keyof typeof GEOLOCATION_POSITIONS;
-}) {
-    const user = AVAILABLE_USERS_LIST[index];
-    const context = await browser.newContext({
-        storageState: {
-            cookies: [],
-            origins: [
-                {
-                    origin: 'http://localhost:4000',
-                    localStorage: [
-                        {
-                            name: 'USER_ID',
-                            value: user.uuid,
-                        },
-                    ],
-                },
-            ],
-        },
-        permissions: ['geolocation'],
-        geolocation: GEOLOCATION_POSITIONS[town],
-    });
-    await mockSearchTracks({
-        context,
-        knownSearches,
-    });
-
-    return {
-        context,
-        userName: user.nickname,
-    };
-}
-
-async function setupPageFromContext(context: BrowserContext) {
-    const page = await context.newPage();
-
-    await setUpPage(page);
-
-    return {
-        page,
-    };
-}
-
-async function setUpPage(page: Page) {
-    await page.goto('/');
-
-    const focusTrap = page.locator('text="Click"').first();
-    await focusTrap.click();
-}
 
 async function createPublicRoomWithTimeAndPhysicalConstraints({
     page,
@@ -365,7 +272,7 @@ async function userSuggestsATrackFromFullscreen({
     trackName,
 }: {
     page: Page;
-    trackName: string;
+    trackName: keyof typeof knownSearches;
 }) {
     const suggestTrackButton = page.locator(
         'css=[aria-label="Suggest a track"] >> visible=true',
@@ -387,13 +294,21 @@ async function userSuggestsATrackFromFullscreen({
     const firstMatchingSong = page.locator(`text=${trackName}`).first();
     await expect(firstMatchingSong).toBeVisible();
     const selectedSongTitle = await firstMatchingSong.textContent();
-    if (selectedSongTitle === null) {
-        throw new Error('SelectedSongTitle is null');
-    }
-    await expect(firstMatchingSong).toBeVisible();
+    assertIsNotNull(selectedSongTitle, 'selectedSongTitle is null');
+    const selectedTrackEntry = knownSearches[trackName].find(
+        ({ title }) => title === selectedSongTitle,
+    );
+    assertIsNotUndefined(
+        selectedTrackEntry,
+        'The selected song does not exist in knownSearches',
+    );
+    const selectedSongID = selectedTrackEntry.id;
 
     await firstMatchingSong.click();
-    return { selectedSongTitle };
+    return {
+        selectedSongTitle,
+        selectedSongID,
+    };
 }
 
 async function voteForEnabledTrackInMusicPlayerFullScreen({
@@ -445,21 +360,33 @@ async function openFullScreenPlayer({
     await miniPlayerWithRoomName.click();
 }
 
-test('Test F', async ({ browser }) => {
-    const [{ context: userAContext }, { context: userBContext }] =
-        await Promise.all([
-            createContext({ browser, index: 0, town: 'Manosque, France' }),
-            createContext({ browser, index: 1, town: 'Paris, France' }),
-        ]);
-    const [{ page: userADevice1Page }, { page: userBDevice1Page }] =
-        await Promise.all([
-            setupPageFromContext(userAContext),
+test.afterEach(async ({ browser }) => {
+    await closeAllContexts(browser);
+});
 
-            setupPageFromContext(userBContext),
-        ]);
+test('Test F', async ({ browser }) => {
+    const [
+        { page: userADevice1Page },
+        { context: userBContext, page: userBDevice1Page },
+    ] = await Promise.all([
+        setupAndGetUserPage({
+            browser,
+            userIndex: 0,
+            knownSearches,
+            town: 'Manosque, France',
+        }),
+        setupAndGetUserPage({
+            browser,
+            userIndex: 1,
+            knownSearches,
+            town: 'Paris, France',
+        }),
+    ]);
 
     await userBDevice1Page.waitForTimeout(1_000);
-    const { page: userBDevice2Page } = await setupPageFromContext(userBContext);
+    const { page: userBDevice2Page } = await createNewTabFromExistingContext(
+        userBContext,
+    );
 
     const roomName = 'MusicRoom is the best';
 
@@ -504,7 +431,7 @@ test('Test F', async ({ browser }) => {
         GEOLOCATION_POSITIONS['Manosque, France'],
     );
     await userBDevice1Page.reload();
-    await setUpPage(userBDevice1Page);
+    await initPage(userBDevice1Page);
     await openFullScreenPlayer({
         page: userBDevice1Page,
         roomName,
@@ -544,7 +471,7 @@ test('Test F', async ({ browser }) => {
         GEOLOCATION_POSITIONS['Soissons, France'],
     );
     await userBDevice1Page.reload();
-    await setUpPage(userBDevice1Page);
+    await initPage(userBDevice1Page);
     await openFullScreenPlayer({
         page: userBDevice1Page,
         roomName,
@@ -554,29 +481,29 @@ test('Test F', async ({ browser }) => {
 
     // User B suggests a song while being outside of room area.
     const suggestedTrackQuery = 'Biolay - Vendredi 12';
-    const { selectedSongTitle: suggestTrackTitle } =
-        await userSuggestsATrackFromFullscreen({
-            page: userBDevice1Page,
-            trackName: suggestedTrackQuery,
-        });
+    const {
+        selectedSongTitle: suggestedTrackTitle,
+        selectedSongID: suggestedTrackID,
+    } = await userSuggestsATrackFromFullscreen({
+        page: userBDevice1Page,
+        trackName: suggestedTrackQuery,
+    });
 
     // User A votes for the track
     await voteForTrackInMusicPlayerFullScreen({
         page: userADevice1Page,
-        trackToVoteFor: suggestTrackTitle,
+        trackToVoteFor: suggestedTrackTitle,
     });
 
     await voteForTrackInMusicPlayerFullScreen({
         page: userBDevice1Page,
-        trackToVoteFor: suggestTrackTitle,
+        trackToVoteFor: suggestedTrackTitle,
     });
 
-    const suggestedTrackCard = userBDevice1Page.locator(
-        `text="${suggestTrackTitle}"`,
-        // `css=:text("1/2"):right-of([data-testid="${suggestTrackTitle}"])`,
+    const suggestedTrackScore = userBDevice1Page.locator(
+        `css=:text("1/2"):right-of([data-testid="${suggestedTrackID}-track-card"])`,
     );
-    await expect(suggestedTrackCard).toBeVisible();
-    // await expect(suggestedTrackCard).toHaveText('1/2');
-
-    await userADevice1Page.waitForTimeout(100_000);
+    await expect(suggestedTrackScore).toBeVisible({
+        timeout: 10_000,
+    });
 });

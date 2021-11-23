@@ -97,9 +97,9 @@ async function createPublicRoomWithInvitation({
 
     const miniPlayerWithRoomName = page.locator(`text="${roomName}"`).first();
     await expect(miniPlayerWithRoomName).toBeVisible();
-    const miniPlayerWithSelectedSong = page.locator(
-        `text=${selectedSongTitle}`,
-    );
+    const miniPlayerWithSelectedSong = page
+        .locator(`text=${selectedSongTitle}`)
+        .first();
     await expect(miniPlayerWithSelectedSong).toBeVisible();
 
     await miniPlayerWithRoomName.click();
@@ -306,30 +306,27 @@ test('Test D see following link for more informations https://3.basecamp.com/470
             page: userADevice1Page,
             emittingDeviceIndex: 1,
         }),
-
         assertMusicPlayerStatusIs({
             page: userADevice1Page,
             testID: 'music-player-playing-device-muted',
-        }),
-        assertMusicPlayerStatusIs({
-            page: userADevice2Page,
-            testID: 'music-player-playing-device-emitting',
-        }),
-        assertMusicPlayerStatusIs({
-            page: userADevice3Page,
-            testID: 'music-player-playing-device-muted',
-        }),
-        assertMusicPlayerStatusIs({
-            page: userBPage,
-            testID: 'music-player-playing-device-emitting',
         }),
     ]);
+    await assertMusicPlayerStatusIs({
+        page: userADevice2Page,
+        testID: 'music-player-playing-device-emitting',
+    });
+    await assertMusicPlayerStatusIs({
+        page: userADevice3Page,
+        testID: 'music-player-playing-device-muted',
+    });
+    await assertMusicPlayerStatusIs({
+        page: userBPage,
+        testID: 'music-player-playing-device-emitting',
+    });
 
     await Promise.all([
-        userADevice2Page.close(),
-
         assertMusicPlayerStatusIs({
-            page: userADevice1Page,
+            page: userBPage,
             testID: 'music-player-playing-device-emitting',
         }),
         assertMusicPlayerStatusIs({
@@ -337,9 +334,10 @@ test('Test D see following link for more informations https://3.basecamp.com/470
             testID: 'music-player-playing-device-muted',
         }),
         assertMusicPlayerStatusIs({
-            page: userBPage,
+            page: userADevice1Page,
             testID: 'music-player-playing-device-emitting',
         }),
+        userADevice2Page.close(),
     ]);
 
     //UserA creates a new room

@@ -158,7 +158,14 @@ export default class SocketLifecycle {
         console.log(`LOOSING CONNECTION SOCKETID=${socketID} USER=${userID}`);
 
         await disconnectingDevice.delete();
-        await disconnectingDeviceOwner.load('devices');
+        await disconnectingDeviceOwner.load('devices', (devicesQuery) => {
+            return devicesQuery.orderBy([
+                {
+                    column: 'created_at',
+                    order: 'asc',
+                },
+            ]);
+        });
         const allUserDevices = disconnectingDeviceOwner.devices;
 
         const disconnectingDeviceIsThelastConnectedDevice =

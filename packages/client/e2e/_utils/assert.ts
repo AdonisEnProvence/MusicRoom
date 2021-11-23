@@ -18,7 +18,7 @@ export function assertIsNotNull<ValueType>(
     }
 }
 
-interface assertMusicPlayerStatusIs {
+interface assertMusicPlayerStatusIsArgs {
     page: Page;
     testID: `music-player-${'playing' | 'not-playing'}-device-${
         | 'emitting'
@@ -28,10 +28,8 @@ interface assertMusicPlayerStatusIs {
 export async function assertMusicPlayerStatusIs({
     page,
     testID,
-}: assertMusicPlayerStatusIs): Promise<void> {
-    await expect(
-        page.locator(`css=[data-testid="${testID}"] >> visible=true`),
-    ).toBeVisible({
+}: assertMusicPlayerStatusIsArgs): Promise<void> {
+    await expect(page.locator(`css=[data-testid="${testID}"]`)).toBeVisible({
         timeout: 20_000,
     });
 }

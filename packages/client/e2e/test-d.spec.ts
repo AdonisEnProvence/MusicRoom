@@ -6,15 +6,11 @@ import {
 } from './_utils/assert';
 import { KnownSearchesRecord } from './_utils/mock-http';
 import {
+    closeAllContexts,
     createNewTabFromExistingContext,
     setupAndGetUserPage,
 } from './_utils/page';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
-
-test.afterEach(async ({ browser }) => {
-    const contexts = browser.contexts();
-    await Promise.all(contexts.map(async (context) => await context.close()));
-});
 
 async function createPublicRoomWithInvitation({
     page,
@@ -209,6 +205,10 @@ async function changeEmittingDevice({
     await expect(deviceToMakeEmitter).toBeVisible();
     await deviceToMakeEmitter.click();
 }
+
+test.afterEach(async ({ browser }) => {
+    await closeAllContexts(browser);
+});
 
 test('Test D see following link for more informations https://3.basecamp.com/4704981/buckets/22220886/messages/4292491228#:~:text=Test%20end-,Test%20D/,-UserA_Device1%20Section%20full', async ({
     browser,

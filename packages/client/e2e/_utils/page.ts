@@ -79,10 +79,8 @@ export async function setupAndGetUserPage({
         context: context,
         knownSearches,
     });
-    await page.goto('/');
 
-    const focusTrap = page.locator('text="Click"').first();
-    await focusTrap.click();
+    await initPage(page);
 
     return {
         context,
@@ -90,6 +88,13 @@ export async function setupAndGetUserPage({
         userNickname: AVAILABLE_USERS_LIST[userIndex].nickname,
         userID: AVAILABLE_USERS_LIST[userIndex].uuid,
     };
+}
+
+export async function initPage(page: Page): Promise<void> {
+    await page.goto('/');
+
+    const focusTrap = page.locator('text="Click"').first();
+    await focusTrap.click();
 }
 
 /**
@@ -100,12 +105,14 @@ export async function createNewTabFromExistingContext(
 ): Promise<{ page: Page }> {
     const page = await context.newPage();
 
-    await page.goto('/');
-
-    const focusTrap = page.locator('text="Click"').first();
-    await focusTrap.click();
+    await initPage(page);
 
     return {
         page,
     };
+}
+
+export async function closeAllContexts(browser: Browser): Promise<void> {
+    const contexts = browser.contexts();
+    await Promise.all(contexts.map(async (context) => await context.close()));
 }

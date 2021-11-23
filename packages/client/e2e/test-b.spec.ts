@@ -4,13 +4,8 @@ import {
     assertMusicPlayerStatusIs,
 } from './_utils/assert';
 import { KnownSearchesRecord } from './_utils/mock-http';
-import { setupAndGetUserPage } from './_utils/page';
+import { closeAllContexts, setupAndGetUserPage } from './_utils/page';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
-
-test.afterEach(async ({ browser }) => {
-    const contexts = browser.contexts();
-    await Promise.all(contexts.map(async (context) => await context.close()));
-});
 
 type FindMiniPlayerWithRoomNameAndGoFullscreenArgs = {
     roomName: string;
@@ -411,6 +406,10 @@ async function userGoesToSettingsTabFromMusicPlayerFullscreenAndLeaveRoom({
         page.locator('text="Home" >> visible=true').first(),
     ).toBeVisible();
 }
+
+test.afterEach(async ({ browser }) => {
+    await closeAllContexts(browser);
+});
 
 test('Test B see following link for more information: https://3.basecamp.com/4704981/buckets/22220886/messages/4292491228#:~:text=Test%20end-,Test%20B/,-UserA%20Section%20full', async ({
     browser,

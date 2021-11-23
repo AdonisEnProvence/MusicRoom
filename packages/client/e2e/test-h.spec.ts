@@ -12,7 +12,11 @@ import {
     assertMusicPlayerStatusIs,
 } from './_utils/assert';
 import { KnownSearchesRecord } from './_utils/mock-http';
-import { GEOLOCATION_POSITIONS, setupAndGetUserPage } from './_utils/page';
+import {
+    closeAllContexts,
+    GEOLOCATION_POSITIONS,
+    setupAndGetUserPage,
+} from './_utils/page';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
 const knownSearches: KnownSearchesRecord = {
@@ -220,8 +224,7 @@ async function voteForEnabledTrackInMusicPlayerFullScreen({
 }
 
 test.afterEach(async ({ browser }) => {
-    const contexts = browser.contexts();
-    await Promise.all(contexts.map(async (context) => await context.close()));
+    await closeAllContexts(browser);
 });
 
 test('Test H', async ({ browser }) => {

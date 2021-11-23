@@ -85,11 +85,6 @@ async function createRoom({ creatorPage }: { creatorPage: Page }) {
 
     await creatorPage.click('text="Next" >> visible=true');
 
-    // We expect creation form to have disappeared
-    // and user to have not been redirected to another screen than
-    // the one in which she opened the form.
-    await expect(creatorPage.locator('text="Results"').first()).toBeVisible();
-
     const miniPlayerWithRoomName = creatorPage
         .locator(`text="${roomName}"`)
         .first();

@@ -79,10 +79,8 @@ export async function setupAndGetUserPage({
         context: context,
         knownSearches,
     });
-    await page.goto('/');
 
-    const focusTrap = page.locator('text="Click"').first();
-    await focusTrap.click();
+    await initPage(page);
 
     return {
         context,

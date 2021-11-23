@@ -432,9 +432,6 @@ test('Test F', async ({ browser }) => {
         trackToVoteFor: initialTrack,
     });
 
-    // We wait for the room to allow votes according to time constraints.
-    // await userBDevice1Page.waitForTimeout(60_000);
-
     // User B votes again for the initial track.
     // It should fail as the user does not yet match
     // physical constraints.

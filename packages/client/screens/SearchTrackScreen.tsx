@@ -1,7 +1,8 @@
 import { useActor, useMachine } from '@xstate/react';
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Button } from 'react-native';
 import { ActorRef } from 'xstate';
+import { useFocusEffect } from '@react-navigation/native';
 import { AppScreenWithSearchBar } from '../components/kit';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
@@ -14,7 +15,7 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
     navigation,
 }) => {
     const [screenOffsetY, setScreenOffsetY] = useState(0);
-    const [state] = useMachine(searchTrackMachine, {
+    const [state, sendToSearchTracks] = useMachine(searchTrackMachine, {
         actions: {
             navigateToResultsPage: ({ tracks }) => {
                 if (tracks === undefined) {
@@ -33,6 +34,21 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
     > = state.children.searchBarMachine;
     const [searchState, sendToSearch] = useActor(searchBarActor);
     const showHeader = searchState.hasTag('showHeaderTitle');
+    const isFirstRendering = useRef(true);
+
+    useFocusEffect(
+        useCallback(() => {
+            if (isFirstRendering.current === true) {
+                isFirstRendering.current = false;
+
+                return;
+            }
+
+            sendToSearchTracks({
+                type: 'RESET',
+            });
+        }, [sendToSearchTracks]),
+    );
 
     return (
         <AppScreenWithSearchBar

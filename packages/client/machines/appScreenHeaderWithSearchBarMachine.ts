@@ -123,7 +123,7 @@ export const appScreenHeaderWithSearchBarMachine =
                 RESET: {
                     target: 'idle',
 
-                    actions: [appcreenHeaderWithSearchBarModel.reset()],
+                    actions: appcreenHeaderWithSearchBarModel.reset(),
                 },
             },
         },

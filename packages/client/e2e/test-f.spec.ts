@@ -465,14 +465,11 @@ test('Test F', async ({ browser }) => {
         waitForYouTubeVideoToLoad(userADevice1Page),
         waitForYouTubeVideoToLoad(userBDevice1Page),
         waitForYouTubeVideoToLoad(userBDevice2Page),
-    ]);
 
-    await Promise.all([
         assertMusicPlayerStatusIs({
             page: userADevice1Page,
             testID: 'music-player-playing-device-emitting',
         }),
-
         // The device 2 has become the emitting device as device 1 exited.
         assertMusicPlayerStatusIs({
             page: userBDevice2Page,

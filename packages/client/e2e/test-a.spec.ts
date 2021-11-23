@@ -94,9 +94,9 @@ async function createRoom({ creatorPage }: { creatorPage: Page }) {
         .locator(`text="${roomName}"`)
         .first();
     await expect(miniPlayerWithRoomName).toBeVisible();
-    const miniPlayerWithSelectedSong = creatorPage.locator(
-        `text=${selectedSongTitle}`,
-    );
+    const miniPlayerWithSelectedSong = creatorPage
+        .locator(`text=${selectedSongTitle}`)
+        .first();
     await expect(miniPlayerWithSelectedSong).toBeVisible();
 
     await miniPlayerWithRoomName.click();

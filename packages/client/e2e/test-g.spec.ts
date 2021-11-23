@@ -84,9 +84,9 @@ async function createPrivateRoom(page: Page) {
 
     const miniPlayerWithRoomName = page.locator(`text="${roomName}"`).first();
     await expect(miniPlayerWithRoomName).toBeVisible();
-    const miniPlayerWithSelectedSong = page.locator(
-        `text=${selectedSongTitle}`,
-    );
+    const miniPlayerWithSelectedSong = page
+        .locator(`text=${selectedSongTitle}`)
+        .first();
     await expect(miniPlayerWithSelectedSong).toBeVisible();
 
     await miniPlayerWithRoomName.click();

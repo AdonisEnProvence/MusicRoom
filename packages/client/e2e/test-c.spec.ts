@@ -74,9 +74,9 @@ async function createPublicRoomWithInvitation(page: Page) {
     await page.click('text="Next" >> visible=true');
 
     await expect(page.locator('text="Confirm room creation"')).toBeVisible();
-    const elementWithSelectedSongTitle = page.locator(
-        `text=${selectedSongTitle}`,
-    );
+    const elementWithSelectedSongTitle = page
+        .locator(`text=${selectedSongTitle}`)
+        .first();
     await expect(elementWithSelectedSongTitle).toBeVisible();
 
     await page.click('text="Next" >> visible=true');
@@ -88,9 +88,9 @@ async function createPublicRoomWithInvitation(page: Page) {
 
     const miniPlayerWithRoomName = page.locator(`text="${roomName}"`).first();
     await expect(miniPlayerWithRoomName).toBeVisible();
-    const miniPlayerWithSelectedSong = page.locator(
-        `text=${selectedSongTitle}`,
-    );
+    const miniPlayerWithSelectedSong = page
+        .locator(`text=${selectedSongTitle}`)
+        .first();
     await expect(miniPlayerWithSelectedSong).toBeVisible();
 
     await miniPlayerWithRoomName.click();
@@ -151,7 +151,7 @@ async function voteForTrackInMusicPlayerFullScreen({
     await trackToVoteForElement.click();
 }
 
-async function inviteUser({
+async function inviteUserAndGoBackTwice({
     page,
     userName,
 }: {
@@ -185,6 +185,25 @@ async function inviteUser({
         `css=[data-testid="${userName}-user-card"] [aria-label="Has been invited"]`,
     );
     await expect(hasBeenInvitedIcon).toBeVisible();
+
+    //UserA goes back he should see the music player fullscreen
+    const usersListCancelButton = page.locator('text="Cancel"').last();
+    await expect(usersListCancelButton).toBeVisible();
+    await usersListCancelButton.click();
+    await userHitsLastVisibleGoBackButton({
+        page,
+    });
+    await userHitsLastVisibleGoBackButton({
+        page,
+    });
+}
+
+async function userHitsLastVisibleGoBackButton({ page }: { page: Page }) {
+    const goBackButton = page
+        .locator('css=[aria-label="Go back"] >> visible=true')
+        .last();
+    await expect(goBackButton).toBeVisible();
+    await goBackButton.click();
 }
 
 async function pressRoomInvitationToast({
@@ -269,7 +288,7 @@ test('Test C', async ({ browser }) => {
     });
 
     await Promise.all([
-        inviteUser({ page: userAPage, userName: userCName }),
+        inviteUserAndGoBackTwice({ page: userAPage, userName: userCName }),
 
         pressRoomInvitationToast({
             page: userCPage,

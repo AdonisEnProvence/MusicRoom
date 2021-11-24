@@ -32,7 +32,7 @@ export default class TemporalToServerController {
         const state = MtvWorkflowState.parse(request.body());
         const roomID = state.roomID;
 
-        console.log('received play from temporal', state);
+        console.log('received pause from temporal', state);
 
         Ws.io.to(roomID).emit('ACTION_PAUSE_CALLBACK', state);
     }
@@ -89,7 +89,7 @@ export default class TemporalToServerController {
             hasPositionAndTimeConstraints,
             runID,
             uuid: roomID,
-        } = creator.mtvRoom;
+        } = mtvRoom;
         await MtvRoomsWsController.checkUserDevicesPositionIfRoomHasPositionConstraints(
             {
                 user: creator,

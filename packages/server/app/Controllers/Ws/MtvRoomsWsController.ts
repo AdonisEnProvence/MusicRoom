@@ -627,6 +627,7 @@ export default class MtvRoomsWsController {
     public static async onGetRoomConstraintsDetails({
         roomID,
     }: OnGetRoomConstraintsDetailsArgs): Promise<MtvRoomGetRoomConstraintDetailsCallbackArgs> {
+        console.log('onGetRoomConstraintsDetails send');
         const { hasPositionAndTimeConstraints, runID } =
             await MtvRoom.findOrFail(roomID);
         const roomDoesnotHaveAnyConstraints = !hasPositionAndTimeConstraints;

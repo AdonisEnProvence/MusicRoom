@@ -6,6 +6,7 @@ import {
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
 } from './mtv';
+import { LatlngCoords } from '.';
 
 export const MAX_CHAT_MESSAGE_LENGTH = 255;
 
@@ -110,8 +111,11 @@ export interface MtvRoomClientToServerVoteForTrackArgs {
 }
 
 export const MtvRoomGetRoomConstraintDetailsCallbackArgs =
-    MtvRoomPhysicalAndTimeConstraints.extend({
+    MtvRoomPhysicalAndTimeConstraints.omit({
+        physicalConstraintPlaceID: true,
+    }).extend({
         roomID: z.string(),
+        physicalConstraintPosition: LatlngCoords,
     });
 
 export type MtvRoomGetRoomConstraintDetailsCallbackArgs = z.infer<

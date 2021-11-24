@@ -6,6 +6,7 @@ import {
 import { View, Text } from 'dripsy';
 import React, { useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LocationObject } from 'expo-location';
 import {
     AppScreen,
     AppScreenContainer,
@@ -14,10 +15,11 @@ import {
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import { MusicTrackVoteChatModalProps } from '../types';
 import PositionConstraintsDetailsOnMap from '../components/Maps';
+import { useUserContext } from '../hooks/userHooks';
 
 interface RoomConstraintsDetailsPreviewProps {
     constraintsDetails: MtvRoomGetRoomConstraintDetailsCallbackArgs;
-    clientLocation?: LatlngCoords;
+    devicePosition?: LatlngCoords;
     roomName: string;
 }
 
@@ -30,27 +32,20 @@ const RoomConstraintsDetailsPreview: React.FC<RoomConstraintsDetailsPreviewProps
             physicalConstraintRadius,
             roomID,
         },
-        clientLocation,
+        devicePosition,
         roomName,
     }) => {
         return (
             <View
                 style={{
-                    flex: 1,
                     backgroundColor: '#fff',
                     alignItems: 'center',
                     justifyContent: 'center',
                 }}
             >
                 <PositionConstraintsDetailsOnMap
-                    positionConstraintPosition={{
-                        ...physicalConstraintPosition,
-                    }}
-                    devicePosition={
-                        clientLocation !== undefined
-                            ? { ...clientLocation }
-                            : undefined
-                    }
+                    positionConstraintPosition={physicalConstraintPosition}
+                    devicePosition={devicePosition}
                     positionConstraintRadius={physicalConstraintRadius}
                     defaultZoom={11}
                 />
@@ -61,6 +56,20 @@ const RoomConstraintsDetailsPreview: React.FC<RoomConstraintsDetailsPreviewProps
 const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalProps> =
     ({ navigation }) => {
         const insets = useSafeAreaInsets();
+
+        const {
+            userState: {
+                context: { location },
+            },
+        } = useUserContext();
+        const devicePosition =
+            location !== undefined
+                ? {
+                      lat: location.coords.latitude,
+                      lng: location.coords.longitude,
+                  }
+                : undefined;
+
         const { musicPlayerState, sendToMusicPlayerMachine } =
             useMusicPlayerContext();
         const {
@@ -75,7 +84,11 @@ const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalPro
         const noCurrentRoomOrRoomDoesnotHaveConstraints =
             !hasTimeAndPositionConstraints || noCurrentRoom;
 
-        //Commented debugging code below
+        // //tmp fastest to test
+        // const fakeDevicePosition: LatlngCoords = {
+        //     lat: 43.326645,
+        //     lng: 5.441153,
+        // };
         // const fakeConstraints: MtvRoomGetRoomConstraintDetailsCallbackArgs = {
         //     physicalConstraintEndsAt: '16h30 mercredi prochain',
         //     physicalConstraintPosition: {
@@ -86,7 +99,6 @@ const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalPro
         //     physicalConstraintStartsAt: 'Audjh midi',
         //     roomID: 'what ever',
         // };
-        // //tmp fastest to test
         // return (
         //     <AppScreen>
         //         <AppScreenHeader
@@ -102,6 +114,7 @@ const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalPro
         //             <Skeleton show={false} colorMode="dark" width="100%">
         //                 {fakeConstraints !== undefined ? (
         //                     <RoomConstraintsDetailsPreview
+        //                         devicePosition={fakeDevicePosition}
         //                         constraintsDetails={fakeConstraints}
         //                         roomName={roomName}
         //                     />
@@ -167,6 +180,7 @@ const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalPro
                     >
                         {constraintsDetails !== undefined ? (
                             <RoomConstraintsDetailsPreview
+                                devicePosition={devicePosition}
                                 constraintsDetails={constraintsDetails}
                                 roomName={roomName}
                             />

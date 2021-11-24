@@ -15,6 +15,7 @@ const WebMaps: MapsComponent = forwardRef<MapRef, MapsProps>(
         },
         _,
     ) => {
+        //Weird this should be working with newest version of typescript
         const devicePositionIsDefined = devicePosition !== undefined;
         return (
             <View
@@ -36,10 +37,12 @@ const WebMaps: MapsComponent = forwardRef<MapRef, MapsProps>(
                             label: 'Position constraint center',
                             map,
                         });
-                        if (devicePositionIsDefined) {
+                        if (devicePosition !== undefined) {
                             new google.maps.Marker({
+                                title: 'You',
                                 position: {
-                                    ...devicePosition,
+                                    lat: devicePosition.lat,
+                                    lng: devicePosition.lng,
                                 },
                                 map,
                             });

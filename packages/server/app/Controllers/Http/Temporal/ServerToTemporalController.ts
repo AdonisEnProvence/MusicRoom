@@ -3,6 +3,7 @@ import {
     CreateWorkflowResponse,
     LatlngCoords,
     MtvRoomClientToServerCreateArgs,
+    MtvRoomGetRoomConstraintDetailsCallbackArgs,
     MtvRoomPhysicalAndTimeConstraints,
     MtvRoomUpdateControlAndDelegationPermissionArgs,
     MtvRoomUpdateDelegationOwnerArgs,
@@ -105,6 +106,11 @@ interface TemporalMtvUpdateUserFitsPositionConstraints
 
 interface TemporalMtvGetStateArgs extends TemporalBaseArgs {
     userID?: string;
+}
+
+interface TemporalMtvGetRoomConstraintsDetails {
+    workflowID: string;
+    runID: string;
 }
 
 export default class ServerToTemporalController {
@@ -273,6 +279,29 @@ export default class ServerToTemporalController {
                 .json();
 
             return TemporalGetStateQueryResponse.parse(res);
+        } catch (e) {
+            console.error(e);
+            throw new Error('Get Users list FAILED' + workflowID);
+        }
+    }
+
+    public static async getRoomConstraintsDetails({
+        workflowID,
+        runID,
+    }: TemporalMtvGetRoomConstraintsDetails): Promise<MtvRoomGetRoomConstraintDetailsCallbackArgs> {
+        try {
+            const url = urlcat(TEMPORAL_ENDPOINT, '/room-constraints-details');
+
+            const res = await got
+                .put(url, {
+                    json: {
+                        workflowID,
+                        runID,
+                    },
+                })
+                .json();
+
+            return MtvRoomGetRoomConstraintDetailsCallbackArgs.parse(res);
         } catch (e) {
             console.error(e);
             throw new Error('Get Users list FAILED' + workflowID);

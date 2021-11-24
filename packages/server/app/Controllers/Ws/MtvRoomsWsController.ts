@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import {
     CreateWorkflowResponse,
     MtvRoomClientToServerCreateArgs,
+    MtvRoomGetRoomConstraintDetailsCallbackArgs,
     MtvRoomSummary,
     MtvRoomUpdateControlAndDelegationPermissionArgs,
     MtvRoomUpdateDelegationOwnerArgs,
@@ -105,6 +106,10 @@ interface CheckUserDevicesPositionIfRoomHasPositionConstraintsArgs {
               roomID: string;
           }
         | undefined;
+}
+
+interface OnGetRoomConstraintsDetailsArgs {
+    roomID: string;
 }
 
 export default class MtvRoomsWsController {
@@ -617,5 +622,24 @@ export default class MtvRoomsWsController {
             'RECEIVED_MTV_ROOM_INVITATION',
             [roomSummary],
         );
+    }
+
+    public static async onGetRoomConstraintsDetails({
+        roomID,
+    }: OnGetRoomConstraintsDetailsArgs): Promise<MtvRoomGetRoomConstraintDetailsCallbackArgs> {
+        const { hasPositionAndTimeConstraints, runID } =
+            await MtvRoom.findOrFail(roomID);
+        const roomDoesnotHaveAnyConstraints = !hasPositionAndTimeConstraints;
+
+        if (roomDoesnotHaveAnyConstraints) {
+            throw new Error(
+                "onGetRoomConstraintsDetails room doesn't have any constraints",
+            );
+        }
+
+        return await ServerToTemporalController.getRoomConstraintsDetails({
+            workflowID: roomID,
+            runID,
+        });
     }
 }

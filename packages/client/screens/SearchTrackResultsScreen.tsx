@@ -13,10 +13,16 @@ import { SearchTrackResultsScreenProps } from '../types';
 
 const SearchTracksResultsScreen: React.FC<SearchTrackResultsScreenProps> = ({
     route,
+    navigation,
 }) => {
     const tracks = route.params.tracks;
     const insets = useSafeAreaInsets();
     const { sendToMusicPlayerMachine } = useMusicPlayerContext();
+
+    function clearSearchTracksScreenNavigation() {
+        navigation.popToTop();
+        navigation.goBack();
+    }
 
     function handleTrackPress(trackId: string) {
         sendToMusicPlayerMachine({
@@ -24,6 +30,8 @@ const SearchTracksResultsScreen: React.FC<SearchTrackResultsScreenProps> = ({
             roomName: trackId,
             initialTracksIDs: [trackId],
         });
+
+        clearSearchTracksScreenNavigation();
     }
 
     return (

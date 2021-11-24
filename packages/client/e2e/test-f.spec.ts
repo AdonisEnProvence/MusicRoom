@@ -207,11 +207,6 @@ async function createPublicRoomWithTimeAndPhysicalConstraints({
 
     await page.click('text="Next" >> visible=true');
 
-    // We expect creation form to have disappeared
-    // and user to have not been redirected to another screen than
-    // the one in which she opened the form.
-    await expect(page.locator('text="Results"').first()).toBeVisible();
-
     const miniPlayerWithRoomName = page.locator(`text="${roomName}"`).first();
     await expect(miniPlayerWithRoomName).toBeVisible();
     const miniPlayerWithSelectedSong = page.locator(

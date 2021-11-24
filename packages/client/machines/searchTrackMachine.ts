@@ -1,5 +1,6 @@
 import { createModel } from 'xstate/lib/model';
 import { TrackMetadata } from '@musicroom/types';
+import { forwardTo } from 'xstate';
 import { fetchTracksSuggestions } from '../services/search-tracks';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 
@@ -12,6 +13,8 @@ const searchTrackModel = createModel(
             FETCHED_TRACKS: (tracks: TrackMetadata[]) => ({ tracks }),
             FAILED_FETCHING_TRACKS: () => ({}),
             SUBMITTED: (searchQuery: string) => ({ searchQuery }),
+
+            RESET: () => ({}),
         },
     },
 );
@@ -27,45 +30,62 @@ export const searchTrackMachine = searchTrackModel.createMachine(
     {
         context: searchTrackModel.initialContext,
 
-        initial: 'idle',
-
-        invoke: {
-            id: 'searchBarMachine',
-            src: appScreenHeaderWithSearchBarMachine,
-        },
+        type: 'parallel',
 
         states: {
-            idle: {
+            steps: {
+                initial: 'idle',
+
+                states: {
+                    idle: {
+                        on: {
+                            SUBMITTED: {
+                                target: 'fetchingTracks',
+                            },
+                        },
+                    },
+
+                    fetchingTracks: {
+                        invoke: {
+                            src: 'fetchTracks',
+                        },
+
+                        on: {
+                            FETCHED_TRACKS: {
+                                target: 'fetchedTracks',
+
+                                actions: assignTracksToContext,
+                            },
+
+                            FAILED_FETCHING_TRACKS: {
+                                target: 'errFetchingTracks',
+                            },
+                        },
+                    },
+
+                    fetchedTracks: {
+                        entry: ['navigateToResultsPage'],
+                    },
+
+                    errFetchingTracks: {},
+                },
+
                 on: {
-                    SUBMITTED: {
-                        target: 'fetchingTracks',
+                    RESET: {
+                        target: 'steps.idle',
+
+                        actions: forwardTo('searchBarMachine'),
                     },
                 },
             },
 
-            fetchingTracks: {
+            searchBar: {
                 invoke: {
-                    src: 'fetchTracks',
-                },
+                    id: 'searchBarMachine',
 
-                on: {
-                    FETCHED_TRACKS: {
-                        target: 'fetchedTracks',
-
-                        actions: assignTracksToContext,
-                    },
-
-                    FAILED_FETCHING_TRACKS: {
-                        target: 'errFetchingTracks',
-                    },
+                    src: appScreenHeaderWithSearchBarMachine,
                 },
             },
-
-            fetchedTracks: {
-                entry: ['navigateToResultsPage'],
-            },
-
-            errFetchingTracks: {},
         },
     },
     {

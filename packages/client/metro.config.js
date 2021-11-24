@@ -1,3 +1,15 @@
 const { createMetroConfiguration } = require('expo-yarn-workspaces');
+const blacklist = require('metro-config/src/defaults/blacklist');
 
-module.exports = createMetroConfiguration(__dirname);
+const yarnWorkspacesConfiguration = createMetroConfiguration(__dirname);
+
+module.exports = {
+    ...yarnWorkspacesConfiguration,
+    resolver: {
+        ...yarnWorkspacesConfiguration.resolver,
+        blacklistRE: blacklist([
+            yarnWorkspacesConfiguration.resolver.blacklistRE,
+            /packages\/server\/dist\/.*/,
+        ]),
+    },
+};

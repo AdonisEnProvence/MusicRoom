@@ -1,6 +1,9 @@
 import { Skeleton } from '@motify/skeleton';
-import { MtvRoomGetRoomConstraintDetailsCallbackArgs } from '@musicroom/types';
-import { Text, View } from 'dripsy';
+import {
+    LatlngCoords,
+    MtvRoomGetRoomConstraintDetailsCallbackArgs,
+} from '@musicroom/types';
+import { View, Text } from 'dripsy';
 import React, { useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -10,9 +13,11 @@ import {
 } from '../components/kit';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import { MusicTrackVoteChatModalProps } from '../types';
+import PositionConstraintsDetailsOnMap from '../components/Maps';
 
 interface RoomConstraintsDetailsPreviewProps {
     constraintsDetails: MtvRoomGetRoomConstraintDetailsCallbackArgs;
+    clientLocation?: LatlngCoords;
     roomName: string;
 }
 
@@ -25,11 +30,32 @@ const RoomConstraintsDetailsPreview: React.FC<RoomConstraintsDetailsPreviewProps
             physicalConstraintRadius,
             roomID,
         },
+        clientLocation,
         roomName,
     }) => {
-        const insets = useSafeAreaInsets();
-
-        return <View />;
+        return (
+            <View
+                style={{
+                    flex: 1,
+                    backgroundColor: '#fff',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
+                <PositionConstraintsDetailsOnMap
+                    positionConstraintPosition={{
+                        ...physicalConstraintPosition,
+                    }}
+                    devicePosition={
+                        clientLocation !== undefined
+                            ? { ...clientLocation }
+                            : undefined
+                    }
+                    positionConstraintRadius={physicalConstraintRadius}
+                    defaultZoom={11}
+                />
+            </View>
+        );
     };
 
 const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalProps> =
@@ -48,6 +74,42 @@ const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalPro
         const noCurrentRoom = roomID === '';
         const noCurrentRoomOrRoomDoesnotHaveConstraints =
             !hasTimeAndPositionConstraints || noCurrentRoom;
+
+        //Commented debugging code below
+        // const fakeConstraints: MtvRoomGetRoomConstraintDetailsCallbackArgs = {
+        //     physicalConstraintEndsAt: '16h30 mercredi prochain',
+        //     physicalConstraintPosition: {
+        //         lat: 43.426645,
+        //         lng: 5.441153,
+        //     },
+        //     physicalConstraintRadius: 1000,
+        //     physicalConstraintStartsAt: 'Audjh midi',
+        //     roomID: 'what ever',
+        // };
+        // //tmp fastest to test
+        // return (
+        //     <AppScreen>
+        //         <AppScreenHeader
+        //             title="userName profile"
+        //             insetTop={insets.top}
+        //             canGoBack={true}
+        //             goBack={() => {
+        //                 navigation.goBack();
+        //             }}
+        //         />
+
+        //         <AppScreenContainer>
+        //             <Skeleton show={false} colorMode="dark" width="100%">
+        //                 {fakeConstraints !== undefined ? (
+        //                     <RoomConstraintsDetailsPreview
+        //                         constraintsDetails={fakeConstraints}
+        //                         roomName={roomName}
+        //                     />
+        //                 ) : undefined}
+        //             </Skeleton>
+        //         </AppScreenContainer>
+        //     </AppScreen>
+        // );
 
         useEffect(() => {
             if (noCurrentRoomOrRoomDoesnotHaveConstraints) {
@@ -79,7 +141,7 @@ const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalPro
 
                     <AppScreenContainer>
                         <Text>
-                            You're room is not concerned about any constraints
+                            Your room is not concerned about any constraints
                         </Text>
                     </AppScreenContainer>
                 </AppScreen>

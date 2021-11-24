@@ -6,7 +6,7 @@ import {
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
 } from './mtv';
-import { LatlngCoords } from '.';
+import { LatlngCoords } from './user-websockets';
 
 export const MAX_CHAT_MESSAGE_LENGTH = 255;
 

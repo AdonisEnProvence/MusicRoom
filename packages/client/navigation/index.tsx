@@ -27,6 +27,7 @@ import UserProfileScreen from '../screens/UserProfile';
 import {
     MainStackParamList,
     MusicTrackVoteChatStackParamList,
+    MusicTrackVoteConstraintsDetailsParamList,
     MusicTrackVoteCreationFormParamList,
     MusicTrackVoteUsersListStackParamList,
     MusicTrackVoteUsersSearchStackParamList,
@@ -34,6 +35,7 @@ import {
     SuggestTrackStackParamList,
 } from '../types';
 import { SplashScreen } from '../screens/SplashScreen';
+import MusicTrackVoteConstraintsDetailsModal from '../screens/MusicTrackVoteConstraintsDetailsModal';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
@@ -83,6 +85,8 @@ const MusicTrackVoteCreationStack =
     createStackNavigator<MusicTrackVoteCreationFormParamList>();
 const MusicTrackVoteChatStack =
     createStackNavigator<MusicTrackVoteChatStackParamList>();
+const MusicTrackVoteConstraintsDetailsStack =
+    createStackNavigator<MusicTrackVoteConstraintsDetailsParamList>();
 const MusicTrackVoteUsersSearchStack =
     createStackNavigator<MusicTrackVoteUsersSearchStackParamList>();
 
@@ -127,6 +131,12 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
             <RootStack.Screen
                 name="MusicTrackVoteChat"
                 component={MusicTrackVoteChatNavigator}
+                options={{ headerShown: false }}
+            />
+
+            <RootStack.Screen
+                name="MusicTrackVoteConstraintsDetails"
+                component={MusicTrackVoteConstraintsDetailsNavigator}
                 options={{ headerShown: false }}
             />
 
@@ -223,6 +233,23 @@ export const MusicTrackVoteChatNavigator: React.FC<ColorModeProps> = ({
         </MusicTrackVoteChatStack.Navigator>
     );
 };
+
+export const MusicTrackVoteConstraintsDetailsNavigator: React.FC<ColorModeProps> =
+    ({ colorScheme }) => {
+        const style = navigationStyle(colorScheme);
+
+        return (
+            <MusicTrackVoteConstraintsDetailsStack.Navigator
+                initialRouteName="MusicTrackVoteConstraintsDetailsModal"
+                screenOptions={{ ...style, headerShown: false }}
+            >
+                <MusicTrackVoteConstraintsDetailsStack.Screen
+                    name="MusicTrackVoteConstraintsDetailsModal"
+                    component={MusicTrackVoteConstraintsDetailsModal}
+                />
+            </MusicTrackVoteConstraintsDetailsStack.Navigator>
+        );
+    };
 
 export const MusicTrackVoteUsersSearchNavigator: React.FC<ColorModeProps> = ({
     colorScheme,

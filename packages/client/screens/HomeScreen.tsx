@@ -60,6 +60,18 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                 />
 
                 <Button
+                    title="Go to my profile screen"
+                    onPress={() => {
+                        navigation.navigate(
+                            'MusicTrackVoteConstraintsDetails',
+                            {
+                                screen: 'MusicTrackVoteConstraintsDetailsModal',
+                            },
+                        );
+                    }}
+                />
+
+                <Button
                     title="Inject fake room"
                     onPress={() => {
                         const fakeState: MtvWorkflowState = {

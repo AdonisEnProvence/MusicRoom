@@ -60,18 +60,6 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                 />
 
                 <Button
-                    title="Go to my profile screen"
-                    onPress={() => {
-                        navigation.navigate(
-                            'MusicTrackVoteConstraintsDetails',
-                            {
-                                screen: 'MusicTrackVoteConstraintsDetailsModal',
-                            },
-                        );
-                    }}
-                />
-
-                <Button
                     title="Inject fake room"
                     onPress={() => {
                         const fakeState: MtvWorkflowState = {
@@ -92,7 +80,7 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                             minimumScoreToBePlayed: 1,
                             isOpen: true,
                             isOpenOnlyInvitedUsersCanVote: false,
-                            hasTimeAndPositionConstraints: false,
+                            hasTimeAndPositionConstraints: true,
                             timeConstraintIsValid: null,
                             delegationOwnerUserID: null,
                             userRelatedInformation: {

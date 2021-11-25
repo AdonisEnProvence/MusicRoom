@@ -7,11 +7,13 @@ type AppModalHeaderProps = {
     insetTop: number;
     dismiss: () => void;
     HeaderLeft: () => React.ReactElement;
+    HeaderRight: () => React.ReactElement;
 };
 
 const AppModalHeader: React.FC<AppModalHeaderProps> = ({
     insetTop,
     HeaderLeft,
+    HeaderRight,
     dismiss,
     ...props
 }) => {
@@ -35,6 +37,7 @@ const AppModalHeader: React.FC<AppModalHeaderProps> = ({
             >
                 <HeaderLeft />
 
+                <HeaderRight />
                 <TouchableOpacity
                     style={sx({
                         padding: 's',

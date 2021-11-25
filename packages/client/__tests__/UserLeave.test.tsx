@@ -111,6 +111,8 @@ He will be redirected to the home and will view the default mini music player
 
     fireEvent.press(leaveRoomButton);
 
+    serverSocket.emit('LEAVE_ROOM_CALLBACK');
+
     await waitFor(() => {
         const elements = queryAllByA11yState({ expanded: false });
         expect(elements.length).toBe(0);

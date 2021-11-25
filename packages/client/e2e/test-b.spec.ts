@@ -4,7 +4,11 @@ import {
     assertMusicPlayerStatusIs,
 } from './_utils/assert';
 import { KnownSearchesRecord } from './_utils/mock-http';
-import { closeAllContexts, setupAndGetUserPage } from './_utils/page';
+import {
+    closeAllContexts,
+    setupAndGetUserPage,
+    createNewTabFromExistingContext,
+} from './_utils/page';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
 
 type FindMiniPlayerWithRoomNameAndGoFullscreenArgs = {
@@ -402,6 +406,17 @@ async function userGoesToSettingsTabFromMusicPlayerFullscreenAndLeaveRoom({
     ).toBeVisible();
 }
 
+async function waitForUserToDoNotBeInRoom({
+    page,
+    roomName,
+}: {
+    page: Page;
+    roomName: string;
+}) {
+    const roomNameElement = page.locator(`text="${roomName}"`).first();
+    await expect(roomNameElement).toBeHidden();
+}
+
 test.afterEach(async ({ browser }) => {
     await closeAllContexts(browser);
 });
@@ -477,9 +492,13 @@ test('Test B see following link for more information: https://3.basecamp.com/470
     };
 
     const [
-        { page: creatorUserA, userNickname: creatorUserANickname },
+        { page: creatorUserA },
         { page: joiningUserB, userNickname: joiningUserBNickname },
-        { page: joiningUserC, userNickname: joiningUserCNickname },
+        {
+            page: joiningUserCDevice1,
+            userNickname: joiningUserCDevice1Nickname,
+            context: userCContext,
+        },
     ] = await Promise.all([
         setupAndGetUserPage({
             browser,
@@ -497,6 +516,9 @@ test('Test B see following link for more information: https://3.basecamp.com/470
             knownSearches,
         }),
     ]);
+    const { page: joiningUserCDevice2 } = await createNewTabFromExistingContext(
+        userCContext,
+    );
 
     const { roomName, selectedSongTitle } =
         await createDirectRoomAndGoFullscreen({
@@ -510,7 +532,7 @@ test('Test B see following link for more information: https://3.basecamp.com/470
         expectedListenersCounterValue: 2,
     });
     await userJoinsGivenRoomAndGoFullscreen({
-        joiningUserPage: joiningUserC,
+        joiningUserPage: joiningUserCDevice1,
         roomName,
         expectedListenersCounterValue: 3,
     });
@@ -521,12 +543,23 @@ test('Test B see following link for more information: https://3.basecamp.com/470
             page: creatorUserA,
             trackName: suggestedTrackQuery,
         });
-    await expect(
-        joiningUserB.locator(`text="${suggestedSongTitle}" >> visible=true`),
-    ).toBeVisible();
-    await expect(
-        joiningUserC.locator(`text="${suggestedSongTitle}" >> visible=true`),
-    ).toBeVisible();
+    await Promise.all([
+        expect(
+            joiningUserB.locator(
+                `text="${suggestedSongTitle}" >> visible=true`,
+            ),
+        ).toBeVisible(),
+        expect(
+            joiningUserCDevice1.locator(
+                `text="${suggestedSongTitle}" >> visible=true`,
+            ),
+        ).toBeVisible(),
+        expect(
+            joiningUserCDevice2.locator(
+                `text="${suggestedSongTitle}" >> visible=true`,
+            ),
+        ).toBeVisible(),
+    ]);
 
     await userVoteForGivenTrackFromFullscreen({
         page: joiningUserB,
@@ -544,7 +577,7 @@ test('Test B see following link for more information: https://3.basecamp.com/470
             testID: 'music-player-not-playing-device-muted',
         }),
         assertMusicPlayerStatusIs({
-            page: joiningUserC,
+            page: joiningUserCDevice1,
             testID: 'music-player-not-playing-device-muted',
         }),
         userHitsPauseFromFullscreenPlayer({
@@ -568,7 +601,7 @@ test('Test B see following link for more information: https://3.basecamp.com/470
     await Promise.all([
         waitForYouTubeVideoToLoad(creatorUserA),
         waitForYouTubeVideoToLoad(joiningUserB),
-        waitForYouTubeVideoToLoad(joiningUserC),
+        waitForYouTubeVideoToLoad(joiningUserCDevice1),
     ]);
 
     //UserB hits pause button as he has control and delegation permission
@@ -582,7 +615,7 @@ test('Test B see following link for more information: https://3.basecamp.com/470
             testID: 'music-player-playing-device-muted',
         }),
         assertMusicPlayerStatusIs({
-            page: joiningUserC,
+            page: joiningUserCDevice1,
             testID: 'music-player-playing-device-muted',
         }),
         userHitsPlayFromFullscreenPlayer({
@@ -592,7 +625,7 @@ test('Test B see following link for more information: https://3.basecamp.com/470
 
     //UserC votes for the suggested track
     await userVoteForGivenTrackFromFullscreen({
-        page: joiningUserC,
+        page: joiningUserCDevice1,
         trackName: suggestedSongTitle,
     });
 
@@ -612,7 +645,7 @@ test('Test B see following link for more information: https://3.basecamp.com/470
 
     await Promise.all([
         assertMusicPlayerStatusIs({
-            page: joiningUserC,
+            page: joiningUserCDevice1,
             testID: 'music-player-playing-device-emitting',
         }),
         assertMusicPlayerStatusIs({
@@ -625,7 +658,7 @@ test('Test B see following link for more information: https://3.basecamp.com/470
         }),
         openUserSettingsAndGiveHimTheDelegationOwnership({
             page: joiningUserB,
-            userNickname: joiningUserCNickname,
+            userNickname: joiningUserCDevice1Nickname,
         }),
     ]);
 
@@ -639,8 +672,18 @@ test('Test B see following link for more information: https://3.basecamp.com/470
             page: joiningUserB,
             testID: 'music-player-playing-device-muted',
         }),
+
+        waitForUserToDoNotBeInRoom({
+            page: joiningUserCDevice1,
+            roomName,
+        }),
+        waitForUserToDoNotBeInRoom({
+            page: joiningUserCDevice2,
+            roomName,
+        }),
+
         userGoesToSettingsTabFromMusicPlayerFullscreenAndLeaveRoom({
-            page: joiningUserC,
+            page: joiningUserCDevice1,
         }),
     ]);
 });

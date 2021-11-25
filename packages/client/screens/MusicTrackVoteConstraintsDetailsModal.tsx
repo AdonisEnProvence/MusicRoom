@@ -3,14 +3,15 @@ import {
     LatlngCoords,
     MtvRoomGetRoomConstraintDetailsCallbackArgs,
 } from '@musicroom/types';
-import { View, Text } from 'dripsy';
+import { View, Button } from 'dripsy';
 import React, { useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LocationObject } from 'expo-location';
+import { Dimensions } from 'react-native';
 import {
     AppScreen,
     AppScreenContainer,
     AppScreenHeader,
+    Typo,
 } from '../components/kit';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import { MusicTrackVoteChatModalProps } from '../types';
@@ -21,7 +22,25 @@ interface RoomConstraintsDetailsPreviewProps {
     constraintsDetails: MtvRoomGetRoomConstraintDetailsCallbackArgs;
     devicePosition?: LatlngCoords;
     roomName: string;
+    userFitsPositionConstraint?: boolean | null;
+    RequestLocationPermissionButton: () => React.ReactElement;
 }
+
+const TimeConstraintLine: React.FC<{ maxWidth: string | number }> = ({
+    children,
+    maxWidth,
+}) => (
+    <View
+        sx={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            maxWidth,
+            width: '100%',
+        }}
+    >
+        {children}
+    </View>
+);
 
 const RoomConstraintsDetailsPreview: React.FC<RoomConstraintsDetailsPreviewProps> =
     ({
@@ -34,21 +53,79 @@ const RoomConstraintsDetailsPreview: React.FC<RoomConstraintsDetailsPreviewProps
         },
         devicePosition,
         roomName,
+        userFitsPositionConstraint,
+        RequestLocationPermissionButton,
     }) => {
+        const height = Dimensions.get('window').height;
+        const maxHeight = height / 2 > 400 ? 400 : height / 2;
+        const maxWidth = 800;
         return (
             <View
-                style={{
-                    backgroundColor: '#fff',
+                sx={{
+                    width: '100%',
+                    display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                 }}
             >
-                <PositionConstraintsDetailsOnMap
-                    positionConstraintPosition={physicalConstraintPosition}
-                    devicePosition={devicePosition}
-                    positionConstraintRadius={physicalConstraintRadius}
-                    defaultZoom={11}
-                />
+                <View
+                    sx={{
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        width: '100%',
+                    }}
+                >
+                    <TimeConstraintLine maxWidth={maxWidth}>
+                        <Typo sx={{ fontSize: 's' }}>StartsAt:</Typo>
+                        <Typo sx={{ fontSize: 's' }}>
+                            {physicalConstraintStartsAt}
+                        </Typo>
+                    </TimeConstraintLine>
+
+                    <TimeConstraintLine maxWidth={maxWidth}>
+                        <Typo sx={{ fontSize: 's' }}>EndsAt:</Typo>
+                        <Typo sx={{ fontSize: 's' }}>
+                            {physicalConstraintEndsAt}
+                        </Typo>
+                    </TimeConstraintLine>
+                </View>
+                <View
+                    sx={{
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        width: '100%',
+                        marginTop: 'm',
+                    }}
+                >
+                    <Typo
+                        sx={{
+                            fontSize: 's',
+                        }}
+                    >
+                        {userFitsPositionConstraint === true
+                            ? 'You fit the room position constraint, at least one of your device is in the zone'
+                            : 'You do not fit the room position constraint'}
+                    </Typo>
+                    <View
+                        sx={{
+                            width: '100%',
+                            maxWidth,
+                            height: maxHeight,
+                        }}
+                    >
+                        <PositionConstraintsDetailsOnMap
+                            positionConstraintPosition={
+                                physicalConstraintPosition
+                            }
+                            devicePosition={devicePosition}
+                            positionConstraintRadius={physicalConstraintRadius}
+                            defaultZoom={11}
+                        />
+
+                        <RequestLocationPermissionButton />
+                    </View>
+                </View>
             </View>
         );
     };
@@ -59,8 +136,9 @@ const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalPro
 
         const {
             userState: {
-                context: { location },
+                context: { location, locationPermission },
             },
+            sendToUserMachine,
         } = useUserContext();
         const devicePosition =
             location !== undefined
@@ -69,6 +147,7 @@ const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalPro
                       lng: location.coords.longitude,
                   }
                 : undefined;
+        const locationPermissionIsNotGranted = !locationPermission;
 
         const { musicPlayerState, sendToMusicPlayerMachine } =
             useMusicPlayerContext();
@@ -77,6 +156,8 @@ const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalPro
             roomID,
             constraintsDetails,
             name: roomName,
+            timeConstraintIsValid,
+            userRelatedInformation,
         } = musicPlayerState.context;
 
         const displayLoader = constraintsDetails === undefined;
@@ -84,49 +165,15 @@ const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalPro
         const noCurrentRoomOrRoomDoesnotHaveConstraints =
             !hasTimeAndPositionConstraints || noCurrentRoom;
 
-        // //tmp fastest to test
-        // const fakeDevicePosition: LatlngCoords = {
-        //     lat: 43.326645,
-        //     lng: 5.441153,
-        // };
-        // const fakeConstraints: MtvRoomGetRoomConstraintDetailsCallbackArgs = {
-        //     physicalConstraintEndsAt: '16h30 mercredi prochain',
-        //     physicalConstraintPosition: {
-        //         lat: 43.426645,
-        //         lng: 5.441153,
-        //     },
-        //     physicalConstraintRadius: 1000,
-        //     physicalConstraintStartsAt: 'Audjh midi',
-        //     roomID: 'what ever',
-        // };
-        // return (
-        //     <AppScreen>
-        //         <AppScreenHeader
-        //             title="userName profile"
-        //             insetTop={insets.top}
-        //             canGoBack={true}
-        //             goBack={() => {
-        //                 navigation.goBack();
-        //             }}
-        //         />
-
-        //         <AppScreenContainer>
-        //             <Skeleton show={false} colorMode="dark" width="100%">
-        //                 {fakeConstraints !== undefined ? (
-        //                     <RoomConstraintsDetailsPreview
-        //                         devicePosition={fakeDevicePosition}
-        //                         constraintsDetails={fakeConstraints}
-        //                         roomName={roomName}
-        //                     />
-        //                 ) : undefined}
-        //             </Skeleton>
-        //         </AppScreenContainer>
-        //     </AppScreen>
-        // );
-
         useEffect(() => {
             if (noCurrentRoomOrRoomDoesnotHaveConstraints) {
                 return;
+            }
+
+            if (locationPermissionIsNotGranted) {
+                sendToUserMachine({
+                    type: 'REQUEST_LOCATION_PERMISSION',
+                });
             }
 
             if (constraintsDetails === undefined) {
@@ -138,6 +185,8 @@ const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalPro
             constraintsDetails,
             noCurrentRoomOrRoomDoesnotHaveConstraints,
             sendToMusicPlayerMachine,
+            sendToUserMachine,
+            locationPermissionIsNotGranted,
         ]);
 
         if (noCurrentRoomOrRoomDoesnotHaveConstraints) {
@@ -153,9 +202,9 @@ const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalPro
                     />
 
                     <AppScreenContainer>
-                        <Text>
+                        <Typo sx={{ fontSize: 's' }}>
                             Your room is not concerned about any constraints
-                        </Text>
+                        </Typo>
                     </AppScreenContainer>
                 </AppScreen>
             );
@@ -164,7 +213,7 @@ const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalPro
         return (
             <AppScreen>
                 <AppScreenHeader
-                    title="userName profile"
+                    title="Mtv Room Constraints"
                     insetTop={insets.top}
                     canGoBack={true}
                     goBack={() => {
@@ -180,6 +229,27 @@ const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalPro
                     >
                         {constraintsDetails !== undefined ? (
                             <RoomConstraintsDetailsPreview
+                                RequestLocationPermissionButton={() => {
+                                    if (locationPermissionIsNotGranted) {
+                                        return (
+                                            <Button
+                                                sx={{
+                                                    fontSize: 's',
+                                                }}
+                                                title={'Get device position'}
+                                                onPress={() => {
+                                                    sendToMusicPlayerMachine({
+                                                        type: 'GET_ROOM_CONSTRAINTS_DETAILS',
+                                                    });
+                                                }}
+                                            />
+                                        );
+                                    }
+                                    return <></>;
+                                }}
+                                userFitsPositionConstraint={
+                                    userRelatedInformation?.userFitsPositionConstraint
+                                }
                                 devicePosition={devicePosition}
                                 constraintsDetails={constraintsDetails}
                                 roomName={roomName}

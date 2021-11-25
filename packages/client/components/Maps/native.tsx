@@ -11,12 +11,9 @@ const NativeMaps: MapsComponent = forwardRef<MapRef, MapsProps>(
             positionConstraintPosition,
             positionConstraintRadius,
             devicePosition,
-            ...props
         },
         _,
     ) => {
-        const height = Dimensions.get('window').height;
-        const width = Dimensions.get('window').width;
         return (
             <MapView
                 initialRegion={{
@@ -26,8 +23,8 @@ const NativeMaps: MapsComponent = forwardRef<MapRef, MapsProps>(
                     longitudeDelta: 0.0421,
                 }}
                 style={{
-                    width: width,
-                    height: height,
+                    width: '100%',
+                    height: '100%',
                 }}
                 provider={'google'}
             >

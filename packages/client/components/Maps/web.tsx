@@ -18,50 +18,43 @@ const WebMaps: MapsComponent = forwardRef<MapRef, MapsProps>(
         //Weird this should be working with newest version of typescript
         const devicePositionIsDefined = devicePosition !== undefined;
         return (
-            <View
-                style={{
-                    height: '100vh',
-                    width: '100%',
-                }}
-            >
-                <GoogleMapReact
-                    {...props}
-                    defaultCenter={positionConstraintPosition}
-                    bootstrapURLKeys={{ key: GOOGLE_MAPS_JAVASCRIPT_API_KEY }}
-                    yesIWantToUseGoogleMapApiInternals={true}
-                    onGoogleApiLoaded={({ map }) => {
+            <GoogleMapReact
+                {...props}
+                defaultCenter={positionConstraintPosition}
+                bootstrapURLKeys={{ key: GOOGLE_MAPS_JAVASCRIPT_API_KEY }}
+                yesIWantToUseGoogleMapApiInternals={true}
+                onGoogleApiLoaded={({ map }) => {
+                    new google.maps.Marker({
+                        position: {
+                            ...positionConstraintPosition,
+                        },
+                        label: 'Position constraint center',
+                        map,
+                    });
+                    if (devicePosition !== undefined) {
                         new google.maps.Marker({
+                            title: 'You',
                             position: {
-                                ...positionConstraintPosition,
+                                lat: devicePosition.lat,
+                                lng: devicePosition.lng,
                             },
-                            label: 'Position constraint center',
                             map,
                         });
-                        if (devicePosition !== undefined) {
-                            new google.maps.Marker({
-                                title: 'You',
-                                position: {
-                                    lat: devicePosition.lat,
-                                    lng: devicePosition.lng,
-                                },
-                                map,
-                            });
-                        }
-                        new google.maps.Circle({
-                            strokeColor: '#1db954',
-                            strokeOpacity: 0.4,
-                            strokeWeight: 1,
-                            fillColor: '#1db954',
-                            fillOpacity: 0.3,
-                            map,
-                            center: {
-                                ...positionConstraintPosition,
-                            },
-                            radius: positionConstraintRadius,
-                        });
-                    }}
-                />
-            </View>
+                    }
+                    new google.maps.Circle({
+                        strokeColor: '#1db954',
+                        strokeOpacity: 0.4,
+                        strokeWeight: 1,
+                        fillColor: '#1db954',
+                        fillOpacity: 0.3,
+                        map,
+                        center: {
+                            ...positionConstraintPosition,
+                        },
+                        radius: positionConstraintRadius,
+                    });
+                }}
+            />
         );
     },
 );

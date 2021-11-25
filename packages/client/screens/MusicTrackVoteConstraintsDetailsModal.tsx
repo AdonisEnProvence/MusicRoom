@@ -17,6 +17,10 @@ import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import { MusicTrackVoteChatModalProps } from '../types';
 import PositionConstraintsDetailsOnMap from '../components/Maps';
 import { useUserContext } from '../hooks/userHooks';
+import {
+    formatDateTime,
+    parseDateTimeString,
+} from '../hooks/useFormatDateTime';
 
 interface RoomConstraintsDetailsPreviewProps {
     constraintsDetails: MtvRoomGetRoomConstraintDetailsCallbackArgs;
@@ -59,6 +63,12 @@ const RoomConstraintsDetailsPreview: React.FC<RoomConstraintsDetailsPreviewProps
         const height = Dimensions.get('window').height;
         const maxHeight = height / 2 > 400 ? 400 : height / 2;
         const maxWidth = 800;
+
+        const parsedStartsAt = parseDateTimeString(physicalConstraintStartsAt);
+        const readableStartsAt = formatDateTime(parsedStartsAt);
+
+        const parsedEndsAt = parseDateTimeString(physicalConstraintEndsAt);
+        const readableEndsAt = formatDateTime(parsedEndsAt);
         return (
             <View
                 sx={{
@@ -77,16 +87,12 @@ const RoomConstraintsDetailsPreview: React.FC<RoomConstraintsDetailsPreviewProps
                 >
                     <TimeConstraintLine maxWidth={maxWidth}>
                         <Typo sx={{ fontSize: 's' }}>StartsAt:</Typo>
-                        <Typo sx={{ fontSize: 's' }}>
-                            {physicalConstraintStartsAt}
-                        </Typo>
+                        <Typo sx={{ fontSize: 's' }}>{readableStartsAt}</Typo>
                     </TimeConstraintLine>
 
                     <TimeConstraintLine maxWidth={maxWidth}>
                         <Typo sx={{ fontSize: 's' }}>EndsAt:</Typo>
-                        <Typo sx={{ fontSize: 's' }}>
-                            {physicalConstraintEndsAt}
-                        </Typo>
+                        <Typo sx={{ fontSize: 's' }}>{readableEndsAt}</Typo>
                     </TimeConstraintLine>
                 </View>
                 <View

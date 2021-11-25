@@ -52,6 +52,9 @@ export default class UserService {
                 try {
                     if (connectedSocketsToRoom.has(device.socketID)) {
                         console.log('remote leave device ', device.socketID);
+
+                        Ws.io.to(device.socketID).emit('LEAVE_ROOM_CALLBACK');
+
                         await Ws.adapter().remoteLeave(device.socketID, roomID);
                     }
                 } catch (e) {

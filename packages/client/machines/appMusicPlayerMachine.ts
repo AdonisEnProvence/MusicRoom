@@ -82,6 +82,7 @@ export type AppMusicPlayerMachineEvent =
     | { type: 'TIME_CONSTRAINT_UPDATE'; state: MtvWorkflowState }
     | { type: 'FORCED_DISCONNECTION' }
     | { type: 'LEAVE_ROOM' }
+    | { type: 'LEAVE_ROOM_CALLBACK' }
     | { type: 'UPDATE_DELEGATION_OWNER'; newDelegationOwnerUserID: string }
     | { type: 'UPDATE_DELEGATION_OWNER_CALLBACK'; state: MtvWorkflowState }
     | { type: 'USER_LENGTH_UPDATE'; state: MtvWorkflowState }
@@ -306,6 +307,12 @@ export const createAppMusicPlayerMachine = ({
                             sendBack({
                                 type: 'TIME_CONSTRAINT_UPDATE',
                                 state,
+                            });
+                        });
+
+                        socket.on('LEAVE_ROOM_CALLBACK', () => {
+                            sendBack({
+                                type: 'LEAVE_ROOM_CALLBACK',
                             });
                         });
 
@@ -921,17 +928,14 @@ export const createAppMusicPlayerMachine = ({
                                 },
 
                                 LEAVE_ROOM: {
+                                    actions: forwardTo('socketConnection'),
+                                },
+
+                                LEAVE_ROOM_CALLBACK: {
                                     target: 'waitingForJoinOrCreateRoom',
+
                                     actions: [
                                         'assignRawContext',
-                                        send(
-                                            (_context) => ({
-                                                type: 'LEAVE_ROOM',
-                                            }),
-                                            {
-                                                to: 'socketConnection',
-                                            },
-                                        ),
                                         'leaveRoomFromLeaveRoomButton',
                                     ],
                                 },

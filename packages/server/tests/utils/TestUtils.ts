@@ -17,6 +17,33 @@ import {
     DoneInvokeEvent,
 } from 'xstate';
 
+/**
+ * Adapted from https://github.com/ai/nanospy/blob/main/index.js.
+ * As it works only with ESM, we can not use it
+ */
+interface Spy {
+    callCount: number;
+}
+
+interface SpyFn<Fn extends (...args: any[]) => any = (...args: any[]) => any>
+    extends Spy {
+    (...args: Parameters<Fn>): ReturnType<Fn>;
+}
+
+function spy<Fn extends (...args: any[]) => any = (...args: any[]) => any>(
+    cb?: Fn,
+): SpyFn<Fn> {
+    const fn: SpyFn<Fn> = (...args) => {
+        fn.callCount += 1;
+
+        return cb?.(...args);
+    };
+
+    fn.callCount = 0;
+
+    return fn;
+}
+
 export function waitForTimeout(ms: number): Promise<void> {
     return new Promise((resolve) => {
         setTimeout(() => {
@@ -68,6 +95,7 @@ interface TestUtilsReturnedValue {
         expect: () => ExpectReturn | Promise<ExpectReturn>,
         timeout?: number,
     ) => Promise<ExpectReturn>;
+    spy: typeof spy;
 }
 
 export class AssertionTimeout extends Error {
@@ -462,6 +490,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         waitFor,
+        spy,
     };
 }
 

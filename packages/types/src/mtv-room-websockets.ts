@@ -155,4 +155,5 @@ export interface MtvRoomServerToClientEvents {
     USERS_LIST_FORCED_REFRESH: () => void;
     RECEIVED_MTV_ROOM_INVITATION: (payload: MtvRoomSummary) => void;
     TIME_CONSTRAINT_UPDATE: (state: MtvWorkflowState) => void;
+    LEAVE_ROOM_CALLBACK: () => void;
 }

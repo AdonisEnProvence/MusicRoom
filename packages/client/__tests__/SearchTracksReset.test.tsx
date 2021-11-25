@@ -52,6 +52,19 @@ test('SearchTracksScreen is dismissed when pressing on a track card', async () =
 
     fireEvent.press(trackResultListItem);
 
+    // This operation can take some time.
+    // It's not crucial that it occurs immediately.
+    // We just want the results screen to be dismissed after some time.
+    await waitFor(
+        () => {
+            const searchTracksResultsTitle = screen.queryByText(/results/i);
+            expect(searchTracksResultsTitle).toBeNull();
+        },
+        {
+            timeout: 10_000,
+        },
+    );
+
     await waitFor(() => {
         const roomCreationFormFirstStepTitle =
             screen.getByText(/what.*is.*name.*room/i);
@@ -68,11 +81,6 @@ test('SearchTracksScreen is dismissed when pressing on a track card', async () =
             screen.queryByText(/what.*is.*name.*room/i);
 
         expect(roomCreationFormFirstStepTitle).toBeNull();
-    });
-
-    await waitFor(() => {
-        const searchTracksResultsTitle = screen.queryByText(/results/i);
-        expect(searchTracksResultsTitle).toBeNull();
     });
 });
 

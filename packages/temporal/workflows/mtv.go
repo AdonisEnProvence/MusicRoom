@@ -14,6 +14,10 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
+var (
+	ErrRoomDoesNotHaveConstraints = errors.New("room does not have constraints")
+)
+
 type MtvRoomInternalState struct {
 	initialParams shared.MtvRoomParameters
 
@@ -304,7 +308,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 			roomDoesntHaveConstraints := !internalState.initialParams.HasPhysicalAndTimeConstraints || internalState.initialParams.PhysicalAndTimeConstraints == nil
 			if roomDoesntHaveConstraints {
-				return shared.MtvRoomConstraintsDetails{}, errors.New("MtvGetRoomConstraintsDetails room doesnot have constraints")
+				return shared.MtvRoomConstraintsDetails{}, ErrRoomDoesNotHaveConstraints
 			}
 
 			roomConstraintsDetails := shared.MtvRoomConstraintsDetails{

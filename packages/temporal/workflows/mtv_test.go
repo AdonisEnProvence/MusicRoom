@@ -5143,7 +5143,7 @@ func (s *UnitTestSuite) Test_GetMtvRoomConstraintsDetailsFailRoomDoesntHaveConst
 		_, err := s.env.QueryWorkflow(shared.MtvGetRoomConstraintsDetails)
 
 		s.Error(err)
-		s.Equal(err.Error(), "MtvGetRoomConstraintsDetails room doesnot have constraints")
+		s.ErrorIs(err, ErrRoomDoesNotHaveConstraints)
 	}, init)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)

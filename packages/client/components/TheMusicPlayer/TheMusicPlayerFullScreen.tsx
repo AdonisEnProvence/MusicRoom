@@ -209,7 +209,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                         musicPlayerMachineContext.hasTimeAndPositionConstraints;
                     if (showRoomConstraintDetailsButton) {
                         return (
-                            <View sx={{ flex: 1 }}>
+                            <View sx={{ marginLeft: 'xl' }}>
                                 <TouchableOpacity
                                     onPress={handleRoomConstraintDetailsPress}
                                 >

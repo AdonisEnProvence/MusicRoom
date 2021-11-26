@@ -27,7 +27,7 @@ interface RoomConstraintsDetailsPreviewProps {
     devicePosition?: LatlngCoords;
     roomName: string;
     userFitsPositionConstraint?: boolean | null;
-    RequestLocationPermissionButton: () => React.ReactElement;
+    RequestLocationPermissionButton: () => React.ReactElement | null;
 }
 
 const TimeConstraintLine: React.FC<{ maxWidth: string | number }> = ({
@@ -251,7 +251,7 @@ const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalPro
                                             />
                                         );
                                     }
-                                    return <></>;
+                                    return null;
                                 }}
                                 userFitsPositionConstraint={
                                     userRelatedInformation?.userFitsPositionConstraint

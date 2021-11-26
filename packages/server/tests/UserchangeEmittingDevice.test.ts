@@ -411,12 +411,11 @@ test.group(
                 ...settings,
             });
 
-            await waitFor(() => {
+            await waitFor(async () => {
                 assert.isTrue(callbackHasBeenCalled);
+                await device.refresh();
+                assert.isTrue(device.isEmitting);
             });
-
-            await device.refresh();
-            assert.isTrue(device.isEmitting);
         });
 
         test('After user joins a room emitting device should be updated in database', async (assert) => {
@@ -489,12 +488,11 @@ test.group(
                 roomID: mtvRoomIDToAssociate,
             });
 
-            await waitFor(() => {
+            await waitFor(async () => {
                 assert.isTrue(callbackHasBeenCalled);
+                await joiningUserDevice.refresh();
+                assert.isTrue(joiningUserDevice.isEmitting);
             });
-
-            await joiningUserDevice.refresh();
-            assert.isTrue(joiningUserDevice.isEmitting);
         });
     },
 );

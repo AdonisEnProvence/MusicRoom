@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,6 +12,10 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
+)
+
+var (
+	ErrRoomDoesNotHaveConstraints = errors.New("room does not have constraints")
 )
 
 type MtvRoomInternalState struct {
@@ -292,7 +297,32 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 			return exposedState, nil
 		},
 	); err != nil {
-		logger.Info("SetQueryHandler failed.", "Error", err)
+		logger.Info("SetQueryHandler for MtvGetStateQuery failed.", "Error", err)
+		return err
+	}
+
+	if err := workflow.SetQueryHandler(
+		ctx,
+		shared.MtvGetRoomConstraintsDetails,
+		func(userID string) (shared.MtvRoomConstraintsDetails, error) {
+
+			roomDoesntHaveConstraints := !internalState.initialParams.HasPhysicalAndTimeConstraints || internalState.initialParams.PhysicalAndTimeConstraints == nil
+			if roomDoesntHaveConstraints {
+				return shared.MtvRoomConstraintsDetails{}, ErrRoomDoesNotHaveConstraints
+			}
+
+			roomConstraintsDetails := shared.MtvRoomConstraintsDetails{
+				PhysicalConstraintEndsAt:   internalState.initialParams.PhysicalAndTimeConstraints.PhysicalConstraintEndsAt.Format(time.RFC3339),
+				PhysicalConstraintStartsAt: internalState.initialParams.PhysicalAndTimeConstraints.PhysicalConstraintStartsAt.Format(time.RFC3339),
+				PhysicalConstraintPosition: internalState.initialParams.PhysicalAndTimeConstraints.PhysicalConstraintPosition,
+				PhysicalConstraintRadius:   internalState.initialParams.PhysicalAndTimeConstraints.PhysicalConstraintRadius,
+				RoomID:                     internalState.initialParams.RoomID,
+			}
+
+			return roomConstraintsDetails, nil
+		},
+	); err != nil {
+		logger.Info("SetQueryHandler for MtvGetRoomConstraintsDetails failed.", "Error", err)
 		return err
 	}
 

@@ -46,6 +46,18 @@ func (s *UnitTestSuite) getMtvState(userID string) shared.MtvRoomExposedState {
 	return mtvState
 }
 
+func (s *UnitTestSuite) getMtvRoomConstraintsDetails() shared.MtvRoomConstraintsDetails {
+	var mtvConstraintsDetails shared.MtvRoomConstraintsDetails
+
+	res, err := s.env.QueryWorkflow(shared.MtvGetRoomConstraintsDetails)
+	s.NoError(err)
+
+	err = res.Get(&mtvConstraintsDetails)
+	s.NoError(err)
+
+	return mtvConstraintsDetails
+}
+
 func (s *UnitTestSuite) getUsersList() []shared.ExposedInternalStateUserListElement {
 	var usersList []shared.ExposedInternalStateUserListElement
 
@@ -5019,6 +5031,120 @@ func (s *UnitTestSuite) Test_UserOutsideRoomAreaSuggestingTrackMustTriggerTracks
 
 		s.Equal(expectedTracks, mtvState.Tracks)
 	}, checkSongHasBeenSuggested)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *UnitTestSuite) Test_GetMtvRoomConstraintsDetails() {
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	tracksIDs := []string{tracks[0].ID}
+
+	params, _ := getWokflowInitParams(tracksIDs, 1)
+	defaultDuration := 1 * time.Millisecond
+
+	start := time.Now()
+
+	end := start.Add(defaultDuration * 5000)
+
+	physicalAndTimeConstraints := shared.MtvRoomPhysicalAndTimeConstraints{
+		PhysicalConstraintPosition: shared.MtvRoomCoords{
+			Lat: 42,
+			Lng: 42,
+		},
+		PhysicalConstraintRadius:   5000,
+		PhysicalConstraintEndsAt:   end,
+		PhysicalConstraintStartsAt: start,
+	}
+
+	params.HasPhysicalAndTimeConstraints = true
+	params.PhysicalAndTimeConstraints = &physicalAndTimeConstraints
+	params.CreatorUserRelatedInformation.UserFitsPositionConstraint = &shared.FalseValue
+
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
+	init := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		expectedDetails := shared.MtvRoomConstraintsDetails{
+			PhysicalConstraintEndsAt:   end.Format(time.RFC3339),
+			PhysicalConstraintStartsAt: start.Format(time.RFC3339),
+			PhysicalConstraintRadius:   5000,
+			RoomID:                     params.RoomID,
+			PhysicalConstraintPosition: shared.MtvRoomCoords{
+				Lat: 42,
+				Lng: 42,
+			},
+		}
+
+		details := s.getMtvRoomConstraintsDetails()
+		s.Equal(expectedDetails, details)
+	}, init)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *UnitTestSuite) Test_GetMtvRoomConstraintsDetailsFailRoomDoesntHaveConstraints() {
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	tracksIDs := []string{tracks[0].ID}
+
+	params, _ := getWokflowInitParams(tracksIDs, 1)
+	defaultDuration := 1 * time.Millisecond
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
+	init := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		_, err := s.env.QueryWorkflow(shared.MtvGetRoomConstraintsDetails)
+
+		s.Error(err)
+		s.ErrorIs(err, ErrRoomDoesNotHaveConstraints)
+	}, init)
 
 	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
 

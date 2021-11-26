@@ -593,6 +593,29 @@ Ws.io.on('connection', async (socket) => {
             }
         });
 
+        socket.on('GET_ROOM_CONSTRAINTS_DETAILS', async (callback) => {
+            try {
+                const { mtvRoomID } =
+                    await SocketLifecycle.getSocketConnectionCredentials(
+                        socket,
+                    );
+
+                if (mtvRoomID === undefined) {
+                    throw new Error(
+                        'GET_ROOM_CONSTRAINT_DETAILS user is not related to any room',
+                    );
+                }
+
+                const args =
+                    await MtvRoomsWsController.onGetRoomConstraintsDetails({
+                        roomID: mtvRoomID,
+                    });
+
+                callback(args);
+            } catch (e) {
+                console.error(e);
+            }
+        });
         /// //// ///
 
         socket.on('disconnecting', async () => {

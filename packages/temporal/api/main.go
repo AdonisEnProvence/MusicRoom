@@ -55,13 +55,15 @@ func main() {
 	r.Handle("/leave", http.HandlerFunc(LeaveRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/change-user-emitting-device", http.HandlerFunc(ChangeUserEmittingDeviceHandler)).Methods(http.MethodPut)
 	r.Handle("/update-user-fits-position-constraint", http.HandlerFunc(UpdateUserFitsPositionConstraintHandler)).Methods(http.MethodPut)
-	r.Handle("/state", http.HandlerFunc(GetStateHandler)).Methods(http.MethodPut)
-	r.Handle("/users-list", http.HandlerFunc(GetUsersListHandler)).Methods(http.MethodPut)
 	r.Handle("/go-to-next-track", http.HandlerFunc(GoToNextTrackHandler)).Methods(http.MethodPut)
 	r.Handle("/suggest-tracks", http.HandlerFunc(SuggestTracksHandler)).Methods(http.MethodPut)
 	r.Handle("/terminate", http.HandlerFunc(TerminateWorkflowHandler)).Methods(http.MethodPut)
 	r.Handle("/update-delegation-owner", http.HandlerFunc(UpdateDelegationOwnerHandler)).Methods(http.MethodPut)
 	r.Handle("/update-control-and-delegation-permission", http.HandlerFunc(UpdateControlAndDelegationPermissionHandler)).Methods(http.MethodPut)
+	//Queries
+	r.Handle("/room-constraints-details", http.HandlerFunc(GetRoomConstraintsDetailsHandler)).Methods(http.MethodPut)
+	r.Handle("/state", http.HandlerFunc(GetStateHandler)).Methods(http.MethodPut)
+	r.Handle("/users-list", http.HandlerFunc(GetUsersListHandler)).Methods(http.MethodPut)
 
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 
@@ -755,6 +757,40 @@ func GetStateHandler(w http.ResponseWriter, r *http.Request) {
 
 	res, err := PerformMtvGetStateQuery(args)
 	if err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(res)
+}
+
+type GetRoomConstraintsDetailsBody struct {
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	RunID      string `json:"runID" validate:"required,uuid"`
+}
+
+func GetRoomConstraintsDetailsHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var body GetRoomConstraintsDetailsBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	response, err := temporal.QueryWorkflow(context.Background(), body.WorkflowID, body.RunID, shared.MtvGetRoomConstraintsDetails)
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
+	var res shared.MtvRoomConstraintsDetails
+	if err := response.Get(&res); err != nil {
 		WriteError(w, err)
 		return
 	}

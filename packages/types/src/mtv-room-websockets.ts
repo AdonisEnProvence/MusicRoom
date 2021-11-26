@@ -109,6 +109,15 @@ export interface MtvRoomClientToServerVoteForTrackArgs {
     trackID: string;
 }
 
+export const MtvRoomGetRoomConstraintDetailsCallbackArgs =
+    MtvRoomPhysicalAndTimeConstraints.extend({
+        roomID: z.string(),
+    });
+
+export type MtvRoomGetRoomConstraintDetailsCallbackArgs = z.infer<
+    typeof MtvRoomGetRoomConstraintDetailsCallbackArgs
+>;
+
 export interface MtvRoomClientToServerEvents {
     CREATE_ROOM: (args: MtvRoomClientToServerCreateArgs) => void;
     JOIN_ROOM: (args: MtvRoomClientToServerJoin) => void;
@@ -130,6 +139,10 @@ export interface MtvRoomClientToServerEvents {
         args: MtvRoomUpdateControlAndDelegationPermissionArgs,
     ) => void;
     CREATOR_INVITE_USER: (args: MtvRoomCreatorInviteUserArgs) => void;
+
+    GET_ROOM_CONSTRAINTS_DETAILS: (
+        cb: (payload: MtvRoomGetRoomConstraintDetailsCallbackArgs) => void,
+    ) => void;
 }
 
 export interface MtvRoomServerToClientEvents {

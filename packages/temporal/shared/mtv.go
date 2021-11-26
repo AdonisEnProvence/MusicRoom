@@ -28,10 +28,11 @@ type MtvRoomTimer struct {
 const ControlTaskQueue = "CONTROL_TASK_QUEUE"
 
 var (
-	SignalChannelName    = "control"
-	MtvGetStateQuery     = "getState"
-	MtvGetUsersListQuery = "getUsersList"
-	NoRelatedUserID      = ""
+	SignalChannelName            = "control"
+	MtvGetStateQuery             = "getState"
+	MtvGetUsersListQuery         = "getUsersList"
+	MtvGetRoomConstraintsDetails = "getRoomConstraintsDetails"
+	NoRelatedUserID              = ""
 )
 
 type TrackMetadata struct {
@@ -373,6 +374,15 @@ func (p MtvRoomParameters) VerifyTimeConstraint(now time.Time) error {
 	}
 
 	return nil
+}
+
+type MtvRoomConstraintsDetails struct {
+	RoomID                     string        `json:"roomID" validate:"required"`
+	PhysicalConstraintPosition MtvRoomCoords `json:"physicalConstraintPosition" validate:"required"`
+	PhysicalConstraintRadius   int           `json:"physicalConstraintRadius" validate:"required"`
+	//Dates are stored using time.Time.Format()
+	PhysicalConstraintStartsAt string `json:"physicalConstraintStartsAt" validate:"required"`
+	PhysicalConstraintEndsAt   string `json:"physicalConstraintEndsAt" validate:"required"`
 }
 
 type MtvRoomExposedState struct {

@@ -15,7 +15,7 @@ import {
 } from '../components/kit';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import { MusicTrackVoteChatModalProps } from '../types';
-import PositionConstraintsDetailsOnMap from '../components/Maps';
+import PositionConstraintsDetailsOnMap from '../components/MtvRoomConstraintsDetailsOnMap';
 import { useUserContext } from '../hooks/userHooks';
 import {
     formatDateTime,

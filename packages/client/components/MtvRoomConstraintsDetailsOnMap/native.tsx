@@ -1,8 +1,5 @@
 import React, { forwardRef } from 'react';
 import MapView, { Circle, Marker } from 'react-native-maps';
-import { View, Text } from 'dripsy';
-import { Dimensions } from 'react-native';
-import { MtvRoomPhysicalAndTimeConstraints } from '@musicroom/types';
 import { MapRef, MapsComponent, MapsProps } from './contract';
 
 const NativeMaps: MapsComponent = forwardRef<MapRef, MapsProps>(
@@ -29,6 +26,7 @@ const NativeMaps: MapsComponent = forwardRef<MapRef, MapsProps>(
                 provider={'google'}
             >
                 <Circle
+                    testID={'position-constraint-circle'}
                     center={{
                         latitude: positionConstraintPosition.lat,
                         longitude: positionConstraintPosition.lng,
@@ -39,7 +37,8 @@ const NativeMaps: MapsComponent = forwardRef<MapRef, MapsProps>(
                 />
 
                 <Marker
-                    title={'Music Track Vote p'}
+                    testID={'position-constraint-marker'}
+                    title={'Music Track Vote'}
                     coordinate={{
                         latitude: positionConstraintPosition.lat,
                         longitude: positionConstraintPosition.lng,
@@ -47,6 +46,7 @@ const NativeMaps: MapsComponent = forwardRef<MapRef, MapsProps>(
                 />
                 {devicePosition !== undefined && (
                     <Marker
+                        testID={'device-position-marker'}
                         title={'You'}
                         coordinate={{
                             latitude: devicePosition.lat,

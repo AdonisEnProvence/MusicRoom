@@ -1,7 +1,5 @@
 import React, { forwardRef } from 'react';
 import GoogleMapReact from 'google-map-react';
-import { Text, View } from 'dripsy';
-import { LatlngCoords } from '@musicroom/types';
 import { GOOGLE_MAPS_JAVASCRIPT_API_KEY } from '../../constants/ApiKeys';
 import { MapsComponent, MapRef, MapsProps } from './contract';
 

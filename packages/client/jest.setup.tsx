@@ -21,6 +21,68 @@ jest.setTimeout(20_000);
 
 faker.seed(42);
 
+jest.mock('react-native-maps', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { Component } = require('react');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { View } = require('react-native');
+
+    class MockMapView extends Component {
+        render() {
+            const { testID, children, ...props } = this.props;
+
+            return (
+                <View testID={testID} {...props}>
+                    {children}
+                </View>
+            );
+        }
+    }
+
+    class MockMarker extends Component {
+        render() {
+            const { testID, children, ...props } = this.props;
+
+            return (
+                <View testID={testID} {...props}>
+                    {children}
+                </View>
+            );
+        }
+    }
+
+    class MockCircle extends Component {
+        render() {
+            const { testID, children, ...props } = this.props;
+
+            return (
+                <View testID={testID} {...props}>
+                    {children}
+                </View>
+            );
+        }
+    }
+
+    const mockMapTypes = {
+        STANDARD: 0,
+        SATELLITE: 1,
+        HYBRID: 2,
+        TERRAIN: 3,
+        NONE: 4,
+        MUTEDSTANDARD: 5,
+    };
+
+    return {
+        __esModule: true,
+        default: MockMapView,
+        Marker: MockMarker,
+        Circle: MockCircle,
+        MAP_TYPES: mockMapTypes,
+        PROVIDER_DEFAULT: 'default',
+        PROVIDER_GOOGLE: 'google',
+    };
+});
+
 jest.mock('react-native-youtube-iframe', () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const React = require('react');

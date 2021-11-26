@@ -1,6 +1,7 @@
 import {
     MtvRoomChatMessage,
     MtvRoomClientToServerCreateArgs,
+    MtvRoomGetRoomConstraintDetailsCallbackArgs,
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
@@ -34,6 +35,7 @@ export interface AppMusicPlayerMachineContext extends MtvWorkflowState {
     closeMtvRoomCreationModal?: () => void;
 
     chatMessages?: MtvRoomChatMessage[];
+    constraintsDetails?: MtvRoomGetRoomConstraintDetailsCallbackArgs;
 }
 
 export type AppMusicPlayerMachineActorRef = ActorRef<
@@ -123,6 +125,11 @@ export type AppMusicPlayerMachineEvent =
           type: 'RECEIVED_CHAT_MESSAGE';
           message: MtvRoomChatMessage;
       }
+    | { type: 'GET_ROOM_CONSTRAINTS_DETAILS' }
+    | {
+          type: 'GET_ROOM_CONSTRAINTS_DETAILS_CALLBACK';
+          payload: MtvRoomGetRoomConstraintDetailsCallbackArgs;
+      }
     | { type: 'CREATOR_INVITE_USER'; invitedUserID: string }
     | CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents;
 
@@ -156,6 +163,7 @@ const rawContext: AppMusicPlayerMachineContext = {
     timeConstraintIsValid: null,
     minimumScoreToBePlayed: 1,
     chatMessages: undefined,
+    constraintsDetails: undefined,
 };
 
 export const createAppMusicPlayerMachine = ({
@@ -412,6 +420,18 @@ export const createAppMusicPlayerMachine = ({
                                     });
 
                                     break;
+                                }
+
+                                case 'GET_ROOM_CONSTRAINTS_DETAILS': {
+                                    socket.emit(
+                                        'GET_ROOM_CONSTRAINTS_DETAILS',
+                                        (args) => {
+                                            sendBack({
+                                                type: 'GET_ROOM_CONSTRAINTS_DETAILS_CALLBACK',
+                                                payload: args,
+                                            });
+                                        },
+                                    );
                                 }
                             }
                         });
@@ -1010,6 +1030,14 @@ export const createAppMusicPlayerMachine = ({
                                     actions: 'assignMergeNewState',
                                 },
 
+                                GET_ROOM_CONSTRAINTS_DETAILS: {
+                                    actions: forwardTo('socketConnection'),
+                                },
+
+                                GET_ROOM_CONSTRAINTS_DETAILS_CALLBACK: {
+                                    actions: 'assignConstraintsDetails',
+                                },
+
                                 SEND_CHAT_MESSAGE: {
                                     actions: [
                                         forwardTo('socketConnection'),
@@ -1155,6 +1183,22 @@ export const createAppMusicPlayerMachine = ({
                         ...event.state,
                         progressElapsedTime: event.state.currentTrack?.elapsed,
                         userRelatedInformation: userRelatedInformationUpdate,
+                    };
+                }),
+
+                assignConstraintsDetails: assign((context, event) => {
+                    if (
+                        event.type !== 'GET_ROOM_CONSTRAINTS_DETAILS_CALLBACK'
+                    ) {
+                        return context;
+                    }
+                    console.log('assignConstraintsDetails');
+
+                    return {
+                        ...context,
+                        constraintsDetails: {
+                            ...event.payload,
+                        },
                     };
                 }),
 

@@ -1,7 +1,8 @@
+import { Fontisto } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useMachine } from '@xstate/react';
 import { Sender } from '@xstate/react/lib/types';
-import { Text, View } from 'dripsy';
+import { Text, View, useSx } from 'dripsy';
 import React, { useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -83,6 +84,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     userState,
 }) => {
     // TODO: replace the hook by a prop
+    const sx = useSx();
     const navigation = useNavigation();
     const musicPlayerMachineContext = musicPlayerState.context;
     const userMachineContext = userState.context;
@@ -157,6 +159,10 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
         navigation.navigate('MusicTrackVoteUsersList');
     }
 
+    function handleRoomConstraintDetailsPress() {
+        navigation.navigate('MusicTrackVoteConstraintsDetails');
+    }
+
     function handleTrackReady() {
         sendToMusicPlayerMachine({
             type: 'TRACK_HAS_LOADED',
@@ -198,6 +204,32 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                         </TouchableOpacity>
                     </View>
                 )}
+                HeaderRight={() => {
+                    const showRoomConstraintDetailsButton =
+                        musicPlayerMachineContext.hasTimeAndPositionConstraints;
+                    if (showRoomConstraintDetailsButton) {
+                        return (
+                            <View sx={{ marginLeft: 'xl' }}>
+                                <TouchableOpacity
+                                    onPress={handleRoomConstraintDetailsPress}
+                                >
+                                    <Fontisto
+                                        name="world-o"
+                                        accessibilityLabel={`Open current mtv room constraints details modal`}
+                                        style={sx({
+                                            fontSize: 'm',
+                                            color: 'white',
+                                            padding: 's',
+                                            alignSelf: 'flex-end',
+                                        })}
+                                        color="black"
+                                    />
+                                </TouchableOpacity>
+                            </View>
+                        );
+                    }
+                    return <></>;
+                }}
             />
 
             <AppScreenContainer scrollable>

@@ -80,7 +80,7 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                             minimumScoreToBePlayed: 1,
                             isOpen: true,
                             isOpenOnlyInvitedUsersCanVote: false,
-                            hasTimeAndPositionConstraints: false,
+                            hasTimeAndPositionConstraints: true,
                             timeConstraintIsValid: null,
                             delegationOwnerUserID: null,
                             userRelatedInformation: {

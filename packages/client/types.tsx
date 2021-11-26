@@ -46,6 +46,8 @@ export type RootStackParamList = {
 
     MusicTrackVoteChat: NavigatorScreenParams<MusicTrackVoteChatStackParamList>;
 
+    MusicTrackVoteConstraintsDetails: NavigatorScreenParams<MusicTrackVoteConstraintsDetailsParamList>;
+
     MusicTrackVoteUsersSearch: NavigatorScreenParams<MusicTrackVoteUsersSearchStackParamList>;
 
     UserProfile: UserProfileParams;
@@ -71,6 +73,10 @@ export type MusicTrackVoteUsersListStackParamList = {
 
 export type MusicTrackVoteChatStackParamList = {
     MusicTrackVoteChatModal: undefined;
+};
+
+export type MusicTrackVoteConstraintsDetailsParamList = {
+    MusicTrackVoteConstraintsDetailsModal: undefined;
 };
 
 export type MusicTrackVoteUsersSearchStackParamList = {

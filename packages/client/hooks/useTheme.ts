@@ -43,6 +43,8 @@ export const GLOBAL_THEME_CONSTANTS = {
 export function useTheme(): UseThemeReturn {
     const [colorScheme, setColorScheme] = useState<ApplicationTheme>('dark');
     const palette = colorPalette(colorScheme);
+    // Default breakpoints
+    // [0-575, 576-767, 768-991, 992-x]
     const theme: Theme = {
         colors: {
             ...palette,

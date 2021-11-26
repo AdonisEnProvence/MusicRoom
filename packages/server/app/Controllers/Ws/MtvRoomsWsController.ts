@@ -163,6 +163,7 @@ export default class MtvRoomsWsController {
                         persistToTemporalRequiredInformation: undefined,
                     },
                 );
+            console.log({ creatorFitsPositionConstraint });
         }
 
         /**

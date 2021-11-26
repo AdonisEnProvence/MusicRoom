@@ -19,7 +19,7 @@ import PositionConstraintsDetailsOnMap from '../components/MtvRoomConstraintsDet
 import { useUserContext } from '../hooks/userHooks';
 import {
     formatDateTime,
-    parseDateTimeString,
+    parseIsoDateTimeString,
 } from '../hooks/useFormatDateTime';
 
 interface RoomConstraintsDetailsPreviewProps {
@@ -64,10 +64,12 @@ const RoomConstraintsDetailsPreview: React.FC<RoomConstraintsDetailsPreviewProps
         const maxHeight = height / 2 > 400 ? 400 : height / 2;
         const maxWidth = 800;
 
-        const parsedStartsAt = parseDateTimeString(physicalConstraintStartsAt);
+        const parsedStartsAt = parseIsoDateTimeString(
+            physicalConstraintStartsAt,
+        );
         const readableStartsAt = formatDateTime(parsedStartsAt);
 
-        const parsedEndsAt = parseDateTimeString(physicalConstraintEndsAt);
+        const parsedEndsAt = parseIsoDateTimeString(physicalConstraintEndsAt);
         const readableEndsAt = formatDateTime(parsedEndsAt);
         return (
             <View

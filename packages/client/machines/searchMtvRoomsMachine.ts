@@ -58,55 +58,69 @@ const assignFetchedRoomsToContext = searchMtvRoomsModel.assign(
 
 export const searchMtvRoomsMachine = searchMtvRoomsModel.createMachine(
     {
-        context: searchMtvRoomsModel.initialContext,
-
-        initial: 'fetchingRooms',
-
-        invoke: {
-            id: 'searchBarMachine',
-            src: appScreenHeaderWithSearchBarMachine,
-        },
+        type: 'parallel',
 
         states: {
-            idle: {
+            steps: {
+                initial: 'fetchingRooms',
+
+                states: {
+                    idle: {
+                        on: {
+                            LOAD_MORE_ITEMS: {
+                                cond: 'hasMoreRoomsToFetch',
+
+                                target: 'fetchingRooms',
+                            },
+                        },
+                    },
+
+                    fetchingRooms: {
+                        invoke: {
+                            src: 'fetchRooms',
+                        },
+
+                        on: {
+                            FETCHED_ROOMS: {
+                                target: 'idle',
+
+                                actions: assignFetchedRoomsToContext,
+                            },
+
+                            FAILED_FETCHING_ROOMS: {
+                                target: 'errFetchingRooms',
+                            },
+                        },
+                    },
+
+                    errFetchingRooms: {},
+                },
+
                 on: {
                     SUBMITTED: {
-                        target: 'fetchingRooms',
+                        cond: (
+                            { searchQuery: currentSearchQuery },
+                            { searchQuery: updatedSearchQuery },
+                        ) => {
+                            const isSameSearchQuery =
+                                currentSearchQuery === updatedSearchQuery;
+                            const isDifferentSearchQuery =
+                                isSameSearchQuery === false;
+
+                            return isDifferentSearchQuery;
+                        },
+
+                        target: 'steps.fetchingRooms',
 
                         actions: assignSearchQueryToContext,
                     },
-
-                    LOAD_MORE_ITEMS: {
-                        cond: 'hasMoreRoomsToFetch',
-
-                        target: 'fetchingRooms',
-                    },
                 },
             },
 
-            fetchingRooms: {
+            searchBar: {
                 invoke: {
-                    src: 'fetchRooms',
-                },
-
-                on: {
-                    FETCHED_ROOMS: {
-                        target: 'idle',
-
-                        actions: assignFetchedRoomsToContext,
-                    },
-
-                    FAILED_FETCHING_ROOMS: {
-                        target: 'errFetchingRooms',
-                    },
-                },
-            },
-
-            errFetchingRooms: {
-                on: {
-                    SUBMITTED: {
-                        target: 'fetchingRooms',
-                    },
+                    id: 'searchBarMachine',
+                    src: appScreenHeaderWithSearchBarMachine,
                 },
             },
         },

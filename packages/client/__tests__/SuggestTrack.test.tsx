@@ -175,3 +175,137 @@ test(`A user can suggest tracks to play`, async () => {
     );
     expect(suggestedTrack).toBeTruthy();
 });
+
+test('Search query can be changed and submitted after a first submission', async () => {
+    const fakeTracks = [
+        db.searchableTracks.create({
+            title: 'Vendredi 12',
+        }),
+        db.searchableTracks.create({
+            title: 'Commen une voiture volée',
+        }),
+    ];
+    const tracksList = [generateTrackMetadata(), generateTrackMetadata()];
+
+    const roomCreatorUserID = datatype.uuid();
+    const initialState: MtvWorkflowState = {
+        name: random.words(),
+        roomID: datatype.uuid(),
+        playing: false,
+        playingMode: 'BROADCAST',
+        roomCreatorUserID,
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanVote: false,
+        hasTimeAndPositionConstraints: false,
+        timeConstraintIsValid: null,
+        delegationOwnerUserID: null,
+        userRelatedInformation: {
+            hasControlAndDelegationPermission: true,
+            userHasBeenInvited: false,
+            userFitsPositionConstraint: null,
+            emittingDeviceID: datatype.uuid(),
+            userID: roomCreatorUserID,
+            tracksVotedFor: [],
+        },
+        usersLength: 1,
+        currentTrack: {
+            ...tracksList[0],
+            elapsed: 0,
+        },
+        tracks: tracksList.slice(1),
+        minimumScoreToBePlayed: 1,
+    };
+
+    serverSocket.on('GET_CONTEXT', () => {
+        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    });
+
+    const screen = render(
+        <NavigationContainer
+            ref={navigationRef}
+            onReady={() => {
+                isReadyRef.current = true;
+            }}
+        >
+            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
+        </NavigationContainer>,
+    );
+
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+    const musicPlayerMini = screen.getByTestId('music-player-mini');
+    expect(musicPlayerMini).toBeTruthy();
+
+    const miniPlayerTrackTitle = await within(musicPlayerMini).findByText(
+        `${tracksList[0].title} • ${tracksList[0].artistName}`,
+    );
+    expect(miniPlayerTrackTitle).toBeTruthy();
+
+    fireEvent.press(miniPlayerTrackTitle);
+
+    const musicPlayerFullScreen = await screen.findByA11yState({
+        expanded: true,
+    });
+    expect(musicPlayerFullScreen).toBeTruthy();
+    expect(
+        within(musicPlayerFullScreen).getByText(tracksList[0].title),
+    ).toBeTruthy();
+
+    const tracksTab = within(musicPlayerFullScreen).getByText(/tracks/i);
+    expect(tracksTab).toBeTruthy();
+
+    const firstNextTrackToPlay = within(musicPlayerFullScreen).getByText(
+        tracksList[1].title,
+    );
+    expect(firstNextTrackToPlay).toBeTruthy();
+
+    const suggestATrackButton = within(musicPlayerFullScreen).getByLabelText(
+        /suggest.*track/i,
+    );
+    expect(suggestATrackButton).toBeTruthy();
+
+    fireEvent.press(suggestATrackButton);
+
+    const searchTrackTextField = await screen.findByPlaceholderText(
+        /search.*track/i,
+    );
+    expect(searchTrackTextField).toBeTruthy();
+
+    // Suggest first track
+    fireEvent(searchTrackTextField, 'focus');
+    fireEvent.changeText(searchTrackTextField, fakeTracks[0].title.slice(0, 3));
+    fireEvent(searchTrackTextField, 'submitEditing');
+
+    await waitFor(() => {
+        const resultsPageHeader = screen.getByText(/results/i);
+        expect(resultsPageHeader).toBeTruthy();
+    });
+
+    const firstTrackToSuggest = screen.getByText(fakeTracks[0].title);
+    expect(firstTrackToSuggest).toBeTruthy();
+
+    const waitForResultsToDisappearPromise = waitForElementToBeRemoved(() =>
+        screen.getByText(/results/i),
+    );
+
+    const goBackButtons = screen.getAllByLabelText(/go.*back/i);
+    const goBackToSearchInputButton = goBackButtons[goBackButtons.length - 1];
+    expect(goBackToSearchInputButton).toBeTruthy();
+
+    fireEvent.press(goBackToSearchInputButton);
+
+    await waitForResultsToDisappearPromise;
+
+    // Suggest second track
+    fireEvent(searchTrackTextField, 'focus');
+    fireEvent.changeText(searchTrackTextField, fakeTracks[1].title.slice(0, 3));
+    fireEvent(searchTrackTextField, 'submitEditing');
+
+    await waitFor(() => {
+        const resultsPageHeader = screen.getByText(/results/i);
+        expect(resultsPageHeader).toBeTruthy();
+    });
+
+    const secondTrackToSuggest = screen.getByText(fakeTracks[1].title);
+    expect(secondTrackToSuggest).toBeTruthy();
+});

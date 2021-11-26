@@ -221,6 +221,151 @@ test('Rooms are filtered and infinitely loaded', async () => {
     }
 });
 
+test('Clearing search input displays rooms without filter', async () => {
+    const rooms = generateArray({
+        minLength: 11,
+        maxLength: 15,
+        fill: () => db.searchableRooms.create(),
+    });
+    // Create a room with a unique name so that we can sort
+    // results with it.
+    const roomToFind = db.searchableRooms.create({
+        roomName: datatype.uuid(),
+    });
+
+    const screen = render(
+        <NavigationContainer
+            ref={navigationRef}
+            onReady={() => {
+                isReadyRef.current = true;
+            }}
+        >
+            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
+        </NavigationContainer>,
+    );
+
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+    const goToMtvSearchScreenButton = screen.getByText(
+        /go.*to.*music.*track.*vote/i,
+    );
+    expect(goToMtvSearchScreenButton).toBeTruthy();
+
+    fireEvent.press(goToMtvSearchScreenButton);
+
+    // Wait for first element of the list to be displayed
+    await waitFor(() => {
+        const firstRoomBeforeFilteringElement = screen.getByTestId(
+            `mtv-room-search-${rooms[0].roomID}`,
+        );
+        expect(firstRoomBeforeFilteringElement).toBeTruthy();
+    });
+    // Ensure room we want to find is not displayed.
+    const roomWithSpecialNameElement = screen.queryByTestId(
+        `mtv-room-search-${roomToFind.roomID}`,
+    );
+    expect(roomWithSpecialNameElement).toBeNull();
+
+    const searchInput = await screen.findByPlaceholderText(/search.*room/i);
+    expect(searchInput).toBeTruthy();
+
+    fireEvent(searchInput, 'focus');
+    fireEvent.changeText(searchInput, roomToFind.roomName);
+    fireEvent(searchInput, 'submitEditing');
+
+    const roomToFindListElement = await screen.findByTestId(
+        `mtv-room-search-${roomToFind.roomID}`,
+    );
+    expect(roomToFindListElement).toBeTruthy();
+
+    const clearSearchInputButton =
+        screen.getByLabelText(/clear.*search.*input/i);
+    expect(clearSearchInputButton).toBeTruthy();
+
+    const waitForRoomWithSpecialNameElementToDisappearPromise =
+        waitForElementToBeRemoved(() =>
+            screen.getByTestId(`mtv-room-search-${roomToFind.roomID}`),
+        );
+
+    fireEvent.press(clearSearchInputButton);
+
+    await waitForRoomWithSpecialNameElementToDisappearPromise;
+
+    expect(searchInput).toHaveProp('value', '');
+});
+
+test('Cancelling search input displays rooms without filter', async () => {
+    const rooms = generateArray({
+        minLength: 11,
+        maxLength: 15,
+        fill: () => db.searchableRooms.create(),
+    });
+    // Create a room with a unique name so that we can sort
+    // results with it.
+    const roomToFind = db.searchableRooms.create({
+        roomName: datatype.uuid(),
+    });
+
+    const screen = render(
+        <NavigationContainer
+            ref={navigationRef}
+            onReady={() => {
+                isReadyRef.current = true;
+            }}
+        >
+            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
+        </NavigationContainer>,
+    );
+
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+    const goToMtvSearchScreenButton = screen.getByText(
+        /go.*to.*music.*track.*vote/i,
+    );
+    expect(goToMtvSearchScreenButton).toBeTruthy();
+
+    fireEvent.press(goToMtvSearchScreenButton);
+
+    // Wait for first element of the list to be displayed
+    await waitFor(() => {
+        const firstRoomBeforeFilteringElement = screen.getByTestId(
+            `mtv-room-search-${rooms[0].roomID}`,
+        );
+        expect(firstRoomBeforeFilteringElement).toBeTruthy();
+    });
+    // Ensure room we want to find is not displayed.
+    const roomWithSpecialNameElement = screen.queryByTestId(
+        `mtv-room-search-${roomToFind.roomID}`,
+    );
+    expect(roomWithSpecialNameElement).toBeNull();
+
+    const searchInput = await screen.findByPlaceholderText(/search.*room/i);
+    expect(searchInput).toBeTruthy();
+
+    fireEvent(searchInput, 'focus');
+    fireEvent.changeText(searchInput, roomToFind.roomName);
+    fireEvent(searchInput, 'submitEditing');
+
+    const roomToFindListElement = await screen.findByTestId(
+        `mtv-room-search-${roomToFind.roomID}`,
+    );
+    expect(roomToFindListElement).toBeTruthy();
+
+    const cancelButton = screen.getByText(/cancel/i);
+    expect(cancelButton).toBeTruthy();
+
+    const waitForRoomWithSpecialNameElementToDisappearPromise =
+        waitForElementToBeRemoved(() =>
+            screen.getByTestId(`mtv-room-search-${roomToFind.roomID}`),
+        );
+
+    fireEvent.press(cancelButton);
+
+    await waitForRoomWithSpecialNameElementToDisappearPromise;
+
+    expect(searchInput).toHaveProp('value', '');
+});
+
 test('Displays empty state when no rooms match the query', async () => {
     const screen = render(
         <NavigationContainer

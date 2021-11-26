@@ -13,7 +13,8 @@ type AppScreenHeaderSearchBarProps = {
     query: string;
     showInputActions: boolean;
     setQuery: (query: string) => void;
-    onBlur: () => void;
+    onClearQuery: () => void;
+    onCancel: () => void;
     onFocus: () => void;
     onSubmit: () => void;
 };
@@ -23,7 +24,8 @@ const AppScreenHeaderSearchBar: React.FC<AppScreenHeaderSearchBarProps> = ({
     query,
     showInputActions,
     setQuery,
-    onBlur,
+    onClearQuery,
+    onCancel,
     onFocus,
     onSubmit,
 }) => {
@@ -33,19 +35,6 @@ const AppScreenHeaderSearchBar: React.FC<AppScreenHeaderSearchBarProps> = ({
     const sx = useSx();
 
     const cancelButtonLeftMargin = GLOBAL_THEME_CONSTANTS.space.l;
-
-    function handleTextClearPress() {
-        setQuery('');
-    }
-
-    function handleCancelPress() {
-        setQuery('');
-        onBlur();
-    }
-
-    function handleTextInputSubmit() {
-        onSubmit();
-    }
 
     return (
         <View
@@ -83,11 +72,14 @@ const AppScreenHeaderSearchBar: React.FC<AppScreenHeaderSearchBarProps> = ({
                     placeholder={searchInputPlaceholder}
                     sx={{ flex: 1, borderWidth: 0 }}
                     onFocus={onFocus}
-                    onSubmitEditing={handleTextInputSubmit}
+                    onSubmitEditing={onSubmit}
                 />
 
                 {showInputActions && query.length > 0 && (
-                    <TouchableOpacity onPress={handleTextClearPress}>
+                    <TouchableOpacity
+                        accessibilityLabel="Clear search input"
+                        onPress={onClearQuery}
+                    >
                         <Ionicons
                             name="close-circle-outline"
                             style={sx({
@@ -109,7 +101,7 @@ const AppScreenHeaderSearchBar: React.FC<AppScreenHeaderSearchBarProps> = ({
                         marginLeft: cancelButtonLeftMargin,
                     }}
                     onLayout={onLayout}
-                    onPress={handleCancelPress}
+                    onPress={onCancel}
                 >
                     <Typo sx={{ fontSize: 's' }}>Cancel</Typo>
                 </TouchableOpacity>

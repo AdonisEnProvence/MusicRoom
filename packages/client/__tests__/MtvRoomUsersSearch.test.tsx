@@ -5,13 +5,18 @@ import { ContextFrom, StateFrom } from 'xstate';
 import * as z from 'zod';
 import { internet } from 'faker';
 import { NavigationContainer } from '@react-navigation/native';
-import { UserSummary, MtvRoomCreatorInviteUserArgs } from '@musicroom/types';
+import {
+    UserSummary,
+    MtvRoomCreatorInviteUserArgs,
+    MtvWorkflowState,
+} from '@musicroom/types';
 import {
     fireEvent,
     noop,
     render,
     within,
     waitFor,
+    waitForElementToBeRemoved,
     getFakeUsersList,
 } from '../tests/tests-utils';
 import {
@@ -24,6 +29,64 @@ import { RootNavigator } from '../navigation';
 import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { friends } from '../services/UsersSearchService';
 import { serverSocket } from '../services/websockets';
+
+async function renderInviteUsers(
+    initialState: MtvWorkflowState,
+): Promise<ReturnType<typeof render>> {
+    const screen = render(
+        <NavigationContainer
+            ref={navigationRef}
+            onReady={() => {
+                isReadyRef.current = true;
+            }}
+        >
+            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
+        </NavigationContainer>,
+    );
+
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+    const musicPlayerMini = screen.getByTestId('music-player-mini');
+    expect(musicPlayerMini).toBeTruthy();
+
+    const miniPlayerTrackTitle = await within(musicPlayerMini).findByText(
+        `${initialState.currentTrack?.title} • ${initialState.currentTrack?.artistName}`,
+    );
+    expect(miniPlayerTrackTitle).toBeTruthy();
+
+    fireEvent.press(miniPlayerTrackTitle);
+
+    const musicPlayerFullScreen = await screen.findByA11yState({
+        expanded: true,
+    });
+    expect(musicPlayerFullScreen).toBeTruthy();
+
+    const listenersButton = within(musicPlayerFullScreen).getByText(
+        /listeners/i,
+    );
+    expect(listenersButton).toBeTruthy();
+
+    fireEvent.press(listenersButton);
+
+    await waitFor(() => {
+        const usersListScreen = screen.getByText(/users.*list/i);
+        expect(usersListScreen).toBeTruthy();
+    });
+
+    const inviteUserButton = screen.getByA11yLabel(/invite.*user/i);
+    expect(inviteUserButton).toBeTruthy();
+
+    fireEvent.press(inviteUserButton);
+
+    await waitFor(() => {
+        const [, usersSearchInput] = screen.getAllByPlaceholderText(
+            /search.*user.*by.*name/i,
+        );
+        expect(usersSearchInput).toBeTruthy();
+    });
+
+    return screen;
+}
 
 interface TestingContext {
     screen: ReturnType<typeof render>;
@@ -665,68 +728,7 @@ describe('Display friends and search users', () => {
                         creatorInviteUserMock,
                     );
 
-                    const screen = render(
-                        <NavigationContainer
-                            ref={navigationRef}
-                            onReady={() => {
-                                isReadyRef.current = true;
-                            }}
-                        >
-                            <RootNavigator
-                                colorScheme="dark"
-                                toggleColorScheme={noop}
-                            />
-                        </NavigationContainer>,
-                    );
-
-                    expect(
-                        screen.getAllByText(/home/i).length,
-                    ).toBeGreaterThanOrEqual(1);
-
-                    const musicPlayerMini =
-                        screen.getByTestId('music-player-mini');
-                    expect(musicPlayerMini).toBeTruthy();
-
-                    const miniPlayerTrackTitle = await within(
-                        musicPlayerMini,
-                    ).findByText(
-                        `${initialState.currentTrack?.title} • ${initialState.currentTrack?.artistName}`,
-                    );
-                    expect(miniPlayerTrackTitle).toBeTruthy();
-
-                    fireEvent.press(miniPlayerTrackTitle);
-
-                    const musicPlayerFullScreen = await screen.findByA11yState({
-                        expanded: true,
-                    });
-                    expect(musicPlayerFullScreen).toBeTruthy();
-
-                    const listenersButton = within(
-                        musicPlayerFullScreen,
-                    ).getByText(/listeners/i);
-                    expect(listenersButton).toBeTruthy();
-
-                    fireEvent.press(listenersButton);
-
-                    await waitFor(() => {
-                        const usersListScreen =
-                            screen.getByText(/users.*list/i);
-                        expect(usersListScreen).toBeTruthy();
-                    });
-
-                    const inviteUserButton =
-                        screen.getByA11yLabel(/invite.*user/i);
-                    expect(inviteUserButton).toBeTruthy();
-
-                    fireEvent.press(inviteUserButton);
-
-                    await waitFor(() => {
-                        const [, usersSearchInput] =
-                            screen.getAllByPlaceholderText(
-                                /search.*user.*by.*name/i,
-                            );
-                        expect(usersSearchInput).toBeTruthy();
-                    });
+                    const screen = await renderInviteUsers(initialState);
 
                     await path.test({
                         screen,
@@ -798,4 +800,155 @@ test('Users outside of creator can not access to users search', async () => {
 
     const inviteUserButton = screen.queryByA11yLabel(/invite.*user/i);
     expect(inviteUserButton).toBeNull();
+});
+
+test('Clearing search input displays users without filtering', async () => {
+    const initialState = generateMtvWorklowState({
+        userType: 'CREATOR',
+    });
+    const fakeUsersArray = getFakeUsersList({
+        directMode: false,
+        isMeIsCreator: true,
+    });
+    const friendNicknameToSearch = fakeFriends[0].nickname;
+    const userNicknameToSearch = fakeUsers[0].nickname;
+
+    friends.length = 0;
+    friends.push(...fakeFriends);
+
+    for (const fakeUser of fakeUsers) {
+        db.searchableUsers.create(fakeUser);
+    }
+
+    serverSocket.on('GET_CONTEXT', () => {
+        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    });
+
+    serverSocket.on('GET_USERS_LIST', (cb) => {
+        cb(fakeUsersArray);
+    });
+
+    const screen = await renderInviteUsers(initialState);
+
+    const [, searchUsersInput] = await screen.findAllByPlaceholderText(
+        /search.*user.*by.*name/i,
+    );
+    expect(searchUsersInput).toBeTruthy();
+
+    await waitFor(() => {
+        const friendCard = screen.getByTestId(
+            `${friendNicknameToSearch}-user-card`,
+        );
+        expect(friendCard).toBeTruthy();
+    });
+
+    const waitForFriendCardToDisappearPromise = waitForElementToBeRemoved(() =>
+        screen.getByTestId(`${friendNicknameToSearch}-user-card`),
+    );
+
+    fireEvent(searchUsersInput, 'focus');
+    fireEvent.changeText(searchUsersInput, userNicknameToSearch);
+
+    await waitForFriendCardToDisappearPromise;
+
+    await waitFor(() => {
+        const userCard = screen.getByTestId(
+            `${userNicknameToSearch}-user-card`,
+        );
+        expect(userCard).toBeTruthy();
+    });
+
+    const waitForUserCardToDisappearPromise = waitForElementToBeRemoved(() =>
+        screen.getByTestId(`${userNicknameToSearch}-user-card`),
+    );
+
+    const clearSearchInputButton =
+        screen.getByLabelText(/clear.*search.*input/i);
+    expect(clearSearchInputButton).toBeTruthy();
+
+    fireEvent.press(clearSearchInputButton);
+
+    await waitForUserCardToDisappearPromise;
+
+    await waitFor(() => {
+        const friendCard = screen.getByTestId(
+            `${friendNicknameToSearch}-user-card`,
+        );
+        expect(friendCard).toBeTruthy();
+    });
+});
+
+test('Cancelling search input displays users without filtering', async () => {
+    const initialState = generateMtvWorklowState({
+        userType: 'CREATOR',
+    });
+    const fakeUsersArray = getFakeUsersList({
+        directMode: false,
+        isMeIsCreator: true,
+    });
+    const friendNicknameToSearch = fakeFriends[0].nickname;
+    const userNicknameToSearch = fakeUsers[0].nickname;
+
+    friends.length = 0;
+    friends.push(...fakeFriends);
+
+    for (const fakeUser of fakeUsers) {
+        db.searchableUsers.create(fakeUser);
+    }
+
+    serverSocket.on('GET_CONTEXT', () => {
+        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    });
+
+    serverSocket.on('GET_USERS_LIST', (cb) => {
+        cb(fakeUsersArray);
+    });
+
+    const screen = await renderInviteUsers(initialState);
+
+    const [, searchUsersInput] = await screen.findAllByPlaceholderText(
+        /search.*user.*by.*name/i,
+    );
+    expect(searchUsersInput).toBeTruthy();
+
+    await waitFor(() => {
+        const friendCard = screen.getByTestId(
+            `${friendNicknameToSearch}-user-card`,
+        );
+        expect(friendCard).toBeTruthy();
+    });
+
+    const waitForFriendCardToDisappearPromise = waitForElementToBeRemoved(() =>
+        screen.getByTestId(`${friendNicknameToSearch}-user-card`),
+    );
+
+    fireEvent(searchUsersInput, 'focus');
+    fireEvent.changeText(searchUsersInput, userNicknameToSearch);
+
+    await waitForFriendCardToDisappearPromise;
+
+    await waitFor(() => {
+        const userCard = screen.getByTestId(
+            `${userNicknameToSearch}-user-card`,
+        );
+        expect(userCard).toBeTruthy();
+    });
+
+    const waitForUserCardToDisappearPromise = waitForElementToBeRemoved(() =>
+        screen.getByTestId(`${userNicknameToSearch}-user-card`),
+    );
+
+    const [, cancelButton] = screen.getAllByText(/cancel/i);
+    expect(cancelButton).toBeTruthy();
+
+    fireEvent.press(cancelButton);
+
+    await waitForUserCardToDisappearPromise;
+
+    await waitFor(() => {
+        const friendCard = screen.getByTestId(
+            `${friendNicknameToSearch}-user-card`,
+        );
+        expect(friendCard).toBeTruthy();
+    });
 });

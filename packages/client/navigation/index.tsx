@@ -44,7 +44,7 @@ import { isReadyRef, navigationRef } from './RootNavigation';
 
 // Before rendering any navigation stack
 // see https://reactnavigation.org/docs/5.x/react-native-screens/
-// enableScreens(true);
+enableScreens(true);
 
 export interface ColorModeProps {
     toggleColorScheme: () => void;
@@ -109,7 +109,9 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
         <RootStack.Navigator
             initialRouteName="Main"
             mode="modal"
-            screenOptions={{ ...style }}
+            //Why animationEnabled ?
+            //See https://stackoverflow.com/questions/63171131/when-rendering-iframes-with-html-android-crashes-while-navigating-back-to-s
+            screenOptions={{ ...style, animationEnabled: false }}
         >
             <RootStack.Screen
                 name="Main"
@@ -173,7 +175,6 @@ export const MusicTrackVoteCreationFormNavigator: React.FC<ColorModeProps> = ({
 
     return (
         <MusicTrackVoteCreationStack.Navigator
-            mode={'modal'}
             initialRouteName="MusicTrackVoteCreationFormName"
             screenOptions={{ ...style, headerShown: false }}
         >

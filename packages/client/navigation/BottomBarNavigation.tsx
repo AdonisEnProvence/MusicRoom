@@ -17,14 +17,12 @@ import TheMusicPlayer from '../components/TheMusicPlayer';
 import { tabStyle } from '../constants/Colors';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import HomeScreen from '../screens/HomeScreen';
-import SearchTrackResultsScreen from '../screens/SearchTrackResultsScreen';
 import SearchTrackScreen from '../screens/SearchTrackScreen';
 import {
     BottomTabNavigatorParamList,
     HomeParamsList,
     SearchTracksParamsList,
 } from '../types';
-import { ColorModeProps } from '.';
 
 const Tab = createBottomTabNavigator<BottomTabNavigatorParamList>();
 
@@ -223,11 +221,6 @@ const TabTwoNavigator: React.FC = () => {
                 name="SearchTracks"
                 component={SearchTrackScreen}
                 options={{ headerTitle: 'Search', headerShown: false }}
-            />
-            <TabTwoStack.Screen
-                name="SearchTrackResults"
-                component={SearchTrackResultsScreen}
-                options={{ title: 'Results' }}
             />
         </TabTwoStack.Navigator>
     );

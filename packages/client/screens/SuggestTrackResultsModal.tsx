@@ -9,9 +9,9 @@ import {
 } from '../components/kit';
 import TrackListItem from '../components/Track/TrackListItem';
 import { useSuggestTracks } from '../hooks/musicPlayerHooks';
-import { SearchTrackResultsScreenProps } from '../types';
+import { SuggestTrackResultsModalProps } from '../types';
 
-const SuggestTrackResultsModal: React.FC<SearchTrackResultsScreenProps> = ({
+const SuggestTrackResultsModal: React.FC<SuggestTrackResultsModalProps> = ({
     route,
     navigation,
 }) => {

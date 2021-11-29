@@ -344,17 +344,3 @@ export type SearchTabSearchTracksScreenProps = {
     >;
     route: RouteProp<SearchTracksParamsList, 'SearchTracks'>;
 };
-
-export type SearchTrackResultsScreenProps = {
-    navigation: CompositeNavigationProp<
-        CompositeNavigationProp<
-            StackNavigationProp<RootStackParamList, 'Main'>,
-            StackNavigationProp<MainStackParamList, 'Root'>
-        >,
-        CompositeNavigationProp<
-            BottomTabNavigationProp<BottomTabNavigatorParamList, 'Search'>,
-            StackNavigationProp<SearchTracksParamsList, 'SearchTrackResults'>
-        >
-    >;
-    route: RouteProp<SearchTracksParamsList, 'SearchTrackResults'>;
-};

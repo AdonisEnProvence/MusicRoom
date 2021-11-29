@@ -12,9 +12,12 @@ const searchTrackModel = createModel(
         events: {
             FETCHED_TRACKS: (tracks: TrackMetadata[]) => ({ tracks }),
             FAILED_FETCHING_TRACKS: () => ({}),
-            SUBMITTED: (searchQuery: string) => ({ searchQuery }),
 
-            RESET: () => ({}),
+            SUBMITTED: (searchQuery: string) => ({ searchQuery }),
+            CLEAR_QUERY: () => ({}),
+            CANCEL: () => ({}),
+
+            PRESS_TRACK: (trackID: string) => ({ trackID }),
         },
     },
 );
@@ -44,7 +47,7 @@ export const searchTrackMachine = searchTrackModel.createMachine(
 
                         on: {
                             FETCHED_TRACKS: {
-                                target: 'fetchedTracks',
+                                target: 'idle',
 
                                 actions: assignTracksToContext,
                             },
@@ -53,10 +56,6 @@ export const searchTrackMachine = searchTrackModel.createMachine(
                                 target: 'errFetchingTracks',
                             },
                         },
-                    },
-
-                    fetchedTracks: {
-                        entry: ['navigateToResultsPage'],
                     },
 
                     errFetchingTracks: {},
@@ -74,10 +73,24 @@ export const searchTrackMachine = searchTrackModel.createMachine(
                         target: 'steps.fetchingTracks',
                     },
 
-                    RESET: {
+                    CLEAR_QUERY: {
                         target: 'steps.idle',
 
-                        actions: forwardTo('searchBarMachine'),
+                        actions: searchTrackModel.assign({
+                            tracks: undefined,
+                        }),
+                    },
+
+                    CANCEL: {
+                        target: 'steps.idle',
+
+                        actions: searchTrackModel.assign({
+                            tracks: undefined,
+                        }),
+                    },
+
+                    PRESS_TRACK: {
+                        actions: 'openCreationForm',
                     },
                 },
             },

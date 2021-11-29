@@ -1,18 +1,11 @@
 import { createModel } from 'xstate/lib/model';
-import { assign, sendParent, State } from 'xstate';
+import { assign, EventFrom, sendParent, State } from 'xstate';
 
 export type AppScreenHeaderWithSearchBarMachineContext = {
     searchQuery: string;
 };
 
-export type AppScreenHeaderWithSearchBarMachineEvent =
-    | { type: 'SUBMIT' }
-    | { type: 'FOCUS' }
-    | { type: 'BLUR' }
-    | { type: 'UPDATE_SEARCH_QUERY'; searchQuery: string }
-    | { type: 'SUBMITTED'; searchQuery: string };
-
-const appcreenHeaderWithSearchBarModel = createModel(
+const appScreenHeaderWithSearchBarModel = createModel(
     {
         searchQuery: '',
     },
@@ -20,17 +13,22 @@ const appcreenHeaderWithSearchBarModel = createModel(
         events: {
             SUBMIT: () => ({}),
             FOCUS: () => ({}),
-            BLUR: () => ({}),
             UPDATE_SEARCH_QUERY: (searchQuery: string) => ({ searchQuery }),
             SUBMITTED: (searchQuery: string) => ({ searchQuery }),
+            CLEAR_QUERY: () => ({}),
+            CANCEL: () => ({}),
 
             RESET: () => ({}),
         },
     },
 );
 
+export type AppScreenHeaderWithSearchBarMachineEvent = EventFrom<
+    typeof appScreenHeaderWithSearchBarModel
+>;
+
 export const appScreenHeaderWithSearchBarMachine =
-    appcreenHeaderWithSearchBarModel.createMachine(
+    appScreenHeaderWithSearchBarModel.createMachine(
         {
             initial: 'idle',
 
@@ -95,26 +93,40 @@ export const appScreenHeaderWithSearchBarMachine =
                     },
 
                     on: {
-                        SUBMIT: 'submitted',
-
-                        BLUR: 'idle',
-                    },
-                },
-
-                submitted: {
-                    entry: sendParent((context, _event) => ({
-                        type: 'SUBMITTED',
-                        searchQuery: context.searchQuery,
-                    })),
-
-                    tags: ['showSearchResults'],
-
-                    on: {
-                        FOCUS: {
-                            target: 'typing',
+                        SUBMIT: {
+                            actions: sendParent((context, _event) => ({
+                                type: 'SUBMITTED',
+                                searchQuery: context.searchQuery,
+                            })),
                         },
 
-                        BLUR: 'idle',
+                        CLEAR_QUERY: {
+                            target: '.waitingSearchQuery',
+
+                            actions: [
+                                appScreenHeaderWithSearchBarModel.assign({
+                                    searchQuery: '',
+                                }),
+
+                                sendParent({
+                                    type: 'CLEAR_QUERY',
+                                }),
+                            ],
+                        },
+
+                        CANCEL: {
+                            target: 'idle',
+
+                            actions: [
+                                appScreenHeaderWithSearchBarModel.assign({
+                                    searchQuery: '',
+                                }),
+
+                                sendParent({
+                                    type: 'CANCEL',
+                                }),
+                            ],
+                        },
                     },
                 },
             },
@@ -123,7 +135,7 @@ export const appScreenHeaderWithSearchBarMachine =
                 RESET: {
                     target: 'idle',
 
-                    actions: appcreenHeaderWithSearchBarModel.reset(),
+                    actions: appScreenHeaderWithSearchBarModel.reset(),
                 },
             },
         },

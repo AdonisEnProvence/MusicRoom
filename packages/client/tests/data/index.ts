@@ -190,7 +190,7 @@ export function generateMtvWorklowState({
 interface GenerateArrayArgs<Item> {
     minLength: number;
     maxLength: number;
-    fill: () => Item;
+    fill: ((index: number) => Item) | (() => Item);
 }
 
 export function generateArray<Item>({
@@ -200,7 +200,7 @@ export function generateArray<Item>({
 }: GenerateArrayArgs<Item>): Item[] {
     return Array.from({
         length: datatype.number({ min: minLength, max: maxLength }),
-    }).map(() => fill());
+    }).map((_, index) => fill(index));
 }
 
 export function generateLocationObject(

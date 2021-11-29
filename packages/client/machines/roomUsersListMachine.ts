@@ -17,6 +17,8 @@ const roomUsersListModel = createModel(
     {
         events: {
             UPDATE_SEARCH_QUERY: (searchQuery: string) => ({ searchQuery }),
+            CLEAR_QUERY: () => ({}),
+            CANCEL: () => ({}),
 
             RETRIEVE_USERS_LIST: () => ({}),
 
@@ -199,6 +201,22 @@ export const createRoomUsersListMachine = ({
                         target: '.debouncingQuery',
 
                         actions: [assignSearchQueryToContext],
+                    },
+
+                    CLEAR_QUERY: {
+                        target: '.debouncingQuery',
+
+                        actions: roomUsersListModel.assign({
+                            searchQuery: '',
+                        }),
+                    },
+
+                    CANCEL: {
+                        target: '.debouncingQuery',
+
+                        actions: roomUsersListModel.assign({
+                            searchQuery: '',
+                        }),
                     },
 
                     SET_SELECTED_USER: {

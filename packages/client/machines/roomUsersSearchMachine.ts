@@ -26,6 +26,8 @@ const roomUsersSearchModel = createModel(
     {
         events: {
             UPDATE_SEARCH_QUERY: (searchQuery: string) => ({ searchQuery }),
+            CLEAR_QUERY: () => ({}),
+            CANCEL: () => ({}),
 
             FETCHED_FRIENDS: (
                 friends: UserSummary[],
@@ -426,6 +428,26 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                             ],
                         },
                     ],
+
+                    CLEAR_QUERY: {
+                        target: '.display.displayFriends.hist',
+
+                        internal: false,
+
+                        actions: roomUsersSearchModel.assign({
+                            searchQuery: '',
+                        }),
+                    },
+
+                    CANCEL: {
+                        target: '.display.displayFriends.hist',
+
+                        internal: false,
+
+                        actions: roomUsersSearchModel.assign({
+                            searchQuery: '',
+                        }),
+                    },
                 },
             },
         },

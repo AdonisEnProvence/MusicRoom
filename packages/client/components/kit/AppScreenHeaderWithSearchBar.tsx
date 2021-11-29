@@ -56,9 +56,15 @@ const AppScreenHeaderWithSearchBar: React.FC<AppScreenHeaderWithSearchBarProps> 
             });
         }
 
-        function handleTextInputBlur() {
+        function handleTextInputClearQuery() {
             sendToMachine({
-                type: 'BLUR',
+                type: 'CLEAR_QUERY',
+            });
+        }
+
+        function handleTextInputCancel() {
+            sendToMachine({
+                type: 'CANCEL',
             });
         }
 
@@ -68,10 +74,10 @@ const AppScreenHeaderWithSearchBar: React.FC<AppScreenHeaderWithSearchBarProps> 
             });
         }
 
-        function handleUpdateSearchQuery(searchQuery: string) {
+        function handleUpdateSearchQuery(updatedSearchQuery: string) {
             sendToMachine({
                 type: 'UPDATE_SEARCH_QUERY',
-                searchQuery,
+                searchQuery: updatedSearchQuery,
             });
         }
 
@@ -126,8 +132,9 @@ const AppScreenHeaderWithSearchBar: React.FC<AppScreenHeaderWithSearchBarProps> 
                             showInputActions={showHeader === false}
                             setQuery={handleUpdateSearchQuery}
                             onFocus={handleTextInputFocus}
-                            onBlur={handleTextInputBlur}
                             onSubmit={handleTextInputSubmit}
+                            onCancel={handleTextInputCancel}
+                            onClearQuery={handleTextInputClearQuery}
                         />
                     </View>
                 </View>

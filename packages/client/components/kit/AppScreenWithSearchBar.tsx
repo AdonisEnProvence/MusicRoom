@@ -1,6 +1,6 @@
 import { Sender } from '@xstate/react/lib/types';
 import React from 'react';
-import { TouchableWithoutFeedback, View } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppScreenHeaderWithSearchBarMachineEvent } from '../../machines/appScreenHeaderWithSearchBarMachine';
 import AppScreen from './AppScreen';
@@ -52,17 +52,9 @@ const AppScreenWithSearchBar: React.FC<AppScreenWithSearchBarProps> = ({
                 {...args}
             />
 
-            <TouchableWithoutFeedback
-                onPress={() => {
-                    sendToSearch({
-                        type: 'BLUR',
-                    });
-                }}
-            >
-                <View style={{ flex: 1 }}>
-                    <AppScreenContainer>{children}</AppScreenContainer>
-                </View>
-            </TouchableWithoutFeedback>
+            <View style={{ flex: 1 }}>
+                <AppScreenContainer>{children}</AppScreenContainer>
+            </View>
         </AppScreen>
     );
 };

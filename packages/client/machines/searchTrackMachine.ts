@@ -28,8 +28,6 @@ const assignTracksToContext = searchTrackModel.assign(
 
 export const searchTrackMachine = searchTrackModel.createMachine(
     {
-        context: searchTrackModel.initialContext,
-
         type: 'parallel',
 
         states: {
@@ -37,13 +35,7 @@ export const searchTrackMachine = searchTrackModel.createMachine(
                 initial: 'idle',
 
                 states: {
-                    idle: {
-                        on: {
-                            SUBMITTED: {
-                                target: 'fetchingTracks',
-                            },
-                        },
-                    },
+                    idle: {},
 
                     fetchingTracks: {
                         invoke: {
@@ -71,6 +63,17 @@ export const searchTrackMachine = searchTrackModel.createMachine(
                 },
 
                 on: {
+                    SUBMITTED: {
+                        cond: (_, { searchQuery }) => {
+                            const isEmpty = searchQuery.length === 0;
+                            const isNotEmpty = isEmpty === false;
+
+                            return isNotEmpty === true;
+                        },
+
+                        target: 'steps.fetchingTracks',
+                    },
+
                     RESET: {
                         target: 'steps.idle',
 

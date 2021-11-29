@@ -5,7 +5,7 @@ export type AppScreenHeaderWithSearchBarMachineContext = {
     searchQuery: string;
 };
 
-const appcreenHeaderWithSearchBarModel = createModel(
+const appScreenHeaderWithSearchBarModel = createModel(
     {
         searchQuery: '',
     },
@@ -24,11 +24,11 @@ const appcreenHeaderWithSearchBarModel = createModel(
 );
 
 export type AppScreenHeaderWithSearchBarMachineEvent = EventFrom<
-    typeof appcreenHeaderWithSearchBarModel
+    typeof appScreenHeaderWithSearchBarModel
 >;
 
 export const appScreenHeaderWithSearchBarMachine =
-    appcreenHeaderWithSearchBarModel.createMachine(
+    appScreenHeaderWithSearchBarModel.createMachine(
         {
             initial: 'idle',
 
@@ -104,11 +104,13 @@ export const appScreenHeaderWithSearchBarMachine =
                             target: '.waitingSearchQuery',
 
                             actions: [
-                                appcreenHeaderWithSearchBarModel.assign({
+                                appScreenHeaderWithSearchBarModel.assign({
                                     searchQuery: '',
                                 }),
 
-                                'sendSubmittedEventToParentWithEmptySearchQuery',
+                                sendParent({
+                                    type: 'CLEAR_QUERY',
+                                }),
                             ],
                         },
 
@@ -116,11 +118,13 @@ export const appScreenHeaderWithSearchBarMachine =
                             target: 'idle',
 
                             actions: [
-                                appcreenHeaderWithSearchBarModel.assign({
+                                appScreenHeaderWithSearchBarModel.assign({
                                     searchQuery: '',
                                 }),
 
-                                'sendSubmittedEventToParentWithEmptySearchQuery',
+                                sendParent({
+                                    type: 'CANCEL',
+                                }),
                             ],
                         },
                     },
@@ -131,7 +135,7 @@ export const appScreenHeaderWithSearchBarMachine =
                 RESET: {
                     target: 'idle',
 
-                    actions: appcreenHeaderWithSearchBarModel.reset(),
+                    actions: appScreenHeaderWithSearchBarModel.reset(),
                 },
             },
         },
@@ -159,11 +163,6 @@ export const appScreenHeaderWithSearchBarMachine =
                         type: 'UPDATE_SEARCH_QUERY',
                         searchQuery: event.searchQuery,
                     };
-                }),
-
-                sendSubmittedEventToParentWithEmptySearchQuery: sendParent({
-                    type: 'SUBMITTED',
-                    searchQuery: '',
                 }),
             },
 

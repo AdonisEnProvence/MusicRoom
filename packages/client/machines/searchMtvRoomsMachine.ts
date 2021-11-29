@@ -15,6 +15,8 @@ const searchMtvRoomsModel = createModel(
     {
         events: {
             SUBMITTED: (searchQuery: string) => ({ searchQuery }),
+            CLEAR_QUERY: () => ({}),
+            CANCEL: () => ({}),
 
             FETCHED_ROOMS: (
                 rooms: MtvRoomSummary[],
@@ -113,6 +115,22 @@ export const searchMtvRoomsMachine = searchMtvRoomsModel.createMachine(
                         target: 'steps.fetchingRooms',
 
                         actions: assignSearchQueryToContext,
+                    },
+
+                    CLEAR_QUERY: {
+                        target: 'steps.fetchingRooms',
+
+                        actions: searchMtvRoomsModel.assign({
+                            searchQuery: '',
+                        }),
+                    },
+
+                    CANCEL: {
+                        target: 'steps.fetchingRooms',
+
+                        actions: searchMtvRoomsModel.assign({
+                            searchQuery: '',
+                        }),
                     },
                 },
             },

@@ -7,6 +7,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useEffect } from 'react';
 import Toast from 'react-native-toast-message';
+import { enableScreens } from 'react-native-screens';
 import { navigationStyle } from '../constants/Colors';
 import { useAppContext } from '../contexts/AppContext';
 import { AlertScreen } from '../screens/AlertScreen';
@@ -33,12 +34,17 @@ import {
     MusicTrackVoteUsersSearchStackParamList,
     RootStackParamList,
     SuggestTrackStackParamList,
+    UserProfileStackParamsList,
 } from '../types';
 import { SplashScreen } from '../screens/SplashScreen';
 import MusicTrackVoteConstraintsDetailsModal from '../screens/MusicTrackVoteConstraintsDetailsModal';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
+
+// Before rendering any navigation stack
+// see https://reactnavigation.org/docs/5.x/react-native-screens/
+enableScreens(true);
 
 export interface ColorModeProps {
     toggleColorScheme: () => void;
@@ -89,6 +95,7 @@ const MusicTrackVoteConstraintsDetailsStack =
     createStackNavigator<MusicTrackVoteConstraintsDetailsParamList>();
 const MusicTrackVoteUsersSearchStack =
     createStackNavigator<MusicTrackVoteUsersSearchStackParamList>();
+const UserProfileStack = createStackNavigator<UserProfileStackParamsList>();
 
 export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
     const style = navigationStyle(colorScheme);
@@ -102,7 +109,9 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
         <RootStack.Navigator
             initialRouteName="Main"
             mode="modal"
-            screenOptions={{ ...style }}
+            //Why animationEnabled ?
+            //See https://stackoverflow.com/questions/63171131/when-rendering-iframes-with-html-android-crashes-while-navigating-back-to-s
+            screenOptions={{ ...style, animationEnabled: false }}
         >
             <RootStack.Screen
                 name="Main"
@@ -119,13 +128,14 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
             <RootStack.Screen
                 name="MusicTrackVoteUsersList"
                 component={MusicTrackVoteUsersListNavigator}
-                options={{ headerShown: false }}
+                //Should stay
+                options={{ headerShown: false, detachPreviousScreen: false }}
             />
 
             <RootStack.Screen
                 name="MusicTrackVoteCreationForm"
                 component={MusicTrackVoteCreationFormNavigator}
-                options={{ headerShown: false }}
+                options={{ headerShown: false, detachPreviousScreen: false }}
             />
 
             <RootStack.Screen
@@ -137,7 +147,7 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
             <RootStack.Screen
                 name="MusicTrackVoteConstraintsDetails"
                 component={MusicTrackVoteConstraintsDetailsNavigator}
-                options={{ headerShown: false }}
+                options={{ headerShown: false, detachPreviousScreen: false }}
             />
 
             <RootStack.Screen
@@ -148,8 +158,11 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
 
             <RootStack.Screen
                 name="UserProfile"
-                options={{ title: 'User Profile', headerShown: false }}
-                component={UserProfileScreen}
+                options={{
+                    headerShown: false,
+                    detachPreviousScreen: false,
+                }}
+                component={UserProfileNavigator}
             />
         </RootStack.Navigator>
     );
@@ -200,6 +213,7 @@ export const SuggestTrackNavigator: React.FC<ColorModeProps> = ({
 
     return (
         <SuggestTrackStack.Navigator
+            mode="modal"
             initialRouteName="SuggestTrackModal"
             screenOptions={{ ...style, headerShown: false }}
         >
@@ -223,6 +237,7 @@ export const MusicTrackVoteChatNavigator: React.FC<ColorModeProps> = ({
 
     return (
         <MusicTrackVoteChatStack.Navigator
+            mode="modal"
             initialRouteName="MusicTrackVoteChatModal"
             screenOptions={{ ...style, headerShown: false }}
         >
@@ -240,6 +255,7 @@ export const MusicTrackVoteConstraintsDetailsNavigator: React.FC<ColorModeProps>
 
         return (
             <MusicTrackVoteConstraintsDetailsStack.Navigator
+                mode="modal"
                 initialRouteName="MusicTrackVoteConstraintsDetailsModal"
                 screenOptions={{ ...style, headerShown: false }}
             >
@@ -251,6 +267,29 @@ export const MusicTrackVoteConstraintsDetailsNavigator: React.FC<ColorModeProps>
         );
     };
 
+export const UserProfileNavigator: React.FC<ColorModeProps> = ({
+    colorScheme,
+}) => {
+    const style = navigationStyle(colorScheme);
+
+    return (
+        <UserProfileStack.Navigator
+            initialRouteName="UserProfile"
+            mode="modal"
+            screenOptions={{ ...style, headerShown: false }}
+        >
+            <UserProfileStack.Screen
+                name="UserProfile"
+                options={{
+                    title: 'User Profile',
+                    headerShown: false,
+                }}
+                component={UserProfileScreen}
+            />
+        </UserProfileStack.Navigator>
+    );
+};
+
 export const MusicTrackVoteUsersSearchNavigator: React.FC<ColorModeProps> = ({
     colorScheme,
 }) => {
@@ -258,6 +297,7 @@ export const MusicTrackVoteUsersSearchNavigator: React.FC<ColorModeProps> = ({
 
     return (
         <MusicTrackVoteUsersSearchStack.Navigator
+            mode="modal"
             initialRouteName="MusicTrackVoteUsersSearchModal"
             screenOptions={{ ...style, headerShown: false }}
         >
@@ -276,8 +316,12 @@ export const MusicTrackVoteUsersListNavigator: React.FC<ColorModeProps> = ({
 
     return (
         <MusicTrackVoteUsersListStack.Navigator
+            mode="modal"
             initialRouteName="MusicTrackVoteUsersListModal"
-            screenOptions={{ ...style, headerShown: false }}
+            screenOptions={{
+                ...style,
+                headerShown: false,
+            }}
         >
             <MusicTrackVoteUsersListStack.Screen
                 name="MusicTrackVoteUsersListModal"
@@ -295,15 +339,7 @@ const MainNavigator: React.FC<ColorModeProps> = ({
 
     return (
         <MainStack.Navigator screenOptions={{ ...style, headerShown: false }}>
-            <MainStack.Screen name="Root">
-                {(props) => (
-                    <BottomTabNavigator
-                        colorScheme={colorScheme}
-                        toggleColorScheme={toggleColorScheme}
-                        {...props}
-                    />
-                )}
-            </MainStack.Screen>
+            <MainStack.Screen name="Root" component={BottomTabNavigator} />
 
             <MainStack.Screen
                 name="MusicTrackVoteSearch"
@@ -311,15 +347,11 @@ const MainNavigator: React.FC<ColorModeProps> = ({
                 options={{ title: 'Track Vote Search' }}
             />
 
-            <MainStack.Screen name="Settings" options={{ title: 'Settings' }}>
-                {(props) => (
-                    <SettingsScreen
-                        colorScheme={colorScheme}
-                        toggleColorScheme={toggleColorScheme}
-                        {...props}
-                    />
-                )}
-            </MainStack.Screen>
+            <MainStack.Screen
+                name="Settings"
+                options={{ title: 'Settings' }}
+                component={SettingsScreen}
+            />
 
             <MainStack.Screen name="Alert" component={AlertScreen} />
         </MainStack.Navigator>

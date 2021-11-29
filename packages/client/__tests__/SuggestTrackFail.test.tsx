@@ -16,7 +16,7 @@ import {
     within,
 } from '../tests/tests-utils';
 
-test(`A user can suggest tracks to play`, async () => {
+test(`A user suggest tracks to play fail`, async () => {
     const fakeTrack = db.searchableTracks.create();
     const tracksList = [generateTrackMetadata(), generateTrackMetadata()];
 
@@ -57,13 +57,7 @@ test(`A user can suggest tracks to play`, async () => {
         serverSocket.emit('SUGGEST_TRACKS_FAIL_CALLBACK');
     });
 
-    const {
-        getAllByText,
-        getByText,
-        getByTestId,
-        findByA11yState,
-        findByPlaceholderText,
-    } = render(
+    const screen = render(
         <NavigationContainer
             ref={navigationRef}
             onReady={() => {
@@ -74,9 +68,9 @@ test(`A user can suggest tracks to play`, async () => {
         </NavigationContainer>,
     );
 
-    expect(getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const musicPlayerMini = getByTestId('music-player-mini');
+    const musicPlayerMini = screen.getByTestId('music-player-mini');
     expect(musicPlayerMini).toBeTruthy();
 
     const miniPlayerTrackTitle = await within(musicPlayerMini).findByText(
@@ -86,7 +80,9 @@ test(`A user can suggest tracks to play`, async () => {
 
     fireEvent.press(miniPlayerTrackTitle);
 
-    const musicPlayerFullScreen = await findByA11yState({ expanded: true });
+    const musicPlayerFullScreen = await screen.findByA11yState({
+        expanded: true,
+    });
     expect(musicPlayerFullScreen).toBeTruthy();
     expect(
         within(musicPlayerFullScreen).getByText(tracksList[0].title),
@@ -107,7 +103,9 @@ test(`A user can suggest tracks to play`, async () => {
 
     fireEvent.press(suggestATrackButton);
 
-    const searchTrackTextField = await findByPlaceholderText(/search.*track/i);
+    const searchTrackTextField = await screen.findByPlaceholderText(
+        /search.*track/i,
+    );
     expect(searchTrackTextField).toBeTruthy();
 
     fireEvent(searchTrackTextField, 'focus');
@@ -115,16 +113,19 @@ test(`A user can suggest tracks to play`, async () => {
     fireEvent(searchTrackTextField, 'submitEditing');
 
     await waitFor(() => {
-        const resultsPageHeader = getByText(/results/i);
+        const resultsPageHeader = screen.getByText(/results/i);
         expect(resultsPageHeader).toBeTruthy();
     });
 
-    const trackToSuggest = getByText(fakeTrack.title);
+    const trackToSuggest = screen.getByText(fakeTrack.title);
     expect(trackToSuggest).toBeTruthy();
 
     fireEvent.press(trackToSuggest);
 
-    await waitForElementToBeRemoved(() => getByText(/results/i));
+    await waitFor(() => {
+        const resultsPageHeader = screen.queryByText(/results/i);
+        expect(resultsPageHeader).toBeNull();
+    });
 
     expect(toast.show).toHaveBeenNthCalledWith(1, {
         type: 'error',

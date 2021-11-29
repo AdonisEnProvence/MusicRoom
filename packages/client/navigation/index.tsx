@@ -295,15 +295,7 @@ const MainNavigator: React.FC<ColorModeProps> = ({
 
     return (
         <MainStack.Navigator screenOptions={{ ...style, headerShown: false }}>
-            <MainStack.Screen name="Root">
-                {(props) => (
-                    <BottomTabNavigator
-                        colorScheme={colorScheme}
-                        toggleColorScheme={toggleColorScheme}
-                        {...props}
-                    />
-                )}
-            </MainStack.Screen>
+            <MainStack.Screen name="Root" component={BottomTabNavigator} />
 
             <MainStack.Screen
                 name="MusicTrackVoteSearch"
@@ -311,15 +303,11 @@ const MainNavigator: React.FC<ColorModeProps> = ({
                 options={{ title: 'Track Vote Search' }}
             />
 
-            <MainStack.Screen name="Settings" options={{ title: 'Settings' }}>
-                {(props) => (
-                    <SettingsScreen
-                        colorScheme={colorScheme}
-                        toggleColorScheme={toggleColorScheme}
-                        {...props}
-                    />
-                )}
-            </MainStack.Screen>
+            <MainStack.Screen
+                name="Settings"
+                options={{ title: 'Settings' }}
+                component={SettingsScreen}
+            />
 
             <MainStack.Screen name="Alert" component={AlertScreen} />
         </MainStack.Navigator>

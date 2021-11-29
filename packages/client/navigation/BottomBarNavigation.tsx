@@ -31,7 +31,11 @@ const Tab = createBottomTabNavigator<BottomTabNavigatorParamList>();
 /**
  * See https://reactnavigation.org/docs/bottom-tab-navigator#tabbar.
  */
-function MyTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+const MyTabBar: React.FC<BottomTabBarProps> = ({
+    state,
+    descriptors,
+    navigation,
+}) => {
     //This will becomes a problem if we block the app for not loged in user
     //Or this means we wont be displaying the bottomBar if user is not loged in
     const { isFullScreen, setIsFullScreen } = useMusicPlayerContext();
@@ -151,10 +155,10 @@ function MyTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             </View>
         </>
     );
-}
+};
 
-const BottomTab: React.FC<ColorModeProps> = ({ colorScheme }) => {
-    const style = tabStyle(colorScheme);
+const BottomTab: React.FC = () => {
+    const style = tabStyle('dark');
 
     return (
         <Tab.Navigator
@@ -198,7 +202,7 @@ function TabBarIcon(props: {
 // https://reactnavigation.org/docs/tab-based-navigation#a-stack-navigator-for-each-tab
 const TabOneStack = createStackNavigator<HomeParamsList>();
 
-function TabOneNavigator() {
+const TabOneNavigator: React.FC = () => {
     return (
         <TabOneStack.Navigator headerMode={'screen'}>
             <TabOneStack.Screen
@@ -208,11 +212,11 @@ function TabOneNavigator() {
             />
         </TabOneStack.Navigator>
     );
-}
+};
 
 const TabTwoStack = createStackNavigator<SearchTracksParamsList>();
 
-function TabTwoNavigator() {
+const TabTwoNavigator: React.FC = () => {
     return (
         <TabTwoStack.Navigator headerMode={'none'}>
             <TabTwoStack.Screen
@@ -227,6 +231,6 @@ function TabTwoNavigator() {
             />
         </TabTwoStack.Navigator>
     );
-}
+};
 
 export default BottomTab;

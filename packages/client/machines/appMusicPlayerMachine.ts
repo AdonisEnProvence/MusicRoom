@@ -139,11 +139,6 @@ interface CreateAppMusicPlayerMachineArgs {
 
 const rawContext: AppMusicPlayerMachineContext = {
     name: '',
-    /**
-     * Do not use the deprecated playing boolean
-     * It's not correctly updated after a pause signal callback
-     * Use state machine tags instead
-     */
     playing: false,
     roomCreatorUserID: '',
     roomID: '',
@@ -679,8 +674,6 @@ export const createAppMusicPlayerMachine = ({
                         connectedToRoom: {
                             type: 'parallel',
 
-                            tags: 'roomIsReady',
-
                             states: {
                                 playerState: {
                                     initial: 'init',
@@ -730,8 +723,6 @@ export const createAppMusicPlayerMachine = ({
 
                                             states: {
                                                 pause: {
-                                                    tags: 'playerOnPause',
-
                                                     initial: 'idle',
 
                                                     states: {
@@ -759,8 +750,6 @@ export const createAppMusicPlayerMachine = ({
                                                 },
 
                                                 play: {
-                                                    tags: 'playerOnPlay',
-
                                                     invoke: {
                                                         src: 'pollTrackElapsedTime',
                                                     },
@@ -1113,7 +1102,6 @@ export const createAppMusicPlayerMachine = ({
 
                             actions: assign((context, event) => ({
                                 ...context,
-                                ...rawContext,
                                 initialTracksIDs: event.initialTracksIDs,
                             })),
                         },

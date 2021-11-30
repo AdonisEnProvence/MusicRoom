@@ -34,8 +34,6 @@ export function useMusicPlayerContext(): MusicPlayerContextValue {
     //MusicPlayer specific hook
     const isDeviceEmitting = useGetIsDeviceEmitting({
         currDeviceID: userState.context.currDeviceID,
-        musicPlayerDoesNotHaveRoomIsReadyTag:
-            !musicPlayerState.hasTag('roomIsReady'),
         musicPlayerMachineContext: musicPlayerState.context,
     });
     ///
@@ -64,7 +62,6 @@ export function useMusicPlayerSend(): Sender<AppMusicPlayerMachineEvent> {
 
 interface UserGetIsDeviceEmittingArgs {
     musicPlayerMachineContext: AppMusicPlayerMachineContext;
-    musicPlayerDoesNotHaveRoomIsReadyTag: boolean;
     currDeviceID: string | undefined;
 }
 
@@ -75,7 +72,6 @@ interface UserGetIsDeviceEmittingArgs {
 export function useGetIsDeviceEmitting({
     currDeviceID,
     musicPlayerMachineContext,
-    musicPlayerDoesNotHaveRoomIsReadyTag,
 }: UserGetIsDeviceEmittingArgs): boolean {
     const isDeviceOwnerTheDelegationOwner = useCallback(
         function isDeviceOwnerTheDelegationOwner(): boolean {
@@ -106,10 +102,6 @@ export function useGetIsDeviceEmitting({
 
     const isDeviceEmitting: boolean = useMemo(
         (): boolean => {
-            if (musicPlayerDoesNotHaveRoomIsReadyTag) {
-                return false;
-            }
-
             if (musicPlayerMachineContext.userRelatedInformation === null) {
                 return false;
             }
@@ -134,7 +126,6 @@ export function useGetIsDeviceEmitting({
         //Not optimal at all, function will be defined each time
         //Ok for semantic, we will se later for performances
         [
-            musicPlayerDoesNotHaveRoomIsReadyTag,
             musicPlayerMachineContext,
             currDeviceID,
             isDeviceOwnerTheDelegationOwner,

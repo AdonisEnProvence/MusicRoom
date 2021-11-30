@@ -25,9 +25,9 @@ const TheMusicPlayerMini: React.FC<TheMusicPlayerMiniProps> = ({
     onPress,
 }) => {
     const { context } = musicPlayerState;
-    const { currentTrack } = context;
+    const { currentTrack, playing } = context;
     const isInRoom = context.roomID !== '';
-    const isPlaying = musicPlayerState.hasTag('playerOnPlay');
+    const isPlaying = playing;
     const roomIsReady = musicPlayerState.hasTag('playerIsReady');
 
     function handlePlayPauseToggle() {

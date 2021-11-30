@@ -90,7 +90,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
     const userMachineContext = userState.context;
 
     const insets = useSafeAreaInsets();
-    const isPlaying = musicPlayerState.hasTag('playerOnPlay');
+    const isPlaying = musicPlayerMachineContext.playing;
     const roomIsReady = musicPlayerState.hasTag('playerIsReady');
 
     const [tabsState, tabsSend] = useMachine(fullscreenPlayerTabsMachine);

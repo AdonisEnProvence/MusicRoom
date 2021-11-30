@@ -1,6 +1,7 @@
 import { test, expect, Page, Locator } from '@playwright/test';
 import { lorem } from 'faker';
 import { assertIsNotUndefined } from './_utils/assert';
+import { hitGoNextButton } from './_utils/global';
 import { KnownSearchesRecord } from './_utils/mock-http';
 import { closeAllContexts, setupAndGetUserPage } from './_utils/page';
 
@@ -60,7 +61,9 @@ async function createDirectRoomAndGoFullscreen({
         'css=[placeholder="Francis Cabrel OnlyFans"]',
         roomName,
     );
-    await creatorPage.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page: creatorPage,
+    });
 
     //Room isOpen
     await expect(
@@ -71,14 +74,18 @@ async function createDirectRoomAndGoFullscreen({
         'css=[aria-selected="true"] >> text="Public"',
     );
     await expect(publicMode).toBeVisible();
-    await creatorPage.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page: creatorPage,
+    });
 
     //Voting restrictions
     const noVotingRestriction = creatorPage.locator(
         'css=[aria-selected="true"] >> text="No restriction"',
     );
     await expect(noVotingRestriction).toBeVisible();
-    await creatorPage.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page: creatorPage,
+    });
 
     //Room mode
     const directMode = creatorPage.locator(
@@ -86,7 +93,9 @@ async function createDirectRoomAndGoFullscreen({
     );
     await expect(directMode).toBeVisible();
     await directMode.click();
-    await creatorPage.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page: creatorPage,
+    });
 
     //Minimum count to be played
     const smallestVotesConstraint = creatorPage.locator(
@@ -94,7 +103,9 @@ async function createDirectRoomAndGoFullscreen({
     );
     await expect(smallestVotesConstraint).toBeVisible();
     await smallestVotesConstraint.click();
-    await creatorPage.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page: creatorPage,
+    });
 
     //Confirmation
     await expect(
@@ -104,8 +115,10 @@ async function createDirectRoomAndGoFullscreen({
         `text=${selectedSongTitle}`,
     );
     await expect(elementWithSelectedSongTitle).toBeVisible();
+    await hitGoNextButton({
+        page: creatorPage,
+    });
 
-    await creatorPage.click('text="Next" >> visible=true');
     ///
 
     await findMiniPlayerWithRoomNameAndGoFullscreen({

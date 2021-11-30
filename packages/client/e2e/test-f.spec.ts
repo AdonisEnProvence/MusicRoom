@@ -107,8 +107,6 @@ async function createPublicRoomWithTimeAndPhysicalConstraints({
     );
     await page.keyboard.press('Enter');
 
-    await expect(page.locator('text="Results"')).toBeVisible();
-
     const firstMatchingSong = page.locator('text=BB Brunes').first();
     await expect(firstMatchingSong).toBeVisible();
 
@@ -292,10 +290,6 @@ async function userSuggestsATrackFromFullscreen({
         trackName,
     );
     await page.keyboard.press('Enter');
-
-    await expect(
-        page.locator('text="Results" >> visible=true').first(),
-    ).toBeVisible();
 
     const firstMatchingSong = page.locator(`text=${trackName}`).first();
     await expect(firstMatchingSong).toBeVisible();

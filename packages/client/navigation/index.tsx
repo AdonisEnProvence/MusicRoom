@@ -23,7 +23,6 @@ import MusicTrackVoteUsersListModal from '../screens/MusicTrackVoteUsersListModa
 import MusicTrackVoteUsersSearchModal from '../screens/MusicTrackVoteUsersSearchModal';
 import SettingsScreen from '../screens/SettingsScreen';
 import SuggestTrackModal from '../screens/SuggestTrackModal';
-import SuggestTrackResultsModal from '../screens/SuggestTrackResultsModal';
 import UserProfileScreen from '../screens/UserProfile';
 import {
     MainStackParamList,
@@ -227,11 +226,6 @@ export const SuggestTrackNavigator: React.FC<ColorModeProps> = ({
             <SuggestTrackStack.Screen
                 name="SuggestTrackModal"
                 component={SuggestTrackModal}
-            />
-
-            <SuggestTrackStack.Screen
-                name="SuggestTrackResultsModal"
-                component={SuggestTrackResultsModal}
             />
         </SuggestTrackStack.Navigator>
     );

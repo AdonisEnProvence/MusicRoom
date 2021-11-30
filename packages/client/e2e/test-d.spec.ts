@@ -32,8 +32,6 @@ async function createPublicRoomWithInvitation({
     );
     await page.keyboard.press('Enter');
 
-    await expect(page.locator('text="Results"')).toBeVisible();
-
     const firstMatchingSong = page.locator('text=BB Brunes').first();
     await expect(firstMatchingSong).toBeVisible();
 

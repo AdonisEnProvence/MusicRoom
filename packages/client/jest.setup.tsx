@@ -250,6 +250,11 @@ jest.mock('./navigation/LinkingConfiguration.ts', () => {
 // Silence the warning: Animated: `useNativeDriver` is not supported because the native animated module is missing
 jest.mock('react-native/Libraries/Animated/src/NativeAnimatedHelper');
 
+jest.mock('react-native-screens', () => ({
+    ...jest.requireActual('react-native-screens'),
+    enableScreens: jest.fn(),
+}));
+
 jest.mock('react-native-toast-message', () => ({
     show: jest.fn(),
     hide: jest.fn(),
@@ -284,6 +289,8 @@ beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterAll(() => server.close());
 afterEach(() => {
     server.resetHandlers();
+
+    jest.clearAllMocks();
 });
 
 beforeEach(() => {

@@ -55,7 +55,6 @@ export type RootStackParamList = {
 
 export type SuggestTrackStackParamList = {
     SuggestTrackModal: undefined;
-    SuggestTrackResultsModal: SearchTracksResultsParams;
 };
 
 export type MusicTrackVoteCreationFormParamList = {
@@ -121,17 +120,6 @@ export type SuggestTrackModalProps = {
         StackNavigationProp<SuggestTrackStackParamList, 'SuggestTrackModal'>
     >;
     route: RouteProp<SuggestTrackStackParamList, 'SuggestTrackModal'>;
-};
-
-export type SuggestTrackResultsModalProps = {
-    navigation: CompositeNavigationProp<
-        StackNavigationProp<RootStackParamList, 'SuggestTrack'>,
-        StackNavigationProp<
-            SuggestTrackStackParamList,
-            'SuggestTrackResultsModal'
-        >
-    >;
-    route: RouteProp<SuggestTrackStackParamList, 'SuggestTrackResultsModal'>;
 };
 
 export type MusicTrackVoteUsersListModalProps = {
@@ -343,18 +331,4 @@ export type SearchTabSearchTracksScreenProps = {
         >
     >;
     route: RouteProp<SearchTracksParamsList, 'SearchTracks'>;
-};
-
-export type SearchTrackResultsScreenProps = {
-    navigation: CompositeNavigationProp<
-        CompositeNavigationProp<
-            StackNavigationProp<RootStackParamList, 'Main'>,
-            StackNavigationProp<MainStackParamList, 'Root'>
-        >,
-        CompositeNavigationProp<
-            BottomTabNavigationProp<BottomTabNavigatorParamList, 'Search'>,
-            StackNavigationProp<SearchTracksParamsList, 'SearchTrackResults'>
-        >
-    >;
-    route: RouteProp<SearchTracksParamsList, 'SearchTrackResults'>;
 };

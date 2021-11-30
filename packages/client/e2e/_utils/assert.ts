@@ -25,6 +25,9 @@ interface assertMusicPlayerStatusIsArgs {
         | 'muted'}`;
 }
 
+/**
+ * This method should be called after a waitForYoutubeToLoad to avoid race condition
+ */
 export async function assertMusicPlayerStatusIs({
     page,
     testID,

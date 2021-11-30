@@ -3,6 +3,7 @@ import {
     assertIsNotUndefined,
     assertMusicPlayerStatusIs,
 } from './_utils/assert';
+import { hitGoNextButton } from './_utils/global';
 import { KnownSearchesRecord } from './_utils/mock-http';
 import {
     closeAllContexts,
@@ -67,7 +68,9 @@ async function createDirectRoomAndGoFullscreen({
         'css=[placeholder="Francis Cabrel OnlyFans"]',
         roomName,
     );
-    await creatorPage.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page: creatorPage,
+    });
 
     //Room isOpen
     await expect(
@@ -78,14 +81,18 @@ async function createDirectRoomAndGoFullscreen({
         'css=[aria-selected="true"] >> text="Public"',
     );
     await expect(publicMode).toBeVisible();
-    await creatorPage.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page: creatorPage,
+    });
 
     //Voting restrictions
     const noVotingRestriction = creatorPage.locator(
         'css=[aria-selected="true"] >> text="No restriction"',
     );
     await expect(noVotingRestriction).toBeVisible();
-    await creatorPage.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page: creatorPage,
+    });
 
     //Room mode
     const directMode = creatorPage.locator(
@@ -93,7 +100,9 @@ async function createDirectRoomAndGoFullscreen({
     );
     await expect(directMode).toBeVisible();
     await directMode.click();
-    await creatorPage.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page: creatorPage,
+    });
 
     //Minimum count to be played
     const smallestVotesConstraint = creatorPage.locator(
@@ -101,7 +110,9 @@ async function createDirectRoomAndGoFullscreen({
     );
     await expect(smallestVotesConstraint).toBeVisible();
     await smallestVotesConstraint.click();
-    await creatorPage.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page: creatorPage,
+    });
 
     //Confirmation
     await expect(
@@ -112,7 +123,9 @@ async function createDirectRoomAndGoFullscreen({
     );
     await expect(elementWithSelectedSongTitle).toBeVisible();
 
-    await creatorPage.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page: creatorPage,
+    });
     ///
 
     await findMiniPlayerWithRoomNameAndGoFullscreen({
@@ -561,13 +574,22 @@ test('Test B see following link for more information: https://3.basecamp.com/470
         ).toBeVisible(),
     ]);
 
-    await userVoteForGivenTrackFromFullscreen({
-        page: joiningUserB,
-        trackName: selectedSongTitle,
-    });
+    await Promise.all([
+        waitForYouTubeVideoToLoad(creatorUserA),
+        waitForYouTubeVideoToLoad(joiningUserB),
+        waitForYouTubeVideoToLoad(joiningUserCDevice1),
+        waitForYouTubeVideoToLoad(joiningUserCDevice2),
+        userVoteForGivenTrackFromFullscreen({
+            page: joiningUserB,
+            trackName: selectedSongTitle,
+        }),
+    ]);
 
     //pause
     await Promise.all([
+        userHitsPauseFromFullscreenPlayer({
+            page: creatorUserA,
+        }),
         assertMusicPlayerStatusIs({
             page: creatorUserA,
             testID: 'music-player-not-playing-device-emitting',
@@ -579,9 +601,6 @@ test('Test B see following link for more information: https://3.basecamp.com/470
         assertMusicPlayerStatusIs({
             page: joiningUserCDevice1,
             testID: 'music-player-not-playing-device-muted',
-        }),
-        userHitsPauseFromFullscreenPlayer({
-            page: creatorUserA,
         }),
     ]);
 

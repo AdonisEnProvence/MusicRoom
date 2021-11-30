@@ -1,5 +1,6 @@
 import { test, expect, Page, Locator } from '@playwright/test';
 import { assertIsNotNull, assertIsNotUndefined } from './_utils/assert';
+import { hitGoNextButton } from './_utils/global';
 import { KnownSearchesRecord } from './_utils/mock-http';
 import { closeAllContexts, setupAndGetUserPage } from './_utils/page';
 
@@ -35,7 +36,9 @@ async function createPrivateRoom(page: Page) {
 
     const roomName = 'MusicRoom is the best';
     await page.fill('css=[placeholder="Francis Cabrel OnlyFans"]', roomName);
-    await page.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page,
+    });
 
     await expect(
         page.locator('text="What is the opening status of the room?"'),
@@ -47,35 +50,43 @@ async function createPrivateRoom(page: Page) {
     //need to verify that only invited user can vote is enabled
     await expect(privateMode).toBeVisible();
     await privateMode.click();
-    await page.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page,
+    });
 
     const noVotingRestriction = page.locator(
         'css=[aria-selected="true"] >> text="No restriction"',
     );
     await expect(noVotingRestriction).toBeVisible();
-    await page.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page,
+    });
 
     const broadcastMode = page.locator(
         'css=[aria-selected="true"] >> text="Broadcast"',
     );
     await expect(broadcastMode).toBeVisible();
-    await page.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page,
+    });
 
     const twoVotesConstraintButton = page.locator(
         `text="Friendly online event"`,
     );
     await expect(twoVotesConstraintButton).toBeVisible();
     await twoVotesConstraintButton.click();
-
-    await page.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page,
+    });
 
     await expect(page.locator('text="Confirm room creation"')).toBeVisible();
     const elementWithSelectedSongTitle = page.locator(
         `text=${selectedSongTitle}`,
     );
     await expect(elementWithSelectedSongTitle).toBeVisible();
-
-    await page.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page,
+    });
 
     const miniPlayerWithRoomName = page.locator(`text="${roomName}"`).first();
     await expect(miniPlayerWithRoomName).toBeVisible();

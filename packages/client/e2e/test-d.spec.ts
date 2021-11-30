@@ -4,6 +4,7 @@ import {
     assertIsNotUndefined,
     assertMusicPlayerStatusIs,
 } from './_utils/assert';
+import { hitGoNextButton } from './_utils/global';
 import { KnownSearchesRecord } from './_utils/mock-http';
 import {
     closeAllContexts,
@@ -49,7 +50,9 @@ async function createPublicRoomWithInvitation({
     ).toBeVisible();
 
     await page.fill('css=[placeholder="Francis Cabrel OnlyFans"]', roomName);
-    await page.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page,
+    });
 
     await expect(
         page.locator('text="What is the opening status of the room?"'),
@@ -61,34 +64,42 @@ async function createPublicRoomWithInvitation({
     await expect(publicMode).toBeVisible();
     const invitationModeSwitch = page.locator('css=[role="switch"]');
     await invitationModeSwitch.click();
-    await page.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page,
+    });
 
     const noVotingRestriction = page.locator(
         'css=[aria-selected="true"] >> text="No restriction"',
     );
     await expect(noVotingRestriction).toBeVisible();
-    await page.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page,
+    });
 
     const broadcastMode = page.locator(
         'css=[aria-selected="true"] >> text="Broadcast"',
     );
     await expect(broadcastMode).toBeVisible();
-    await page.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page,
+    });
 
     const oneVoteConstraintButton = page.locator(
         `css=[aria-selected="true"] >> text="Party at Kitty and Stud's"`,
     );
     await expect(oneVoteConstraintButton).toBeVisible();
-
-    await page.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page,
+    });
 
     await expect(page.locator('text="Confirm room creation"')).toBeVisible();
-    const elementWithSelectedSongTitle = page.locator(
-        `text=${selectedSongTitle}`,
-    );
+    const elementWithSelectedSongTitle = page
+        .locator(`text=${selectedSongTitle}`)
+        .last();
     await expect(elementWithSelectedSongTitle).toBeVisible();
-
-    await page.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page,
+    });
 
     const miniPlayerWithRoomName = page.locator(`text="${roomName}"`).first();
     await expect(miniPlayerWithRoomName).toBeVisible();
@@ -247,8 +258,8 @@ test('Test D see following link for more informations https://3.basecamp.com/470
         { context: userAContext, page: userADevice1Page },
         { page: userBPage },
     ] = await Promise.all([
-        setupAndGetUserPage({ browser, userIndex: 0, knownSearches }),
         setupAndGetUserPage({ browser, userIndex: 1, knownSearches }),
+        setupAndGetUserPage({ browser, userIndex: 0, knownSearches }),
     ]);
 
     const roomName = 'MusicRoom is the best';

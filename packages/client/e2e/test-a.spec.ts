@@ -4,6 +4,7 @@ import {
     assertIsNotUndefined,
     assertMusicPlayerStatusIs,
 } from './_utils/assert';
+import { hitGoNextButton } from './_utils/global';
 import { KnownSearchesRecord } from './_utils/mock-http';
 import { closeAllContexts, setupAndGetUserPage } from './_utils/page';
 import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
@@ -43,7 +44,10 @@ async function createRoom({ creatorPage }: { creatorPage: Page }) {
         'css=[placeholder="Francis Cabrel OnlyFans"]',
         roomName,
     );
-    await creatorPage.click('text="Next" >> visible=true');
+
+    await hitGoNextButton({
+        page: creatorPage,
+    });
 
     await expect(
         creatorPage.locator('text="What is the opening status of the room?"'),
@@ -53,27 +57,34 @@ async function createRoom({ creatorPage }: { creatorPage: Page }) {
         'css=[aria-selected="true"] >> text="Public"',
     );
     await expect(publicMode).toBeVisible();
-    await creatorPage.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page: creatorPage,
+    });
 
     const noVotingRestriction = creatorPage.locator(
         'css=[aria-selected="true"] >> text="No restriction"',
     );
     await expect(noVotingRestriction).toBeVisible();
-    await creatorPage.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page: creatorPage,
+    });
 
     const broadcastMode = creatorPage.locator(
         'css=[aria-selected="true"] >> text="Broadcast"',
     );
     await expect(broadcastMode).toBeVisible();
-    await creatorPage.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page: creatorPage,
+    });
 
     const twoVotesConstraintButton = creatorPage.locator(
         `text="Friendly online event"`,
     );
     await expect(twoVotesConstraintButton).toBeVisible();
     await twoVotesConstraintButton.click();
-
-    await creatorPage.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page: creatorPage,
+    });
 
     await expect(
         creatorPage.locator('text="Confirm room creation"'),
@@ -82,8 +93,9 @@ async function createRoom({ creatorPage }: { creatorPage: Page }) {
         `text=${selectedSongTitle}`,
     );
     await expect(elementWithSelectedSongTitle).toBeVisible();
-
-    await creatorPage.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page: creatorPage,
+    });
 
     const miniPlayerWithRoomName = creatorPage
         .locator(`text="${roomName}"`)

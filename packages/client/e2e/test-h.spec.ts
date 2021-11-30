@@ -11,6 +11,7 @@ import {
     assertIsNotUndefined,
     assertMusicPlayerStatusIs,
 } from './_utils/assert';
+import { hitGoNextButton } from './_utils/global';
 import { KnownSearchesRecord } from './_utils/mock-http';
 import {
     closeAllContexts,
@@ -105,7 +106,9 @@ async function createPublicRoomWithTimeAndPhysicalConstraints({
     ).toBeVisible();
 
     await page.fill('css=[placeholder="Francis Cabrel OnlyFans"]', roomName);
-    await page.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page,
+    });
 
     await expect(
         page.locator('text="What is the opening status of the room?"'),
@@ -115,7 +118,9 @@ async function createPublicRoomWithTimeAndPhysicalConstraints({
         'css=[aria-selected="true"] >> text="Public"',
     );
     await expect(publicMode).toBeVisible();
-    await page.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page,
+    });
 
     /**
      * Physical and time constraints
@@ -152,8 +157,10 @@ async function createPublicRoomWithTimeAndPhysicalConstraints({
     );
     await expect(endsAtDatetimeInput).toBeVisible();
     await endsAtDatetimeInput.fill(format(endsAt, "yyyy-MM-dd'T'HH:mm"));
+    await hitGoNextButton({
+        page,
+    });
 
-    await page.click('text="Next" >> visible=true');
     /**
      * END Physical and time constraints
      */
@@ -162,22 +169,26 @@ async function createPublicRoomWithTimeAndPhysicalConstraints({
         'css=[aria-selected="true"] >> text="Broadcast"',
     );
     await expect(broadcastMode).toBeVisible();
-    await page.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page,
+    });
 
     const oneVoteConstraintButton = page.locator(
         `css=[aria-selected="true"] >> text="Party at Kitty and Stud's"`,
     );
     await expect(oneVoteConstraintButton).toBeVisible();
-
-    await page.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page,
+    });
 
     await expect(page.locator('text="Confirm room creation"')).toBeVisible();
     const elementWithSelectedSongTitle = page.locator(
         `text=${selectedSongTitle}`,
     );
     await expect(elementWithSelectedSongTitle).toBeVisible();
-
-    await page.click('text="Next" >> visible=true');
+    await hitGoNextButton({
+        page,
+    });
 
     const miniPlayerWithRoomName = page.locator(`text="${roomName}"`).first();
     await expect(miniPlayerWithRoomName).toBeVisible();
@@ -258,11 +269,10 @@ test('Test H', async ({ browser }) => {
     });
 
     await Promise.all([
+        waitForYouTubeVideoToLoad(userADevice1Page),
         assertMusicPlayerStatusIs({
             page: userADevice1Page,
             testID: 'music-player-playing-device-emitting',
         }),
-
-        waitForYouTubeVideoToLoad(userADevice1Page),
     ]);
 });

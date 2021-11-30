@@ -36,10 +36,6 @@ async function createDirectRoomAndGoFullscreen({
     );
     await creatorPage.keyboard.press('Enter');
 
-    await expect(
-        creatorPage.locator('text="Results" >> visible=true').first(),
-    ).toBeVisible();
-
     //I have no idea why but text selector below have to be written without \"\"
     const firstMatchingSong = creatorPage.locator(`text=${trackName}`).first();
     const selectedSongTitle = await firstMatchingSong.textContent();
@@ -440,9 +436,9 @@ test('Test E see following link for more information: https://3.basecamp.com/470
     });
 
     //UserA goes back he should see the music player fullscreen
-    const usersListCancelButton = creatorUserA.locator(
-        'text="Cancel" >> visible=true',
-    );
+    const usersListCancelButton = creatorUserA
+        .locator('text="Cancel" >> visible=true')
+        .last();
     await expect(usersListCancelButton).toBeVisible();
     await usersListCancelButton.click();
     await userHitsLastVisibleGoBackButton({

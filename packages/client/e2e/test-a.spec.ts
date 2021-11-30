@@ -22,8 +22,6 @@ async function createRoom({ creatorPage }: { creatorPage: Page }) {
     );
     await creatorPage.keyboard.press('Enter');
 
-    await expect(creatorPage.locator('text="Results"')).toBeVisible();
-
     const firstMatchingSong = creatorPage.locator('text=BB Brunes').first();
     await expect(firstMatchingSong).toBeVisible();
 
@@ -182,8 +180,6 @@ async function joinerSuggestsTrack({ joinerPage }: { joinerPage: Page }) {
     const searchedTrackName = 'Biolay - Vendredi 12';
     await searchTrackInput.fill(searchedTrackName);
     await joinerPage.keyboard.press('Enter');
-
-    await expect(joinerPage.locator('text="Results"')).toBeVisible();
 
     const firstMatchingSong = joinerPage
         .locator(`text=${searchedTrackName}`)

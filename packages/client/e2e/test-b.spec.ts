@@ -43,10 +43,6 @@ async function createDirectRoomAndGoFullscreen({
     );
     await creatorPage.keyboard.press('Enter');
 
-    await expect(
-        creatorPage.locator('text="Results" >> visible=true').first(),
-    ).toBeVisible();
-
     //I have no idea why but text selector below have to be written without \"\"
     const firstMatchingSong = creatorPage.locator(`text=${trackName}`).first();
     const selectedSongTitle = await firstMatchingSong.textContent();
@@ -224,15 +220,11 @@ async function userSuggestATrackFromFullscreen({
     await expect(suggestTrackButton).toBeEnabled();
     await suggestTrackButton.click();
 
-    await page.fill(
-        'css=[placeholder*="Search a track"] >> visible=true',
-        trackName,
-    );
+    const suggestionSearchInput = page
+        .locator('css=[placeholder*="Search a track"] >> visible=true')
+        .last();
+    await suggestionSearchInput.fill(trackName);
     await page.keyboard.press('Enter');
-
-    await expect(
-        page.locator('text="Results" >> visible=true').first(),
-    ).toBeVisible();
 
     const firstMatchingSong = page.locator(`text=${trackName}`).first();
     await expect(firstMatchingSong).toBeVisible();

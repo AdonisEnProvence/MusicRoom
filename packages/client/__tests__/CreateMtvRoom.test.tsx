@@ -842,11 +842,21 @@ const createMtvRoomWithSettingsMachine =
                         expect(playButton).toBeTruthy();
                         expect(playButton).toBeDisabled();
 
+                        const musicPlayerState = getRoomState();
                         serverSocket.emit(
                             'CREATE_ROOM_CALLBACK',
-                            getRoomState(),
+                            musicPlayerState,
                         );
-                        await waitForTimeout(100);
+
+                        const newPlayButton = await waitFor(async () => {
+                            const newPlayButton = await within(
+                                musicPlayerFullScreen,
+                            ).findByA11yLabel(/play.*video/i);
+                            expect(newPlayButton).toBeTruthy();
+                            expect(newPlayButton).not.toBeDisabled();
+                            return newPlayButton;
+                        });
+
                         if (
                             state.context.hasPhysicalConstraints &&
                             state.context.physicalConstraintsValues
@@ -860,8 +870,25 @@ const createMtvRoomWithSettingsMachine =
                             ).toBeCalledTimes(0);
                         }
 
-                        fireEvent.press(playButton);
-                        await waitForTimeout(1_000);
+                        let receivedActionPlay = false;
+                        serverSocket.on('ACTION_PLAY', () => {
+                            serverSocket.emit('ACTION_PLAY_CALLBACK', {
+                                ...musicPlayerState,
+                                playing: true,
+                            });
+                            receivedActionPlay = true;
+                        });
+
+                        fireEvent.press(newPlayButton);
+
+                        await waitFor(async () => {
+                            expect(receivedActionPlay).toBeTruthy();
+                            const pauseButton = await within(
+                                musicPlayerFullScreen,
+                            ).findByA11yLabel(/pause.*video/i);
+                            expect(pauseButton).toBeTruthy();
+                            expect(pauseButton).not.toBeDisabled();
+                        });
 
                         expect(
                             await within(musicPlayerFullScreen).findByText(
@@ -869,11 +896,7 @@ const createMtvRoomWithSettingsMachine =
                             ),
                         ).toBeTruthy();
 
-                        const pauseButton = await within(
-                            musicPlayerFullScreen,
-                        ).findByA11yLabel(/pause.*video/i);
-                        expect(pauseButton).toBeTruthy();
-                        expect(pauseButton).not.toBeDisabled();
+                        await waitForTimeout(1_000);
 
                         const nonZeroCurrentTime = within(
                             musicPlayerFullScreen,

@@ -229,6 +229,9 @@ jest.mock('@gorhom/bottom-sheet', () => {
                     present: () => {
                         setIsOpen(true);
                     },
+                    close: () => {
+                        setIsOpen(false);
+                    },
                 }));
 
                 return <View>{isOpen ? children : null}</View>;

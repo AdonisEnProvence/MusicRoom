@@ -141,6 +141,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                                                 type: 'CHANGE_EMITTING_DEVICE',
                                                 deviceID,
                                             });
+                                            bottomSheetModalRef.current?.close();
                                         }}
                                         testID={`${deviceID}-device-card`}
                                     >

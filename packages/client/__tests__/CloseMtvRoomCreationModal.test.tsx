@@ -45,8 +45,6 @@ test('MtvRoom creation form modal can be closed', async () => {
     fireEvent.changeText(searchInput, SEARCH_QUERY);
     fireEvent(searchInput, 'submitEditing');
 
-    await waitFor(() => expect(screen.getByText(/results/i)).toBeTruthy());
-
     const trackResultListItem = await screen.findByText(fakeTrack.title);
     expect(trackResultListItem).toBeTruthy();
 

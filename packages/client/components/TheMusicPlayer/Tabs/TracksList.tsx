@@ -3,7 +3,6 @@ import { TrackMetadataWithScore } from '@musicroom/types';
 import { useNavigation } from '@react-navigation/core';
 import { Sender } from '@xstate/react/lib/types';
 import { useSx, View } from 'dripsy';
-import { music } from 'faker';
 import React, { useMemo } from 'react';
 import { FlatList, TouchableOpacity } from 'react-native';
 import {
@@ -275,6 +274,13 @@ const TracksListTab: React.FC<TracksListProps> = ({
                         return item.track.id;
                     }
                     return 'SEPARATOR_KEY';
+                }}
+                ListFooterComponent={() => {
+                    return (
+                        <View
+                            sx={{ marginBottom: 'xxl', paddingBottom: 'xl' }}
+                        />
+                    );
                 }}
                 style={{ flex: 1 }}
             />

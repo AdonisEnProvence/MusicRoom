@@ -122,7 +122,7 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
             <RootStack.Screen
                 name="SuggestTrack"
                 component={SuggestTrackNavigator}
-                options={{ headerShown: false }}
+                options={{ headerShown: false, detachPreviousScreen: false }}
             />
 
             <RootStack.Screen
@@ -141,7 +141,7 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
             <RootStack.Screen
                 name="MusicTrackVoteChat"
                 component={MusicTrackVoteChatNavigator}
-                options={{ headerShown: false }}
+                options={{ headerShown: false, detachPreviousScreen: false }}
             />
 
             <RootStack.Screen
@@ -153,7 +153,7 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
             <RootStack.Screen
                 name="MusicTrackVoteUsersSearch"
                 component={MusicTrackVoteUsersSearchNavigator}
-                options={{ headerShown: false }}
+                options={{ headerShown: false, detachPreviousScreen: false }}
             />
 
             <RootStack.Screen
@@ -176,7 +176,11 @@ export const MusicTrackVoteCreationFormNavigator: React.FC<ColorModeProps> = ({
     return (
         <MusicTrackVoteCreationStack.Navigator
             initialRouteName="MusicTrackVoteCreationFormName"
-            screenOptions={{ ...style, headerShown: false }}
+            screenOptions={{
+                ...style,
+                headerShown: false,
+                detachPreviousScreen: false,
+            }}
         >
             <MusicTrackVoteCreationStack.Screen
                 name="MusicTrackVoteCreationFormName"
@@ -213,9 +217,12 @@ export const SuggestTrackNavigator: React.FC<ColorModeProps> = ({
 
     return (
         <SuggestTrackStack.Navigator
-            mode="modal"
             initialRouteName="SuggestTrackModal"
-            screenOptions={{ ...style, headerShown: false }}
+            screenOptions={{
+                ...style,
+                headerShown: false,
+                detachPreviousScreen: false,
+            }}
         >
             <SuggestTrackStack.Screen
                 name="SuggestTrackModal"
@@ -237,9 +244,12 @@ export const MusicTrackVoteChatNavigator: React.FC<ColorModeProps> = ({
 
     return (
         <MusicTrackVoteChatStack.Navigator
-            mode="modal"
             initialRouteName="MusicTrackVoteChatModal"
-            screenOptions={{ ...style, headerShown: false }}
+            screenOptions={{
+                ...style,
+                headerShown: false,
+                detachPreviousScreen: false,
+            }}
         >
             <MusicTrackVoteChatStack.Screen
                 name="MusicTrackVoteChatModal"
@@ -255,9 +265,12 @@ export const MusicTrackVoteConstraintsDetailsNavigator: React.FC<ColorModeProps>
 
         return (
             <MusicTrackVoteConstraintsDetailsStack.Navigator
-                mode="modal"
                 initialRouteName="MusicTrackVoteConstraintsDetailsModal"
-                screenOptions={{ ...style, headerShown: false }}
+                screenOptions={{
+                    ...style,
+                    headerShown: false,
+                    detachPreviousScreen: false,
+                }}
             >
                 <MusicTrackVoteConstraintsDetailsStack.Screen
                     name="MusicTrackVoteConstraintsDetailsModal"
@@ -297,9 +310,12 @@ export const MusicTrackVoteUsersSearchNavigator: React.FC<ColorModeProps> = ({
 
     return (
         <MusicTrackVoteUsersSearchStack.Navigator
-            mode="modal"
             initialRouteName="MusicTrackVoteUsersSearchModal"
-            screenOptions={{ ...style, headerShown: false }}
+            screenOptions={{
+                ...style,
+                headerShown: false,
+                detachPreviousScreen: false,
+            }}
         >
             <MusicTrackVoteUsersSearchStack.Screen
                 name="MusicTrackVoteUsersSearchModal"
@@ -316,11 +332,11 @@ export const MusicTrackVoteUsersListNavigator: React.FC<ColorModeProps> = ({
 
     return (
         <MusicTrackVoteUsersListStack.Navigator
-            mode="modal"
             initialRouteName="MusicTrackVoteUsersListModal"
             screenOptions={{
                 ...style,
                 headerShown: false,
+                detachPreviousScreen: false,
             }}
         >
             <MusicTrackVoteUsersListStack.Screen

@@ -110,25 +110,10 @@ test(`Device should still be playing while entering the mtvRoomCreation form whi
     fireEvent.changeText(searchInput, SEARCH_QUERY);
     fireEvent(searchInput, 'submitEditing');
 
-    await waitFor(() => expect(screen.getByText(/results/i)).toBeTruthy());
-
     const trackResultListItem = await screen.findByText(fakeTrack.title);
     expect(trackResultListItem).toBeTruthy();
 
     fireEvent.press(trackResultListItem);
-
-    // This operation can take some time.
-    // It's not crucial that it occurs immediately.
-    // We just want the results screen to be dismissed after some time.
-    await waitFor(
-        () => {
-            const searchTracksResultsTitle = screen.queryByText(/results/i);
-            expect(searchTracksResultsTitle).toBeNull();
-        },
-        {
-            timeout: 10_000,
-        },
-    );
 
     await waitFor(() => {
         const roomCreationFormFirstStepTitle =

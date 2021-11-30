@@ -90,7 +90,7 @@ export const searchTrackMachine = searchTrackModel.createMachine(
                     },
 
                     PRESS_TRACK: {
-                        actions: 'openCreationForm',
+                        actions: 'handleTrackPressed',
                     },
                 },
             },

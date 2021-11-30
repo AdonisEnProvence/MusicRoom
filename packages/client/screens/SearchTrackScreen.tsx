@@ -21,7 +21,7 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
     const { sendToMusicPlayerMachine } = useMusicPlayerContext();
     const [state, sendToSearchTracks] = useMachine(searchTrackMachine, {
         actions: {
-            openCreationForm: (_, event) => {
+            handleTrackPressed: (_, event) => {
                 assertEventType(event, 'PRESS_TRACK');
                 const { trackID } = event;
 

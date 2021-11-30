@@ -840,6 +840,24 @@ export const createAppMusicPlayerMachine = ({
                                             },
                                         },
                                     },
+
+                                    on: {
+                                        /**
+                                         * PAUSE_CALLBACK event must be handled in all substates, including waitingForTrackToLoad.
+                                         * The updated state must be assigned to the context.
+                                         */
+                                        PAUSE_CALLBACK: {
+                                            actions: 'assignMergeNewState',
+                                        },
+
+                                        /**
+                                         * PLAY_CALLBACK event must be handled in all substates, including waitingForTrackToLoad.
+                                         * The updated state must be assigned to the context.
+                                         */
+                                        PLAY_CALLBACK: {
+                                            actions: 'assignMergeNewState',
+                                        },
+                                    },
                                 },
 
                                 tracksSuggestion: {

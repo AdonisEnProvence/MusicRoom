@@ -171,8 +171,14 @@ After clicking on one not emitting device card it should set the clicked one as 
 
     fireEvent.press(lastDeviceCardList);
 
+    //Reopening the user devices modal to notify the new emitting one
+    fireEvent.press(displaychangeEmittingDeviceBottomSheetModalButton);
+
     await waitFor(() => {
-        const emitterIcon = within(lastDeviceCardList).getByA11yLabel(
+        const bottomSheetModal = screen.getByTestId(
+            'change-emitting-device-bottom-sheet-flat-list',
+        );
+        const emitterIcon = within(bottomSheetModal).getByA11yLabel(
             `${lastDevice.name} is emitting`,
         );
         expect(emitterIcon).toBeTruthy();

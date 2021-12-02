@@ -5,7 +5,7 @@ import {
     MtvWorkflowStateWithUserRelatedInformation,
     UserRelatedInformation,
 } from '@musicroom/types';
-import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
+import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import Device from 'App/Models/Device';
 import { datatype, random } from 'faker';
 import test from 'japa';
@@ -46,7 +46,7 @@ test.group(
             const userID = datatype.uuid();
 
             sinon
-                .stub(ServerToTemporalController, 'changeUserEmittingDevice')
+                .stub(MtvServerToTemporalController, 'changeUserEmittingDevice')
                 .callsFake(async ({ deviceID, workflowID }) => {
                     const state: MtvWorkflowState = {
                         currentTrack: null,
@@ -204,7 +204,7 @@ test.group(
         test(`It should fail change user emitting device as user is not in a mtvRoom`, async (assert) => {
             const userID = datatype.uuid();
             sinon
-                .stub(ServerToTemporalController, 'changeUserEmittingDevice')
+                .stub(MtvServerToTemporalController, 'changeUserEmittingDevice')
                 .callsFake(async ({ deviceID, workflowID }) => {
                     const state: MtvWorkflowState = {
                         currentTrack: null,
@@ -277,7 +277,7 @@ test.group(
             const secondUserID = datatype.uuid();
 
             sinon
-                .stub(ServerToTemporalController, 'changeUserEmittingDevice')
+                .stub(MtvServerToTemporalController, 'changeUserEmittingDevice')
                 .callsFake(async ({ deviceID, workflowID }) => {
                     const state: MtvWorkflowState = {
                         currentTrack: null,
@@ -350,7 +350,7 @@ test.group(
 
             /** Mocks */
             sinon
-                .stub(ServerToTemporalController, 'createMtvWorkflow')
+                .stub(MtvServerToTemporalController, 'createMtvWorkflow')
                 .callsFake(async ({ workflowID, userID, deviceID }) => {
                     const state: MtvWorkflowStateWithUserRelatedInformation = {
                         currentTrack: null,
@@ -425,7 +425,7 @@ test.group(
 
             /** Mocks */
             sinon
-                .stub(ServerToTemporalController, 'joinWorkflow')
+                .stub(MtvServerToTemporalController, 'joinWorkflow')
                 .callsFake(async ({ workflowID, userID, deviceID }) => {
                     const state: MtvWorkflowStateWithUserRelatedInformation = {
                         currentTrack: null,

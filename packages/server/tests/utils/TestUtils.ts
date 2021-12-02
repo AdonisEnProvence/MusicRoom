@@ -3,7 +3,7 @@ import {
     AllServerToClientEvents,
     MtvRoomClientToServerCreateArgs,
 } from '@musicroom/types';
-import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
+import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
 import { datatype, random } from 'faker';
@@ -115,12 +115,12 @@ export function initTestUtils(): TestUtilsReturnedValue {
         async (): Promise<void> => {
             sinon.restore();
             sinon
-                .stub(ServerToTemporalController, 'terminateWorkflow')
+                .stub(MtvServerToTemporalController, 'terminateWorkflow')
                 .callsFake(async () => {
                     return;
                 });
             sinon
-                .stub(ServerToTemporalController, 'leaveWorkflow')
+                .stub(MtvServerToTemporalController, 'leaveWorkflow')
                 .callsFake(async () => {
                     return;
                 });

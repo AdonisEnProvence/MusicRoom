@@ -3,7 +3,7 @@ import {
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
-import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
+import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
@@ -55,7 +55,7 @@ test.group(`User service socket handler tests`, (group) => {
         };
 
         sinon
-            .stub(ServerToTemporalController, 'voteForTrack')
+            .stub(MtvServerToTemporalController, 'voteForTrack')
             .callsFake(async ({ trackID, userID }) => {
                 const stateWithUserRelatedInformations: MtvWorkflowStateWithUserRelatedInformation =
                     {

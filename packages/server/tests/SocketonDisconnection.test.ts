@@ -1,6 +1,6 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import { MtvWorkflowStateWithUserRelatedInformation } from '@musicroom/types';
-import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
+import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
 import { datatype, name, random } from 'faker';
@@ -76,12 +76,12 @@ test.group('Rooms life cycle', (group) => {
 
         /** Mocks */
         sinon
-            .stub(ServerToTemporalController, 'terminateWorkflow')
+            .stub(MtvServerToTemporalController, 'terminateWorkflow')
             .callsFake(async (): Promise<void> => {
                 return;
             });
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .stub(MtvServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
                 const state: MtvWorkflowStateWithUserRelatedInformation = {
                     roomID: workflowID, //workflowID === roomID
@@ -184,12 +184,12 @@ test.group('Rooms life cycle', (group) => {
 
         /** Mocks */
         sinon
-            .stub(ServerToTemporalController, 'terminateWorkflow')
+            .stub(MtvServerToTemporalController, 'terminateWorkflow')
             .callsFake(async () => {
                 return;
             });
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .stub(MtvServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
                 state = {
                     roomID: workflowID,
@@ -230,7 +230,7 @@ test.group('Rooms life cycle', (group) => {
                 };
             });
         sinon
-            .stub(ServerToTemporalController, 'joinWorkflow')
+            .stub(MtvServerToTemporalController, 'joinWorkflow')
             .callsFake(async ({ userID }) => {
                 if (state === undefined) throw new Error('State is undefined');
                 state.usersLength++;
@@ -313,7 +313,7 @@ test.group('Rooms life cycle', (group) => {
 
         /** Mocks */
         sinon
-            .stub(ServerToTemporalController, 'terminateWorkflow')
+            .stub(MtvServerToTemporalController, 'terminateWorkflow')
             .callsFake(async () => {
                 return;
             });

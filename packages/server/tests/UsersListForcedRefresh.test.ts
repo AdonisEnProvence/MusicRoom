@@ -1,6 +1,6 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import { MtvWorkflowState } from '@musicroom/types';
-import { TemporalToServerLeaveBody } from 'App/Controllers/Http/Temporal/TemporalToServerController';
+import { MtvTemporalToServerLeaveBody } from 'App/Controllers/Http/Temporal/MtvTemporalToServerController';
 import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
@@ -161,7 +161,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
             usersListForcedRefreshHasBeenCalled = true;
         });
 
-        const leaveBody: TemporalToServerLeaveBody = {
+        const leaveBody: MtvTemporalToServerLeaveBody = {
             leavingUserID: datatype.uuid(),
             state: getBasicState({
                 userID,

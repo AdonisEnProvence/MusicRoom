@@ -32,67 +32,67 @@ Route.get('/ping', () => console.log('pong'));
 
 Route.post(
     '/temporal/mtv-creation-acknowledgement',
-    'Temporal/TemporalToServerController.mtvCreationAcknowledgement',
+    'Temporal/MtvTemporalToServerController.mtvCreationAcknowledgement',
 );
 
-Route.post('/temporal/play', 'Temporal/TemporalToServerController.play');
+Route.post('/temporal/play', 'Temporal/MtvTemporalToServerController.play');
 
-Route.post('/temporal/pause', 'Temporal/TemporalToServerController.pause');
+Route.post('/temporal/pause', 'Temporal/MtvTemporalToServerController.pause');
 
-Route.post('/temporal/join', 'Temporal/TemporalToServerController.join');
+Route.post('/temporal/join', 'Temporal/MtvTemporalToServerController.join');
 
-Route.post('/temporal/leave', 'Temporal/TemporalToServerController.leave');
+Route.post('/temporal/leave', 'Temporal/MtvTemporalToServerController.leave');
 
 Route.post(
     '/temporal/change-user-emitting-device',
-    'Temporal/TemporalToServerController.mtvChangeUserEmittingDeviceAcknowledgement',
+    'Temporal/MtvTemporalToServerController.mtvChangeUserEmittingDeviceAcknowledgement',
 );
 
 Route.post(
     'temporal/user-length-update',
-    'Temporal/TemporalToServerController.userLengthUpdate',
+    'Temporal/MtvTemporalToServerController.userLengthUpdate',
 );
 
 Route.post(
     '/temporal/suggest-or-vote-update',
-    'Temporal/TemporalToServerController.suggestOrVoteTracksListUpdate',
+    'Temporal/MtvTemporalToServerController.suggestOrVoteTracksListUpdate',
 );
 
 Route.post(
     '/temporal/acknowledge-tracks-suggestion',
-    'Temporal/TemporalToServerController.acknowledgeTracksSuggestion',
+    'Temporal/MtvTemporalToServerController.acknowledgeTracksSuggestion',
 );
 
 Route.post(
     '/temporal/acknowledge-tracks-suggestion-fail',
-    'Temporal/TemporalToServerController.acknowledgeTracksSuggestionFail',
+    'Temporal/MtvTemporalToServerController.acknowledgeTracksSuggestionFail',
 );
 
 Route.post(
     '/temporal/acknowledge-user-vote-for-track',
-    'Temporal/TemporalToServerController.acknowledgeUserVoteForTrack',
+    'Temporal/MtvTemporalToServerController.acknowledgeUserVoteForTrack',
 );
 
 Route.get('/proxy-places-api/*', 'PlacesApisController.proxyPlacesAPIRequest');
 
 Route.post(
     '/temporal/acknowledge-update-user-fits-position-constraint',
-    'Temporal/TemporalToServerController.acknowledgeUserVoteForTrack',
+    'Temporal/MtvTemporalToServerController.acknowledgeUserVoteForTrack',
 );
 
 Route.post(
     '/temporal/acknowledge-update-delegation-owner',
-    'Temporal/TemporalToServerController.acknowledgeUpdateDelegationOwner',
+    'Temporal/MtvTemporalToServerController.acknowledgeUpdateDelegationOwner',
 );
 
 Route.post(
     '/temporal/acknowledge-update-control-and-delegation-permission',
-    'Temporal/TemporalToServerController.acknowledgeUpdateControlAndDelegationPermission',
+    'Temporal/MtvTemporalToServerController.acknowledgeUpdateControlAndDelegationPermission',
 );
 
 Route.post(
     '/temporal/acknowledge-update-time-constraint',
-    'Temporal/TemporalToServerController.acknowledgeUpdateTimeConstraint',
+    'Temporal/MtvTemporalToServerController.acknowledgeUpdateTimeConstraint',
 );
 
 /// //////// ////// ///

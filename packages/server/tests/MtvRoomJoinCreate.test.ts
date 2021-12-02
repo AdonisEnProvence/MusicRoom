@@ -1,6 +1,6 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import { MtvWorkflowStateWithUserRelatedInformation } from '@musicroom/types';
-import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
+import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
@@ -42,7 +42,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
 
         /** Mocks */
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .stub(MtvServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
                 return {
                     runID: datatype.uuid(),
@@ -81,13 +81,15 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     },
                 };
             });
-        sinon.stub(ServerToTemporalController, 'play').callsFake(async () => {
-            userCouldEmitAnExclusiveRoomSignal = true;
-            console.log('play mock called');
-            return;
-        });
         sinon
-            .stub(ServerToTemporalController, 'terminateWorkflow')
+            .stub(MtvServerToTemporalController, 'play')
+            .callsFake(async () => {
+                userCouldEmitAnExclusiveRoomSignal = true;
+                console.log('play mock called');
+                return;
+            });
+        sinon
+            .stub(MtvServerToTemporalController, 'terminateWorkflow')
             .callsFake(async (): Promise<void> => {
                 return;
             });
@@ -125,7 +127,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         let userCouldEmitAnExclusiveRoomSignal = false;
         /** Mocks */
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .stub(MtvServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
                 const creator = datatype.uuid();
                 const state: MtvWorkflowStateWithUserRelatedInformation = {
@@ -168,7 +170,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                 };
             });
         sinon
-            .stub(ServerToTemporalController, 'getState')
+            .stub(MtvServerToTemporalController, 'getState')
             .callsFake(async ({ workflowID, userID }) => {
                 return {
                     name: roomName,
@@ -198,10 +200,12 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     minimumScoreToBePlayed: 1,
                 };
             });
-        sinon.stub(ServerToTemporalController, 'play').callsFake(async () => {
-            userCouldEmitAnExclusiveRoomSignal = true;
-            return;
-        });
+        sinon
+            .stub(MtvServerToTemporalController, 'play')
+            .callsFake(async () => {
+                userCouldEmitAnExclusiveRoomSignal = true;
+                return;
+            });
         /** ***** */
 
         /**
@@ -239,7 +243,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
 
         /** Mocks */
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .stub(MtvServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
                 state = {
                     currentTrack: null,
@@ -283,7 +287,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
             });
 
         sinon
-            .stub(ServerToTemporalController, 'joinWorkflow')
+            .stub(MtvServerToTemporalController, 'joinWorkflow')
             .callsFake(async () => {
                 if (state === undefined) throw new Error('State is undefined');
                 state.usersLength++;
@@ -299,10 +303,12 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                 return;
             });
 
-        sinon.stub(ServerToTemporalController, 'play').callsFake(async () => {
-            userCouldEmitAnExclusiveRoomSignal = true;
-            return;
-        });
+        sinon
+            .stub(MtvServerToTemporalController, 'play')
+            .callsFake(async () => {
+                userCouldEmitAnExclusiveRoomSignal = true;
+                return;
+            });
         /** ***** */
 
         /**
@@ -365,7 +371,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
 
         /** Mocks */
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .stub(MtvServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
                 roomID = workflowID;
 
@@ -424,7 +430,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
 
         /** Mocks */
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .stub(MtvServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID, params, userID }) => {
                 const state: MtvWorkflowStateWithUserRelatedInformation = {
                     roomID: workflowID,

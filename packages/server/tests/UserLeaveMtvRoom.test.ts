@@ -4,7 +4,7 @@ import {
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
-import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
+import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
@@ -95,7 +95,7 @@ test.group(
             };
 
             sinon
-                .stub(ServerToTemporalController, 'leaveWorkflow')
+                .stub(MtvServerToTemporalController, 'leaveWorkflow')
                 .callsFake(async ({ workflowID }) => {
                     roomToLeaveState = {
                         ...roomToLeaveState,
@@ -109,12 +109,12 @@ test.group(
                     return;
                 });
             sinon
-                .stub(ServerToTemporalController, 'terminateWorkflow')
+                .stub(MtvServerToTemporalController, 'terminateWorkflow')
                 .callsFake(async () => {
                     return;
                 });
             sinon
-                .stub(ServerToTemporalController, 'joinWorkflow')
+                .stub(MtvServerToTemporalController, 'joinWorkflow')
                 .callsFake(async ({ userID: relatedUserID }) => {
                     roomToJoinState.usersLength++;
                     roomToJoinState.userRelatedInformation = {
@@ -322,7 +322,7 @@ test.group(
             };
 
             sinon
-                .stub(ServerToTemporalController, 'leaveWorkflow')
+                .stub(MtvServerToTemporalController, 'leaveWorkflow')
                 .callsFake(async ({ workflowID }) => {
                     roomToLeaveState = {
                         ...roomToLeaveState,
@@ -336,12 +336,12 @@ test.group(
                     return;
                 });
             sinon
-                .stub(ServerToTemporalController, 'terminateWorkflow')
+                .stub(MtvServerToTemporalController, 'terminateWorkflow')
                 .callsFake(async () => {
                     return;
                 });
             sinon
-                .stub(ServerToTemporalController, 'joinWorkflow')
+                .stub(MtvServerToTemporalController, 'joinWorkflow')
                 .callsFake(async ({ userID: relatedUserID }) => {
                     roomToJoinState.usersLength++;
                     roomToJoinState.userRelatedInformation = {
@@ -525,7 +525,7 @@ test.group(
             };
 
             sinon
-                .stub(ServerToTemporalController, 'leaveWorkflow')
+                .stub(MtvServerToTemporalController, 'leaveWorkflow')
                 .callsFake(async ({ workflowID }) => {
                     roomToLeaveState = {
                         ...roomToLeaveState,
@@ -539,12 +539,12 @@ test.group(
                     return;
                 });
             sinon
-                .stub(ServerToTemporalController, 'terminateWorkflow')
+                .stub(MtvServerToTemporalController, 'terminateWorkflow')
                 .callsFake(async () => {
                     return;
                 });
             sinon
-                .stub(ServerToTemporalController, 'createMtvWorkflow')
+                .stub(MtvServerToTemporalController, 'createMtvWorkflow')
                 .callsFake(async ({ workflowID, userID, params }) => {
                     const state: MtvWorkflowStateWithUserRelatedInformation = {
                         roomID: workflowID, //workflowID === roomID
@@ -761,12 +761,12 @@ test.group(
             const userCID = datatype.uuid();
 
             sinon
-                .stub(ServerToTemporalController, 'terminateWorkflow')
+                .stub(MtvServerToTemporalController, 'terminateWorkflow')
                 .callsFake(async () => {
                     return;
                 });
             sinon
-                .stub(ServerToTemporalController, 'leaveWorkflow')
+                .stub(MtvServerToTemporalController, 'leaveWorkflow')
                 .callsFake(async ({ workflowID }) => {
                     const state: MtvWorkflowState = {
                         currentTrack: null,

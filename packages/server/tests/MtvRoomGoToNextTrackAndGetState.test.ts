@@ -1,5 +1,5 @@
 import Database from '@ioc:Adonis/Lucid/Database';
-import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
+import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
@@ -42,7 +42,7 @@ test.group(
             });
 
             const goToNextTrackStub = sinon
-                .stub(ServerToTemporalController, 'goToNextTrack')
+                .stub(MtvServerToTemporalController, 'goToNextTrack')
                 .resolves();
 
             socket.emit('GO_TO_NEXT_TRACK');
@@ -71,7 +71,7 @@ test.group(
             });
 
             sinon
-                .stub(ServerToTemporalController, 'getState')
+                .stub(MtvServerToTemporalController, 'getState')
                 .callsFake(async () => {
                     return {
                         roomID: mtvRoomIDToAssociate,

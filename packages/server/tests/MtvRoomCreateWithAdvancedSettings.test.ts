@@ -1,6 +1,6 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import { MtvRoomClientToServerCreateArgs } from '@musicroom/types';
-import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
+import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import MtvRoom from 'App/Models/MtvRoom';
 import { datatype, name, random } from 'faker';
 import test from 'japa';
@@ -96,7 +96,7 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
             isOpen: true,
         });
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .stub(MtvServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID, params }) => {
                 return {
                     runID: datatype.uuid(),
@@ -154,7 +154,7 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
             isOpen: false,
         });
         sinon
-            .stub(ServerToTemporalController, 'createMtvWorkflow')
+            .stub(MtvServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID, params }) => {
                 return {
                     runID: datatype.uuid(),

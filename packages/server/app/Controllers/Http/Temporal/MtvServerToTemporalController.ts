@@ -113,7 +113,7 @@ interface TemporalMtvGetRoomConstraintsDetails {
     runID: string;
 }
 
-export default class ServerToTemporalController {
+export default class MtvServerToTemporalController {
     public static async createMtvWorkflow({
         workflowID,
         userID,

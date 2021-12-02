@@ -1,5 +1,5 @@
 import Database from '@ioc:Adonis/Lucid/Database';
-import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
+import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import MtvRoom from 'App/Models/MtvRoom';
 import MtvRoomInvitation from 'App/Models/MtvRoomInvitation';
@@ -41,7 +41,7 @@ test.group(`Invited user joins mtv room`, (group) => {
 
         let mockReceivedUserHasBeenInvitedToTrue = false;
         sinon
-            .stub(ServerToTemporalController, 'joinWorkflow')
+            .stub(MtvServerToTemporalController, 'joinWorkflow')
             .callsFake(async ({ userHasBeenInvited }) => {
                 mockReceivedUserHasBeenInvitedToTrue = userHasBeenInvited;
             });
@@ -131,7 +131,7 @@ test.group(`Invited user joins mtv room`, (group) => {
 
         let mockReceivedUserHasBeenInvitedToFalse = false;
         sinon
-            .stub(ServerToTemporalController, 'joinWorkflow')
+            .stub(MtvServerToTemporalController, 'joinWorkflow')
             .callsFake(async ({ userHasBeenInvited }) => {
                 mockReceivedUserHasBeenInvitedToFalse = !userHasBeenInvited;
             });

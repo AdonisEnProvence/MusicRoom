@@ -11,23 +11,23 @@ import UserService from 'App/Services/UserService';
 import Ws from 'App/Services/Ws';
 import * as z from 'zod';
 
-const TemporalToServerJoinBody = z.object({
+const MtvTemporalToServerJoinBody = z.object({
     joiningUserID: z.string().uuid(),
     state: MtvWorkflowStateWithUserRelatedInformation,
 });
 
-type TemporalToServerJoinBody = z.infer<typeof TemporalToServerJoinBody>;
+type MtvTemporalToServerJoinBody = z.infer<typeof MtvTemporalToServerJoinBody>;
 
-export const TemporalToServerLeaveBody = z.object({
+export const MtvTemporalToServerLeaveBody = z.object({
     leavingUserID: z.string().uuid(),
     state: MtvWorkflowState,
 });
 
-export type TemporalToServerLeaveBody = z.infer<
-    typeof TemporalToServerLeaveBody
+export type MtvTemporalToServerLeaveBody = z.infer<
+    typeof MtvTemporalToServerLeaveBody
 >;
 
-export default class TemporalToServerController {
+export default class MtvTemporalToServerController {
     public pause({ request }: HttpContextContract): void {
         const state = MtvWorkflowState.parse(request.body());
         const roomID = state.roomID;
@@ -108,7 +108,7 @@ export default class TemporalToServerController {
     }
 
     public async join({ request }: HttpContextContract): Promise<void> {
-        const { state, joiningUserID } = TemporalToServerJoinBody.parse(
+        const { state, joiningUserID } = MtvTemporalToServerJoinBody.parse(
             request.body(),
         );
         const { roomID } = state;
@@ -159,7 +159,7 @@ export default class TemporalToServerController {
     }
 
     public async leave({ request }: HttpContextContract): Promise<void> {
-        const { state } = TemporalToServerLeaveBody.parse(request.body());
+        const { state } = MtvTemporalToServerLeaveBody.parse(request.body());
 
         Ws.io.to(state.roomID).emit('USERS_LIST_FORCED_REFRESH');
     }

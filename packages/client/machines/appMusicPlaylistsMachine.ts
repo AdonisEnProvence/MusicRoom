@@ -2,9 +2,12 @@ import { ActorRefFrom } from 'xstate';
 import { log } from 'xstate/lib/actions';
 import { createModel } from 'xstate/lib/model';
 import { SocketClient } from '../contexts/SocketContext';
+import { PlaylistActorRef } from './playlistMachine';
 
 const appMusicPlaylistsModel = createModel(
-    {},
+    {
+        playlistsActorsRefs: [] as PlaylistActorRef[],
+    },
     {
         events: {
             CREATE_ROOM: () => ({}),

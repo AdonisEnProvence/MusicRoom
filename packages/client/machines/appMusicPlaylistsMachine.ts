@@ -1,12 +1,18 @@
-import { ActorRefFrom } from 'xstate';
-import { log } from 'xstate/lib/actions';
+import { ActorRefFrom, spawn } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { nanoid } from 'nanoid/non-secure';
 import { SocketClient } from '../contexts/SocketContext';
-import { PlaylistActorRef } from './playlistMachine';
+import { createPlaylistMachine, PlaylistActorRef } from './playlistMachine';
+
+interface MusicPlaylist {
+    id: string;
+    roomName: string;
+    ref: PlaylistActorRef;
+}
 
 const appMusicPlaylistsModel = createModel(
     {
-        playlistsActorsRefs: [] as PlaylistActorRef[],
+        playlistsActorsRefs: [] as MusicPlaylist[],
     },
     {
         events: {
@@ -14,6 +20,25 @@ const appMusicPlaylistsModel = createModel(
         },
         actions: {},
     },
+);
+
+const spawnPlaylistActor = appMusicPlaylistsModel.assign(
+    {
+        playlistsActorsRefs: ({ playlistsActorsRefs }) => {
+            const playlistID = nanoid();
+            const playlistMachine = createPlaylistMachine({
+                roomID: playlistID,
+            });
+            const playlist: MusicPlaylist = {
+                id: playlistID,
+                roomName: `MPE ${playlistID}`,
+                ref: spawn(playlistMachine),
+            };
+
+            return [...playlistsActorsRefs, playlist];
+        },
+    },
+    'CREATE_ROOM',
 );
 
 type AppMusicPlaylistsMachine = ReturnType<
@@ -44,7 +69,7 @@ export function createAppMusicPlaylistsMachine({
             },
 
             creatingRoom: {
-                entry: log('Create a MPE room'),
+                entry: spawnPlaylistActor,
             },
         },
     });

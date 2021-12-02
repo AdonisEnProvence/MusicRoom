@@ -48,7 +48,7 @@ test.group(`Updating Control and Delegation permission`, (group) => {
                 return;
             });
 
-        creatorSocket.emit('UPDATE_CONTROL_AND_DELEGATION_PERMISSION', {
+        creatorSocket.emit('MTV_UPDATE_CONTROL_AND_DELEGATION_PERMISSION', {
             hasControlAndDelegationPermission: true,
             toUpdateUserID: randomUserID,
         });
@@ -83,7 +83,7 @@ test.group(`Updating Control and Delegation permission`, (group) => {
                 return;
             });
 
-        randomUserSocket.emit('UPDATE_CONTROL_AND_DELEGATION_PERMISSION', {
+        randomUserSocket.emit('MTV_UPDATE_CONTROL_AND_DELEGATION_PERMISSION', {
             hasControlAndDelegationPermission: false,
             toUpdateUserID: creatorUserID,
         });

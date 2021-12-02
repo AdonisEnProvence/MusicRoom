@@ -46,7 +46,7 @@ test.group(`Invited user joins mtv room`, (group) => {
                 mockReceivedUserHasBeenInvitedToTrue = userHasBeenInvited;
             });
 
-        creatorSocket.emit('CREATOR_INVITE_USER', {
+        creatorSocket.emit('MTV_CREATOR_INVITE_USER', {
             invitedUserID,
         });
 
@@ -58,7 +58,7 @@ test.group(`Invited user joins mtv room`, (group) => {
             assert.isNotNull(createdInvitation);
         });
 
-        invitedUserSocket.emit('JOIN_ROOM', {
+        invitedUserSocket.emit('MTV_JOIN_ROOM', {
             roomID,
         });
 
@@ -136,7 +136,7 @@ test.group(`Invited user joins mtv room`, (group) => {
                 mockReceivedUserHasBeenInvitedToFalse = !userHasBeenInvited;
             });
 
-        joiningUserSocket.emit('JOIN_ROOM', {
+        joiningUserSocket.emit('MTV_JOIN_ROOM', {
             roomID,
         });
 

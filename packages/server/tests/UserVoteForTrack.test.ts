@@ -112,30 +112,34 @@ test.group(`User service socket handler tests`, (group) => {
             receivedEvents: [] as string[],
         };
 
-        creatorSocket.socket.once('VOTE_OR_SUGGEST_TRACK_CALLBACK', () =>
-            creatorSocket.receivedEvents.push('VOTE_OR_SUGGEST_TRACK_CALLBACK'),
+        creatorSocket.socket.once('MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK', () =>
+            creatorSocket.receivedEvents.push(
+                'MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK',
+            ),
         );
 
-        creatorSocket.socketB.once('VOTE_OR_SUGGEST_TRACK_CALLBACK', () =>
-            creatorSocket.receivedEvents.push('VOTE_OR_SUGGEST_TRACK_CALLBACK'),
+        creatorSocket.socketB.once('MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK', () =>
+            creatorSocket.receivedEvents.push(
+                'MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK',
+            ),
         );
 
         const members = [creatorSocket, userBSocket, userCSocket];
         members.forEach((socket) => {
-            socket.socket.once('VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', () =>
+            socket.socket.once('MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', () =>
                 socket.receivedEvents.push(
-                    'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
+                    'MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
                 ),
             );
 
-            socket.socketB.once('VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', () =>
+            socket.socketB.once('MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', () =>
                 socket.receivedEvents.push(
-                    'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
+                    'MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
                 ),
             );
         });
 
-        creatorSocket.socket.emit('VOTE_FOR_TRACK', {
+        creatorSocket.socket.emit('MTV_VOTE_FOR_TRACK', {
             trackID: datatype.uuid(),
         });
         await sleep();

@@ -27,7 +27,7 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
-    test('It should create only one invitation in base and send RECEIVED_MTV_ROOM_INVITATION to the invited user clients', async (assert) => {
+    test('It should create only one invitation in base and send MTV_RECEIVED_ROOM_INVITATION to the invited user clients', async (assert) => {
         const invitedUserID = datatype.uuid();
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
@@ -43,14 +43,14 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         });
 
         const receivedEvents: string[] = [];
-        invitedUserSocketB.on('RECEIVED_MTV_ROOM_INVITATION', () =>
-            receivedEvents.push('RECEIVED_MTV_ROOM_INVITATION'),
+        invitedUserSocketB.on('MTV_RECEIVED_ROOM_INVITATION', () =>
+            receivedEvents.push('MTV_RECEIVED_ROOM_INVITATION'),
         );
-        invitedUserSocket.on('RECEIVED_MTV_ROOM_INVITATION', () =>
-            receivedEvents.push('RECEIVED_MTV_ROOM_INVITATION'),
+        invitedUserSocket.on('MTV_RECEIVED_ROOM_INVITATION', () =>
+            receivedEvents.push('MTV_RECEIVED_ROOM_INVITATION'),
         );
 
-        creatorSocket.emit('CREATOR_INVITE_USER', {
+        creatorSocket.emit('MTV_CREATOR_INVITE_USER', {
             invitedUserID,
         });
         await sleep();
@@ -68,7 +68,7 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         assert.equal(createdInvitation.mtvRoomID, roomID);
 
         //Again and check events are still called but only 1 entry in db
-        creatorSocket.emit('CREATOR_INVITE_USER', {
+        creatorSocket.emit('MTV_CREATOR_INVITE_USER', {
             invitedUserID,
         });
         await sleep();
@@ -91,7 +91,7 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
             userID: invitedUserID,
         });
 
-        invitedUserSocket.on('RECEIVED_MTV_ROOM_INVITATION', () =>
+        invitedUserSocket.on('MTV_RECEIVED_ROOM_INVITATION', () =>
             assert.isTrue(false),
         );
 
@@ -126,7 +126,7 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
             userID: invitedUserID,
         });
 
-        invitedUserSocket.on('RECEIVED_MTV_ROOM_INVITATION', () =>
+        invitedUserSocket.on('MTV_RECEIVED_ROOM_INVITATION', () =>
             assert.isTrue(false),
         );
 
@@ -160,7 +160,7 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
             mtvRoomIDToAssociate: roomID,
         });
 
-        invitedUserSocket.on('RECEIVED_MTV_ROOM_INVITATION', () =>
+        invitedUserSocket.on('MTV_RECEIVED_ROOM_INVITATION', () =>
             assert.isTrue(false),
         );
 
@@ -193,11 +193,11 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         });
 
         let callbackCalled = false;
-        invitedUserSocket.on('RECEIVED_MTV_ROOM_INVITATION', () => {
+        invitedUserSocket.on('MTV_RECEIVED_ROOM_INVITATION', () => {
             callbackCalled = true;
         });
 
-        creatorSocket.emit('CREATOR_INVITE_USER', {
+        creatorSocket.emit('MTV_CREATOR_INVITE_USER', {
             invitedUserID,
         });
 

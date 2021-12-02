@@ -126,7 +126,7 @@ export default class MtvRoomsWsController {
         const room = new MtvRoom();
         let roomHasBeenSaved = false;
         const userID = user.uuid;
-        console.log(`USER ${userID} CREATE_ROOM ${roomID}`);
+        console.log(`USER ${userID} MTV_CREATE_ROOM ${roomID}`);
 
         if (
             params.hasPhysicalAndTimeConstraints &&
@@ -624,7 +624,7 @@ export default class MtvRoomsWsController {
 
         await UserService.emitEventInEveryDeviceUser(
             invitedUserID,
-            'RECEIVED_MTV_ROOM_INVITATION',
+            'MTV_RECEIVED_ROOM_INVITATION',
             [roomSummary],
         );
     }

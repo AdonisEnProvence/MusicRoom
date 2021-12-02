@@ -79,7 +79,7 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
         ];
 
         settingsList.forEach((settings) =>
-            socket.emit('CREATE_ROOM', settings),
+            socket.emit('MTV_CREATE_ROOM', settings),
         );
         await sleep();
 
@@ -137,7 +137,7 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
                 };
             });
 
-        socket.emit('CREATE_ROOM', settings);
+        socket.emit('MTV_CREATE_ROOM', settings);
         await sleep();
 
         const createdRoom = await MtvRoom.findBy('name', settings.name);
@@ -195,7 +195,7 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
                 };
             });
 
-        socket.emit('CREATE_ROOM', settings);
+        socket.emit('MTV_CREATE_ROOM', settings);
         await sleep();
 
         const createdRoom = await MtvRoom.findBy('name', settings.name);

@@ -119,7 +119,7 @@ test.group(
             const userID = datatype.uuid();
             const socket = await createUserAndGetSocket({ userID });
 
-            socket.emit('CREATE_ROOM', settings);
+            socket.emit('MTV_CREATE_ROOM', settings);
             await sleep();
 
             const rooms = await MtvRoom.all();

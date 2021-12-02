@@ -112,7 +112,7 @@ test.group(
             }
 
             socketB.socket.once(
-                'CHANGE_EMITTING_DEVICE_CALLBACK',
+                'MTV_CHANGE_EMITTING_DEVICE_CALLBACK',
                 ({ userRelatedInformation }) => {
                     const expectedUserRelatedInformation: UserRelatedInformation | null =
                         {
@@ -135,13 +135,13 @@ test.group(
                         expectedUserRelatedInformation,
                     );
                     socketB.receivedEvents.push(
-                        'CHANGE_EMITTING_DEVICE_CALLBACK',
+                        'MTV_CHANGE_EMITTING_DEVICE_CALLBACK',
                     );
                 },
             );
 
             socket.socket.once(
-                'CHANGE_EMITTING_DEVICE_CALLBACK',
+                'MTV_CHANGE_EMITTING_DEVICE_CALLBACK',
                 ({ userRelatedInformation }) => {
                     const expectedUserRelatedInformation: UserRelatedInformation =
                         {
@@ -158,12 +158,12 @@ test.group(
                         expectedUserRelatedInformation,
                     );
                     socket.receivedEvents.push(
-                        'CHANGE_EMITTING_DEVICE_CALLBACK',
+                        'MTV_CHANGE_EMITTING_DEVICE_CALLBACK',
                     );
                 },
             );
 
-            socket.socket.emit('CHANGE_EMITTING_DEVICE', {
+            socket.socket.emit('MTV_CHANGE_EMITTING_DEVICE', {
                 newEmittingDeviceID: deviceB.uuid,
             });
             await sleep();
@@ -180,7 +180,7 @@ test.group(
             let receivedChangeEmittingDeviceThroughEviction = false;
 
             socket.socket.once(
-                'CHANGE_EMITTING_DEVICE_CALLBACK',
+                'MTV_CHANGE_EMITTING_DEVICE_CALLBACK',
                 ({ userRelatedInformation }) => {
                     assert.isNotNull(userRelatedInformation);
                     if (userRelatedInformation === null)
@@ -254,17 +254,17 @@ test.group(
 
             let hasNeverBeenCalled = true;
 
-            socketB.socket.once('CHANGE_EMITTING_DEVICE_CALLBACK', () => {
+            socketB.socket.once('MTV_CHANGE_EMITTING_DEVICE_CALLBACK', () => {
                 assert.isTrue(false);
                 hasNeverBeenCalled = false;
             });
 
-            socket.socket.once('CHANGE_EMITTING_DEVICE_CALLBACK', () => {
+            socket.socket.once('MTV_CHANGE_EMITTING_DEVICE_CALLBACK', () => {
                 assert.isTrue(false);
                 hasNeverBeenCalled = false;
             });
 
-            socket.socket.emit('CHANGE_EMITTING_DEVICE', {
+            socket.socket.emit('MTV_CHANGE_EMITTING_DEVICE', {
                 newEmittingDeviceID: deviceB.uuid,
             });
             await sleep();
@@ -329,15 +329,15 @@ test.group(
 
             let hasNeverBeenCalled = true;
 
-            socketB.socket.once('CHANGE_EMITTING_DEVICE_CALLBACK', () => {
+            socketB.socket.once('MTV_CHANGE_EMITTING_DEVICE_CALLBACK', () => {
                 hasNeverBeenCalled = false;
             });
 
-            socket.socket.once('CHANGE_EMITTING_DEVICE_CALLBACK', () => {
+            socket.socket.once('MTV_CHANGE_EMITTING_DEVICE_CALLBACK', () => {
                 hasNeverBeenCalled = false;
             });
 
-            socket.socket.emit('CHANGE_EMITTING_DEVICE', {
+            socket.socket.emit('MTV_CHANGE_EMITTING_DEVICE', {
                 newEmittingDeviceID: deviceB.uuid,
             });
             await sleep();
@@ -402,12 +402,12 @@ test.group(
             }
             assert.isFalse(device.isEmitting);
 
-            socket.on('CREATE_ROOM_CALLBACK', () => {
+            socket.on('MTV_CREATE_ROOM_CALLBACK', () => {
                 callbackHasBeenCalled = true;
             });
 
             const settings = getDefaultMtvRoomCreateRoomArgs();
-            socket.emit('CREATE_ROOM', {
+            socket.emit('MTV_CREATE_ROOM', {
                 ...settings,
             });
 
@@ -480,11 +480,11 @@ test.group(
             }
             assert.isFalse(joiningUserDevice.isEmitting);
 
-            joiningUserSocket.on('JOIN_ROOM_CALLBACK', () => {
+            joiningUserSocket.on('MTV_JOIN_ROOM_CALLBACK', () => {
                 callbackHasBeenCalled = true;
             });
 
-            joiningUserSocket.emit('JOIN_ROOM', {
+            joiningUserSocket.emit('MTV_JOIN_ROOM', {
                 roomID: mtvRoomIDToAssociate,
             });
 

@@ -51,7 +51,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
             );
 
         let callbakcHasBeenCalled = false;
-        socket.emit('GET_USERS_LIST', (usersList) => {
+        socket.emit('MTV_GET_USERS_LIST', (usersList) => {
             callbakcHasBeenCalled = true;
             assert.equal(1, usersList.length);
             const creator = usersList.find((user) => user.userID === userID);

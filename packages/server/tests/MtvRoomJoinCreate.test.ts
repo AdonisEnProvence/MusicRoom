@@ -35,7 +35,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
-    test("It should join room for every user's session/device after one emits CREATE_ROOM", async (assert) => {
+    test("It should join room for every user's session/device after one emits MTV_CREATE_ROOM", async (assert) => {
         const roomName = random.word();
         const userID = datatype.uuid();
         let userCouldEmitAnExclusiveRoomSignal = false;
@@ -105,15 +105,15 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
             name: roomName,
             initialTracksIDs: [datatype.uuid()],
         });
-        socketA.emit('CREATE_ROOM', settings);
+        socketA.emit('MTV_CREATE_ROOM', settings);
         await sleep();
         assert.isNotNull(await MtvRoom.findBy('creator', userID));
 
         /**
-         * From the other one he emits an ACTION_PLAY event
+         * From the other one he emits an MTV_ACTION_PLAY event
          * It achieves only if he joined the socket io server room
          */
-        socketB.emit('ACTION_PLAY');
+        socketB.emit('MTV_ACTION_PLAY');
         await sleep();
         assert.equal(userCouldEmitAnExclusiveRoomSignal, true);
     });
@@ -215,11 +215,11 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
             name: roomName,
             initialTracksIDs: [datatype.uuid()],
         });
-        socketA.emit('CREATE_ROOM', settings);
+        socketA.emit('MTV_CREATE_ROOM', settings);
         await sleep();
 
         /**
-         * User connects a new device, then emits an ACTION_PLAY
+         * User connects a new device, then emits an MTV_ACTION_PLAY
          * It achieves only if he joined the socket io server room
          * He also receives the mtvRoom's context
          */
@@ -227,14 +227,14 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
             socket: await createSocketConnection({ userID: creatorUserID }),
         };
 
-        socketB.socket.emit('ACTION_PLAY');
+        socketB.socket.emit('MTV_ACTION_PLAY');
         await sleep();
 
         assert.isTrue(userCouldEmitAnExclusiveRoomSignal);
     });
 
-    test(`It should joins room for every user's session/device after one emits JOIN_ROOM
-    It should send USER_LENGTH_UPDATE to every already existing room members`, async (assert) => {
+    test(`It should joins room for every user's session/device after one emits MTV_JOIN_ROOM
+    It should send MTV_USER_LENGTH_UPDATE to every already existing room members`, async (assert) => {
         const userID = datatype.uuid();
         const creatorID = datatype.uuid();
         const roomName = random.word();
@@ -321,7 +321,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         const settings = getDefaultMtvRoomCreateRoomArgs({
             initialTracksIDs: [datatype.uuid()],
         });
-        creatorUser.emit('CREATE_ROOM', settings);
+        creatorUser.emit('MTV_CREATE_ROOM', settings);
         await sleep();
         const createdRoom = await MtvRoom.findBy('creator', creatorID);
         assert.isNotNull(createdRoom);
@@ -330,8 +330,8 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         /**
          * JoiningUser connects 2 socket and joins the createdRoom with one
          */
-        creatorUser.once('USER_LENGTH_UPDATE', () => {
-            creatorReceivedEvents.push('USER_LENGTH_UPDATE');
+        creatorUser.once('MTV_USER_LENGTH_UPDATE', () => {
+            creatorReceivedEvents.push('MTV_USER_LENGTH_UPDATE');
         });
 
         const receivedEvents: string[] = [];
@@ -340,11 +340,11 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
             socketB: await createSocketConnection({ userID }),
         };
         Object.values(joiningUser).forEach((socket, i) =>
-            socket.once('JOIN_ROOM_CALLBACK', () => {
+            socket.once('MTV_JOIN_ROOM_CALLBACK', () => {
                 receivedEvents.push(`JOIN_ROOM_CALLBACK_${i}`);
             }),
         );
-        joiningUser.socketA.emit('JOIN_ROOM', { roomID: createdRoom.uuid });
+        joiningUser.socketA.emit('MTV_JOIN_ROOM', { roomID: createdRoom.uuid });
         await sleep();
         console.log(receivedEvents);
         assert.isTrue(receivedEvents.includes('JOIN_ROOM_CALLBACK_0'));
@@ -352,10 +352,10 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         assert.equal(creatorReceivedEvents.length, 1);
 
         /**
-         * JoiningUser emit an ACTION_PLAY with the other socket connection
+         * JoiningUser emit an MTV_ACTION_PLAY with the other socket connection
          * It achieves only if he joined the socket io server room
          */
-        joiningUser.socketB.emit('ACTION_PLAY');
+        joiningUser.socketB.emit('MTV_ACTION_PLAY');
         await sleep();
         assert.equal(userCouldEmitAnExclusiveRoomSignal, true);
     });
@@ -365,8 +365,8 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         const socket = await createUserAndGetSocket({ userID });
         let roomID: undefined | string;
         const receivedEvents: string[] = [];
-        socket.once('CREATE_ROOM_CALLBACK', () => {
-            receivedEvents.push('CREATE_ROOM_CALLBACK');
+        socket.once('MTV_CREATE_ROOM_CALLBACK', () => {
+            receivedEvents.push('MTV_CREATE_ROOM_CALLBACK');
         });
 
         /** Mocks */
@@ -388,10 +388,10 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         /** ***** */
 
         /**
-         * Emit CREATE_ROOM
+         * Emit MTV_CREATE_ROOM
          */
         const settings = getDefaultMtvRoomCreateRoomArgs();
-        socket.emit('CREATE_ROOM', settings);
+        socket.emit('MTV_CREATE_ROOM', settings);
         await sleep();
 
         if (roomID === undefined) throw new Error('roomID is undefined');
@@ -469,7 +469,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         const expectedRoomName = `${roomName} (${creatorUser.nickname})`;
 
         let createRoomSynchedCallbackHasBeenCalled = false;
-        creatorSocket.on('CREATE_ROOM_SYNCHED_CALLBACK', (state) => {
+        creatorSocket.on('MTV_CREATE_ROOM_SYNCHED_CALLBACK', (state) => {
             createRoomSynchedCallbackHasBeenCalled = true;
             assert.equal(state.name, expectedRoomName);
         });
@@ -477,7 +477,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         const settings = getDefaultMtvRoomCreateRoomArgs({
             name: roomName,
         });
-        creatorSocket.emit('CREATE_ROOM', settings);
+        creatorSocket.emit('MTV_CREATE_ROOM', settings);
 
         await sleep();
 

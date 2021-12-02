@@ -30,7 +30,7 @@ test.group(
         test('Go to next tracks events are forwarded to Temporal', async (assert) => {
             /**
              * Create a user that is member of a mtv room.
-             * We want this user to send a GO_TO_NEXT_TRACK event and assert
+             * We want this user to send a MTV_GO_TO_NEXT_TRACK event and assert
              * that the method that forwards the event is correctly called.
              */
             const userID = datatype.uuid();
@@ -45,7 +45,7 @@ test.group(
                 .stub(MtvServerToTemporalController, 'goToNextTrack')
                 .resolves();
 
-            socket.emit('GO_TO_NEXT_TRACK');
+            socket.emit('MTV_GO_TO_NEXT_TRACK');
 
             await sleep();
 
@@ -55,7 +55,7 @@ test.group(
         test('It should send back the socket related mtv room context', async (assert) => {
             /**
              * Manually create and associate room to user and socket to user
-             * Then emit a GET_CONTEXT and verify that the test achieves to it
+             * Then emit a MTV_GET_CONTEXT and verify that the test achieves to it
              */
             const userID = datatype.uuid();
             const mtvRoomIDToAssociate = datatype.uuid();
@@ -66,8 +66,8 @@ test.group(
             assert.equal(1, (await MtvRoom.all()).length);
             const receivedEvents: string[] = [];
 
-            socket.once('RETRIEVE_CONTEXT', () => {
-                receivedEvents.push('RETRIEVE_CONTEXT');
+            socket.once('MTV_RETRIEVE_CONTEXT', () => {
+                receivedEvents.push('MTV_RETRIEVE_CONTEXT');
             });
 
             sinon
@@ -92,11 +92,11 @@ test.group(
                     };
                 });
 
-            socket.emit('GET_CONTEXT');
+            socket.emit('MTV_GET_CONTEXT');
 
             await sleep();
 
-            assert.equal(receivedEvents[0], 'RETRIEVE_CONTEXT');
+            assert.equal(receivedEvents[0], 'MTV_RETRIEVE_CONTEXT');
         });
     },
 );

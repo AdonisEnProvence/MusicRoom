@@ -81,7 +81,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
 
         let usersListForcedRefreshHasBeenCalled = false;
 
-        socket.on('USERS_LIST_FORCED_REFRESH', () => {
+        socket.on('MTV_USERS_LIST_FORCED_REFRESH', () => {
             usersListForcedRefreshHasBeenCalled = true;
         });
 
@@ -104,7 +104,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
 
         let usersListForcedRefreshHasBeenCalled = false;
 
-        socket.on('USERS_LIST_FORCED_REFRESH', () => {
+        socket.on('MTV_USERS_LIST_FORCED_REFRESH', () => {
             usersListForcedRefreshHasBeenCalled = true;
         });
 
@@ -127,7 +127,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
 
         let usersListForcedRefreshHasBeenCalled = false;
 
-        socket.on('USERS_LIST_FORCED_REFRESH', () => {
+        socket.on('MTV_USERS_LIST_FORCED_REFRESH', () => {
             usersListForcedRefreshHasBeenCalled = true;
         });
 
@@ -157,7 +157,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
         });
 
         let usersListForcedRefreshHasBeenCalled = false;
-        creatorSocket.on('USERS_LIST_FORCED_REFRESH', () => {
+        creatorSocket.on('MTV_USERS_LIST_FORCED_REFRESH', () => {
             usersListForcedRefreshHasBeenCalled = true;
         });
 

@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid/non-secure';
 import { SocketClient } from '../contexts/SocketContext';
 import { createPlaylistMachine, PlaylistActorRef } from './playlistMachine';
 
-interface MusicPlaylist {
+export interface MusicPlaylist {
     id: string;
     roomName: string;
     ref: PlaylistActorRef;

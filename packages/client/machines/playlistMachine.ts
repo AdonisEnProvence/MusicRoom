@@ -20,5 +20,25 @@ interface CreatePlaylistMachineArgs {
 export function createPlaylistMachine({
     roomID,
 }: CreatePlaylistMachineArgs): PlaylistMachine {
-    return playlistModel.createMachine({});
+    return playlistModel.createMachine({
+        initial: 'ping',
+
+        states: {
+            ping: {
+                after: {
+                    1000: {
+                        target: 'pong',
+                    },
+                },
+            },
+
+            pong: {
+                after: {
+                    1000: {
+                        target: 'ping',
+                    },
+                },
+            },
+        },
+    });
 }

@@ -29,7 +29,7 @@ const Tab = createBottomTabNavigator<BottomTabNavigatorParamList>();
 /**
  * See https://reactnavigation.org/docs/bottom-tab-navigator#tabbar.
  */
-const MyTabBar: React.FC<BottomTabBarProps> = ({
+const TabBar: React.FC<BottomTabBarProps> = ({
     state,
     descriptors,
     navigation,
@@ -162,11 +162,11 @@ const BottomTab: React.FC = () => {
         <Tab.Navigator
             initialRouteName="Home"
             tabBarOptions={{ ...style }}
-            tabBar={(props) => <MyTabBar {...props} />}
+            tabBar={(props) => <TabBar {...props} />}
         >
             <Tab.Screen
                 name="Home"
-                component={TabOneNavigator}
+                component={TabHomeNavigator}
                 options={{
                     tabBarIcon: (props) => (
                         <TabBarIcon name="home" {...props} />
@@ -175,7 +175,7 @@ const BottomTab: React.FC = () => {
             />
             <Tab.Screen
                 name="Search"
-                component={TabTwoNavigator}
+                component={TabSearchNavigator}
                 options={{
                     tabBarIcon: (props) => (
                         <TabBarIcon name="search" {...props} />
@@ -198,31 +198,31 @@ function TabBarIcon(props: {
 
 // Each tab has its own navigation stack, you can read more about this pattern here:
 // https://reactnavigation.org/docs/tab-based-navigation#a-stack-navigator-for-each-tab
-const TabOneStack = createStackNavigator<HomeParamsList>();
+const TabHomeStack = createStackNavigator<HomeParamsList>();
 
-const TabOneNavigator: React.FC = () => {
+const TabHomeNavigator: React.FC = () => {
     return (
-        <TabOneStack.Navigator headerMode={'screen'}>
-            <TabOneStack.Screen
+        <TabHomeStack.Navigator headerMode="screen">
+            <TabHomeStack.Screen
                 name="HomeScreen"
                 component={HomeScreen}
                 options={{ headerTitle: 'Home', headerShown: false }}
             />
-        </TabOneStack.Navigator>
+        </TabHomeStack.Navigator>
     );
 };
 
-const TabTwoStack = createStackNavigator<SearchTracksParamsList>();
+const TabSearchStack = createStackNavigator<SearchTracksParamsList>();
 
-const TabTwoNavigator: React.FC = () => {
+const TabSearchNavigator: React.FC = () => {
     return (
-        <TabTwoStack.Navigator headerMode={'none'}>
-            <TabTwoStack.Screen
+        <TabSearchStack.Navigator headerMode="none">
+            <TabSearchStack.Screen
                 name="SearchTracks"
                 component={SearchTrackScreen}
                 options={{ headerTitle: 'Search', headerShown: false }}
             />
-        </TabTwoStack.Navigator>
+        </TabSearchStack.Navigator>
     );
 };
 

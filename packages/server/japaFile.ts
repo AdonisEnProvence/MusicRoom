@@ -35,7 +35,7 @@ faker.seed(42);
  */
 configure({
     files: ['**/*.test.ts'],
-    before: [runMigrations, startHttpServer],
+    before: [rollbackMigrations, runMigrations, startHttpServer],
     after: [rollbackMigrations],
     timeout: 5_000,
 });

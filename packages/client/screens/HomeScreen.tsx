@@ -8,6 +8,7 @@ import {
     AppScreenHeader,
 } from '../components/kit';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
+import { useMusicPlaylistsActor } from '../hooks/useMusicPlaylistsActor';
 import { useUserContext } from '../hooks/userHooks';
 import { HomeTabHomeScreenScreenProps } from '../types';
 
@@ -15,6 +16,8 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const { sendToMusicPlayerMachine } = useMusicPlayerContext();
     const { sendToUserMachine } = useUserContext();
+    const { appMusicPlaylistsActorRef } = useMusicPlaylistsActor();
+
     return (
         <AppScreen>
             <AppScreenHeader title="Home" insetTop={insets.top} />
@@ -100,6 +103,15 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                         sendToMusicPlayerMachine({
                             type: 'RETRIEVE_CONTEXT',
                             state: fakeState,
+                        });
+                    }}
+                />
+
+                <Button
+                    title="Create MPE room"
+                    onPress={() => {
+                        appMusicPlaylistsActorRef.send({
+                            type: 'CREATE_ROOM',
                         });
                     }}
                 />

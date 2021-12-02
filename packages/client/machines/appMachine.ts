@@ -2,6 +2,7 @@ import { ContextFrom, EventFrom, forwardTo, StateMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { SocketClient } from '../contexts/SocketContext';
 import { createAppMusicPlayerMachine } from './appMusicPlayerMachine';
+import { createAppMusicPlaylistsMachine } from './appMusicPlaylistsMachine';
 import { createUserMachine } from './appUserMachine';
 import { AppMusicPlayerMachineOptions } from './options/appMusicPlayerMachineOptions';
 import { AppUserMachineOptions } from './options/appUserMachineOptions';
@@ -88,18 +89,30 @@ export const createAppMachine = ({
                 invoke: [
                     {
                         id: 'appUserMachine',
+
                         src: createUserMachine({
                             locationPollingTickDelay,
                             socket,
                         }).withConfig(userMachineOptions),
                     },
+
                     {
                         id: 'appMusicPlayerMachine',
+
                         src: createAppMusicPlayerMachine({ socket }).withConfig(
                             musicPlayerMachineOptions,
                         ),
                     },
+
+                    {
+                        id: 'appMusicPlaylistsMachine',
+
+                        src: createAppMusicPlaylistsMachine({
+                            socket,
+                        }),
+                    },
                 ],
+
                 on: {
                     REQUEST_LOCATION_PERMISSION: {
                         actions: forwardTo('appUserMachine'),

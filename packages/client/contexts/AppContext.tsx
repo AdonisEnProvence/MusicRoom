@@ -21,6 +21,7 @@ import {
 import { getMusicPlayerMachineOptions } from '../machines/options/appMusicPlayerMachineOptions';
 import { getUserMachineOptions } from '../machines/options/appUserMachineOptions';
 import { ApplicationState } from '../types';
+import { AppMusicPlaylistsActorRef } from '../machines/appMusicPlaylistsMachine';
 import { useSocketContext } from './SocketContext';
 
 export interface UserContextValue {
@@ -44,6 +45,7 @@ interface AppContextValue {
         setPlayerRef: (ref: MusicPlayerRef) => void;
     } & MusicPlayerFullScreenProps;
     appUserMachineActorRef: AppUserMachineActorRef | undefined;
+    appMusicPlaylistsActorRef: AppMusicPlaylistsActorRef | undefined;
 }
 
 type MusicPlayerContextProviderProps = {
@@ -111,20 +113,31 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
         appService,
         (state) => state.children.appUserMachine,
     );
+    const appMusicPlaylistsActorRef = useSelector(
+        appService,
+        (state) =>
+            state.children.appMusicPlaylistsMachine as
+                | AppMusicPlaylistsActorRef
+                | undefined,
+    );
 
     const applicationState: ApplicationState = useMemo((): ApplicationState => {
         const shouldShowSplashScreen =
             hasShowApplicationLoaderTag ||
             appMusicPlayerMachineActorRef === undefined ||
-            appUserMachineActorRef === undefined;
-        if (shouldShowSplashScreen) {
+            appUserMachineActorRef === undefined ||
+            appMusicPlaylistsActorRef === undefined;
+
+        if (shouldShowSplashScreen === true) {
             return 'SHOW_APPLICATION_LOADER';
         }
+
         return 'AUTHENTICATED';
     }, [
         hasShowApplicationLoaderTag,
         appMusicPlayerMachineActorRef,
         appUserMachineActorRef,
+        appMusicPlaylistsActorRef,
     ]);
 
     return (
@@ -139,6 +152,7 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
                     setIsFullScreen,
                     toggleIsFullScreen,
                 },
+                appMusicPlaylistsActorRef,
             }}
         >
             {children}

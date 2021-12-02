@@ -17,10 +17,12 @@ import TheMusicPlayer from '../components/TheMusicPlayer';
 import { tabStyle } from '../constants/Colors';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import HomeScreen from '../screens/HomeScreen';
+import MusicPlaylistEditorListScreen from '../screens/MusicPlaylistEditorList';
 import SearchTrackScreen from '../screens/SearchTrackScreen';
 import {
     BottomTabNavigatorParamList,
     HomeParamsList,
+    LibraryParamsList,
     SearchTracksParamsList,
 } from '../types';
 
@@ -173,12 +175,23 @@ const BottomTab: React.FC = () => {
                     ),
                 }}
             />
+
             <Tab.Screen
                 name="Search"
                 component={TabSearchNavigator}
                 options={{
                     tabBarIcon: (props) => (
                         <TabBarIcon name="search" {...props} />
+                    ),
+                }}
+            />
+
+            <Tab.Screen
+                name="Library"
+                component={TabLibraryNavigator}
+                options={{
+                    tabBarIcon: (props) => (
+                        <TabBarIcon name="library" {...props} />
                     ),
                 }}
             />
@@ -223,6 +236,20 @@ const TabSearchNavigator: React.FC = () => {
                 options={{ headerTitle: 'Search', headerShown: false }}
             />
         </TabSearchStack.Navigator>
+    );
+};
+
+const TabLibraryStack = createStackNavigator<LibraryParamsList>();
+
+const TabLibraryNavigator: React.FC = () => {
+    return (
+        <TabLibraryStack.Navigator headerMode="none">
+            <TabLibraryStack.Screen
+                name="MpeRooms"
+                component={MusicPlaylistEditorListScreen}
+                options={{ headerTitle: 'Library', headerShown: false }}
+            />
+        </TabLibraryStack.Navigator>
     );
 };
 

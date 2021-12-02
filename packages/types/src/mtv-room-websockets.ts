@@ -31,11 +31,11 @@ export interface MtvRoomChatServerToClientReceivedMessageArgs {
 }
 
 export interface MtvRoomChatClientToServerEvents {
-    NEW_MESSAGE: (args: MtvRoomChatClientToServerNewMessageArgs) => void;
+    MTV_NEW_MESSAGE: (args: MtvRoomChatClientToServerNewMessageArgs) => void;
 }
 
 export interface MtvRoomChatServerToClientEvents {
-    RECEIVED_MESSAGE: (
+    MTV_RECEIVED_MESSAGE: (
         args: MtvRoomChatServerToClientReceivedMessageArgs,
     ) => void;
 }

@@ -299,7 +299,7 @@ export const createAppMusicPlayerMachine = ({
                             },
                         );
 
-                        socket.on('RECEIVED_MESSAGE', ({ message }) => {
+                        socket.on('MTV_RECEIVED_MESSAGE', ({ message }) => {
                             sendBack({
                                 type: 'RECEIVED_CHAT_MESSAGE',
                                 message,
@@ -406,7 +406,7 @@ export const createAppMusicPlayerMachine = ({
                                 }
 
                                 case 'SEND_CHAT_MESSAGE': {
-                                    socket.emit('NEW_MESSAGE', {
+                                    socket.emit('MTV_NEW_MESSAGE', {
                                         message: event.message,
                                     });
 

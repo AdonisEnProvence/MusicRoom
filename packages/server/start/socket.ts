@@ -43,7 +43,7 @@ Ws.io.on('connection', async (socket) => {
         });
 
         /// CHAT ///
-        socket.on('NEW_MESSAGE', async (payload) => {
+        socket.on('MTV_NEW_MESSAGE', async (payload) => {
             try {
                 await MtvRoomsChatController.onSendMessage({
                     socket,

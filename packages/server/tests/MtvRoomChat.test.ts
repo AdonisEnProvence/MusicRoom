@@ -37,11 +37,11 @@ test.group('MtvRoom Chat', (group) => {
 
         let messageHasBeenReceivedByReceiver = false;
 
-        receiverSocket.on('RECEIVED_MESSAGE', () => {
+        receiverSocket.on('MTV_RECEIVED_MESSAGE', () => {
             messageHasBeenReceivedByReceiver = true;
         });
 
-        senderSocket.emit('NEW_MESSAGE', {
+        senderSocket.emit('MTV_NEW_MESSAGE', {
             message: random.words(),
         });
 
@@ -65,12 +65,12 @@ test.group('MtvRoom Chat', (group) => {
         });
 
         let messageReceivedByReceiver: string | undefined;
-        receiverSocket.on('RECEIVED_MESSAGE', ({ message: { text } }) => {
+        receiverSocket.on('MTV_RECEIVED_MESSAGE', ({ message: { text } }) => {
             messageReceivedByReceiver = text;
         });
 
         const messageToSend = random.words();
-        senderSocket.emit('NEW_MESSAGE', {
+        senderSocket.emit('MTV_NEW_MESSAGE', {
             message: `  ${messageToSend}  `,
         });
 
@@ -90,11 +90,11 @@ test.group('MtvRoom Chat', (group) => {
 
         let messageHasBeenReceivedByEmitter = false;
 
-        senderSocket.on('RECEIVED_MESSAGE', () => {
+        senderSocket.on('MTV_RECEIVED_MESSAGE', () => {
             messageHasBeenReceivedByEmitter = true;
         });
 
-        senderSocket.emit('NEW_MESSAGE', {
+        senderSocket.emit('MTV_NEW_MESSAGE', {
             message: random.words(),
         });
 
@@ -118,11 +118,11 @@ test.group('MtvRoom Chat', (group) => {
 
         let messageHasBeenReceivedByOtherUser = false;
 
-        otherUserSocket.on('RECEIVED_MESSAGE', () => {
+        otherUserSocket.on('MTV_RECEIVED_MESSAGE', () => {
             messageHasBeenReceivedByOtherUser = true;
         });
 
-        senderSocket.emit('NEW_MESSAGE', {
+        senderSocket.emit('MTV_NEW_MESSAGE', {
             message: random.words(),
         });
 
@@ -147,11 +147,11 @@ test.group('MtvRoom Chat', (group) => {
 
         let messageHasBeenReceivedByReceiver = false;
 
-        receiverSocket.on('RECEIVED_MESSAGE', () => {
+        receiverSocket.on('MTV_RECEIVED_MESSAGE', () => {
             messageHasBeenReceivedByReceiver = true;
         });
 
-        senderSocket.emit('NEW_MESSAGE', {
+        senderSocket.emit('MTV_NEW_MESSAGE', {
             message: '',
         });
 
@@ -176,11 +176,11 @@ test.group('MtvRoom Chat', (group) => {
 
         let messageHasBeenReceivedByReceiver = false;
 
-        receiverSocket.on('RECEIVED_MESSAGE', () => {
+        receiverSocket.on('MTV_RECEIVED_MESSAGE', () => {
             messageHasBeenReceivedByReceiver = true;
         });
 
-        senderSocket.emit('NEW_MESSAGE', {
+        senderSocket.emit('MTV_NEW_MESSAGE', {
             message: lorem.paragraphs(10),
         });
 

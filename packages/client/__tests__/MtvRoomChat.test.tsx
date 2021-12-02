@@ -315,7 +315,7 @@ const mtvRoomChatTestingModel = createTestingModel<TestingContext>(
                 const { message } =
                     ReceiveMessageFromOtherUserEvent.parse(event);
 
-                screen.serverSocket.emit('RECEIVED_MESSAGE', { message });
+                screen.serverSocket.emit('MTV_RECEIVED_MESSAGE', { message });
             } catch (err) {
                 console.error(err);
 

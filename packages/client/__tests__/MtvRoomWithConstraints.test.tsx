@@ -105,8 +105,8 @@ describe('Room with constraints tests', () => {
             minimumScoreToBePlayed: 1,
         };
 
-        serverSocket.on('GET_CONTEXT', () => {
-            serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+        serverSocket.on('MTV_GET_CONTEXT', () => {
+            serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
         });
 
         const screen = render(
@@ -151,7 +151,7 @@ describe('Room with constraints tests', () => {
                 userFitsPositionConstraint: false,
             },
         };
-        serverSocket.emit('USER_PERMISSIONS_UPDATE', initialStateCpyA);
+        serverSocket.emit('MTV_USER_PERMISSIONS_UPDATE', initialStateCpyA);
 
         //Track cards should be disabled
         await waitFor(() => {
@@ -170,7 +170,7 @@ describe('Room with constraints tests', () => {
                 userFitsPositionConstraint: true,
             },
         };
-        serverSocket.emit('USER_PERMISSIONS_UPDATE', initialStateCpyB);
+        serverSocket.emit('MTV_USER_PERMISSIONS_UPDATE', initialStateCpyB);
 
         //Track cards should be enabled
         await waitFor(() => {
@@ -185,7 +185,7 @@ describe('Room with constraints tests', () => {
             ...initialStateCpyB,
             timeConstraintIsValid: false,
         };
-        serverSocket.emit('TIME_CONSTRAINT_UPDATE', initialStateCpyC);
+        serverSocket.emit('MTV_TIME_CONSTRAINT_UPDATE', initialStateCpyC);
 
         //Track cards should be disabled
         await waitFor(() => {

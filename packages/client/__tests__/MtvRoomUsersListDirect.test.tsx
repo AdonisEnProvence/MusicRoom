@@ -57,11 +57,11 @@ describe('User list tests', () => {
             isMeIsCreator: true,
         });
 
-        serverSocket.on('GET_CONTEXT', () => {
-            serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+        serverSocket.on('MTV_GET_CONTEXT', () => {
+            serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
         });
 
-        serverSocket.on('GET_USERS_LIST', (cb) => {
+        serverSocket.on('MTV_GET_USERS_LIST', (cb) => {
             cb(fakeUsersArray);
         });
 
@@ -225,11 +225,11 @@ describe('User list tests', () => {
             isMeIsCreator: false,
         });
 
-        serverSocket.on('GET_CONTEXT', () => {
-            serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+        serverSocket.on('MTV_GET_CONTEXT', () => {
+            serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
         });
 
-        serverSocket.on('GET_USERS_LIST', (cb) => {
+        serverSocket.on('MTV_GET_USERS_LIST', (cb) => {
             cb(fakeUsersArray);
         });
 
@@ -368,11 +368,11 @@ describe('User list tests', () => {
                 : fakeUser,
         );
 
-        serverSocket.on('GET_CONTEXT', () => {
-            serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+        serverSocket.on('MTV_GET_CONTEXT', () => {
+            serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
         });
 
-        serverSocket.on('GET_USERS_LIST', (cb) => {
+        serverSocket.on('MTV_GET_USERS_LIST', (cb) => {
             cb(fakeUsersArray);
         });
 
@@ -526,18 +526,18 @@ describe('User list tests', () => {
             isMeIsCreator: true,
         });
 
-        serverSocket.on('GET_CONTEXT', () => {
-            serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+        serverSocket.on('MTV_GET_CONTEXT', () => {
+            serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
         });
 
-        serverSocket.on('GET_USERS_LIST', (cb) => {
+        serverSocket.on('MTV_GET_USERS_LIST', (cb) => {
             console.log('GET USERS LIST CALLED');
             console.log(fakeUsersArray);
             cb(fakeUsersArray);
         });
 
         serverSocket.on(
-            'UPDATE_DELEGATION_OWNER',
+            'MTV_UPDATE_DELEGATION_OWNER',
             ({ newDelegationOwnerUserID }) => {
                 initialState.delegationOwnerUserID = newDelegationOwnerUserID;
                 fakeUsersArray = fakeUsersArray.map((fakeUser) =>
@@ -552,10 +552,10 @@ describe('User list tests', () => {
                           },
                 );
                 serverSocket.emit(
-                    'UPDATE_DELEGATION_OWNER_CALLBACK',
+                    'MTV_UPDATE_DELEGATION_OWNER_CALLBACK',
                     initialState,
                 );
-                serverSocket.emit('USERS_LIST_FORCED_REFRESH');
+                serverSocket.emit('MTV_USERS_LIST_FORCED_REFRESH');
             },
         );
 

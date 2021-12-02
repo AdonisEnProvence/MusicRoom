@@ -710,11 +710,11 @@ describe('Display friends and search users', () => {
                         db.searchableUsers.create(fakeUser);
                     }
 
-                    serverSocket.on('GET_CONTEXT', () => {
-                        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+                    serverSocket.on('MTV_GET_CONTEXT', () => {
+                        serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
                     });
 
-                    serverSocket.on('GET_USERS_LIST', (cb) => {
+                    serverSocket.on('MTV_GET_USERS_LIST', (cb) => {
                         cb(fakeUsersArray);
                     });
 
@@ -724,7 +724,7 @@ describe('Display friends and search users', () => {
                     > = jest.fn();
 
                     serverSocket.on(
-                        'CREATOR_INVITE_USER',
+                        'MTV_CREATOR_INVITE_USER',
                         creatorInviteUserMock,
                     );
 
@@ -754,8 +754,8 @@ test('Users outside of creator can not access to users search', async () => {
         userType: 'USER',
     });
 
-    serverSocket.on('GET_CONTEXT', () => {
-        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    serverSocket.on('MTV_GET_CONTEXT', () => {
+        serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
     });
 
     const screen = render(
@@ -820,11 +820,11 @@ test('Clearing search input displays users without filtering', async () => {
         db.searchableUsers.create(fakeUser);
     }
 
-    serverSocket.on('GET_CONTEXT', () => {
-        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    serverSocket.on('MTV_GET_CONTEXT', () => {
+        serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
     });
 
-    serverSocket.on('GET_USERS_LIST', (cb) => {
+    serverSocket.on('MTV_GET_USERS_LIST', (cb) => {
         cb(fakeUsersArray);
     });
 
@@ -896,11 +896,11 @@ test('Cancelling search input displays users without filtering', async () => {
         db.searchableUsers.create(fakeUser);
     }
 
-    serverSocket.on('GET_CONTEXT', () => {
-        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    serverSocket.on('MTV_GET_CONTEXT', () => {
+        serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
     });
 
-    serverSocket.on('GET_USERS_LIST', (cb) => {
+    serverSocket.on('MTV_GET_USERS_LIST', (cb) => {
         cb(fakeUsersArray);
     });
 

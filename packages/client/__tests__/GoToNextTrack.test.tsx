@@ -47,8 +47,8 @@ it(`When the user clicks on next track button, it should play the next track, if
         minimumScoreToBePlayed: 1,
     };
 
-    serverSocket.on('GO_TO_NEXT_TRACK', () => {
-        serverSocket.emit('ACTION_PLAY_CALLBACK', {
+    serverSocket.on('MTV_GO_TO_NEXT_TRACK', () => {
+        serverSocket.emit('MTV_ACTION_PLAY_CALLBACK', {
             ...initialState,
             playing: true,
             currentTrack: {
@@ -70,7 +70,7 @@ it(`When the user clicks on next track button, it should play the next track, if
         </NavigationContainer>,
     );
 
-    serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
 
     expect(getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 

@@ -113,7 +113,7 @@ export const createUserMachine = ({
                         });
 
                         socket.on(
-                            'RECEIVED_MTV_ROOM_INVITATION',
+                            'MTV_RECEIVED_ROOM_INVITATION',
                             (invitation) => {
                                 console.log(
                                     'RECEIVED RECEIVED_MTV_ROOM_INVITATION',

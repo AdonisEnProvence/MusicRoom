@@ -49,11 +49,11 @@ test(`A user can suggest tracks to play`, async () => {
         minimumScoreToBePlayed: 1,
     };
 
-    serverSocket.on('GET_CONTEXT', () => {
-        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    serverSocket.on('MTV_GET_CONTEXT', () => {
+        serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
     });
 
-    serverSocket.on('SUGGEST_TRACKS', ({ tracksToSuggest }) => {
+    serverSocket.on('MTV_SUGGEST_TRACKS', ({ tracksToSuggest }) => {
         if (initialState.tracks === null) {
             initialState.tracks = [];
         }
@@ -92,8 +92,11 @@ test(`A user can suggest tracks to play`, async () => {
             });
         });
 
-        serverSocket.emit('VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', initialState);
-        serverSocket.emit('SUGGEST_TRACKS_CALLBACK');
+        serverSocket.emit(
+            'MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
+            initialState,
+        );
+        serverSocket.emit('MTV_SUGGEST_TRACKS_CALLBACK');
     });
 
     const screen = render(
@@ -214,8 +217,8 @@ test('Suggested tracks are reset when pressing clear button', async () => {
         minimumScoreToBePlayed: 1,
     };
 
-    serverSocket.on('GET_CONTEXT', () => {
-        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    serverSocket.on('MTV_GET_CONTEXT', () => {
+        serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
     });
 
     const screen = render(
@@ -332,8 +335,8 @@ test('Suggested tracks are reset when pressing cancel button', async () => {
         minimumScoreToBePlayed: 1,
     };
 
-    serverSocket.on('GET_CONTEXT', () => {
-        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    serverSocket.on('MTV_GET_CONTEXT', () => {
+        serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
     });
 
     const screen = render(
@@ -450,8 +453,8 @@ test('Search query can be changed and submitted after a first submission', async
         minimumScoreToBePlayed: 1,
     };
 
-    serverSocket.on('GET_CONTEXT', () => {
-        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    serverSocket.on('MTV_GET_CONTEXT', () => {
+        serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
     });
 
     const screen = render(
@@ -555,12 +558,12 @@ test('Display a failure toast when track could not be suggested', async () => {
         minimumScoreToBePlayed: 1,
     };
 
-    serverSocket.on('GET_CONTEXT', () => {
-        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    serverSocket.on('MTV_GET_CONTEXT', () => {
+        serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
     });
 
-    serverSocket.on('SUGGEST_TRACKS', () => {
-        serverSocket.emit('SUGGEST_TRACKS_FAIL_CALLBACK');
+    serverSocket.on('MTV_SUGGEST_TRACKS', () => {
+        serverSocket.emit('MTV_SUGGEST_TRACKS_FAIL_CALLBACK');
     });
 
     const screen = render(

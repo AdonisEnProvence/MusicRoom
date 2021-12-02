@@ -9,7 +9,7 @@ import { generateTrackMetadata } from '../tests/data';
 import { fireEvent, noop, render, within } from '../tests/tests-utils';
 
 test(`
-    After the client receives a USER_LENGTH_UPDATE we expect the player to display
+    After the client receives a MTV_USER_LENGTH_UPDATE we expect the player to display
     2 current listeners
 `, async () => {
     const userDevices: UserDevice[] = Array.from({ length: 3 }).map(() => ({
@@ -60,7 +60,7 @@ test(`
      * And toggle mtv room full screen
      */
 
-    serverSocket.emit('RETRIEVE_CONTEXT', state);
+    serverSocket.emit('MTV_RETRIEVE_CONTEXT', state);
 
     const musicPlayerMini = getByTestId('music-player-mini');
     expect(musicPlayerMini).toBeTruthy();
@@ -71,11 +71,11 @@ test(`
     expect(musicPlayerFullScreen).toBeTruthy();
 
     /**
-     * Emit a server USER_LENGTH_UPDATE socket event
+     * Emit a server MTV_USER_LENGTH_UPDATE socket event
      * And check for it's receiption
      */
 
-    serverSocket.emit('USER_LENGTH_UPDATE', {
+    serverSocket.emit('MTV_USER_LENGTH_UPDATE', {
         ...state,
         usersLength: state.usersLength + 1,
     });

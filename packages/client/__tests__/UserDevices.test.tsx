@@ -55,8 +55,8 @@ After clicking on one not emitting device card it should set the clicked one as 
         });
     });
 
-    serverSocket.on('CHANGE_EMITTING_DEVICE', ({ newEmittingDeviceID }) => {
-        serverSocket.emit('CHANGE_EMITTING_DEVICE_CALLBACK', {
+    serverSocket.on('MTV_CHANGE_EMITTING_DEVICE', ({ newEmittingDeviceID }) => {
+        serverSocket.emit('MTV_CHANGE_EMITTING_DEVICE_CALLBACK', {
             ...state,
             userRelatedInformation: {
                 ...state.userRelatedInformation!,
@@ -65,8 +65,8 @@ After clicking on one not emitting device card it should set the clicked one as 
         });
     });
 
-    serverSocket.on('GET_CONTEXT', () => {
-        serverSocket.emit('RETRIEVE_CONTEXT', state);
+    serverSocket.on('MTV_GET_CONTEXT', () => {
+        serverSocket.emit('MTV_RETRIEVE_CONTEXT', state);
     });
 
     const screen = render(

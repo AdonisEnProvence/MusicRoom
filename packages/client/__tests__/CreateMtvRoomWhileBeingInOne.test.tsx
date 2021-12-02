@@ -67,7 +67,7 @@ test(`Device should still be playing while entering the mtvRoomCreation form whi
         </NavigationContainer>,
     );
 
-    serverSocket.emit('RETRIEVE_CONTEXT', state);
+    serverSocket.emit('MTV_RETRIEVE_CONTEXT', state);
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 

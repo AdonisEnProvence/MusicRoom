@@ -62,7 +62,7 @@ After the vote has been accepted the score will be updated and the card disabled
 
     if (state.tracks === null) throw new Error('state.track is null');
 
-    serverSocket.on('VOTE_FOR_TRACK', ({ trackID }) => {
+    serverSocket.on('MTV_VOTE_FOR_TRACK', ({ trackID }) => {
         if (state.tracks === null) throw new Error('state.track is null');
         state.userRelatedInformation.tracksVotedFor.push(trackID);
 
@@ -78,11 +78,11 @@ After the vote has been accepted the score will be updated and the card disabled
             })
             .sort((a, b) => (a.score < b.score ? 1 : -1));
 
-        serverSocket.emit('VOTE_OR_SUGGEST_TRACK_CALLBACK', state);
+        serverSocket.emit('MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK', state);
     });
 
-    serverSocket.on('GET_CONTEXT', () => {
-        serverSocket.emit('RETRIEVE_CONTEXT', state);
+    serverSocket.on('MTV_GET_CONTEXT', () => {
+        serverSocket.emit('MTV_RETRIEVE_CONTEXT', state);
     });
 
     const screen = render(
@@ -201,12 +201,12 @@ test('Voting is disabled for users outside of physical constraints bounds', asyn
 
     if (state.tracks === null) throw new Error('state.track is null');
 
-    serverSocket.on('GET_CONTEXT', () => {
-        serverSocket.emit('RETRIEVE_CONTEXT', state);
+    serverSocket.on('MTV_GET_CONTEXT', () => {
+        serverSocket.emit('MTV_RETRIEVE_CONTEXT', state);
     });
 
     const voteForTrackCallbackMock = jest.fn();
-    serverSocket.on('VOTE_FOR_TRACK', voteForTrackCallbackMock);
+    serverSocket.on('MTV_VOTE_FOR_TRACK', voteForTrackCallbackMock);
 
     const screen = render(
         <NavigationContainer
@@ -307,12 +307,12 @@ test('Voting is disabled for users outside of time bounds', async () => {
 
     if (state.tracks === null) throw new Error('state.track is null');
 
-    serverSocket.on('GET_CONTEXT', () => {
-        serverSocket.emit('RETRIEVE_CONTEXT', state);
+    serverSocket.on('MTV_GET_CONTEXT', () => {
+        serverSocket.emit('MTV_RETRIEVE_CONTEXT', state);
     });
 
     const voteForTrackCallbackMock = jest.fn();
-    serverSocket.on('VOTE_FOR_TRACK', voteForTrackCallbackMock);
+    serverSocket.on('MTV_VOTE_FOR_TRACK', voteForTrackCallbackMock);
 
     const { getByTestId, findByA11yState } = render(
         <NavigationContainer

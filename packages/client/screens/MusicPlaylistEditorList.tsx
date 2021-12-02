@@ -1,26 +1,74 @@
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text } from 'dripsy';
+import { Text, View } from 'dripsy';
+import { FlatList, TouchableOpacity } from 'react-native';
+import { useSelector } from '@xstate/react';
 import {
     AppScreen,
     AppScreenContainer,
     AppScreenHeader,
 } from '../components/kit';
 import { MpeTabMpeRoomsScreenProps } from '../types';
+import { useMusicPlaylistsActor } from '../hooks/useMusicPlaylistsActor';
 
-const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> =
-    () => {
-        const insets = useSafeAreaInsets();
+interface PlaylistListItemProps {
+    id: string;
+    roomName: string;
+    onPress: (id: string) => void;
+}
 
-        return (
-            <AppScreen>
-                <AppScreenHeader title="Library" insetTop={insets.top} />
+const PlaylistListItem: React.FC<PlaylistListItemProps> = ({
+    id,
+    roomName,
+    onPress,
+}) => {
+    return (
+        <TouchableOpacity
+            onPress={() => {
+                onPress(id);
+            }}
+        >
+            <View>
+                <Text sx={{ color: 'white' }}>{roomName}</Text>
+            </View>
+        </TouchableOpacity>
+    );
+};
 
-                <AppScreenContainer>
-                    <Text sx={{ color: 'white' }}>MPE list</Text>
-                </AppScreenContainer>
-            </AppScreen>
-        );
-    };
+const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> = ({
+    navigation,
+}) => {
+    const insets = useSafeAreaInsets();
+    const { appMusicPlaylistsActorRef } = useMusicPlaylistsActor();
+    const playlists = useSelector(
+        appMusicPlaylistsActorRef,
+        (state) => state.context.playlistsActorsRefs,
+    );
+
+    function handleRoomPress(roomID: string) {
+        // navigation.navigate('')
+    }
+
+    return (
+        <AppScreen>
+            <AppScreenHeader title="Library" insetTop={insets.top} />
+
+            <AppScreenContainer>
+                <FlatList
+                    data={playlists}
+                    renderItem={({ item: { id, roomName } }) => {
+                        return (
+                            <PlaylistListItem
+                                id={id}
+                                roomName={roomName}
+                                onPress={handleRoomPress}
+                            />
+                        );
+                    }}
+                />
+            </AppScreenContainer>
+        </AppScreen>
+    );
+};
 
 export default MusicPlaylistEditorListScreen;

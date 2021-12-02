@@ -38,6 +38,7 @@ export type SearchTracksParamsList = {
 
 export type LibraryParamsList = {
     MpeRooms: undefined;
+    MpeRoom: MpeRoomParams;
 };
 
 export type RootStackParamList = {
@@ -109,6 +110,10 @@ interface UserProfileParams {
 }
 interface SearchTracksResultsParams {
     tracks?: TrackMetadata[];
+}
+
+interface MpeRoomParams {
+    id: string;
 }
 
 /**
@@ -350,4 +355,18 @@ export type MpeTabMpeRoomsScreenProps = {
         >
     >;
     route: RouteProp<LibraryParamsList, 'MpeRooms'>;
+};
+
+export type MpeTabMpeRoomScreenProps = {
+    navigation: CompositeNavigationProp<
+        CompositeNavigationProp<
+            StackNavigationProp<RootStackParamList, 'Main'>,
+            StackNavigationProp<MainStackParamList, 'Root'>
+        >,
+        CompositeNavigationProp<
+            BottomTabNavigationProp<BottomTabNavigatorParamList, 'Library'>,
+            StackNavigationProp<LibraryParamsList, 'MpeRoom'>
+        >
+    >;
+    route: RouteProp<LibraryParamsList, 'MpeRoom'>;
 };

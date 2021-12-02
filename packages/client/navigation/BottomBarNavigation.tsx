@@ -17,7 +17,8 @@ import TheMusicPlayer from '../components/TheMusicPlayer';
 import { tabStyle } from '../constants/Colors';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import HomeScreen from '../screens/HomeScreen';
-import MusicPlaylistEditorListScreen from '../screens/MusicPlaylistEditorList';
+import MusicPlaylistEditorListScreen from '../screens/MusicPlaylistEditorListScreen';
+import MusicPlaylistEditorRoomScreen from '../screens/MusicPlaylistEditorRoomScreen';
 import SearchTrackScreen from '../screens/SearchTrackScreen';
 import {
     BottomTabNavigatorParamList,
@@ -247,6 +248,12 @@ const TabLibraryNavigator: React.FC = () => {
             <TabLibraryStack.Screen
                 name="MpeRooms"
                 component={MusicPlaylistEditorListScreen}
+                options={{ headerTitle: 'Library', headerShown: false }}
+            />
+
+            <TabLibraryStack.Screen
+                name="MpeRoom"
+                component={MusicPlaylistEditorRoomScreen}
                 options={{ headerTitle: 'Library', headerShown: false }}
             />
         </TabLibraryStack.Navigator>

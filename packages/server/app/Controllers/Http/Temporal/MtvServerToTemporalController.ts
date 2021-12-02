@@ -13,7 +13,7 @@ import {
 import got from 'got';
 import urlcat from 'urlcat';
 
-const TEMPORAL_ENDPOINT = Env.get('TEMPORAL_ENDPOINT');
+const MTV_TEMPORAL_ENDPOINT = `${Env.get('TEMPORAL_ENDPOINT')}/mtv`;
 
 interface TemporalCreateMtvWorkflowBody
     extends MtvRoomClientToServerCreateArgsWithCoords {
@@ -120,7 +120,7 @@ export default class MtvServerToTemporalController {
         deviceID,
         params,
     }: TemporalCreateMtvWorkflowArgs): Promise<CreateWorkflowResponse> {
-        const url = urlcat(TEMPORAL_ENDPOINT, '/create');
+        const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/create');
         const body: TemporalCreateMtvWorkflowBody = {
             workflowID,
             userID,
@@ -141,7 +141,7 @@ export default class MtvServerToTemporalController {
         workflowID,
         runID,
     }: TemporalMtvTerminateWorkflowArgs): Promise<void> {
-        const url = urlcat(TEMPORAL_ENDPOINT, '/terminate');
+        const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/terminate');
 
         await got.put(url, {
             json: {
@@ -159,7 +159,7 @@ export default class MtvServerToTemporalController {
         userHasBeenInvited,
     }: TemporalMtvJoinWorklowArgs): Promise<void> {
         try {
-            const url = urlcat(TEMPORAL_ENDPOINT, '/join');
+            const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/join');
             await got.put(url, {
                 json: {
                     userID,
@@ -182,7 +182,7 @@ export default class MtvServerToTemporalController {
         userID,
     }: TemporalMtvLeaveWorkflowArgs): Promise<void> {
         try {
-            const url = urlcat(TEMPORAL_ENDPOINT, '/leave');
+            const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/leave');
             await got.put(url, {
                 json: {
                     userID,
@@ -203,7 +203,7 @@ export default class MtvServerToTemporalController {
         userID,
     }: TemporalMtvPauseArgs): Promise<void> {
         try {
-            const url = urlcat(TEMPORAL_ENDPOINT, '/pause');
+            const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/pause');
 
             await got.put(url, {
                 json: {
@@ -223,7 +223,7 @@ export default class MtvServerToTemporalController {
         userID,
     }: TemporalMtvPlayArgs): Promise<void> {
         try {
-            const url = urlcat(TEMPORAL_ENDPOINT, '/play');
+            const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/play');
 
             await got.put(url, {
                 json: {
@@ -243,7 +243,7 @@ export default class MtvServerToTemporalController {
         userID,
     }: TemporalMtvGetStateArgs): Promise<MtvWorkflowState> {
         try {
-            const url = urlcat(TEMPORAL_ENDPOINT, '/state');
+            const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/state');
 
             const res = await got
                 .put(url, {
@@ -267,7 +267,7 @@ export default class MtvServerToTemporalController {
         runID,
     }: TemporalMtvGetStateArgs): Promise<TemporalGetStateQueryResponse> {
         try {
-            const url = urlcat(TEMPORAL_ENDPOINT, '/users-list');
+            const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/users-list');
 
             const res = await got
                 .put(url, {
@@ -290,7 +290,10 @@ export default class MtvServerToTemporalController {
         runID,
     }: TemporalMtvGetRoomConstraintsDetails): Promise<MtvRoomGetRoomConstraintDetailsCallbackArgs> {
         try {
-            const url = urlcat(TEMPORAL_ENDPOINT, '/room-constraints-details');
+            const url = urlcat(
+                MTV_TEMPORAL_ENDPOINT,
+                '/room-constraints-details',
+            );
 
             const res = await got
                 .put(url, {
@@ -313,7 +316,7 @@ export default class MtvServerToTemporalController {
         runID,
         userID,
     }: TemporalMtvGoToNextTrackArgs): Promise<void> {
-        const url = urlcat(TEMPORAL_ENDPOINT, '/go-to-next-track');
+        const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/go-to-next-track');
 
         await got.put(url, {
             json: {
@@ -332,7 +335,7 @@ export default class MtvServerToTemporalController {
     }: TemporalMtvChangeUserEmittingDeviceArgs): Promise<void> {
         try {
             const url = urlcat(
-                TEMPORAL_ENDPOINT,
+                MTV_TEMPORAL_ENDPOINT,
                 '/change-user-emitting-device',
             );
             await got.put(url, {
@@ -359,7 +362,7 @@ export default class MtvServerToTemporalController {
         userID,
         deviceID,
     }: TemporalMtvSuggestTracksArgs): Promise<void> {
-        const url = urlcat(TEMPORAL_ENDPOINT, '/suggest-tracks');
+        const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/suggest-tracks');
 
         await got.put(url, {
             json: {
@@ -378,7 +381,7 @@ export default class MtvServerToTemporalController {
         trackID,
         userID,
     }: TemporalMtvVoteForTrackArgs): Promise<void> {
-        const url = urlcat(TEMPORAL_ENDPOINT, '/vote-for-track');
+        const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/vote-for-track');
 
         await got.put(url, {
             json: {
@@ -396,7 +399,7 @@ export default class MtvServerToTemporalController {
         newDelegationOwnerUserID,
         emitterUserID,
     }: TemporalMtvUpdateDelegationOwner): Promise<void> {
-        const url = urlcat(TEMPORAL_ENDPOINT, '/update-delegation-owner');
+        const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/update-delegation-owner');
 
         await got.put(url, {
             json: {
@@ -415,7 +418,7 @@ export default class MtvServerToTemporalController {
         hasControlAndDelegationPermission,
     }: TemporalMtvUpdateControlAndDelegationPermission): Promise<void> {
         const url = urlcat(
-            TEMPORAL_ENDPOINT,
+            MTV_TEMPORAL_ENDPOINT,
             '/update-control-and-delegation-permission',
         );
 
@@ -436,7 +439,7 @@ export default class MtvServerToTemporalController {
         userFitsPositionConstraint,
     }: TemporalMtvUpdateUserFitsPositionConstraints): Promise<void> {
         const url = urlcat(
-            TEMPORAL_ENDPOINT,
+            MTV_TEMPORAL_ENDPOINT,
             '/update-user-fits-position-constraint',
         );
 

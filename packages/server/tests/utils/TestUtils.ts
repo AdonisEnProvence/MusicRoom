@@ -3,6 +3,7 @@ import {
     AllServerToClientEvents,
     MtvRoomClientToServerCreateArgs,
 } from '@musicroom/types';
+import { MpeRoomClientToServerCreateArgs } from '@musicroom/types/dist/mpe-room-websockets';
 import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
@@ -515,6 +516,24 @@ export function getDefaultMtvRoomCreateRoomArgs(
             override.isOpenOnlyInvitedUsersCanVote || false,
         minimumScoreToBePlayed: override.minimumScoreToBePlayed ?? 1,
         playingMode: 'BROADCAST',
+    };
+}
+
+export function getDefaultMpeRoomCreateRoomArgs(
+    override?: Partial<MpeRoomClientToServerCreateArgs>,
+): MpeRoomClientToServerCreateArgs {
+    if (override === undefined) {
+        override = {};
+    }
+
+    const needToOverrideIsOpen = override.isOpen !== undefined;
+
+    return {
+        initialTrackID: override.initialTrackID ?? datatype.uuid(),
+        name: override.name ?? random.word(),
+        isOpen: needToOverrideIsOpen ? (override.isOpen as boolean) : true,
+        isOpenOnlyInvitedUsersCanVote:
+            override.isOpenOnlyInvitedUsersCanVote || false,
     };
 }
 

@@ -13,6 +13,7 @@ import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import MtvRoom from 'App/Models/MtvRoom';
 import { DateTime } from 'luxon';
 import initMtvSocketEventListeners from './mtvSocket';
+import initMpeSocketEventListeners from './mpeSocket';
 
 Ws.boot();
 
@@ -122,6 +123,10 @@ Ws.io.on('connection', async (socket) => {
 
         //MtvRoom listeners
         initMtvSocketEventListeners(socket);
+        ///
+
+        //MpeRoom listeners
+        initMpeSocketEventListeners(socket);
         ///
 
         socket.on('disconnecting', async () => {

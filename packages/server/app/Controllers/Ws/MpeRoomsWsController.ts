@@ -52,6 +52,7 @@ export default class MpeRoomsWsController {
                 uuid: roomID,
                 runID: temporalResponse.runID,
                 name: args.name,
+                //By setting this field lucid will manage the BelongsTo relationship
                 creatorID: userID,
                 isOpen: args.isOpen,
             });

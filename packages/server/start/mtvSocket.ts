@@ -15,6 +15,7 @@ export default function initMtvSocketEventListeners(socket: TypedSocket): void {
     /// CHAT ///
     socket.on('MTV_NEW_MESSAGE', async (payload) => {
         try {
+            //TODO fix
             await MtvRoomsChatController.onSendMessage({
                 socket,
                 payload,

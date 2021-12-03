@@ -280,6 +280,9 @@ export default class SocketLifecycle {
         );
     }
 
+    /**
+     * This function will return some context from given socket connection
+     */
     public static async getSocketConnectionCredentials(
         socket: TypedSocket,
     ): Promise<{ mtvRoomID?: string; user: User; deviceID: string }> {

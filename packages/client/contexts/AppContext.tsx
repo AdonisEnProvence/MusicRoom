@@ -85,20 +85,31 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
     }
     ///
 
-    const musicPlayerMachineOptions = getMusicPlayerMachineOptions({
-        setDisplayModal,
-        fetchMusicPlayerElapsedTime,
-        setIsFullScreen,
-    });
-
-    const userMachineOptions = getUserMachineOptions();
-
-    const appMusicPlayerMachine = createAppMachine({
-        socket,
-        locationPollingTickDelay,
-        musicPlayerMachineOptions,
-        userMachineOptions,
-    });
+    const musicPlayerMachineOptions = useMemo(
+        () =>
+            getMusicPlayerMachineOptions({
+                setDisplayModal,
+                fetchMusicPlayerElapsedTime,
+                setIsFullScreen,
+            }),
+        [setDisplayModal, setIsFullScreen],
+    );
+    const userMachineOptions = useMemo(() => getUserMachineOptions(), []);
+    const appMusicPlayerMachine = useMemo(
+        () =>
+            createAppMachine({
+                socket,
+                locationPollingTickDelay,
+                musicPlayerMachineOptions,
+                userMachineOptions,
+            }),
+        [
+            locationPollingTickDelay,
+            musicPlayerMachineOptions,
+            socket,
+            userMachineOptions,
+        ],
+    );
     const appService = useInterpret(appMusicPlayerMachine);
 
     const hasShowApplicationLoaderTag = useSelector(appService, (state) =>

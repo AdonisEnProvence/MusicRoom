@@ -1,5 +1,9 @@
 import { GlobalClientToServerEvents } from './global-websockets';
 import {
+    MpeRoomClientToServerEvents,
+    MpeRoomServerToClientEvents,
+} from './mpe-room-websockets';
+import {
     MtvRoomChatClientToServerEvents,
     MtvRoomChatServerToClientEvents,
     MtvRoomClientToServerEvents,
@@ -13,8 +17,10 @@ import {
 export type AllClientToServerEvents = MtvRoomClientToServerEvents &
     MtvRoomChatClientToServerEvents &
     UserClientToServerEvents &
-    GlobalClientToServerEvents;
+    GlobalClientToServerEvents &
+    MpeRoomClientToServerEvents;
 
 export type AllServerToClientEvents = MtvRoomChatServerToClientEvents &
     MtvRoomServerToClientEvents &
-    UserServerToClientEvents;
+    UserServerToClientEvents &
+    MpeRoomServerToClientEvents;

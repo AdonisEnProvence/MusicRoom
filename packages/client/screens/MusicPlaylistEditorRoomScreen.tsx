@@ -4,6 +4,7 @@ import { useSelector } from '@xstate/react';
 import { FlatList, TouchableOpacity } from 'react-native';
 import { useSx, Text, View } from 'dripsy';
 import { datatype, name } from 'faker';
+import { Ionicons } from '@expo/vector-icons';
 import {
     AppScreen,
     AppScreenContainer,
@@ -41,6 +42,54 @@ const AddTrackButton: React.FC<AddTrackButtonProps> = ({ onPress }) => {
                 Add Track
             </Text>
         </TouchableOpacity>
+    );
+};
+
+const TrackItemActions = () => {
+    const sx = useSx();
+
+    return (
+        <View sx={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View
+                sx={{
+                    flexDirection: 'row',
+                    alignItems: 'stretch',
+                    marginRight: 'm',
+                }}
+            >
+                <TouchableOpacity
+                    style={sx({
+                        backgroundColor: 'greyLighter',
+                        padding: 's',
+                        borderTopLeftRadius: 's',
+                        borderBottomLeftRadius: 's',
+                    })}
+                >
+                    <Ionicons name="chevron-up" color="white" size={18} />
+                </TouchableOpacity>
+
+                <View sx={{ width: 1, backgroundColor: 'white' }} />
+
+                <TouchableOpacity
+                    style={sx({
+                        backgroundColor: 'greyLighter',
+                        padding: 's',
+                        borderTopRightRadius: 's',
+                        borderBottomRightRadius: 's',
+                    })}
+                >
+                    <Ionicons name="chevron-down" color="white" size={18} />
+                </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+                style={sx({
+                    padding: 's',
+                })}
+            >
+                <Ionicons name="ellipsis-horizontal" color="white" size={18} />
+            </TouchableOpacity>
+        </View>
     );
 };
 
@@ -92,6 +141,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                                         title={title}
                                         trackID={id}
                                         artistName={artistName}
+                                        Actions={TrackItemActions}
                                     />
                                 </View>
                             );

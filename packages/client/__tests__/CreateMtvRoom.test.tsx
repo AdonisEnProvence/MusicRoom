@@ -840,7 +840,7 @@ const createMtvRoomWithSettingsMachine =
 
                         const musicPlayerState = getRoomState();
                         serverSocket.emit(
-                            'CREATE_ROOM_CALLBACK',
+                            'MTV_CREATE_ROOM_CALLBACK',
                             musicPlayerState,
                         );
 
@@ -867,8 +867,8 @@ const createMtvRoomWithSettingsMachine =
                         }
 
                         let receivedActionPlay = false;
-                        serverSocket.on('ACTION_PLAY', () => {
-                            serverSocket.emit('ACTION_PLAY_CALLBACK', {
+                        serverSocket.on('MTV_ACTION_PLAY', () => {
+                            serverSocket.emit('MTV_ACTION_PLAY_CALLBACK', {
                                 ...musicPlayerState,
                                 playing: true,
                             });
@@ -1348,7 +1348,7 @@ describe('Create mtv room with custom settings', () => {
                         minimumScoreToBePlayed: 1,
                     };
 
-                    serverSocket.on('CREATE_ROOM', (roomArgs) => {
+                    serverSocket.on('MTV_CREATE_ROOM', (roomArgs) => {
                         const {
                             initialTracksIDs,
                             hasPhysicalAndTimeConstraints,
@@ -1362,19 +1362,19 @@ describe('Create mtv room with custom settings', () => {
                             ...formatedRoomArgs,
                         };
 
-                        serverSocket.emit('CREATE_ROOM_SYNCHED_CALLBACK', {
+                        serverSocket.emit('MTV_CREATE_ROOM_SYNCHED_CALLBACK', {
                             ...state,
                             tracks: null,
                             currentTrack: null,
                         });
                     });
 
-                    serverSocket.on('ACTION_PAUSE', () => {
-                        serverSocket.emit('ACTION_PAUSE_CALLBACK', state);
+                    serverSocket.on('MTV_ACTION_PAUSE', () => {
+                        serverSocket.emit('MTV_ACTION_PAUSE_CALLBACK', state);
                     });
 
-                    serverSocket.on('ACTION_PLAY', () => {
-                        serverSocket.emit('ACTION_PLAY_CALLBACK', state);
+                    serverSocket.on('MTV_ACTION_PLAY', () => {
+                        serverSocket.emit('MTV_ACTION_PLAY_CALLBACK', state);
                     });
 
                     const screen = render(

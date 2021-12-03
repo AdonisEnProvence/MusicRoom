@@ -52,11 +52,11 @@ test('Clearing search input displays users without filtering', async () => {
         isMeIsCreator: true,
     });
 
-    serverSocket.on('GET_CONTEXT', () => {
-        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    serverSocket.on('MTV_GET_CONTEXT', () => {
+        serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
     });
 
-    serverSocket.on('GET_USERS_LIST', (cb) => {
+    serverSocket.on('MTV_GET_USERS_LIST', (cb) => {
         cb(fakeUsersArray);
     });
 
@@ -186,11 +186,11 @@ test('Cancelling search input displays users without filtering', async () => {
         isMeIsCreator: true,
     });
 
-    serverSocket.on('GET_CONTEXT', () => {
-        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    serverSocket.on('MTV_GET_CONTEXT', () => {
+        serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
     });
 
-    serverSocket.on('GET_USERS_LIST', (cb) => {
+    serverSocket.on('MTV_GET_USERS_LIST', (cb) => {
         cb(fakeUsersArray);
     });
 

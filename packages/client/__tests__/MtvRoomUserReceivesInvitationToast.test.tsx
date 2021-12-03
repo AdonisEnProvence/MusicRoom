@@ -8,7 +8,7 @@ import { generateMtvRoomSummary } from '../tests/data';
 import { noop, render, waitFor, waitForTimeout } from '../tests/tests-utils';
 
 it(`It should display an invitation toast to the user
-then press it and emit a JOIN_ROOM client socket event`, async () => {
+then press it and emit a MTV_JOIN_ROOM client socket event`, async () => {
     const mtvRoomSummary = generateMtvRoomSummary();
 
     const screen = render(
@@ -25,10 +25,10 @@ then press it and emit a JOIN_ROOM client socket event`, async () => {
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
     await waitForTimeout(1000);
 
-    serverSocket.emit('RECEIVED_MTV_ROOM_INVITATION', mtvRoomSummary);
+    serverSocket.emit('MTV_RECEIVED_ROOM_INVITATION', mtvRoomSummary);
 
     let joinRoomServerListernerHasBeenCalled = false;
-    serverSocket.on('JOIN_ROOM', ({ roomID }) => {
+    serverSocket.on('MTV_JOIN_ROOM', ({ roomID }) => {
         joinRoomServerListernerHasBeenCalled = true;
         expect(roomID).toEqual(mtvRoomSummary.roomID);
     });

@@ -3,7 +3,7 @@ import {
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
-import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
+import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
@@ -55,7 +55,7 @@ test.group(`User service socket handler tests`, (group) => {
         };
 
         sinon
-            .stub(ServerToTemporalController, 'voteForTrack')
+            .stub(MtvServerToTemporalController, 'voteForTrack')
             .callsFake(async ({ trackID, userID }) => {
                 const stateWithUserRelatedInformations: MtvWorkflowStateWithUserRelatedInformation =
                     {
@@ -71,13 +71,13 @@ test.group(`User service socket handler tests`, (group) => {
                     };
 
                 await supertest(BASE_URL)
-                    .post('/temporal/acknowledge-user-vote-for-track')
+                    .post('/temporal/mtv/acknowledge-user-vote-for-track')
                     .send({
                         ...stateWithUserRelatedInformations,
                     });
 
                 await supertest(BASE_URL)
-                    .post('/temporal/suggest-or-vote-update')
+                    .post('/temporal/mtv/suggest-or-vote-update')
                     .send({
                         ...state,
                     });
@@ -112,30 +112,34 @@ test.group(`User service socket handler tests`, (group) => {
             receivedEvents: [] as string[],
         };
 
-        creatorSocket.socket.once('VOTE_OR_SUGGEST_TRACK_CALLBACK', () =>
-            creatorSocket.receivedEvents.push('VOTE_OR_SUGGEST_TRACK_CALLBACK'),
+        creatorSocket.socket.once('MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK', () =>
+            creatorSocket.receivedEvents.push(
+                'MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK',
+            ),
         );
 
-        creatorSocket.socketB.once('VOTE_OR_SUGGEST_TRACK_CALLBACK', () =>
-            creatorSocket.receivedEvents.push('VOTE_OR_SUGGEST_TRACK_CALLBACK'),
+        creatorSocket.socketB.once('MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK', () =>
+            creatorSocket.receivedEvents.push(
+                'MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK',
+            ),
         );
 
         const members = [creatorSocket, userBSocket, userCSocket];
         members.forEach((socket) => {
-            socket.socket.once('VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', () =>
+            socket.socket.once('MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', () =>
                 socket.receivedEvents.push(
-                    'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
+                    'MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
                 ),
             );
 
-            socket.socketB.once('VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', () =>
+            socket.socketB.once('MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', () =>
                 socket.receivedEvents.push(
-                    'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
+                    'MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
                 ),
             );
         });
 
-        creatorSocket.socket.emit('VOTE_FOR_TRACK', {
+        creatorSocket.socket.emit('MTV_VOTE_FOR_TRACK', {
             trackID: datatype.uuid(),
         });
         await sleep();

@@ -109,8 +109,8 @@ describe('User device location tests', () => {
 
         const receivedEvents: string[] = [];
 
-        serverSocket.on('GET_CONTEXT', () => {
-            serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+        serverSocket.on('MTV_GET_CONTEXT', () => {
+            serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
         });
 
         serverSocket.on('UPDATE_DEVICE_POSITION', () => {

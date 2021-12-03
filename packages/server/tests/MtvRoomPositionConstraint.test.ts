@@ -3,7 +3,7 @@ import {
     LatlngCoords,
     MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
-import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
+import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import MtvRoom from 'App/Models/MtvRoom';
 import GeocodingService from 'App/Services/GeocodingService';
 import { datatype } from 'faker';
@@ -63,7 +63,7 @@ test.group(
 
             /** Mocks */
             sinon
-                .stub(ServerToTemporalController, 'createMtvWorkflow')
+                .stub(MtvServerToTemporalController, 'createMtvWorkflow')
                 .callsFake(
                     async ({
                         workflowID,
@@ -119,7 +119,7 @@ test.group(
             const userID = datatype.uuid();
             const socket = await createUserAndGetSocket({ userID });
 
-            socket.emit('CREATE_ROOM', settings);
+            socket.emit('MTV_CREATE_ROOM', settings);
             await sleep();
 
             const rooms = await MtvRoom.all();
@@ -167,7 +167,7 @@ test.group(
 
             sinon
                 .stub(
-                    ServerToTemporalController,
+                    MtvServerToTemporalController,
                     'updateUserFitsPositionConstraints',
                 )
                 .callsFake(

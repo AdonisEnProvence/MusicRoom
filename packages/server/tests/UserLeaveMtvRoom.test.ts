@@ -4,7 +4,7 @@ import {
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
-import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
+import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
@@ -24,7 +24,7 @@ test.group(
     by joining,
     all user devices disconnection,
     by creating a new room,
-    emit LEAVE_ROOM client socket event`,
+    emit MTV_LEAVE_ROOM client socket event`,
     (group) => {
         const {
             createSocketConnection,
@@ -49,7 +49,7 @@ test.group(
 
         test(`It should make a user leave the room after he joins a new one
         leaving user devices should not receive any leavedMtvRoom related socket event
-        If the creator does the same it should send FORCED_DISCONNECTION to every remaining users in the room`, async (assert) => {
+        If the creator does the same it should send MTV_FORCED_DISCONNECTION to every remaining users in the room`, async (assert) => {
             const userAID = datatype.uuid();
             const userBID = datatype.uuid();
             const userCID = datatype.uuid();
@@ -95,7 +95,7 @@ test.group(
             };
 
             sinon
-                .stub(ServerToTemporalController, 'leaveWorkflow')
+                .stub(MtvServerToTemporalController, 'leaveWorkflow')
                 .callsFake(async ({ workflowID }) => {
                     roomToLeaveState = {
                         ...roomToLeaveState,
@@ -104,17 +104,17 @@ test.group(
                     };
 
                     await supertest(BASE_URL)
-                        .post('/temporal/user-length-update')
+                        .post('/temporal/mtv/user-length-update')
                         .send(roomToLeaveState);
                     return;
                 });
             sinon
-                .stub(ServerToTemporalController, 'terminateWorkflow')
+                .stub(MtvServerToTemporalController, 'terminateWorkflow')
                 .callsFake(async () => {
                     return;
                 });
             sinon
-                .stub(ServerToTemporalController, 'joinWorkflow')
+                .stub(MtvServerToTemporalController, 'joinWorkflow')
                 .callsFake(async ({ userID: relatedUserID }) => {
                     roomToJoinState.usersLength++;
                     roomToJoinState.userRelatedInformation = {
@@ -125,7 +125,7 @@ test.group(
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],
                     };
-                    await supertest(BASE_URL).post('/temporal/join').send({
+                    await supertest(BASE_URL).post('/temporal/mtv/join').send({
                         state: roomToJoinState,
                         joiningUserID: relatedUserID,
                     });
@@ -172,21 +172,21 @@ test.group(
             };
 
             //CREATOR
-            socket.socket.once('USER_LENGTH_UPDATE', () => {
-                socket.receivedEvents.push('USER_LENGTH_UPDATE');
+            socket.socket.once('MTV_USER_LENGTH_UPDATE', () => {
+                socket.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
             });
 
-            socket.socketB.once('USER_LENGTH_UPDATE', () => {
-                socket.receivedEvents.push('USER_LENGTH_UPDATE');
+            socket.socketB.once('MTV_USER_LENGTH_UPDATE', () => {
+                socket.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
             });
 
             //USER B
-            socketB.socket.once('USER_LENGTH_UPDATE', () => {
-                socketB.receivedEvents.push('USER_LENGTH_UPDATE');
+            socketB.socket.once('MTV_USER_LENGTH_UPDATE', () => {
+                socketB.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
             });
 
             //USER C
-            socketC.socket.once('USER_LENGTH_UPDATE', () => {
+            socketC.socket.once('MTV_USER_LENGTH_UPDATE', () => {
                 /**
                  * This is the disconnecting one, in this way it should not receive
                  * any event
@@ -194,7 +194,7 @@ test.group(
                 assert.isTrue(false);
             });
 
-            socketC.socketB.once('USER_LENGTH_UPDATE', () => {
+            socketC.socketB.once('MTV_USER_LENGTH_UPDATE', () => {
                 /**
                  * This is the disconnecting one, in this way it should not receive
                  * any event
@@ -207,7 +207,7 @@ test.group(
              * Expect B and socket to receive USER_LENGTH_UDPATE
              * server socket event
              */
-            socketC.socket.emit('JOIN_ROOM', {
+            socketC.socket.emit('MTV_JOIN_ROOM', {
                 roomID: mtvRoomToJoinID,
             });
             await sleep();
@@ -233,31 +233,31 @@ test.group(
              */
 
             //CREATOR
-            socket.socket.once('FORCED_DISCONNECTION', () => {
+            socket.socket.once('MTV_FORCED_DISCONNECTION', () => {
                 assert.isTrue(false);
             });
 
-            socket.socketB.once('FORCED_DISCONNECTION', () => {
+            socket.socketB.once('MTV_FORCED_DISCONNECTION', () => {
                 assert.isTrue(false);
             });
 
             //USER B
-            socketB.socket.once('USER_LENGTH_UPDATE', () => {
+            socketB.socket.once('MTV_USER_LENGTH_UPDATE', () => {
                 assert.isTrue(false);
             });
 
-            socketB.socket.once('FORCED_DISCONNECTION', () => {
-                socketB.receivedEvents.push('FORCED_DISCONNECTION');
+            socketB.socket.once('MTV_FORCED_DISCONNECTION', () => {
+                socketB.receivedEvents.push('MTV_FORCED_DISCONNECTION');
             });
             /**
              * Creator joins the room
              */
-            socket.socket.emit('JOIN_ROOM', { roomID: mtvRoomToJoinID });
+            socket.socket.emit('MTV_JOIN_ROOM', { roomID: mtvRoomToJoinID });
             await sleep();
 
             assert.equal(socketB.receivedEvents.length, 2);
             assert.isTrue(
-                socketB.receivedEvents.includes('FORCED_DISCONNECTION'),
+                socketB.receivedEvents.includes('MTV_FORCED_DISCONNECTION'),
             );
 
             connectedSocketsToRoom =
@@ -276,7 +276,7 @@ test.group(
 
         test(`It should make a user leave the room after he disconnect all his device
         leaving user devices should not receive any leavedMtvRoom related socket event
-        If the creator does the same it should send FORCED_DISCONNECTION to every remaining users in the room`, async (assert) => {
+        If the creator does the same it should send MTV_FORCED_DISCONNECTION to every remaining users in the room`, async (assert) => {
             const userAID = datatype.uuid();
             const userBID = datatype.uuid();
             const userCID = datatype.uuid();
@@ -322,7 +322,7 @@ test.group(
             };
 
             sinon
-                .stub(ServerToTemporalController, 'leaveWorkflow')
+                .stub(MtvServerToTemporalController, 'leaveWorkflow')
                 .callsFake(async ({ workflowID }) => {
                     roomToLeaveState = {
                         ...roomToLeaveState,
@@ -331,17 +331,17 @@ test.group(
                     };
 
                     await supertest(BASE_URL)
-                        .post('/temporal/user-length-update')
+                        .post('/temporal/mtv/user-length-update')
                         .send(roomToLeaveState);
                     return;
                 });
             sinon
-                .stub(ServerToTemporalController, 'terminateWorkflow')
+                .stub(MtvServerToTemporalController, 'terminateWorkflow')
                 .callsFake(async () => {
                     return;
                 });
             sinon
-                .stub(ServerToTemporalController, 'joinWorkflow')
+                .stub(MtvServerToTemporalController, 'joinWorkflow')
                 .callsFake(async ({ userID: relatedUserID }) => {
                     roomToJoinState.usersLength++;
                     roomToJoinState.userRelatedInformation = {
@@ -352,7 +352,7 @@ test.group(
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],
                     };
-                    await supertest(BASE_URL).post('/temporal/join').send({
+                    await supertest(BASE_URL).post('/temporal/mtv/join').send({
                         state: roomToJoinState,
                         joiningUserID: relatedUserID,
                     });
@@ -399,21 +399,21 @@ test.group(
             };
 
             //CREATOR
-            socket.socket.once('USER_LENGTH_UPDATE', () => {
-                socket.receivedEvents.push('USER_LENGTH_UPDATE');
+            socket.socket.once('MTV_USER_LENGTH_UPDATE', () => {
+                socket.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
             });
 
-            socket.socketB.once('USER_LENGTH_UPDATE', () => {
-                socket.receivedEvents.push('USER_LENGTH_UPDATE');
+            socket.socketB.once('MTV_USER_LENGTH_UPDATE', () => {
+                socket.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
             });
 
             //USER B
-            socketB.socket.once('USER_LENGTH_UPDATE', () => {
-                socketB.receivedEvents.push('USER_LENGTH_UPDATE');
+            socketB.socket.once('MTV_USER_LENGTH_UPDATE', () => {
+                socketB.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
             });
 
             //USER C
-            socketC.socket.once('USER_LENGTH_UPDATE', () => {
+            socketC.socket.once('MTV_USER_LENGTH_UPDATE', () => {
                 /**
                  * This is the disconnecting one, in this way it should not receive
                  * any event
@@ -421,7 +421,7 @@ test.group(
                 assert.isTrue(false);
             });
 
-            socketC.socketB.once('USER_LENGTH_UPDATE', () => {
+            socketC.socketB.once('MTV_USER_LENGTH_UPDATE', () => {
                 /**
                  * This is the disconnecting one, in this way it should not receive
                  * any event
@@ -457,21 +457,21 @@ test.group(
              */
 
             //CREATOR
-            socket.socket.once('FORCED_DISCONNECTION', () => {
+            socket.socket.once('MTV_FORCED_DISCONNECTION', () => {
                 assert.isTrue(false);
             });
 
-            socket.socketB.once('FORCED_DISCONNECTION', () => {
+            socket.socketB.once('MTV_FORCED_DISCONNECTION', () => {
                 assert.isTrue(false);
             });
 
             //USER B
-            socketB.socket.once('USER_LENGTH_UPDATE', () => {
+            socketB.socket.once('MTV_USER_LENGTH_UPDATE', () => {
                 assert.isTrue(false);
             });
 
-            socketB.socket.once('FORCED_DISCONNECTION', () => {
-                socketB.receivedEvents.push('FORCED_DISCONNECTION');
+            socketB.socket.once('MTV_FORCED_DISCONNECTION', () => {
+                socketB.receivedEvents.push('MTV_FORCED_DISCONNECTION');
             });
             /**
              * Creator joins the room
@@ -481,7 +481,7 @@ test.group(
 
             assert.equal(socketB.receivedEvents.length, 2);
             assert.isTrue(
-                socketB.receivedEvents.includes('FORCED_DISCONNECTION'),
+                socketB.receivedEvents.includes('MTV_FORCED_DISCONNECTION'),
             );
 
             connectedSocketsToRoom =
@@ -500,7 +500,7 @@ test.group(
 
         test(`It should make a user leave the room after he creates a new one
         leaving user devices should not receive any leavedMtvRoom related socket event
-        If the creator does the same it should send FORCED_DISCONNECTION to every remaining users in the room`, async (assert) => {
+        If the creator does the same it should send MTV_FORCED_DISCONNECTION to every remaining users in the room`, async (assert) => {
             const userAID = datatype.uuid();
             const userBID = datatype.uuid();
             const userCID = datatype.uuid();
@@ -525,7 +525,7 @@ test.group(
             };
 
             sinon
-                .stub(ServerToTemporalController, 'leaveWorkflow')
+                .stub(MtvServerToTemporalController, 'leaveWorkflow')
                 .callsFake(async ({ workflowID }) => {
                     roomToLeaveState = {
                         ...roomToLeaveState,
@@ -534,17 +534,17 @@ test.group(
                     };
 
                     await supertest(BASE_URL)
-                        .post('/temporal/user-length-update')
+                        .post('/temporal/mtv/user-length-update')
                         .send(roomToLeaveState);
                     return;
                 });
             sinon
-                .stub(ServerToTemporalController, 'terminateWorkflow')
+                .stub(MtvServerToTemporalController, 'terminateWorkflow')
                 .callsFake(async () => {
                     return;
                 });
             sinon
-                .stub(ServerToTemporalController, 'createMtvWorkflow')
+                .stub(MtvServerToTemporalController, 'createMtvWorkflow')
                 .callsFake(async ({ workflowID, userID, params }) => {
                     const state: MtvWorkflowStateWithUserRelatedInformation = {
                         roomID: workflowID, //workflowID === roomID
@@ -581,7 +581,7 @@ test.group(
 
                     // Simulating Use Local Activity Notify
                     await supertest(BASE_URL)
-                        .post('/temporal/mtv-creation-acknowledgement')
+                        .post('/temporal/mtv/mtv-creation-acknowledgement')
                         .send(state);
 
                     return {
@@ -625,21 +625,21 @@ test.group(
             };
 
             //CREATOR
-            socket.socket.once('USER_LENGTH_UPDATE', () => {
-                socket.receivedEvents.push('USER_LENGTH_UPDATE');
+            socket.socket.once('MTV_USER_LENGTH_UPDATE', () => {
+                socket.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
             });
 
-            socket.socketB.once('USER_LENGTH_UPDATE', () => {
-                socket.receivedEvents.push('USER_LENGTH_UPDATE');
+            socket.socketB.once('MTV_USER_LENGTH_UPDATE', () => {
+                socket.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
             });
 
             //USER B
-            socketB.socket.once('USER_LENGTH_UPDATE', () => {
-                socketB.receivedEvents.push('USER_LENGTH_UPDATE');
+            socketB.socket.once('MTV_USER_LENGTH_UPDATE', () => {
+                socketB.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
             });
 
             //USER C
-            socketC.socket.once('USER_LENGTH_UPDATE', () => {
+            socketC.socket.once('MTV_USER_LENGTH_UPDATE', () => {
                 /**
                  * This is the disconnecting one, in this way it should not receive
                  * any event
@@ -647,7 +647,7 @@ test.group(
                 assert.isTrue(false);
             });
 
-            socketC.socketB.once('USER_LENGTH_UPDATE', () => {
+            socketC.socketB.once('MTV_USER_LENGTH_UPDATE', () => {
                 /**
                  * This is the disconnecting one, in this way it should not receive
                  * any event
@@ -655,12 +655,12 @@ test.group(
                 assert.isTrue(false);
             });
 
-            socketC.socket.once('CREATE_ROOM_SYNCHED_CALLBACK', () => {
-                socketC.receivedEvents.push('CREATE_ROOM_SYNCHED_CALLBACK');
+            socketC.socket.once('MTV_CREATE_ROOM_SYNCHED_CALLBACK', () => {
+                socketC.receivedEvents.push('MTV_CREATE_ROOM_SYNCHED_CALLBACK');
             });
 
-            socketC.socketB.once('CREATE_ROOM_SYNCHED_CALLBACK', () => {
-                socketC.receivedEvents.push('CREATE_ROOM_SYNCHED_CALLBACK');
+            socketC.socketB.once('MTV_CREATE_ROOM_SYNCHED_CALLBACK', () => {
+                socketC.receivedEvents.push('MTV_CREATE_ROOM_SYNCHED_CALLBACK');
             });
 
             /**
@@ -669,7 +669,7 @@ test.group(
              * server socket event
              */
             const settings = getDefaultMtvRoomCreateRoomArgs();
-            socketC.socket.emit('CREATE_ROOM', settings);
+            socketC.socket.emit('MTV_CREATE_ROOM', settings);
             await sleep();
             await sleep();
 
@@ -677,7 +677,9 @@ test.group(
             assert.equal(socketB.receivedEvents.length, 1);
             assert.equal(socketC.receivedEvents.length, 2);
             assert.isTrue(
-                socketC.receivedEvents.includes('CREATE_ROOM_SYNCHED_CALLBACK'),
+                socketC.receivedEvents.includes(
+                    'MTV_CREATE_ROOM_SYNCHED_CALLBACK',
+                ),
             );
 
             let connectedSocketsToRoom =
@@ -697,46 +699,48 @@ test.group(
              */
 
             //CREATOR
-            socket.socket.once('FORCED_DISCONNECTION', () => {
+            socket.socket.once('MTV_FORCED_DISCONNECTION', () => {
                 assert.isTrue(false);
             });
 
-            socket.socketB.once('FORCED_DISCONNECTION', () => {
+            socket.socketB.once('MTV_FORCED_DISCONNECTION', () => {
                 assert.isTrue(false);
             });
 
-            socket.socket.once('CREATE_ROOM_SYNCHED_CALLBACK', () => {
-                socket.receivedEvents.push('CREATE_ROOM_SYNCHED_CALLBACK');
+            socket.socket.once('MTV_CREATE_ROOM_SYNCHED_CALLBACK', () => {
+                socket.receivedEvents.push('MTV_CREATE_ROOM_SYNCHED_CALLBACK');
             });
 
-            socket.socketB.once('CREATE_ROOM_SYNCHED_CALLBACK', () => {
-                socket.receivedEvents.push('CREATE_ROOM_SYNCHED_CALLBACK');
+            socket.socketB.once('MTV_CREATE_ROOM_SYNCHED_CALLBACK', () => {
+                socket.receivedEvents.push('MTV_CREATE_ROOM_SYNCHED_CALLBACK');
             });
 
             //USER B
-            socketB.socket.once('USER_LENGTH_UPDATE', () => {
+            socketB.socket.once('MTV_USER_LENGTH_UPDATE', () => {
                 assert.isTrue(false);
             });
 
-            socketB.socket.once('FORCED_DISCONNECTION', () => {
-                socketB.receivedEvents.push('FORCED_DISCONNECTION');
+            socketB.socket.once('MTV_FORCED_DISCONNECTION', () => {
+                socketB.receivedEvents.push('MTV_FORCED_DISCONNECTION');
             });
 
             /**
              * Creator joins the room
              */
             const secondRoomSettings = getDefaultMtvRoomCreateRoomArgs();
-            socket.socket.emit('CREATE_ROOM', secondRoomSettings);
+            socket.socket.emit('MTV_CREATE_ROOM', secondRoomSettings);
 
             await sleep();
 
             assert.equal(socketB.receivedEvents.length, 2);
             assert.isTrue(
-                socketB.receivedEvents.includes('FORCED_DISCONNECTION'),
+                socketB.receivedEvents.includes('MTV_FORCED_DISCONNECTION'),
             );
             assert.equal(socket.receivedEvents.length, 4);
             assert.isTrue(
-                socket.receivedEvents.includes('CREATE_ROOM_SYNCHED_CALLBACK'),
+                socket.receivedEvents.includes(
+                    'MTV_CREATE_ROOM_SYNCHED_CALLBACK',
+                ),
             );
 
             connectedSocketsToRoom =
@@ -753,20 +757,20 @@ test.group(
             assert.isNull(await MtvRoom.find(mtvRoomIDToAssociate));
         });
 
-        test(`It should make a user leave the room after he emits a LEAVE_ROOM client socket event dw 
+        test(`It should make a user leave the room after he emits a MTV_LEAVE_ROOM client socket event dw 
         leaving user devices should not receive any leavedMtvRoom related socket event
-        If the creator does the same it should send FORCED_DISCONNECTION to every remaining users in the room`, async (assert) => {
+        If the creator does the same it should send MTV_FORCED_DISCONNECTION to every remaining users in the room`, async (assert) => {
             const userID = datatype.uuid();
             const userBID = datatype.uuid();
             const userCID = datatype.uuid();
 
             sinon
-                .stub(ServerToTemporalController, 'terminateWorkflow')
+                .stub(MtvServerToTemporalController, 'terminateWorkflow')
                 .callsFake(async () => {
                     return;
                 });
             sinon
-                .stub(ServerToTemporalController, 'leaveWorkflow')
+                .stub(MtvServerToTemporalController, 'leaveWorkflow')
                 .callsFake(async ({ workflowID }) => {
                     const state: MtvWorkflowState = {
                         currentTrack: null,
@@ -787,7 +791,7 @@ test.group(
                     };
 
                     await supertest(BASE_URL)
-                        .post('/temporal/user-length-update')
+                        .post('/temporal/mtv/user-length-update')
                         .send(state);
                     return;
                 });
@@ -823,32 +827,32 @@ test.group(
             };
 
             // CREATOR //
-            userA.socketA.once('USER_LENGTH_UPDATE', () => {
-                userA.receivedEvents.push('USER_LENGTH_UPDATE');
+            userA.socketA.once('MTV_USER_LENGTH_UPDATE', () => {
+                userA.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
             });
 
-            userA.socketB.once('USER_LENGTH_UPDATE', () => {
-                userA.receivedEvents.push('USER_LENGTH_UPDATE');
+            userA.socketB.once('MTV_USER_LENGTH_UPDATE', () => {
+                userA.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
             });
 
             // USER B
-            userB.socketA.once('USER_LENGTH_UPDATE', () => {
-                userB.receivedEvents.push('USER_LENGTH_UPDATE');
+            userB.socketA.once('MTV_USER_LENGTH_UPDATE', () => {
+                userB.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
             });
 
             // USER C
             const userCSocketALeaveRoomCallbackSpy =
-                spy<AllServerToClientEvents['LEAVE_ROOM_CALLBACK']>();
+                spy<AllServerToClientEvents['MTV_LEAVE_ROOM_CALLBACK']>();
             const userCSocketBLeaveRoomCallbackSpy =
-                spy<AllServerToClientEvents['LEAVE_ROOM_CALLBACK']>();
-            userC.socketA.once('USER_LENGTH_UPDATE', () => {
+                spy<AllServerToClientEvents['MTV_LEAVE_ROOM_CALLBACK']>();
+            userC.socketA.once('MTV_USER_LENGTH_UPDATE', () => {
                 /**
                  * This is the disconnecting one, in this way it should not receive
                  * any event
                  */
                 assert.isTrue(false);
             });
-            userC.socketB.once('USER_LENGTH_UPDATE', () => {
+            userC.socketB.once('MTV_USER_LENGTH_UPDATE', () => {
                 /**
                  * This is the disconnecting one, in this way it should not receive
                  * any event
@@ -856,11 +860,11 @@ test.group(
                 assert.isTrue(false);
             });
             userC.socketA.on(
-                'LEAVE_ROOM_CALLBACK',
+                'MTV_LEAVE_ROOM_CALLBACK',
                 userCSocketALeaveRoomCallbackSpy,
             );
             userC.socketB.on(
-                'LEAVE_ROOM_CALLBACK',
+                'MTV_LEAVE_ROOM_CALLBACK',
                 userCSocketBLeaveRoomCallbackSpy,
             );
 
@@ -869,7 +873,7 @@ test.group(
              * Expect B and socket to receive USER_LENGTH_UDPATE
              * server socket event
              */
-            userC.socketA.emit('LEAVE_ROOM');
+            userC.socketA.emit('MTV_LEAVE_ROOM');
 
             // Wait for user C's devices to have been told
             // to clear the room.
@@ -900,32 +904,32 @@ test.group(
 
             /**
              * Now same with the creator
-             * We expect remaining user to receive a FORCED_DISCONNECTION event
+             * We expect remaining user to receive a MTV_FORCED_DISCONNECTION event
              */
 
             //CREATOR
-            userA.socketA.once('FORCED_DISCONNECTION', () => {
+            userA.socketA.once('MTV_FORCED_DISCONNECTION', () => {
                 assert.isTrue(false);
             });
 
-            userA.socketA.once('FORCED_DISCONNECTION', () => {
+            userA.socketA.once('MTV_FORCED_DISCONNECTION', () => {
                 assert.isTrue(false);
             });
 
             //USER B
-            userB.socketA.once('FORCED_DISCONNECTION', () => {
-                userB.receivedEvents.push('FORCED_DISCONNECTION');
+            userB.socketA.once('MTV_FORCED_DISCONNECTION', () => {
+                userB.receivedEvents.push('MTV_FORCED_DISCONNECTION');
             });
 
             /**
              * Creator leaves the room
              */
-            userA.socketA.emit('LEAVE_ROOM');
+            userA.socketA.emit('MTV_LEAVE_ROOM');
             await sleep();
 
             assert.equal(userB.receivedEvents.length, 2);
             assert.isTrue(
-                userB.receivedEvents.includes('FORCED_DISCONNECTION'),
+                userB.receivedEvents.includes('MTV_FORCED_DISCONNECTION'),
             );
 
             connectedSocketsToRoom =

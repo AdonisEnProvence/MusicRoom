@@ -31,11 +31,11 @@ export interface MtvRoomChatServerToClientReceivedMessageArgs {
 }
 
 export interface MtvRoomChatClientToServerEvents {
-    NEW_MESSAGE: (args: MtvRoomChatClientToServerNewMessageArgs) => void;
+    MTV_NEW_MESSAGE: (args: MtvRoomChatClientToServerNewMessageArgs) => void;
 }
 
 export interface MtvRoomChatServerToClientEvents {
-    RECEIVED_MESSAGE: (
+    MTV_RECEIVED_MESSAGE: (
         args: MtvRoomChatServerToClientReceivedMessageArgs,
     ) => void;
 }
@@ -123,54 +123,56 @@ export type MtvRoomGetRoomConstraintDetailsCallbackArgs = z.infer<
 >;
 
 export interface MtvRoomClientToServerEvents {
-    CREATE_ROOM: (args: MtvRoomClientToServerCreateArgs) => void;
-    JOIN_ROOM: (args: MtvRoomClientToServerJoin) => void;
-    LEAVE_ROOM: () => void;
-    ACTION_PLAY: () => void;
-    GET_CONTEXT: () => void;
-    ACTION_PAUSE: () => void;
-    VOTE_FOR_TRACK: (args: MtvRoomClientToServerVoteForTrackArgs) => void;
-    GET_USERS_LIST: (
+    MTV_CREATE_ROOM: (args: MtvRoomClientToServerCreateArgs) => void;
+    MTV_JOIN_ROOM: (args: MtvRoomClientToServerJoin) => void;
+    MTV_LEAVE_ROOM: () => void;
+    MTV_ACTION_PLAY: () => void;
+    MTV_GET_CONTEXT: () => void;
+    MTV_ACTION_PAUSE: () => void;
+    MTV_VOTE_FOR_TRACK: (args: MtvRoomClientToServerVoteForTrackArgs) => void;
+    MTV_GET_USERS_LIST: (
         callback: (usersList: MtvRoomUsersListElement[]) => void,
     ) => void;
-    GO_TO_NEXT_TRACK: () => void;
-    CHANGE_EMITTING_DEVICE: (
+    MTV_GO_TO_NEXT_TRACK: () => void;
+    MTV_CHANGE_EMITTING_DEVICE: (
         args: MtvRoomClientToServerChangeUserEmittingDevice,
     ) => void;
-    SUGGEST_TRACKS: (args: MtvRoomClientToServerSuggestTracks) => void;
-    UPDATE_DELEGATION_OWNER: (args: MtvRoomUpdateDelegationOwnerArgs) => void;
-    UPDATE_CONTROL_AND_DELEGATION_PERMISSION: (
+    MTV_SUGGEST_TRACKS: (args: MtvRoomClientToServerSuggestTracks) => void;
+    MTV_UPDATE_DELEGATION_OWNER: (
+        args: MtvRoomUpdateDelegationOwnerArgs,
+    ) => void;
+    MTV_UPDATE_CONTROL_AND_DELEGATION_PERMISSION: (
         args: MtvRoomUpdateControlAndDelegationPermissionArgs,
     ) => void;
-    CREATOR_INVITE_USER: (args: MtvRoomCreatorInviteUserArgs) => void;
+    MTV_CREATOR_INVITE_USER: (args: MtvRoomCreatorInviteUserArgs) => void;
 
-    GET_ROOM_CONSTRAINTS_DETAILS: (
+    MTV_GET_ROOM_CONSTRAINTS_DETAILS: (
         cb: (payload: MtvRoomGetRoomConstraintDetailsCallbackArgs) => void,
     ) => void;
 }
 
 export interface MtvRoomServerToClientEvents {
-    USER_LENGTH_UPDATE: (state: MtvWorkflowState) => void;
-    CREATE_ROOM_SYNCHED_CALLBACK: (state: MtvWorkflowState) => void;
-    RETRIEVE_CONTEXT: (state: MtvWorkflowState) => void;
-    ACTION_PLAY_CALLBACK: (state: MtvWorkflowState) => void;
-    ACTION_PAUSE_CALLBACK: (state: MtvWorkflowState) => void;
-    CREATE_ROOM_CALLBACK: (state: MtvWorkflowState) => void;
-    FORCED_DISCONNECTION: () => void;
-    VOTE_OR_SUGGEST_TRACK_CALLBACK: (
+    MTV_USER_LENGTH_UPDATE: (state: MtvWorkflowState) => void;
+    MTV_CREATE_ROOM_SYNCHED_CALLBACK: (state: MtvWorkflowState) => void;
+    MTV_RETRIEVE_CONTEXT: (state: MtvWorkflowState) => void;
+    MTV_ACTION_PLAY_CALLBACK: (state: MtvWorkflowState) => void;
+    MTV_ACTION_PAUSE_CALLBACK: (state: MtvWorkflowState) => void;
+    MTV_CREATE_ROOM_CALLBACK: (state: MtvWorkflowState) => void;
+    MTV_FORCED_DISCONNECTION: () => void;
+    MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK: (
         state: MtvWorkflowStateWithUserRelatedInformation,
     ) => void;
-    JOIN_ROOM_CALLBACK: (state: MtvWorkflowState) => void;
-    CHANGE_EMITTING_DEVICE_CALLBACK: (state: MtvWorkflowState) => void;
-    VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE: (state: MtvWorkflowState) => void;
-    SUGGEST_TRACKS_CALLBACK: () => void;
-    SUGGEST_TRACKS_FAIL_CALLBACK: () => void;
-    UPDATE_DELEGATION_OWNER_CALLBACK: (state: MtvWorkflowState) => void;
-    USER_PERMISSIONS_UPDATE: (
+    MTV_JOIN_ROOM_CALLBACK: (state: MtvWorkflowState) => void;
+    MTV_CHANGE_EMITTING_DEVICE_CALLBACK: (state: MtvWorkflowState) => void;
+    MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE: (state: MtvWorkflowState) => void;
+    MTV_SUGGEST_TRACKS_CALLBACK: () => void;
+    MTV_SUGGEST_TRACKS_FAIL_CALLBACK: () => void;
+    MTV_UPDATE_DELEGATION_OWNER_CALLBACK: (state: MtvWorkflowState) => void;
+    MTV_USER_PERMISSIONS_UPDATE: (
         state: MtvWorkflowStateWithUserRelatedInformation,
     ) => void;
-    USERS_LIST_FORCED_REFRESH: () => void;
-    RECEIVED_MTV_ROOM_INVITATION: (payload: MtvRoomSummary) => void;
-    TIME_CONSTRAINT_UPDATE: (state: MtvWorkflowState) => void;
-    LEAVE_ROOM_CALLBACK: () => void;
+    MTV_USERS_LIST_FORCED_REFRESH: () => void;
+    MTV_RECEIVED_ROOM_INVITATION: (payload: MtvRoomSummary) => void;
+    MTV_TIME_CONSTRAINT_UPDATE: (state: MtvWorkflowState) => void;
+    MTV_LEAVE_ROOM_CALLBACK: () => void;
 }

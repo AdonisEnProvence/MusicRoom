@@ -1,6 +1,6 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import { MtvRoomUsersListRawElementFromTemporal } from '@musicroom/types';
-import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
+import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import { datatype } from 'faker';
 import test from 'japa';
@@ -34,7 +34,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
         });
 
         sinon
-            .stub(ServerToTemporalController, 'getUsersList')
+            .stub(MtvServerToTemporalController, 'getUsersList')
             .callsFake(
                 async (): Promise<MtvRoomUsersListRawElementFromTemporal[]> => {
                     const usersList: MtvRoomUsersListRawElementFromTemporal[] =
@@ -51,7 +51,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
             );
 
         let callbakcHasBeenCalled = false;
-        socket.emit('GET_USERS_LIST', (usersList) => {
+        socket.emit('MTV_GET_USERS_LIST', (usersList) => {
             callbakcHasBeenCalled = true;
             assert.equal(1, usersList.length);
             const creator = usersList.find((user) => user.userID === userID);
@@ -73,7 +73,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
         });
 
         sinon
-            .stub(ServerToTemporalController, 'getUsersList')
+            .stub(MtvServerToTemporalController, 'getUsersList')
             .callsFake(
                 async (): Promise<MtvRoomUsersListRawElementFromTemporal[]> => {
                     const usersList: MtvRoomUsersListRawElementFromTemporal[] =
@@ -110,7 +110,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
         });
 
         sinon
-            .stub(ServerToTemporalController, 'getUsersList')
+            .stub(MtvServerToTemporalController, 'getUsersList')
             .callsFake(
                 async (): Promise<MtvRoomUsersListRawElementFromTemporal[]> => {
                     const usersList: MtvRoomUsersListRawElementFromTemporal[] =

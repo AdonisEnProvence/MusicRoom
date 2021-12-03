@@ -5,7 +5,7 @@ import {
     MtvWorkflowStateWithUserRelatedInformation,
     UserRelatedInformation,
 } from '@musicroom/types';
-import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
+import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import Device from 'App/Models/Device';
 import { datatype, random } from 'faker';
 import test from 'japa';
@@ -46,7 +46,7 @@ test.group(
             const userID = datatype.uuid();
 
             sinon
-                .stub(ServerToTemporalController, 'changeUserEmittingDevice')
+                .stub(MtvServerToTemporalController, 'changeUserEmittingDevice')
                 .callsFake(async ({ deviceID, workflowID }) => {
                     const state: MtvWorkflowState = {
                         currentTrack: null,
@@ -74,7 +74,7 @@ test.group(
                     };
 
                     await supertest(BASE_URL)
-                        .post('/temporal/change-user-emitting-device')
+                        .post('/temporal/mtv/change-user-emitting-device')
                         .send(state);
                     return;
                 });
@@ -112,7 +112,7 @@ test.group(
             }
 
             socketB.socket.once(
-                'CHANGE_EMITTING_DEVICE_CALLBACK',
+                'MTV_CHANGE_EMITTING_DEVICE_CALLBACK',
                 ({ userRelatedInformation }) => {
                     const expectedUserRelatedInformation: UserRelatedInformation | null =
                         {
@@ -135,13 +135,13 @@ test.group(
                         expectedUserRelatedInformation,
                     );
                     socketB.receivedEvents.push(
-                        'CHANGE_EMITTING_DEVICE_CALLBACK',
+                        'MTV_CHANGE_EMITTING_DEVICE_CALLBACK',
                     );
                 },
             );
 
             socket.socket.once(
-                'CHANGE_EMITTING_DEVICE_CALLBACK',
+                'MTV_CHANGE_EMITTING_DEVICE_CALLBACK',
                 ({ userRelatedInformation }) => {
                     const expectedUserRelatedInformation: UserRelatedInformation =
                         {
@@ -158,12 +158,12 @@ test.group(
                         expectedUserRelatedInformation,
                     );
                     socket.receivedEvents.push(
-                        'CHANGE_EMITTING_DEVICE_CALLBACK',
+                        'MTV_CHANGE_EMITTING_DEVICE_CALLBACK',
                     );
                 },
             );
 
-            socket.socket.emit('CHANGE_EMITTING_DEVICE', {
+            socket.socket.emit('MTV_CHANGE_EMITTING_DEVICE', {
                 newEmittingDeviceID: deviceB.uuid,
             });
             await sleep();
@@ -180,7 +180,7 @@ test.group(
             let receivedChangeEmittingDeviceThroughEviction = false;
 
             socket.socket.once(
-                'CHANGE_EMITTING_DEVICE_CALLBACK',
+                'MTV_CHANGE_EMITTING_DEVICE_CALLBACK',
                 ({ userRelatedInformation }) => {
                     assert.isNotNull(userRelatedInformation);
                     if (userRelatedInformation === null)
@@ -204,7 +204,7 @@ test.group(
         test(`It should fail change user emitting device as user is not in a mtvRoom`, async (assert) => {
             const userID = datatype.uuid();
             sinon
-                .stub(ServerToTemporalController, 'changeUserEmittingDevice')
+                .stub(MtvServerToTemporalController, 'changeUserEmittingDevice')
                 .callsFake(async ({ deviceID, workflowID }) => {
                     const state: MtvWorkflowState = {
                         currentTrack: null,
@@ -232,7 +232,7 @@ test.group(
                     };
 
                     await supertest(BASE_URL)
-                        .post('/temporal/change-user-emitting-device')
+                        .post('/temporal/mtv/change-user-emitting-device')
                         .send(state);
                     return;
                 });
@@ -254,17 +254,17 @@ test.group(
 
             let hasNeverBeenCalled = true;
 
-            socketB.socket.once('CHANGE_EMITTING_DEVICE_CALLBACK', () => {
+            socketB.socket.once('MTV_CHANGE_EMITTING_DEVICE_CALLBACK', () => {
                 assert.isTrue(false);
                 hasNeverBeenCalled = false;
             });
 
-            socket.socket.once('CHANGE_EMITTING_DEVICE_CALLBACK', () => {
+            socket.socket.once('MTV_CHANGE_EMITTING_DEVICE_CALLBACK', () => {
                 assert.isTrue(false);
                 hasNeverBeenCalled = false;
             });
 
-            socket.socket.emit('CHANGE_EMITTING_DEVICE', {
+            socket.socket.emit('MTV_CHANGE_EMITTING_DEVICE', {
                 newEmittingDeviceID: deviceB.uuid,
             });
             await sleep();
@@ -277,7 +277,7 @@ test.group(
             const secondUserID = datatype.uuid();
 
             sinon
-                .stub(ServerToTemporalController, 'changeUserEmittingDevice')
+                .stub(MtvServerToTemporalController, 'changeUserEmittingDevice')
                 .callsFake(async ({ deviceID, workflowID }) => {
                     const state: MtvWorkflowState = {
                         currentTrack: null,
@@ -305,7 +305,7 @@ test.group(
                     };
 
                     await supertest(BASE_URL)
-                        .post('/temporal/change-user-emitting-device')
+                        .post('/temporal/mtv/change-user-emitting-device')
                         .send(state);
                     return;
                 });
@@ -329,15 +329,15 @@ test.group(
 
             let hasNeverBeenCalled = true;
 
-            socketB.socket.once('CHANGE_EMITTING_DEVICE_CALLBACK', () => {
+            socketB.socket.once('MTV_CHANGE_EMITTING_DEVICE_CALLBACK', () => {
                 hasNeverBeenCalled = false;
             });
 
-            socket.socket.once('CHANGE_EMITTING_DEVICE_CALLBACK', () => {
+            socket.socket.once('MTV_CHANGE_EMITTING_DEVICE_CALLBACK', () => {
                 hasNeverBeenCalled = false;
             });
 
-            socket.socket.emit('CHANGE_EMITTING_DEVICE', {
+            socket.socket.emit('MTV_CHANGE_EMITTING_DEVICE', {
                 newEmittingDeviceID: deviceB.uuid,
             });
             await sleep();
@@ -350,7 +350,7 @@ test.group(
 
             /** Mocks */
             sinon
-                .stub(ServerToTemporalController, 'createMtvWorkflow')
+                .stub(MtvServerToTemporalController, 'createMtvWorkflow')
                 .callsFake(async ({ workflowID, userID, deviceID }) => {
                     const state: MtvWorkflowStateWithUserRelatedInformation = {
                         currentTrack: null,
@@ -379,7 +379,7 @@ test.group(
                     };
 
                     await supertest(BASE_URL)
-                        .post('/temporal/mtv-creation-acknowledgement')
+                        .post('/temporal/mtv/mtv-creation-acknowledgement')
                         .send(state);
 
                     return {
@@ -402,12 +402,12 @@ test.group(
             }
             assert.isFalse(device.isEmitting);
 
-            socket.on('CREATE_ROOM_CALLBACK', () => {
+            socket.on('MTV_CREATE_ROOM_CALLBACK', () => {
                 callbackHasBeenCalled = true;
             });
 
             const settings = getDefaultMtvRoomCreateRoomArgs();
-            socket.emit('CREATE_ROOM', {
+            socket.emit('MTV_CREATE_ROOM', {
                 ...settings,
             });
 
@@ -425,7 +425,7 @@ test.group(
 
             /** Mocks */
             sinon
-                .stub(ServerToTemporalController, 'joinWorkflow')
+                .stub(MtvServerToTemporalController, 'joinWorkflow')
                 .callsFake(async ({ workflowID, userID, deviceID }) => {
                     const state: MtvWorkflowStateWithUserRelatedInformation = {
                         currentTrack: null,
@@ -453,7 +453,7 @@ test.group(
                         usersLength: 1,
                     };
                     await supertest(BASE_URL)
-                        .post('/temporal/join')
+                        .post('/temporal/mtv/join')
                         .send({ state, joiningUserID: userID });
                     return;
                 });
@@ -480,11 +480,11 @@ test.group(
             }
             assert.isFalse(joiningUserDevice.isEmitting);
 
-            joiningUserSocket.on('JOIN_ROOM_CALLBACK', () => {
+            joiningUserSocket.on('MTV_JOIN_ROOM_CALLBACK', () => {
                 callbackHasBeenCalled = true;
             });
 
-            joiningUserSocket.emit('JOIN_ROOM', {
+            joiningUserSocket.emit('MTV_JOIN_ROOM', {
                 roomID: mtvRoomIDToAssociate,
             });
 

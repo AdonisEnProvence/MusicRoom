@@ -41,8 +41,8 @@ if the user doesn't have the control and delegation permission`, async () => {
         minimumScoreToBePlayed: 1,
     };
 
-    serverSocket.on('GET_CONTEXT', () => {
-        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+    serverSocket.on('MTV_GET_CONTEXT', () => {
+        serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
     });
 
     const screen = render(

@@ -11,30 +11,30 @@ import UserService from 'App/Services/UserService';
 import Ws from 'App/Services/Ws';
 import * as z from 'zod';
 
-const TemporalToServerJoinBody = z.object({
+const MtvTemporalToServerJoinBody = z.object({
     joiningUserID: z.string().uuid(),
     state: MtvWorkflowStateWithUserRelatedInformation,
 });
 
-type TemporalToServerJoinBody = z.infer<typeof TemporalToServerJoinBody>;
+type MtvTemporalToServerJoinBody = z.infer<typeof MtvTemporalToServerJoinBody>;
 
-export const TemporalToServerLeaveBody = z.object({
+export const MtvTemporalToServerLeaveBody = z.object({
     leavingUserID: z.string().uuid(),
     state: MtvWorkflowState,
 });
 
-export type TemporalToServerLeaveBody = z.infer<
-    typeof TemporalToServerLeaveBody
+export type MtvTemporalToServerLeaveBody = z.infer<
+    typeof MtvTemporalToServerLeaveBody
 >;
 
-export default class TemporalToServerController {
+export default class MtvTemporalToServerController {
     public pause({ request }: HttpContextContract): void {
         const state = MtvWorkflowState.parse(request.body());
         const roomID = state.roomID;
 
         console.log('received pause from temporal', state);
 
-        Ws.io.to(roomID).emit('ACTION_PAUSE_CALLBACK', state);
+        Ws.io.to(roomID).emit('MTV_ACTION_PAUSE_CALLBACK', state);
     }
 
     public play({ request }: HttpContextContract): void {
@@ -43,7 +43,7 @@ export default class TemporalToServerController {
 
         console.log('received play from temporal', state);
 
-        Ws.io.to(roomID).emit('ACTION_PLAY_CALLBACK', state);
+        Ws.io.to(roomID).emit('MTV_ACTION_PLAY_CALLBACK', state);
     }
 
     public userLengthUpdate({ request }: HttpContextContract): void {
@@ -52,8 +52,8 @@ export default class TemporalToServerController {
 
         console.log('received userLengthUpdate from temporal', state);
 
-        Ws.io.to(roomID).emit('USERS_LIST_FORCED_REFRESH');
-        Ws.io.to(roomID).emit('USER_LENGTH_UPDATE', state);
+        Ws.io.to(roomID).emit('MTV_USERS_LIST_FORCED_REFRESH');
+        Ws.io.to(roomID).emit('MTV_USER_LENGTH_UPDATE', state);
     }
 
     public async mtvCreationAcknowledgement({
@@ -63,7 +63,7 @@ export default class TemporalToServerController {
             request.body(),
         );
 
-        Ws.io.to(state.roomID).emit('CREATE_ROOM_CALLBACK', state);
+        Ws.io.to(state.roomID).emit('MTV_CREATE_ROOM_CALLBACK', state);
         const creator = await User.findOrFail(state.roomCreatorUserID);
 
         const emittingDevice = await Device.findOrFail(
@@ -108,7 +108,7 @@ export default class TemporalToServerController {
     }
 
     public async join({ request }: HttpContextContract): Promise<void> {
-        const { state, joiningUserID } = TemporalToServerJoinBody.parse(
+        const { state, joiningUserID } = MtvTemporalToServerJoinBody.parse(
             request.body(),
         );
         const { roomID } = state;
@@ -124,7 +124,7 @@ export default class TemporalToServerController {
 
         await UserService.emitEventInEveryDeviceUser(
             joiningUserID,
-            'JOIN_ROOM_CALLBACK',
+            'MTV_JOIN_ROOM_CALLBACK',
             [state],
         );
 
@@ -159,9 +159,9 @@ export default class TemporalToServerController {
     }
 
     public async leave({ request }: HttpContextContract): Promise<void> {
-        const { state } = TemporalToServerLeaveBody.parse(request.body());
+        const { state } = MtvTemporalToServerLeaveBody.parse(request.body());
 
-        Ws.io.to(state.roomID).emit('USERS_LIST_FORCED_REFRESH');
+        Ws.io.to(state.roomID).emit('MTV_USERS_LIST_FORCED_REFRESH');
     }
 
     public async mtvChangeUserEmittingDeviceAcknowledgement({
@@ -196,7 +196,7 @@ export default class TemporalToServerController {
 
         await UserService.emitEventInEveryDeviceUser(
             state.userRelatedInformation.userID,
-            'CHANGE_EMITTING_DEVICE_CALLBACK',
+            'MTV_CHANGE_EMITTING_DEVICE_CALLBACK',
             [state],
         );
     }
@@ -207,7 +207,7 @@ export default class TemporalToServerController {
         const state = MtvWorkflowState.parse(request.body());
         const roomID = state.roomID;
 
-        Ws.io.to(roomID).emit('VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', state);
+        Ws.io.to(roomID).emit('MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', state);
     }
 
     public async acknowledgeTracksSuggestion({
@@ -223,11 +223,11 @@ export default class TemporalToServerController {
 
         const device = await Device.findOrFail(deviceID);
 
-        Ws.io.in(device.socketID).emit('SUGGEST_TRACKS_CALLBACK');
+        Ws.io.in(device.socketID).emit('MTV_SUGGEST_TRACKS_CALLBACK');
 
         await UserService.emitEventInEveryDeviceUser(
             state.userRelatedInformation.userID,
-            'VOTE_OR_SUGGEST_TRACK_CALLBACK',
+            'MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK',
             [state],
         );
     }
@@ -245,7 +245,7 @@ export default class TemporalToServerController {
 
         const device = await Device.findOrFail(deviceID);
 
-        Ws.io.in(device.socketID).emit('SUGGEST_TRACKS_FAIL_CALLBACK');
+        Ws.io.in(device.socketID).emit('MTV_SUGGEST_TRACKS_FAIL_CALLBACK');
     }
 
     public async acknowledgeUserVoteForTrack({
@@ -257,7 +257,7 @@ export default class TemporalToServerController {
 
         await UserService.emitEventInEveryDeviceUser(
             state.userRelatedInformation.userID,
-            'VOTE_OR_SUGGEST_TRACK_CALLBACK',
+            'MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK',
             [state],
         );
     }
@@ -267,8 +267,10 @@ export default class TemporalToServerController {
     }: HttpContextContract): void {
         const state = MtvWorkflowState.parse(request.body());
 
-        Ws.io.to(state.roomID).emit('UPDATE_DELEGATION_OWNER_CALLBACK', state);
-        Ws.io.to(state.roomID).emit('USERS_LIST_FORCED_REFRESH');
+        Ws.io
+            .to(state.roomID)
+            .emit('MTV_UPDATE_DELEGATION_OWNER_CALLBACK', state);
+        Ws.io.to(state.roomID).emit('MTV_USERS_LIST_FORCED_REFRESH');
     }
 
     public async acknowledgeUpdateUserFitsPositionConstraint({
@@ -280,7 +282,7 @@ export default class TemporalToServerController {
 
         await UserService.emitEventInEveryDeviceUser(
             state.userRelatedInformation.userID,
-            'USER_PERMISSIONS_UPDATE',
+            'MTV_USER_PERMISSIONS_UPDATE',
             [state],
         );
     }
@@ -294,10 +296,10 @@ export default class TemporalToServerController {
 
         await UserService.emitEventInEveryDeviceUser(
             state.userRelatedInformation.userID,
-            'USER_PERMISSIONS_UPDATE',
+            'MTV_USER_PERMISSIONS_UPDATE',
             [state],
         );
-        Ws.io.to(state.roomID).emit('USERS_LIST_FORCED_REFRESH');
+        Ws.io.to(state.roomID).emit('MTV_USERS_LIST_FORCED_REFRESH');
     }
 
     public async acknowledgeUpdateTimeConstraint({
@@ -305,6 +307,6 @@ export default class TemporalToServerController {
     }: HttpContextContract): Promise<void> {
         const state = MtvWorkflowState.parse(request.body());
 
-        Ws.io.to(state.roomID).emit('TIME_CONSTRAINT_UPDATE', state);
+        Ws.io.to(state.roomID).emit('MTV_TIME_CONSTRAINT_UPDATE', state);
     }
 }

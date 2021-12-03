@@ -315,7 +315,7 @@ const mtvRoomChatTestingModel = createTestingModel<TestingContext>(
                 const { message } =
                     ReceiveMessageFromOtherUserEvent.parse(event);
 
-                screen.serverSocket.emit('RECEIVED_MESSAGE', { message });
+                screen.serverSocket.emit('MTV_RECEIVED_MESSAGE', { message });
             } catch (err) {
                 console.error(err);
 
@@ -377,8 +377,8 @@ describe('Send and receive messages in MTV room chat', () => {
                         minimumScoreToBePlayed: 1,
                     };
 
-                    serverSocket.on('GET_CONTEXT', () => {
-                        serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+                    serverSocket.on('MTV_GET_CONTEXT', () => {
+                        serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
                     });
 
                     const screen = render(

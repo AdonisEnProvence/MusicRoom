@@ -44,7 +44,7 @@ He will be redirected to the home and will view the default mini music player
     };
 
     let leaveRoomServerListenerHasBeenCalled = false;
-    serverSocket.on('LEAVE_ROOM', () => {
+    serverSocket.on('MTV_LEAVE_ROOM', () => {
         leaveRoomServerListenerHasBeenCalled = true;
     });
 
@@ -71,7 +71,7 @@ He will be redirected to the home and will view the default mini music player
      * And toggle mtv room full screen
      */
 
-    serverSocket.emit('RETRIEVE_CONTEXT', state);
+    serverSocket.emit('MTV_RETRIEVE_CONTEXT', state);
 
     const musicPlayerMini = getByTestId('music-player-mini');
     expect(musicPlayerMini).toBeTruthy();
@@ -111,7 +111,7 @@ He will be redirected to the home and will view the default mini music player
 
     fireEvent.press(leaveRoomButton);
 
-    serverSocket.emit('LEAVE_ROOM_CALLBACK');
+    serverSocket.emit('MTV_LEAVE_ROOM_CALLBACK');
 
     await waitFor(() => {
         const elements = queryAllByA11yState({ expanded: false });

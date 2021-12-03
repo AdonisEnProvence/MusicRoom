@@ -1,6 +1,6 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import { MtvWorkflowState } from '@musicroom/types';
-import { TemporalToServerLeaveBody } from 'App/Controllers/Http/Temporal/TemporalToServerController';
+import { MtvTemporalToServerLeaveBody } from 'App/Controllers/Http/Temporal/MtvTemporalToServerController';
 import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
@@ -81,12 +81,12 @@ test.group(`MtvRoom get users list test group`, (group) => {
 
         let usersListForcedRefreshHasBeenCalled = false;
 
-        socket.on('USERS_LIST_FORCED_REFRESH', () => {
+        socket.on('MTV_USERS_LIST_FORCED_REFRESH', () => {
             usersListForcedRefreshHasBeenCalled = true;
         });
 
         await supertest(BASE_URL)
-            .post('/temporal/user-length-update')
+            .post('/temporal/mtv/user-length-update')
             .send(getBasicState({ userID, roomID }));
 
         await sleep();
@@ -104,12 +104,12 @@ test.group(`MtvRoom get users list test group`, (group) => {
 
         let usersListForcedRefreshHasBeenCalled = false;
 
-        socket.on('USERS_LIST_FORCED_REFRESH', () => {
+        socket.on('MTV_USERS_LIST_FORCED_REFRESH', () => {
             usersListForcedRefreshHasBeenCalled = true;
         });
 
         await supertest(BASE_URL)
-            .post('/temporal/acknowledge-update-delegation-owner')
+            .post('/temporal/mtv/acknowledge-update-delegation-owner')
             .send(getBasicState({ userID, roomID }));
 
         await sleep();
@@ -127,13 +127,13 @@ test.group(`MtvRoom get users list test group`, (group) => {
 
         let usersListForcedRefreshHasBeenCalled = false;
 
-        socket.on('USERS_LIST_FORCED_REFRESH', () => {
+        socket.on('MTV_USERS_LIST_FORCED_REFRESH', () => {
             usersListForcedRefreshHasBeenCalled = true;
         });
 
         await supertest(BASE_URL)
             .post(
-                '/temporal/acknowledge-update-control-and-delegation-permission',
+                '/temporal/mtv/acknowledge-update-control-and-delegation-permission',
             )
             .send(
                 getBasicState({
@@ -157,11 +157,11 @@ test.group(`MtvRoom get users list test group`, (group) => {
         });
 
         let usersListForcedRefreshHasBeenCalled = false;
-        creatorSocket.on('USERS_LIST_FORCED_REFRESH', () => {
+        creatorSocket.on('MTV_USERS_LIST_FORCED_REFRESH', () => {
             usersListForcedRefreshHasBeenCalled = true;
         });
 
-        const leaveBody: TemporalToServerLeaveBody = {
+        const leaveBody: MtvTemporalToServerLeaveBody = {
             leavingUserID: datatype.uuid(),
             state: getBasicState({
                 userID,
@@ -169,7 +169,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
                 withUserRelatedInformation: true,
             }),
         };
-        await supertest(BASE_URL).post('/temporal/leave').send(leaveBody);
+        await supertest(BASE_URL).post('/temporal/mtv/leave').send(leaveBody);
 
         await sleep();
 

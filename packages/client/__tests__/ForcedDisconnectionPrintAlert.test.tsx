@@ -6,7 +6,7 @@ import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { fireEvent, noop, render, within } from '../tests/tests-utils';
 
-test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it when clicking on dismiss button`, async () => {
+test(`On MTV_FORCED_DISCONNECTION it should displays the alert modal and dismiss it when clicking on dismiss button`, async () => {
     const { getByText, getAllByText, getByTestId, findByText } = render(
         <NavigationContainer
             ref={navigationRef}
@@ -23,7 +23,7 @@ test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it 
      * in state connectedToRoom
      */
     const userID = datatype.uuid();
-    serverSocket.emit('RETRIEVE_CONTEXT', {
+    serverSocket.emit('MTV_RETRIEVE_CONTEXT', {
         roomID: datatype.uuid(),
         name: random.word(),
         playing: false,
@@ -68,10 +68,10 @@ test(`On FORCED_DISCONNECTION it should displays the alert modal and dismiss it 
     fireEvent.press(goToMusicTrackVoteButton);
     expect(getAllByText(/Track Vote/i)).toBeTruthy();
 
-    serverSocket.emit('FORCED_DISCONNECTION');
+    serverSocket.emit('MTV_FORCED_DISCONNECTION');
 
     /**
-     * After FORCED_DISCONNECTION we expect the user to be on the Alert screen
+     * After MTV_FORCED_DISCONNECTION we expect the user to be on the Alert screen
      */
     const dismissButton = await findByText(/DISMISS/i);
     expect(dismissButton).toBeTruthy();

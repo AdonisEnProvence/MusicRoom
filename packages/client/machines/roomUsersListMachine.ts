@@ -116,7 +116,7 @@ export const createRoomUsersListMachine = ({
             {
                 id: 'socketConnection',
                 src: (_, _event) => (sendBack, onReceive) => {
-                    socket.on('USERS_LIST_FORCED_REFRESH', () => {
+                    socket.on('MTV_USERS_LIST_FORCED_REFRESH', () => {
                         console.log('RECEIVED FORCED REFRESH');
                         sendBack({
                             type: 'RETRIEVE_USERS_LIST',
@@ -127,7 +127,7 @@ export const createRoomUsersListMachine = ({
                         switch (e.type) {
                             case 'RETRIEVE_USERS_LIST': {
                                 socket.emit(
-                                    'GET_USERS_LIST',
+                                    'MTV_GET_USERS_LIST',
                                     (retrievedUsers) => {
                                         sendBack({
                                             type: 'ASSIGN_RETRIEVED_USERS_LIST',

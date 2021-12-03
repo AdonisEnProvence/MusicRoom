@@ -1,5 +1,5 @@
 import Database from '@ioc:Adonis/Lucid/Database';
-import ServerToTemporalController from 'App/Controllers/Http/Temporal/ServerToTemporalController';
+import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import { datatype } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
@@ -39,7 +39,7 @@ test.group(`Updating Control and Delegation permission`, (group) => {
         let mockHasBeenCalled = false;
         sinon
             .stub(
-                ServerToTemporalController,
+                MtvServerToTemporalController,
                 'updateControlAndDelegationPermission',
             )
             .callsFake(async () => {
@@ -48,7 +48,7 @@ test.group(`Updating Control and Delegation permission`, (group) => {
                 return;
             });
 
-        creatorSocket.emit('UPDATE_CONTROL_AND_DELEGATION_PERMISSION', {
+        creatorSocket.emit('MTV_UPDATE_CONTROL_AND_DELEGATION_PERMISSION', {
             hasControlAndDelegationPermission: true,
             toUpdateUserID: randomUserID,
         });
@@ -74,7 +74,7 @@ test.group(`Updating Control and Delegation permission`, (group) => {
         let mockHasBeenCalled = false;
         sinon
             .stub(
-                ServerToTemporalController,
+                MtvServerToTemporalController,
                 'updateControlAndDelegationPermission',
             )
             .callsFake(async () => {
@@ -83,7 +83,7 @@ test.group(`Updating Control and Delegation permission`, (group) => {
                 return;
             });
 
-        randomUserSocket.emit('UPDATE_CONTROL_AND_DELEGATION_PERMISSION', {
+        randomUserSocket.emit('MTV_UPDATE_CONTROL_AND_DELEGATION_PERMISSION', {
             hasControlAndDelegationPermission: false,
             toUpdateUserID: creatorUserID,
         });

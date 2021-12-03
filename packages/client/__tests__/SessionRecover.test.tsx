@@ -70,7 +70,7 @@ test(`It should display the music player corresponding to the injected state on 
      * And button disabled
      */
 
-    serverSocket.emit('CREATE_ROOM_SYNCHED_CALLBACK', {
+    serverSocket.emit('MTV_CREATE_ROOM_SYNCHED_CALLBACK', {
         ...state,
         tracks: null,
         currentTrack: null,
@@ -104,7 +104,7 @@ test(`It should display the music player corresponding to the injected state on 
     expect(playButton).toBeTruthy();
     expect(playButton).toBeDisabled();
 
-    serverSocket.emit('CREATE_ROOM_CALLBACK', state);
+    serverSocket.emit('MTV_CREATE_ROOM_CALLBACK', state);
 
     await waitForTimeout(1_000);
 
@@ -119,7 +119,7 @@ test(`It should display the music player corresponding to the injected state on 
     expect(pauseButton).not.toBeDisabled();
 });
 
-test(`It should display the music player corresponding to the injected state on both RETRIEVE_CONTEXT server socket event`, async () => {
+test(`It should display the music player corresponding to the injected state on both MTV_RETRIEVE_CONTEXT server socket event`, async () => {
     const fakeTrack = db.searchableTracks.create();
     const roomName = random.words();
     const userID = datatype.uuid();
@@ -176,7 +176,7 @@ test(`It should display the music player corresponding to the injected state on 
      * And button disabled
      */
 
-    serverSocket.emit('RETRIEVE_CONTEXT', state);
+    serverSocket.emit('MTV_RETRIEVE_CONTEXT', state);
 
     await waitForTimeout(1_000);
 
@@ -263,7 +263,7 @@ test(`It should display the already elapsed track duration and player should be 
 
     expect(getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    serverSocket.emit('RETRIEVE_CONTEXT', state);
+    serverSocket.emit('MTV_RETRIEVE_CONTEXT', state);
 
     await waitForTimeout(1_000);
     await waitForTimeout(1_000);

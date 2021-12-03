@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import {
-    CreateWorkflowResponse,
+    MtvCreateWorkflowResponse,
     MtvRoomClientToServerCreateArgs,
     MtvRoomGetRoomConstraintDetailsCallbackArgs,
     MtvRoomSummary,
@@ -16,9 +16,9 @@ import GeocodingService from 'App/Services/GeocodingService';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
 import { isPointWithinRadius } from 'geolib';
-import ServerToTemporalController, {
+import MtvServerToTemporalController, {
     MtvRoomPhysicalAndTimeConstraintsWithCoords,
-} from '../Http/Temporal/ServerToTemporalController';
+} from '../Http/Temporal/MtvServerToTemporalController';
 
 interface UserID {
     userID: string;
@@ -117,7 +117,7 @@ export default class MtvRoomsWsController {
         params,
         user,
         deviceID,
-    }: OnCreateArgs): Promise<CreateWorkflowResponse> {
+    }: OnCreateArgs): Promise<MtvCreateWorkflowResponse> {
         let physicalAndTimeConstraintsWithCoords:
             | MtvRoomPhysicalAndTimeConstraintsWithCoords
             | undefined;
@@ -126,7 +126,7 @@ export default class MtvRoomsWsController {
         const room = new MtvRoom();
         let roomHasBeenSaved = false;
         const userID = user.uuid;
-        console.log(`USER ${userID} CREATE_ROOM ${roomID}`);
+        console.log(`USER ${userID} MTV_CREATE_ROOM ${roomID}`);
 
         if (
             params.hasPhysicalAndTimeConstraints &&
@@ -191,7 +191,7 @@ export default class MtvRoomsWsController {
 
         try {
             const temporalResponse =
-                await ServerToTemporalController.createMtvWorkflow({
+                await MtvServerToTemporalController.createMtvWorkflow({
                     workflowID: roomID,
                     userID: userID,
                     deviceID,
@@ -278,7 +278,7 @@ export default class MtvRoomsWsController {
         const userHasBeenInvited = userAndRoomRelatedInvitations.length === 1;
         ///
 
-        await ServerToTemporalController.joinWorkflow({
+        await MtvServerToTemporalController.joinWorkflow({
             workflowID: roomID,
             runID: runID,
             userID,
@@ -315,7 +315,7 @@ export default class MtvRoomsWsController {
         if (leavingUserIsTheCreator) {
             await SocketLifecycle.ownerLeavesRoom(leavingRoom);
         } else {
-            await ServerToTemporalController.leaveWorkflow({
+            await MtvServerToTemporalController.leaveWorkflow({
                 workflowID: leavingRoomID,
                 runID: runID,
                 userID,
@@ -329,7 +329,7 @@ export default class MtvRoomsWsController {
     }: OnPauseArgs): Promise<void> {
         console.log(`PAUSE ${roomID}`);
         const { runID } = await MtvRoom.findOrFail(roomID);
-        await ServerToTemporalController.pause({
+        await MtvServerToTemporalController.pause({
             workflowID: roomID,
             runID,
             userID,
@@ -339,7 +339,7 @@ export default class MtvRoomsWsController {
     public static async onPlay({ roomID, userID }: OnPlayArgs): Promise<void> {
         console.log(`PLAY ${roomID} `);
         const { runID } = await MtvRoom.findOrFail(roomID);
-        await ServerToTemporalController.play({
+        await MtvServerToTemporalController.play({
             workflowID: roomID,
             runID,
             userID,
@@ -358,7 +358,7 @@ export default class MtvRoomsWsController {
         runID,
     }: OnTerminateArgs): Promise<void> {
         console.log(`TERMINATE ${roomID}`);
-        await ServerToTemporalController.terminateWorkflow({
+        await MtvServerToTemporalController.terminateWorkflow({
             workflowID: roomID,
             runID: runID,
         });
@@ -369,7 +369,7 @@ export default class MtvRoomsWsController {
         userID,
     }: OnGetStateArgs): Promise<MtvWorkflowState> {
         const room = await MtvRoom.findOrFail(roomID);
-        return await ServerToTemporalController.getState({
+        return await MtvServerToTemporalController.getState({
             workflowID: roomID,
             runID: room.runID,
             userID,
@@ -382,7 +382,7 @@ export default class MtvRoomsWsController {
     }: OnGetUsersListArgs): Promise<MtvRoomUsersListElement[]> {
         const room = await MtvRoom.findOrFail(roomID);
         const temporalFormatedUsersList =
-            await ServerToTemporalController.getUsersList({
+            await MtvServerToTemporalController.getUsersList({
                 workflowID: roomID,
                 runID: room.runID,
             });
@@ -423,7 +423,7 @@ export default class MtvRoomsWsController {
     }: OnGoToNextTrackArgs): Promise<void> {
         const { runID } = await MtvRoom.findOrFail(roomID);
 
-        await ServerToTemporalController.goToNextTrack({
+        await MtvServerToTemporalController.goToNextTrack({
             workflowID: roomID,
             runID,
             userID,
@@ -437,7 +437,7 @@ export default class MtvRoomsWsController {
     }: OnChangeEmittingDeviceArgs): Promise<void> {
         const { runID } = await MtvRoom.findOrFail(roomID);
 
-        await ServerToTemporalController.changeUserEmittingDevice({
+        await MtvServerToTemporalController.changeUserEmittingDevice({
             workflowID: roomID,
             runID,
             deviceID,
@@ -453,7 +453,7 @@ export default class MtvRoomsWsController {
     }: OnSuggestTracksArgs): Promise<void> {
         const { runID } = await MtvRoom.findOrFail(roomID);
 
-        await ServerToTemporalController.suggestTracks({
+        await MtvServerToTemporalController.suggestTracks({
             workflowID: roomID,
             runID,
             tracksToSuggest,
@@ -469,7 +469,7 @@ export default class MtvRoomsWsController {
     }: OnVoteForTrackArgs): Promise<void> {
         const { runID } = await MtvRoom.findOrFail(roomID);
 
-        await ServerToTemporalController.voteForTrack({
+        await MtvServerToTemporalController.voteForTrack({
             workflowID: roomID,
             runID,
             trackID,
@@ -484,7 +484,7 @@ export default class MtvRoomsWsController {
     }: OnUpdateDelegationOwner): Promise<void> {
         const { runID } = await MtvRoom.findOrFail(roomID);
 
-        await ServerToTemporalController.updateDelegationOwner({
+        await MtvServerToTemporalController.updateDelegationOwner({
             emitterUserID,
             newDelegationOwnerUserID,
             runID,
@@ -499,12 +499,14 @@ export default class MtvRoomsWsController {
     }: OnUpdateControlAndDelegationPermissionArgs): Promise<void> {
         const { runID } = await MtvRoom.findOrFail(roomID);
 
-        await ServerToTemporalController.updateControlAndDelegationPermission({
-            runID,
-            workflowID: roomID,
-            toUpdateUserID,
-            hasControlAndDelegationPermission,
-        });
+        await MtvServerToTemporalController.updateControlAndDelegationPermission(
+            {
+                runID,
+                workflowID: roomID,
+                toUpdateUserID,
+                hasControlAndDelegationPermission,
+            },
+        );
     }
 
     public static async checkUserDevicesPositionIfRoomHasPositionConstraints({
@@ -558,12 +560,14 @@ export default class MtvRoomsWsController {
         );
 
         if (persistToTemporalRequiredInformation !== undefined) {
-            await ServerToTemporalController.updateUserFitsPositionConstraints({
-                runID: persistToTemporalRequiredInformation.runID,
-                userID: user.uuid,
-                workflowID: persistToTemporalRequiredInformation.roomID,
-                userFitsPositionConstraint: oneDeviceFitTheConstraints,
-            });
+            await MtvServerToTemporalController.updateUserFitsPositionConstraints(
+                {
+                    runID: persistToTemporalRequiredInformation.runID,
+                    userID: user.uuid,
+                    workflowID: persistToTemporalRequiredInformation.roomID,
+                    userFitsPositionConstraint: oneDeviceFitTheConstraints,
+                },
+            );
         }
 
         return oneDeviceFitTheConstraints;
@@ -620,7 +624,7 @@ export default class MtvRoomsWsController {
 
         await UserService.emitEventInEveryDeviceUser(
             invitedUserID,
-            'RECEIVED_MTV_ROOM_INVITATION',
+            'MTV_RECEIVED_ROOM_INVITATION',
             [roomSummary],
         );
     }
@@ -639,7 +643,7 @@ export default class MtvRoomsWsController {
             );
         }
 
-        return await ServerToTemporalController.getRoomConstraintsDetails({
+        return await MtvServerToTemporalController.getRoomConstraintsDetails({
             workflowID: roomID,
             runID,
         });

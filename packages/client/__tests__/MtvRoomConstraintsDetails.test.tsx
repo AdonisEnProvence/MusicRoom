@@ -71,12 +71,12 @@ describe('Mtv room contraints details test group', () => {
             minimumScoreToBePlayed: 1,
         };
 
-        serverSocket.on('GET_CONTEXT', () => {
-            serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+        serverSocket.on('MTV_GET_CONTEXT', () => {
+            serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
         });
 
         let mockHasbeenCalled = false;
-        serverSocket.on('GET_ROOM_CONSTRAINTS_DETAILS', (cb) => {
+        serverSocket.on('MTV_GET_ROOM_CONSTRAINTS_DETAILS', (cb) => {
             mockHasbeenCalled = true;
         });
 
@@ -156,12 +156,12 @@ describe('Mtv room contraints details test group', () => {
             minimumScoreToBePlayed: 1,
         };
 
-        serverSocket.on('GET_CONTEXT', () => {
-            serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+        serverSocket.on('MTV_GET_CONTEXT', () => {
+            serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
         });
 
         let mockHasbeenCalled = false;
-        serverSocket.on('GET_ROOM_CONSTRAINTS_DETAILS', (cb) => {
+        serverSocket.on('MTV_GET_ROOM_CONSTRAINTS_DETAILS', (cb) => {
             mockHasbeenCalled = true;
         });
 
@@ -271,8 +271,8 @@ describe('Mtv room contraints details test group', () => {
             minimumScoreToBePlayed: 1,
         };
 
-        serverSocket.on('GET_CONTEXT', () => {
-            serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+        serverSocket.on('MTV_GET_CONTEXT', () => {
+            serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
         });
 
         let mockHasbeenCalled = false;
@@ -287,7 +287,7 @@ describe('Mtv room contraints details test group', () => {
                 physicalConstraintRadius: 1000,
                 roomID,
             };
-        serverSocket.on('GET_ROOM_CONSTRAINTS_DETAILS', (cb) => {
+        serverSocket.on('MTV_GET_ROOM_CONSTRAINTS_DETAILS', (cb) => {
             mockHasbeenCalled = true;
             cb(fakeConstraintsDetails);
         });
@@ -433,8 +433,8 @@ describe('Mtv room contraints details test group', () => {
             minimumScoreToBePlayed: 1,
         };
 
-        serverSocket.on('GET_CONTEXT', () => {
-            serverSocket.emit('RETRIEVE_CONTEXT', initialState);
+        serverSocket.on('MTV_GET_CONTEXT', () => {
+            serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
         });
 
         let mockHasbeenCalled = false;
@@ -449,7 +449,7 @@ describe('Mtv room contraints details test group', () => {
                 physicalConstraintRadius: 1000,
                 roomID,
             };
-        serverSocket.on('GET_ROOM_CONSTRAINTS_DETAILS', (cb) => {
+        serverSocket.on('MTV_GET_ROOM_CONSTRAINTS_DETAILS', (cb) => {
             mockHasbeenCalled = true;
             cb(fakeConstraintsDetails);
         });
@@ -508,7 +508,7 @@ describe('Mtv room contraints details test group', () => {
             screen.getByText(/You do not.*fit.*position constraint/i),
         ).toBeTruthy();
 
-        serverSocket.emit('USER_PERMISSIONS_UPDATE', {
+        serverSocket.emit('MTV_USER_PERMISSIONS_UPDATE', {
             ...initialState,
             userRelatedInformation: {
                 ...initialState.userRelatedInformation,

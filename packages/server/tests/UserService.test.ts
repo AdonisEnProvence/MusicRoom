@@ -48,17 +48,17 @@ test.group(`User service socket handler tests`, (group) => {
         };
         const receivedEvents: string[] = [];
 
-        socket.once('CREATE_ROOM_CALLBACK', (payload) => {
+        socket.once('MTV_CREATE_ROOM_CALLBACK', (payload) => {
             assert.deepEqual(payload, state);
-            receivedEvents.push('CREATE_ROOM_CALLBACK');
+            receivedEvents.push('MTV_CREATE_ROOM_CALLBACK');
         });
 
-        UserService.emitEventInSocket(socket.id, 'CREATE_ROOM_CALLBACK', [
+        UserService.emitEventInSocket(socket.id, 'MTV_CREATE_ROOM_CALLBACK', [
             state,
         ]);
 
         await sleep();
-        assert.isTrue(receivedEvents.includes('CREATE_ROOM_CALLBACK'));
+        assert.isTrue(receivedEvents.includes('MTV_CREATE_ROOM_CALLBACK'));
     });
 
     test('It throw an error as no user device could join socket room', async (assert) => {

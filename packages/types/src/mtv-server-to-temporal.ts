@@ -4,15 +4,17 @@ import {
     MtvWorkflowStateWithUserRelatedInformation,
 } from './mtv';
 
-export const CreateWorkflowResponse = z.object({
+export const MtvCreateWorkflowResponse = z.object({
     state: MtvWorkflowStateWithUserRelatedInformation,
     workflowID: z.string(),
     runID: z.string(),
 });
-export type CreateWorkflowResponse = z.infer<typeof CreateWorkflowResponse>;
+export type MtvCreateWorkflowResponse = z.infer<
+    typeof MtvCreateWorkflowResponse
+>;
 
-export const TemporalGetStateQueryResponse =
+export const MtvTemporalGetStateQueryResponse =
     MtvRoomUsersListRawElementFromTemporal.array();
-export type TemporalGetStateQueryResponse = z.infer<
-    typeof TemporalGetStateQueryResponse
+export type MtvTemporalGetStateQueryResponse = z.infer<
+    typeof MtvTemporalGetStateQueryResponse
 >;

@@ -25,7 +25,7 @@ test.group(`Mtv room time constraint test group`, (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
-    test('Sending a request to inside /temporal/acknowledge-time-constraint-update achieves to a "TIME_CONSTRAINT_UPDATE" into related room', async (assert) => {
+    test('Sending a request to inside /temporal/acknowledge-time-constraint-update achieves to a "MTV_TIME_CONSTRAINT_UPDATE" into related room', async (assert) => {
         const creatorUserID = datatype.uuid();
         const randomUserID = datatype.uuid();
         const mtvRoomID = datatype.uuid();
@@ -57,20 +57,20 @@ test.group(`Mtv room time constraint test group`, (group) => {
         });
 
         const receivedEvents: string[] = [];
-        creatorSocket.on('TIME_CONSTRAINT_UPDATE', () => {
-            receivedEvents.push('TIME_CONSTRAINT_UPDATE');
+        creatorSocket.on('MTV_TIME_CONSTRAINT_UPDATE', () => {
+            receivedEvents.push('MTV_TIME_CONSTRAINT_UPDATE');
         });
-        userBSocket.on('TIME_CONSTRAINT_UPDATE', () => {
-            receivedEvents.push('TIME_CONSTRAINT_UPDATE');
+        userBSocket.on('MTV_TIME_CONSTRAINT_UPDATE', () => {
+            receivedEvents.push('MTV_TIME_CONSTRAINT_UPDATE');
         });
 
-        creatorSocket.emit('UPDATE_CONTROL_AND_DELEGATION_PERMISSION', {
+        creatorSocket.emit('MTV_UPDATE_CONTROL_AND_DELEGATION_PERMISSION', {
             hasControlAndDelegationPermission: true,
             toUpdateUserID: randomUserID,
         });
 
         await supertest(BASE_URL)
-            .post('/temporal/acknowledge-update-time-constraint')
+            .post('/temporal/mtv/acknowledge-update-time-constraint')
             .send(state);
 
         await waitFor(() => {

@@ -43,7 +43,7 @@ Ws.io.on('connection', async (socket) => {
         });
 
         /// CHAT ///
-        socket.on('NEW_MESSAGE', async (payload) => {
+        socket.on('MTV_NEW_MESSAGE', async (payload) => {
             try {
                 await MtvRoomsChatController.onSendMessage({
                     socket,
@@ -138,13 +138,13 @@ Ws.io.on('connection', async (socket) => {
         /// //// ///
 
         /// ROOM ///
-        socket.on('CREATE_ROOM', async (payload) => {
+        socket.on('MTV_CREATE_ROOM', async (payload) => {
             try {
                 MtvRoomClientToServerCreateArgs.parse(payload);
 
                 if (!payload.isOpen && payload.isOpenOnlyInvitedUsersCanVote) {
                     throw new Error(
-                        'CREATE_ROOM failed corrupted payload, isOpen false isOpenOnlyInvitedUsersCanVote true',
+                        'MTV_CREATE_ROOM failed corrupted payload, isOpen false isOpenOnlyInvitedUsersCanVote true',
                     );
                 }
 
@@ -155,7 +155,7 @@ Ws.io.on('connection', async (socket) => {
                         payload.physicalAndTimeConstraints)
                 ) {
                     throw new Error(
-                        'CREATE_ROOM failed corrupted geoloc and time constraints',
+                        'MTV_CREATE_ROOM failed corrupted geoloc and time constraints',
                     );
                 }
 
@@ -169,7 +169,7 @@ Ws.io.on('connection', async (socket) => {
 
                 if (payload.name === '') {
                     throw new Error(
-                        'CREATE_ROOM failed name must not be empty',
+                        'MTV_CREATE_ROOM failed name must not be empty',
                     );
                 }
 
@@ -194,13 +194,13 @@ Ws.io.on('connection', async (socket) => {
                 });
                 Ws.io
                     .to(raw.workflowID)
-                    .emit('CREATE_ROOM_SYNCHED_CALLBACK', raw.state);
+                    .emit('MTV_CREATE_ROOM_SYNCHED_CALLBACK', raw.state);
             } catch (e) {
                 console.error(e);
             }
         });
 
-        socket.on('GET_CONTEXT', async () => {
+        socket.on('MTV_GET_CONTEXT', async () => {
             try {
                 const {
                     mtvRoomID,
@@ -210,7 +210,7 @@ Ws.io.on('connection', async (socket) => {
                 );
                 if (mtvRoomID === undefined) {
                     throw new Error(
-                        "GET_CONTEXT failed user doesn't have a mtvRoom",
+                        "MTV_GET_CONTEXT failed user doesn't have a mtvRoom",
                     );
                 }
 
@@ -218,16 +218,16 @@ Ws.io.on('connection', async (socket) => {
                     roomID: mtvRoomID,
                     userID,
                 });
-                socket.emit('RETRIEVE_CONTEXT', state);
+                socket.emit('MTV_RETRIEVE_CONTEXT', state);
             } catch (e) {
                 console.error(e);
             }
         });
 
-        socket.on('JOIN_ROOM', async ({ roomID }) => {
+        socket.on('MTV_JOIN_ROOM', async ({ roomID }) => {
             try {
                 if (!roomID) {
-                    throw new Error('JOIN_ROOM failed roomID is empty');
+                    throw new Error('MTV_JOIN_ROOM failed roomID is empty');
                 }
 
                 const joiningRoom = await SocketLifecycle.doesRoomExist(roomID);
@@ -270,7 +270,7 @@ Ws.io.on('connection', async (socket) => {
             }
         });
 
-        socket.on('LEAVE_ROOM', async () => {
+        socket.on('MTV_LEAVE_ROOM', async () => {
             try {
                 const { user, mtvRoomID } =
                     await SocketLifecycle.getSocketConnectionCredentials(
@@ -298,7 +298,7 @@ Ws.io.on('connection', async (socket) => {
             }
         });
 
-        socket.on('ACTION_PLAY', async () => {
+        socket.on('MTV_ACTION_PLAY', async () => {
             try {
                 //we need to check auth from socket id into a userId into a room users[]
                 const {
@@ -308,7 +308,7 @@ Ws.io.on('connection', async (socket) => {
                     socket,
                 );
                 if (mtvRoomID === undefined) {
-                    throw new Error('ACTION_PLAY failed room not found');
+                    throw new Error('MTV_ACTION_PLAY failed room not found');
                 }
                 await MtvRoomsWsController.onPlay({
                     roomID: mtvRoomID,
@@ -319,7 +319,7 @@ Ws.io.on('connection', async (socket) => {
             }
         });
 
-        socket.on('ACTION_PAUSE', async () => {
+        socket.on('MTV_ACTION_PAUSE', async () => {
             try {
                 const {
                     mtvRoomID,
@@ -328,7 +328,7 @@ Ws.io.on('connection', async (socket) => {
                     socket,
                 );
                 if (mtvRoomID === undefined) {
-                    throw new Error('ACTION_PLAY failed room not found');
+                    throw new Error('MTV_ACTION_PLAY failed room not found');
                 }
                 await MtvRoomsWsController.onPause({
                     roomID: mtvRoomID,
@@ -339,7 +339,7 @@ Ws.io.on('connection', async (socket) => {
             }
         });
 
-        socket.on('GO_TO_NEXT_TRACK', async () => {
+        socket.on('MTV_GO_TO_NEXT_TRACK', async () => {
             try {
                 const {
                     mtvRoomID,
@@ -363,56 +363,59 @@ Ws.io.on('connection', async (socket) => {
             }
         });
 
-        socket.on('CHANGE_EMITTING_DEVICE', async ({ newEmittingDeviceID }) => {
-            try {
-                console.log('RECEIVED CHANGE EMITTING DEVICE FORM CLIENT');
-                const {
-                    user: { uuid: userID },
-                    mtvRoomID,
-                } = await SocketLifecycle.getSocketConnectionCredentials(
-                    socket,
-                );
-
-                if (!mtvRoomID) {
-                    throw new Error(
-                        'Error on CHANGE_EMITTING_DEVICE cannot change emitting device if user is not in a mtvRoom',
+        socket.on(
+            'MTV_CHANGE_EMITTING_DEVICE',
+            async ({ newEmittingDeviceID }) => {
+                try {
+                    console.log('RECEIVED CHANGE EMITTING DEVICE FORM CLIENT');
+                    const {
+                        user: { uuid: userID },
+                        mtvRoomID,
+                    } = await SocketLifecycle.getSocketConnectionCredentials(
+                        socket,
                     );
-                }
 
-                const newEmittingDevice = await Device.findOrFail(
-                    newEmittingDeviceID,
-                );
+                    if (!mtvRoomID) {
+                        throw new Error(
+                            'Error on MTV_CHANGE_EMITTING_DEVICE cannot change emitting device if user is not in a mtvRoom',
+                        );
+                    }
 
-                await newEmittingDevice.load('user');
-                if (!newEmittingDevice.user) {
-                    throw new Error(
-                        'newEmittingDevice.user should not be empty',
+                    const newEmittingDevice = await Device.findOrFail(
+                        newEmittingDeviceID,
                     );
-                }
 
-                const userIsNotTheNewDeviceOwner =
-                    newEmittingDevice.user.uuid !== userID;
+                    await newEmittingDevice.load('user');
+                    if (!newEmittingDevice.user) {
+                        throw new Error(
+                            'newEmittingDevice.user should not be empty',
+                        );
+                    }
 
-                if (userIsNotTheNewDeviceOwner) {
-                    throw new Error(
-                        `device: ${newEmittingDeviceID} does not belongs to userID: ${userID}`,
+                    const userIsNotTheNewDeviceOwner =
+                        newEmittingDevice.user.uuid !== userID;
+
+                    if (userIsNotTheNewDeviceOwner) {
+                        throw new Error(
+                            `device: ${newEmittingDeviceID} does not belongs to userID: ${userID}`,
+                        );
+                    }
+                    console.log(
+                        'RECEIVED CHANGE EMITTING DEVICE FORM CLIENT EVERYTHING IS OK',
                     );
+
+                    await MtvRoomsWsController.onChangeEmittingDevice({
+                        deviceID: newEmittingDeviceID,
+                        roomID: mtvRoomID,
+                        userID: userID,
+                    });
+                } catch (err) {
+                    console.error(err);
                 }
-                console.log(
-                    'RECEIVED CHANGE EMITTING DEVICE FORM CLIENT EVERYTHING IS OK',
-                );
+            },
+        );
 
-                await MtvRoomsWsController.onChangeEmittingDevice({
-                    deviceID: newEmittingDeviceID,
-                    roomID: mtvRoomID,
-                    userID: userID,
-                });
-            } catch (err) {
-                console.error(err);
-            }
-        });
-
-        socket.on('SUGGEST_TRACKS', async ({ tracksToSuggest }) => {
+        socket.on('MTV_SUGGEST_TRACKS', async ({ tracksToSuggest }) => {
             try {
                 const {
                     mtvRoomID,
@@ -434,12 +437,12 @@ Ws.io.on('connection', async (socket) => {
                     deviceID,
                 });
             } catch (err) {
-                socket.emit('SUGGEST_TRACKS_FAIL_CALLBACK');
+                socket.emit('MTV_SUGGEST_TRACKS_FAIL_CALLBACK');
                 console.error(err);
             }
         });
 
-        socket.on('VOTE_FOR_TRACK', async ({ trackID }) => {
+        socket.on('MTV_VOTE_FOR_TRACK', async ({ trackID }) => {
             try {
                 if (!trackID) {
                     throw new Error('payload is invalid');
@@ -454,7 +457,7 @@ Ws.io.on('connection', async (socket) => {
 
                 if (mtvRoomID === undefined) {
                     throw new Error(
-                        'VOTE_FOR_TRACK user is not related to any room',
+                        'MTV_VOTE_FOR_TRACK user is not related to any room',
                     );
                 }
 
@@ -468,7 +471,7 @@ Ws.io.on('connection', async (socket) => {
             }
         });
 
-        socket.on('UPDATE_DELEGATION_OWNER', async (payload) => {
+        socket.on('MTV_UPDATE_DELEGATION_OWNER', async (payload) => {
             try {
                 MtvRoomUpdateDelegationOwnerArgs.parse(payload);
 
@@ -481,7 +484,7 @@ Ws.io.on('connection', async (socket) => {
 
                 if (mtvRoomID === undefined) {
                     throw new Error(
-                        'UPDATE_DELEGATION_OWNER user is not related to any room',
+                        'MTV_UPDATE_DELEGATION_OWNER user is not related to any room',
                     );
                 }
 
@@ -496,7 +499,7 @@ Ws.io.on('connection', async (socket) => {
         });
 
         socket.on(
-            'UPDATE_CONTROL_AND_DELEGATION_PERMISSION',
+            'MTV_UPDATE_CONTROL_AND_DELEGATION_PERMISSION',
             async (rawPayload) => {
                 try {
                     const {
@@ -513,7 +516,7 @@ Ws.io.on('connection', async (socket) => {
                         );
                     if (mtvRoomID === undefined) {
                         throw new Error(
-                            'UPDATE_CONTROL_AND_DELEGATION_PERMISSION user is not related to any room',
+                            'MTV_UPDATE_CONTROL_AND_DELEGATION_PERMISSION user is not related to any room',
                         );
                     }
 
@@ -540,7 +543,7 @@ Ws.io.on('connection', async (socket) => {
             },
         );
 
-        socket.on('GET_USERS_LIST', async (callback) => {
+        socket.on('MTV_GET_USERS_LIST', async (callback) => {
             try {
                 const {
                     mtvRoomID,
@@ -551,7 +554,7 @@ Ws.io.on('connection', async (socket) => {
 
                 if (mtvRoomID === undefined) {
                     throw new Error(
-                        'UPDATE_DELEGATION_OWNER user is not related to any room',
+                        'MTV_UPDATE_DELEGATION_OWNER user is not related to any room',
                     );
                 }
 
@@ -565,7 +568,7 @@ Ws.io.on('connection', async (socket) => {
             }
         });
 
-        socket.on('CREATOR_INVITE_USER', async (rawPayload) => {
+        socket.on('MTV_CREATOR_INVITE_USER', async (rawPayload) => {
             try {
                 const { invitedUserID } =
                     MtvRoomCreatorInviteUserArgs.parse(rawPayload);
@@ -579,7 +582,7 @@ Ws.io.on('connection', async (socket) => {
 
                 if (mtvRoomID === undefined) {
                     throw new Error(
-                        'CREATOR_INVITE_USER user is not related to any room',
+                        'MTV_CREATOR_INVITE_USER user is not related to any room',
                     );
                 }
 
@@ -593,7 +596,7 @@ Ws.io.on('connection', async (socket) => {
             }
         });
 
-        socket.on('GET_ROOM_CONSTRAINTS_DETAILS', async (callback) => {
+        socket.on('MTV_GET_ROOM_CONSTRAINTS_DETAILS', async (callback) => {
             try {
                 const { mtvRoomID } =
                     await SocketLifecycle.getSocketConnectionCredentials(

@@ -318,7 +318,7 @@ export default class SocketLifecycle {
     public static async ownerLeavesRoom(ownedRoom: MtvRoom): Promise<void> {
         await ownedRoom.delete();
 
-        Ws.io.in(ownedRoom.uuid).emit('FORCED_DISCONNECTION');
+        Ws.io.in(ownedRoom.uuid).emit('MTV_FORCED_DISCONNECTION');
         await this.deleteSocketIoRoom(ownedRoom.uuid);
 
         try {

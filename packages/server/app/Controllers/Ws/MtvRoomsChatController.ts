@@ -41,7 +41,7 @@ export default class MtvRoomsChatController {
         Ws.io
             .in(mtvRoomID)
             .except(socket.id)
-            .emit('RECEIVED_MESSAGE', {
+            .emit('MTV_RECEIVED_MESSAGE', {
                 message: {
                     id: randomUUID(),
                     text: message,

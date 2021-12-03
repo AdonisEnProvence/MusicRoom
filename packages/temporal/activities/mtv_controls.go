@@ -23,7 +23,7 @@ func PauseActivity(_ context.Context, state shared.MtvRoomExposedState) error {
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/pause/"
+	url := ADONIS_MTV_ENDPOINT + "/pause"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
@@ -37,7 +37,7 @@ func PlayActivity(_ context.Context, state shared.MtvRoomExposedState) error {
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/play"
+	url := ADONIS_MTV_ENDPOINT + "/play"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
@@ -49,7 +49,7 @@ func CreationAcknowledgementActivity(_ context.Context, state shared.MtvRoomExpo
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/mtv-creation-acknowledgement"
+	url := ADONIS_MTV_ENDPOINT + "/mtv-creation-acknowledgement"
 
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
@@ -64,7 +64,7 @@ func UserLengthUpdateActivity(ctx context.Context, state shared.MtvRoomExposedSt
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/user-length-update"
+	url := ADONIS_MTV_ENDPOINT + "/user-length-update"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
@@ -83,7 +83,7 @@ func JoinActivity(ctx context.Context, args MtvJoinCallbackRequestBody) error {
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/join"
+	url := ADONIS_MTV_ENDPOINT + "/join"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
@@ -105,7 +105,7 @@ func LeaveActivity(ctx context.Context, args AcknowledgeLeaveRoomRequestBody) er
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/leave"
+	url := ADONIS_MTV_ENDPOINT + "/leave"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
@@ -119,7 +119,7 @@ func UserVoteForTrackAcknowledgement(ctx context.Context, state shared.MtvRoomEx
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/acknowledge-user-vote-for-track"
+	url := ADONIS_MTV_ENDPOINT + "/acknowledge-user-vote-for-track"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
@@ -133,7 +133,7 @@ func ChangeUserEmittingDeviceActivity(ctx context.Context, state shared.MtvRoomE
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/change-user-emitting-device"
+	url := ADONIS_MTV_ENDPOINT + "/change-user-emitting-device"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
@@ -147,7 +147,7 @@ func NotifySuggestOrVoteUpdateActivity(ctx context.Context, state shared.MtvRoom
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/suggest-or-vote-update"
+	url := ADONIS_MTV_ENDPOINT + "/suggest-or-vote-update"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
@@ -166,7 +166,7 @@ func AcknowledgeTracksSuggestion(ctx context.Context, args AcknowledgeTracksSugg
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/acknowledge-tracks-suggestion"
+	url := ADONIS_MTV_ENDPOINT + "/acknowledge-tracks-suggestion"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
@@ -184,7 +184,7 @@ func AcknowledgeTracksSuggestionFail(ctx context.Context, args AcknowledgeTracks
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/acknowledge-tracks-suggestion-fail"
+	url := ADONIS_MTV_ENDPOINT + "/acknowledge-tracks-suggestion-fail"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
@@ -198,7 +198,7 @@ func AcknowledgeUpdateUserFitsPositionConstraint(ctx context.Context, state shar
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/acknowledge-update-user-fits-position-constraint"
+	url := ADONIS_MTV_ENDPOINT + "/acknowledge-update-user-fits-position-constraint"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
@@ -212,7 +212,7 @@ func AcknowledgeUpdateDelegationOwner(ctx context.Context, state shared.MtvRoomE
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/acknowledge-update-delegation-owner"
+	url := ADONIS_MTV_ENDPOINT + "/acknowledge-update-delegation-owner"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
@@ -226,7 +226,7 @@ func AcknowledgeUpdateControlAndDelegationPermission(ctx context.Context, state 
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/acknowledge-update-control-and-delegation-permission"
+	url := ADONIS_MTV_ENDPOINT + "/acknowledge-update-control-and-delegation-permission"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
@@ -240,7 +240,7 @@ func AcknowledgeUpdateTimeConstraint(ctx context.Context, state shared.MtvRoomEx
 		return err
 	}
 
-	url := ADONIS_ENDPOINT + "/temporal/acknowledge-update-time-constraint"
+	url := ADONIS_MTV_ENDPOINT + "/acknowledge-update-time-constraint"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err

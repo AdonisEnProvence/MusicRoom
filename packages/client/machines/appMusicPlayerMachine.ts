@@ -183,14 +183,14 @@ export const createAppMusicPlayerMachine = ({
                         sendBack: Sender<AppMusicPlayerMachineEvent>,
                         onReceive: Receiver<AppMusicPlayerMachineEvent>,
                     ) => {
-                        socket.on('RETRIEVE_CONTEXT', (state) => {
+                        socket.on('MTV_RETRIEVE_CONTEXT', (state) => {
                             sendBack({
                                 type: 'RETRIEVE_CONTEXT',
                                 state,
                             });
                         });
 
-                        socket.on('USER_LENGTH_UPDATE', (state) => {
+                        socket.on('MTV_USER_LENGTH_UPDATE', (state) => {
                             console.log('USER_LENGTH_UPDATE');
                             sendBack({
                                 type: 'USER_LENGTH_UPDATE',
@@ -198,15 +198,18 @@ export const createAppMusicPlayerMachine = ({
                             });
                         });
 
-                        socket.on('CREATE_ROOM_SYNCHED_CALLBACK', (state) => {
-                            sendBack({
-                                type: 'JOINED_CREATED_ROOM',
-                                state,
-                            });
-                        });
+                        socket.on(
+                            'MTV_CREATE_ROOM_SYNCHED_CALLBACK',
+                            (state) => {
+                                sendBack({
+                                    type: 'JOINED_CREATED_ROOM',
+                                    state,
+                                });
+                            },
+                        );
 
                         socket.on(
-                            'CHANGE_EMITTING_DEVICE_CALLBACK',
+                            'MTV_CHANGE_EMITTING_DEVICE_CALLBACK',
                             (state) => {
                                 sendBack({
                                     type: 'CHANGE_EMITTING_DEVICE_CALLBACK',
@@ -215,28 +218,28 @@ export const createAppMusicPlayerMachine = ({
                             },
                         );
 
-                        socket.on('CREATE_ROOM_CALLBACK', (state) => {
+                        socket.on('MTV_CREATE_ROOM_CALLBACK', (state) => {
                             sendBack({
                                 type: 'ROOM_IS_READY',
                                 state,
                             });
                         });
 
-                        socket.on('JOIN_ROOM_CALLBACK', (state) => {
+                        socket.on('MTV_JOIN_ROOM_CALLBACK', (state) => {
                             sendBack({
                                 type: 'JOINED_ROOM',
                                 state,
                             });
                         });
 
-                        socket.on('ACTION_PLAY_CALLBACK', (state) => {
+                        socket.on('MTV_ACTION_PLAY_CALLBACK', (state) => {
                             sendBack({
                                 type: 'PLAY_CALLBACK',
                                 state,
                             });
                         });
 
-                        socket.on('ACTION_PAUSE_CALLBACK', (state) => {
+                        socket.on('MTV_ACTION_PAUSE_CALLBACK', (state) => {
                             sendBack({
                                 type: 'PAUSE_CALLBACK',
                                 state,
@@ -244,7 +247,7 @@ export const createAppMusicPlayerMachine = ({
                         });
 
                         socket.on(
-                            'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
+                            'MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
                             (state) => {
                                 sendBack({
                                     type: 'VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
@@ -253,38 +256,41 @@ export const createAppMusicPlayerMachine = ({
                             },
                         );
 
-                        socket.on('USER_PERMISSIONS_UPDATE', (state) => {
+                        socket.on('MTV_USER_PERMISSIONS_UPDATE', (state) => {
                             sendBack({
                                 type: 'USER_PERMISSIONS_UPDATE',
                                 state,
                             });
                         });
 
-                        socket.on('VOTE_OR_SUGGEST_TRACK_CALLBACK', (state) => {
-                            console.log(
-                                'RECEIVED VOTE FOR TRACK CALLBACK',
-                                state,
-                            );
-                            sendBack({
-                                type: 'VOTE_OR_SUGGEST_TRACK_CALLBACK',
-                                state,
-                            });
-                        });
+                        socket.on(
+                            'MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK',
+                            (state) => {
+                                console.log(
+                                    'RECEIVED VOTE FOR TRACK CALLBACK',
+                                    state,
+                                );
+                                sendBack({
+                                    type: 'VOTE_OR_SUGGEST_TRACK_CALLBACK',
+                                    state,
+                                });
+                            },
+                        );
 
-                        socket.on('SUGGEST_TRACKS_CALLBACK', () => {
+                        socket.on('MTV_SUGGEST_TRACKS_CALLBACK', () => {
                             sendBack({
                                 type: 'SUGGEST_TRACKS_CALLBACK',
                             });
                         });
 
-                        socket.on('SUGGEST_TRACKS_FAIL_CALLBACK', () => {
+                        socket.on('MTV_SUGGEST_TRACKS_FAIL_CALLBACK', () => {
                             sendBack({
                                 type: 'SUGGEST_TRACKS_FAIL_CALLBACK',
                             });
                         });
 
                         socket.on(
-                            'UPDATE_DELEGATION_OWNER_CALLBACK',
+                            'MTV_UPDATE_DELEGATION_OWNER_CALLBACK',
                             (state) => {
                                 sendBack({
                                     type: 'UPDATE_DELEGATION_OWNER_CALLBACK',
@@ -293,27 +299,27 @@ export const createAppMusicPlayerMachine = ({
                             },
                         );
 
-                        socket.on('RECEIVED_MESSAGE', ({ message }) => {
+                        socket.on('MTV_RECEIVED_MESSAGE', ({ message }) => {
                             sendBack({
                                 type: 'RECEIVED_CHAT_MESSAGE',
                                 message,
                             });
                         });
 
-                        socket.on('FORCED_DISCONNECTION', () => {
+                        socket.on('MTV_FORCED_DISCONNECTION', () => {
                             sendBack({
                                 type: 'FORCED_DISCONNECTION',
                             });
                         });
 
-                        socket.on('TIME_CONSTRAINT_UPDATE', (state) => {
+                        socket.on('MTV_TIME_CONSTRAINT_UPDATE', (state) => {
                             sendBack({
                                 type: 'TIME_CONSTRAINT_UPDATE',
                                 state,
                             });
                         });
 
-                        socket.on('LEAVE_ROOM_CALLBACK', () => {
+                        socket.on('MTV_LEAVE_ROOM_CALLBACK', () => {
                             sendBack({
                                 type: 'LEAVE_ROOM_CALLBACK',
                             });
@@ -322,19 +328,19 @@ export const createAppMusicPlayerMachine = ({
                         onReceive((event) => {
                             switch (event.type) {
                                 case 'EMIT_ACTION_PLAY': {
-                                    socket.emit('ACTION_PLAY');
+                                    socket.emit('MTV_ACTION_PLAY');
 
                                     break;
                                 }
 
                                 case 'EMIT_ACTION_PAUSE': {
-                                    socket.emit('ACTION_PAUSE');
+                                    socket.emit('MTV_ACTION_PAUSE');
 
                                     break;
                                 }
 
                                 case 'GO_TO_NEXT_TRACK': {
-                                    socket.emit('GO_TO_NEXT_TRACK');
+                                    socket.emit('MTV_GO_TO_NEXT_TRACK');
 
                                     break;
                                 }
@@ -342,7 +348,7 @@ export const createAppMusicPlayerMachine = ({
                                 case 'UPDATE_DELEGATION_OWNER': {
                                     const { newDelegationOwnerUserID } = event;
 
-                                    socket.emit('UPDATE_DELEGATION_OWNER', {
+                                    socket.emit('MTV_UPDATE_DELEGATION_OWNER', {
                                         newDelegationOwnerUserID,
                                     });
 
@@ -350,13 +356,13 @@ export const createAppMusicPlayerMachine = ({
                                 }
 
                                 case 'LEAVE_ROOM': {
-                                    socket.emit('LEAVE_ROOM');
+                                    socket.emit('MTV_LEAVE_ROOM');
 
                                     break;
                                 }
 
                                 case 'CHANGE_EMITTING_DEVICE': {
-                                    socket.emit('CHANGE_EMITTING_DEVICE', {
+                                    socket.emit('MTV_CHANGE_EMITTING_DEVICE', {
                                         newEmittingDeviceID: event.deviceID,
                                     });
 
@@ -367,7 +373,7 @@ export const createAppMusicPlayerMachine = ({
                                     const tracksToSuggest =
                                         event.tracksToSuggest;
 
-                                    socket.emit('SUGGEST_TRACKS', {
+                                    socket.emit('MTV_SUGGEST_TRACKS', {
                                         tracksToSuggest,
                                     });
 
@@ -375,7 +381,7 @@ export const createAppMusicPlayerMachine = ({
                                 }
 
                                 case 'VOTE_FOR_TRACK': {
-                                    socket.emit('VOTE_FOR_TRACK', {
+                                    socket.emit('MTV_VOTE_FOR_TRACK', {
                                         trackID: event.trackID,
                                     });
 
@@ -389,7 +395,7 @@ export const createAppMusicPlayerMachine = ({
                                     } = event;
 
                                     socket.emit(
-                                        'UPDATE_CONTROL_AND_DELEGATION_PERMISSION',
+                                        'MTV_UPDATE_CONTROL_AND_DELEGATION_PERMISSION',
                                         {
                                             toUpdateUserID,
                                             hasControlAndDelegationPermission,
@@ -400,7 +406,7 @@ export const createAppMusicPlayerMachine = ({
                                 }
 
                                 case 'SEND_CHAT_MESSAGE': {
-                                    socket.emit('NEW_MESSAGE', {
+                                    socket.emit('MTV_NEW_MESSAGE', {
                                         message: event.message,
                                     });
 
@@ -410,7 +416,7 @@ export const createAppMusicPlayerMachine = ({
                                 case 'CREATOR_INVITE_USER': {
                                     const { invitedUserID } = event;
 
-                                    socket.emit('CREATOR_INVITE_USER', {
+                                    socket.emit('MTV_CREATOR_INVITE_USER', {
                                         invitedUserID,
                                     });
 
@@ -419,7 +425,7 @@ export const createAppMusicPlayerMachine = ({
 
                                 case 'GET_ROOM_CONSTRAINTS_DETAILS': {
                                     socket.emit(
-                                        'GET_ROOM_CONSTRAINTS_DETAILS',
+                                        'MTV_GET_ROOM_CONSTRAINTS_DETAILS',
                                         (args) => {
                                             sendBack({
                                                 type: 'GET_ROOM_CONSTRAINTS_DETAILS_CALLBACK',
@@ -467,7 +473,7 @@ export const createAppMusicPlayerMachine = ({
                                      * Looking for other sessions context
                                      * e.g already joined room etc etc
                                      */
-                                    socket.emit('GET_CONTEXT');
+                                    socket.emit('MTV_GET_CONTEXT');
                                 },
                             },
                         },
@@ -610,7 +616,10 @@ export const createAppMusicPlayerMachine = ({
                                                             : undefined,
                                                 };
 
-                                            socket.emit('CREATE_ROOM', payload);
+                                            socket.emit(
+                                                'MTV_CREATE_ROOM',
+                                                payload,
+                                            );
                                         },
                                     },
 
@@ -656,7 +665,7 @@ export const createAppMusicPlayerMachine = ({
                                         );
                                     }
 
-                                    socket.emit('JOIN_ROOM', {
+                                    socket.emit('MTV_JOIN_ROOM', {
                                         roomID: event.roomID,
                                     });
                                 },

@@ -15,6 +15,7 @@ import { MpeTabMpeRoomScreenProps } from '../types';
 import { useMusicPlaylistsActor } from '../hooks/useMusicPlaylistsActor';
 import { MusicPlaylist } from '../machines/appMusicPlaylistsMachine';
 import TrackListItem from '../components/Track/TrackListItem';
+import { PlaylistActorRef } from '../machines/playlistMachine';
 
 interface MusicPlaylistEditorRoomScreenProps extends MpeTabMpeRoomScreenProps {
     playlist: MusicPlaylist;
@@ -51,19 +52,23 @@ const AddTrackButton: React.FC<AddTrackButtonProps> = ({
     );
 };
 
-interface TrackItemActionsProps {
+interface TrackListItemActionsProps {
     disabled: boolean;
+    disabledMoveUp: boolean;
+    disabledMoveDown: boolean;
     onUpPress: () => void;
     onDownPress: () => void;
     onDotsPress: () => void;
 }
 
-const TrackItemActions = ({
+const TrackListItemActions = ({
     disabled,
+    disabledMoveUp,
+    disabledMoveDown,
     onUpPress,
     onDownPress,
     onDotsPress,
-}: TrackItemActionsProps) => {
+}: TrackListItemActionsProps) => {
     const sx = useSx();
 
     return (
@@ -76,7 +81,7 @@ const TrackItemActions = ({
                 }}
             >
                 <TouchableOpacity
-                    disabled={disabled}
+                    disabled={disabled || disabledMoveUp}
                     style={sx({
                         backgroundColor: 'greyLighter',
                         padding: 's',
@@ -91,7 +96,7 @@ const TrackItemActions = ({
                 <View sx={{ width: 1, backgroundColor: 'white' }} />
 
                 <TouchableOpacity
-                    disabled={disabled}
+                    disabled={disabled || disabledMoveDown}
                     style={sx({
                         backgroundColor: 'greyLighter',
                         padding: 's',
@@ -114,6 +119,48 @@ const TrackItemActions = ({
                 <Ionicons name="ellipsis-horizontal" color="white" size={18} />
             </TouchableOpacity>
         </View>
+    );
+};
+
+interface TrackListItemWrapperProps {
+    playlistRef: PlaylistActorRef;
+    shouldFreezeUi: boolean;
+    id: string;
+    onUpPress: () => void;
+    onDownPress: () => void;
+    onDotsPress: () => void;
+}
+
+const TrackListItemWrapper: React.FC<TrackListItemWrapperProps> = ({
+    playlistRef,
+    shouldFreezeUi,
+    id,
+    onUpPress,
+    onDownPress,
+    onDotsPress,
+}) => {
+    const canMoveUp = useSelector(playlistRef, (state) =>
+        state.can({
+            type: 'MOVE_UP_TRACK',
+            trackID: id,
+        }),
+    );
+    const canMoveDown = useSelector(playlistRef, (state) =>
+        state.can({
+            type: 'MOVE_DOWN_TRACK',
+            trackID: id,
+        }),
+    );
+
+    return (
+        <TrackListItemActions
+            disabled={shouldFreezeUi}
+            disabledMoveUp={canMoveUp === false}
+            disabledMoveDown={canMoveDown === false}
+            onUpPress={onUpPress}
+            onDownPress={onDownPress}
+            onDotsPress={onDotsPress}
+        />
     );
 };
 
@@ -205,10 +252,14 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                                             artistName={artistName}
                                             Actions={() => {
                                                 return (
-                                                    <TrackItemActions
-                                                        disabled={
+                                                    <TrackListItemWrapper
+                                                        playlistRef={
+                                                            playlistRef
+                                                        }
+                                                        shouldFreezeUi={
                                                             shouldFreezeUi
                                                         }
+                                                        id={id}
                                                         onUpPress={handleUpPress(
                                                             id,
                                                         )}

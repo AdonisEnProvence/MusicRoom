@@ -24,4 +24,11 @@ test('Create static MPE room and have it listed in MPE Rooms List', async () => 
 
     const mpeRoomListItem = await screen.findByText(/^mpe (?<RoomName>.*)$/i);
     expect(mpeRoomListItem).toBeTruthy();
+
+    fireEvent.press(mpeRoomListItem);
+
+    await waitFor(() => {
+        const playlistTitle = screen.getByText(/^playlist (?<PlaylistID>.*)$/i);
+        expect(playlistTitle).toBeTruthy();
+    });
 });

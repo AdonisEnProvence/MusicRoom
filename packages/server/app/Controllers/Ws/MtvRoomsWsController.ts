@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import {
-    CreateWorkflowResponse,
+    MtvCreateWorkflowResponse,
     MtvRoomClientToServerCreateArgs,
     MtvRoomGetRoomConstraintDetailsCallbackArgs,
     MtvRoomSummary,
@@ -117,7 +117,7 @@ export default class MtvRoomsWsController {
         params,
         user,
         deviceID,
-    }: OnCreateArgs): Promise<CreateWorkflowResponse> {
+    }: OnCreateArgs): Promise<MtvCreateWorkflowResponse> {
         let physicalAndTimeConstraintsWithCoords:
             | MtvRoomPhysicalAndTimeConstraintsWithCoords
             | undefined;

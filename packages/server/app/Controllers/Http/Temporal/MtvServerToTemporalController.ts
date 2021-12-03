@@ -1,6 +1,6 @@
 import Env from '@ioc:Adonis/Core/Env';
 import {
-    CreateWorkflowResponse,
+    MtvCreateWorkflowResponse,
     LatlngCoords,
     MtvRoomClientToServerCreateArgs,
     MtvRoomGetRoomConstraintDetailsCallbackArgs,
@@ -8,7 +8,7 @@ import {
     MtvRoomUpdateControlAndDelegationPermissionArgs,
     MtvRoomUpdateDelegationOwnerArgs,
     MtvWorkflowState,
-    TemporalGetStateQueryResponse,
+    MtvTemporalGetStateQueryResponse,
 } from '@musicroom/types';
 import got from 'got';
 import urlcat from 'urlcat';
@@ -119,7 +119,7 @@ export default class MtvServerToTemporalController {
         userID,
         deviceID,
         params,
-    }: TemporalCreateMtvWorkflowArgs): Promise<CreateWorkflowResponse> {
+    }: TemporalCreateMtvWorkflowArgs): Promise<MtvCreateWorkflowResponse> {
         const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/create');
         const body: TemporalCreateMtvWorkflowBody = {
             workflowID,
@@ -128,7 +128,7 @@ export default class MtvServerToTemporalController {
             ...params,
         };
 
-        return CreateWorkflowResponse.parse(
+        return MtvCreateWorkflowResponse.parse(
             await got
                 .put(url, {
                     json: body,
@@ -265,7 +265,7 @@ export default class MtvServerToTemporalController {
     public static async getUsersList({
         workflowID,
         runID,
-    }: TemporalMtvGetStateArgs): Promise<TemporalGetStateQueryResponse> {
+    }: TemporalMtvGetStateArgs): Promise<MtvTemporalGetStateQueryResponse> {
         try {
             const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/users-list');
 
@@ -278,7 +278,7 @@ export default class MtvServerToTemporalController {
                 })
                 .json();
 
-            return TemporalGetStateQueryResponse.parse(res);
+            return MtvTemporalGetStateQueryResponse.parse(res);
         } catch (e) {
             console.error(e);
             throw new Error('Get Users list FAILED' + workflowID);

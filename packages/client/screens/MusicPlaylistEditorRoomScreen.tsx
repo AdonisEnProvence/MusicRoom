@@ -141,13 +141,19 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
 
         function handleUpPress(trackID: string) {
             return () => {
-                return undefined;
+                playlistRef.send({
+                    type: 'MOVE_UP_TRACK',
+                    trackID,
+                });
             };
         }
 
         function handleDownPress(trackID: string) {
             return () => {
-                return undefined;
+                playlistRef.send({
+                    type: 'MOVE_DOWN_TRACK',
+                    trackID,
+                });
             };
         }
 

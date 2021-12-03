@@ -21,14 +21,19 @@ interface MusicPlaylistEditorRoomScreenProps extends MpeTabMpeRoomScreenProps {
 }
 
 interface AddTrackButtonProps {
+    disabled: boolean;
     onPress: () => void;
 }
 
-const AddTrackButton: React.FC<AddTrackButtonProps> = ({ onPress }) => {
+const AddTrackButton: React.FC<AddTrackButtonProps> = ({
+    disabled,
+    onPress,
+}) => {
     const sx = useSx();
 
     return (
         <TouchableOpacity
+            disabled={disabled}
             style={sx({
                 flexShrink: 0,
                 backgroundColor: 'greyLight',
@@ -46,7 +51,19 @@ const AddTrackButton: React.FC<AddTrackButtonProps> = ({ onPress }) => {
     );
 };
 
-const TrackItemActions = () => {
+interface TrackItemActionsProps {
+    disabled: boolean;
+    onUpPress: () => void;
+    onDownPress: () => void;
+    onDotsPress: () => void;
+}
+
+const TrackItemActions = ({
+    disabled,
+    onUpPress,
+    onDownPress,
+    onDotsPress,
+}: TrackItemActionsProps) => {
     const sx = useSx();
 
     return (
@@ -59,12 +76,14 @@ const TrackItemActions = () => {
                 }}
             >
                 <TouchableOpacity
+                    disabled={disabled}
                     style={sx({
                         backgroundColor: 'greyLighter',
                         padding: 's',
                         borderTopLeftRadius: 's',
                         borderBottomLeftRadius: 's',
                     })}
+                    onPress={onUpPress}
                 >
                     <Ionicons name="chevron-up" color="white" size={18} />
                 </TouchableOpacity>
@@ -72,21 +91,25 @@ const TrackItemActions = () => {
                 <View sx={{ width: 1, backgroundColor: 'white' }} />
 
                 <TouchableOpacity
+                    disabled={disabled}
                     style={sx({
                         backgroundColor: 'greyLighter',
                         padding: 's',
                         borderTopRightRadius: 's',
                         borderBottomRightRadius: 's',
                     })}
+                    onPress={onDownPress}
                 >
                     <Ionicons name="chevron-down" color="white" size={18} />
                 </TouchableOpacity>
             </View>
 
             <TouchableOpacity
+                disabled={disabled}
                 style={sx({
                     padding: 's',
                 })}
+                onPress={onDotsPress}
             >
                 <Ionicons name="ellipsis-horizontal" color="white" size={18} />
             </TouchableOpacity>
@@ -116,6 +139,24 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             });
         }
 
+        function handleUpPress(trackID: string) {
+            return () => {
+                return undefined;
+            };
+        }
+
+        function handleDownPress(trackID: string) {
+            return () => {
+                return undefined;
+            };
+        }
+
+        function handleDotsPress(trackID: string) {
+            return () => {
+                return undefined;
+            };
+        }
+
         return (
             <AppScreen>
                 <AppScreenHeader
@@ -134,7 +175,10 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                             data={tracks}
                             ListHeaderComponent={() => {
                                 return (
-                                    <AddTrackButton onPress={handleAddTrack} />
+                                    <AddTrackButton
+                                        disabled={shouldFreezeUi}
+                                        onPress={handleAddTrack}
+                                    />
                                 );
                             }}
                             keyExtractor={({ id }) => id}
@@ -153,7 +197,24 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                                             title={title}
                                             trackID={id}
                                             artistName={artistName}
-                                            Actions={TrackItemActions}
+                                            Actions={() => {
+                                                return (
+                                                    <TrackItemActions
+                                                        disabled={
+                                                            shouldFreezeUi
+                                                        }
+                                                        onUpPress={handleUpPress(
+                                                            id,
+                                                        )}
+                                                        onDownPress={handleDownPress(
+                                                            id,
+                                                        )}
+                                                        onDotsPress={handleDotsPress(
+                                                            id,
+                                                        )}
+                                                    />
+                                                );
+                                            }}
                                         />
                                     </View>
                                 );

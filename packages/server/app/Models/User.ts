@@ -7,10 +7,13 @@ import {
     column,
     HasMany,
     hasMany,
+    ManyToMany,
+    manyToMany,
 } from '@ioc:Adonis/Lucid/Orm';
 import { DateTime } from 'luxon';
 import Device from './Device';
 import MtvRoom from './MtvRoom';
+import MpeRoom from './MpeRoom';
 
 export default class User extends BaseModel {
     @column({ isPrimary: true })
@@ -31,6 +34,18 @@ export default class User extends BaseModel {
         foreignKey: 'userID',
     })
     public devices: HasMany<typeof Device>;
+
+    //Members relationship
+    @manyToMany(() => MpeRoom, {
+        localKey: 'uuid',
+        relatedKey: 'uuid',
+
+        pivotTable: 'users_mpe_rooms',
+        pivotForeignKey: 'user_uuid',
+        pivotRelatedForeignKey: 'mpe_room_uuid',
+    })
+    public mpeRooms: ManyToMany<typeof MpeRoom>;
+    ///
 
     @column.dateTime({ autoCreate: true })
     public createdAt: DateTime;

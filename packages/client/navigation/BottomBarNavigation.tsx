@@ -17,10 +17,13 @@ import TheMusicPlayer from '../components/TheMusicPlayer';
 import { tabStyle } from '../constants/Colors';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import HomeScreen from '../screens/HomeScreen';
+import MusicPlaylistEditorListScreen from '../screens/MusicPlaylistEditorListScreen';
+import MusicPlaylistEditorRoomScreen from '../screens/MusicPlaylistEditorRoomScreen';
 import SearchTrackScreen from '../screens/SearchTrackScreen';
 import {
     BottomTabNavigatorParamList,
     HomeParamsList,
+    LibraryParamsList,
     SearchTracksParamsList,
 } from '../types';
 
@@ -29,7 +32,7 @@ const Tab = createBottomTabNavigator<BottomTabNavigatorParamList>();
 /**
  * See https://reactnavigation.org/docs/bottom-tab-navigator#tabbar.
  */
-const MyTabBar: React.FC<BottomTabBarProps> = ({
+const TabBar: React.FC<BottomTabBarProps> = ({
     state,
     descriptors,
     navigation,
@@ -162,23 +165,34 @@ const BottomTab: React.FC = () => {
         <Tab.Navigator
             initialRouteName="Home"
             tabBarOptions={{ ...style }}
-            tabBar={(props) => <MyTabBar {...props} />}
+            tabBar={(props) => <TabBar {...props} />}
         >
             <Tab.Screen
                 name="Home"
-                component={TabOneNavigator}
+                component={TabHomeNavigator}
                 options={{
                     tabBarIcon: (props) => (
                         <TabBarIcon name="home" {...props} />
                     ),
                 }}
             />
+
             <Tab.Screen
                 name="Search"
-                component={TabTwoNavigator}
+                component={TabSearchNavigator}
                 options={{
                     tabBarIcon: (props) => (
                         <TabBarIcon name="search" {...props} />
+                    ),
+                }}
+            />
+
+            <Tab.Screen
+                name="Library"
+                component={TabLibraryNavigator}
+                options={{
+                    tabBarIcon: (props) => (
+                        <TabBarIcon name="library" {...props} />
                     ),
                 }}
             />
@@ -198,31 +212,51 @@ function TabBarIcon(props: {
 
 // Each tab has its own navigation stack, you can read more about this pattern here:
 // https://reactnavigation.org/docs/tab-based-navigation#a-stack-navigator-for-each-tab
-const TabOneStack = createStackNavigator<HomeParamsList>();
+const TabHomeStack = createStackNavigator<HomeParamsList>();
 
-const TabOneNavigator: React.FC = () => {
+const TabHomeNavigator: React.FC = () => {
     return (
-        <TabOneStack.Navigator headerMode={'screen'}>
-            <TabOneStack.Screen
+        <TabHomeStack.Navigator headerMode="screen">
+            <TabHomeStack.Screen
                 name="HomeScreen"
                 component={HomeScreen}
                 options={{ headerTitle: 'Home', headerShown: false }}
             />
-        </TabOneStack.Navigator>
+        </TabHomeStack.Navigator>
     );
 };
 
-const TabTwoStack = createStackNavigator<SearchTracksParamsList>();
+const TabSearchStack = createStackNavigator<SearchTracksParamsList>();
 
-const TabTwoNavigator: React.FC = () => {
+const TabSearchNavigator: React.FC = () => {
     return (
-        <TabTwoStack.Navigator headerMode={'none'}>
-            <TabTwoStack.Screen
+        <TabSearchStack.Navigator headerMode="none">
+            <TabSearchStack.Screen
                 name="SearchTracks"
                 component={SearchTrackScreen}
                 options={{ headerTitle: 'Search', headerShown: false }}
             />
-        </TabTwoStack.Navigator>
+        </TabSearchStack.Navigator>
+    );
+};
+
+const TabLibraryStack = createStackNavigator<LibraryParamsList>();
+
+const TabLibraryNavigator: React.FC = () => {
+    return (
+        <TabLibraryStack.Navigator headerMode="none">
+            <TabLibraryStack.Screen
+                name="MpeRooms"
+                component={MusicPlaylistEditorListScreen}
+                options={{ headerTitle: 'Library', headerShown: false }}
+            />
+
+            <TabLibraryStack.Screen
+                name="MpeRoom"
+                component={MusicPlaylistEditorRoomScreen}
+                options={{ headerTitle: 'Library', headerShown: false }}
+            />
+        </TabLibraryStack.Navigator>
     );
 };
 

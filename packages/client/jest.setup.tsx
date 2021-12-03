@@ -258,10 +258,29 @@ jest.mock('react-native-screens', () => ({
     enableScreens: jest.fn(),
 }));
 
-jest.mock('react-native-toast-message', () => ({
-    show: jest.fn(),
-    hide: jest.fn(),
-}));
+jest.mock('react-native-toast-message', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const React = require('react');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { View } = require('react-native');
+
+    const Toast = React.forwardRef((props: unknown, _ref: unknown) => {
+        return <View {...props} />;
+    });
+
+    function noop() {
+        return undefined;
+    }
+
+    Toast.setRef = noop;
+    Toast.show = jest.fn();
+    Toast.hide = jest.fn();
+
+    return {
+        __esModule: true,
+        default: Toast,
+    };
+});
 
 //Location mock//
 jest.mock('expo-location', () => {

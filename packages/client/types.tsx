@@ -24,6 +24,7 @@ export type NavigateFromRefRoutes = keyof NavigateFromRefParams;
 export type BottomTabNavigatorParamList = {
     Home: NavigatorScreenParams<HomeParamsList>;
     Search: NavigatorScreenParams<SearchTracksParamsList>;
+    Library: NavigatorScreenParams<LibraryParamsList>;
 };
 
 export type HomeParamsList = {
@@ -33,6 +34,11 @@ export type HomeParamsList = {
 export type SearchTracksParamsList = {
     SearchTracks: undefined;
     SearchTrackResults: SearchTracksResultsParams;
+};
+
+export type LibraryParamsList = {
+    MpeRooms: undefined;
+    MpeRoom: MpeRoomParams;
 };
 
 export type RootStackParamList = {
@@ -104,6 +110,10 @@ interface UserProfileParams {
 }
 interface SearchTracksResultsParams {
     tracks?: TrackMetadata[];
+}
+
+interface MpeRoomParams {
+    id: string;
 }
 
 /**
@@ -331,4 +341,32 @@ export type SearchTabSearchTracksScreenProps = {
         >
     >;
     route: RouteProp<SearchTracksParamsList, 'SearchTracks'>;
+};
+
+export type MpeTabMpeRoomsScreenProps = {
+    navigation: CompositeNavigationProp<
+        CompositeNavigationProp<
+            StackNavigationProp<RootStackParamList, 'Main'>,
+            StackNavigationProp<MainStackParamList, 'Root'>
+        >,
+        CompositeNavigationProp<
+            BottomTabNavigationProp<BottomTabNavigatorParamList, 'Library'>,
+            StackNavigationProp<LibraryParamsList, 'MpeRooms'>
+        >
+    >;
+    route: RouteProp<LibraryParamsList, 'MpeRooms'>;
+};
+
+export type MpeTabMpeRoomScreenProps = {
+    navigation: CompositeNavigationProp<
+        CompositeNavigationProp<
+            StackNavigationProp<RootStackParamList, 'Main'>,
+            StackNavigationProp<MainStackParamList, 'Root'>
+        >,
+        CompositeNavigationProp<
+            BottomTabNavigationProp<BottomTabNavigatorParamList, 'Library'>,
+            StackNavigationProp<LibraryParamsList, 'MpeRoom'>
+        >
+    >;
+    route: RouteProp<LibraryParamsList, 'MpeRoom'>;
 };

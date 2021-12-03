@@ -1,12 +1,32 @@
 import { ActorRefFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { TrackMetadata } from '@musicroom/types';
 
 const playlistModel = createModel(
-    {},
     {
-        events: {},
+        tracks: [] as TrackMetadata[],
+    },
+    {
+        events: {
+            ADD_TRACK: (track: TrackMetadata) => ({ ...track }),
+        },
         actions: {},
     },
+);
+
+const assignTrackToTracksList = playlistModel.assign(
+    {
+        tracks: ({ tracks }, { id, title, artistName, duration }) => [
+            ...tracks,
+            {
+                id,
+                title,
+                artistName,
+                duration,
+            },
+        ],
+    },
+    'ADD_TRACK',
 );
 
 type PlaylistMachine = ReturnType<typeof playlistModel['createMachine']>;
@@ -21,21 +41,13 @@ export function createPlaylistMachine({
     roomID,
 }: CreatePlaylistMachineArgs): PlaylistMachine {
     return playlistModel.createMachine({
-        initial: 'ping',
+        initial: 'idle',
 
         states: {
-            ping: {
-                after: {
-                    1000: {
-                        target: 'pong',
-                    },
-                },
-            },
-
-            pong: {
-                after: {
-                    1000: {
-                        target: 'ping',
+            idle: {
+                on: {
+                    ADD_TRACK: {
+                        actions: assignTrackToTracksList,
                     },
                 },
             },

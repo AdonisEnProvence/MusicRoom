@@ -118,7 +118,7 @@ test.group('Rooms life cycle', (group) => {
 
                 // Simulating Use Local Activity Notify
                 await supertest(BASE_URL)
-                    .post('/temporal/mtv-creation-acknowledgement')
+                    .post('/temporal/mtv/mtv-creation-acknowledgement')
                     .send(state);
 
                 return {
@@ -245,7 +245,7 @@ test.group('Rooms life cycle', (group) => {
                     tracksVotedFor: [],
                 };
                 await supertest(BASE_URL)
-                    .post('/temporal/join')
+                    .post('/temporal/mtv/join')
                     .send({ state, joiningUserID: userB.userID });
                 return;
             });

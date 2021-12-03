@@ -104,7 +104,7 @@ test.group(
                     };
 
                     await supertest(BASE_URL)
-                        .post('/temporal/user-length-update')
+                        .post('/temporal/mtv/user-length-update')
                         .send(roomToLeaveState);
                     return;
                 });
@@ -125,7 +125,7 @@ test.group(
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],
                     };
-                    await supertest(BASE_URL).post('/temporal/join').send({
+                    await supertest(BASE_URL).post('/temporal/mtv/join').send({
                         state: roomToJoinState,
                         joiningUserID: relatedUserID,
                     });
@@ -331,7 +331,7 @@ test.group(
                     };
 
                     await supertest(BASE_URL)
-                        .post('/temporal/user-length-update')
+                        .post('/temporal/mtv/user-length-update')
                         .send(roomToLeaveState);
                     return;
                 });
@@ -352,7 +352,7 @@ test.group(
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],
                     };
-                    await supertest(BASE_URL).post('/temporal/join').send({
+                    await supertest(BASE_URL).post('/temporal/mtv/join').send({
                         state: roomToJoinState,
                         joiningUserID: relatedUserID,
                     });
@@ -534,7 +534,7 @@ test.group(
                     };
 
                     await supertest(BASE_URL)
-                        .post('/temporal/user-length-update')
+                        .post('/temporal/mtv/user-length-update')
                         .send(roomToLeaveState);
                     return;
                 });
@@ -581,7 +581,7 @@ test.group(
 
                     // Simulating Use Local Activity Notify
                     await supertest(BASE_URL)
-                        .post('/temporal/mtv-creation-acknowledgement')
+                        .post('/temporal/mtv/mtv-creation-acknowledgement')
                         .send(state);
 
                     return {
@@ -791,7 +791,7 @@ test.group(
                     };
 
                     await supertest(BASE_URL)
-                        .post('/temporal/user-length-update')
+                        .post('/temporal/mtv/user-length-update')
                         .send(state);
                     return;
                 });

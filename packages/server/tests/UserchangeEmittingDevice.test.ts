@@ -74,7 +74,7 @@ test.group(
                     };
 
                     await supertest(BASE_URL)
-                        .post('/temporal/change-user-emitting-device')
+                        .post('/temporal/mtv/change-user-emitting-device')
                         .send(state);
                     return;
                 });
@@ -232,7 +232,7 @@ test.group(
                     };
 
                     await supertest(BASE_URL)
-                        .post('/temporal/change-user-emitting-device')
+                        .post('/temporal/mtv/change-user-emitting-device')
                         .send(state);
                     return;
                 });
@@ -305,7 +305,7 @@ test.group(
                     };
 
                     await supertest(BASE_URL)
-                        .post('/temporal/change-user-emitting-device')
+                        .post('/temporal/mtv/change-user-emitting-device')
                         .send(state);
                     return;
                 });
@@ -379,7 +379,7 @@ test.group(
                     };
 
                     await supertest(BASE_URL)
-                        .post('/temporal/mtv-creation-acknowledgement')
+                        .post('/temporal/mtv/mtv-creation-acknowledgement')
                         .send(state);
 
                     return {
@@ -453,7 +453,7 @@ test.group(
                         usersLength: 1,
                     };
                     await supertest(BASE_URL)
-                        .post('/temporal/join')
+                        .post('/temporal/mtv/join')
                         .send({ state, joiningUserID: userID });
                     return;
                 });

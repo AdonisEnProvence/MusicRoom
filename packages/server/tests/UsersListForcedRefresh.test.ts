@@ -86,7 +86,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
         });
 
         await supertest(BASE_URL)
-            .post('/temporal/user-length-update')
+            .post('/temporal/mtv/user-length-update')
             .send(getBasicState({ userID, roomID }));
 
         await sleep();
@@ -109,7 +109,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
         });
 
         await supertest(BASE_URL)
-            .post('/temporal/acknowledge-update-delegation-owner')
+            .post('/temporal/mtv/acknowledge-update-delegation-owner')
             .send(getBasicState({ userID, roomID }));
 
         await sleep();
@@ -133,7 +133,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
 
         await supertest(BASE_URL)
             .post(
-                '/temporal/acknowledge-update-control-and-delegation-permission',
+                '/temporal/mtv/acknowledge-update-control-and-delegation-permission',
             )
             .send(
                 getBasicState({
@@ -169,7 +169,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
                 withUserRelatedInformation: true,
             }),
         };
-        await supertest(BASE_URL).post('/temporal/leave').send(leaveBody);
+        await supertest(BASE_URL).post('/temporal/mtv/leave').send(leaveBody);
 
         await sleep();
 

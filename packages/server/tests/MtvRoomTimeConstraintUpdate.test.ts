@@ -70,7 +70,7 @@ test.group(`Mtv room time constraint test group`, (group) => {
         });
 
         await supertest(BASE_URL)
-            .post('/temporal/acknowledge-update-time-constraint')
+            .post('/temporal/mtv/acknowledge-update-time-constraint')
             .send(state);
 
         await waitFor(() => {

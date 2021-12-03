@@ -71,13 +71,13 @@ test.group(`User service socket handler tests`, (group) => {
                     };
 
                 await supertest(BASE_URL)
-                    .post('/temporal/acknowledge-user-vote-for-track')
+                    .post('/temporal/mtv/acknowledge-user-vote-for-track')
                     .send({
                         ...stateWithUserRelatedInformations,
                     });
 
                 await supertest(BASE_URL)
-                    .post('/temporal/suggest-or-vote-update')
+                    .post('/temporal/mtv/suggest-or-vote-update')
                     .send({
                         ...state,
                     });

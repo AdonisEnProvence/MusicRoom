@@ -292,13 +292,13 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                 if (state === undefined) throw new Error('State is undefined');
                 state.usersLength++;
                 await supertest(BASE_URL)
-                    .post('/temporal/user-length-update')
+                    .post('/temporal/mtv/user-length-update')
                     .send({
                         ...state,
                         userRelatedInformation: null,
                     });
                 await supertest(BASE_URL)
-                    .post('/temporal/join')
+                    .post('/temporal/mtv/join')
                     .send({ state, joiningUserID: userID });
                 return;
             });

@@ -34,80 +34,70 @@ Route.get('/proxy-places-api/*', 'PlacesApisController.proxyPlacesAPIRequest');
 
 const MTV_TEMPORAL_LISTENER = `/temporal/mtv`;
 
-Route.post(
-    `${MTV_TEMPORAL_LISTENER}/mtv-creation-acknowledgement`,
-    'Temporal/MtvTemporalToServerController.mtvCreationAcknowledgement',
-);
+Route.group(() => {
+    Route.post(
+        `/mtv-creation-acknowledgement`,
+        'Temporal/MtvTemporalToServerController.mtvCreationAcknowledgement',
+    );
 
-Route.post(
-    `${MTV_TEMPORAL_LISTENER}/play`,
-    'Temporal/MtvTemporalToServerController.play',
-);
+    Route.post(`/play`, 'Temporal/MtvTemporalToServerController.play');
 
-Route.post(
-    `${MTV_TEMPORAL_LISTENER}/pause`,
-    'Temporal/MtvTemporalToServerController.pause',
-);
+    Route.post(`/pause`, 'Temporal/MtvTemporalToServerController.pause');
 
-Route.post(
-    `${MTV_TEMPORAL_LISTENER}/join`,
-    'Temporal/MtvTemporalToServerController.join',
-);
+    Route.post(`/join`, 'Temporal/MtvTemporalToServerController.join');
 
-Route.post(
-    `${MTV_TEMPORAL_LISTENER}/leave`,
-    'Temporal/MtvTemporalToServerController.leave',
-);
+    Route.post(`/leave`, 'Temporal/MtvTemporalToServerController.leave');
 
-Route.post(
-    `${MTV_TEMPORAL_LISTENER}/change-user-emitting-device`,
-    'Temporal/MtvTemporalToServerController.mtvChangeUserEmittingDeviceAcknowledgement',
-);
+    Route.post(
+        `/change-user-emitting-device`,
+        'Temporal/MtvTemporalToServerController.mtvChangeUserEmittingDeviceAcknowledgement',
+    );
 
-Route.post(
-    `${MTV_TEMPORAL_LISTENER}/user-length-update`,
-    'Temporal/MtvTemporalToServerController.userLengthUpdate',
-);
+    Route.post(
+        `/user-length-update`,
+        'Temporal/MtvTemporalToServerController.userLengthUpdate',
+    );
 
-Route.post(
-    `${MTV_TEMPORAL_LISTENER}/suggest-or-vote-update`,
-    'Temporal/MtvTemporalToServerController.suggestOrVoteTracksListUpdate',
-);
+    Route.post(
+        `/suggest-or-vote-update`,
+        'Temporal/MtvTemporalToServerController.suggestOrVoteTracksListUpdate',
+    );
 
-Route.post(
-    `${MTV_TEMPORAL_LISTENER}/acknowledge-tracks-suggestion`,
-    'Temporal/MtvTemporalToServerController.acknowledgeTracksSuggestion',
-);
+    Route.post(
+        `/acknowledge-tracks-suggestion`,
+        'Temporal/MtvTemporalToServerController.acknowledgeTracksSuggestion',
+    );
 
-Route.post(
-    `${MTV_TEMPORAL_LISTENER}/acknowledge-tracks-suggestion-fail`,
-    'Temporal/MtvTemporalToServerController.acknowledgeTracksSuggestionFail',
-);
+    Route.post(
+        `/acknowledge-tracks-suggestion-fail`,
+        'Temporal/MtvTemporalToServerController.acknowledgeTracksSuggestionFail',
+    );
 
-Route.post(
-    `${MTV_TEMPORAL_LISTENER}/acknowledge-user-vote-for-track`,
-    'Temporal/MtvTemporalToServerController.acknowledgeUserVoteForTrack',
-);
+    Route.post(
+        `/acknowledge-user-vote-for-track`,
+        'Temporal/MtvTemporalToServerController.acknowledgeUserVoteForTrack',
+    );
 
-Route.post(
-    `${MTV_TEMPORAL_LISTENER}/acknowledge-update-user-fits-position-constraint`,
-    'Temporal/MtvTemporalToServerController.acknowledgeUserVoteForTrack',
-);
+    Route.post(
+        `/acknowledge-update-user-fits-position-constraint`,
+        'Temporal/MtvTemporalToServerController.acknowledgeUserVoteForTrack',
+    );
 
-Route.post(
-    `${MTV_TEMPORAL_LISTENER}/acknowledge-update-delegation-owner`,
-    'Temporal/MtvTemporalToServerController.acknowledgeUpdateDelegationOwner',
-);
+    Route.post(
+        `/acknowledge-update-delegation-owner`,
+        'Temporal/MtvTemporalToServerController.acknowledgeUpdateDelegationOwner',
+    );
 
-Route.post(
-    `${MTV_TEMPORAL_LISTENER}/acknowledge-update-control-and-delegation-permission`,
-    'Temporal/MtvTemporalToServerController.acknowledgeUpdateControlAndDelegationPermission',
-);
+    Route.post(
+        `/acknowledge-update-control-and-delegation-permission`,
+        'Temporal/MtvTemporalToServerController.acknowledgeUpdateControlAndDelegationPermission',
+    );
 
-Route.post(
-    `${MTV_TEMPORAL_LISTENER}/acknowledge-update-time-constraint`,
-    'Temporal/MtvTemporalToServerController.acknowledgeUpdateTimeConstraint',
-);
+    Route.post(
+        `/acknowledge-update-time-constraint`,
+        'Temporal/MtvTemporalToServerController.acknowledgeUpdateTimeConstraint',
+    );
+}).prefix(MTV_TEMPORAL_LISTENER);
 
 /// //////// ////// ///
 

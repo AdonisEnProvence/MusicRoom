@@ -13,7 +13,7 @@ import {
 import got from 'got';
 import urlcat from 'urlcat';
 
-const MTV_TEMPORAL_ENDPOINT = `${Env.get('TEMPORAL_ENDPOINT')}/mtv`;
+const MTV_TEMPORAL_ENDPOINT = urlcat(Env.get('TEMPORAL_ENDPOINT'), '/mtv');
 
 interface TemporalCreateMtvWorkflowBody
     extends MtvRoomClientToServerCreateArgsWithCoords {

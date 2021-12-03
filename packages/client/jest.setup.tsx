@@ -264,23 +264,21 @@ jest.mock('react-native-toast-message', () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { View } = require('react-native');
 
-    function Toast(props: unknown, _ref: unknown) {
+    const Toast = React.forwardRef((props: unknown, _ref: unknown) => {
         return <View {...props} />;
-    }
+    });
 
     function noop() {
         return undefined;
     }
 
     Toast.setRef = noop;
+    Toast.show = jest.fn();
+    Toast.hide = jest.fn();
 
     return {
         __esModule: true,
-        show: jest.fn(),
-        hide: jest.fn(),
-        setRef: noop,
-
-        default: React.forwardRef(Toast),
+        default: Toast,
     };
 });
 

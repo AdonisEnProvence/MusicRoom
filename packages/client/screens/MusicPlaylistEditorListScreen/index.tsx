@@ -7,9 +7,9 @@ import {
     AppScreen,
     AppScreenContainer,
     AppScreenHeader,
-} from '../components/kit';
-import { MpeTabMpeRoomsScreenProps } from '../types';
-import { useMusicPlaylistsActor } from '../hooks/useMusicPlaylistsActor';
+} from '../../components/kit';
+import { MpeTabMpeRoomsScreenProps } from '../../types';
+import { useMusicPlaylistsActor } from '../../hooks/useMusicPlaylistsActor';
 
 interface PlaylistListItemProps {
     id: string;

@@ -5,6 +5,8 @@ import { TrackMetadata } from '@musicroom/types';
 const playlistModel = createModel(
     {
         tracks: [] as TrackMetadata[],
+
+        trackToAdd: undefined as TrackMetadata | undefined,
     },
     {
         events: {
@@ -14,19 +16,30 @@ const playlistModel = createModel(
     },
 );
 
-const assignTrackToTracksList = playlistModel.assign(
+const assignTrackToAdd = playlistModel.assign(
     {
-        tracks: ({ tracks }, { id, title, artistName, duration }) => [
-            ...tracks,
-            {
-                id,
-                title,
-                artistName,
-                duration,
-            },
-        ],
+        trackToAdd: (_, { id, title, artistName, duration }) => ({
+            id,
+            title,
+            artistName,
+            duration,
+        }),
     },
     'ADD_TRACK',
+);
+
+const assignTrackToTracksList = playlistModel.assign(
+    {
+        tracks: ({ tracks, trackToAdd }) => {
+            if (trackToAdd === undefined) {
+                return tracks;
+            }
+
+            return [...tracks, trackToAdd];
+        },
+        trackToAdd: undefined,
+    },
+    undefined,
 );
 
 type PlaylistMachine = ReturnType<typeof playlistModel['createMachine']>;
@@ -47,8 +60,52 @@ export function createPlaylistMachine({
             idle: {
                 on: {
                     ADD_TRACK: {
-                        actions: assignTrackToTracksList,
+                        target: 'addingTrack',
+
+                        actions: assignTrackToAdd,
                     },
+                },
+            },
+
+            addingTrack: {
+                tags: 'freezeUi',
+
+                initial: 'sendingToServer',
+
+                states: {
+                    sendingToServer: {
+                        after: {
+                            200: {
+                                target: 'waitingForServerAcknowledgement',
+                            },
+                        },
+                    },
+
+                    waitingForServerAcknowledgement: {
+                        after: {
+                            200: {
+                                target: 'debouncing',
+
+                                actions: assignTrackToTracksList,
+                            },
+                        },
+                    },
+
+                    debouncing: {
+                        after: {
+                            200: {
+                                target: 'end',
+                            },
+                        },
+                    },
+
+                    end: {
+                        type: 'final',
+                    },
+                },
+
+                onDone: {
+                    target: 'idle',
                 },
             },
         },

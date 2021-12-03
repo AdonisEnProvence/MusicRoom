@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from '@xstate/react';
 import { FlatList, TouchableOpacity } from 'react-native';
 import { useSx, Text, View } from 'dripsy';
+import { View as MotiView } from 'moti';
 import { datatype, name } from 'faker';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -101,6 +102,9 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             playlistRef,
             (state) => state.context.tracks,
         );
+        const shouldFreezeUi = useSelector(playlistRef, (state) =>
+            state.hasTag('freezeUi'),
+        );
 
         function handleAddTrack() {
             playlistRef.send({
@@ -120,33 +124,42 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                 />
 
                 <AppScreenContainer>
-                    <FlatList
-                        data={tracks}
-                        ListHeaderComponent={() => {
-                            return <AddTrackButton onPress={handleAddTrack} />;
+                    <MotiView
+                        animate={{
+                            opacity: shouldFreezeUi === true ? 0.4 : 1,
                         }}
-                        keyExtractor={({ id }) => id}
-                        renderItem={({
-                            item: { id, title, artistName },
-                            index,
-                        }) => {
-                            return (
-                                <View
-                                    sx={{
-                                        marginBottom: 'm',
-                                    }}
-                                >
-                                    <TrackListItem
-                                        index={index + 1}
-                                        title={title}
-                                        trackID={id}
-                                        artistName={artistName}
-                                        Actions={TrackItemActions}
-                                    />
-                                </View>
-                            );
-                        }}
-                    />
+                        style={{ flex: 1 }}
+                    >
+                        <FlatList
+                            data={tracks}
+                            ListHeaderComponent={() => {
+                                return (
+                                    <AddTrackButton onPress={handleAddTrack} />
+                                );
+                            }}
+                            keyExtractor={({ id }) => id}
+                            renderItem={({
+                                item: { id, title, artistName },
+                                index,
+                            }) => {
+                                return (
+                                    <View
+                                        sx={{
+                                            marginBottom: 'm',
+                                        }}
+                                    >
+                                        <TrackListItem
+                                            index={index + 1}
+                                            title={title}
+                                            trackID={id}
+                                            artistName={artistName}
+                                            Actions={TrackItemActions}
+                                        />
+                                    </View>
+                                );
+                            }}
+                        />
+                    </MotiView>
                 </AppScreenContainer>
             </AppScreen>
         );

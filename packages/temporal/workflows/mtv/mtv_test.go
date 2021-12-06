@@ -203,7 +203,7 @@ func (s *UnitTestSuite) initTestEnv() (func(), func(callback func(), durationToA
 		}
 }
 
-func getWokflowInitParams(tracksIDs []string, minimumScoreToBePlayed int) (shared_mtv.MtvRoomParameters, string) {
+func getWorkflowInitParams(tracksIDs []string, minimumScoreToBePlayed int) (shared_mtv.MtvRoomParameters, string) {
 	var (
 		workflowID          = faker.UUIDHyphenated()
 		roomCreatorUserID   = faker.UUIDHyphenated()
@@ -259,7 +259,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		},
 	}
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
-	params, _ := getWokflowInitParams(tracksIDs, 1)
+	params, _ := getWorkflowInitParams(tracksIDs, 1)
 
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
@@ -444,7 +444,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		},
 	}
 	tracksIDs := []string{tracks[0].ID}
-	params, _ := getWokflowInitParams(tracksIDs, 1)
+	params, _ := getWorkflowInitParams(tracksIDs, 1)
 
 	defaultDuration := 1 * time.Millisecond
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
@@ -609,7 +609,7 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 		},
 	}
 	tracksIDs := []string{tracks[0].ID}
-	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 2)
+	params, creatorDeviceID := getWorkflowInitParams(tracksIDs, 2)
 
 	defaultDuration := 1 * time.Millisecond
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
@@ -786,7 +786,7 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		},
 	}
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
-	params, _ := getWokflowInitParams(tracksIDs, 1)
+	params, _ := getWorkflowInitParams(tracksIDs, 1)
 
 	// secondTrackDuration := tracks[1].Duration
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
@@ -925,7 +925,7 @@ func (s *UnitTestSuite) Test_UserLeaveRoom() {
 		},
 	}
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
-	params, _ := getWokflowInitParams(tracksIDs, 1)
+	params, _ := getWorkflowInitParams(tracksIDs, 1)
 
 	// secondTrackDuration := tracks[1].Duration
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
@@ -1028,7 +1028,7 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 		},
 	}
 	tracksIDs := []string{tracks[0].ID}
-	params, _ := getWokflowInitParams(tracksIDs, 1)
+	params, _ := getWorkflowInitParams(tracksIDs, 1)
 
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 	defaultDuration := 1 * time.Millisecond
@@ -1209,7 +1209,7 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 		mock.Anything,
 	).Return(nil).Once()
 
-	params, _ := getWokflowInitParams(tracksIDs, 1)
+	params, _ := getWorkflowInitParams(tracksIDs, 1)
 
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 	defaultDuration := 1 * time.Millisecond
@@ -1535,7 +1535,7 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 			Duration: secondTracksToSuggestMetadata[1].Duration.Milliseconds(),
 		},
 	}
-	params, _ := getWokflowInitParams(tracksIDs, 1)
+	params, _ := getWorkflowInitParams(tracksIDs, 1)
 
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 	defaultDuration := 1 * time.Millisecond
@@ -1691,7 +1691,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 	}
 
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
-	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	params, creatorDeviceID := getWorkflowInitParams(tracksIDs, 1)
 
 	defaultDuration := 1 * time.Millisecond
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
@@ -2097,7 +2097,7 @@ func (s *UnitTestSuite) Test_EmptyCurrentTrackAutoPlayAfterOneGetReadyToBePlayed
 	}
 
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID, tracks[2].ID}
-	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 2)
+	params, creatorDeviceID := getWorkflowInitParams(tracksIDs, 2)
 
 	defaultDuration := 1 * time.Millisecond
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
@@ -2254,7 +2254,7 @@ func (s *UnitTestSuite) Test_LoadedCurrentTrackAndReadyToBePlayedListNoAutoPlayA
 	}
 
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID, tracks[2].ID}
-	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	params, creatorDeviceID := getWorkflowInitParams(tracksIDs, 1)
 
 	defaultDuration := 1 * time.Millisecond
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
@@ -2380,7 +2380,7 @@ func (s *UnitTestSuite) Test_LoadedAndEndedCurrentTrackAndNoTrackReadyToBePlayed
 	}
 
 	tracksIDs := []string{tracks[0].ID}
-	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 2)
+	params, creatorDeviceID := getWorkflowInitParams(tracksIDs, 2)
 
 	defaultDuration := 1 * time.Millisecond
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
@@ -2596,7 +2596,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 	}
 
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
-	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	params, creatorDeviceID := getWorkflowInitParams(tracksIDs, 1)
 	defaultDuration := 1 * time.Millisecond
 
 	start := time.Now()
@@ -2759,7 +2759,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestTimeC
 	}
 
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
-	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	params, creatorDeviceID := getWorkflowInitParams(tracksIDs, 1)
 	defaultDuration := 1 * time.Millisecond
 
 	start := time.Now()
@@ -2940,7 +2940,7 @@ func (s *UnitTestSuite) Test_CreateDirectRoomAndUpdateDelegationOwner() {
 	}
 
 	tracksIDs := []string{tracks[0].ID}
-	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	params, creatorDeviceID := getWorkflowInitParams(tracksIDs, 1)
 	defaultDuration := 1 * time.Millisecond
 
 	params.PlayingMode = shared_mtv.MtvPlayingModeDirect
@@ -3129,7 +3129,7 @@ func (s *UnitTestSuite) Test_CreateBroadcastRoomAndAttemptToExecuteDelegationOpe
 	}
 
 	tracksIDs := []string{tracks[0].ID}
-	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	params, creatorDeviceID := getWorkflowInitParams(tracksIDs, 1)
 	defaultDuration := 1 * time.Millisecond
 
 	params.PlayingMode = shared_mtv.MtvPlayingModeBroadcast
@@ -3230,7 +3230,7 @@ func (s *UnitTestSuite) Test_CanUpdateControlAndDelegationPermission() {
 	}
 
 	tracksIDs := []string{tracks[0].ID}
-	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	params, creatorDeviceID := getWorkflowInitParams(tracksIDs, 1)
 	defaultDuration := 1 * time.Millisecond
 
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
@@ -3327,7 +3327,7 @@ func (s *UnitTestSuite) Test_GetUsersListQuery() {
 	}
 
 	tracksIDs := []string{tracks[0].ID}
-	params, _ := getWokflowInitParams(tracksIDs, 1)
+	params, _ := getWorkflowInitParams(tracksIDs, 1)
 	defaultDuration := 1 * time.Millisecond
 
 	params.PlayingMode = shared_mtv.MtvPlayingModeBroadcast
@@ -3418,7 +3418,7 @@ func (s *UnitTestSuite) Test_GetUsersListQueryInDirectRoom() {
 	}
 
 	tracksIDs := []string{tracks[0].ID}
-	params, _ := getWokflowInitParams(tracksIDs, 1)
+	params, _ := getWorkflowInitParams(tracksIDs, 1)
 	defaultDuration := 1 * time.Millisecond
 
 	params.PlayingMode = shared_mtv.MtvPlayingModeDirect
@@ -3543,7 +3543,7 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionPlay() {
 	}
 
 	tracksIDs := []string{tracks[0].ID}
-	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	params, creatorDeviceID := getWorkflowInitParams(tracksIDs, 1)
 	defaultDuration := 1 * time.Millisecond
 
 	params.PlayingMode = shared_mtv.MtvPlayingModeDirect
@@ -3666,7 +3666,7 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionPause() {
 	}
 
 	tracksIDs := []string{tracks[0].ID}
-	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	params, creatorDeviceID := getWorkflowInitParams(tracksIDs, 1)
 	defaultDuration := 1 * time.Millisecond
 
 	params.PlayingMode = shared_mtv.MtvPlayingModeDirect
@@ -3816,7 +3816,7 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionGoToNextTrack(
 	}
 
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
-	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	params, creatorDeviceID := getWorkflowInitParams(tracksIDs, 1)
 	defaultDuration := 1 * time.Millisecond
 
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
@@ -3983,7 +3983,7 @@ func (s *UnitTestSuite) Test_OnlyInvitedUsersAndCreatorCanVoteInOpenRoom() {
 	}
 
 	tracksIDs := []string{tracks[0].ID, tracks[1].ID}
-	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	params, creatorDeviceID := getWorkflowInitParams(tracksIDs, 1)
 	params.IsOpenOnlyInvitedUsersCanVote = true
 	defaultDuration := 1 * time.Millisecond
 
@@ -4290,7 +4290,7 @@ func (s *UnitTestSuite) Test_SuggestOrVoteSentActivityBaseOnCurrentTrack() {
 	}
 
 	tracksIDs := []string{tracks[0].ID}
-	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 2)
+	params, creatorDeviceID := getWorkflowInitParams(tracksIDs, 2)
 	defaultDuration := 1 * time.Millisecond
 
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
@@ -4420,7 +4420,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartBeforeNow() {
 	}
 	defaultDuration := 1 * time.Millisecond
 	tracksIDs := []string{tracks[0].ID}
-	params, _ := getWokflowInitParams(tracksIDs, 2)
+	params, _ := getWorkflowInitParams(tracksIDs, 2)
 	start := time.Now()
 
 	end := start.Add(defaultDuration * 5000)
@@ -4495,7 +4495,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartAfterNow() {
 	}
 	defaultDuration := 1 * time.Millisecond
 	tracksIDs := []string{tracks[0].ID}
-	params, _ := getWokflowInitParams(tracksIDs, 2)
+	params, _ := getWorkflowInitParams(tracksIDs, 2)
 	start := time.Now().Add(defaultDuration * 5000)
 
 	end := start.Add(defaultDuration * 500)
@@ -4578,7 +4578,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailPhysicalAndTimeConstraints
 		},
 	}
 	tracksIDs := []string{tracks[0].ID}
-	params, _ := getWokflowInitParams(tracksIDs, 2)
+	params, _ := getWorkflowInitParams(tracksIDs, 2)
 
 	params.HasPhysicalAndTimeConstraints = true
 	params.PhysicalAndTimeConstraints = nil
@@ -4610,7 +4610,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailPhysicalAndTimeConstraints
 	}
 	defaultDuration := 1 * time.Millisecond
 	tracksIDs := []string{tracks[0].ID}
-	params, _ := getWokflowInitParams(tracksIDs, 2)
+	params, _ := getWorkflowInitParams(tracksIDs, 2)
 	start := time.Now().Add(defaultDuration * 5000)
 
 	end := start.Add(defaultDuration * 500)
@@ -4654,7 +4654,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailStartIsAfterEnd() {
 	}
 	defaultDuration := 1 * time.Millisecond
 	tracksIDs := []string{tracks[0].ID}
-	params, _ := getWokflowInitParams(tracksIDs, 2)
+	params, _ := getWorkflowInitParams(tracksIDs, 2)
 	start := time.Now().Add(defaultDuration * 5000)
 
 	end := start.Add(defaultDuration * 500)
@@ -4698,7 +4698,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailStartEqualEnd() {
 	}
 	defaultDuration := 1 * time.Millisecond
 	tracksIDs := []string{tracks[0].ID}
-	params, _ := getWokflowInitParams(tracksIDs, 2)
+	params, _ := getWorkflowInitParams(tracksIDs, 2)
 	start := time.Now().Add(defaultDuration * 5000)
 
 	end := start.Add(defaultDuration * 500)
@@ -4741,7 +4741,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailEndIsBeforeNow() {
 		},
 	}
 	tracksIDs := []string{tracks[0].ID}
-	params, _ := getWokflowInitParams(tracksIDs, 2)
+	params, _ := getWorkflowInitParams(tracksIDs, 2)
 	now := time.Now()
 	start := now.Add(time.Duration(-2) * time.Minute)
 
@@ -4784,7 +4784,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailEndEqualNow() {
 		},
 	}
 	tracksIDs := []string{tracks[0].ID}
-	params, _ := getWokflowInitParams(tracksIDs, 2)
+	params, _ := getWorkflowInitParams(tracksIDs, 2)
 	//mocking now
 	resetMock, _ := s.initTestEnv()
 	///
@@ -4828,7 +4828,7 @@ func (s *UnitTestSuite) Test_MtvRoomFailPlayingModeIsInvalid() {
 		},
 	}
 	tracksIDs := []string{tracks[0].ID}
-	params, _ := getWokflowInitParams(tracksIDs, 2)
+	params, _ := getWorkflowInitParams(tracksIDs, 2)
 	//mocking now
 	resetMock, _ := s.initTestEnv()
 	///
@@ -4857,7 +4857,7 @@ func (s *UnitTestSuite) Test_MtvRoomFailIsOpenOnlyInvitedUsersCanVoteTrueButIsOp
 		},
 	}
 	tracksIDs := []string{tracks[0].ID}
-	params, _ := getWokflowInitParams(tracksIDs, 2)
+	params, _ := getWorkflowInitParams(tracksIDs, 2)
 	//mocking now
 	resetMock, _ := s.initTestEnv()
 	///
@@ -4896,7 +4896,7 @@ func (s *UnitTestSuite) Test_UserOutsideRoomAreaSuggestingTrackMustTriggerTracks
 		},
 	}
 
-	params, creatorDeviceID := getWokflowInitParams(tracksIDs, 1)
+	params, creatorDeviceID := getWorkflowInitParams(tracksIDs, 1)
 	defaultDuration := 1 * time.Millisecond
 
 	start := time.Now()
@@ -5050,7 +5050,7 @@ func (s *UnitTestSuite) Test_GetMtvRoomConstraintsDetails() {
 	}
 	tracksIDs := []string{tracks[0].ID}
 
-	params, _ := getWokflowInitParams(tracksIDs, 1)
+	params, _ := getWorkflowInitParams(tracksIDs, 1)
 	defaultDuration := 1 * time.Millisecond
 
 	start := time.Now()
@@ -5121,7 +5121,7 @@ func (s *UnitTestSuite) Test_GetMtvRoomConstraintsDetailsFailRoomDoesntHaveConst
 	}
 	tracksIDs := []string{tracks[0].ID}
 
-	params, _ := getWokflowInitParams(tracksIDs, 1)
+	params, _ := getWorkflowInitParams(tracksIDs, 1)
 	defaultDuration := 1 * time.Millisecond
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 

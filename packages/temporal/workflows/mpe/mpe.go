@@ -7,7 +7,6 @@ import (
 
 	shared_mpe "github.com/AdonisEnProvence/MusicRoom/shared/mpe"
 
-	"github.com/AdonisEnProvence/MusicRoom/activities"
 	"github.com/Devessier/brainy"
 
 	"go.temporal.io/sdk/workflow"
@@ -42,10 +41,19 @@ func (s *MpeRoomInternalState) FillWith(params shared_mpe.MpeRoomParameters) {
 // In the internalState.Export method we do not use workflow.sideEffect for at least two reasons:
 // 1- we cannot use workflow.sideEffect in the getState queryHandler
 // 2- we never update our internalState depending on internalState.Export() results this data aims to be sent to adonis.
-// func (s *MpeRoomInternalState) Export(RelatedUserID string) shared_mpe.MpeRoomExposedState {
+func (s *MpeRoomInternalState) Export(RelatedUserID string) shared_mpe.MpeRoomExposedState {
 
-// 	return exposedState
-// }
+	exposedState := shared_mpe.MpeRoomExposedState{
+		UsersLength:                   len(s.Users),
+		RoomID:                        s.initialParams.RoomID,
+		RoomName:                      s.initialParams.RoomName,
+		RoomCreatorUserID:             s.initialParams.RoomCreatorUserID,
+		IsOpen:                        s.initialParams.IsOpen,
+		IsOpenOnlyInvitedUsersCanEdit: s.initialParams.IsOpenOnlyInvitedUsersCanEdit,
+	}
+
+	return exposedState
+}
 
 const (
 	MtvRoomInit brainy.StateType = "init"
@@ -79,26 +87,26 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 	///
 	internalState.FillWith(params)
 
-	// if err := workflow.SetQueryHandler(
-	// 	ctx,
-	// 	shared_mpe.MpeGetStateQuery,
-	// 	func(userID string) (shared_mpe.MpeRoomExposedState, error) {
+	if err := workflow.SetQueryHandler(
+		ctx,
+		shared_mpe.MpeGetStateQuery,
+		func(userID string) (shared_mpe.MpeRoomExposedState, error) {
 
-	// 		exposedState := internalState.Export(userID)
+			exposedState := internalState.Export(userID)
 
-	// 		return exposedState, nil
-	// 	},
-	// ); err != nil {
-	// 	logger.Info("SetQueryHandler for MtvGetStateQuery failed.", "Error", err)
-	// 	return err
-	// }
+			return exposedState, nil
+		},
+	); err != nil {
+		logger.Info("SetQueryHandler for MtvGetStateQuery failed.", "Error", err)
+		return err
+	}
 
 	channel := workflow.GetSignalChannel(ctx, shared_mpe.SignalChannelName)
 
 	var (
-		terminated                 = false
-		workflowFatalError         error
-		fetchedInitialTracksFuture workflow.Future
+		terminated         = false
+		workflowFatalError error
+		// fetchedInitialTracksFuture workflow.Future
 	)
 
 	//create machine here
@@ -150,23 +158,23 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 		})
 
 		// Room Is Ready callback
-		if fetchedInitialTracksFuture != nil {
-			selector.AddFuture(fetchedInitialTracksFuture, func(f workflow.Future) {
-				fetchedInitialTracksFuture = nil
+		// if fetchedInitialTracksFuture != nil {
+		// 	selector.AddFuture(fetchedInitialTracksFuture, func(f workflow.Future) {
+		// 		fetchedInitialTracksFuture = nil
 
-				var initialTracksActivityResult []shared_mpe.TrackMetadata
+		// 		var initialTracksActivityResult []shared_mpe.TrackMetadata
 
-				if err := f.Get(ctx, &initialTracksActivityResult); err != nil {
-					logger.Error("error occured initialTracksActivityResult", err)
+		// 		if err := f.Get(ctx, &initialTracksActivityResult); err != nil {
+		// 			logger.Error("error occured initialTracksActivityResult", err)
 
-					return
-				}
+		// 			return
+		// 		}
 
-				// internalState.Machine.Send(
-				// 	NewMtvRoomInitialTracksFetchedEvent(initialTracksActivityResult),
-				// )
-			})
-		}
+		// 		// internalState.Machine.Send(
+		// 		// 	NewMtvRoomInitialTracksFetchedEvent(initialTracksActivityResult),
+		// 		// )
+		// 	})
+		// }
 		/////
 
 		selector.Select(ctx)
@@ -179,23 +187,23 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 	return workflowFatalError
 }
 
-func acknowledgeRoomCreation(ctx workflow.Context, state shared_mpe.MpeRoomExposedState) error {
-	ao := workflow.ActivityOptions{
-		ScheduleToStartTimeout: time.Minute,
-		StartToCloseTimeout:    time.Minute,
-	}
-	ctx = workflow.WithActivityOptions(ctx, ao)
+// func acknowledgeRoomCreation(ctx workflow.Context, state shared_mpe.MpeRoomExposedState) error {
+// 	ao := workflow.ActivityOptions{
+// 		ScheduleToStartTimeout: time.Minute,
+// 		StartToCloseTimeout:    time.Minute,
+// 	}
+// 	ctx = workflow.WithActivityOptions(ctx, ao)
 
-	if err := workflow.ExecuteActivity(
-		ctx,
-		activities.CreationAcknowledgementActivity,
-		state,
-	).Get(ctx, nil); err != nil {
-		return err
-	}
+// 	if err := workflow.ExecuteActivity(
+// 		ctx,
+// 		activities.CreationAcknowledgementActivity,
+// 		state,
+// 	).Get(ctx, nil); err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 type TimeWrapperType func() time.Time
 

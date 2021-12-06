@@ -8,6 +8,7 @@ import (
 var (
 	SignalChannelName = "mpe_control"
 	MpeGetStateQuery  = "getState"
+	NoRelatedUserID   = ""
 )
 
 type InternalStateUser struct {
@@ -23,16 +24,18 @@ type MpeRoomParameters struct {
 	InitialTrackID                string
 
 	IsOpen                        bool
-	IsOpenOnlyInvitedUsersCanVote bool
+	IsOpenOnlyInvitedUsersCanEdit bool
 }
+
+const ControlTaskQueue = "CONTROL_TASK_QUEUE"
 
 //This method will return an error if it determines that params are corrupted
 func (p MpeRoomParameters) CheckParamsValidity(now time.Time) error {
 
-	//Looking for OnlyInvitedUsersCan vote enabled in private room error
-	onlyInvitedUserTrueButRoomIsNotPublic := p.IsOpenOnlyInvitedUsersCanVote && !p.IsOpen
+	//Looking for OnlyInvitedUsersCan edit is enabled in private room error
+	onlyInvitedUserTrueButRoomIsNotPublic := p.IsOpenOnlyInvitedUsersCanEdit && !p.IsOpen
 	if onlyInvitedUserTrueButRoomIsNotPublic {
-		return errors.New("IsOpenOnlyInvitedUsersCanVote true but IsOpen false")
+		return errors.New("IsOpenOnlyInvitedUsersCanEdit true but IsOpen false")
 	}
 
 	return nil
@@ -46,11 +49,11 @@ type TrackMetadata struct {
 }
 
 type MpeRoomExposedState struct {
-	RoomID                         string          `json:"roomID"`
-	RoomCreatorUserID              string          `json:"roomCreatorUserID"`
-	RoomName                       string          `json:"name"`
-	Tracks                         []TrackMetadata `json:"tracks"`
-	UsersLength                    int             `json:"usersLength"`
-	IsOpen                         bool            `json:"isOpen"`
-	IsOpenOnlyInvitedUsersCanVotes bool            `json:"isOpenOnlyInvitedUsersCanVote"`
+	RoomID            string `json:"roomID"`
+	RoomCreatorUserID string `json:"roomCreatorUserID"`
+	RoomName          string `json:"name"`
+	// Tracks                        []TrackMetadata `json:"tracks"`
+	UsersLength                   int  `json:"usersLength"`
+	IsOpen                        bool `json:"isOpen"`
+	IsOpenOnlyInvitedUsersCanEdit bool `json:"isOpenOnlyInvitedUsersCanVote"`
 }

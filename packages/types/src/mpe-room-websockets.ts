@@ -1,11 +1,11 @@
 import * as z from 'zod';
-import { MpeWorkflowState } from '.';
+import { MpeWorkflowState } from './mpe';
 
 export const MpeRoomClientToServerCreateArgs = z.object({
     name: z.string(),
     initialTrackID: z.string(),
     isOpen: z.boolean(),
-    isOpenOnlyInvitedUsersCanVote: z.boolean(),
+    isOpenOnlyInvitedUsersCanEdit: z.boolean(),
 });
 
 export type MpeRoomClientToServerCreateArgs = z.infer<
@@ -18,4 +18,5 @@ export interface MpeRoomClientToServerEvents {
 
 export interface MpeRoomServerToClientEvents {
     MPE_CREATE_ROOM_SYNCED_CALLBACK: (args: MpeWorkflowState) => void;
+    MPE_CREATE_ROOM_FAIL: () => void;
 }

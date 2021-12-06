@@ -7,7 +7,7 @@ export const MpeWorkflowState = z.object({
     name: z.string(),
     tracks: z.array(TrackMetadataWithScore).nullable(),
     isOpen: z.boolean(),
-    isOpenOnlyInvitedUsersCanVote: z.boolean(),
+    isOpenOnlyInvitedUsersCanEdit: z.boolean(),
     usersLength: z.number(),
     //Could calculate that in client every time ?
     playlistTotalDuration: z.number(), //ms

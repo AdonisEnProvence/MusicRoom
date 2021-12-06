@@ -21,6 +21,7 @@ export default function initMpeSocketEventListeners(socket: TypedSocket): void {
                 .emit('MPE_CREATE_ROOM_SYNCED_CALLBACK', response.state);
         } catch (e) {
             console.error(e);
+            socket.emit('MPE_CREATE_ROOM_FAIL');
         }
     });
 }

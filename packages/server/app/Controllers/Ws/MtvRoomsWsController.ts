@@ -168,8 +168,8 @@ export default class MtvRoomsWsController {
 
         /**
          * We need to create the room before the workflow
-         * because we don't know if temporal will answer faster
-         * than adonis will execute this function
+         * because we don't know if temporal will answer faster via the acknowledge
+         * mtv room creation activity than adonis will execute this function
          */
         const roomCreator = await User.findOrFail(userID);
         await UserService.joinEveryUserDevicesToRoom(roomCreator, roomID);
@@ -207,6 +207,7 @@ export default class MtvRoomsWsController {
                 uuid: roomID,
                 runID: temporalResponse.runID,
                 name: params.name,
+                //By setting this field lucid will manage the BelongsTo relationship
                 creatorID: userID,
                 isOpen: params.isOpen,
             });

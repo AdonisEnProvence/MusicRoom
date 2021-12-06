@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/AdonisEnProvence/MusicRoom/shared"
-	"github.com/AdonisEnProvence/MusicRoom/workflows"
+	"github.com/AdonisEnProvence/MusicRoom/workflows/mtv"
 	"github.com/gorilla/mux"
 	"go.temporal.io/sdk/client"
 )
@@ -402,7 +402,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		params.PhysicalAndTimeConstraints = body.PhysicalAndTimeConstraints
 	}
 
-	we, err := temporal.ExecuteWorkflow(context.Background(), options, workflows.MtvRoomWorkflow, params)
+	we, err := temporal.ExecuteWorkflow(context.Background(), options, mtv.MtvRoomWorkflow, params)
 	if err != nil {
 		WriteError(w, err)
 		return

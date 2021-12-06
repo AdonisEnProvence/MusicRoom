@@ -1,9 +1,11 @@
-package workflows
+package mtv
 
 import (
 	"errors"
 	"fmt"
 	"time"
+
+	workflows_shared "github.com/AdonisEnProvence/MusicRoom/workflows"
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
@@ -19,8 +21,7 @@ var (
 )
 
 type MtvRoomInternalState struct {
-	initialParams shared.MtvRoomParameters
-
+	initialParams                          shared.MtvRoomParameters
 	Machine                                *brainy.Machine
 	Users                                  map[string]*shared.InternalStateUser
 	CurrentTrack                           shared.CurrentTrack
@@ -977,7 +978,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := workflows_shared.Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -994,7 +995,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := workflows_shared.Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -1011,7 +1012,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := workflows_shared.Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -1041,7 +1042,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := workflows_shared.Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -1057,7 +1058,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := workflows_shared.Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -1073,7 +1074,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := workflows_shared.Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -1093,7 +1094,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := workflows_shared.Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -1109,7 +1110,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := workflows_shared.Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -1125,7 +1126,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := workflows_shared.Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -1141,7 +1142,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := workflows_shared.Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -1157,7 +1158,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := workflows_shared.Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}

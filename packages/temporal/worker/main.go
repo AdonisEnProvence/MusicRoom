@@ -8,7 +8,7 @@ import (
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
-	"github.com/AdonisEnProvence/MusicRoom/workflows"
+	"github.com/AdonisEnProvence/MusicRoom/workflows/mtv"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 	// This worker hosts both Worker and Activity functions
 	w := worker.New(c, shared.ControlTaskQueue, worker.Options{})
 
-	w.RegisterWorkflow(workflows.MtvRoomWorkflow)
+	w.RegisterWorkflow(mtv.MtvRoomWorkflow)
 
 	w.RegisterActivity(activities.PingActivity)
 	w.RegisterActivity(activities.PlayActivity)

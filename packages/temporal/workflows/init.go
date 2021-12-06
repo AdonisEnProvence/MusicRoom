@@ -1,9 +1,9 @@
-package workflows
+package workflows_shared
 
 import "github.com/go-playground/validator/v10"
 
-var validate *validator.Validate
+var Validate *validator.Validate
 
 func init() {
-	validate = validator.New()
+	Validate = validator.New()
 }

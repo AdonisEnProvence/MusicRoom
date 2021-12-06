@@ -7,7 +7,7 @@ import (
 	"go.temporal.io/sdk/worker"
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
-	"github.com/AdonisEnProvence/MusicRoom/shared"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/shared/mtv"
 	"github.com/AdonisEnProvence/MusicRoom/workflows/mtv"
 )
 
@@ -19,7 +19,7 @@ func main() {
 	}
 	defer c.Close()
 	// This worker hosts both Worker and Activity functions
-	w := worker.New(c, shared.ControlTaskQueue, worker.Options{})
+	w := worker.New(c, shared_mtv.ControlTaskQueue, worker.Options{})
 
 	w.RegisterWorkflow(mtv.MtvRoomWorkflow)
 

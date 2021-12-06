@@ -3,7 +3,7 @@ package mtv
 import (
 	"time"
 
-	"github.com/AdonisEnProvence/MusicRoom/shared"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/shared/mtv"
 	"github.com/Devessier/brainy"
 )
 
@@ -13,7 +13,7 @@ func assignInitialFetchedTracks(internalState *MtvRoomInternalState) brainy.Acti
 
 		internalState.Tracks.Clear()
 		for _, fetchedTrack := range event.Tracks {
-			trackWithScore := shared.TrackMetadataWithScore{
+			trackWithScore := shared_mtv.TrackMetadataWithScore{
 				TrackMetadata: fetchedTrack,
 
 				Score: 0,
@@ -27,7 +27,7 @@ func assignInitialFetchedTracks(internalState *MtvRoomInternalState) brainy.Acti
 		if internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.initialParams.MinimumScoreToBePlayed) {
 			setFirstTrackAsCurrentTrack(internalState)
 		} else {
-			internalState.Timer = shared.MtvRoomTimer{}
+			internalState.Timer = shared_mtv.MtvRoomTimer{}
 		}
 
 		return nil
@@ -40,11 +40,11 @@ func setFirstTrackAsCurrentTrack(internalState *MtvRoomInternalState) {
 
 	firstTrack, _ := internalState.Tracks.Shift()
 
-	internalState.CurrentTrack = shared.CurrentTrack{
+	internalState.CurrentTrack = shared_mtv.CurrentTrack{
 		TrackMetadataWithScore: firstTrack,
 		AlreadyElapsed:         0,
 	}
-	internalState.Timer = shared.MtvRoomTimer{
+	internalState.Timer = shared_mtv.MtvRoomTimer{
 		CreatedOn: time.Time{},
 		Duration:  internalState.CurrentTrack.Duration,
 		Cancel:    nil,

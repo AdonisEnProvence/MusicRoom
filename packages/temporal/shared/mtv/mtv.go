@@ -1,4 +1,4 @@
-package shared
+package shared_mtv
 
 import (
 	"errors"

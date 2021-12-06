@@ -1,4 +1,4 @@
-package workflows_shared
+package mtv
 
 import "github.com/go-playground/validator/v10"
 

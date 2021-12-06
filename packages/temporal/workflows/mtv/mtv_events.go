@@ -1,18 +1,18 @@
 package mtv
 
 import (
-	"github.com/AdonisEnProvence/MusicRoom/shared"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/shared/mtv"
 	"github.com/Devessier/brainy"
 )
 
 type MtvRoomTimerExpirationEvent struct {
 	brainy.EventWithType
 
-	Timer  shared.MtvRoomTimer
-	Reason shared.MtvRoomTimerExpiredReason
+	Timer  shared_mtv.MtvRoomTimer
+	Reason shared_mtv.MtvRoomTimerExpiredReason
 }
 
-func NewMtvRoomTimerExpirationEvent(t shared.MtvRoomTimer, reason shared.MtvRoomTimerExpiredReason) MtvRoomTimerExpirationEvent {
+func NewMtvRoomTimerExpirationEvent(t shared_mtv.MtvRoomTimer, reason shared_mtv.MtvRoomTimerExpiredReason) MtvRoomTimerExpirationEvent {
 
 	return MtvRoomTimerExpirationEvent{
 		EventWithType: brainy.EventWithType{
@@ -26,10 +26,10 @@ func NewMtvRoomTimerExpirationEvent(t shared.MtvRoomTimer, reason shared.MtvRoom
 type MtvRoomInitialTracksFetchedEvent struct {
 	brainy.EventWithType
 
-	Tracks []shared.TrackMetadata
+	Tracks []shared_mtv.TrackMetadata
 }
 
-func NewMtvRoomInitialTracksFetchedEvent(tracks []shared.TrackMetadata) MtvRoomInitialTracksFetchedEvent {
+func NewMtvRoomInitialTracksFetchedEvent(tracks []shared_mtv.TrackMetadata) MtvRoomInitialTracksFetchedEvent {
 	return MtvRoomInitialTracksFetchedEvent{
 		EventWithType: brainy.EventWithType{
 			Event: MtvRoomInitialTracksFetched,
@@ -75,10 +75,10 @@ func NewMtvRoomUserVoteForTrackEvent(userID string, trackID string) MtvRoomUserV
 type MtvRoomUserJoiningRoomEvent struct {
 	brainy.EventWithType
 
-	User shared.InternalStateUser
+	User shared_mtv.InternalStateUser
 }
 
-func NewMtvRoomUserJoiningRoomEvent(user shared.InternalStateUser) MtvRoomUserJoiningRoomEvent {
+func NewMtvRoomUserJoiningRoomEvent(user shared_mtv.InternalStateUser) MtvRoomUserJoiningRoomEvent {
 	return MtvRoomUserJoiningRoomEvent{
 		EventWithType: brainy.EventWithType{
 			Event: MtvRoomAddUserEvent,
@@ -135,13 +135,13 @@ func NewMtvRoomSuggestTracksEvent(args NewMtvRoomSuggestTracksEventArgs) MtvRoom
 type MtvRoomSuggestedTracksFetchedEvent struct {
 	brainy.EventWithType
 
-	SuggestedTracksInformation []shared.TrackMetadata
+	SuggestedTracksInformation []shared_mtv.TrackMetadata
 	UserID                     string
 	DeviceID                   string
 }
 
 type NewMtvRoomSuggestedTracksFetchedEventArgs struct {
-	SuggestedTracksInformation []shared.TrackMetadata
+	SuggestedTracksInformation []shared_mtv.TrackMetadata
 	UserID                     string
 	DeviceID                   string
 }

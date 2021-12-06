@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/AdonisEnProvence/MusicRoom/shared"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/shared/mtv"
 )
 
 func PingActivity(_ context.Context) error {
@@ -15,7 +15,7 @@ func PingActivity(_ context.Context) error {
 	return err
 }
 
-func PauseActivity(_ context.Context, state shared.MtvRoomExposedState) error {
+func PauseActivity(_ context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -29,7 +29,7 @@ func PauseActivity(_ context.Context, state shared.MtvRoomExposedState) error {
 	return err
 }
 
-func PlayActivity(_ context.Context, state shared.MtvRoomExposedState) error {
+func PlayActivity(_ context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -43,7 +43,7 @@ func PlayActivity(_ context.Context, state shared.MtvRoomExposedState) error {
 	return err
 }
 
-func CreationAcknowledgementActivity(_ context.Context, state shared.MtvRoomExposedState) error {
+func CreationAcknowledgementActivity(_ context.Context, state shared_mtv.MtvRoomExposedState) error {
 	marshaledBody, err := json.Marshal(state)
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func CreationAcknowledgementActivity(_ context.Context, state shared.MtvRoomExpo
 
 // As we removed a user we need to send back the new UserLength value to every others clients
 // Calculated in the internalState.Export()
-func UserLengthUpdateActivity(ctx context.Context, state shared.MtvRoomExposedState) error {
+func UserLengthUpdateActivity(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
 	marshaledBody, err := json.Marshal(state)
 	if err != nil {
 		return err
@@ -71,8 +71,8 @@ func UserLengthUpdateActivity(ctx context.Context, state shared.MtvRoomExposedSt
 }
 
 type MtvJoinCallbackRequestBody struct {
-	State         shared.MtvRoomExposedState `json:"state"`
-	JoiningUserID string                     `json:"joiningUserID"`
+	State         shared_mtv.MtvRoomExposedState `json:"state"`
+	JoiningUserID string                         `json:"joiningUserID"`
 }
 
 func JoinActivity(ctx context.Context, args MtvJoinCallbackRequestBody) error {
@@ -90,8 +90,8 @@ func JoinActivity(ctx context.Context, args MtvJoinCallbackRequestBody) error {
 }
 
 type AcknowledgeLeaveRoomRequestBody struct {
-	State         shared.MtvRoomExposedState `json:"state"`
-	LeavingUserID string                     `json:"leavingUserID"`
+	State         shared_mtv.MtvRoomExposedState `json:"state"`
+	LeavingUserID string                         `json:"leavingUserID"`
 }
 
 func LeaveActivity(ctx context.Context, args AcknowledgeLeaveRoomRequestBody) error {
@@ -111,7 +111,7 @@ func LeaveActivity(ctx context.Context, args AcknowledgeLeaveRoomRequestBody) er
 	return err
 }
 
-func UserVoteForTrackAcknowledgement(ctx context.Context, state shared.MtvRoomExposedState) error {
+func UserVoteForTrackAcknowledgement(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -125,7 +125,7 @@ func UserVoteForTrackAcknowledgement(ctx context.Context, state shared.MtvRoomEx
 	return err
 }
 
-func ChangeUserEmittingDeviceActivity(ctx context.Context, state shared.MtvRoomExposedState) error {
+func ChangeUserEmittingDeviceActivity(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -139,7 +139,7 @@ func ChangeUserEmittingDeviceActivity(ctx context.Context, state shared.MtvRoomE
 	return err
 }
 
-func NotifySuggestOrVoteUpdateActivity(ctx context.Context, state shared.MtvRoomExposedState) error {
+func NotifySuggestOrVoteUpdateActivity(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -154,8 +154,8 @@ func NotifySuggestOrVoteUpdateActivity(ctx context.Context, state shared.MtvRoom
 }
 
 type AcknowledgeTracksSuggestionArgs struct {
-	State    shared.MtvRoomExposedState `json:"state"`
-	DeviceID string                     `json:"deviceID"`
+	State    shared_mtv.MtvRoomExposedState `json:"state"`
+	DeviceID string                         `json:"deviceID"`
 }
 
 func AcknowledgeTracksSuggestion(ctx context.Context, args AcknowledgeTracksSuggestionArgs) error {
@@ -190,7 +190,7 @@ func AcknowledgeTracksSuggestionFail(ctx context.Context, args AcknowledgeTracks
 	return err
 }
 
-func AcknowledgeUpdateUserFitsPositionConstraint(ctx context.Context, state shared.MtvRoomExposedState) error {
+func AcknowledgeUpdateUserFitsPositionConstraint(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -204,7 +204,7 @@ func AcknowledgeUpdateUserFitsPositionConstraint(ctx context.Context, state shar
 	return err
 }
 
-func AcknowledgeUpdateDelegationOwner(ctx context.Context, state shared.MtvRoomExposedState) error {
+func AcknowledgeUpdateDelegationOwner(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -218,7 +218,7 @@ func AcknowledgeUpdateDelegationOwner(ctx context.Context, state shared.MtvRoomE
 	return err
 }
 
-func AcknowledgeUpdateControlAndDelegationPermission(ctx context.Context, state shared.MtvRoomExposedState) error {
+func AcknowledgeUpdateControlAndDelegationPermission(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -232,7 +232,7 @@ func AcknowledgeUpdateControlAndDelegationPermission(ctx context.Context, state 
 	return err
 }
 
-func AcknowledgeUpdateTimeConstraint(ctx context.Context, state shared.MtvRoomExposedState) error {
+func AcknowledgeUpdateTimeConstraint(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)

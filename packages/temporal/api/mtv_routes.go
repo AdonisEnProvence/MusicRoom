@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/AdonisEnProvence/MusicRoom/shared"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/shared/mtv"
 	"github.com/AdonisEnProvence/MusicRoom/workflows/mtv"
 	"github.com/gorilla/mux"
 	"go.temporal.io/sdk/client"
@@ -53,14 +53,14 @@ func PlayHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	signal := shared.NewPlaySignal(shared.NewPlaySignalArgs{
+	signal := shared_mtv.NewPlaySignal(shared_mtv.NewPlaySignalArgs{
 		UserID: body.UserID,
 	})
 	if err := temporal.SignalWorkflow(
 		context.Background(),
 		body.WorkflowID,
 		body.RunID,
-		shared.SignalChannelName,
+		shared_mtv.SignalChannelName,
 		signal,
 	); err != nil {
 		WriteError(w, err)
@@ -93,14 +93,14 @@ func PauseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	signal := shared.NewPauseSignal(shared.NewPauseSignalArgs{
+	signal := shared_mtv.NewPauseSignal(shared_mtv.NewPauseSignalArgs{
 		UserID: body.UserID,
 	})
 	if err := temporal.SignalWorkflow(
 		context.Background(),
 		body.WorkflowID,
 		body.RunID,
-		shared.SignalChannelName,
+		shared_mtv.SignalChannelName,
 		signal,
 	); err != nil {
 		WriteError(w, err)
@@ -133,14 +133,14 @@ func GoToNextTrackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	goToNextTrackSignal := shared.NewGoToNexTrackSignal(shared.NewGoToNextTrackSignalArgs{
+	goToNextTrackSignal := shared_mtv.NewGoToNexTrackSignal(shared_mtv.NewGoToNextTrackSignalArgs{
 		UserID: body.UserID,
 	})
 	if err := temporal.SignalWorkflow(
 		context.Background(),
 		body.WorkflowID,
 		body.RunID,
-		shared.SignalChannelName,
+		shared_mtv.SignalChannelName,
 		goToNextTrackSignal,
 	); err != nil {
 		WriteError(w, err)
@@ -174,7 +174,7 @@ func VoteForTrackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	voteForTrackSignal := shared.NewVoteForTrackSignal(shared.NewVoteForTrackSignalArgs{
+	voteForTrackSignal := shared_mtv.NewVoteForTrackSignal(shared_mtv.NewVoteForTrackSignalArgs{
 		TrackID: body.TrackID,
 		UserID:  body.UserID,
 	})
@@ -183,7 +183,7 @@ func VoteForTrackHandler(w http.ResponseWriter, r *http.Request) {
 		context.Background(),
 		body.WorkflowID,
 		body.RunID,
-		shared.SignalChannelName,
+		shared_mtv.SignalChannelName,
 		voteForTrackSignal,
 	); err != nil {
 		WriteError(w, err)
@@ -217,11 +217,11 @@ func ChangeUserEmittingDeviceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	args := shared.ChangeUserEmittingDeviceSignalArgs{
+	args := shared_mtv.ChangeUserEmittingDeviceSignalArgs{
 		UserID:   body.UserID,
 		DeviceID: body.DeviceID,
 	}
-	changeUserEmittingDeviceSignal := shared.NewChangeUserEmittingDeviceSignal(args)
+	changeUserEmittingDeviceSignal := shared_mtv.NewChangeUserEmittingDeviceSignal(args)
 
 	fmt.Println("**********ChangeUserEmittingDeviceHandler**********")
 
@@ -229,7 +229,7 @@ func ChangeUserEmittingDeviceHandler(w http.ResponseWriter, r *http.Request) {
 		context.Background(),
 		body.WorkflowID,
 		body.RunID,
-		shared.SignalChannelName,
+		shared_mtv.SignalChannelName,
 		changeUserEmittingDeviceSignal,
 	); err != nil {
 		WriteError(w, err)
@@ -265,7 +265,7 @@ func SuggestTracksHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	suggestTracksSignal := shared.NewSuggestTracksSignal(shared.SuggestTracksSignalArgs{
+	suggestTracksSignal := shared_mtv.NewSuggestTracksSignal(shared_mtv.SuggestTracksSignalArgs{
 		TracksToSuggest: body.TracksToSuggest,
 		UserID:          body.UserID,
 		DeviceID:        body.DeviceID,
@@ -274,7 +274,7 @@ func SuggestTracksHandler(w http.ResponseWriter, r *http.Request) {
 		context.Background(),
 		body.WorkflowID,
 		body.RunID,
-		shared.SignalChannelName,
+		shared_mtv.SignalChannelName,
 		suggestTracksSignal,
 	); err != nil {
 		WriteError(w, err)
@@ -306,12 +306,12 @@ func TerminateWorkflowHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	terminateSignal := shared.NewTerminateSignal(shared.NewTerminateSignalArgs{})
+	terminateSignal := shared_mtv.NewTerminateSignal(shared_mtv.NewTerminateSignalArgs{})
 	if err := temporal.SignalWorkflow(
 		context.Background(),
 		body.WorkflowID,
 		body.RunID,
-		shared.SignalChannelName,
+		shared_mtv.SignalChannelName,
 		terminateSignal,
 	); err != nil {
 		WriteError(w, err)
@@ -332,18 +332,18 @@ type CreateRoomRequestBody struct {
 	InitialTracksIDs              []string `json:"initialTracksIDs" validate:"required,dive,required"`
 	CreatorFitsPositionConstraint *bool    `json:"creatorFitsPositionConstraint"`
 
-	MinimumScoreToBePlayed        int                                       `json:"minimumScoreToBePlayed" validate:"required"`
-	IsOpen                        bool                                      `json:"isOpen"`
-	IsOpenOnlyInvitedUsersCanVote bool                                      `json:"isOpenOnlyInvitedUsersCanVote"`
-	HasPhysicalAndTimeConstraints bool                                      `json:"hasPhysicalAndTimeConstraints"`
-	PhysicalAndTimeConstraints    *shared.MtvRoomPhysicalAndTimeConstraints `json:"physicalAndTimeConstraints" validate:"required_if=HasPhysicalAndTimeConstraints true"`
-	PlayingMode                   shared.MtvPlayingModes                    `json:"playingMode" validate:"required"`
+	MinimumScoreToBePlayed        int                                           `json:"minimumScoreToBePlayed" validate:"required"`
+	IsOpen                        bool                                          `json:"isOpen"`
+	IsOpenOnlyInvitedUsersCanVote bool                                          `json:"isOpenOnlyInvitedUsersCanVote"`
+	HasPhysicalAndTimeConstraints bool                                          `json:"hasPhysicalAndTimeConstraints"`
+	PhysicalAndTimeConstraints    *shared_mtv.MtvRoomPhysicalAndTimeConstraints `json:"physicalAndTimeConstraints" validate:"required_if=HasPhysicalAndTimeConstraints true"`
+	PlayingMode                   shared_mtv.MtvPlayingModes                    `json:"playingMode" validate:"required"`
 }
 
 type CreateRoomResponse struct {
-	State      shared.MtvRoomExposedState `json:"state"`
-	WorkflowID string                     `json:"workflowID"`
-	RunID      string                     `json:"runID"`
+	State      shared_mtv.MtvRoomExposedState `json:"state"`
+	WorkflowID string                         `json:"workflowID"`
+	RunID      string                         `json:"runID"`
 }
 
 func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
@@ -367,11 +367,11 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 	options := client.StartWorkflowOptions{
 		ID:        body.WorkflowID,
-		TaskQueue: shared.ControlTaskQueue,
+		TaskQueue: shared_mtv.ControlTaskQueue,
 	}
 	initialTracksIDsList := body.InitialTracksIDs
 
-	creatorUserRelatedInformation := &shared.InternalStateUser{
+	creatorUserRelatedInformation := &shared_mtv.InternalStateUser{
 		UserID:                            body.UserID,
 		DeviceID:                          body.DeviceID,
 		TracksVotedFor:                    make([]string, 0),
@@ -384,7 +384,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		creatorUserRelatedInformation.UserFitsPositionConstraint = body.CreatorFitsPositionConstraint
 	}
 
-	params := shared.MtvRoomParameters{
+	params := shared_mtv.MtvRoomParameters{
 		RoomID:                        body.WorkflowID,
 		RoomCreatorUserID:             body.UserID,
 		RoomName:                      body.Name,
@@ -451,7 +451,7 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	signal := shared.NewLeaveSignal(shared.NewLeaveSignalArgs{
+	signal := shared_mtv.NewLeaveSignal(shared_mtv.NewLeaveSignalArgs{
 		UserID: body.UserID,
 	})
 
@@ -459,7 +459,7 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 		context.Background(),
 		body.WorkflowID,
 		body.RunID,
-		shared.SignalChannelName,
+		shared_mtv.SignalChannelName,
 		signal,
 	); err != nil {
 		fmt.Println("Couldnt send the signal to temporal", err)
@@ -495,7 +495,7 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	signal := shared.NewJoinSignal(shared.NewJoinSignalArgs{
+	signal := shared_mtv.NewJoinSignal(shared_mtv.NewJoinSignalArgs{
 		UserID:             body.UserID,
 		DeviceID:           body.DeviceID,
 		UserHasBeenInvited: body.UserHasBeenInvited,
@@ -505,7 +505,7 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 		context.Background(),
 		body.WorkflowID,
 		body.RunID,
-		shared.SignalChannelName,
+		shared_mtv.SignalChannelName,
 		signal,
 	); err != nil {
 		WriteError(w, err)
@@ -542,7 +542,7 @@ func UpdateUserFitsPositionConstraintHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	signal := shared.NewUpdateUserFitsPositionConstraintSignal(shared.NewUpdateUserFitsPositionConstraintSignalArgs{
+	signal := shared_mtv.NewUpdateUserFitsPositionConstraintSignal(shared_mtv.NewUpdateUserFitsPositionConstraintSignalArgs{
 		UserID:                     body.UserID,
 		UserFitsPositionConstraint: body.UserFitsPositionConstraint,
 	})
@@ -551,7 +551,7 @@ func UpdateUserFitsPositionConstraintHandler(w http.ResponseWriter, r *http.Requ
 		context.Background(),
 		body.WorkflowID,
 		body.RunID,
-		shared.SignalChannelName,
+		shared_mtv.SignalChannelName,
 		signal,
 	); err != nil {
 		fmt.Println(err)
@@ -590,7 +590,7 @@ func UpdateDelegationOwnerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	signal := shared.NewUpdateDelegationOwnerSignal(shared.NewUpdateDelegationOwnerSignalArgs{
+	signal := shared_mtv.NewUpdateDelegationOwnerSignal(shared_mtv.NewUpdateDelegationOwnerSignalArgs{
 		NewDelegationOwnerUserID: body.NewDelegationOwnerUserID,
 		EmitterUserID:            body.EmitterUserID,
 	})
@@ -599,7 +599,7 @@ func UpdateDelegationOwnerHandler(w http.ResponseWriter, r *http.Request) {
 		context.Background(),
 		body.WorkflowID,
 		body.RunID,
-		shared.SignalChannelName,
+		shared_mtv.SignalChannelName,
 		signal,
 	); err != nil {
 		fmt.Println(err)
@@ -638,7 +638,7 @@ func UpdateControlAndDelegationPermissionHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	signal := shared.NewUpdateControlAndDelegationPermissionSignal(shared.NewUpdateControlAndDelegationPermissionSignalArgs{
+	signal := shared_mtv.NewUpdateControlAndDelegationPermissionSignal(shared_mtv.NewUpdateControlAndDelegationPermissionSignalArgs{
 		ToUpdateUserID:                    body.ToUpdateUserID,
 		HasControlAndDelegationPermission: body.HasControlAndDelegationPermission,
 	})
@@ -647,7 +647,7 @@ func UpdateControlAndDelegationPermissionHandler(w http.ResponseWriter, r *http.
 		context.Background(),
 		body.WorkflowID,
 		body.RunID,
-		shared.SignalChannelName,
+		shared_mtv.SignalChannelName,
 		signal,
 	); err != nil {
 		fmt.Println(err)
@@ -668,14 +668,14 @@ type PerformMtvGetStateQueryArgs struct {
 	RunID      string
 }
 
-func PerformMtvGetStateQuery(params PerformMtvGetStateQueryArgs) (shared.MtvRoomExposedState, error) {
-	response, err := temporal.QueryWorkflow(context.Background(), params.WorkflowID, params.RunID, shared.MtvGetStateQuery, params.UserID)
+func PerformMtvGetStateQuery(params PerformMtvGetStateQueryArgs) (shared_mtv.MtvRoomExposedState, error) {
+	response, err := temporal.QueryWorkflow(context.Background(), params.WorkflowID, params.RunID, shared_mtv.MtvGetStateQuery, params.UserID)
 	if err != nil {
-		return shared.MtvRoomExposedState{}, err
+		return shared_mtv.MtvRoomExposedState{}, err
 	}
-	var res shared.MtvRoomExposedState
+	var res shared_mtv.MtvRoomExposedState
 	if err := response.Get(&res); err != nil {
-		return shared.MtvRoomExposedState{}, err
+		return shared_mtv.MtvRoomExposedState{}, err
 	}
 
 	return res, nil
@@ -737,12 +737,12 @@ func GetRoomConstraintsDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := temporal.QueryWorkflow(context.Background(), body.WorkflowID, body.RunID, shared.MtvGetRoomConstraintsDetails)
+	response, err := temporal.QueryWorkflow(context.Background(), body.WorkflowID, body.RunID, shared_mtv.MtvGetRoomConstraintsDetails)
 	if err != nil {
 		WriteError(w, err)
 		return
 	}
-	var res shared.MtvRoomConstraintsDetails
+	var res shared_mtv.MtvRoomConstraintsDetails
 	if err := response.Get(&res); err != nil {
 		WriteError(w, err)
 		return
@@ -771,12 +771,12 @@ func GetUsersListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := temporal.QueryWorkflow(context.Background(), body.WorkflowID, body.RunID, shared.MtvGetUsersListQuery)
+	response, err := temporal.QueryWorkflow(context.Background(), body.WorkflowID, body.RunID, shared_mtv.MtvGetUsersListQuery)
 	if err != nil {
 		WriteError(w, err)
 		return
 	}
-	var res []shared.ExposedInternalStateUserListElement
+	var res []shared_mtv.ExposedInternalStateUserListElement
 	if err := response.Get(&res); err != nil {
 		WriteError(w, err)
 		return

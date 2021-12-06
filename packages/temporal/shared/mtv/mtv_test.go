@@ -1,10 +1,10 @@
-package shared_test
+package shared_mtv_test
 
 import (
 	"testing"
 
 	"github.com/AdonisEnProvence/MusicRoom/random"
-	"github.com/AdonisEnProvence/MusicRoom/shared"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/shared/mtv"
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/suite"
 )
@@ -15,10 +15,10 @@ type UnitTestSuite struct {
 
 func (s *UnitTestSuite) Test_TracksMetadataWithScoreSetAllowsDeletion() {
 	var (
-		set       shared.TracksMetadataWithScoreSet
-		setValues = []shared.TrackMetadataWithScore{
+		set       shared_mtv.TracksMetadataWithScoreSet
+		setValues = []shared_mtv.TrackMetadataWithScore{
 			{
-				TrackMetadata: shared.TrackMetadata{
+				TrackMetadata: shared_mtv.TrackMetadata{
 					ID:         faker.UUIDHyphenated(),
 					Title:      faker.Word(),
 					ArtistName: faker.Name(),
@@ -28,7 +28,7 @@ func (s *UnitTestSuite) Test_TracksMetadataWithScoreSetAllowsDeletion() {
 				Score: 0,
 			},
 			{
-				TrackMetadata: shared.TrackMetadata{
+				TrackMetadata: shared_mtv.TrackMetadata{
 					ID:         faker.UUIDHyphenated(),
 					Title:      faker.Word(),
 					ArtistName: faker.Name(),
@@ -47,7 +47,7 @@ func (s *UnitTestSuite) Test_TracksMetadataWithScoreSetAllowsDeletion() {
 	set.Delete(setValues[1].ID)
 
 	s.Equal(
-		[]shared.TrackMetadataWithScore{
+		[]shared_mtv.TrackMetadataWithScore{
 			setValues[0],
 		},
 		set.Values(),
@@ -58,7 +58,7 @@ func (s *UnitTestSuite) Test_TracksMetadataWithScoreSetAllowsDeletion() {
 	set.Delete(setValues[1].ID)
 
 	s.Equal(
-		[]shared.TrackMetadataWithScore{
+		[]shared_mtv.TrackMetadataWithScore{
 			setValues[0],
 		},
 		set.Values(),
@@ -69,7 +69,7 @@ func (s *UnitTestSuite) Test_TracksMetadataWithScoreSetAllowsDeletion() {
 	set.Delete(setValues[0].ID)
 
 	s.Equal(
-		[]shared.TrackMetadataWithScore{},
+		[]shared_mtv.TrackMetadataWithScore{},
 		set.Values(),
 	)
 	s.Equal(0, set.Len())

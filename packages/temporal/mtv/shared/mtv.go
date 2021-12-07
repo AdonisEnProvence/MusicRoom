@@ -1,9 +1,11 @@
-package shared
+package shared_mtv
 
 import (
 	"errors"
 	"sort"
 	"time"
+
+	"github.com/AdonisEnProvence/MusicRoom/shared"
 )
 
 type MtvRoomTimerExpiredReason string
@@ -35,15 +37,8 @@ var (
 	NoRelatedUserID              = ""
 )
 
-type TrackMetadata struct {
-	ID         string        `json:"id"`
-	Title      string        `json:"title"`
-	ArtistName string        `json:"artistName"`
-	Duration   time.Duration `json:"duration"`
-}
-
 type TrackMetadataWithScore struct {
-	TrackMetadata
+	shared.TrackMetadata
 
 	Score int `json:"score"`
 }

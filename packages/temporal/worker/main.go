@@ -7,8 +7,9 @@ import (
 	"go.temporal.io/sdk/worker"
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
-	"github.com/AdonisEnProvence/MusicRoom/shared"
-	"github.com/AdonisEnProvence/MusicRoom/workflows"
+	mpe "github.com/AdonisEnProvence/MusicRoom/mpe/workflows"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
+	mtv "github.com/AdonisEnProvence/MusicRoom/mtv/workflows"
 )
 
 func main() {
@@ -19,9 +20,9 @@ func main() {
 	}
 	defer c.Close()
 	// This worker hosts both Worker and Activity functions
-	w := worker.New(c, shared.ControlTaskQueue, worker.Options{})
+	w := worker.New(c, shared_mtv.ControlTaskQueue, worker.Options{})
 
-	w.RegisterWorkflow(workflows.MtvRoomWorkflow)
+	w.RegisterWorkflow(mtv.MtvRoomWorkflow)
 
 	w.RegisterActivity(activities.PingActivity)
 	w.RegisterActivity(activities.PlayActivity)
@@ -41,6 +42,8 @@ func main() {
 	w.RegisterActivity(activities.AcknowledgeUpdateControlAndDelegationPermission)
 	w.RegisterActivity(activities.AcknowledgeUpdateTimeConstraint)
 	w.RegisterActivity(activities.LeaveActivity)
+
+	w.RegisterWorkflow(mpe.MpeRoomWorkflow)
 
 	// Start listening to the Task Queue
 	err = w.Run(worker.InterruptCh())

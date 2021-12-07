@@ -1,6 +1,7 @@
-package workflows
+package mtv
 
 import (
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/Devessier/brainy"
 )
@@ -8,11 +9,11 @@ import (
 type MtvRoomTimerExpirationEvent struct {
 	brainy.EventWithType
 
-	Timer  shared.MtvRoomTimer
-	Reason shared.MtvRoomTimerExpiredReason
+	Timer  shared_mtv.MtvRoomTimer
+	Reason shared_mtv.MtvRoomTimerExpiredReason
 }
 
-func NewMtvRoomTimerExpirationEvent(t shared.MtvRoomTimer, reason shared.MtvRoomTimerExpiredReason) MtvRoomTimerExpirationEvent {
+func NewMtvRoomTimerExpirationEvent(t shared_mtv.MtvRoomTimer, reason shared_mtv.MtvRoomTimerExpiredReason) MtvRoomTimerExpirationEvent {
 
 	return MtvRoomTimerExpirationEvent{
 		EventWithType: brainy.EventWithType{
@@ -75,10 +76,10 @@ func NewMtvRoomUserVoteForTrackEvent(userID string, trackID string) MtvRoomUserV
 type MtvRoomUserJoiningRoomEvent struct {
 	brainy.EventWithType
 
-	User shared.InternalStateUser
+	User shared_mtv.InternalStateUser
 }
 
-func NewMtvRoomUserJoiningRoomEvent(user shared.InternalStateUser) MtvRoomUserJoiningRoomEvent {
+func NewMtvRoomUserJoiningRoomEvent(user shared_mtv.InternalStateUser) MtvRoomUserJoiningRoomEvent {
 	return MtvRoomUserJoiningRoomEvent{
 		EventWithType: brainy.EventWithType{
 			Event: MtvRoomAddUserEvent,

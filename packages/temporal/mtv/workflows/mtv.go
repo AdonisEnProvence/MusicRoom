@@ -1,4 +1,4 @@
-package workflows
+package mtv
 
 import (
 	"errors"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/Devessier/brainy"
 
@@ -19,48 +20,47 @@ var (
 )
 
 type MtvRoomInternalState struct {
-	initialParams shared.MtvRoomParameters
-
+	initialParams                          shared_mtv.MtvRoomParameters
 	Machine                                *brainy.Machine
-	Users                                  map[string]*shared.InternalStateUser
-	CurrentTrack                           shared.CurrentTrack
-	Tracks                                 shared.TracksMetadataWithScoreSet
+	Users                                  map[string]*shared_mtv.InternalStateUser
+	CurrentTrack                           shared_mtv.CurrentTrack
+	Tracks                                 shared_mtv.TracksMetadataWithScoreSet
 	Playing                                bool
-	Timer                                  shared.MtvRoomTimer
-	TracksCheckForVoteUpdateLastSave       shared.TracksMetadataWithScoreSet
-	CurrentTrackCheckForVoteUpdateLastSave shared.CurrentTrack
+	Timer                                  shared_mtv.MtvRoomTimer
+	TracksCheckForVoteUpdateLastSave       shared_mtv.TracksMetadataWithScoreSet
+	CurrentTrackCheckForVoteUpdateLastSave shared_mtv.CurrentTrack
 	timeConstraintIsValid                  *bool
 	DelegationOwnerUserID                  *string
 }
 
 //This method will merge given params in the internalState
-func (s *MtvRoomInternalState) FillWith(params shared.MtvRoomParameters) {
+func (s *MtvRoomInternalState) FillWith(params shared_mtv.MtvRoomParameters) {
 	s.initialParams = params
-	s.Users = make(map[string]*shared.InternalStateUser)
+	s.Users = make(map[string]*shared_mtv.InternalStateUser)
 	s.AddUser(*params.CreatorUserRelatedInformation)
 	s.DelegationOwnerUserID = nil
 	s.timeConstraintIsValid = nil
 
-	if params.PlayingMode == shared.MtvPlayingModeDirect {
+	if params.PlayingMode == shared_mtv.MtvPlayingModeDirect {
 		s.DelegationOwnerUserID = &params.RoomCreatorUserID
 	}
 
 	if params.HasPhysicalAndTimeConstraints {
-		s.timeConstraintIsValid = &shared.FalseValue
+		s.timeConstraintIsValid = &shared_mtv.FalseValue
 	}
 }
 
 // In the internalState.Export method we do not use workflow.sideEffect for at least two reasons:
 // 1- we cannot use workflow.sideEffect in the getState queryHandler
 // 2- we never update our internalState depending on internalState.Export() results this data aims to be sent to adonis.
-func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExposedState {
+func (s *MtvRoomInternalState) Export(RelatedUserID string) shared_mtv.MtvRoomExposedState {
 	tracks := s.Tracks.Values()
-	exposedTracks := make([]shared.TrackMetadataWithScoreWithDuration, 0, len(tracks))
+	exposedTracks := make([]shared_mtv.TrackMetadataWithScoreWithDuration, 0, len(tracks))
 	for _, track := range tracks {
 		exposedTracks = append(exposedTracks, track.WithMillisecondsDuration())
 	}
 
-	var currentTrackToExport *shared.ExposedCurrentTrack = nil
+	var currentTrackToExport *shared_mtv.ExposedCurrentTrack = nil
 	if s.CurrentTrack.ID != "" {
 		now := TimeWrapper()
 		elapsed := s.CurrentTrack.AlreadyElapsed
@@ -76,7 +76,7 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 		currentTrackToExport = &tmp
 	}
 
-	exposedState := shared.MtvRoomExposedState{
+	exposedState := shared_mtv.MtvRoomExposedState{
 		RoomID:                            s.initialParams.RoomID,
 		RoomCreatorUserID:                 s.initialParams.RoomCreatorUserID,
 		Playing:                           s.Playing,
@@ -97,7 +97,7 @@ func (s *MtvRoomInternalState) Export(RelatedUserID string) shared.MtvRoomExpose
 	return exposedState
 }
 
-func (s *MtvRoomInternalState) AddUser(user shared.InternalStateUser) {
+func (s *MtvRoomInternalState) AddUser(user shared_mtv.InternalStateUser) {
 	//Do not override user if already exist
 	if _, ok := s.Users[user.UserID]; !ok {
 		s.Users[user.UserID] = &user
@@ -188,7 +188,7 @@ func (s *MtvRoomInternalState) UserVoteForTrack(userID string, trackID string) b
 	return true
 }
 
-func (s *MtvRoomInternalState) UpdateUserDeviceID(user shared.InternalStateUser) {
+func (s *MtvRoomInternalState) UpdateUserDeviceID(user shared_mtv.InternalStateUser) {
 	if val, ok := s.Users[user.UserID]; ok {
 		val.DeviceID = user.DeviceID
 	} else {
@@ -196,8 +196,8 @@ func (s *MtvRoomInternalState) UpdateUserDeviceID(user shared.InternalStateUser)
 	}
 }
 
-func (s *MtvRoomInternalState) GetUserRelatedInformation(userID string) *shared.InternalStateUser {
-	if userInformation, ok := s.Users[userID]; userID != shared.NoRelatedUserID && ok {
+func (s *MtvRoomInternalState) GetUserRelatedInformation(userID string) *shared_mtv.InternalStateUser {
+	if userInformation, ok := s.Users[userID]; userID != shared_mtv.NoRelatedUserID && ok {
 		return userInformation
 	}
 	return nil
@@ -270,7 +270,7 @@ func GetElapsed(ctx workflow.Context, previous time.Time) time.Duration {
 	return now.Sub(previous)
 }
 
-func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) error {
+func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) error {
 	var (
 		err           error
 		internalState MtvRoomInternalState
@@ -289,8 +289,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 	if err := workflow.SetQueryHandler(
 		ctx,
-		shared.MtvGetStateQuery,
-		func(userID string) (shared.MtvRoomExposedState, error) {
+		shared_mtv.MtvGetStateQuery,
+		func(userID string) (shared_mtv.MtvRoomExposedState, error) {
 
 			exposedState := internalState.Export(userID)
 
@@ -303,15 +303,15 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 	if err := workflow.SetQueryHandler(
 		ctx,
-		shared.MtvGetRoomConstraintsDetails,
-		func(userID string) (shared.MtvRoomConstraintsDetails, error) {
+		shared_mtv.MtvGetRoomConstraintsDetails,
+		func(userID string) (shared_mtv.MtvRoomConstraintsDetails, error) {
 
 			roomDoesntHaveConstraints := !internalState.initialParams.HasPhysicalAndTimeConstraints || internalState.initialParams.PhysicalAndTimeConstraints == nil
 			if roomDoesntHaveConstraints {
-				return shared.MtvRoomConstraintsDetails{}, ErrRoomDoesNotHaveConstraints
+				return shared_mtv.MtvRoomConstraintsDetails{}, ErrRoomDoesNotHaveConstraints
 			}
 
-			roomConstraintsDetails := shared.MtvRoomConstraintsDetails{
+			roomConstraintsDetails := shared_mtv.MtvRoomConstraintsDetails{
 				PhysicalConstraintEndsAt:   internalState.initialParams.PhysicalAndTimeConstraints.PhysicalConstraintEndsAt.Format(time.RFC3339),
 				PhysicalConstraintStartsAt: internalState.initialParams.PhysicalAndTimeConstraints.PhysicalConstraintStartsAt.Format(time.RFC3339),
 				PhysicalConstraintPosition: internalState.initialParams.PhysicalAndTimeConstraints.PhysicalConstraintPosition,
@@ -328,17 +328,17 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 	if err := workflow.SetQueryHandler(
 		ctx,
-		shared.MtvGetUsersListQuery,
-		func() ([]shared.ExposedInternalStateUserListElement, error) {
+		shared_mtv.MtvGetUsersListQuery,
+		func() ([]shared_mtv.ExposedInternalStateUserListElement, error) {
 
-			usersList := make([]shared.ExposedInternalStateUserListElement, 0, len(internalState.Users))
+			usersList := make([]shared_mtv.ExposedInternalStateUserListElement, 0, len(internalState.Users))
 
 			for _, user := range internalState.Users {
 
 				isCreator := internalState.initialParams.RoomCreatorUserID == user.UserID
 				isDelegationOwner := internalState.DelegationOwnerUserID != nil && *internalState.DelegationOwnerUserID == user.UserID
 
-				formatedUserListElement := shared.ExposedInternalStateUserListElement{
+				formatedUserListElement := shared_mtv.ExposedInternalStateUserListElement{
 					UserID:                            user.UserID,
 					HasControlAndDelegationPermission: user.HasControlAndDelegationPermission,
 					IsCreator:                         isCreator,
@@ -354,7 +354,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 		return err
 	}
 
-	channel := workflow.GetSignalChannel(ctx, shared.SignalChannelName)
+	channel := workflow.GetSignalChannel(ctx, shared_mtv.SignalChannelName)
 
 	var (
 		terminated                               = false
@@ -395,7 +395,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									timeConstraintStartsAtTimer = workflow.NewTimer(ctx, startLessNow)
 								} else {
 									fmt.Println("Mtv room with constraint: start is before not creating a timer")
-									internalState.timeConstraintIsValid = &shared.TrueValue
+									internalState.timeConstraintIsValid = &shared_mtv.TrueValue
 								}
 
 								endLessNow := end.Sub(rootNow)
@@ -438,7 +438,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				OnEntry: brainy.Actions{
 					brainy.ActionFn(
 						func(c brainy.Context, e brainy.Event) error {
-							exposedInternalState := internalState.Export(shared.NoRelatedUserID)
+							exposedInternalState := internalState.Export(shared_mtv.NoRelatedUserID)
 							sendPauseActivity(ctx, exposedInternalState)
 
 							return nil
@@ -497,7 +497,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 									totalDuration := internalState.CurrentTrack.Duration - internalState.CurrentTrack.AlreadyElapsed
 
-									internalState.Timer = shared.MtvRoomTimer{
+									internalState.Timer = shared_mtv.MtvRoomTimer{
 										Cancel:    cancelTimerHandler,
 										CreatedOn: createdOn,
 										Duration:  totalDuration,
@@ -518,7 +518,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 									// To do not corrupt the elapsed on a paused room with the freshly created timer
 									// but also set as playing true a previously paused room after a go to next track event
 									// we need to mutate and update the internalState after the internalState.Export()
-									exposedInternalState := internalState.Export(shared.NoRelatedUserID)
+									exposedInternalState := internalState.Export(shared_mtv.NoRelatedUserID)
 									exposedInternalState.Playing = true
 									internalState.Playing = true
 
@@ -541,7 +541,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								{
 									Cond: func(c brainy.Context, e brainy.Event) bool {
 										timerExpirationEvent := e.(MtvRoomTimerExpirationEvent)
-										currentTrackEnded := timerExpirationEvent.Reason == shared.MtvRoomTimerExpiredReasonFinished
+										currentTrackEnded := timerExpirationEvent.Reason == shared_mtv.MtvRoomTimerExpiredReasonFinished
 										nextTrackIsReadyToBePlayed := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.initialParams.MinimumScoreToBePlayed)
 										nextTrackIsNotReadyToBePlayed := !nextTrackIsReadyToBePlayed
 
@@ -567,7 +567,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								{
 									Cond: func(c brainy.Context, e brainy.Event) bool {
 										timerExpirationEvent := e.(MtvRoomTimerExpirationEvent)
-										currentTrackEnded := timerExpirationEvent.Reason == shared.MtvRoomTimerExpiredReasonFinished
+										currentTrackEnded := timerExpirationEvent.Reason == shared_mtv.MtvRoomTimerExpiredReasonFinished
 										nextTrackIsReadyToBePlayed := internalState.Tracks.FirstTrackIsReadyToBePlayed(internalState.initialParams.MinimumScoreToBePlayed)
 
 										if currentTrackEnded {
@@ -645,7 +645,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 						func(c brainy.Context, e brainy.Event) error {
 							event := e.(MtvRoomChangeUserEmittingDeviceEvent)
 
-							user := shared.InternalStateUser{
+							user := shared_mtv.InternalStateUser{
 								UserID:   event.UserID,
 								DeviceID: event.DeviceID,
 							}
@@ -673,7 +673,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								JoiningUserID: event.User.UserID,
 							}
 							sendJoinActivity(ctx, joinActivityArgs)
-							sendUserLengthUpdateActivity(ctx, internalState.Export(shared.NoRelatedUserID))
+							sendUserLengthUpdateActivity(ctx, internalState.Export(shared_mtv.NoRelatedUserID))
 							return nil
 						},
 					),
@@ -690,7 +690,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							if success {
 
 								if voteIntervalTimerFuture == nil {
-									voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
+									voteIntervalTimerFuture = workflow.NewTimer(ctx, shared_mtv.CheckForVoteUpdateIntervalDuration)
 								}
 
 								sendUserVoteForTrackAcknowledgementActivity(ctx, internalState.Export(event.UserID))
@@ -714,15 +714,15 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							needToNotifySuggestOrVoteUpdateActivity := !(tracksListsAreEqual && currentTrackAreEqual)
 
 							if needToNotifySuggestOrVoteUpdateActivity {
-								sendNotifySuggestOrVoteUpdateActivity(ctx, internalState.Export(shared.NoRelatedUserID))
+								sendNotifySuggestOrVoteUpdateActivity(ctx, internalState.Export(shared_mtv.NoRelatedUserID))
 
 								internalState.TracksCheckForVoteUpdateLastSave = internalState.Tracks.Clone()
 								internalState.CurrentTrackCheckForVoteUpdateLastSave = internalState.CurrentTrack
-								voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
+								voteIntervalTimerFuture = workflow.NewTimer(ctx, shared_mtv.CheckForVoteUpdateIntervalDuration)
 							} else {
 								voteIntervalTimerFuture = nil
-								internalState.TracksCheckForVoteUpdateLastSave = shared.TracksMetadataWithScoreSet{}
-								internalState.CurrentTrackCheckForVoteUpdateLastSave = shared.CurrentTrack{}
+								internalState.TracksCheckForVoteUpdateLastSave = shared_mtv.TracksMetadataWithScoreSet{}
+								internalState.CurrentTrackCheckForVoteUpdateLastSave = shared_mtv.CurrentTrack{}
 							}
 
 							return nil
@@ -738,7 +738,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							event := e.(MtvRoomTimeConstraintTimerExpirationEvent)
 
 							internalState.timeConstraintIsValid = &event.TimeConstraintValue
-							sendAcknowledgeUpdateTimeConstraintActivity(ctx, internalState.Export(shared.NoRelatedUserID))
+							sendAcknowledgeUpdateTimeConstraintActivity(ctx, internalState.Export(shared_mtv.NoRelatedUserID))
 							return nil
 						},
 					),
@@ -774,7 +774,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							event := e.(MtvRoomUpdateDelegationOwnerEvent)
 
 							internalState.DelegationOwnerUserID = &event.NewDelegationOwnerUserID
-							sendAcknowledgeUpdateDelegationOwnerActivity(ctx, internalState.Export(shared.NoRelatedUserID))
+							sendAcknowledgeUpdateDelegationOwnerActivity(ctx, internalState.Export(shared_mtv.NoRelatedUserID))
 
 							return nil
 						},
@@ -814,7 +814,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							success := internalState.RemoveUser(event.UserID)
 
 							if success {
-								roomIsInDirectMode := internalState.initialParams.PlayingMode == shared.MtvPlayingModeDirect
+								roomIsInDirectMode := internalState.initialParams.PlayingMode == shared_mtv.MtvPlayingModeDirect
 								delegationOwnerIsLeavingRoom := internalState.DelegationOwnerUserID != nil && *internalState.DelegationOwnerUserID == event.UserID
 								if delegationOwnerIsLeavingRoom && roomIsInDirectMode {
 									internalState.DelegationOwnerUserID = &(internalState.initialParams.RoomCreatorUserID)
@@ -822,10 +822,10 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 
 								joinActivityArgs := activities.AcknowledgeLeaveRoomRequestBody{
 									LeavingUserID: event.UserID,
-									State:         internalState.Export(shared.NoRelatedUserID),
+									State:         internalState.Export(shared_mtv.NoRelatedUserID),
 								}
 								sendLeaveActivity(ctx, joinActivityArgs)
-								sendUserLengthUpdateActivity(ctx, internalState.Export(shared.NoRelatedUserID))
+								sendUserLengthUpdateActivity(ctx, internalState.Export(shared_mtv.NoRelatedUserID))
 							}
 
 							return nil
@@ -871,7 +871,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 										succesfullSuggestIntoVoteTracksIDs = append(succesfullSuggestIntoVoteTracksIDs, suggestedTrackID)
 
 										if voteIntervalTimerFuture == nil {
-											voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
+											voteIntervalTimerFuture = workflow.NewTimer(ctx, shared_mtv.CheckForVoteUpdateIntervalDuration)
 										}
 									}
 									continue
@@ -918,7 +918,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 							event := e.(MtvRoomSuggestedTracksFetchedEvent)
 
 							for _, trackInformation := range event.SuggestedTracksInformation {
-								suggestedTrackInformation := shared.TrackMetadataWithScore{
+								suggestedTrackInformation := shared_mtv.TrackMetadataWithScore{
 									TrackMetadata: trackInformation,
 
 									Score: 0,
@@ -931,7 +931,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 								// every user can suggest a song, and therefore, modify the tracks list.
 								// These modifications must be forwarded to every user.
 								if voteIntervalTimerFuture == nil {
-									voteIntervalTimerFuture = workflow.NewTimer(ctx, shared.CheckForVoteUpdateIntervalDuration)
+									voteIntervalTimerFuture = workflow.NewTimer(ctx, shared_mtv.CheckForVoteUpdateIntervalDuration)
 								}
 							}
 
@@ -962,7 +962,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 			var signal interface{}
 			c.Receive(ctx, &signal)
 
-			var routeSignal shared.GenericRouteSignal
+			var routeSignal shared_mtv.GenericRouteSignal
 
 			if err := mapstructure.Decode(signal, &routeSignal); err != nil {
 				logger.Error("Invalid signal type %v", err)
@@ -970,14 +970,14 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 			}
 
 			switch routeSignal.Route {
-			case shared.SignalRoutePlay:
-				var message shared.PlaySignal
+			case shared_mtv.SignalRoutePlay:
+				var message shared_mtv.PlaySignal
 
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -987,14 +987,14 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				}
 				internalState.Machine.Send(NewMtvRoomPlayEvent(args))
 
-			case shared.SignalRoutePause:
-				var message shared.PauseSignal
+			case shared_mtv.SignalRoutePause:
+				var message shared_mtv.PauseSignal
 
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -1004,19 +1004,19 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				}
 				internalState.Machine.Send(NewMtvRoomPauseEvent(args))
 
-			case shared.SignalRouteJoin:
-				var message shared.JoinSignal
+			case shared_mtv.SignalRouteJoin:
+				var message shared_mtv.JoinSignal
 
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
 
-				user := shared.InternalStateUser{
+				user := shared_mtv.InternalStateUser{
 					UserID:                            message.UserID,
 					DeviceID:                          message.DeviceID,
 					TracksVotedFor:                    make([]string, 0),
@@ -1034,14 +1034,14 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					NewMtvRoomUserJoiningRoomEvent(user),
 				)
 
-			case shared.SignalRouteGoToNextTrack:
-				var message shared.GoToNextTrackSignal
+			case shared_mtv.SignalRouteGoToNextTrack:
+				var message shared_mtv.GoToNextTrackSignal
 
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -1050,14 +1050,14 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				}
 				internalState.Machine.Send(NewMtvRoomGoToNextTrackEvent(args))
 
-			case shared.SignalRouteChangeUserEmittingDevice:
-				var message shared.ChangeUserEmittingDeviceSignal
+			case shared_mtv.SignalRouteChangeUserEmittingDevice:
+				var message shared_mtv.ChangeUserEmittingDeviceSignal
 
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -1066,14 +1066,14 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					NewMtvRoomChangeUserEmittingDeviceEvent(message.UserID, message.DeviceID),
 				)
 
-			case shared.SignalRouteSuggestTracks:
-				var message shared.SuggestTracksSignal
+			case shared_mtv.SignalRouteSuggestTracks:
+				var message shared_mtv.SuggestTracksSignal
 
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -1086,14 +1086,14 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					}),
 				)
 
-			case shared.SignalRouteLeave:
-				var message shared.LeaveSignal
+			case shared_mtv.SignalRouteLeave:
+				var message shared_mtv.LeaveSignal
 
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -1102,14 +1102,14 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					NewMtvRoomUserLeavingRoomEvent(message.UserID),
 				)
 
-			case shared.SignalRouteVoteForTrack:
-				var message shared.VoteForTrackSignal
+			case shared_mtv.SignalRouteVoteForTrack:
+				var message shared_mtv.VoteForTrackSignal
 
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -1118,14 +1118,14 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					NewMtvRoomUserVoteForTrackEvent(message.UserID, message.TrackID),
 				)
 
-			case shared.SignalUpdateUserFitsPositionConstraint:
-				var message shared.UpdateUserFitsPositionConstraintSignal
+			case shared_mtv.SignalUpdateUserFitsPositionConstraint:
+				var message shared_mtv.UpdateUserFitsPositionConstraintSignal
 
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -1134,14 +1134,14 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					NewMtvRoomUpdateUserFitsPositionConstraintEvent(message.UserID, message.UserFitsPositionConstraint),
 				)
 
-			case shared.SignalUpdateDelegationOwner:
-				var message shared.UpdateDelegationOwnerSignal
+			case shared_mtv.SignalUpdateDelegationOwner:
+				var message shared_mtv.UpdateDelegationOwnerSignal
 
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -1150,14 +1150,14 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					NewMtvRoomUpdateDelegationOwnerEvent(message.NewDelegationOwnerUserID, message.EmitterUserID),
 				)
 
-			case shared.SignalUpdateControlAndDelegationPermission:
-				var message shared.UpdateControlAndDelegationPermissionSignal
+			case shared_mtv.SignalUpdateControlAndDelegationPermission:
+				var message shared_mtv.UpdateControlAndDelegationPermissionSignal
 
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
-				if err := validate.Struct(message); err != nil {
+				if err := Validate.Struct(message); err != nil {
 					logger.Error("Validation error: %v", err)
 					return
 				}
@@ -1169,16 +1169,16 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 					}),
 				)
 
-			case shared.SignalRouteTerminate:
+			case shared_mtv.SignalRouteTerminate:
 				terminated = true
 			}
 		})
 
 		if timerExpirationFuture != nil {
 			selector.AddFuture(timerExpirationFuture, func(f workflow.Future) {
-				var reason shared.MtvRoomTimerExpiredReason
+				var reason shared_mtv.MtvRoomTimerExpiredReason
 				timerExpirationFuture = nil
-				timerCopy := shared.MtvRoomTimer{
+				timerCopy := shared_mtv.MtvRoomTimer{
 					Cancel:    nil,
 					Duration:  internalState.Timer.Duration,
 					CreatedOn: internalState.Timer.CreatedOn,
@@ -1195,12 +1195,12 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared.MtvRoomParameters) erro
 				fmt.Println("======================================")
 
 				if hasBeenCanceled {
-					reason = shared.MtvRoomTimerExpiredReasonCanceled
+					reason = shared_mtv.MtvRoomTimerExpiredReasonCanceled
 				} else {
-					reason = shared.MtvRoomTimerExpiredReasonFinished
+					reason = shared_mtv.MtvRoomTimerExpiredReasonFinished
 				}
 
-				internalState.Timer = shared.MtvRoomTimer{
+				internalState.Timer = shared_mtv.MtvRoomTimer{
 					Cancel:    nil,
 					Duration:  0,
 					CreatedOn: time.Time{},
@@ -1297,7 +1297,7 @@ func removeFutureFromSlice(slice []workflow.Future, index int) []workflow.Future
 	return slice[:len(slice)-1]
 }
 
-func acknowledgeRoomCreation(ctx workflow.Context, state shared.MtvRoomExposedState) error {
+func acknowledgeRoomCreation(ctx workflow.Context, state shared_mtv.MtvRoomExposedState) error {
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
 		StartToCloseTimeout:    time.Minute,

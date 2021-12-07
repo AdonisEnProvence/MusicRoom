@@ -1,7 +1,7 @@
-package workflows
+package mtv
 
 import (
-	"github.com/AdonisEnProvence/MusicRoom/shared"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 	"github.com/Devessier/brainy"
 )
 
@@ -81,7 +81,7 @@ func roomPlayingModeIsDirectAndUserExistsAndEmitterHasPermissions(internalState 
 		}
 
 		emitterUserHasPermission := emitterUser.HasControlAndDelegationPermission
-		playingModeIsDirect := internalState.initialParams.PlayingMode == shared.MtvPlayingModeDirect
+		playingModeIsDirect := internalState.initialParams.PlayingMode == shared_mtv.MtvPlayingModeDirect
 
 		return playingModeIsDirect && emitterUserHasPermission
 	}

@@ -1,10 +1,10 @@
-package workflows
+package mtv
 
 import (
 	"time"
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
-	"github.com/AdonisEnProvence/MusicRoom/shared"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -37,7 +37,7 @@ func sendAcknowledgeTracksSuggestionActivity(ctx workflow.Context, args activiti
 	)
 }
 
-func sendAcknowledgeUpdateUserFitsPositionConstraintActivity(ctx workflow.Context, state shared.MtvRoomExposedState) {
+func sendAcknowledgeUpdateUserFitsPositionConstraintActivity(ctx workflow.Context, state shared_mtv.MtvRoomExposedState) {
 
 	options := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
@@ -52,7 +52,7 @@ func sendAcknowledgeUpdateUserFitsPositionConstraintActivity(ctx workflow.Contex
 	)
 }
 
-func sendAcknowledgeUpdateDelegationOwnerActivity(ctx workflow.Context, state shared.MtvRoomExposedState) {
+func sendAcknowledgeUpdateDelegationOwnerActivity(ctx workflow.Context, state shared_mtv.MtvRoomExposedState) {
 
 	options := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
@@ -67,7 +67,7 @@ func sendAcknowledgeUpdateDelegationOwnerActivity(ctx workflow.Context, state sh
 	)
 }
 
-func sendAcknowledgeUpdateControlAndDelegationPermissionActivity(ctx workflow.Context, state shared.MtvRoomExposedState) {
+func sendAcknowledgeUpdateControlAndDelegationPermissionActivity(ctx workflow.Context, state shared_mtv.MtvRoomExposedState) {
 	options := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
 		StartToCloseTimeout:    time.Minute,
@@ -81,7 +81,7 @@ func sendAcknowledgeUpdateControlAndDelegationPermissionActivity(ctx workflow.Co
 	)
 }
 
-func sendUserLengthUpdateActivity(ctx workflow.Context, state shared.MtvRoomExposedState) {
+func sendUserLengthUpdateActivity(ctx workflow.Context, state shared_mtv.MtvRoomExposedState) {
 
 	options := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
@@ -111,7 +111,7 @@ func sendLeaveActivity(ctx workflow.Context, args activities.AcknowledgeLeaveRoo
 	)
 }
 
-func sendNotifySuggestOrVoteUpdateActivity(ctx workflow.Context, state shared.MtvRoomExposedState) {
+func sendNotifySuggestOrVoteUpdateActivity(ctx workflow.Context, state shared_mtv.MtvRoomExposedState) {
 	options := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
 		StartToCloseTimeout:    time.Minute,
@@ -156,7 +156,7 @@ func sendFetchTracksInformationActivity(ctx workflow.Context, tracksIDs []string
 	)
 }
 
-func sendUserVoteForTrackAcknowledgementActivity(ctx workflow.Context, state shared.MtvRoomExposedState) {
+func sendUserVoteForTrackAcknowledgementActivity(ctx workflow.Context, state shared_mtv.MtvRoomExposedState) {
 	options := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
 		StartToCloseTimeout:    time.Minute,
@@ -184,7 +184,7 @@ func sendJoinActivity(ctx workflow.Context, args activities.MtvJoinCallbackReque
 	)
 }
 
-func sendChangeUserEmittingDeviceActivity(ctx workflow.Context, state shared.MtvRoomExposedState) {
+func sendChangeUserEmittingDeviceActivity(ctx workflow.Context, state shared_mtv.MtvRoomExposedState) {
 	options := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
 		StartToCloseTimeout:    time.Minute,
@@ -198,7 +198,7 @@ func sendChangeUserEmittingDeviceActivity(ctx workflow.Context, state shared.Mtv
 	)
 }
 
-func sendPauseActivity(ctx workflow.Context, state shared.MtvRoomExposedState) {
+func sendPauseActivity(ctx workflow.Context, state shared_mtv.MtvRoomExposedState) {
 	options := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
 		StartToCloseTimeout:    time.Minute,
@@ -212,7 +212,7 @@ func sendPauseActivity(ctx workflow.Context, state shared.MtvRoomExposedState) {
 	)
 }
 
-func sendPlayActivity(ctx workflow.Context, state shared.MtvRoomExposedState) {
+func sendPlayActivity(ctx workflow.Context, state shared_mtv.MtvRoomExposedState) {
 	options := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
 		StartToCloseTimeout:    time.Minute,
@@ -226,7 +226,7 @@ func sendPlayActivity(ctx workflow.Context, state shared.MtvRoomExposedState) {
 	)
 }
 
-func sendAcknowledgeUpdateTimeConstraintActivity(ctx workflow.Context, state shared.MtvRoomExposedState) {
+func sendAcknowledgeUpdateTimeConstraintActivity(ctx workflow.Context, state shared_mtv.MtvRoomExposedState) {
 	options := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
 		StartToCloseTimeout:    time.Minute,

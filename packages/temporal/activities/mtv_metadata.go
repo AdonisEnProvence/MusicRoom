@@ -8,7 +8,6 @@ import (
 
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/AdonisEnProvence/MusicRoom/youtube"
-
 	"github.com/senseyeio/duration"
 )
 

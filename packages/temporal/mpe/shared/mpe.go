@@ -3,6 +3,8 @@ package shared_mpe
 import (
 	"errors"
 	"time"
+
+	"github.com/AdonisEnProvence/MusicRoom/shared"
 )
 
 var (
@@ -17,12 +19,12 @@ type InternalStateUser struct {
 }
 
 type MpeRoomParameters struct {
-	RoomID                        string
-	RoomCreatorUserID             string
-	RoomName                      string
-	CreatorUserRelatedInformation *InternalStateUser
-	InitialTrackID                string
+	RoomID            string `validate:"required"`
+	RoomCreatorUserID string `validate:"required"`
+	RoomName          string `validate:"required"`
+	InitialTrackID    string `validate:"required"`
 
+	CreatorUserRelatedInformation *InternalStateUser
 	IsOpen                        bool
 	IsOpenOnlyInvitedUsersCanEdit bool
 }
@@ -41,19 +43,43 @@ func (p MpeRoomParameters) CheckParamsValidity(now time.Time) error {
 	return nil
 }
 
-type TrackMetadata struct {
-	ID         string        `json:"id"`
-	Title      string        `json:"title"`
-	ArtistName string        `json:"artistName"`
-	Duration   time.Duration `json:"duration"`
+type MpeRoomExposedState struct {
+	RoomID                        string                 `json:"roomID"`
+	RoomCreatorUserID             string                 `json:"roomCreatorUserID"`
+	RoomName                      string                 `json:"name"`
+	Tracks                        []shared.TrackMetadata `json:"tracks"`
+	UsersLength                   int                    `json:"usersLength"`
+	IsOpen                        bool                   `json:"isOpen"`
+	IsOpenOnlyInvitedUsersCanEdit bool                   `json:"isOpenOnlyInvitedUsersCanVote"`
 }
 
-type MpeRoomExposedState struct {
-	RoomID            string `json:"roomID"`
-	RoomCreatorUserID string `json:"roomCreatorUserID"`
-	RoomName          string `json:"name"`
-	// Tracks                        []TrackMetadata `json:"tracks"`
-	UsersLength                   int  `json:"usersLength"`
-	IsOpen                        bool `json:"isOpen"`
-	IsOpenOnlyInvitedUsersCanEdit bool `json:"isOpenOnlyInvitedUsersCanVote"`
+type TrackMetadataSet struct {
+	tracks []shared.TrackMetadata
+}
+
+func (s *TrackMetadataSet) Clear() {
+	s.tracks = []shared.TrackMetadata{}
+}
+
+func (s *TrackMetadataSet) Has(trackID string) bool {
+	for _, track := range s.tracks {
+		if track.ID == trackID {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (s *TrackMetadataSet) Add(track shared.TrackMetadata) error {
+	if isDuplicate := s.Has(track.ID); isDuplicate {
+		return errors.New("mpe add track failed, track already in set")
+	}
+
+	s.tracks = append(s.tracks, track)
+	return nil
+}
+
+func (s *TrackMetadataSet) Values() []shared.TrackMetadata {
+	return s.tracks[:]
 }

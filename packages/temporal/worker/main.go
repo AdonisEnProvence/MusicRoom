@@ -7,6 +7,7 @@ import (
 	"go.temporal.io/sdk/worker"
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
+	mpe "github.com/AdonisEnProvence/MusicRoom/mpe/workflows"
 	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 	mtv "github.com/AdonisEnProvence/MusicRoom/mtv/workflows"
 )
@@ -41,6 +42,8 @@ func main() {
 	w.RegisterActivity(activities.AcknowledgeUpdateControlAndDelegationPermission)
 	w.RegisterActivity(activities.AcknowledgeUpdateTimeConstraint)
 	w.RegisterActivity(activities.LeaveActivity)
+
+	w.RegisterWorkflow(mpe.MpeRoomWorkflow)
 
 	// Start listening to the Task Queue
 	err = w.Run(worker.InterruptCh())

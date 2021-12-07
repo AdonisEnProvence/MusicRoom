@@ -4,7 +4,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/AdonisEnProvence/MusicRoom/activities"
 	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
+	"github.com/AdonisEnProvence/MusicRoom/shared"
+	"github.com/bxcodec/faker/v3"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"go.temporal.io/sdk/workflow"
 )
@@ -16,16 +20,39 @@ type CreateMpeWorkflowTestUnit struct {
 // Test_JoinCreatedRoom scenario:
 func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflow() {
 	params, _ := s.getWorkflowInitParams("just a track id")
+	tracksIDs := []string{
+		params.InitialTrackID,
+	}
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+	}
 
 	defaultDuration := 1 * time.Millisecond
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
 
 	defer resetMock()
 
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	// s.env.OnActivity(
+	// 	activities.CreationAcknowledgementActivity,
+	// 	mock.Anything,
+	// 	mock.Anything,
+	// ).Return(nil).Once()
+
 	checkOnlyOneUser := defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		mpeState := s.getMtvState(shared_mpe.NoRelatedUserID)
 
+		expectedTracks := tracks
 		expectedExposedMpeState := shared_mpe.MpeRoomExposedState{
 			IsOpen:                        params.IsOpen,
 			IsOpenOnlyInvitedUsersCanEdit: params.IsOpenOnlyInvitedUsersCanEdit,
@@ -33,6 +60,7 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflow() {
 			RoomID:                        params.RoomID,
 			RoomName:                      params.RoomName,
 			UsersLength:                   1,
+			Tracks:                        expectedTracks,
 		}
 
 		s.Equal(expectedExposedMpeState, mpeState)

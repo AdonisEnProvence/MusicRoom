@@ -3,9 +3,11 @@ package mpe
 import (
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
+	"github.com/AdonisEnProvence/MusicRoom/shared"
 
 	"github.com/Devessier/brainy"
 
@@ -20,6 +22,7 @@ type MpeRoomInternalState struct {
 	initialParams shared_mpe.MpeRoomParameters
 	Machine       *brainy.Machine
 	Users         map[string]*shared_mpe.InternalStateUser
+	Tracks        shared_mpe.TrackMetadataSet
 }
 
 func (s *MpeRoomInternalState) AddUser(user shared_mpe.InternalStateUser) {
@@ -50,15 +53,17 @@ func (s *MpeRoomInternalState) Export(RelatedUserID string) shared_mpe.MpeRoomEx
 		RoomCreatorUserID:             s.initialParams.RoomCreatorUserID,
 		IsOpen:                        s.initialParams.IsOpen,
 		IsOpenOnlyInvitedUsersCanEdit: s.initialParams.IsOpenOnlyInvitedUsersCanEdit,
+		Tracks:                        s.Tracks.Values(),
 	}
 
 	return exposedState
 }
 
 const (
-	MtvRoomInit brainy.StateType = "init"
+	MpeRoomFetchInitialTrack brainy.StateType = "fetching-initial-track"
+	MpeRoomIsReady           brainy.StateType = "room-is-ready"
 
-	MtvRoomPlay brainy.EventType = "PLAY"
+	MpeRoomInitialTracksFetched brainy.EventType = "INITIAL_TRACK_FETCHED"
 )
 
 func getNowFromSideEffect(ctx workflow.Context) time.Time {
@@ -80,6 +85,12 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 
 	//Checking params
 	rootNow := getNowFromSideEffect(ctx)
+
+	if err := Validate.Struct(params); err != nil {
+		log.Println("create mpe room params validation error", err)
+		return err
+	}
+
 	if err := params.CheckParamsValidity(rootNow); err != nil {
 		logger.Info("Workflow creation failed", "Error", err)
 		return err
@@ -104,13 +115,59 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 	channel := workflow.GetSignalChannel(ctx, shared_mpe.SignalChannelName)
 
 	var (
-		terminated         = false
-		workflowFatalError error
-		// fetchedInitialTracksFuture workflow.Future
+		terminated                 = false
+		workflowFatalError         error
+		fetchedInitialTracksFuture workflow.Future
 	)
 
 	//create machine here
-	internalState.Machine, err = brainy.NewMachine(brainy.StateNode{})
+	internalState.Machine, err = brainy.NewMachine(brainy.StateNode{
+		Initial: MpeRoomFetchInitialTrack,
+
+		States: brainy.StateNodes{
+
+			MpeRoomFetchInitialTrack: &brainy.StateNode{
+				OnEntry: brainy.Actions{
+					brainy.ActionFn(
+						func(c brainy.Context, e brainy.Event) error {
+
+							fetchedInitialTracksFuture = sendFetchTracksInformationActivity(ctx, internalState.initialParams.InitialTrackID)
+
+							return nil
+						},
+					),
+				},
+
+				On: brainy.Events{
+					MpeRoomInitialTracksFetched: brainy.Transition{
+						Target: MpeRoomIsReady,
+
+						Actions: brainy.Actions{
+							brainy.ActionFn(
+								assignInitialFetchedTrack(&internalState),
+							),
+							brainy.ActionFn(
+								func(c brainy.Context, e brainy.Event) error {
+									if err := acknowledgeRoomCreation(
+										ctx,
+										internalState.Export(internalState.initialParams.RoomCreatorUserID),
+									); err != nil {
+										workflowFatalError = err
+									}
+
+									return nil
+								},
+							),
+						},
+					},
+				},
+			},
+
+			MpeRoomIsReady: &brainy.StateNode{},
+		},
+
+		On: brainy.Events{},
+	})
 
 	if err != nil {
 		fmt.Printf("machine error : %v\n", err)
@@ -157,25 +214,32 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 			// }
 		})
 
-		// Room Is Ready callback
-		// if fetchedInitialTracksFuture != nil {
-		// 	selector.AddFuture(fetchedInitialTracksFuture, func(f workflow.Future) {
-		// 		fetchedInitialTracksFuture = nil
+		if fetchedInitialTracksFuture != nil {
+			selector.AddFuture(fetchedInitialTracksFuture, func(f workflow.Future) {
+				fetchedInitialTracksFuture = nil
 
-		// 		var initialTracksActivityResult []shared_mpe.TrackMetadata
+				var initialTrackActivityResult []shared.TrackMetadata
 
-		// 		if err := f.Get(ctx, &initialTracksActivityResult); err != nil {
-		// 			logger.Error("error occured initialTracksActivityResult", err)
+				if err := f.Get(ctx, &initialTrackActivityResult); err != nil {
+					logger.Error("error occured initialTrackActivityResult", err)
 
-		// 			return
-		// 		}
+					return
+				}
 
-		// 		// internalState.Machine.Send(
-		// 		// 	NewMtvRoomInitialTracksFetchedEvent(initialTracksActivityResult),
-		// 		// )
-		// 	})
-		// }
-		/////
+				if len(initialTrackActivityResult) != 1 {
+					logger.Error("error occured initialTrackActivityResult", err)
+
+					return
+				}
+
+				fmt.Println("**********************************")
+				fmt.Printf("\n%+v\n", initialTrackActivityResult)
+				fmt.Println("**********************************")
+				internalState.Machine.Send(
+					NewMpeRoomInitialTracksFetchedEvent(initialTrackActivityResult[0]),
+				)
+			})
+		}
 
 		selector.Select(ctx)
 
@@ -187,23 +251,23 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 	return workflowFatalError
 }
 
-// func acknowledgeRoomCreation(ctx workflow.Context, state shared_mpe.MpeRoomExposedState) error {
-// 	ao := workflow.ActivityOptions{
-// 		ScheduleToStartTimeout: time.Minute,
-// 		StartToCloseTimeout:    time.Minute,
-// 	}
-// 	ctx = workflow.WithActivityOptions(ctx, ao)
+func acknowledgeRoomCreation(ctx workflow.Context, state shared_mpe.MpeRoomExposedState) error {
+	// ao := workflow.ActivityOptions{
+	// 	ScheduleToStartTimeout: time.Minute,
+	// 	StartToCloseTimeout:    time.Minute,
+	// }
+	// ctx = workflow.WithActivityOptions(ctx, ao)
 
-// 	if err := workflow.ExecuteActivity(
-// 		ctx,
-// 		activities.CreationAcknowledgementActivity,
-// 		state,
-// 	).Get(ctx, nil); err != nil {
-// 		return err
-// 	}
+	// if err := workflow.ExecuteActivity(
+	// 	ctx,
+	// 	activities.CreationAcknowledgementActivity, //TODO CHANGE
+	// 	state,
+	// ).Get(ctx, nil); err != nil {
+	// 	return err
+	// }
 
-// 	return nil
-// }
+	return nil
+}
 
 type TimeWrapperType func() time.Time
 

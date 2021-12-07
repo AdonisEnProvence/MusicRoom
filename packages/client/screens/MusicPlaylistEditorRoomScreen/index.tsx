@@ -10,12 +10,12 @@ import {
     AppScreen,
     AppScreenContainer,
     AppScreenHeader,
-} from '../components/kit';
-import { MpeTabMpeRoomScreenProps } from '../types';
-import { useMusicPlaylistsActor } from '../hooks/useMusicPlaylistsActor';
-import { MusicPlaylist } from '../machines/appMusicPlaylistsMachine';
-import TrackListItem from '../components/Track/TrackListItem';
-import { PlaylistActorRef } from '../machines/playlistMachine';
+} from '../../components/kit';
+import { MpeTabMpeRoomScreenProps } from '../../types';
+import { useMusicPlaylistsActor } from '../../hooks/useMusicPlaylistsActor';
+import { MusicPlaylist } from '../../machines/appMusicPlaylistsMachine';
+import TrackListItem from '../../components/Track/TrackListItem';
+import { PlaylistActorRef } from '../../machines/playlistMachine';
 
 interface MusicPlaylistEditorRoomScreenProps extends MpeTabMpeRoomScreenProps {
     playlist: MusicPlaylist;
@@ -81,6 +81,7 @@ const TrackListItemActions = ({
                 }}
             >
                 <TouchableOpacity
+                    accessibilityLabel="Move up"
                     disabled={disabled || disabledMoveUp}
                     style={sx({
                         backgroundColor: 'greyLighter',
@@ -96,6 +97,7 @@ const TrackListItemActions = ({
                 <View sx={{ width: 1, backgroundColor: 'white' }} />
 
                 <TouchableOpacity
+                    accessibilityLabel="Move down"
                     disabled={disabled || disabledMoveDown}
                     style={sx({
                         backgroundColor: 'greyLighter',
@@ -110,6 +112,7 @@ const TrackListItemActions = ({
             </View>
 
             <TouchableOpacity
+                accessibilityLabel="Delete"
                 disabled={disabled}
                 style={sx({
                     padding: 's',

@@ -24,6 +24,7 @@ const TrackListItem: React.FC<TrackListItemProps> = ({
 }) => {
     return (
         <View
+            testID={`${trackID}-track-card-container`}
             sx={{
                 flexShrink: 0,
                 padding: 'm',

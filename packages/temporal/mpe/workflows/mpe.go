@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	activities_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/activities"
 	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 
@@ -45,7 +46,7 @@ func (s *MpeRoomInternalState) FillWith(params shared_mpe.MpeRoomParameters) {
 // In the internalState.Export method we do not use workflow.sideEffect for at least two reasons:
 // 1- we cannot use workflow.sideEffect in the getState queryHandler
 // 2- we never update our internalState depending on internalState.Export() results this data aims to be sent to adonis.
-func (s *MpeRoomInternalState) Export(RelatedUserID string) shared_mpe.MpeRoomExposedState {
+func (s *MpeRoomInternalState) Export() shared_mpe.MpeRoomExposedState {
 
 	exposedState := shared_mpe.MpeRoomExposedState{
 		UsersLength:                   len(s.Users),
@@ -103,7 +104,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 		shared_mpe.MpeGetStateQuery,
 		func(userID string) (shared_mpe.MpeRoomExposedState, error) {
 
-			exposedState := internalState.Export(userID)
+			exposedState := internalState.Export()
 
 			return exposedState, nil
 		},
@@ -147,12 +148,10 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 							),
 							brainy.ActionFn(
 								func(c brainy.Context, e brainy.Event) error {
-									if err := acknowledgeRoomCreation(
+									acknowledgeRoomCreation(
 										ctx,
-										internalState.Export(internalState.initialParams.RoomCreatorUserID),
-									); err != nil {
-										workflowFatalError = err
-									}
+										internalState.Export(),
+									)
 
 									return nil
 								},
@@ -249,19 +248,19 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 }
 
 func acknowledgeRoomCreation(ctx workflow.Context, state shared_mpe.MpeRoomExposedState) error {
-	// ao := workflow.ActivityOptions{
-	// 	ScheduleToStartTimeout: time.Minute,
-	// 	StartToCloseTimeout:    time.Minute,
-	// }
-	// ctx = workflow.WithActivityOptions(ctx, ao)
+	ao := workflow.ActivityOptions{
+		ScheduleToStartTimeout: time.Minute,
+		StartToCloseTimeout:    time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
 
-	// if err := workflow.ExecuteActivity(
-	// 	ctx,
-	// 	activities.CreationAcknowledgementActivity, //TODO CHANGE
-	// 	state,
-	// ).Get(ctx, nil); err != nil {
-	// 	return err
-	// }
+	if err := workflow.ExecuteActivity(
+		ctx,
+		activities_mpe.CreationAcknowledgementActivity,
+		state,
+	).Get(ctx, nil); err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
 	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
+	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/Devessier/brainy"
 
 	"github.com/mitchellh/mapstructure"
@@ -1215,7 +1216,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 			selector.AddFuture(fetchedInitialTracksFuture, func(f workflow.Future) {
 				fetchedInitialTracksFuture = nil
 
-				var initialTracksActivityResult []shared_mtv.TrackMetadata
+				var initialTracksActivityResult []shared.TrackMetadata
 
 				if err := f.Get(ctx, &initialTracksActivityResult); err != nil {
 					logger.Error("error occured initialTracksActivityResult", err)

@@ -3,8 +3,9 @@ package shared_mtv_test
 import (
 	"testing"
 
-	"github.com/AdonisEnProvence/MusicRoom/random"
 	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
+	"github.com/AdonisEnProvence/MusicRoom/random"
+	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/suite"
 )
@@ -18,7 +19,7 @@ func (s *UnitTestSuite) Test_TracksMetadataWithScoreSetAllowsDeletion() {
 		set       shared_mtv.TracksMetadataWithScoreSet
 		setValues = []shared_mtv.TrackMetadataWithScore{
 			{
-				TrackMetadata: shared_mtv.TrackMetadata{
+				TrackMetadata: shared.TrackMetadata{
 					ID:         faker.UUIDHyphenated(),
 					Title:      faker.Word(),
 					ArtistName: faker.Name(),
@@ -28,7 +29,7 @@ func (s *UnitTestSuite) Test_TracksMetadataWithScoreSetAllowsDeletion() {
 				Score: 0,
 			},
 			{
-				TrackMetadata: shared_mtv.TrackMetadata{
+				TrackMetadata: shared.TrackMetadata{
 					ID:         faker.UUIDHyphenated(),
 					Title:      faker.Word(),
 					ArtistName: faker.Name(),

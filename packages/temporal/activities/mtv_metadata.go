@@ -6,15 +6,15 @@ import (
 	"os"
 	"time"
 
-	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
+	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/AdonisEnProvence/MusicRoom/youtube"
 	"github.com/senseyeio/duration"
 )
 
 var ErrInvalidGoogleAPIKey = errors.New("invalid Google API key")
 
-func FetchTracksInformationActivity(ctx context.Context, tracksIDs []string) ([]shared_mtv.TrackMetadata, error) {
-	metadata := make([]shared_mtv.TrackMetadata, 0, len(tracksIDs))
+func FetchTracksInformationActivity(ctx context.Context, tracksIDs []string) ([]shared.TrackMetadata, error) {
+	metadata := make([]shared.TrackMetadata, 0, len(tracksIDs))
 
 	if len(tracksIDs) == 0 {
 		return metadata, nil
@@ -33,7 +33,7 @@ func FetchTracksInformationActivity(ctx context.Context, tracksIDs []string) ([]
 	for _, entry := range youtubeResponse.Items {
 		parsedDuration, _ := duration.ParseISO8601(entry.ContentDetails.Duration)
 
-		trackMetadata := shared_mtv.TrackMetadata{
+		trackMetadata := shared.TrackMetadata{
 			ID:         entry.ID,
 			Title:      entry.Snippet.Title,
 			ArtistName: entry.Snippet.ChannelTitle,
@@ -47,7 +47,7 @@ func FetchTracksInformationActivity(ctx context.Context, tracksIDs []string) ([]
 }
 
 type FetchedTracksInformationWithInitiator struct {
-	Metadata []shared_mtv.TrackMetadata
+	Metadata []shared.TrackMetadata
 	UserID   string
 	DeviceID string
 }

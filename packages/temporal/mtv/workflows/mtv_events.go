@@ -2,6 +2,7 @@ package mtv
 
 import (
 	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
+	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/Devessier/brainy"
 )
 
@@ -26,10 +27,10 @@ func NewMtvRoomTimerExpirationEvent(t shared_mtv.MtvRoomTimer, reason shared_mtv
 type MtvRoomInitialTracksFetchedEvent struct {
 	brainy.EventWithType
 
-	Tracks []shared_mtv.TrackMetadata
+	Tracks []shared.TrackMetadata
 }
 
-func NewMtvRoomInitialTracksFetchedEvent(tracks []shared_mtv.TrackMetadata) MtvRoomInitialTracksFetchedEvent {
+func NewMtvRoomInitialTracksFetchedEvent(tracks []shared.TrackMetadata) MtvRoomInitialTracksFetchedEvent {
 	return MtvRoomInitialTracksFetchedEvent{
 		EventWithType: brainy.EventWithType{
 			Event: MtvRoomInitialTracksFetched,
@@ -135,13 +136,13 @@ func NewMtvRoomSuggestTracksEvent(args NewMtvRoomSuggestTracksEventArgs) MtvRoom
 type MtvRoomSuggestedTracksFetchedEvent struct {
 	brainy.EventWithType
 
-	SuggestedTracksInformation []shared_mtv.TrackMetadata
+	SuggestedTracksInformation []shared.TrackMetadata
 	UserID                     string
 	DeviceID                   string
 }
 
 type NewMtvRoomSuggestedTracksFetchedEventArgs struct {
-	SuggestedTracksInformation []shared_mtv.TrackMetadata
+	SuggestedTracksInformation []shared.TrackMetadata
 	UserID                     string
 	DeviceID                   string
 }

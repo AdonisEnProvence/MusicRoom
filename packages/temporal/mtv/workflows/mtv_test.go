@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
-	"github.com/AdonisEnProvence/MusicRoom/random"
-	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 	"github.com/AdonisEnProvence/MusicRoom/mocks"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
+	"github.com/AdonisEnProvence/MusicRoom/random"
+	"github.com/AdonisEnProvence/MusicRoom/shared"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/mock"
@@ -138,7 +139,7 @@ func (s *UnitTestSuite) emitChangeUserEmittingDevice(userID string, deviceID str
 	s.env.SignalWorkflow(shared_mtv.SignalChannelName, signal)
 }
 
-func (s *UnitTestSuite) mockOnceSuggest(userID string, deviceID string, roomID string, tracks []shared_mtv.TrackMetadata) {
+func (s *UnitTestSuite) mockOnceSuggest(userID string, deviceID string, roomID string, tracks []shared.TrackMetadata) {
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivityAndForwardInitiator,
 		mock.Anything,
@@ -244,7 +245,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 
 	defaultDuration := 1 * time.Millisecond
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -307,7 +308,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		expectedExposedCurrentTrack := shared_mtv.ExposedCurrentTrack{
 			CurrentTrack: shared_mtv.CurrentTrack{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[0].ID,
 						ArtistName: tracks[0].ArtistName,
 						Title:      tracks[0].Title,
@@ -353,7 +354,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		expectedExposedCurrentTrack := shared_mtv.ExposedCurrentTrack{
 			CurrentTrack: shared_mtv.CurrentTrack{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						ArtistName: tracks[1].ArtistName,
 						Title:      tracks[1].Title,
@@ -379,7 +380,7 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		expectedExposedCurrentTrack := shared_mtv.ExposedCurrentTrack{
 			CurrentTrack: shared_mtv.CurrentTrack{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						ArtistName: tracks[1].ArtistName,
 						Title:      tracks[1].Title,
@@ -435,7 +436,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 
 	firstTrackDuration := random.GenerateRandomDuration()
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -566,7 +567,7 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		expectedExposedCurrentTrack := shared_mtv.ExposedCurrentTrack{
 			CurrentTrack: shared_mtv.CurrentTrack{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[0].ID,
 						ArtistName: tracks[0].ArtistName,
 						Title:      tracks[0].Title,
@@ -600,7 +601,7 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 
 	firstTrackDuration := random.GenerateRandomDuration()
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -771,7 +772,7 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		defaultDuration = 1 * time.Millisecond
 	)
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -840,7 +841,7 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		expectedExposedCurrentTrack := shared_mtv.ExposedCurrentTrack{
 			CurrentTrack: shared_mtv.CurrentTrack{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						ArtistName: tracks[1].ArtistName,
 						Title:      tracks[1].Title,
@@ -878,7 +879,7 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		expectedExposedCurrentTrack := shared_mtv.ExposedCurrentTrack{
 			CurrentTrack: shared_mtv.CurrentTrack{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						ArtistName: tracks[1].ArtistName,
 						Title:      tracks[1].Title,
@@ -910,7 +911,7 @@ func (s *UnitTestSuite) Test_UserLeaveRoom() {
 		joiningUserID   = faker.UUIDHyphenated()
 	)
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -1019,7 +1020,7 @@ func (s *UnitTestSuite) Test_UserLeaveRoom() {
 func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrackThatEnded() {
 	firstTrackDuration := random.GenerateRandomDuration()
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -1073,7 +1074,7 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 		expectedExposedCurrentTrack := shared_mtv.ExposedCurrentTrack{
 			CurrentTrack: shared_mtv.CurrentTrack{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[0].ID,
 						ArtistName: tracks[0].ArtistName,
 						Title:      tracks[0].Title,
@@ -1106,7 +1107,7 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 		expectedExposedCurrentTrack := shared_mtv.ExposedCurrentTrack{
 			CurrentTrack: shared_mtv.CurrentTrack{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[0].ID,
 						ArtistName: tracks[0].ArtistName,
 						Title:      tracks[0].Title,
@@ -1133,7 +1134,7 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 }
 
 func (s *UnitTestSuite) Test_CanSuggestTracks() {
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -1154,7 +1155,7 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 	}
 	suggesterUserID := faker.UUIDHyphenated()
 	suggesterDeviceID := faker.UUIDHyphenated()
-	tracksToSuggestMetadata := []shared_mtv.TrackMetadata{
+	tracksToSuggestMetadata := []shared.TrackMetadata{
 		{
 			ID:         tracksIDsToSuggest[0],
 			Title:      faker.Word(),
@@ -1242,7 +1243,7 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 		expectedMtvStateTracks := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						Title:      tracks[1].Title,
 						ArtistName: tracks[1].ArtistName,
@@ -1254,7 +1255,7 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggestMetadata[0].ID,
 						Title:      tracksToSuggestMetadata[0].Title,
 						ArtistName: tracksToSuggestMetadata[0].ArtistName,
@@ -1267,7 +1268,7 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggestMetadata[1].ID,
 						Title:      tracksToSuggestMetadata[1].Title,
 						ArtistName: tracksToSuggestMetadata[1].ArtistName,
@@ -1298,7 +1299,7 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 		expectedMtvStateTracks := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						Title:      tracks[1].Title,
 						ArtistName: tracks[1].ArtistName,
@@ -1310,7 +1311,7 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggestMetadata[0].ID,
 						Title:      tracksToSuggestMetadata[0].Title,
 						ArtistName: tracksToSuggestMetadata[0].ArtistName,
@@ -1323,7 +1324,7 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggestMetadata[1].ID,
 						Title:      tracksToSuggestMetadata[1].Title,
 						ArtistName: tracksToSuggestMetadata[1].ArtistName,
@@ -1355,7 +1356,7 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 		expectedMtvStateTracks := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						Title:      tracks[1].Title,
 						ArtistName: tracks[1].ArtistName,
@@ -1367,7 +1368,7 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggestMetadata[0].ID,
 						Title:      tracksToSuggestMetadata[0].Title,
 						ArtistName: tracksToSuggestMetadata[0].ArtistName,
@@ -1380,7 +1381,7 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggestMetadata[1].ID,
 						Title:      tracksToSuggestMetadata[1].Title,
 						ArtistName: tracksToSuggestMetadata[1].ArtistName,
@@ -1404,7 +1405,7 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 }
 
 func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInformationHaveBeenFetchedAreNotLost() {
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -1421,7 +1422,7 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 	tracksExposedMetadata := []shared_mtv.TrackMetadataWithScoreWithDuration{
 		{
 			TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-				TrackMetadata: shared_mtv.TrackMetadata{
+				TrackMetadata: shared.TrackMetadata{
 					ID:         tracks[0].ID,
 					Title:      tracks[0].Title,
 					ArtistName: tracks[0].ArtistName,
@@ -1433,7 +1434,7 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 		},
 		{
 			TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-				TrackMetadata: shared_mtv.TrackMetadata{
+				TrackMetadata: shared.TrackMetadata{
 					ID:         tracks[1].ID,
 					Title:      tracks[1].Title,
 					ArtistName: tracks[1].ArtistName,
@@ -1455,7 +1456,7 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 	}
 	suggesterUserID := faker.UUIDHyphenated()
 	suggesterDeviceID := faker.UUIDHyphenated()
-	firstTracksToSuggestMetadata := []shared_mtv.TrackMetadata{
+	firstTracksToSuggestMetadata := []shared.TrackMetadata{
 		{
 			ID:         firstTracksIDsToSuggest[0],
 			Title:      faker.Word(),
@@ -1469,7 +1470,7 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 			Duration:   random.GenerateRandomDuration(),
 		},
 	}
-	secondTracksToSuggestMetadata := []shared_mtv.TrackMetadata{
+	secondTracksToSuggestMetadata := []shared.TrackMetadata{
 		{
 			ID:         secondTracksIDsToSuggest[0],
 			Title:      faker.Word(),
@@ -1486,7 +1487,7 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 	firstTracksToSuggestExposedMetadata := []shared_mtv.TrackMetadataWithScoreWithDuration{
 		{
 			TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-				TrackMetadata: shared_mtv.TrackMetadata{
+				TrackMetadata: shared.TrackMetadata{
 					ID:         firstTracksToSuggestMetadata[0].ID,
 					Title:      firstTracksToSuggestMetadata[0].Title,
 					ArtistName: firstTracksToSuggestMetadata[0].ArtistName,
@@ -1498,7 +1499,7 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 		},
 		{
 			TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-				TrackMetadata: shared_mtv.TrackMetadata{
+				TrackMetadata: shared.TrackMetadata{
 					ID:         firstTracksToSuggestMetadata[1].ID,
 					Title:      firstTracksToSuggestMetadata[1].Title,
 					ArtistName: firstTracksToSuggestMetadata[1].ArtistName,
@@ -1512,7 +1513,7 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 	secondTracksToSuggestExposedMetadata := []shared_mtv.TrackMetadataWithScoreWithDuration{
 		{
 			TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-				TrackMetadata: shared_mtv.TrackMetadata{
+				TrackMetadata: shared.TrackMetadata{
 					ID:         secondTracksToSuggestMetadata[0].ID,
 					Title:      secondTracksToSuggestMetadata[0].Title,
 					ArtistName: secondTracksToSuggestMetadata[0].ArtistName,
@@ -1524,7 +1525,7 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 		},
 		{
 			TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-				TrackMetadata: shared_mtv.TrackMetadata{
+				TrackMetadata: shared.TrackMetadata{
 					ID:         secondTracksToSuggestMetadata[1].ID,
 					Title:      secondTracksToSuggestMetadata[1].Title,
 					ArtistName: secondTracksToSuggestMetadata[1].ArtistName,
@@ -1655,7 +1656,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 		joiningDeviceID = faker.UUIDHyphenated()
 	)
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -1670,7 +1671,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 		},
 	}
 
-	tracksToSuggest := []shared_mtv.TrackMetadata{
+	tracksToSuggest := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -1766,7 +1767,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 		expected := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						Title:      tracks[1].Title,
 						ArtistName: tracks[1].ArtistName,
@@ -1798,7 +1799,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 		s.Equal(2, mtvState.UsersLength)
 	}, checkJoinSuccess)
 
-	suggestedTracks := []shared_mtv.TrackMetadata{
+	suggestedTracks := []shared.TrackMetadata{
 		tracks[1], //will be counted as vote normally
 		tracksToSuggest[0],
 		tracksToSuggest[1],
@@ -1824,7 +1825,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 		expected := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						Title:      tracks[1].Title,
 						ArtistName: tracks[1].ArtistName,
@@ -1836,7 +1837,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggest[0].ID,
 						Title:      tracksToSuggest[0].Title,
 						ArtistName: tracksToSuggest[0].ArtistName,
@@ -1848,7 +1849,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggest[1].ID,
 						Title:      tracksToSuggest[1].Title,
 						ArtistName: tracksToSuggest[1].ArtistName,
@@ -1894,7 +1895,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 		expected := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						Title:      tracks[1].Title,
 						ArtistName: tracks[1].ArtistName,
@@ -1906,7 +1907,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggest[0].ID,
 						Title:      tracksToSuggest[0].Title,
 						ArtistName: tracksToSuggest[0].ArtistName,
@@ -1918,7 +1919,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggest[1].ID,
 						Title:      tracksToSuggest[1].Title,
 						ArtistName: tracksToSuggest[1].ArtistName,
@@ -1948,7 +1949,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 		expected := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						Title:      tracks[1].Title,
 						ArtistName: tracks[1].ArtistName,
@@ -1960,7 +1961,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggest[1].ID,
 						Title:      tracksToSuggest[1].Title,
 						ArtistName: tracksToSuggest[1].ArtistName,
@@ -1972,7 +1973,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggest[0].ID,
 						Title:      tracksToSuggest[0].Title,
 						ArtistName: tracksToSuggest[0].ArtistName,
@@ -1995,7 +1996,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 		})
 	}, emitGoToNextTrackSignal)
 
-	previousCurrentTrackToSuggest := []shared_mtv.TrackMetadata{
+	previousCurrentTrackToSuggest := []shared.TrackMetadata{
 		tracks[0],
 	}
 	emitSuggestForPastCurrentTrack := defaultDuration
@@ -2022,7 +2023,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggest[1].ID,
 						Title:      tracksToSuggest[1].Title,
 						ArtistName: tracksToSuggest[1].ArtistName,
@@ -2034,7 +2035,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggest[0].ID,
 						Title:      tracksToSuggest[0].Title,
 						ArtistName: tracksToSuggest[0].ArtistName,
@@ -2046,7 +2047,7 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[0].ID,
 						Title:      tracks[0].Title,
 						ArtistName: tracks[0].ArtistName,
@@ -2075,7 +2076,7 @@ func (s *UnitTestSuite) Test_EmptyCurrentTrackAutoPlayAfterOneGetReadyToBePlayed
 		joiningDeviceID = faker.UUIDHyphenated()
 	)
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -2188,7 +2189,7 @@ func (s *UnitTestSuite) Test_EmptyCurrentTrackAutoPlayAfterOneGetReadyToBePlayed
 
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[0].ID,
 						Title:      tracks[0].Title,
 						ArtistName: tracks[0].ArtistName,
@@ -2200,7 +2201,7 @@ func (s *UnitTestSuite) Test_EmptyCurrentTrackAutoPlayAfterOneGetReadyToBePlayed
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						Title:      tracks[1].Title,
 						ArtistName: tracks[1].ArtistName,
@@ -2232,7 +2233,7 @@ func (s *UnitTestSuite) Test_LoadedCurrentTrackAndReadyToBePlayedListNoAutoPlayA
 		joiningDeviceID = faker.UUIDHyphenated()
 	)
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -2326,7 +2327,7 @@ func (s *UnitTestSuite) Test_LoadedCurrentTrackAndReadyToBePlayedListNoAutoPlayA
 		expectedTracks := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[2].ID,
 						Title:      tracks[2].Title,
 						ArtistName: tracks[2].ArtistName,
@@ -2338,7 +2339,7 @@ func (s *UnitTestSuite) Test_LoadedCurrentTrackAndReadyToBePlayedListNoAutoPlayA
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						Title:      tracks[1].Title,
 						ArtistName: tracks[1].ArtistName,
@@ -2370,7 +2371,7 @@ func (s *UnitTestSuite) Test_LoadedAndEndedCurrentTrackAndNoTrackReadyToBePlayed
 		joiningDeviceID = faker.UUIDHyphenated()
 	)
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -2465,7 +2466,7 @@ func (s *UnitTestSuite) Test_LoadedAndEndedCurrentTrackAndNoTrackReadyToBePlayed
 		expectedExposedCurrentTrack := &shared_mtv.ExposedCurrentTrack{
 			CurrentTrack: shared_mtv.CurrentTrack{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[0].ID,
 						ArtistName: tracks[0].ArtistName,
 						Title:      tracks[0].Title,
@@ -2484,7 +2485,7 @@ func (s *UnitTestSuite) Test_LoadedAndEndedCurrentTrackAndNoTrackReadyToBePlayed
 		s.Equal(mtvState.CurrentTrack, expectedExposedCurrentTrack)
 	}, checkCurrentTrack)
 
-	trackToSuggest := shared_mtv.TrackMetadata{
+	trackToSuggest := shared.TrackMetadata{
 		ID:         faker.UUIDHyphenated(),
 		Title:      faker.Word(),
 		ArtistName: faker.Name(),
@@ -2500,7 +2501,7 @@ func (s *UnitTestSuite) Test_LoadedAndEndedCurrentTrackAndNoTrackReadyToBePlayed
 		})
 	}, creatorSuggestSong)
 
-	s.mockOnceSuggest(params.RoomCreatorUserID, creatorDeviceID, params.RoomID, []shared_mtv.TrackMetadata{trackToSuggest})
+	s.mockOnceSuggest(params.RoomCreatorUserID, creatorDeviceID, params.RoomID, []shared.TrackMetadata{trackToSuggest})
 	checkSuggestWorked := defaultDuration
 	registerDelayedCallbackWrapper(func() {
 		mtvState := s.getMtvState(shared_mtv.NoRelatedUserID)
@@ -2508,7 +2509,7 @@ func (s *UnitTestSuite) Test_LoadedAndEndedCurrentTrackAndNoTrackReadyToBePlayed
 		expectedTracks := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         trackToSuggest.ID,
 						Title:      trackToSuggest.Title,
 						ArtistName: trackToSuggest.ArtistName,
@@ -2546,7 +2547,7 @@ func (s *UnitTestSuite) Test_LoadedAndEndedCurrentTrackAndNoTrackReadyToBePlayed
 		expectedExposedCurrentTrack := &shared_mtv.ExposedCurrentTrack{
 			CurrentTrack: shared_mtv.CurrentTrack{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         trackToSuggest.ID,
 						ArtistName: trackToSuggest.ArtistName,
 						Title:      trackToSuggest.Title,
@@ -2580,7 +2581,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 
 	falseValue := false
 	trueValue := true
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -2652,7 +2653,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 		expectedTracks := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[0].ID,
 						Title:      tracks[0].Title,
 						ArtistName: tracks[0].ArtistName,
@@ -2664,7 +2665,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						Title:      tracks[1].Title,
 						ArtistName: tracks[1].ArtistName,
@@ -2743,7 +2744,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestTimeC
 
 	falseValue := false
 	trueValue := true
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -2810,7 +2811,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestTimeC
 		expectedTracks := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[0].ID,
 						Title:      tracks[0].Title,
 						ArtistName: tracks[0].ArtistName,
@@ -2822,7 +2823,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestTimeC
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						Title:      tracks[1].Title,
 						ArtistName: tracks[1].ArtistName,
@@ -2887,7 +2888,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestTimeC
 		expectedTracks := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[0].ID,
 						Title:      tracks[0].Title,
 						ArtistName: tracks[0].ArtistName,
@@ -2899,7 +2900,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestTimeC
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						Title:      tracks[1].Title,
 						ArtistName: tracks[1].ArtistName,
@@ -2930,7 +2931,7 @@ func (s *UnitTestSuite) Test_CreateDirectRoomAndUpdateDelegationOwner() {
 		joiningUserDeviceID = faker.UUIDHyphenated()
 	)
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -3119,7 +3120,7 @@ func (s *UnitTestSuite) Test_CreateBroadcastRoomAndAttemptToExecuteDelegationOpe
 		joiningUserDeviceID = faker.UUIDHyphenated()
 	)
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -3220,7 +3221,7 @@ func (s *UnitTestSuite) Test_CanUpdateControlAndDelegationPermission() {
 		joiningUserDeviceID = faker.UUIDHyphenated()
 	)
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -3317,7 +3318,7 @@ func (s *UnitTestSuite) Test_GetUsersListQuery() {
 		joiningUserDeviceID = faker.UUIDHyphenated()
 	)
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -3408,7 +3409,7 @@ func (s *UnitTestSuite) Test_GetUsersListQueryInDirectRoom() {
 		joiningUserDeviceID = faker.UUIDHyphenated()
 	)
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -3533,7 +3534,7 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionPlay() {
 		joiningUserDeviceID = faker.UUIDHyphenated()
 	)
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -3656,7 +3657,7 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionPause() {
 		joiningUserDeviceID = faker.UUIDHyphenated()
 	)
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -3800,7 +3801,7 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionGoToNextTrack(
 		joiningUserDeviceID = faker.UUIDHyphenated()
 	)
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -3891,7 +3892,7 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionGoToNextTrack(
 		expectedTracks := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						Title:      tracks[1].Title,
 						ArtistName: tracks[1].ArtistName,
@@ -3952,7 +3953,7 @@ func (s *UnitTestSuite) Test_OnlyInvitedUsersAndCreatorCanVoteInOpenRoom() {
 		invitedUserDeviceID = faker.UUIDHyphenated()
 	)
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -3967,7 +3968,7 @@ func (s *UnitTestSuite) Test_OnlyInvitedUsersAndCreatorCanVoteInOpenRoom() {
 		},
 	}
 
-	tracksToSuggest := []shared_mtv.TrackMetadata{
+	tracksToSuggest := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -4071,7 +4072,7 @@ func (s *UnitTestSuite) Test_OnlyInvitedUsersAndCreatorCanVoteInOpenRoom() {
 		expectedTracks := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						Title:      tracks[1].Title,
 						ArtistName: tracks[1].ArtistName,
@@ -4112,7 +4113,7 @@ func (s *UnitTestSuite) Test_OnlyInvitedUsersAndCreatorCanVoteInOpenRoom() {
 		expectedTracks := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						Title:      tracks[1].Title,
 						ArtistName: tracks[1].ArtistName,
@@ -4137,7 +4138,7 @@ func (s *UnitTestSuite) Test_OnlyInvitedUsersAndCreatorCanVoteInOpenRoom() {
 	}, checkWorked)
 
 	//Suggest for joiningUser
-	suggestedTracks := []shared_mtv.TrackMetadata{
+	suggestedTracks := []shared.TrackMetadata{
 		tracksToSuggest[0],
 	}
 	s.mockOnceSuggest(joiningUserID, joiningUserDeviceID, params.RoomID, suggestedTracks)
@@ -4159,7 +4160,7 @@ func (s *UnitTestSuite) Test_OnlyInvitedUsersAndCreatorCanVoteInOpenRoom() {
 		expectedTracks := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						Title:      tracks[1].Title,
 						ArtistName: tracks[1].ArtistName,
@@ -4171,7 +4172,7 @@ func (s *UnitTestSuite) Test_OnlyInvitedUsersAndCreatorCanVoteInOpenRoom() {
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggest[0].ID,
 						Title:      tracksToSuggest[0].Title,
 						ArtistName: tracksToSuggest[0].ArtistName,
@@ -4196,7 +4197,7 @@ func (s *UnitTestSuite) Test_OnlyInvitedUsersAndCreatorCanVoteInOpenRoom() {
 	}, checkJoiningUserSuggestDidNotMakeHimVoteForSuggestedTrack)
 
 	//Suggest for invitedUser
-	invitedUserSuggestedTracks := []shared_mtv.TrackMetadata{
+	invitedUserSuggestedTracks := []shared.TrackMetadata{
 		tracksToSuggest[1],
 	}
 	s.mockOnceSuggest(invitedUserID, invitedUserDeviceID, params.RoomID, invitedUserSuggestedTracks)
@@ -4218,7 +4219,7 @@ func (s *UnitTestSuite) Test_OnlyInvitedUsersAndCreatorCanVoteInOpenRoom() {
 		expectedTracks := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[1].ID,
 						Title:      tracks[1].Title,
 						ArtistName: tracks[1].ArtistName,
@@ -4230,7 +4231,7 @@ func (s *UnitTestSuite) Test_OnlyInvitedUsersAndCreatorCanVoteInOpenRoom() {
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggest[1].ID,
 						Title:      tracksToSuggest[1].Title,
 						ArtistName: tracksToSuggest[1].ArtistName,
@@ -4242,7 +4243,7 @@ func (s *UnitTestSuite) Test_OnlyInvitedUsersAndCreatorCanVoteInOpenRoom() {
 			},
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggest[0].ID,
 						Title:      tracksToSuggest[0].Title,
 						ArtistName: tracksToSuggest[0].ArtistName,
@@ -4280,7 +4281,7 @@ func (s *UnitTestSuite) Test_SuggestOrVoteSentActivityBaseOnCurrentTrack() {
 		joiningUserDeviceID = faker.UUIDHyphenated()
 	)
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -4330,7 +4331,7 @@ func (s *UnitTestSuite) Test_SuggestOrVoteSentActivityBaseOnCurrentTrack() {
 		expectedTracks := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[0].ID,
 						Title:      tracks[0].Title,
 						ArtistName: tracks[0].ArtistName,
@@ -4380,7 +4381,7 @@ func (s *UnitTestSuite) Test_SuggestOrVoteSentActivityBaseOnCurrentTrack() {
 		expectedExposedCurrentTrack := &shared_mtv.ExposedCurrentTrack{
 			CurrentTrack: shared_mtv.CurrentTrack{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[0].ID,
 						ArtistName: tracks[0].ArtistName,
 						Title:      tracks[0].Title,
@@ -4410,7 +4411,7 @@ func (s *UnitTestSuite) Test_SuggestOrVoteSentActivityBaseOnCurrentTrack() {
 
 func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartBeforeNow() {
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -4485,7 +4486,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartBeforeNow() {
 
 func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartAfterNow() {
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -4569,7 +4570,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartAfterNow() {
 
 func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailPhysicalAndTimeConstraintsNilButHasPhysicalAndTimeConstraintsTrue() {
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -4600,7 +4601,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailPhysicalAndTimeConstraints
 
 func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailPhysicalAndTimeConstraintsSetButHasPhysicalAndTimeConstraintsFalse() {
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -4644,7 +4645,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailPhysicalAndTimeConstraints
 
 func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailStartIsAfterEnd() {
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -4688,7 +4689,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailStartIsAfterEnd() {
 
 func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailStartEqualEnd() {
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -4732,7 +4733,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailStartEqualEnd() {
 
 func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailEndIsBeforeNow() {
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -4775,7 +4776,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailEndIsBeforeNow() {
 
 func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailEndEqualNow() {
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -4819,7 +4820,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintFailEndEqualNow() {
 
 func (s *UnitTestSuite) Test_MtvRoomFailPlayingModeIsInvalid() {
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -4848,7 +4849,7 @@ func (s *UnitTestSuite) Test_MtvRoomFailPlayingModeIsInvalid() {
 
 func (s *UnitTestSuite) Test_MtvRoomFailIsOpenOnlyInvitedUsersCanVoteTrueButIsOpenFalse() {
 
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -4877,7 +4878,7 @@ func (s *UnitTestSuite) Test_MtvRoomFailIsOpenOnlyInvitedUsersCanVoteTrueButIsOp
 }
 
 func (s *UnitTestSuite) Test_UserOutsideRoomAreaSuggestingTrackMustTriggerTracksListUpdate() {
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -4887,7 +4888,7 @@ func (s *UnitTestSuite) Test_UserOutsideRoomAreaSuggestingTrackMustTriggerTracks
 	}
 	tracksIDs := []string{tracks[0].ID}
 	tracksIDsToSuggest := []string{faker.UUIDHyphenated()}
-	tracksToSuggestMetadata := []shared_mtv.TrackMetadata{
+	tracksToSuggestMetadata := []shared.TrackMetadata{
 		{
 			ID:         tracksIDsToSuggest[0],
 			Title:      faker.Word(),
@@ -4966,7 +4967,7 @@ func (s *UnitTestSuite) Test_UserOutsideRoomAreaSuggestingTrackMustTriggerTracks
 		expectedTracks := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[0].ID,
 						Title:      tracks[0].Title,
 						ArtistName: tracks[0].ArtistName,
@@ -5001,7 +5002,7 @@ func (s *UnitTestSuite) Test_UserOutsideRoomAreaSuggestingTrackMustTriggerTracks
 		expectedTracks := []shared_mtv.TrackMetadataWithScoreWithDuration{
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracks[0].ID,
 						Title:      tracks[0].Title,
 						ArtistName: tracks[0].ArtistName,
@@ -5015,7 +5016,7 @@ func (s *UnitTestSuite) Test_UserOutsideRoomAreaSuggestingTrackMustTriggerTracks
 			// Song suggested by the creator
 			{
 				TrackMetadataWithScore: shared_mtv.TrackMetadataWithScore{
-					TrackMetadata: shared_mtv.TrackMetadata{
+					TrackMetadata: shared.TrackMetadata{
 						ID:         tracksToSuggestMetadata[0].ID,
 						Title:      tracksToSuggestMetadata[0].Title,
 						ArtistName: tracksToSuggestMetadata[0].ArtistName,
@@ -5040,7 +5041,7 @@ func (s *UnitTestSuite) Test_UserOutsideRoomAreaSuggestingTrackMustTriggerTracks
 }
 
 func (s *UnitTestSuite) Test_GetMtvRoomConstraintsDetails() {
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),
@@ -5111,7 +5112,7 @@ func (s *UnitTestSuite) Test_GetMtvRoomConstraintsDetails() {
 }
 
 func (s *UnitTestSuite) Test_GetMtvRoomConstraintsDetailsFailRoomDoesntHaveConstraints() {
-	tracks := []shared_mtv.TrackMetadata{
+	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
 			Title:      faker.Word(),

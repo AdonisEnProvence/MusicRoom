@@ -3,6 +3,7 @@ import { MpeCreateWorkflowResponse } from '@musicroom/types';
 import MpeServerToTemporalController from 'App/Controllers/Http/Temporal/MpeServerToTemporalController';
 import MpeRoom from 'App/Models/MpeRoom';
 import User from 'App/Models/User';
+import SocketLifecycle from 'App/Services/SocketLifecycle';
 import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
@@ -16,6 +17,7 @@ test.group(`mpe rooms relationship tests`, (group) => {
         createUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
+        createSocketConnection,
         waitFor,
     } = initTestUtils();
 
@@ -35,6 +37,10 @@ test.group(`mpe rooms relationship tests`, (group) => {
         const creatorSocket = await createUserAndGetSocket({
             userID: creatorUserID,
         });
+        const creatorSocketB = await createSocketConnection({
+            userID: creatorUserID,
+        });
+
         const settings = getDefaultMpeRoomCreateRoomArgs();
 
         sinon
@@ -44,10 +50,21 @@ test.group(`mpe rooms relationship tests`, (group) => {
                     workflowID,
                     userID,
                     name,
-                    isOpenOnlyInvitedUsersCanVote,
+                    isOpenOnlyInvitedUsersCanEdit,
                     isOpen,
                     initialTrackID,
                 }) => {
+                    /**
+                     * Checking if the user is well registered in the socket-io
+                     * room instance
+                     */
+                    const connectedSockets =
+                        await SocketLifecycle.getConnectedSocketToRoom(
+                            workflowID,
+                        );
+                    assert.isTrue(connectedSockets.has(creatorSocket.id));
+                    assert.isTrue(connectedSockets.has(creatorSocketB.id));
+
                     const response: MpeCreateWorkflowResponse = {
                         runID: datatype.uuid(),
                         workflowID,
@@ -57,7 +74,7 @@ test.group(`mpe rooms relationship tests`, (group) => {
 
                             roomID: workflowID,
                             roomCreatorUserID: userID,
-                            isOpenOnlyInvitedUsersCanVote,
+                            isOpenOnlyInvitedUsersCanEdit,
                             usersLength: 1,
                             playlistTotalDuration: 42,
                             playlistTracksLength: 42,
@@ -107,5 +124,187 @@ test.group(`mpe rooms relationship tests`, (group) => {
         assert.equal(createdRoom.creator.uuid, creatorUserID);
         assert.equal(createdRoom.members.length, 1);
         assert.equal(createdRoom.members[0].uuid, creatorUserID);
+    });
+
+    test('It should fail to create MPE room du to temporal fail reponse ', async (assert) => {
+        const creatorUserID = datatype.uuid();
+        const creatorSocket = await createUserAndGetSocket({
+            userID: creatorUserID,
+        });
+        const settings = getDefaultMpeRoomCreateRoomArgs();
+
+        let mockHasBeenCalled = false;
+        sinon
+            .stub(MpeServerToTemporalController, 'createMpeWorkflow')
+            .callsFake(async ({ workflowID }) => {
+                /**
+                 * Checking if the user is well registered in the socket-io
+                 * room instance
+                 */
+                const connectedSockets =
+                    await SocketLifecycle.getConnectedSocketToRoom(workflowID);
+                assert.isTrue(connectedSockets.has(creatorSocket.id));
+
+                mockHasBeenCalled = true;
+                throw new Error('temporal response fail');
+            });
+
+        let creatorFailListenerHasBeenCalled = false;
+        creatorSocket.on('MPE_CREATE_ROOM_FAIL', () => {
+            creatorFailListenerHasBeenCalled = true;
+        });
+
+        creatorSocket.emit('MPE_CREATE_ROOM', settings);
+
+        await waitFor(async () => {
+            assert.isTrue(mockHasBeenCalled);
+        });
+
+        const user = await User.findOrFail(creatorUserID);
+        await user.load('mpeRooms');
+
+        if (user.mpeRooms === null) {
+            assert.isTrue(false);
+            throw new Error('user mpeRooms are null');
+        }
+
+        assert.equal(user.mpeRooms.length, 0);
+
+        const mpeRooms = await MpeRoom.all();
+        assert.equal(mpeRooms.length, 0);
+
+        assert.isTrue(creatorFailListenerHasBeenCalled);
+    });
+
+    test(`It should handle room name duplication by adding creator nickname to room name 
+    It should fail to create a third room with same name`, async (assert) => {
+        const creatorUserID = datatype.uuid();
+        const creatorNickname = random.words(2);
+        const roomName = random.words(2);
+
+        const creatorSocket = await createUserAndGetSocket({
+            userID: creatorUserID,
+            mpeRoomIDToAssociate: [
+                {
+                    roomID: datatype.uuid(),
+                    roomName,
+                },
+            ],
+            userNickname: creatorNickname,
+        });
+        const creator = await User.findOrFail(creatorUserID);
+
+        const settings = getDefaultMpeRoomCreateRoomArgs({
+            name: roomName,
+        });
+
+        let mockHasBeenCalled = false;
+        sinon
+            .stub(MpeServerToTemporalController, 'createMpeWorkflow')
+            .callsFake(
+                async ({
+                    workflowID,
+                    initialTrackID,
+                    isOpen,
+                    isOpenOnlyInvitedUsersCanEdit,
+                    name,
+                    userID,
+                }) => {
+                    /**
+                     * Checking if the user is well registered in the socket-io
+                     * room instance
+                     */
+                    const connectedSockets =
+                        await SocketLifecycle.getConnectedSocketToRoom(
+                            workflowID,
+                        );
+                    assert.isTrue(connectedSockets.has(creatorSocket.id));
+
+                    const response: MpeCreateWorkflowResponse = {
+                        runID: datatype.uuid(),
+                        workflowID,
+                        state: {
+                            name,
+                            isOpen,
+
+                            roomID: workflowID,
+                            roomCreatorUserID: userID,
+                            isOpenOnlyInvitedUsersCanEdit,
+                            usersLength: 1,
+                            playlistTotalDuration: 42,
+                            playlistTracksLength: 42,
+                            tracks: [
+                                {
+                                    id: initialTrackID,
+                                    artistName: random.word(),
+                                    duration: 42000,
+                                    title: random.words(3),
+                                    score: datatype.number(),
+                                },
+                            ],
+                        },
+                    };
+
+                    mockHasBeenCalled = true;
+                    return response;
+                },
+            );
+
+        const receivedEvents: string[] = [];
+        creatorSocket.on('MPE_CREATE_ROOM_FAIL', () => {
+            receivedEvents.push('MPE_CREATE_ROOM_FAIL');
+        });
+
+        //Create room with duplicated name, should succeed change the given name
+        creatorSocket.emit('MPE_CREATE_ROOM', settings);
+
+        await waitFor(async () => {
+            assert.isTrue(mockHasBeenCalled);
+        });
+
+        const allMpeRooms = await MpeRoom.all();
+        assert.equal(allMpeRooms.length, 2);
+        assert.equal(receivedEvents.length, 0);
+        const generatedRoomName = `${roomName} (${creatorNickname})`;
+        const roomWithAutoGeneratedName = await MpeRoom.findBy(
+            'name',
+            generatedRoomName,
+        );
+        assert.isNotNull(roomWithAutoGeneratedName);
+
+        await creator.refresh();
+        await creator.load('mpeRooms');
+
+        assert.isNotNull(creator.mpeRooms);
+        assert.equal(creator.mpeRooms.length, 2);
+
+        //Third attempt to create a room with same name, should fail
+        creatorSocket.emit('MPE_CREATE_ROOM', settings);
+
+        await waitFor(() => {
+            assert.equal(receivedEvents.length, 1);
+        });
+    });
+
+    test('It should fail to create MPE du to invalid creation args ', async (assert) => {
+        const creatorUserID = datatype.uuid();
+        const creatorSocket = await createUserAndGetSocket({
+            userID: creatorUserID,
+        });
+        const settings = getDefaultMpeRoomCreateRoomArgs({
+            isOpen: false,
+            isOpenOnlyInvitedUsersCanEdit: true,
+        });
+
+        let errorListenerHasBeenCalled = false;
+        creatorSocket.on('MPE_CREATE_ROOM_FAIL', () => {
+            errorListenerHasBeenCalled = true;
+        });
+
+        creatorSocket.emit('MPE_CREATE_ROOM', settings);
+
+        await waitFor(() => {
+            assert.isTrue(errorListenerHasBeenCalled);
+        });
     });
 });

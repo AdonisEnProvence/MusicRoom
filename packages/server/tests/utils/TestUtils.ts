@@ -5,6 +5,7 @@ import {
 } from '@musicroom/types';
 import { MpeRoomClientToServerCreateArgs } from '@musicroom/types/dist/mpe-room-websockets';
 import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
+import MpeRoom from 'App/Models/MpeRoom';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
 import { datatype, random } from 'faker';
@@ -62,7 +63,12 @@ type AvailableBrowsersMocks = 'Firefox' | 'Chrome' | 'Safari';
 interface CreateUserForSocketConnectionArgs {
     userID: string;
     mtvRoomIDToAssociate?: string;
+    mpeRoomIDToAssociate?: {
+        roomName?: string;
+        roomID: string;
+    }[];
     roomName?: string;
+    userNickname?: string;
 }
 
 interface CreateUserAndGetSocketArgs extends CreateUserForSocketConnectionArgs {
@@ -289,12 +295,15 @@ export function initTestUtils(): TestUtilsReturnedValue {
     async function createUserForSocketConnection({
         userID,
         mtvRoomIDToAssociate,
+        mpeRoomIDToAssociate,
         roomName,
+        userNickname,
     }: CreateUserForSocketConnectionArgs) {
         const createdUser = await User.create({
             uuid: userID,
-            nickname: random.word(),
+            nickname: userNickname ?? random.word(),
         });
+
         if (mtvRoomIDToAssociate !== undefined) {
             let mtvRoomToAssociate = await MtvRoom.find(mtvRoomIDToAssociate);
 
@@ -308,6 +317,28 @@ export function initTestUtils(): TestUtilsReturnedValue {
             }
             await createdUser.related('mtvRoom').associate(mtvRoomToAssociate);
         }
+
+        if (mpeRoomIDToAssociate !== undefined) {
+            await Promise.all(
+                mpeRoomIDToAssociate.map(
+                    async ({ roomID, roomName: mpeRoomName }) => {
+                        let mpeRoomToAssociate = await MpeRoom.find(roomID);
+                        console.log('CREATING MPE ROOM FROM TEST UTILS');
+                        if (mpeRoomToAssociate === null) {
+                            mpeRoomToAssociate = await MpeRoom.create({
+                                uuid: roomID,
+                                runID: datatype.uuid(),
+                                name: mpeRoomName ?? random.words(2),
+                                creatorID: createdUser.uuid,
+                            });
+                        }
+                        await createdUser
+                            .related('mpeRooms')
+                            .save(mpeRoomToAssociate);
+                    },
+                ),
+            );
+        }
     }
 
     async function createUserAndGetSocketWithoutConnectionAcknowledgement({
@@ -315,12 +346,16 @@ export function initTestUtils(): TestUtilsReturnedValue {
         deviceName,
         browser,
         mtvRoomIDToAssociate,
+        mpeRoomIDToAssociate,
         roomName,
+        userNickname,
     }: CreateUserAndGetSocketArgs): Promise<TypedTestSocket> {
         await createUserForSocketConnection({
             userID,
             mtvRoomIDToAssociate,
+            mpeRoomIDToAssociate,
             roomName,
+            userNickname,
         });
 
         //No need to remoteJoin the created socket as SocketLifeCycle.registerDevice will do it for us
@@ -338,12 +373,16 @@ export function initTestUtils(): TestUtilsReturnedValue {
         deviceName,
         browser,
         mtvRoomIDToAssociate,
+        mpeRoomIDToAssociate,
+        userNickname,
         roomName,
     }: CreateUserAndGetSocketArgs): Promise<TypedTestSocket> {
         await createUserForSocketConnection({
             userID,
             mtvRoomIDToAssociate,
+            mpeRoomIDToAssociate,
             roomName,
+            userNickname,
         });
 
         //No need to remoteJoin the created socket as SocketLifeCycle.registerDevice will do it for us
@@ -532,8 +571,8 @@ export function getDefaultMpeRoomCreateRoomArgs(
         initialTrackID: override.initialTrackID ?? datatype.uuid(),
         name: override.name ?? random.word(),
         isOpen: needToOverrideIsOpen ? (override.isOpen as boolean) : true,
-        isOpenOnlyInvitedUsersCanVote:
-            override.isOpenOnlyInvitedUsersCanVote || false,
+        isOpenOnlyInvitedUsersCanEdit:
+            override.isOpenOnlyInvitedUsersCanEdit || false,
     };
 }
 

@@ -167,7 +167,7 @@ export default class MtvRoomsWsController {
         }
 
         /**
-         * We need to create the room before the workflow
+         * We need to create the socket-io room before the workflow
          * because we don't know if temporal will answer faster via the acknowledge
          * mtv room creation activity than adonis will execute this function
          */

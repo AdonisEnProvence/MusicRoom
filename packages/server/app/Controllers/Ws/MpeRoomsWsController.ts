@@ -19,7 +19,16 @@ export default class MpeRoomsWsController {
         const userID = roomCreator.uuid;
 
         /**
-         * We need to create the room before the workflow
+         * Checking args validity
+         */
+        const roomIsNotOpenAndIsOpenOnlyInvitedUsersCanEditIsTrue =
+            !args.isOpen && args.isOpenOnlyInvitedUsersCanEdit === true;
+        if (roomIsNotOpenAndIsOpenOnlyInvitedUsersCanEditIsTrue) {
+            throw new Error('Mpe create room failed, given args are invalid');
+        }
+
+        /**
+         * We need to create the socket-io room before the workflow
          * because we don't know if temporal will answer faster via the acknowledge
          * mtv room creation activity than adonis will execute this function
          */
@@ -36,7 +45,23 @@ export default class MpeRoomsWsController {
         const roomWithCreatedRoomName = await MpeRoom.findBy('name', args.name);
         const roomNameIsAlreadyTaken = roomWithCreatedRoomName !== null;
         if (roomNameIsAlreadyTaken) {
-            args.name = `${args.name} (${roomCreator.nickname})`;
+            console.log(
+                'MPE room with given name already exist attempt to make it unique',
+            );
+
+            const newName = `${args.name} (${roomCreator.nickname})`;
+            const roomWithNewName = await MpeRoom.findBy('name', newName);
+            if (roomWithNewName !== null) {
+                console.log(
+                    'MPE room with given name and given creator already exists',
+                );
+                throw new Error(
+                    'Room with given name and creator already exists',
+                );
+            }
+
+            args.name = newName;
+            console.log({ newName });
         }
         ///
 
@@ -62,16 +87,17 @@ export default class MpeRoomsWsController {
 
             //Will associate both mpe to user and user to mpe relationship
             await room.related('members').save(roomCreator);
-            console.log('created mpe room ' + roomID);
+            console.log('created mpe room ', roomID);
             return temporalResponse;
         } catch (error) {
+            console.error(error);
+
             await SocketLifecycle.deleteSocketIoRoom(roomID);
             if (roomHasBeenSaved) {
                 await room.delete();
             }
 
-            console.error(error);
-            throw error;
+            throw new Error('Temporal operation failed');
         }
     }
 }

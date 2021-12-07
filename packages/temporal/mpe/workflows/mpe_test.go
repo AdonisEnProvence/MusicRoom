@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
+	activities_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/activities"
 	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/bxcodec/faker/v3"
@@ -43,13 +44,13 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflow() {
 		mock.Anything,
 		tracksIDs,
 	).Return(tracks, nil).Once()
-	// s.env.OnActivity(
-	// 	activities.CreationAcknowledgementActivity,
-	// 	mock.Anything,
-	// 	mock.Anything,
-	// ).Return(nil).Once()
+	s.env.OnActivity(
+		activities_mpe.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
 
-	checkOnlyOneUser := defaultDuration
+	checkOnlyOneUser := defaultDuration * 200
 	registerDelayedCallbackWrapper(func() {
 		mpeState := s.getMtvState(shared_mpe.NoRelatedUserID)
 
@@ -130,11 +131,6 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflowFetchInitialTrackFaile
 		mock.Anything,
 		tracksIDs,
 	).Return(nil, nil).Once()
-	// s.env.OnActivity(
-	// 	activities.CreationAcknowledgementActivity,
-	// 	mock.Anything,
-	// 	mock.Anything,
-	// ).Return(nil).Once()
 
 	checkOnlyOneUser := defaultDuration
 	registerDelayedCallbackWrapper(func() {

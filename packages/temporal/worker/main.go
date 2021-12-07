@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 
+	activities_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/activities"
+
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 
@@ -44,6 +46,8 @@ func main() {
 	w.RegisterActivity(activities.LeaveActivity)
 
 	w.RegisterWorkflow(mpe.MpeRoomWorkflow)
+
+	w.RegisterActivity(activities_mpe.CreationAcknowledgementActivity)
 
 	// Start listening to the Task Queue
 	err = w.Run(worker.InterruptCh())

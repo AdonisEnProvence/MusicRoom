@@ -58,7 +58,7 @@ interface TrackListItemActionsProps {
     disabledMoveDown: boolean;
     onUpPress: () => void;
     onDownPress: () => void;
-    onDotsPress: () => void;
+    onDeletePress: () => void;
 }
 
 const TrackListItemActions = ({
@@ -67,7 +67,7 @@ const TrackListItemActions = ({
     disabledMoveDown,
     onUpPress,
     onDownPress,
-    onDotsPress,
+    onDeletePress,
 }: TrackListItemActionsProps) => {
     const sx = useSx();
 
@@ -114,9 +114,9 @@ const TrackListItemActions = ({
                 style={sx({
                     padding: 's',
                 })}
-                onPress={onDotsPress}
+                onPress={onDeletePress}
             >
-                <Ionicons name="ellipsis-horizontal" color="white" size={18} />
+                <Ionicons name="trash" color="white" size={18} />
             </TouchableOpacity>
         </View>
     );
@@ -128,7 +128,7 @@ interface TrackListItemWrapperProps {
     id: string;
     onUpPress: () => void;
     onDownPress: () => void;
-    onDotsPress: () => void;
+    onDeletePress: () => void;
 }
 
 const TrackListItemWrapper: React.FC<TrackListItemWrapperProps> = ({
@@ -137,7 +137,7 @@ const TrackListItemWrapper: React.FC<TrackListItemWrapperProps> = ({
     id,
     onUpPress,
     onDownPress,
-    onDotsPress,
+    onDeletePress,
 }) => {
     const canMoveUp = useSelector(playlistRef, (state) =>
         state.can({
@@ -159,7 +159,7 @@ const TrackListItemWrapper: React.FC<TrackListItemWrapperProps> = ({
             disabledMoveDown={canMoveDown === false}
             onUpPress={onUpPress}
             onDownPress={onDownPress}
-            onDotsPress={onDotsPress}
+            onDeletePress={onDeletePress}
         />
     );
 };
@@ -204,9 +204,12 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             };
         }
 
-        function handleDotsPress(trackID: string) {
+        function handleDeletePress(trackID: string) {
             return () => {
-                return undefined;
+                playlistRef.send({
+                    type: 'DELETE_TRACK',
+                    trackID,
+                });
             };
         }
 
@@ -266,7 +269,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                                                         onDownPress={handleDownPress(
                                                             id,
                                                         )}
-                                                        onDotsPress={handleDotsPress(
+                                                        onDeletePress={handleDeletePress(
                                                             id,
                                                         )}
                                                     />

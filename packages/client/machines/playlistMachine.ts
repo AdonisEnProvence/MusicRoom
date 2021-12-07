@@ -10,12 +10,14 @@ const playlistModel = createModel(
         trackToMove: undefined as
             | { previousIndex: number; nextIndex: number; trackID: string }
             | undefined,
+        trackToDelete: undefined as string | undefined,
     },
     {
         events: {
             ADD_TRACK: (track: TrackMetadata) => ({ ...track }),
             MOVE_UP_TRACK: (trackID: string) => ({ trackID }),
             MOVE_DOWN_TRACK: (trackID: string) => ({ trackID }),
+            DELETE_TRACK: (trackID: string) => ({ trackID }),
         },
         actions: {},
     },
@@ -69,6 +71,20 @@ const assignTrackToMoveDown = playlistModel.assign(
     'MOVE_DOWN_TRACK',
 );
 
+const assignTrackToDelete = playlistModel.assign(
+    {
+        trackToDelete: ({ tracks }, { trackID }) => {
+            const doesTrackExist = tracks.some(({ id }) => id === trackID);
+            if (doesTrackExist === false) {
+                return undefined;
+            }
+
+            return trackID;
+        },
+    },
+    'DELETE_TRACK',
+);
+
 const assignTrackToTracksList = playlistModel.assign(
     {
         tracks: ({ tracks, trackToAdd }) => {
@@ -108,6 +124,19 @@ const assignTrackToMoveToTracksList = playlistModel.assign(
     undefined,
 );
 
+const assignTrackToRemoveToTracksList = playlistModel.assign(
+    {
+        tracks: ({ tracks, trackToDelete }) => {
+            if (trackToDelete === undefined) {
+                return tracks;
+            }
+
+            return tracks.filter(({ id }) => id !== trackToDelete);
+        },
+    },
+    undefined,
+);
+
 type PlaylistMachine = ReturnType<typeof playlistModel['createMachine']>;
 
 export type PlaylistActorRef = ActorRefFrom<PlaylistMachine>;
@@ -136,7 +165,7 @@ export function createPlaylistMachine({
                             const trackIndex = tracks.findIndex(
                                 ({ id }) => id === trackID,
                             );
-                            if (trackIndex === undefined) {
+                            if (trackIndex === -1) {
                                 return false;
                             }
 
@@ -160,7 +189,7 @@ export function createPlaylistMachine({
                             const trackIndex = tracks.findIndex(
                                 ({ id }) => id === trackID,
                             );
-                            if (trackIndex === undefined) {
+                            if (trackIndex === -1) {
                                 return false;
                             }
 
@@ -176,6 +205,20 @@ export function createPlaylistMachine({
                         target: 'movingTrack',
 
                         actions: assignTrackToMoveUp,
+                    },
+
+                    DELETE_TRACK: {
+                        cond: ({ tracks }, { trackID }) => {
+                            const doesTrackExist = tracks.some(
+                                ({ id }) => id === trackID,
+                            );
+
+                            return doesTrackExist;
+                        },
+
+                        target: 'deletingTrack',
+
+                        actions: assignTrackToDelete,
                     },
                 },
             },
@@ -242,6 +285,48 @@ export function createPlaylistMachine({
                                 target: 'debouncing',
 
                                 actions: assignTrackToMoveToTracksList,
+                            },
+                        },
+                    },
+
+                    debouncing: {
+                        after: {
+                            200: {
+                                target: 'end',
+                            },
+                        },
+                    },
+
+                    end: {
+                        type: 'final',
+                    },
+                },
+
+                onDone: {
+                    target: 'idle',
+                },
+            },
+
+            deletingTrack: {
+                tags: 'freezeUi',
+
+                initial: 'sendingToServer',
+
+                states: {
+                    sendingToServer: {
+                        after: {
+                            200: {
+                                target: 'waitingForServerAcknowledgement',
+                            },
+                        },
+                    },
+
+                    waitingForServerAcknowledgement: {
+                        after: {
+                            200: {
+                                target: 'debouncing',
+
+                                actions: assignTrackToRemoveToTracksList,
                             },
                         },
                     },

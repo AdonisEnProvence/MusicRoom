@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
-	shared_mtv "github.com/AdonisEnProvence/MusicRoom/shared/mtv"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 	"go.temporal.io/sdk/workflow"
 )
 

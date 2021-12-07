@@ -7,8 +7,8 @@ import (
 	"log"
 	"net/http"
 
-	shared_mtv "github.com/AdonisEnProvence/MusicRoom/shared/mtv"
-	"github.com/AdonisEnProvence/MusicRoom/workflows/mtv"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
+	mtv "github.com/AdonisEnProvence/MusicRoom/mtv/workflows"
 	"github.com/gorilla/mux"
 	"go.temporal.io/sdk/client"
 )

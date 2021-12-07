@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	shared_mtv "github.com/AdonisEnProvence/MusicRoom/shared/mtv"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 )
 
 func PingActivity(_ context.Context) error {

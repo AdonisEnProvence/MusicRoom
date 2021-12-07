@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/AdonisEnProvence/MusicRoom/random"
-	shared_mtv "github.com/AdonisEnProvence/MusicRoom/shared/mtv"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/suite"
 )

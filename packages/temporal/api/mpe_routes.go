@@ -7,8 +7,8 @@ import (
 	"log"
 	"net/http"
 
-	shared_mpe "github.com/AdonisEnProvence/MusicRoom/shared/mpe"
-	"github.com/AdonisEnProvence/MusicRoom/workflows/mpe"
+	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
+	mpe "github.com/AdonisEnProvence/MusicRoom/mpe/workflows"
 	"github.com/gorilla/mux"
 	"go.temporal.io/sdk/client"
 )

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	shared_mpe "github.com/AdonisEnProvence/MusicRoom/shared/mpe"
+	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
 
 	"github.com/Devessier/brainy"
 

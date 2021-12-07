@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	shared_mpe "github.com/AdonisEnProvence/MusicRoom/shared/mpe"
-	"github.com/AdonisEnProvence/MusicRoom/workflows/mocks"
+	"github.com/AdonisEnProvence/MusicRoom/mocks"
+	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/suite"
 	"go.temporal.io/sdk/testsuite"

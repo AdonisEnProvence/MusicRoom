@@ -3,7 +3,7 @@ package mtv
 import (
 	"time"
 
-	shared_mtv "github.com/AdonisEnProvence/MusicRoom/shared/mtv"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 	"github.com/Devessier/brainy"
 )
 

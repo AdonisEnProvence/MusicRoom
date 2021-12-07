@@ -7,8 +7,8 @@ import (
 	"go.temporal.io/sdk/worker"
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
-	shared_mtv "github.com/AdonisEnProvence/MusicRoom/shared/mtv"
-	"github.com/AdonisEnProvence/MusicRoom/workflows/mtv"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
+	mtv "github.com/AdonisEnProvence/MusicRoom/mtv/workflows"
 )
 
 func main() {

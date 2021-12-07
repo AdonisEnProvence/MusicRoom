@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	shared_mtv "github.com/AdonisEnProvence/MusicRoom/shared/mtv"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 	"github.com/AdonisEnProvence/MusicRoom/youtube"
 	"github.com/senseyeio/duration"
 )

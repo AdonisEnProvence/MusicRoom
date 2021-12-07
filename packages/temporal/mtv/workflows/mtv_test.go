@@ -8,8 +8,8 @@ import (
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
 	"github.com/AdonisEnProvence/MusicRoom/random"
-	shared_mtv "github.com/AdonisEnProvence/MusicRoom/shared/mtv"
-	"github.com/AdonisEnProvence/MusicRoom/workflows/mocks"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
+	"github.com/AdonisEnProvence/MusicRoom/mocks"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/mock"

@@ -80,6 +80,10 @@ func (s *TrackMetadataSet) Add(track shared.TrackMetadata) error {
 	return nil
 }
 
+func (s *TrackMetadataSet) Init() {
+	s.tracks = []shared.TrackMetadata{}
+}
+
 func (s *TrackMetadataSet) Values() []shared.TrackMetadata {
 	return s.tracks[:]
 }

@@ -37,6 +37,7 @@ func (s *MpeRoomInternalState) AddUser(user shared_mpe.InternalStateUser) {
 //This method will merge given params in the internalState
 func (s *MpeRoomInternalState) FillWith(params shared_mpe.MpeRoomParameters) {
 	s.initialParams = params
+	s.Tracks.Init()
 	s.Users = make(map[string]*shared_mpe.InternalStateUser)
 	s.AddUser(*params.CreatorUserRelatedInformation)
 }
@@ -61,7 +62,6 @@ func (s *MpeRoomInternalState) Export(RelatedUserID string) shared_mpe.MpeRoomEx
 
 const (
 	MpeRoomFetchInitialTrack brainy.StateType = "fetching-initial-track"
-	MpeRoomIsReady           brainy.StateType = "room-is-ready"
 
 	MpeRoomInitialTracksFetched brainy.EventType = "INITIAL_TRACK_FETCHED"
 )
@@ -88,7 +88,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 
 	if err := Validate.Struct(params); err != nil {
 		log.Println("create mpe room params validation error", err)
-		return err
+		return errors.New("validate params failed")
 	}
 
 	if err := params.CheckParamsValidity(rootNow); err != nil {
@@ -140,7 +140,6 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 
 				On: brainy.Events{
 					MpeRoomInitialTracksFetched: brainy.Transition{
-						Target: MpeRoomIsReady,
 
 						Actions: brainy.Actions{
 							brainy.ActionFn(
@@ -162,8 +161,6 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 					},
 				},
 			},
-
-			MpeRoomIsReady: &brainy.StateNode{},
 		},
 
 		On: brainy.Events{},

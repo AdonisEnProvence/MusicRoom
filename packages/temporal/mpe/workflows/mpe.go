@@ -219,6 +219,19 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 								func(c brainy.Context, e brainy.Event) error {
 									event := e.(MpeRoomAddedTracksInformationFetchedEvent)
 
+									// If one track to add is already in the playlist, abort the whole operation.
+									// In practice, a single track can be added at a time.
+									// Therefore, aborting the whole operation makes sense.
+									for _, track := range event.AddedTracksInformation {
+										if internalState.Tracks.Has(track.ID) {
+											sendRejectAddingTracksActivity(ctx, activities_mpe.RejectAddingTracksActivityArgs{
+												DeviceID: event.DeviceID,
+											})
+
+											return nil
+										}
+									}
+
 									for _, track := range event.AddedTracksInformation {
 										internalState.Tracks.Add(track)
 									}

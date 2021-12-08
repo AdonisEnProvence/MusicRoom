@@ -192,7 +192,9 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 
 									noTracksHaveBeenAccepted := len(acceptedTracksIDsToAdd) == 0
 									if noTracksHaveBeenAccepted {
-										fmt.Println("fck you!")
+										sendRejectAddingTracksActivity(ctx, activities_mpe.RejectAddingTracksActivityArgs{
+											DeviceID: event.DeviceID,
+										})
 
 										return nil
 									}

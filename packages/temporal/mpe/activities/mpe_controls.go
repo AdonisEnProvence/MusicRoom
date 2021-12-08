@@ -17,6 +17,10 @@ var (
 	ADONIS_MPE_ENDPOINT = ADONIS_ENDPOINT + "/temporal/mpe"
 )
 
+type RejectAddingTracksActivityArgs struct {
+	DeviceID string `json:"deviceID"`
+}
+
 func CreationAcknowledgementActivity(_ context.Context, state shared_mpe.MpeRoomExposedState) error {
 	marshaledBody, err := json.Marshal(state)
 	if err != nil {
@@ -25,6 +29,20 @@ func CreationAcknowledgementActivity(_ context.Context, state shared_mpe.MpeRoom
 
 	url := activities.ADONIS_MTV_ENDPOINT + "/mpe-creation-acknowledgement"
 
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+
+	return err
+}
+
+func RejectAddingTracksActivity(ctx context.Context, args RejectAddingTracksActivityArgs) error {
+	requestBody := args
+
+	marshaledBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	url := ADONIS_MPE_ENDPOINT + "/reject-adding-tracks"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err

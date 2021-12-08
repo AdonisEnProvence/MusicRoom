@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
+	activities_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/activities"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -40,3 +41,16 @@ func sendFetchTracksInformationActivityAndForwardInitiator(ctx workflow.Context,
 	)
 }
 
+func sendRejectAddingTracksActivity(ctx workflow.Context, args activities_mpe.RejectAddingTracksActivityArgs) {
+	options := workflow.ActivityOptions{
+		ScheduleToStartTimeout: time.Minute,
+		StartToCloseTimeout:    time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, options)
+
+	workflow.ExecuteActivity(
+		ctx,
+		activities_mpe.RejectAddingTracksActivity,
+		args,
+	)
+}

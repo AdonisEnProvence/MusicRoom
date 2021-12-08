@@ -1,9 +1,20 @@
-import { ActorRefFrom } from 'xstate';
+import { ActorRefFrom, createMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { TrackMetadata } from '@musicroom/types';
+import { MpeWorkflowState, TrackMetadata } from '@musicroom/types';
 
 const playlistModel = createModel(
     {
+        state: {
+            isOpenOnlyInvitedUsersCanEdit: false,
+            isOpen: true,
+            name: '',
+            playlistTotalDuration: 0,
+            playlistTracksLength: 0,
+            roomCreatorUserID: '',
+            roomID: '',
+            tracks: null,
+            usersLength: 0,
+        } as MpeWorkflowState,
         tracks: [] as TrackMetadata[],
 
         trackToAdd: undefined as TrackMetadata | undefined,
@@ -18,6 +29,7 @@ const playlistModel = createModel(
             MOVE_UP_TRACK: (trackID: string) => ({ trackID }),
             MOVE_DOWN_TRACK: (trackID: string) => ({ trackID }),
             DELETE_TRACK: (trackID: string) => ({ trackID }),
+            ASSIGN_MERGE_NEW_STATE: (state: MpeWorkflowState) => ({ state }),
         },
         actions: {},
     },
@@ -85,6 +97,18 @@ const assignTrackToDelete = playlistModel.assign(
     'DELETE_TRACK',
 );
 
+const assignMergeNewState = playlistModel.assign(
+    {
+        state: (context, event) => {
+            return {
+                ...context.state,
+                ...event.state,
+            };
+        },
+    },
+    'ASSIGN_MERGE_NEW_STATE',
+);
+
 const assignTrackToTracksList = playlistModel.assign(
     {
         tracks: ({ tracks, trackToAdd }) => {
@@ -141,19 +165,25 @@ type PlaylistMachine = ReturnType<typeof playlistModel['createMachine']>;
 
 export type PlaylistActorRef = ActorRefFrom<PlaylistMachine>;
 
-interface CreatePlaylistMachineArgs {
-    roomID: string;
-}
+type CreatePlaylistMachineArgs = MpeWorkflowState;
 
-export function createPlaylistMachine({
-    roomID,
-}: CreatePlaylistMachineArgs): PlaylistMachine {
-    return playlistModel.createMachine({
+export function createPlaylistMachine(
+    state: CreatePlaylistMachineArgs,
+): PlaylistMachine {
+    return createMachine({
         initial: 'idle',
 
+        context: {
+            ...playlistModel.initialContext,
+            state,
+        },
         states: {
             idle: {
                 on: {
+                    ASSIGN_MERGE_NEW_STATE: {
+                        actions: assignMergeNewState,
+                    },
+
                     ADD_TRACK: {
                         target: 'addingTrack',
 

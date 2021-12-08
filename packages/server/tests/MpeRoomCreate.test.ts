@@ -7,7 +7,11 @@ import SocketLifecycle from 'App/Services/SocketLifecycle';
 import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
+import supertest from 'supertest';
+import urlcat from 'urlcat';
+import { MPE_TEMPORAL_LISTENER } from '../start/routes';
 import {
+    BASE_URL,
     getDefaultMpeRoomCreateRoomArgs,
     initTestUtils,
 } from './utils/TestUtils';
@@ -43,16 +47,34 @@ test.group(`mpe rooms relationship tests`, (group) => {
 
         const settings = getDefaultMpeRoomCreateRoomArgs();
 
+        const creatorReceivedEvents: string[] = [];
+        creatorSocket.on('MPE_CREATE_ROOM_CALLBACK', () => {
+            creatorReceivedEvents.push('MPE_CREATE_ROOM_CALLBACK');
+        });
+        creatorSocket.on('MPE_CREATE_ROOM_SYNCED_CALLBACK', () => {
+            creatorReceivedEvents.push('MPE_CREATE_ROOM_SYNCED_CALLBACK');
+        });
+
+        const creatorSocketBReceivedEvents: string[] = [];
+        creatorSocket.on('MPE_CREATE_ROOM_CALLBACK', () => {
+            creatorSocketBReceivedEvents.push('MPE_CREATE_ROOM_CALLBACK');
+        });
+        creatorSocket.on('MPE_CREATE_ROOM_SYNCED_CALLBACK', () => {
+            creatorSocketBReceivedEvents.push(
+                'MPE_CREATE_ROOM_SYNCED_CALLBACK',
+            );
+        });
+
         sinon
             .stub(MpeServerToTemporalController, 'createMpeWorkflow')
             .callsFake(
                 async ({
+                    initialTrackID,
+                    name,
                     workflowID,
                     userID,
-                    name,
-                    isOpenOnlyInvitedUsersCanEdit,
                     isOpen,
-                    initialTrackID,
+                    isOpenOnlyInvitedUsersCanEdit,
                 }) => {
                     /**
                      * Checking if the user is well registered in the socket-io
@@ -89,6 +111,16 @@ test.group(`mpe rooms relationship tests`, (group) => {
                             ],
                         },
                     };
+
+                    await supertest(BASE_URL)
+                        .post(
+                            urlcat(
+                                MPE_TEMPORAL_LISTENER,
+                                'mpe-creation-acknowledgement',
+                            ),
+                        )
+                        .send(response.state)
+                        .expect(200);
                     return response;
                 },
             );
@@ -124,6 +156,28 @@ test.group(`mpe rooms relationship tests`, (group) => {
         assert.equal(createdRoom.creator.uuid, creatorUserID);
         assert.equal(createdRoom.members.length, 1);
         assert.equal(createdRoom.members[0].uuid, creatorUserID);
+
+        //Checking room creation acknowledgement through socket events
+        await waitFor(() => {
+            assert.equal(creatorSocketBReceivedEvents.length, 2);
+            assert.equal(creatorReceivedEvents.length, 2);
+        });
+
+        assert.isTrue(
+            creatorReceivedEvents.includes('MPE_CREATE_ROOM_SYNCED_CALLBACK'),
+        );
+        assert.isTrue(
+            creatorSocketBReceivedEvents.includes(
+                'MPE_CREATE_ROOM_SYNCED_CALLBACK',
+            ),
+        );
+
+        assert.isTrue(
+            creatorReceivedEvents.includes('MPE_CREATE_ROOM_CALLBACK'),
+        );
+        assert.isTrue(
+            creatorSocketBReceivedEvents.includes('MPE_CREATE_ROOM_CALLBACK'),
+        );
     });
 
     test('It should fail to create MPE room du to temporal fail reponse ', async (assert) => {

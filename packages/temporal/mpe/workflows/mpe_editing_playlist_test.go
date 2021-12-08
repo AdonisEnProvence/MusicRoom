@@ -20,6 +20,7 @@ type EditingPlaylistTestSuite struct {
 
 func (s *EditingPlaylistTestSuite) Test_AddTracks() {
 	params, _ := s.getWorkflowInitParams(faker.UUIDHyphenated())
+	roomCreatorDeviceID := faker.UUIDHyphenated()
 	initialTracksIDs := []string{
 		params.InitialTrackID,
 	}
@@ -68,11 +69,17 @@ func (s *EditingPlaylistTestSuite) Test_AddTracks() {
 	).Return(initialTracksMetadata, nil).Once()
 
 	// Specific activities calls
-	// s.env.OnActivity(
-	// 	activities.FetchTracksInformationActivity,
-	// 	mock.Anything,
-	// 	tracksToAdd,
-	// ).Return(tracksToAddMetadata, nil).Once()
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivityAndForwardInitiator,
+		mock.Anything,
+		tracksToAdd,
+		params.RoomCreatorUserID,
+		roomCreatorDeviceID,
+	).Return(activities.FetchedTracksInformationWithInitiator{
+		Metadata: tracksToAddMetadata,
+		UserID:   params.RoomCreatorUserID,
+		DeviceID: roomCreatorDeviceID,
+	}, nil).Once()
 
 	initialTracksFetched := tick * 200
 	registerDelayedCallbackWrapper(func() {
@@ -85,6 +92,8 @@ func (s *EditingPlaylistTestSuite) Test_AddTracks() {
 	registerDelayedCallbackWrapper(func() {
 		s.emitAddTrackSignal(shared_mpe.NewAddTracksSignalArgs{
 			TracksIDs: tracksToAdd,
+			UserID:    params.RoomCreatorUserID,
+			DeviceID:  roomCreatorDeviceID,
 		})
 	}, addTrack)
 
@@ -92,8 +101,12 @@ func (s *EditingPlaylistTestSuite) Test_AddTracks() {
 	registerDelayedCallbackWrapper(func() {
 		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
 
-		s.Subset(mpeState.Tracks, initialTracksMetadata, "Contains initial tracks")
-		s.Subset(mpeState.Tracks, tracksToAddMetadata, "Contains added tracks")
+		initialTracksMetadataWithTracksToAddMetadata := append(initialTracksMetadata, tracksToAddMetadata...)
+
+		s.Equal(
+			initialTracksMetadataWithTracksToAddMetadata,
+			mpeState.Tracks,
+		)
 	}, checkAddingTracks)
 
 	s.env.ExecuteWorkflow(MpeRoomWorkflow, params)

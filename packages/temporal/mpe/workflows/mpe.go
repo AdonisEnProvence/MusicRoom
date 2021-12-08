@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/AdonisEnProvence/MusicRoom/activities"
 	activities_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/activities"
 	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
@@ -67,8 +68,9 @@ const (
 	MpeRoomFetchInitialTrack brainy.StateType = "fetching-initial-track"
 	MpeRoomReady             brainy.StateType = "ready"
 
-	MpeRoomInitialTracksFetched brainy.EventType = "INITIAL_TRACK_FETCHED"
-	MpeRoomAddTracksEventType   brainy.EventType = "ADD_TRACKS"
+	MpeRoomInitialTracksFetched                   brainy.EventType = "INITIAL_TRACK_FETCHED"
+	MpeRoomAddTracksEventType                     brainy.EventType = "ADD_TRACKS"
+	MpeRoomAddedTracksInformationFetchedEventType brainy.EventType = "ADDED_TRACKS_INFORMATION_FETCHED"
 )
 
 func getNowFromSideEffect(ctx workflow.Context) time.Time {
@@ -120,9 +122,10 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 	channel := workflow.GetSignalChannel(ctx, shared_mpe.SignalChannelName)
 
 	var (
-		terminated                 = false
-		workflowFatalError         error
-		fetchedInitialTracksFuture workflow.Future
+		terminated                           = false
+		workflowFatalError                   error
+		fetchedInitialTracksFuture           workflow.Future
+		fetchedAddedTracksInformationFutures []workflow.Future
 	)
 
 	//create machine here
@@ -176,7 +179,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 								func(c brainy.Context, e brainy.Event) error {
 									event := e.(MpeRoomAddTracksEvent)
 
-									acceptedTracksToAdd := make([]string, 0, len(event.TracksIDs))
+									acceptedTracksIDsToAdd := make([]string, 0, len(event.TracksIDs))
 
 									for _, trackToAdd := range event.TracksIDs {
 										isDuplicate := internalState.Tracks.Has(trackToAdd)
@@ -184,15 +187,42 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 											continue
 										}
 
-										acceptedTracksToAdd = append(acceptedTracksToAdd, trackToAdd)
+										acceptedTracksIDsToAdd = append(acceptedTracksIDsToAdd, trackToAdd)
 									}
 
-									noTracksHaveBeenAccepted := len(acceptedTracksToAdd) == 0
+									noTracksHaveBeenAccepted := len(acceptedTracksIDsToAdd) == 0
 									if noTracksHaveBeenAccepted {
 										fmt.Println("fck you!")
-									} else {
-										fmt.Println("next step")
+
+										return nil
 									}
+
+									fetchingFuture := sendFetchTracksInformationActivityAndForwardInitiator(
+										ctx,
+										acceptedTracksIDsToAdd,
+										event.UserID,
+										event.DeviceID,
+									)
+									fetchedAddedTracksInformationFutures = append(fetchedAddedTracksInformationFutures, fetchingFuture)
+
+									return nil
+								},
+							),
+						},
+					},
+
+					MpeRoomAddedTracksInformationFetchedEventType: brainy.Transition{
+						Actions: brainy.Actions{
+							brainy.ActionFn(
+								func(c brainy.Context, e brainy.Event) error {
+									event := e.(MpeRoomAddedTracksInformationFetchedEvent)
+
+									for _, track := range event.AddedTracksInformation {
+										internalState.Tracks.Add(track)
+									}
+
+									// 1. Send message to adding initiator
+									// 2. Send updated tracks list to all users
 
 									return nil
 								},
@@ -243,6 +273,8 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 				internalState.Machine.Send(
 					NewMpeRoomAddTracksEvent(NewMpeRoomAddTracksEventArgs{
 						TracksIDs: message.TracksIDs,
+						UserID:    message.UserID,
+						DeviceID:  message.DeviceID,
 					}),
 				)
 			}
@@ -271,6 +303,28 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 				fmt.Println("**********************************")
 				internalState.Machine.Send(
 					NewMpeRoomInitialTracksFetchedEvent(initialTrackActivityResult[0]),
+				)
+			})
+		}
+
+		for index, fetchedAddedTracksInformationFuture := range fetchedAddedTracksInformationFutures {
+			selector.AddFuture(fetchedAddedTracksInformationFuture, func(f workflow.Future) {
+				fetchedAddedTracksInformationFutures = removeFutureFromSlice(fetchedAddedTracksInformationFutures, index)
+
+				var addedTracksInformationActivityResult activities.FetchedTracksInformationWithInitiator
+
+				if err := f.Get(ctx, &addedTracksInformationActivityResult); err != nil {
+					logger.Error("error occured initialTracksActivityResult", err)
+
+					return
+				}
+
+				internalState.Machine.Send(
+					NewMpeRoomAddedTracksInformationFetchedEvent(NewMpeRoomAddedTracksInformationFetchedEventArgs{
+						AddedTracksInformation: addedTracksInformationActivityResult.Metadata,
+						UserID:                 addedTracksInformationActivityResult.UserID,
+						DeviceID:               addedTracksInformationActivityResult.DeviceID,
+					}),
 				)
 			})
 		}
@@ -306,3 +360,8 @@ func acknowledgeRoomCreation(ctx workflow.Context, state shared_mpe.MpeRoomExpos
 type TimeWrapperType func() time.Time
 
 var TimeWrapper TimeWrapperType = time.Now
+
+func removeFutureFromSlice(slice []workflow.Future, index int) []workflow.Future {
+	slice[index] = slice[len(slice)-1]
+	return slice[:len(slice)-1]
+}

@@ -24,10 +24,14 @@ type MpeRoomAddTracksEvent struct {
 	brainy.EventWithType
 
 	TracksIDs []string
+	UserID    string
+	DeviceID  string
 }
 
 type NewMpeRoomAddTracksEventArgs struct {
 	TracksIDs []string
+	UserID    string
+	DeviceID  string
 }
 
 func NewMpeRoomAddTracksEvent(args NewMpeRoomAddTracksEventArgs) MpeRoomAddTracksEvent {
@@ -37,5 +41,33 @@ func NewMpeRoomAddTracksEvent(args NewMpeRoomAddTracksEventArgs) MpeRoomAddTrack
 		},
 
 		TracksIDs: args.TracksIDs,
+		UserID:    args.UserID,
+		DeviceID:  args.DeviceID,
+	}
+}
+
+type MpeRoomAddedTracksInformationFetchedEvent struct {
+	brainy.EventWithType
+
+	AddedTracksInformation []shared.TrackMetadata
+	UserID                 string
+	DeviceID               string
+}
+
+type NewMpeRoomAddedTracksInformationFetchedEventArgs struct {
+	AddedTracksInformation []shared.TrackMetadata
+	UserID                 string
+	DeviceID               string
+}
+
+func NewMpeRoomAddedTracksInformationFetchedEvent(args NewMpeRoomAddedTracksInformationFetchedEventArgs) MpeRoomAddedTracksInformationFetchedEvent {
+	return MpeRoomAddedTracksInformationFetchedEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MpeRoomAddedTracksInformationFetchedEventType,
+		},
+
+		AddedTracksInformation: args.AddedTracksInformation,
+		UserID:                 args.UserID,
+		DeviceID:               args.DeviceID,
 	}
 }

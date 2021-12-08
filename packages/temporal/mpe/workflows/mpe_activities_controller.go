@@ -23,3 +23,20 @@ func sendFetchTracksInformationActivity(ctx workflow.Context, trackID string) wo
 		},
 	)
 }
+
+func sendFetchTracksInformationActivityAndForwardInitiator(ctx workflow.Context, tracksIDs []string, userID string, deviceID string) workflow.Future {
+	ao := workflow.ActivityOptions{
+		ScheduleToStartTimeout: time.Minute,
+		StartToCloseTimeout:    time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	return workflow.ExecuteActivity(
+		ctx,
+		activities.FetchTracksInformationActivityAndForwardInitiator,
+		tracksIDs,
+		userID,
+		deviceID,
+	)
+}
+

@@ -50,7 +50,7 @@ type MpeRoomExposedState struct {
 	Tracks                        []shared.TrackMetadata `json:"tracks"`
 	UsersLength                   int                    `json:"usersLength"`
 	IsOpen                        bool                   `json:"isOpen"`
-	IsOpenOnlyInvitedUsersCanEdit bool                   `json:"isOpenOnlyInvitedUsersCanVote"`
+	IsOpenOnlyInvitedUsersCanEdit bool                   `json:"isOpenOnlyInvitedUsersCanEdit"`
 	PlaylistTotalDuration         int                    `json:"playlistTotalDuration"`
 }
 

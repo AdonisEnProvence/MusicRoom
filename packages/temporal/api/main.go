@@ -44,6 +44,7 @@ func main() {
 
 	r.Handle("/ping", http.HandlerFunc(PingHandler)).Methods(http.MethodGet)
 	AddMtvHandler(r)
+	AddMpeHandler(r)
 
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 

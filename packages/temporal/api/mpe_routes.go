@@ -23,7 +23,7 @@ type MpeCreateRoomRequestBody struct {
 	WorkflowID     string `json:"workflowID" validate:"required,uuid"`
 	UserID         string `json:"userID" validate:"required,uuid"`
 	Name           string `json:"name" validate:"required"`
-	InitialTrackID string `json:"initialTracksIDs" validate:"required"`
+	InitialTrackID string `json:"initialTrackID" validate:"required"`
 
 	IsOpen                        bool `json:"isOpen"`
 	IsOpenOnlyInvitedUsersCanEdit bool `json:"isOpenOnlyInvitedUsersCanEdit"`

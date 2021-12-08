@@ -45,7 +45,7 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflow() {
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities_mpe.CreationAcknowledgementActivity,
+		activities_mpe.MpeCreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()

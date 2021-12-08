@@ -58,7 +58,7 @@ func (s *EditingPlaylistTestSuite) Test_AddTracks() {
 
 	// Common activities calls
 	s.env.OnActivity(
-		activities_mpe.CreationAcknowledgementActivity,
+		activities_mpe.MpeCreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -147,7 +147,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistBeforeFetchi
 
 	// Common activities calls
 	s.env.OnActivity(
-		activities_mpe.CreationAcknowledgementActivity,
+		activities_mpe.MpeCreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -252,7 +252,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchin
 
 	// Common activities calls
 	s.env.OnActivity(
-		activities_mpe.CreationAcknowledgementActivity,
+		activities_mpe.MpeCreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -389,7 +389,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchin
 
 	// Common activities calls
 	s.env.OnActivity(
-		activities_mpe.CreationAcknowledgementActivity,
+		activities_mpe.MpeCreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()

@@ -26,7 +26,7 @@ type AcknowledgeAddingTracksActivityArgs struct {
 	DeviceID string                         `json:"deviceID"`
 }
 
-func CreationAcknowledgementActivity(_ context.Context, state shared_mpe.MpeRoomExposedState) error {
+func MpeCreationAcknowledgementActivity(_ context.Context, state shared_mpe.MpeRoomExposedState) error {
 	marshaledBody, err := json.Marshal(state)
 	if err != nil {
 		return err

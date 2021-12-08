@@ -63,6 +63,7 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflow() {
 			RoomName:                      params.RoomName,
 			UsersLength:                   1,
 			Tracks:                        expectedTracks,
+			PlaylistTotalDuration:         42000, //tmp
 		}
 
 		s.Equal(expectedExposedMpeState, mpeState)
@@ -145,6 +146,7 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflowFetchInitialTrackFaile
 			RoomName:                      params.RoomName,
 			UsersLength:                   1,
 			Tracks:                        expectedTracks,
+			PlaylistTotalDuration:         42000, //tmp
 		}
 
 		s.Equal(expectedExposedMpeState, mpeState)

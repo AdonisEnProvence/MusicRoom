@@ -1,4 +1,4 @@
-import { MpeRoomClientToServerCreateArgs } from '@musicroom/types/dist/mpe-room-websockets';
+import { MpeRoomClientToServerCreateArgs } from '@musicroom/types';
 import MpeRoomsWsController from 'App/Controllers/Ws/MpeRoomsWsController';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import Ws from 'App/Services/Ws';

@@ -2,8 +2,8 @@ import {
     AllClientToServerEvents,
     AllServerToClientEvents,
     MtvRoomClientToServerCreateArgs,
+    MpeRoomClientToServerCreateArgs,
 } from '@musicroom/types';
-import { MpeRoomClientToServerCreateArgs } from '@musicroom/types/dist/mpe-room-websockets';
 import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import MpeRoom from 'App/Models/MpeRoom';
 import MtvRoom from 'App/Models/MtvRoom';

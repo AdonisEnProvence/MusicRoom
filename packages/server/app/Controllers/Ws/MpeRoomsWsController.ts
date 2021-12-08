@@ -1,6 +1,8 @@
 import { randomUUID } from 'crypto';
-import { MpeCreateWorkflowResponse } from '@musicroom/types';
-import { MpeRoomClientToServerCreateArgs } from '@musicroom/types/dist/mpe-room-websockets';
+import {
+    MpeCreateWorkflowResponse,
+    MpeRoomClientToServerCreateArgs,
+} from '@musicroom/types';
 import MpeRoom from 'App/Models/MpeRoom';
 import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';

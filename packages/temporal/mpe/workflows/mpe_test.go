@@ -52,7 +52,7 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflow() {
 
 	checkOnlyOneUser := defaultDuration * 200
 	registerDelayedCallbackWrapper(func() {
-		mpeState := s.getMtvState(shared_mpe.NoRelatedUserID)
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
 
 		expectedTracks := tracks
 		expectedExposedMpeState := shared_mpe.MpeRoomExposedState{
@@ -135,7 +135,7 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflowFetchInitialTrackFaile
 
 	checkOnlyOneUser := defaultDuration
 	registerDelayedCallbackWrapper(func() {
-		mpeState := s.getMtvState(shared_mpe.NoRelatedUserID)
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
 
 		expectedTracks := []shared.TrackMetadata{}
 		expectedExposedMpeState := shared_mpe.MpeRoomExposedState{

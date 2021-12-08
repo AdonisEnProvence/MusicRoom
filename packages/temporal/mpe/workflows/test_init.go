@@ -85,7 +85,7 @@ func (s *UnitTestSuite) getWorkflowInitParams(trackID string) (shared_mpe.MpeRoo
 	}, roomCreatorDeviceID
 }
 
-func (s *UnitTestSuite) getMtvState(userID string) shared_mpe.MpeRoomExposedState {
+func (s *UnitTestSuite) getMpeState(userID string) shared_mpe.MpeRoomExposedState {
 	var mtvState shared_mpe.MpeRoomExposedState
 
 	res, err := s.env.QueryWorkflow(shared_mpe.MpeGetStateQuery, userID)
@@ -95,6 +95,11 @@ func (s *UnitTestSuite) getMtvState(userID string) shared_mpe.MpeRoomExposedStat
 	s.NoError(err)
 
 	return mtvState
+}
+
+func (s *UnitTestSuite) emitAddTrackSignal(args shared_mpe.NewAddTracksSignalArgs) {
+	addTracksSignal := shared_mpe.NewAddTracksSignal(args)
+	s.env.SignalWorkflow(shared_mpe.SignalChannelName, addTracksSignal)
 }
 
 ///

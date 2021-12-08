@@ -19,3 +19,23 @@ func NewMpeRoomInitialTracksFetchedEvent(track shared.TrackMetadata) MpeRoomInit
 		Track: track,
 	}
 }
+
+type MpeRoomAddTracksEvent struct {
+	brainy.EventWithType
+
+	TracksIDs []string
+}
+
+type NewMpeRoomAddTracksEventArgs struct {
+	TracksIDs []string
+}
+
+func NewMpeRoomAddTracksEvent(args NewMpeRoomAddTracksEventArgs) MpeRoomAddTracksEvent {
+	return MpeRoomAddTracksEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MpeRoomAddTracksEventType,
+		},
+
+		TracksIDs: args.TracksIDs,
+	}
+}

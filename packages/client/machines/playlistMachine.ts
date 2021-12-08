@@ -9,7 +9,6 @@ const playlistModel = createModel(
             isOpen: true,
             name: '',
             playlistTotalDuration: 0,
-            playlistTracksLength: 0,
             roomCreatorUserID: '',
             roomID: '',
             tracks: null,

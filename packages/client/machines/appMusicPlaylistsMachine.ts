@@ -120,7 +120,7 @@ export function createAppMusicPlaylistsMachine({
             idle: {
                 on: {
                     CREATE_ROOM: {
-                        actions: forwardTo('socketConnections'),
+                        actions: forwardTo('socketConnection'),
                     },
                 },
             },

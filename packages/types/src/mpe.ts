@@ -11,6 +11,5 @@ export const MpeWorkflowState = z.object({
     usersLength: z.number(),
     //Could calculate that in client every time ?
     playlistTotalDuration: z.number(), //ms
-    playlistTracksLength: z.number(),
 });
 export type MpeWorkflowState = z.infer<typeof MpeWorkflowState>;

@@ -99,7 +99,6 @@ test.group(`mpe rooms relationship tests`, (group) => {
                             isOpenOnlyInvitedUsersCanEdit,
                             usersLength: 1,
                             playlistTotalDuration: 42,
-                            playlistTracksLength: 42,
                             tracks: [
                                 {
                                     id: initialTrackID,
@@ -286,7 +285,6 @@ test.group(`mpe rooms relationship tests`, (group) => {
                             isOpenOnlyInvitedUsersCanEdit,
                             usersLength: 1,
                             playlistTotalDuration: 42,
-                            playlistTracksLength: 42,
                             tracks: [
                                 {
                                     id: initialTrackID,

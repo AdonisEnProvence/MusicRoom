@@ -54,3 +54,17 @@ func sendRejectAddingTracksActivity(ctx workflow.Context, args activities_mpe.Re
 		args,
 	)
 }
+
+func sendAcknowledgeAddingTracksActivity(ctx workflow.Context, args activities_mpe.AcknowledgeAddingTracksActivityArgs) {
+	options := workflow.ActivityOptions{
+		ScheduleToStartTimeout: time.Minute,
+		StartToCloseTimeout:    time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, options)
+
+	workflow.ExecuteActivity(
+		ctx,
+		activities_mpe.AcknowledgeAddingTracksActivity,
+		args,
+	)
+}

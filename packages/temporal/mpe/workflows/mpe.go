@@ -236,8 +236,10 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 										internalState.Tracks.Add(track)
 									}
 
-									// 1. Send message to adding initiator
-									// 2. Send updated tracks list to all users
+									sendAcknowledgeAddingTracksActivity(ctx, activities_mpe.AcknowledgeAddingTracksActivityArgs{
+										State:    internalState.Export(),
+										DeviceID: event.DeviceID,
+									})
 
 									return nil
 								},

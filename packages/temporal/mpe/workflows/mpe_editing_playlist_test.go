@@ -81,6 +81,12 @@ func (s *EditingPlaylistTestSuite) Test_AddTracks() {
 		DeviceID: roomCreatorDeviceID,
 	}, nil).Once()
 
+	s.env.OnActivity(
+		activities_mpe.AcknowledgeAddingTracksActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
 	initialTracksFetched := tick * 200
 	registerDelayedCallbackWrapper(func() {
 		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)

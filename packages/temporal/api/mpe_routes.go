@@ -15,6 +15,7 @@ import (
 
 func AddMpeHandler(r *mux.Router) {
 	r.Handle("/mpe/create", http.HandlerFunc(createMpeRoomHandler)).Methods(http.MethodPut)
+	r.Handle("/mpe/add-tracks", http.HandlerFunc(MpeAddTracksHandler)).Methods(http.MethodPut)
 }
 
 type MpeCreateRoomRequestBody struct {
@@ -97,6 +98,50 @@ func createMpeRoomHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(res)
+}
+
+type MpeAddTracksRequestBody struct {
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+
+	TracksIDs []string `json:"tracksIDs" validate:"required,dive,required"`
+	UserID    string   `json:"userID" validate:"required"`
+	DeviceID  string   `json:"deviceID" validate:"required"`
+}
+
+func MpeAddTracksHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var body MpeAddTracksRequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	signal := shared_mpe.NewAddTracksSignal(shared_mpe.NewAddTracksSignalArgs{
+		TracksIDs: body.TracksIDs,
+		UserID:    body.UserID,
+		DeviceID:  body.DeviceID,
+	})
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		"",
+		shared_mpe.SignalChannelName,
+		signal,
+	); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	res := make(map[string]interface{})
+	res["ok"] = 1
 	json.NewEncoder(w).Encode(res)
 }
 

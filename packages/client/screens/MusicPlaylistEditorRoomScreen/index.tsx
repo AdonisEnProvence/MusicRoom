@@ -10,6 +10,7 @@ import {
     AppScreen,
     AppScreenContainer,
     AppScreenHeader,
+    Typo,
 } from '../../components/kit';
 import { MpeTabMpeRoomScreenProps } from '../../types';
 import { useMusicPlaylistsActor } from '../../hooks/useMusicPlaylistsActor';
@@ -171,6 +172,14 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
     ({ playlist }) => {
         const insets = useSafeAreaInsets();
         const playlistRef = playlist.ref;
+        const roomName = useSelector(
+            playlistRef,
+            (state) => state.context.state.name,
+        );
+        const playlistTotalDuration = useSelector(
+            playlistRef,
+            (state) => state.context.state.playlistTotalDuration,
+        );
         const tracks = useSelector(
             playlistRef,
             (state) => state.context.tracks,
@@ -230,6 +239,10 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                         }}
                         style={{ flex: 1 }}
                     >
+                        <Typo>
+                            {roomName} . {playlistTotalDuration} NOT FORMATED
+                        </Typo>
+
                         <FlatList
                             data={tracks}
                             ListHeaderComponent={() => {

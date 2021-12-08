@@ -2,6 +2,7 @@ import { MtvWorkflowState } from '@musicroom/types';
 import { Button } from 'dripsy';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { random } from 'faker';
 import {
     AppScreen,
     AppScreenContainer,
@@ -112,6 +113,12 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                     onPress={() => {
                         appMusicPlaylistsActorRef.send({
                             type: 'CREATE_ROOM',
+                            params: {
+                                initialTrackID: 'dQw4w9WgXcQ',
+                                isOpen: true,
+                                isOpenOnlyInvitedUsersCanEdit: false,
+                                name: random.words(3),
+                            },
                         });
                     }}
                 />

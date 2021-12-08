@@ -101,6 +101,19 @@ Route.group(() => {
 
 /// //////// ////// ///
 
+/// Temporal MPE Routes ///
+
+export const MPE_TEMPORAL_LISTENER = `/temporal/mpe`;
+
+Route.group(() => {
+    Route.post(
+        `/mpe-creation-acknowledgement`,
+        'Temporal/MpeTemporalToServerController.mpeCreationAcknowledgement',
+    );
+}).prefix(MPE_TEMPORAL_LISTENER);
+
+/// //////// ////// ///
+
 Route.get('/', () => {
     return { hello: 'world' };
 });

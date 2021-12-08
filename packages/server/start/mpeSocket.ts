@@ -1,6 +1,7 @@
 import { MpeRoomClientToServerCreateArgs } from '@musicroom/types/dist/mpe-room-websockets';
 import MpeRoomsWsController from 'App/Controllers/Ws/MpeRoomsWsController';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
+import Ws from 'App/Services/Ws';
 import { TypedSocket } from './socket';
 
 export default function initMpeSocketEventListeners(socket: TypedSocket): void {
@@ -16,7 +17,12 @@ export default function initMpeSocketEventListeners(socket: TypedSocket): void {
                 roomCreator: user,
             });
 
-            socket
+            await SocketLifecycle.getConnectedSocketToRoom(
+                response.workflowID,
+                true,
+            );
+
+            Ws.io
                 .to(response.workflowID)
                 .emit('MPE_CREATE_ROOM_SYNCED_CALLBACK', response.state);
         } catch (e) {

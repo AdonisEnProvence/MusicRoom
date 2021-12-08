@@ -19,4 +19,5 @@ export interface MpeRoomClientToServerEvents {
 export interface MpeRoomServerToClientEvents {
     MPE_CREATE_ROOM_SYNCED_CALLBACK: (args: MpeWorkflowState) => void;
     MPE_CREATE_ROOM_FAIL: () => void;
+    MPE_CREATE_ROOM_CALLBACK: (state: MpeWorkflowState) => void;
 }

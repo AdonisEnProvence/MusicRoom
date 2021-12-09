@@ -18,6 +18,7 @@ var (
 )
 
 type RejectAddingTracksActivityArgs struct {
+	RoomID   string `json:"roomID"`
 	DeviceID string `json:"deviceID"`
 }
 

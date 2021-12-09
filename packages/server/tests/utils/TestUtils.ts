@@ -3,12 +3,14 @@ import {
     AllServerToClientEvents,
     MtvRoomClientToServerCreateArgs,
     MpeRoomClientToServerCreateArgs,
+    MpeWorkflowState,
+    TrackMetadata,
 } from '@musicroom/types';
 import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import MpeRoom from 'App/Models/MpeRoom';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
-import { datatype, random } from 'faker';
+import { datatype, random, name } from 'faker';
 import sinon from 'sinon';
 import { io, Socket } from 'socket.io-client';
 import {
@@ -583,4 +585,56 @@ export function sortBy<Collection, Key extends keyof Collection>(
     return [...items].sort((a, b) =>
         a[key] > b[key] ? 1 : b[key] > a[key] ? -1 : 0,
     );
+}
+
+export function generateTrackMetadata(
+    overrides?: Partial<TrackMetadata>,
+): TrackMetadata {
+    return {
+        id: datatype.uuid(),
+        artistName: name.title(),
+        duration: 42000 as number,
+        title: random.words(),
+
+        ...overrides,
+    };
+}
+
+interface GenerateArrayArgs<Item> {
+    minLength: number;
+    maxLength: number;
+    fill: ((index: number) => Item) | (() => Item);
+}
+
+export function generateArray<Item>({
+    minLength,
+    maxLength,
+    fill,
+}: GenerateArrayArgs<Item>): Item[] {
+    return Array.from({
+        length: datatype.number({ min: minLength, max: maxLength }),
+    }).map((_, index) => fill(index));
+}
+
+export function generateMpeWorkflowState(
+    overrides?: Partial<MpeWorkflowState>,
+): MpeWorkflowState {
+    const tracksList = generateArray({
+        minLength: 2,
+        maxLength: 6,
+        fill: generateTrackMetadata,
+    });
+
+    return {
+        roomID: datatype.uuid(),
+        roomCreatorUserID: datatype.uuid(),
+        name: random.words(),
+        tracks: tracksList,
+        isOpen: datatype.boolean(),
+        isOpenOnlyInvitedUsersCanEdit: datatype.boolean(),
+        usersLength: datatype.number(),
+        playlistTotalDuration: datatype.number(),
+
+        ...overrides,
+    };
 }

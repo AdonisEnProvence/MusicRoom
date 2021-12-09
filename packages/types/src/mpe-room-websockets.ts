@@ -27,6 +27,22 @@ export type MpeRoomServerToClientAddTracksFailCallbackArgs = z.infer<
     typeof MpeRoomServerToClientAddTracksFailCallbackArgs
 >;
 
+export const MpeRoomServerToClientTracksListUpdateArgs = z.object({
+    roomID: z.string().uuid(),
+    state: MpeWorkflowState,
+});
+export type MpeRoomServerToClientTracksListUpdateArgs = z.infer<
+    typeof MpeRoomServerToClientTracksListUpdateArgs
+>;
+
+export const MpeRoomServerToClientTracksSuccessCallbackArgs = z.object({
+    roomID: z.string().uuid(),
+    state: MpeWorkflowState,
+});
+export type MpeRoomServerToClientTracksSuccessCallbackArgs = z.infer<
+    typeof MpeRoomServerToClientTracksSuccessCallbackArgs
+>;
+
 export interface MpeRoomClientToServerEvents {
     MPE_CREATE_ROOM: (args: MpeRoomClientToServerCreateArgs) => void;
     MPE_ADD_TRACKS: (args: MpeRoomClientToServerAddTracksArgs) => void;
@@ -38,5 +54,11 @@ export interface MpeRoomServerToClientEvents {
     MPE_CREATE_ROOM_CALLBACK: (state: MpeWorkflowState) => void;
     MPE_ADD_TRACKS_FAIL_CALLBACK: (
         args: MpeRoomServerToClientAddTracksFailCallbackArgs,
+    ) => void;
+    MPE_TRACKS_LIST_UPDATE: (
+        args: MpeRoomServerToClientTracksListUpdateArgs,
+    ) => void;
+    MPE_ADD_TRACKS_SUCCESS_CALLBACK: (
+        args: MpeRoomServerToClientTracksSuccessCallbackArgs,
     ) => void;
 }

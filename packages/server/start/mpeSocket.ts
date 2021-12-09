@@ -56,10 +56,10 @@ export default function initMpeSocketEventListeners(socket: TypedSocket): void {
     });
 
     socket.on('MPE_ADD_TRACKS', async (rawArgs) => {
-        try {
-            const { roomID, tracksIDs } =
-                MpeRoomClientToServerAddTracksArgs.parse(rawArgs);
+        const { roomID, tracksIDs } =
+            MpeRoomClientToServerAddTracksArgs.parse(rawArgs);
 
+        try {
             const { user, deviceID } =
                 await SocketLifecycle.getSocketConnectionCredentials(socket);
 
@@ -79,7 +79,10 @@ export default function initMpeSocketEventListeners(socket: TypedSocket): void {
             });
         } catch (e) {
             console.error(e);
-            socket.emit('MPE_ADD_TRACKS_FAIL_CALLBACK');
+
+            socket.emit('MPE_ADD_TRACKS_FAIL_CALLBACK', {
+                roomID,
+            });
         }
     });
 }

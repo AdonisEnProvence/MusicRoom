@@ -9,6 +9,7 @@ import (
 
 	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
 	mpe "github.com/AdonisEnProvence/MusicRoom/mpe/workflows"
+	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/gorilla/mux"
 	"go.temporal.io/sdk/client"
 )
@@ -131,7 +132,7 @@ func MpeAddTracksHandler(w http.ResponseWriter, r *http.Request) {
 	if err := temporal.SignalWorkflow(
 		context.Background(),
 		body.WorkflowID,
-		"",
+		shared.NoWorkflowRunID,
 		shared_mpe.SignalChannelName,
 		signal,
 	); err != nil {

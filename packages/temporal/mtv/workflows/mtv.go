@@ -962,7 +962,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 			var signal interface{}
 			c.Receive(ctx, &signal)
 
-			var routeSignal shared_mtv.GenericRouteSignal
+			var routeSignal shared.GenericRouteSignal
 
 			if err := mapstructure.Decode(signal, &routeSignal); err != nil {
 				logger.Error("Invalid signal type %v", err)

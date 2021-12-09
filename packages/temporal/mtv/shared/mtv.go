@@ -398,30 +398,24 @@ type MtvRoomExposedState struct {
 	DelegationOwnerUserID             *string                              `json:"delegationOwnerUserID"`
 }
 
-type SignalRoute string
-
 const (
-	SignalRoutePlay                            = "play"
-	SignalRoutePause                           = "pause"
-	SignalRouteJoin                            = "join"
-	SignalRouteLeave                           = "leave"
-	SignalRouteTerminate                       = "terminate"
-	SignalRouteGoToNextTrack                   = "go-to-next-track"
-	SignalRouteChangeUserEmittingDevice        = "change-user-emitting-device"
-	SignalRouteSuggestTracks                   = "suggest-tracks"
-	SignalRouteVoteForTrack                    = "vote-for-track"
-	SignalUpdateUserFitsPositionConstraint     = "update-user-fits-position-constraint"
-	SignalUpdateDelegationOwner                = "update-delegation-owner"
-	SignalUpdateControlAndDelegationPermission = "update-control-and-delegation-permision"
+	SignalRoutePlay                            shared.SignalRoute = "play"
+	SignalRoutePause                           shared.SignalRoute = "pause"
+	SignalRouteJoin                            shared.SignalRoute = "join"
+	SignalRouteLeave                           shared.SignalRoute = "leave"
+	SignalRouteTerminate                       shared.SignalRoute = "terminate"
+	SignalRouteGoToNextTrack                   shared.SignalRoute = "go-to-next-track"
+	SignalRouteChangeUserEmittingDevice        shared.SignalRoute = "change-user-emitting-device"
+	SignalRouteSuggestTracks                   shared.SignalRoute = "suggest-tracks"
+	SignalRouteVoteForTrack                    shared.SignalRoute = "vote-for-track"
+	SignalUpdateUserFitsPositionConstraint     shared.SignalRoute = "update-user-fits-position-constraint"
+	SignalUpdateDelegationOwner                shared.SignalRoute = "update-delegation-owner"
+	SignalUpdateControlAndDelegationPermission shared.SignalRoute = "update-control-and-delegation-permision"
 )
 
-type GenericRouteSignal struct {
-	Route SignalRoute
-}
-
 type PlaySignal struct {
-	Route  SignalRoute `validate:"required"`
-	UserID string      `validate:"required,uuid"`
+	Route  shared.SignalRoute `validate:"required"`
+	UserID string             `validate:"required,uuid"`
 }
 
 type NewPlaySignalArgs struct {
@@ -436,8 +430,8 @@ func NewPlaySignal(args NewPlaySignalArgs) PlaySignal {
 }
 
 type PauseSignal struct {
-	Route  SignalRoute `validate:"required"`
-	UserID string      `validate:"required,uuid"`
+	Route  shared.SignalRoute `validate:"required"`
+	UserID string             `validate:"required,uuid"`
 }
 
 type NewPauseSignalArgs struct {
@@ -452,8 +446,8 @@ func NewPauseSignal(args NewPauseSignalArgs) PauseSignal {
 }
 
 type LeaveSignal struct {
-	Route  SignalRoute `validate:"required"`
-	UserID string      `validate:"required,uuid"`
+	Route  shared.SignalRoute `validate:"required"`
+	UserID string             `validate:"required,uuid"`
 }
 
 type NewLeaveSignalArgs struct {
@@ -468,9 +462,9 @@ func NewLeaveSignal(args NewLeaveSignalArgs) JoinSignal {
 }
 
 type JoinSignal struct {
-	Route              SignalRoute `validate:"required"`
-	UserID             string      `validate:"required,uuid"`
-	DeviceID           string      `validate:"required,uuid"`
+	Route              shared.SignalRoute `validate:"required"`
+	UserID             string             `validate:"required,uuid"`
+	DeviceID           string             `validate:"required,uuid"`
 	UserHasBeenInvited bool
 }
 
@@ -490,7 +484,7 @@ func NewJoinSignal(args NewJoinSignalArgs) JoinSignal {
 }
 
 type TerminateSignal struct {
-	Route SignalRoute
+	Route shared.SignalRoute
 }
 
 type NewTerminateSignalArgs struct{}
@@ -502,8 +496,8 @@ func NewTerminateSignal(args NewTerminateSignalArgs) TerminateSignal {
 }
 
 type GoToNextTrackSignal struct {
-	Route  SignalRoute `validate:"required"`
-	UserID string      `validate:"required,uuid"`
+	Route  shared.SignalRoute `validate:"required"`
+	UserID string             `validate:"required,uuid"`
 }
 
 type NewGoToNextTrackSignalArgs struct {
@@ -518,9 +512,9 @@ func NewGoToNexTrackSignal(args NewGoToNextTrackSignalArgs) GoToNextTrackSignal 
 }
 
 type ChangeUserEmittingDeviceSignal struct {
-	Route    SignalRoute `validate:"required"`
-	UserID   string      `validate:"required,uuid"`
-	DeviceID string      `validate:"required,uuid"`
+	Route    shared.SignalRoute `validate:"required"`
+	UserID   string             `validate:"required,uuid"`
+	DeviceID string             `validate:"required,uuid"`
 }
 
 type ChangeUserEmittingDeviceSignalArgs struct {
@@ -537,10 +531,10 @@ func NewChangeUserEmittingDeviceSignal(args ChangeUserEmittingDeviceSignalArgs) 
 }
 
 type SuggestTracksSignal struct {
-	Route           SignalRoute `validate:"required"`
-	TracksToSuggest []string    `validate:"required,dive,required"`
-	UserID          string      `validate:"required,uuid"`
-	DeviceID        string      `validate:"required,uuid"`
+	Route           shared.SignalRoute `validate:"required"`
+	TracksToSuggest []string           `validate:"required,dive,required"`
+	UserID          string             `validate:"required,uuid"`
+	DeviceID        string             `validate:"required,uuid"`
 }
 
 type SuggestTracksSignalArgs struct {
@@ -559,9 +553,9 @@ func NewSuggestTracksSignal(args SuggestTracksSignalArgs) SuggestTracksSignal {
 }
 
 type VoteForTrackSignal struct {
-	Route   SignalRoute `validate:"required"`
-	UserID  string      `validate:"required,uuid"`
-	TrackID string      `validate:"required"`
+	Route   shared.SignalRoute `validate:"required"`
+	UserID  string             `validate:"required,uuid"`
+	TrackID string             `validate:"required"`
 }
 
 type NewVoteForTrackSignalArgs struct {
@@ -578,8 +572,8 @@ func NewVoteForTrackSignal(args NewVoteForTrackSignalArgs) VoteForTrackSignal {
 }
 
 type UpdateUserFitsPositionConstraintSignal struct {
-	Route                      SignalRoute `validate:"required"`
-	UserID                     string      `validate:"required,uuid"`
+	Route                      shared.SignalRoute `validate:"required"`
+	UserID                     string             `validate:"required,uuid"`
 	UserFitsPositionConstraint bool
 }
 
@@ -597,9 +591,9 @@ func NewUpdateUserFitsPositionConstraintSignal(args NewUpdateUserFitsPositionCon
 }
 
 type UpdateDelegationOwnerSignal struct {
-	Route                    SignalRoute `validate:"required"`
-	NewDelegationOwnerUserID string      `validate:"required,uuid"`
-	EmitterUserID            string      `validate:"required,uuid"`
+	Route                    shared.SignalRoute `validate:"required"`
+	NewDelegationOwnerUserID string             `validate:"required,uuid"`
+	EmitterUserID            string             `validate:"required,uuid"`
 }
 
 type NewUpdateDelegationOwnerSignalArgs struct {
@@ -616,8 +610,8 @@ func NewUpdateDelegationOwnerSignal(args NewUpdateDelegationOwnerSignalArgs) Upd
 }
 
 type UpdateControlAndDelegationPermissionSignal struct {
-	Route                             SignalRoute `validate:"required"`
-	ToUpdateUserID                    string      `validate:"required,uuid"`
+	Route                             shared.SignalRoute `validate:"required"`
+	ToUpdateUserID                    string             `validate:"required,uuid"`
 	HasControlAndDelegationPermission bool
 }
 

@@ -6,9 +6,11 @@ import (
 	"log"
 	"time"
 
+	"github.com/AdonisEnProvence/MusicRoom/activities"
 	activities_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/activities"
 	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/Devessier/brainy"
 
@@ -64,8 +66,11 @@ func (s *MpeRoomInternalState) Export() shared_mpe.MpeRoomExposedState {
 
 const (
 	MpeRoomFetchInitialTrack brainy.StateType = "fetching-initial-track"
+	MpeRoomReady             brainy.StateType = "ready"
 
-	MpeRoomInitialTracksFetched brainy.EventType = "INITIAL_TRACK_FETCHED"
+	MpeRoomInitialTracksFetched                   brainy.EventType = "INITIAL_TRACK_FETCHED"
+	MpeRoomAddTracksEventType                     brainy.EventType = "ADD_TRACKS"
+	MpeRoomAddedTracksInformationFetchedEventType brainy.EventType = "ADDED_TRACKS_INFORMATION_FETCHED"
 )
 
 func getNowFromSideEffect(ctx workflow.Context) time.Time {
@@ -117,9 +122,10 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 	channel := workflow.GetSignalChannel(ctx, shared_mpe.SignalChannelName)
 
 	var (
-		terminated                 = false
-		workflowFatalError         error
-		fetchedInitialTracksFuture workflow.Future
+		terminated                           = false
+		workflowFatalError                   error
+		fetchedInitialTracksFuture           workflow.Future
+		fetchedAddedTracksInformationFutures []workflow.Future
 	)
 
 	//create machine here
@@ -142,6 +148,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 
 				On: brainy.Events{
 					MpeRoomInitialTracksFetched: brainy.Transition{
+						Target: MpeRoomReady,
 
 						Actions: brainy.Actions{
 							brainy.ActionFn(
@@ -153,6 +160,89 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 										ctx,
 										internalState.Export(),
 									)
+
+									return nil
+								},
+							),
+						},
+					},
+				},
+			},
+
+			MpeRoomReady: &brainy.StateNode{
+				On: brainy.Events{
+					MpeRoomAddTracksEventType: brainy.Transition{
+						Actions: brainy.Actions{
+							brainy.ActionFn(
+								func(c brainy.Context, e brainy.Event) error {
+									event := e.(MpeRoomAddTracksEvent)
+
+									acceptedTracksIDsToAdd := make([]string, 0, len(event.TracksIDs))
+
+									for _, trackToAdd := range event.TracksIDs {
+										isDuplicate := internalState.Tracks.Has(trackToAdd)
+										if isDuplicate {
+											continue
+										}
+
+										acceptedTracksIDsToAdd = append(acceptedTracksIDsToAdd, trackToAdd)
+									}
+
+									noTracksHaveBeenAccepted := len(acceptedTracksIDsToAdd) == 0
+									if noTracksHaveBeenAccepted {
+										sendRejectAddingTracksActivity(ctx, activities_mpe.RejectAddingTracksActivityArgs{
+											DeviceID: event.DeviceID,
+										})
+
+										return nil
+									}
+
+									fetchingFuture := sendFetchTracksInformationActivityAndForwardInitiator(
+										ctx,
+										acceptedTracksIDsToAdd,
+										event.UserID,
+										event.DeviceID,
+									)
+									fetchedAddedTracksInformationFutures = append(fetchedAddedTracksInformationFutures, fetchingFuture)
+
+									return nil
+								},
+							),
+						},
+					},
+
+					MpeRoomAddedTracksInformationFetchedEventType: brainy.Transition{
+						Actions: brainy.Actions{
+							brainy.ActionFn(
+								func(c brainy.Context, e brainy.Event) error {
+									event := e.(MpeRoomAddedTracksInformationFetchedEvent)
+
+									// If all tracks to add are already in the playlist, abort the operation.
+									allTracksAreDuplicated := true
+									for _, track := range event.AddedTracksInformation {
+										if trackIsNotDuplicated := !internalState.Tracks.Has(track.ID); trackIsNotDuplicated {
+											allTracksAreDuplicated = false
+
+											break
+										}
+									}
+
+									if allTracksAreDuplicated {
+										sendRejectAddingTracksActivity(ctx, activities_mpe.RejectAddingTracksActivityArgs{
+											DeviceID: event.DeviceID,
+										})
+
+										return nil
+									}
+
+									for _, track := range event.AddedTracksInformation {
+										internalState.Tracks.Add(track)
+									}
+
+									sendAcknowledgeAddingTracksActivity(ctx, activities_mpe.AcknowledgeAddingTracksActivityArgs{
+										State:    internalState.Export(),
+										DeviceID: event.DeviceID,
+									})
 
 									return nil
 								},
@@ -178,37 +268,34 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 			var signal interface{}
 			c.Receive(ctx, &signal)
 
-			// var routeSignal shared_mpe.GenericRouteSignal
+			var routeSignal shared.GenericRouteSignal
 
-			// if err := mapstructure.Decode(signal, &routeSignal); err != nil {
-			// 	logger.Error("Invalid signal type %v", err)
-			// 	return
-			// }
+			if err := mapstructure.Decode(signal, &routeSignal); err != nil {
+				logger.Error("Invalid signal type %v", err)
+				return
+			}
 
-			// switch routeSignal.Route {
+			switch routeSignal.Route {
+			case shared_mpe.SignalAddTracks:
+				var message shared_mpe.AddTracksSignal
 
-			// case shared_mpe.SignalUpdateControlAndDelegationPermission:
-			// 	var message shared_mpe.UpdateControlAndDelegationPermissionSignal
+				if err := mapstructure.Decode(signal, &message); err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
+				if err := Validate.Struct(message); err != nil {
+					logger.Error("Validation error: %v", err)
+					return
+				}
 
-			// 	if err := mapstructure.Decode(signal, &message); err != nil {
-			// 		logger.Error("Invalid signal type %v", err)
-			// 		return
-			// 	}
-			// 	if err := workflows_shared_mpe.Validate.Struct(message); err != nil {
-			// 		logger.Error("Validation error: %v", err)
-			// 		return
-			// 	}
-
-			// 	internalState.Machine.Send(
-			// 		NewMtvRoomUpdateControlAndDelegationPermissionEvent(NewMtvRoomUpdateControlAndDelegationPermissionEventArgs{
-			// 			ToUpdateUserID:                    message.ToUpdateUserID,
-			// 			HasControlAndDelegationPermission: message.HasControlAndDelegationPermission,
-			// 		}),
-			// 	)
-
-			// case shared_mpe.SignalRouteTerminate:
-			// 	terminated = true
-			// }
+				internalState.Machine.Send(
+					NewMpeRoomAddTracksEvent(NewMpeRoomAddTracksEventArgs{
+						TracksIDs: message.TracksIDs,
+						UserID:    message.UserID,
+						DeviceID:  message.DeviceID,
+					}),
+				)
+			}
 		})
 
 		if fetchedInitialTracksFuture != nil {
@@ -234,6 +321,28 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 				fmt.Println("**********************************")
 				internalState.Machine.Send(
 					NewMpeRoomInitialTracksFetchedEvent(initialTrackActivityResult[0]),
+				)
+			})
+		}
+
+		for index, fetchedAddedTracksInformationFuture := range fetchedAddedTracksInformationFutures {
+			selector.AddFuture(fetchedAddedTracksInformationFuture, func(f workflow.Future) {
+				fetchedAddedTracksInformationFutures = removeFutureFromSlice(fetchedAddedTracksInformationFutures, index)
+
+				var addedTracksInformationActivityResult activities.FetchedTracksInformationWithInitiator
+
+				if err := f.Get(ctx, &addedTracksInformationActivityResult); err != nil {
+					logger.Error("error occured initialTracksActivityResult", err)
+
+					return
+				}
+
+				internalState.Machine.Send(
+					NewMpeRoomAddedTracksInformationFetchedEvent(NewMpeRoomAddedTracksInformationFetchedEventArgs{
+						AddedTracksInformation: addedTracksInformationActivityResult.Metadata,
+						UserID:                 addedTracksInformationActivityResult.UserID,
+						DeviceID:               addedTracksInformationActivityResult.DeviceID,
+					}),
 				)
 			})
 		}
@@ -269,3 +378,8 @@ func acknowledgeRoomCreation(ctx workflow.Context, state shared_mpe.MpeRoomExpos
 type TimeWrapperType func() time.Time
 
 var TimeWrapper TimeWrapperType = time.Now
+
+func removeFutureFromSlice(slice []workflow.Future, index int) []workflow.Future {
+	slice[index] = slice[len(slice)-1]
+	return slice[:len(slice)-1]
+}

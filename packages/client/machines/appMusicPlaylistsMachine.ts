@@ -135,6 +135,7 @@ export function createAppMusicPlaylistsMachine({
                     }),
                     {
                         to: (_, { state, type }) => {
+                            //Add on error create mpe bool ?
                             console.log(
                                 `About to merge new state from ${type} in MPE=${state.roomID}`,
                             );

@@ -182,7 +182,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
         );
         const tracks = useSelector(
             playlistRef,
-            (state) => state.context.tracks,
+            (state) => state.context.state.tracks,
         );
         const shouldFreezeUi = useSelector(playlistRef, (state) =>
             state.hasTag('freezeUi'),
@@ -228,7 +228,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
         return (
             <AppScreen>
                 <AppScreenHeader
-                    title={`Playlist ${playlist.id}`}
+                    title={`Playlist ${playlist.roomName}`}
                     insetTop={insets.top}
                 />
 
@@ -239,63 +239,64 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                         }}
                         style={{ flex: 1 }}
                     >
-                        <Typo>
-                            {roomName} . {playlistTotalDuration} NOT FORMATED
-                        </Typo>
+                        <Typo>{playlistTotalDuration} NOT FORMATED</Typo>
+                        {tracks && <Typo>{tracks.length} Tracks</Typo>}
 
-                        <FlatList
-                            data={tracks}
-                            ListHeaderComponent={() => {
-                                return (
-                                    <AddTrackButton
-                                        disabled={shouldFreezeUi}
-                                        onPress={handleAddTrack}
-                                    />
-                                );
-                            }}
-                            keyExtractor={({ id }) => id}
-                            renderItem={({
-                                item: { id, title, artistName },
-                                index,
-                            }) => {
-                                return (
-                                    <View
-                                        sx={{
-                                            marginBottom: 'm',
-                                        }}
-                                    >
-                                        <TrackListItem
-                                            index={index + 1}
-                                            title={title}
-                                            trackID={id}
-                                            artistName={artistName}
-                                            Actions={() => {
-                                                return (
-                                                    <TrackListItemWrapper
-                                                        playlistRef={
-                                                            playlistRef
-                                                        }
-                                                        shouldFreezeUi={
-                                                            shouldFreezeUi
-                                                        }
-                                                        id={id}
-                                                        onUpPress={handleUpPress(
-                                                            id,
-                                                        )}
-                                                        onDownPress={handleDownPress(
-                                                            id,
-                                                        )}
-                                                        onDeletePress={handleDeletePress(
-                                                            id,
-                                                        )}
-                                                    />
-                                                );
-                                            }}
+                        {tracks && (
+                            <FlatList
+                                data={tracks}
+                                ListHeaderComponent={() => {
+                                    return (
+                                        <AddTrackButton
+                                            disabled={shouldFreezeUi}
+                                            onPress={handleAddTrack}
                                         />
-                                    </View>
-                                );
-                            }}
-                        />
+                                    );
+                                }}
+                                keyExtractor={({ id }) => id}
+                                renderItem={({
+                                    item: { id, title, artistName },
+                                    index,
+                                }) => {
+                                    return (
+                                        <View
+                                            sx={{
+                                                marginBottom: 'm',
+                                            }}
+                                        >
+                                            <TrackListItem
+                                                index={index + 1}
+                                                title={title}
+                                                trackID={id}
+                                                artistName={artistName}
+                                                Actions={() => {
+                                                    return (
+                                                        <TrackListItemWrapper
+                                                            playlistRef={
+                                                                playlistRef
+                                                            }
+                                                            shouldFreezeUi={
+                                                                shouldFreezeUi
+                                                            }
+                                                            id={id}
+                                                            onUpPress={handleUpPress(
+                                                                id,
+                                                            )}
+                                                            onDownPress={handleDownPress(
+                                                                id,
+                                                            )}
+                                                            onDeletePress={handleDeletePress(
+                                                                id,
+                                                            )}
+                                                        />
+                                                    );
+                                                }}
+                                            />
+                                        </View>
+                                    );
+                                }}
+                            />
+                        )}
                     </MotiView>
                 </AppScreenContainer>
             </AppScreen>

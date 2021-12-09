@@ -1,3 +1,7 @@
+import { MpeWorkflowState } from '@musicroom/types';
+import { datatype } from 'faker';
+import { serverSocket } from '../../../services/websockets';
+import { generateTrackMetadata } from '../../../tests/data';
 import {
     renderApp,
     fireEvent,
@@ -17,7 +21,32 @@ function extractTrackIDFromCardContainerTestID(testID: string): string {
 /**
  * Copy-pasted from https://github.com/AdonisEnProvence/MusicRoom/blob/05409fdb003d7060de8a7314a23d923e6704d398/packages/client/screens/MusicPlaylistEditorListScreen/__tests__/CreateMpeRoom.test.tsx.
  */
-async function renderMPERoom() {
+async function createMpeRoom() {
+    const track = generateTrackMetadata();
+
+    let state: MpeWorkflowState | undefined;
+    serverSocket.on('MPE_CREATE_ROOM', (params) => {
+        state = {
+            isOpen: params.isOpen,
+            isOpenOnlyInvitedUsersCanEdit: params.isOpenOnlyInvitedUsersCanEdit,
+            name: params.name,
+            playlistTotalDuration: 42000,
+            roomCreatorUserID: datatype.uuid(),
+            roomID: datatype.uuid(),
+            tracks: [track],
+            usersLength: 1,
+        };
+
+        serverSocket.emit('MPE_CREATE_ROOM_SYNCED_CALLBACK', state);
+
+        setTimeout(() => {
+            if (state === undefined) {
+                throw new Error('state is undefined');
+            }
+            serverSocket.emit('MPE_CREATE_ROOM_CALLBACK', state);
+        }, 10);
+    });
+
     const screen = await renderApp();
 
     expect((await screen.findAllByText(/home/i)).length).toBeGreaterThanOrEqual(
@@ -37,15 +66,24 @@ async function renderMPERoom() {
     await waitFor(() => {
         const [, libraryScreenTitle] = screen.getAllByText(/library/i);
         expect(libraryScreenTitle).toBeTruthy();
+        expect(state).not.toBeUndefined();
     });
 
-    const mpeRoomListItem = await screen.findByText(/^mpe (?<RoomName>.*)$/i);
+    if (state === undefined) {
+        throw new Error('state is undefined');
+    }
+
+    const stateCpy = state;
+
+    const mpeRoomListItem = await screen.findByText(new RegExp(state.name));
     expect(mpeRoomListItem).toBeTruthy();
 
     fireEvent.press(mpeRoomListItem);
 
     await waitFor(() => {
-        const playlistTitle = screen.getByText(/^playlist (?<PlaylistID>.*)$/i);
+        const playlistTitle = screen.getByText(
+            new RegExp(`Playlist.*${stateCpy.name}`),
+        );
         expect(playlistTitle).toBeTruthy();
     });
 
@@ -53,7 +91,7 @@ async function renderMPERoom() {
 }
 
 test('Add track', async () => {
-    const screen = await renderMPERoom();
+    const screen = await createMpeRoom();
 
     const addTrackButton = await screen.findByText(/add.*track/i);
     expect(addTrackButton).toBeTruthy();
@@ -71,7 +109,7 @@ test('Add track', async () => {
 });
 
 test('Move track', async () => {
-    const screen = await renderMPERoom();
+    const screen = await createMpeRoom();
     let tracksIDs: string[] = [];
 
     {
@@ -182,7 +220,7 @@ test('Move track', async () => {
 });
 
 test('Remove track', async () => {
-    const screen = await renderMPERoom();
+    const screen = await createMpeRoom();
 
     const addTrackButton = await screen.findByText(/add.*track/i);
     expect(addTrackButton).toBeTruthy();

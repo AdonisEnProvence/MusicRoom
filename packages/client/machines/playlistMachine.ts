@@ -1,10 +1,19 @@
-import { ActorRefFrom } from 'xstate';
+import { ActorRefFrom, createMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { TrackMetadata } from '@musicroom/types';
+import { MpeWorkflowState, TrackMetadata } from '@musicroom/types';
 
 const playlistModel = createModel(
     {
-        tracks: [] as TrackMetadata[],
+        state: {
+            isOpenOnlyInvitedUsersCanEdit: false,
+            isOpen: true,
+            name: '',
+            playlistTotalDuration: 0,
+            roomCreatorUserID: '',
+            roomID: '',
+            tracks: [],
+            usersLength: 0,
+        } as MpeWorkflowState,
 
         trackToAdd: undefined as TrackMetadata | undefined,
         trackToMove: undefined as
@@ -18,6 +27,7 @@ const playlistModel = createModel(
             MOVE_UP_TRACK: (trackID: string) => ({ trackID }),
             MOVE_DOWN_TRACK: (trackID: string) => ({ trackID }),
             DELETE_TRACK: (trackID: string) => ({ trackID }),
+            ASSIGN_MERGE_NEW_STATE: (state: MpeWorkflowState) => ({ state }),
         },
         actions: {},
     },
@@ -37,7 +47,7 @@ const assignTrackToAdd = playlistModel.assign(
 
 const assignTrackToMoveUp = playlistModel.assign(
     {
-        trackToMove: ({ tracks }, { trackID }) => {
+        trackToMove: ({ state: { tracks } }, { trackID }) => {
             const currentIndex = tracks.findIndex(({ id }) => id === trackID);
             if (currentIndex === -1) {
                 return undefined;
@@ -55,7 +65,7 @@ const assignTrackToMoveUp = playlistModel.assign(
 
 const assignTrackToMoveDown = playlistModel.assign(
     {
-        trackToMove: ({ tracks }, { trackID }) => {
+        trackToMove: ({ state: { tracks } }, { trackID }) => {
             const currentIndex = tracks.findIndex(({ id }) => id === trackID);
             if (currentIndex === -1) {
                 return undefined;
@@ -73,7 +83,7 @@ const assignTrackToMoveDown = playlistModel.assign(
 
 const assignTrackToDelete = playlistModel.assign(
     {
-        trackToDelete: ({ tracks }, { trackID }) => {
+        trackToDelete: ({ state: { tracks } }, { trackID }) => {
             const doesTrackExist = tracks.some(({ id }) => id === trackID);
             if (doesTrackExist === false) {
                 return undefined;
@@ -85,14 +95,34 @@ const assignTrackToDelete = playlistModel.assign(
     'DELETE_TRACK',
 );
 
+const assignMergeNewState = playlistModel.assign(
+    {
+        state: (context, event) => {
+            return {
+                ...context.state,
+                ...event.state,
+            };
+        },
+    },
+    'ASSIGN_MERGE_NEW_STATE',
+);
+
 const assignTrackToTracksList = playlistModel.assign(
     {
-        tracks: ({ tracks, trackToAdd }) => {
+        state: (context) => {
+            const {
+                trackToAdd,
+                state: { tracks },
+            } = context;
+
             if (trackToAdd === undefined) {
-                return tracks;
+                return context.state;
             }
 
-            return [...tracks, trackToAdd];
+            return {
+                ...context.state,
+                tracks: [...tracks, trackToAdd],
+            };
         },
         trackToAdd: undefined,
     },
@@ -101,23 +131,27 @@ const assignTrackToTracksList = playlistModel.assign(
 
 const assignTrackToMoveToTracksList = playlistModel.assign(
     {
-        tracks: ({ tracks, trackToMove }) => {
+        state: ({ state, trackToMove }) => {
+            const { tracks } = state;
             if (trackToMove === undefined) {
-                return tracks;
+                return state;
             }
 
             const { previousIndex, nextIndex, trackID } = trackToMove;
 
             const trackItem = tracks.find(({ id }) => id === trackID);
             if (trackItem === undefined) {
-                return tracks;
+                return state;
             }
 
             const tracksCopy = [...tracks];
             tracksCopy.splice(previousIndex, 1);
             tracksCopy.splice(nextIndex, 0, trackItem);
 
-            return tracksCopy;
+            return {
+                ...state,
+                tracks: tracksCopy,
+            };
         },
         trackToMove: undefined,
     },
@@ -126,12 +160,16 @@ const assignTrackToMoveToTracksList = playlistModel.assign(
 
 const assignTrackToRemoveToTracksList = playlistModel.assign(
     {
-        tracks: ({ tracks, trackToDelete }) => {
+        state: ({ state, trackToDelete }) => {
+            const { tracks } = state;
             if (trackToDelete === undefined) {
-                return tracks;
+                return state;
             }
 
-            return tracks.filter(({ id }) => id !== trackToDelete);
+            return {
+                ...state,
+                tracks: tracks.filter(({ id }) => id !== trackToDelete),
+            };
         },
     },
     undefined,
@@ -141,19 +179,25 @@ type PlaylistMachine = ReturnType<typeof playlistModel['createMachine']>;
 
 export type PlaylistActorRef = ActorRefFrom<PlaylistMachine>;
 
-interface CreatePlaylistMachineArgs {
-    roomID: string;
-}
+type CreatePlaylistMachineArgs = MpeWorkflowState;
 
-export function createPlaylistMachine({
-    roomID,
-}: CreatePlaylistMachineArgs): PlaylistMachine {
-    return playlistModel.createMachine({
+export function createPlaylistMachine(
+    state: CreatePlaylistMachineArgs,
+): PlaylistMachine {
+    return createMachine({
         initial: 'idle',
 
+        context: {
+            ...playlistModel.initialContext,
+            state,
+        },
         states: {
             idle: {
                 on: {
+                    ASSIGN_MERGE_NEW_STATE: {
+                        actions: assignMergeNewState,
+                    },
+
                     ADD_TRACK: {
                         target: 'addingTrack',
 
@@ -161,7 +205,7 @@ export function createPlaylistMachine({
                     },
 
                     MOVE_DOWN_TRACK: {
-                        cond: ({ tracks }, { trackID }) => {
+                        cond: ({ state: { tracks } }, { trackID }) => {
                             const trackIndex = tracks.findIndex(
                                 ({ id }) => id === trackID,
                             );
@@ -185,7 +229,7 @@ export function createPlaylistMachine({
                     },
 
                     MOVE_UP_TRACK: {
-                        cond: ({ tracks }, { trackID }) => {
+                        cond: ({ state: { tracks } }, { trackID }) => {
                             const trackIndex = tracks.findIndex(
                                 ({ id }) => id === trackID,
                             );
@@ -208,7 +252,7 @@ export function createPlaylistMachine({
                     },
 
                     DELETE_TRACK: {
-                        cond: ({ tracks }, { trackID }) => {
+                        cond: ({ state: { tracks } }, { trackID }) => {
                             const doesTrackExist = tracks.some(
                                 ({ id }) => id === trackID,
                             );

@@ -1,6 +1,18 @@
-import { ActorRefFrom, spawn } from 'xstate';
+import {
+    ActorRefFrom,
+    ContextFrom,
+    EventFrom,
+    Receiver,
+    Sender,
+    spawn,
+    send,
+    forwardTo,
+} from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { nanoid } from 'nanoid/non-secure';
+import {
+    MpeWorkflowState,
+    MpeRoomClientToServerCreateArgs,
+} from '@musicroom/types';
 import { SocketClient } from '../contexts/SocketContext';
 import { createPlaylistMachine, PlaylistActorRef } from './playlistMachine';
 
@@ -10,35 +22,46 @@ export interface MusicPlaylist {
     ref: PlaylistActorRef;
 }
 
+type MusicPlaylistsContext = ContextFrom<typeof appMusicPlaylistsModel>;
+type MusicPlaylistsEvents = EventFrom<typeof appMusicPlaylistsModel>;
+
 const appMusicPlaylistsModel = createModel(
     {
         playlistsActorsRefs: [] as MusicPlaylist[],
     },
     {
         events: {
-            CREATE_ROOM: () => ({}),
+            CREATE_ROOM: (params: MpeRoomClientToServerCreateArgs) => ({
+                params,
+            }),
+            SPAWN_NEW_PLAYLIST_ACTOR_FROM_STATE: (state: MpeWorkflowState) => ({
+                state,
+            }),
+            FORWARD_ASSIGN_MERGE_NEW_STATE_TO_INVOLVED_PLAYLIST: (
+                state: MpeWorkflowState,
+            ) => ({
+                state,
+            }),
         },
-        actions: {},
     },
 );
 
 const spawnPlaylistActor = appMusicPlaylistsModel.assign(
     {
-        playlistsActorsRefs: ({ playlistsActorsRefs }) => {
-            const playlistID = nanoid();
-            const playlistMachine = createPlaylistMachine({
-                roomID: playlistID,
-            });
+        playlistsActorsRefs: ({ playlistsActorsRefs }, { state }) => {
+            const playlistMachine = createPlaylistMachine(state);
             const playlist: MusicPlaylist = {
-                id: playlistID,
-                roomName: `MPE ${playlistID}`,
-                ref: spawn(playlistMachine),
+                id: state.roomID,
+                roomName: state.name,
+                ref: spawn(playlistMachine, {
+                    name: getPlaylistMachineActorName(state.roomID),
+                }),
             };
 
             return [...playlistsActorsRefs, playlist];
         },
     },
-    'CREATE_ROOM',
+    'SPAWN_NEW_PLAYLIST_ACTOR_FROM_STATE',
 );
 
 type AppMusicPlaylistsMachine = ReturnType<
@@ -51,11 +74,49 @@ interface CreateAppMusicPlaylistsMachineArgs {
     socket: SocketClient;
 }
 
+function getPlaylistMachineActorName(roomID: string): string {
+    return `playlist-${roomID}`;
+}
+
 export function createAppMusicPlaylistsMachine({
     socket,
 }: CreateAppMusicPlaylistsMachineArgs): AppMusicPlaylistsMachine {
     return appMusicPlaylistsModel.createMachine({
         id: 'appMusicPlaylists',
+
+        invoke: {
+            id: 'socketConnection',
+            src:
+                () =>
+                (
+                    sendBack: Sender<MusicPlaylistsEvents>,
+                    onReceive: Receiver<MusicPlaylistsEvents>,
+                ) => {
+                    socket.on('MPE_CREATE_ROOM_SYNCED_CALLBACK', (state) => {
+                        sendBack({
+                            type: 'SPAWN_NEW_PLAYLIST_ACTOR_FROM_STATE',
+                            state,
+                        });
+                    });
+
+                    socket.on('MPE_CREATE_ROOM_CALLBACK', (state) => {
+                        sendBack({
+                            type: 'FORWARD_ASSIGN_MERGE_NEW_STATE_TO_INVOLVED_PLAYLIST',
+                            state,
+                        });
+                    });
+
+                    onReceive((event) => {
+                        switch (event.type) {
+                            case 'CREATE_ROOM': {
+                                socket.emit('MPE_CREATE_ROOM', event.params);
+
+                                break;
+                            }
+                        }
+                    });
+                },
+        },
 
         initial: 'idle',
 
@@ -63,13 +124,33 @@ export function createAppMusicPlaylistsMachine({
             idle: {
                 on: {
                     CREATE_ROOM: {
-                        target: 'creatingRoom',
+                        actions: forwardTo('socketConnection'),
                     },
                 },
             },
+        },
 
-            creatingRoom: {
-                entry: spawnPlaylistActor,
+        on: {
+            FORWARD_ASSIGN_MERGE_NEW_STATE_TO_INVOLVED_PLAYLIST: {
+                actions: send(
+                    (_, { state }) => ({
+                        type: 'ASSIGN_MERGE_NEW_STATE',
+                        state,
+                    }),
+                    {
+                        to: (_, { state, type }) => {
+                            //Add on error create mpe bool ?
+                            console.log(
+                                `About to merge new state from ${type} in MPE=${state.roomID}`,
+                            );
+                            return getPlaylistMachineActorName(state.roomID);
+                        },
+                    },
+                ),
+            },
+
+            SPAWN_NEW_PLAYLIST_ACTOR_FROM_STATE: {
+                actions: spawnPlaylistActor,
             },
         },
     });

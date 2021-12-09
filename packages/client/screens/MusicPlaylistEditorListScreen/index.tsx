@@ -24,6 +24,7 @@ const PlaylistListItem: React.FC<PlaylistListItemProps> = ({
 }) => {
     return (
         <TouchableOpacity
+            testID={`mpe-room-card-${id}`}
             onPress={() => {
                 onPress(id);
             }}

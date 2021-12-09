@@ -47,7 +47,7 @@ func main() {
 
 	w.RegisterWorkflow(mpe.MpeRoomWorkflow)
 
-	w.RegisterActivity(activities_mpe.CreationAcknowledgementActivity)
+	w.RegisterActivity(activities_mpe.MpeCreationAcknowledgementActivity)
 
 	// Start listening to the Task Queue
 	err = w.Run(worker.InterruptCh())

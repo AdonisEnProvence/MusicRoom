@@ -99,14 +99,12 @@ test.group(`mpe rooms relationship tests`, (group) => {
                             isOpenOnlyInvitedUsersCanEdit,
                             usersLength: 1,
                             playlistTotalDuration: 42,
-                            playlistTracksLength: 42,
                             tracks: [
                                 {
                                     id: initialTrackID,
                                     artistName: random.word(),
                                     duration: 42000,
                                     title: random.words(3),
-                                    score: datatype.number(),
                                 },
                             ],
                         },
@@ -286,14 +284,12 @@ test.group(`mpe rooms relationship tests`, (group) => {
                             isOpenOnlyInvitedUsersCanEdit,
                             usersLength: 1,
                             playlistTotalDuration: 42,
-                            playlistTracksLength: 42,
                             tracks: [
                                 {
                                     id: initialTrackID,
                                     artistName: random.word(),
                                     duration: 42000,
                                     title: random.words(3),
-                                    score: datatype.number(),
                                 },
                             ],
                         },

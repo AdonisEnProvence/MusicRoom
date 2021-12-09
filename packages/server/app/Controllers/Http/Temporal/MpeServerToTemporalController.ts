@@ -1,6 +1,8 @@
 import Env from '@ioc:Adonis/Core/Env';
-import { MpeCreateWorkflowResponse } from '@musicroom/types';
-import { MpeRoomClientToServerCreateArgs } from '@musicroom/types/dist/mpe-room-websockets';
+import {
+    MpeCreateWorkflowResponse,
+    MpeRoomClientToServerCreateArgs,
+} from '@musicroom/types';
 import got from 'got';
 import urlcat from 'urlcat';
 

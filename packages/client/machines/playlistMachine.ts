@@ -14,7 +14,6 @@ const playlistModel = createModel(
             tracks: null,
             usersLength: 0,
         } as MpeWorkflowState,
-        tracks: [] as TrackMetadata[],
 
         trackToAdd: undefined as TrackMetadata | undefined,
         trackToMove: undefined as
@@ -48,7 +47,11 @@ const assignTrackToAdd = playlistModel.assign(
 
 const assignTrackToMoveUp = playlistModel.assign(
     {
-        trackToMove: ({ tracks }, { trackID }) => {
+        trackToMove: ({ state: { tracks } }, { trackID }) => {
+            if (tracks === null) {
+                return undefined;
+            }
+
             const currentIndex = tracks.findIndex(({ id }) => id === trackID);
             if (currentIndex === -1) {
                 return undefined;
@@ -66,7 +69,11 @@ const assignTrackToMoveUp = playlistModel.assign(
 
 const assignTrackToMoveDown = playlistModel.assign(
     {
-        trackToMove: ({ tracks }, { trackID }) => {
+        trackToMove: ({ state: { tracks } }, { trackID }) => {
+            if (tracks === null) {
+                return undefined;
+            }
+
             const currentIndex = tracks.findIndex(({ id }) => id === trackID);
             if (currentIndex === -1) {
                 return undefined;
@@ -84,7 +91,11 @@ const assignTrackToMoveDown = playlistModel.assign(
 
 const assignTrackToDelete = playlistModel.assign(
     {
-        trackToDelete: ({ tracks }, { trackID }) => {
+        trackToDelete: ({ state: { tracks } }, { trackID }) => {
+            if (tracks === null) {
+                return undefined;
+            }
+
             const doesTrackExist = tracks.some(({ id }) => id === trackID);
             if (doesTrackExist === false) {
                 return undefined;
@@ -110,12 +121,22 @@ const assignMergeNewState = playlistModel.assign(
 
 const assignTrackToTracksList = playlistModel.assign(
     {
-        tracks: ({ tracks, trackToAdd }) => {
+        state: (context) => {
+            const {
+                trackToAdd,
+                state: { tracks },
+            } = context;
+
+            //Not checking for tracks === null as a user should be able
+            //To add a track to an empty playlist
             if (trackToAdd === undefined) {
-                return tracks;
+                return context.state;
             }
 
-            return [...tracks, trackToAdd];
+            return {
+                ...context.state,
+                tracks: [...(tracks ?? []), trackToAdd],
+            };
         },
         trackToAdd: undefined,
     },
@@ -124,23 +145,27 @@ const assignTrackToTracksList = playlistModel.assign(
 
 const assignTrackToMoveToTracksList = playlistModel.assign(
     {
-        tracks: ({ tracks, trackToMove }) => {
-            if (trackToMove === undefined) {
-                return tracks;
+        state: ({ state, trackToMove }) => {
+            const { tracks } = state;
+            if (trackToMove === undefined || tracks === null) {
+                return state;
             }
 
             const { previousIndex, nextIndex, trackID } = trackToMove;
 
             const trackItem = tracks.find(({ id }) => id === trackID);
             if (trackItem === undefined) {
-                return tracks;
+                return state;
             }
 
             const tracksCopy = [...tracks];
             tracksCopy.splice(previousIndex, 1);
             tracksCopy.splice(nextIndex, 0, trackItem);
 
-            return tracksCopy;
+            return {
+                ...state,
+                tracks: tracksCopy,
+            };
         },
         trackToMove: undefined,
     },
@@ -149,12 +174,16 @@ const assignTrackToMoveToTracksList = playlistModel.assign(
 
 const assignTrackToRemoveToTracksList = playlistModel.assign(
     {
-        tracks: ({ tracks, trackToDelete }) => {
-            if (trackToDelete === undefined) {
-                return tracks;
+        state: ({ state, trackToDelete }) => {
+            const { tracks } = state;
+            if (trackToDelete === undefined || tracks === null) {
+                return state;
             }
 
-            return tracks.filter(({ id }) => id !== trackToDelete);
+            return {
+                ...state,
+                tracks: tracks.filter(({ id }) => id !== trackToDelete),
+            };
         },
     },
     undefined,
@@ -190,7 +219,11 @@ export function createPlaylistMachine(
                     },
 
                     MOVE_DOWN_TRACK: {
-                        cond: ({ tracks }, { trackID }) => {
+                        cond: ({ state: { tracks } }, { trackID }) => {
+                            if (tracks === null) {
+                                return false;
+                            }
+
                             const trackIndex = tracks.findIndex(
                                 ({ id }) => id === trackID,
                             );
@@ -214,7 +247,11 @@ export function createPlaylistMachine(
                     },
 
                     MOVE_UP_TRACK: {
-                        cond: ({ tracks }, { trackID }) => {
+                        cond: ({ state: { tracks } }, { trackID }) => {
+                            if (tracks === null) {
+                                return false;
+                            }
+
                             const trackIndex = tracks.findIndex(
                                 ({ id }) => id === trackID,
                             );
@@ -237,7 +274,11 @@ export function createPlaylistMachine(
                     },
 
                     DELETE_TRACK: {
-                        cond: ({ tracks }, { trackID }) => {
+                        cond: ({ state: { tracks } }, { trackID }) => {
+                            if (tracks === null) {
+                                return false;
+                            }
+
                             const doesTrackExist = tracks.some(
                                 ({ id }) => id === trackID,
                             );

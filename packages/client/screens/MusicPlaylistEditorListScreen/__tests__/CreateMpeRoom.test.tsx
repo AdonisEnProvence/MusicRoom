@@ -56,20 +56,21 @@ test('Create static MPE room and have it listed in MPE Rooms List', async () => 
         throw new Error('state is undefined');
     }
 
+    const stateCpy = state;
+
     const roomListElement = screen.getByTestId(`mpe-room-card-${state.roomID}`);
     fireEvent.press(roomListElement);
 
     await waitFor(() => {
-        expect(state).not.toBeUndefined();
-        if (state === undefined) {
-            throw new Error('state is undefined');
-        }
-
         const playlistTitle = screen.getByText(
-            new RegExp(`Playlist ${state.name}`),
+            new RegExp(`Playlist ${stateCpy.name}`),
         );
         expect(playlistTitle).toBeTruthy();
-        expect(screen.getByText(new RegExp(`${state.playlistTotalDuration}`)));
-        expect(screen.getByText(new RegExp(`${state.tracks?.length}.*Tracks`)));
+        expect(
+            screen.getByText(new RegExp(`${stateCpy.playlistTotalDuration}`)),
+        );
+        expect(
+            screen.getByText(new RegExp(`${stateCpy.tracks?.length}.*Tracks`)),
+        );
     });
 });

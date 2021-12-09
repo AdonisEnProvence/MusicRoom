@@ -1,9 +1,20 @@
 import Database from '@ioc:Adonis/Lucid/Database';
+import {
+    AllServerToClientEvents,
+    MpeRejectAddingTracksRequestBody,
+} from '@musicroom/types';
 import MpeServerToTemporalController from 'App/Controllers/Http/Temporal/MpeServerToTemporalController';
 import { datatype } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
-import { initTestUtils } from './utils/TestUtils';
+import supertest from 'supertest';
+import urlcat from 'urlcat';
+import { MPE_TEMPORAL_LISTENER } from '../start/routes';
+import { BASE_URL, initTestUtils } from './utils/TestUtils';
+
+function noop() {
+    return undefined;
+}
 
 test.group('MPE Rooms Tracks List Editing', (group) => {
     const {
@@ -38,7 +49,10 @@ test.group('MPE Rooms Tracks List Editing', (group) => {
             'addTracks',
         );
 
-        const socketAddTracksFailCallbackSpy = sinon.spy();
+        const socketAddTracksFailCallbackSpy =
+            sinon.spy<AllServerToClientEvents['MPE_ADD_TRACKS_FAIL_CALLBACK']>(
+                noop,
+            );
         socket.on(
             'MPE_ADD_TRACKS_FAIL_CALLBACK',
             socketAddTracksFailCallbackSpy,
@@ -50,13 +64,17 @@ test.group('MPE Rooms Tracks List Editing', (group) => {
         });
 
         await waitFor(async () => {
-            assert.isTrue(socketAddTracksFailCallbackSpy.calledOnce);
+            assert.isTrue(
+                socketAddTracksFailCallbackSpy.calledOnceWithExactly({
+                    roomID,
+                }),
+            );
         });
 
         assert.isFalse(addTracksSpy.called);
     });
 
-    test('Calls Temporal when adding track in a room the user is member of', async (assert) => {
+    test('Sends rejection message to user if tracks could not be added by Temporal', async (assert) => {
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
         const socket = await createUserAndGetSocket({
@@ -68,12 +86,35 @@ test.group('MPE Rooms Tracks List Editing', (group) => {
             ],
         });
 
-        const addTracksSpy = sinon.stub(
-            MpeServerToTemporalController,
-            'addTracks',
-        );
+        const addTracksSpy = sinon
+            .stub(MpeServerToTemporalController, 'addTracks')
+            .callsFake(async ({ deviceID }) => {
+                setTimeout(async function simulateFail() {
+                    const body: MpeRejectAddingTracksRequestBody = {
+                        deviceID,
+                        roomID,
+                    };
 
-        const socketAddTracksFailCallbackSpy = sinon.spy();
+                    await supertest(BASE_URL)
+                        .post(
+                            urlcat(
+                                MPE_TEMPORAL_LISTENER,
+                                'reject-adding-tracks',
+                            ),
+                        )
+                        .send(body)
+                        .expect(200);
+                }, 10);
+
+                return Promise.resolve({
+                    ok: 1,
+                });
+            });
+
+        const socketAddTracksFailCallbackSpy =
+            sinon.spy<AllServerToClientEvents['MPE_ADD_TRACKS_FAIL_CALLBACK']>(
+                noop,
+            );
         socket.on(
             'MPE_ADD_TRACKS_FAIL_CALLBACK',
             socketAddTracksFailCallbackSpy,
@@ -85,9 +126,9 @@ test.group('MPE Rooms Tracks List Editing', (group) => {
             tracksIDs: tracksToAdd,
         });
 
-        await waitFor(async () => {
+        await waitFor(() => {
             assert.isTrue(
-                addTracksSpy.calledOnceWith({
+                addTracksSpy.calledOnceWithExactly({
                     deviceID: sinon.match.string,
                     userID: creatorUserID,
                     tracksIDs: tracksToAdd,
@@ -96,6 +137,12 @@ test.group('MPE Rooms Tracks List Editing', (group) => {
             );
         });
 
-        assert.isTrue(socketAddTracksFailCallbackSpy.notCalled);
+        await waitFor(() => {
+            assert.isTrue(
+                socketAddTracksFailCallbackSpy.calledOnceWithExactly({
+                    roomID,
+                }),
+            );
+        });
     });
 });

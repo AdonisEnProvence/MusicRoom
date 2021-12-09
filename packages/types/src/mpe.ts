@@ -5,7 +5,8 @@ export const MpeWorkflowState = z.object({
     roomID: z.string().uuid(),
     roomCreatorUserID: z.string().uuid(),
     name: z.string(),
-    tracks: z.array(TrackMetadata).nullable(),
+    //Tracks can be an empty array, we expect temporal to send back an empty array if necessary
+    tracks: z.array(TrackMetadata),
     isOpen: z.boolean(),
     isOpenOnlyInvitedUsersCanEdit: z.boolean(),
     usersLength: z.number(),

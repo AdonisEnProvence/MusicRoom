@@ -13,6 +13,25 @@ var (
 	NoRelatedUserID   = ""
 )
 
+type MpeOperationToApplyValue string
+
+const (
+	MpeOperationToApplyUp   MpeOperationToApplyValue = "UP"
+	MpeOperationToApplyDown MpeOperationToApplyValue = "DOWN"
+)
+
+func (m MpeOperationToApplyValue) IsValid() bool {
+	for _, mode := range MpeOperationToApplyAllValues {
+		if mode == m {
+			return true
+		}
+	}
+
+	return false
+}
+
+var MpeOperationToApplyAllValues = [...]MpeOperationToApplyValue{MpeOperationToApplyUp, MpeOperationToApplyDown}
+
 type InternalStateUser struct {
 	UserID             string `json:"userID"`
 	UserHasBeenInvited bool   `json:"userHasBeenInvited"`
@@ -87,4 +106,45 @@ func (s *TrackMetadataSet) Init() {
 
 func (s *TrackMetadataSet) Values() []shared.TrackMetadata {
 	return s.tracks[:]
+}
+
+//Returns -1 if element is not found
+func (s *TrackMetadataSet) IndexOf(trackID string) (int, bool) {
+	for index, track := range s.tracks {
+		if track.ID == trackID {
+			return index, true
+		}
+	}
+
+	return -1, false
+}
+
+func inBetweenMinMaxIncluded(i, min, max int) bool {
+	if (i >= min) && (i <= max) {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (s *TrackMetadataSet) Swap(srcIndex, destIndex int) error {
+	indexMax := len(s.tracks) - 1
+	indexMin := 0
+
+	srcIndexIsInRange := inBetweenMinMaxIncluded(srcIndex, indexMin, indexMax)
+	destIndexIsInRange := inBetweenMinMaxIncluded(destIndex, indexMin, indexMax)
+
+	if !srcIndexIsInRange {
+		return errors.New("srcIndexIsInRange is not in tracks set range")
+	}
+
+	if !destIndexIsInRange {
+		return errors.New("destIndexIsInRange is not in tracks set range")
+	}
+
+	tmp := s.tracks[srcIndex]
+	s.tracks[srcIndex] = s.tracks[destIndex]
+	s.tracks[destIndex] = tmp
+
+	return nil
 }

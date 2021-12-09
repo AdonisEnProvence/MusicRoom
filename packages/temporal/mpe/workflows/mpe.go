@@ -37,6 +37,17 @@ func (s *MpeRoomInternalState) AddUser(user shared_mpe.InternalStateUser) {
 	}
 }
 
+func (s *MpeRoomInternalState) GetUserRelatedInformation(userID string) *shared_mpe.InternalStateUser {
+	if userInformation, ok := s.Users[userID]; userID != shared_mpe.NoRelatedUserID && ok {
+		return userInformation
+	}
+	return nil
+}
+
+func (s *MpeRoomInternalState) getRoomIsOpenAndOnlyInvitedUsersCanEdit() bool {
+	return s.initialParams.IsOpen && s.initialParams.IsOpenOnlyInvitedUsersCanEdit
+}
+
 //This method will merge given params in the internalState
 func (s *MpeRoomInternalState) FillWith(params shared_mpe.MpeRoomParameters) {
 	s.initialParams = params
@@ -71,6 +82,7 @@ const (
 	MpeRoomInitialTracksFetched                   brainy.EventType = "INITIAL_TRACK_FETCHED"
 	MpeRoomAddTracksEventType                     brainy.EventType = "ADD_TRACKS"
 	MpeRoomAddedTracksInformationFetchedEventType brainy.EventType = "ADDED_TRACKS_INFORMATION_FETCHED"
+	MpeRoomChangeTrackOrderEventType              brainy.EventType = "CHANGE_TRACK_ORDER"
 )
 
 func getNowFromSideEffect(ctx workflow.Context) time.Time {
@@ -254,6 +266,16 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 							),
 						},
 					},
+
+					MpeRoomChangeTrackOrderEventType: brainy.Transition{
+						Cond: userCanPerformChangeTrackPlaylistEditionOperation(&internalState),
+
+						Actions: brainy.Actions{
+							brainy.ActionFn(
+								attempTochangeTrackOrder(&internalState),
+							),
+						},
+					},
 				},
 			},
 		},
@@ -298,6 +320,33 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 						TracksIDs: message.TracksIDs,
 						UserID:    message.UserID,
 						DeviceID:  message.DeviceID,
+					}),
+				)
+			case shared_mpe.SignalChangeTrackOrder:
+				var message shared_mpe.ChangeTrackOrderSignal
+
+				if err := mapstructure.Decode(signal, &message); err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
+				if err := Validate.Struct(message); err != nil {
+					logger.Error("Validation error: %v", err)
+					return
+				}
+
+				operationToApplyIsNotValid := !message.OperationToApply.IsValid()
+				if operationToApplyIsNotValid {
+					logger.Error("OperationToApplyValue is invalid", errors.New("OperationToApplyValue is invalid"))
+					return
+				}
+
+				internalState.Machine.Send(
+					NewMpeRoomChangeTrackOrderEvent(NewMpeRoomChangeTrackOrderEventArgs{
+						TrackID:          message.TrackID,
+						UserID:           message.UserID,
+						DeviceID:         message.DeviceID,
+						OperationToApply: message.OperationToApply,
+						FromIndex:        *message.FromIndex,
 					}),
 				)
 			}

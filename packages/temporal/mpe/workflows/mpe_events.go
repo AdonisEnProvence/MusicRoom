@@ -1,6 +1,7 @@
 package mpe
 
 import (
+	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/Devessier/brainy"
 )
@@ -69,5 +70,37 @@ func NewMpeRoomAddedTracksInformationFetchedEvent(args NewMpeRoomAddedTracksInfo
 		AddedTracksInformation: args.AddedTracksInformation,
 		UserID:                 args.UserID,
 		DeviceID:               args.DeviceID,
+	}
+}
+
+type MpeRoomChangeTrackOrderEvent struct {
+	brainy.EventWithType
+
+	TrackID          string
+	UserID           string
+	DeviceID         string
+	OperationToApply shared_mpe.MpeOperationToApplyValue
+	FromIndex        int
+}
+
+type NewMpeRoomChangeTrackOrderEventArgs struct {
+	TrackID          string
+	UserID           string
+	DeviceID         string
+	OperationToApply shared_mpe.MpeOperationToApplyValue
+	FromIndex        int
+}
+
+func NewMpeRoomChangeTrackOrderEvent(args NewMpeRoomChangeTrackOrderEventArgs) MpeRoomChangeTrackOrderEvent {
+	return MpeRoomChangeTrackOrderEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MpeRoomChangeTrackOrderEventType,
+		},
+
+		TrackID:          args.TrackID,
+		UserID:           args.UserID,
+		DeviceID:         args.DeviceID,
+		OperationToApply: args.OperationToApply,
+		FromIndex:        args.FromIndex,
 	}
 }

@@ -1,11 +1,11 @@
 import * as z from 'zod';
-import { TrackMetadataWithScore } from './mtv';
+import { TrackMetadata } from './mtv';
 
 export const MpeWorkflowState = z.object({
     roomID: z.string().uuid(),
     roomCreatorUserID: z.string().uuid(),
     name: z.string(),
-    tracks: z.array(TrackMetadataWithScore).nullable(),
+    tracks: z.array(TrackMetadata).nullable(),
     isOpen: z.boolean(),
     isOpenOnlyInvitedUsersCanEdit: z.boolean(),
     usersLength: z.number(),

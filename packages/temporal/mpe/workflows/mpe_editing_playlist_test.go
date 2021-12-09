@@ -199,7 +199,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistBeforeFetchi
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
-func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchingInformationFails() {
+func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchingInformationSucceedsIfNotAllTracksAreDuplicated() {
 	params, _ := s.getWorkflowInitParams(faker.UUIDHyphenated())
 	roomCreatorDeviceID := faker.UUIDHyphenated()
 	initialTracksIDs := []string{
@@ -265,6 +265,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchin
 	// Specific activities calls
 	//
 	// Wait for 10 seconds before returning result of the activity.
+	const firstBatchTracksInformationFetchingDebouncingDelay = 10 * time.Second
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivityAndForwardInitiator,
 		mock.Anything,
@@ -275,7 +276,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchin
 		Metadata: tracksToAddMetadataFirstBatch,
 		UserID:   params.RoomCreatorUserID,
 		DeviceID: roomCreatorDeviceID,
-	}, nil).Once().After(10 * time.Second)
+	}, nil).Once().After(firstBatchTracksInformationFetchingDebouncingDelay)
 
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivityAndForwardInitiator,
@@ -288,6 +289,149 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchin
 		UserID:   params.RoomCreatorUserID,
 		DeviceID: roomCreatorDeviceID,
 	}, nil).Once()
+
+	s.env.OnActivity(
+		activities_mpe.AcknowledgeAddingTracksActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Twice()
+
+	initialTracksFetched := tick * 200
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		s.Equal(initialTracksMetadata, mpeState.Tracks)
+	}, initialTracksFetched)
+
+	addTrackFirstBatch := tick * 200
+	registerDelayedCallbackWrapper(func() {
+		s.emitAddTrackSignal(shared_mpe.NewAddTracksSignalArgs{
+			TracksIDs: tracksIDsToAddFirstBatch,
+			UserID:    params.RoomCreatorUserID,
+			DeviceID:  roomCreatorDeviceID,
+		})
+	}, addTrackFirstBatch)
+
+	addTrackSecondBatch := tick
+	registerDelayedCallbackWrapper(func() {
+		s.emitAddTrackSignal(shared_mpe.NewAddTracksSignalArgs{
+			TracksIDs: tracksIDsToAddSecondBatch,
+			UserID:    params.RoomCreatorUserID,
+			DeviceID:  roomCreatorDeviceID,
+		})
+	}, addTrackSecondBatch)
+
+	checkAddingTracks := firstBatchTracksInformationFetchingDebouncingDelay
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		initialTracksMetadataWithTracksToAddMetadataSecondBatch := append(initialTracksMetadata, tracksToAddMetadataSecondBatch...)
+		initialTracksMetadataWithTracksToAddMetadataSecondBatchWithNonDuplicatedTracksMetadataFirstBatch := append(initialTracksMetadataWithTracksToAddMetadataSecondBatch, tracksToAddMetadataFirstBatch[1])
+
+		s.Equal(
+			initialTracksMetadataWithTracksToAddMetadataSecondBatchWithNonDuplicatedTracksMetadataFirstBatch,
+			mpeState.Tracks,
+		)
+	}, checkAddingTracks)
+
+	s.env.ExecuteWorkflow(MpeRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchingInformationFailsIfAllTracksAreDuplicated() {
+	params, _ := s.getWorkflowInitParams(faker.UUIDHyphenated())
+	roomCreatorDeviceID := faker.UUIDHyphenated()
+	initialTracksIDs := []string{
+		params.InitialTrackID,
+	}
+	initialTracksMetadata := []shared.TrackMetadata{
+		{
+			ID:         initialTracksIDs[0],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+	}
+	tracksIDsToAddFirstBatch := []string{
+		faker.UUIDHyphenated(),
+		faker.UUIDHyphenated(),
+	}
+	tracksToAddMetadataFirstBatch := []shared.TrackMetadata{
+		{
+			ID:         tracksIDsToAddFirstBatch[0],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+		{
+			ID:         tracksIDsToAddFirstBatch[1],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+	}
+	tracksIDsToAddSecondBatch := []string{
+		tracksIDsToAddFirstBatch[0],
+		tracksIDsToAddFirstBatch[1],
+	}
+	tracksToAddMetadataSecondBatch := []shared.TrackMetadata{
+		tracksToAddMetadataFirstBatch[0],
+		tracksToAddMetadataFirstBatch[1],
+	}
+
+	tick := 1 * time.Millisecond
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	// Common activities calls
+	s.env.OnActivity(
+		activities_mpe.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		initialTracksIDs,
+	).Return(initialTracksMetadata, nil).Once()
+
+	// Specific activities calls
+	//
+	// Wait for 10 seconds before returning result of the activity.
+	const firstBatchTracksInformationFetchingDebouncingDelay = 10 * time.Second
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivityAndForwardInitiator,
+		mock.Anything,
+		tracksIDsToAddFirstBatch,
+		params.RoomCreatorUserID,
+		roomCreatorDeviceID,
+	).Return(activities.FetchedTracksInformationWithInitiator{
+		Metadata: tracksToAddMetadataFirstBatch,
+		UserID:   params.RoomCreatorUserID,
+		DeviceID: roomCreatorDeviceID,
+	}, nil).Once().After(firstBatchTracksInformationFetchingDebouncingDelay)
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivityAndForwardInitiator,
+		mock.Anything,
+		tracksIDsToAddSecondBatch,
+		params.RoomCreatorUserID,
+		roomCreatorDeviceID,
+	).Return(activities.FetchedTracksInformationWithInitiator{
+		Metadata: tracksToAddMetadataSecondBatch,
+		UserID:   params.RoomCreatorUserID,
+		DeviceID: roomCreatorDeviceID,
+	}, nil).Once()
+
+	s.env.OnActivity(
+		activities_mpe.AcknowledgeAddingTracksActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
 
 	s.env.OnActivity(
 		activities_mpe.RejectAddingTracksActivity,
@@ -322,7 +466,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchin
 		})
 	}, addTrackSecondBatch)
 
-	checkAddingTracks := tick * 200
+	checkAddingTracks := firstBatchTracksInformationFetchingDebouncingDelay
 	registerDelayedCallbackWrapper(func() {
 		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
 

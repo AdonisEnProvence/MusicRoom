@@ -52,7 +52,6 @@ test('Create static MPE room and have it listed in MPE Rooms List', async () => 
     });
 
     if (state === undefined) {
-        expect(false).toBeTruthy();
         throw new Error('state is undefined');
     }
 

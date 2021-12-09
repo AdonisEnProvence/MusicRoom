@@ -54,7 +54,7 @@ const spawnPlaylistActor = appMusicPlaylistsModel.assign(
                 id: state.roomID,
                 roomName: state.name,
                 ref: spawn(playlistMachine, {
-                    name: `playlist-${state.roomID}`,
+                    name: getPlaylistMachineActorName(state.roomID),
                 }),
             };
 
@@ -72,6 +72,10 @@ export type AppMusicPlaylistsActorRef = ActorRefFrom<AppMusicPlaylistsMachine>;
 
 interface CreateAppMusicPlaylistsMachineArgs {
     socket: SocketClient;
+}
+
+function getPlaylistMachineActorName(roomID: string): string {
+    return `playlist-${roomID}`;
 }
 
 export function createAppMusicPlaylistsMachine({
@@ -139,7 +143,7 @@ export function createAppMusicPlaylistsMachine({
                             console.log(
                                 `About to merge new state from ${type} in MPE=${state.roomID}`,
                             );
-                            return `playlist-${state.roomID}`;
+                            return getPlaylistMachineActorName(state.roomID);
                         },
                     },
                 ),

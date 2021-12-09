@@ -70,7 +70,6 @@ async function createMpeRoom() {
     });
 
     if (state === undefined) {
-        expect(false).toBeTruthy();
         throw new Error('state is undefined');
     }
 

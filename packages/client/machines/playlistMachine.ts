@@ -121,7 +121,7 @@ const assignTrackToTracksList = playlistModel.assign(
 
             return {
                 ...context.state,
-                tracks: [...(tracks ?? []), trackToAdd],
+                tracks: [...tracks, trackToAdd],
             };
         },
         trackToAdd: undefined,

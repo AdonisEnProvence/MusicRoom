@@ -156,8 +156,6 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 							),
 							brainy.ActionFn(
 								func(c brainy.Context, e brainy.Event) error {
-									fmt.Println("ack room creation")
-
 									acknowledgeRoomCreation(
 										ctx,
 										internalState.Export(),
@@ -284,8 +282,6 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 					logger.Error("Validation error: %v", err)
 					return
 				}
-
-				fmt.Println("send add tracks event to machine")
 
 				internalState.Machine.Send(
 					NewMpeRoomAddTracksEvent(NewMpeRoomAddTracksEventArgs{

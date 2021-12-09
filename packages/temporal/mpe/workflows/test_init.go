@@ -86,15 +86,15 @@ func (s *UnitTestSuite) getWorkflowInitParams(trackID string) (shared_mpe.MpeRoo
 }
 
 func (s *UnitTestSuite) getMpeState(userID string) shared_mpe.MpeRoomExposedState {
-	var mtvState shared_mpe.MpeRoomExposedState
+	var mpeState shared_mpe.MpeRoomExposedState
 
 	res, err := s.env.QueryWorkflow(shared_mpe.MpeGetStateQuery, userID)
 	s.NoError(err)
 
-	err = res.Get(&mtvState)
+	err = res.Get(&mpeState)
 	s.NoError(err)
 
-	return mtvState
+	return mpeState
 }
 
 func (s *UnitTestSuite) emitAddTrackSignal(args shared_mpe.NewAddTracksSignalArgs) {

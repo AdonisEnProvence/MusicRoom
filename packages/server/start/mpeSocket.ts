@@ -20,7 +20,7 @@ async function isUserInMpeRoom({
     const mpeRoom = await MpeRoom.query()
         .where('uuid', roomID)
         .andWhereHas('members', (queryUser) => {
-            queryUser.where('uuid', userID);
+            return queryUser.where('uuid', userID);
         })
         .first();
     const isUserInRoom = mpeRoom !== null;

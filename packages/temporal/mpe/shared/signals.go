@@ -8,7 +8,7 @@ const (
 
 type AddTracksSignal struct {
 	Route     shared.SignalRoute `validate:"required"`
-	TracksIDs []string           `validate:"required,dive,required`
+	TracksIDs []string           `validate:"required,dive,required"`
 	UserID    string             `validate:"required"`
 	DeviceID  string             `validate:"required"`
 }

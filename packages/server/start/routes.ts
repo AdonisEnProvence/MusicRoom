@@ -110,6 +110,16 @@ Route.group(() => {
         `/mpe-creation-acknowledgement`,
         'Temporal/MpeTemporalToServerController.mpeCreationAcknowledgement',
     );
+
+    Route.post(
+        `/reject-adding-tracks`,
+        'Temporal/MpeTemporalToServerController.addingTracksRejection',
+    );
+
+    Route.post(
+        `/acknowledge-adding-tracks`,
+        'Temporal/MpeTemporalToServerController.addingTracksAcknowledgement',
+    );
 }).prefix(MPE_TEMPORAL_LISTENER);
 
 /// //////// ////// ///

@@ -13,6 +13,13 @@ interface MpeOnCreateArgs extends MpeRoomClientToServerCreateArgs {
     roomCreator: User;
 }
 
+interface MpeOnAddTracksArgs {
+    roomID: string;
+    tracksIDs: string[];
+    userID: string;
+    deviceID: string;
+}
+
 export default class MpeRoomsWsController {
     public static async onCreate(
         args: MpeOnCreateArgs,
@@ -101,5 +108,19 @@ export default class MpeRoomsWsController {
 
             throw new Error('Temporal operation failed');
         }
+    }
+
+    public static async onAddTracks({
+        roomID,
+        tracksIDs,
+        userID,
+        deviceID,
+    }: MpeOnAddTracksArgs): Promise<void> {
+        await MpeServerToTemporalController.addTracks({
+            workflowID: roomID,
+            tracksIDs,
+            userID,
+            deviceID,
+        });
     }
 }

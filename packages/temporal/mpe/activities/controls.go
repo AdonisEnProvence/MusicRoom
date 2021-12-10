@@ -29,7 +29,7 @@ type AcknowledgeAddingTracksActivityArgs struct {
 	DeviceID string                         `json:"deviceID"`
 }
 
-func MpeCreationAcknowledgementActivity(_ context.Context, state shared_mpe.MpeRoomExposedState) error {
+func (a *Activities) MpeCreationAcknowledgementActivity(_ context.Context, state shared_mpe.MpeRoomExposedState) error {
 	marshaledBody, err := json.Marshal(state)
 	if err != nil {
 		return err
@@ -42,7 +42,7 @@ func MpeCreationAcknowledgementActivity(_ context.Context, state shared_mpe.MpeR
 	return err
 }
 
-func RejectAddingTracksActivity(ctx context.Context, args RejectAddingTracksActivityArgs) error {
+func (a *Activities) RejectAddingTracksActivity(ctx context.Context, args RejectAddingTracksActivityArgs) error {
 	requestBody := args
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -56,7 +56,7 @@ func RejectAddingTracksActivity(ctx context.Context, args RejectAddingTracksActi
 	return err
 }
 
-func AcknowledgeAddingTracksActivity(ctx context.Context, args AcknowledgeAddingTracksActivityArgs) error {
+func (a *Activities) AcknowledgeAddingTracksActivity(ctx context.Context, args AcknowledgeAddingTracksActivityArgs) error {
 	requestBody := args
 
 	marshaledBody, err := json.Marshal(requestBody)

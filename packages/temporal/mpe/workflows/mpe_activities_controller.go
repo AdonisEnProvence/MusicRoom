@@ -46,9 +46,10 @@ func sendRejectAddingTracksActivity(ctx workflow.Context, args activities_mpe.Re
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	var a *activities_mpe.Activities
 	workflow.ExecuteActivity(
 		ctx,
-		activities_mpe.RejectAddingTracksActivity,
+		a.RejectAddingTracksActivity,
 		args,
 	)
 }
@@ -60,9 +61,10 @@ func sendAcknowledgeAddingTracksActivity(ctx workflow.Context, args activities_m
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	var a *activities_mpe.Activities
 	workflow.ExecuteActivity(
 		ctx,
-		activities_mpe.AcknowledgeAddingTracksActivity,
+		a.AcknowledgeAddingTracksActivity,
 		args,
 	)
 }

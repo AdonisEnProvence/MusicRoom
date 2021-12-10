@@ -23,6 +23,8 @@ func (s *EditingPlaylistTestSuite) Test_AddTracks() {
 		faker.UUIDHyphenated(),
 	}
 	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+	var a *activities_mpe.Activities
+
 	initialTracksMetadata := []shared.TrackMetadata{
 		{
 			ID:         initialTracksIDs[0],
@@ -57,7 +59,7 @@ func (s *EditingPlaylistTestSuite) Test_AddTracks() {
 
 	// Common activities calls
 	s.env.OnActivity(
-		activities_mpe.MpeCreationAcknowledgementActivity,
+		a.MpeCreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -81,7 +83,7 @@ func (s *EditingPlaylistTestSuite) Test_AddTracks() {
 	}, nil).Once()
 
 	s.env.OnActivity(
-		activities_mpe.AcknowledgeAddingTracksActivity,
+		a.AcknowledgeAddingTracksActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -126,6 +128,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistBeforeFetchi
 		faker.UUIDHyphenated(),
 	}
 	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+	var a *activities_mpe.Activities
 
 	initialTracksMetadata := []shared.TrackMetadata{
 		{
@@ -146,7 +149,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistBeforeFetchi
 
 	// Common activities calls
 	s.env.OnActivity(
-		activities_mpe.MpeCreationAcknowledgementActivity,
+		a.MpeCreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -158,7 +161,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistBeforeFetchi
 
 	// Specific activities calls
 	s.env.OnActivity(
-		activities_mpe.RejectAddingTracksActivity,
+		a.RejectAddingTracksActivity,
 		mock.Anything,
 		activities_mpe.RejectAddingTracksActivityArgs{
 			RoomID:   params.RoomID,
@@ -205,6 +208,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchin
 		faker.UUIDHyphenated(),
 	}
 	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+	var a *activities_mpe.Activities
 
 	initialTracksMetadata := []shared.TrackMetadata{
 		{
@@ -253,7 +257,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchin
 
 	// Common activities calls
 	s.env.OnActivity(
-		activities_mpe.MpeCreationAcknowledgementActivity,
+		a.MpeCreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -292,7 +296,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchin
 	}, nil).Once()
 
 	s.env.OnActivity(
-		activities_mpe.AcknowledgeAddingTracksActivity,
+		a.AcknowledgeAddingTracksActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Twice()
@@ -347,6 +351,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchin
 		faker.UUIDHyphenated(),
 	}
 	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+	var a *activities_mpe.Activities
 
 	initialTracksMetadata := []shared.TrackMetadata{
 		{
@@ -390,7 +395,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchin
 
 	// Common activities calls
 	s.env.OnActivity(
-		activities_mpe.MpeCreationAcknowledgementActivity,
+		a.MpeCreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -429,13 +434,13 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchin
 	}, nil).Once()
 
 	s.env.OnActivity(
-		activities_mpe.AcknowledgeAddingTracksActivity,
+		a.AcknowledgeAddingTracksActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 
 	s.env.OnActivity(
-		activities_mpe.RejectAddingTracksActivity,
+		a.RejectAddingTracksActivity,
 		mock.Anything,
 		activities_mpe.RejectAddingTracksActivityArgs{
 			RoomID:   params.RoomID,

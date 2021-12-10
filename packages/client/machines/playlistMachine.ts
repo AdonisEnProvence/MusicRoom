@@ -1,8 +1,9 @@
-import { ActorRefFrom, createMachine } from 'xstate';
+import { ActorRefFrom, createMachine, sendParent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { MpeWorkflowState, TrackMetadata } from '@musicroom/types';
+import { appMusicPlaylistsModel } from './appMusicPlaylistsMachine';
 
-const playlistModel = createModel(
+export const playlistModel = createModel(
     {
         state: {
             isOpenOnlyInvitedUsersCanEdit: false,
@@ -15,6 +16,8 @@ const playlistModel = createModel(
             usersLength: 0,
         } as MpeWorkflowState,
 
+        trackIDToAdd: undefined as string | undefined,
+
         trackToAdd: undefined as TrackMetadata | undefined,
         trackToMove: undefined as
             | { previousIndex: number; nextIndex: number; trackID: string }
@@ -23,7 +26,9 @@ const playlistModel = createModel(
     },
     {
         events: {
-            ADD_TRACK: (track: TrackMetadata) => ({ ...track }),
+            ADD_TRACK: (trackID: string) => ({ trackID }),
+            SENT_TRACK_TO_ADD_TO_SERVER: () => ({}),
+
             MOVE_UP_TRACK: (trackID: string) => ({ trackID }),
             MOVE_DOWN_TRACK: (trackID: string) => ({ trackID }),
             DELETE_TRACK: (trackID: string) => ({ trackID }),
@@ -33,14 +38,9 @@ const playlistModel = createModel(
     },
 );
 
-const assignTrackToAdd = playlistModel.assign(
+const assignTrackIDToAdd = playlistModel.assign(
     {
-        trackToAdd: (_, { id, title, artistName, duration }) => ({
-            id,
-            title,
-            artistName,
-            duration,
-        }),
+        trackIDToAdd: (_, { trackID }) => trackID,
     },
     'ADD_TRACK',
 );
@@ -184,6 +184,8 @@ type CreatePlaylistMachineArgs = MpeWorkflowState;
 export function createPlaylistMachine(
     state: CreatePlaylistMachineArgs,
 ): PlaylistMachine {
+    const roomID = state.roomID;
+
     return createMachine({
         initial: 'idle',
 
@@ -191,6 +193,7 @@ export function createPlaylistMachine(
             ...playlistModel.initialContext,
             state,
         },
+
         states: {
             idle: {
                 on: {
@@ -201,7 +204,7 @@ export function createPlaylistMachine(
                     ADD_TRACK: {
                         target: 'addingTrack',
 
-                        actions: assignTrackToAdd,
+                        actions: assignTrackIDToAdd,
                     },
 
                     MOVE_DOWN_TRACK: {
@@ -274,8 +277,21 @@ export function createPlaylistMachine(
 
                 states: {
                     sendingToServer: {
-                        after: {
-                            200: {
+                        entry: sendParent(({ trackIDToAdd }) => {
+                            if (trackIDToAdd === undefined) {
+                                throw new Error(
+                                    'trackIDToAdd must be defined before requesting the server',
+                                );
+                            }
+
+                            return appMusicPlaylistsModel.events.ADD_TRACK(
+                                roomID,
+                                trackIDToAdd,
+                            );
+                        }),
+
+                        on: {
+                            SENT_TRACK_TO_ADD_TO_SERVER: {
                                 target: 'waitingForServerAcknowledgement',
                             },
                         },

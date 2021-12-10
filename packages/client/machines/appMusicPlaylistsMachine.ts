@@ -14,7 +14,11 @@ import {
     MpeRoomClientToServerCreateArgs,
 } from '@musicroom/types';
 import { SocketClient } from '../contexts/SocketContext';
-import { createPlaylistMachine, PlaylistActorRef } from './playlistMachine';
+import {
+    createPlaylistMachine,
+    PlaylistActorRef,
+    playlistModel,
+} from './playlistMachine';
 
 export interface MusicPlaylist {
     id: string;
@@ -25,7 +29,7 @@ export interface MusicPlaylist {
 type MusicPlaylistsContext = ContextFrom<typeof appMusicPlaylistsModel>;
 type MusicPlaylistsEvents = EventFrom<typeof appMusicPlaylistsModel>;
 
-const appMusicPlaylistsModel = createModel(
+export const appMusicPlaylistsModel = createModel(
     {
         playlistsActorsRefs: [] as MusicPlaylist[],
     },
@@ -42,6 +46,12 @@ const appMusicPlaylistsModel = createModel(
             ) => ({
                 state,
             }),
+
+            ADD_TRACK: (roomID: string, trackID: string) => ({
+                roomID,
+                trackID,
+            }),
+            SENT_TRACK_TO_ADD_TO_SERVER: (roomID: string) => ({ roomID }),
         },
     },
 );
@@ -113,6 +123,28 @@ export function createAppMusicPlaylistsMachine({
 
                                 break;
                             }
+
+                            case 'ADD_TRACK': {
+                                const { roomID, trackID } = event;
+
+                                socket.emit('MPE_ADD_TRACKS', {
+                                    roomID,
+                                    tracksIDs: [trackID],
+                                });
+
+                                sendBack({
+                                    type: 'SENT_TRACK_TO_ADD_TO_SERVER',
+                                    roomID,
+                                });
+
+                                break;
+                            }
+
+                            default: {
+                                throw new Error(
+                                    `Received unknown event: ${event.type}`,
+                                );
+                            }
                         }
                     });
                 },
@@ -125,6 +157,20 @@ export function createAppMusicPlaylistsMachine({
                 on: {
                     CREATE_ROOM: {
                         actions: forwardTo('socketConnection'),
+                    },
+
+                    ADD_TRACK: {
+                        actions: forwardTo('socketConnection'),
+                    },
+
+                    SENT_TRACK_TO_ADD_TO_SERVER: {
+                        actions: send(
+                            playlistModel.events.SENT_TRACK_TO_ADD_TO_SERVER(),
+                            {
+                                to: (_, { roomID }) =>
+                                    getPlaylistMachineActorName(roomID),
+                            },
+                        ),
                     },
                 },
             },

@@ -1,4 +1,10 @@
-import { ActorRefFrom, createMachine, sendParent } from 'xstate';
+import {
+    ActorRefFrom,
+    ContextFrom,
+    createMachine,
+    EventFrom,
+    sendParent,
+} from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { MpeWorkflowState, TrackMetadata } from '@musicroom/types';
 import { appMusicPlaylistsModel } from './appMusicPlaylistsMachine';
@@ -38,7 +44,10 @@ export const playlistModel = createModel(
             DELETE_TRACK: (trackID: string) => ({ trackID }),
             ASSIGN_MERGE_NEW_STATE: (state: MpeWorkflowState) => ({ state }),
         },
-        actions: {},
+        actions: {
+            triggerSuccessfulAddingTrackToast: () => ({}),
+            triggerFailureAddingTrackToast: () => ({}),
+        },
     },
 );
 
@@ -187,19 +196,17 @@ const assignTrackToRemoveToTracksList = playlistModel.assign(
 );
 
 type PlaylistMachine = ReturnType<typeof playlistModel['createMachine']>;
+export type PlaylistMachineContext = ContextFrom<typeof playlistModel>;
+export type PlaylistMachineEvents = EventFrom<typeof playlistModel>;
 
 export type PlaylistActorRef = ActorRefFrom<PlaylistMachine>;
 
 interface CreatePlaylistMachineArgs {
     initialState: MpeWorkflowState;
-    triggerSuccessfulAddingTrackToast: () => void;
-    triggerFailureAddingTrackToast: () => void;
 }
 
 export function createPlaylistMachine({
     initialState,
-    triggerSuccessfulAddingTrackToast,
-    triggerFailureAddingTrackToast,
 }: CreatePlaylistMachineArgs): PlaylistMachine {
     const roomID = initialState.roomID;
 
@@ -321,14 +328,14 @@ export function createPlaylistMachine({
 
                                 actions: [
                                     assignStateAfterAddingTracksSuccess,
-                                    triggerSuccessfulAddingTrackToast,
+                                    'triggerSuccessfulAddingTrackToast',
                                 ],
                             },
 
                             RECEIVED_TRACK_TO_ADD_FAIL_CALLBACK: {
                                 target: 'debouncing',
 
-                                actions: triggerFailureAddingTrackToast,
+                                actions: 'triggerFailureAddingTrackToast',
                             },
                         },
                     },

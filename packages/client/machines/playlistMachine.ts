@@ -28,9 +28,10 @@ export const playlistModel = createModel(
         events: {
             ADD_TRACK: (trackID: string) => ({ trackID }),
             SENT_TRACK_TO_ADD_TO_SERVER: () => ({}),
-            RECEIVED_TRACK_TO_ADD_CALLBACK: (args: {
+            RECEIVED_TRACK_TO_ADD_SUCCESS_CALLBACK: (args: {
                 state: MpeWorkflowState;
             }) => args,
+            RECEIVED_TRACK_TO_ADD_FAIL_CALLBACK: () => ({}),
 
             MOVE_UP_TRACK: (trackID: string) => ({ trackID }),
             MOVE_DOWN_TRACK: (trackID: string) => ({ trackID }),
@@ -52,7 +53,7 @@ const assignStateAfterAddingTracksSuccess = playlistModel.assign(
     {
         state: (_, { state }) => state,
     },
-    'RECEIVED_TRACK_TO_ADD_CALLBACK',
+    'RECEIVED_TRACK_TO_ADD_SUCCESS_CALLBACK',
 );
 
 const assignTrackToMoveUp = playlistModel.assign(
@@ -192,11 +193,13 @@ export type PlaylistActorRef = ActorRefFrom<PlaylistMachine>;
 interface CreatePlaylistMachineArgs {
     initialState: MpeWorkflowState;
     triggerSuccessfulAddingTrackToast: () => void;
+    triggerFailureAddingTrackToast: () => void;
 }
 
 export function createPlaylistMachine({
     initialState,
     triggerSuccessfulAddingTrackToast,
+    triggerFailureAddingTrackToast,
 }: CreatePlaylistMachineArgs): PlaylistMachine {
     const roomID = initialState.roomID;
 
@@ -313,13 +316,19 @@ export function createPlaylistMachine({
 
                     waitingForServerAcknowledgement: {
                         on: {
-                            RECEIVED_TRACK_TO_ADD_CALLBACK: {
+                            RECEIVED_TRACK_TO_ADD_SUCCESS_CALLBACK: {
                                 target: 'debouncing',
 
                                 actions: [
                                     assignStateAfterAddingTracksSuccess,
                                     triggerSuccessfulAddingTrackToast,
                                 ],
+                            },
+
+                            RECEIVED_TRACK_TO_ADD_FAIL_CALLBACK: {
+                                target: 'debouncing',
+
+                                actions: triggerFailureAddingTrackToast,
                             },
                         },
                     },

@@ -57,6 +57,8 @@ export const appMusicPlaylistsModel = createModel(
                 roomID: string;
                 state: MpeWorkflowState;
             }) => args,
+            RECEIVED_ADD_TRACKS_FAIL_CALLBACK: (args: { roomID: string }) =>
+                args,
         },
     },
 );
@@ -70,6 +72,12 @@ const spawnPlaylistActor = appMusicPlaylistsModel.assign(
                     Toast.show({
                         type: 'success',
                         text1: 'Track added successfully',
+                    });
+                },
+                triggerFailureAddingTrackToast: () => {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Track could not be added',
                     });
                 },
             });
@@ -140,6 +148,13 @@ export function createAppMusicPlaylistsMachine({
                         },
                     );
 
+                    socket.on('MPE_ADD_TRACKS_FAIL_CALLBACK', ({ roomID }) => {
+                        sendBack({
+                            type: 'RECEIVED_ADD_TRACKS_FAIL_CALLBACK',
+                            roomID,
+                        });
+                    });
+
                     onReceive((event) => {
                         switch (event.type) {
                             case 'CREATE_ROOM': {
@@ -200,9 +215,19 @@ export function createAppMusicPlaylistsMachine({
                     RECEIVED_ADD_TRACKS_SUCCESS_CALLBACK: {
                         actions: send(
                             (_, { state }) =>
-                                playlistModel.events.RECEIVED_TRACK_TO_ADD_CALLBACK(
+                                playlistModel.events.RECEIVED_TRACK_TO_ADD_SUCCESS_CALLBACK(
                                     { state },
                                 ),
+                            {
+                                to: (_, { roomID }) =>
+                                    getPlaylistMachineActorName(roomID),
+                            },
+                        ),
+                    },
+
+                    RECEIVED_ADD_TRACKS_FAIL_CALLBACK: {
+                        actions: send(
+                            playlistModel.events.RECEIVED_TRACK_TO_ADD_FAIL_CALLBACK(),
                             {
                                 to: (_, { roomID }) =>
                                     getPlaylistMachineActorName(roomID),

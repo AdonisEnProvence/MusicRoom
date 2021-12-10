@@ -6,6 +6,7 @@ import (
 
 	"github.com/AdonisEnProvence/MusicRoom/mocks"
 	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
+	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/suite"
 	"go.temporal.io/sdk/testsuite"
@@ -100,6 +101,21 @@ func (s *UnitTestSuite) getMpeState(userID string) shared_mpe.MpeRoomExposedStat
 func (s *UnitTestSuite) emitAddTrackSignal(args shared_mpe.NewAddTracksSignalArgs) {
 	addTracksSignal := shared_mpe.NewAddTracksSignal(args)
 	s.env.SignalWorkflow(shared_mpe.SignalChannelName, addTracksSignal)
+}
+
+func (s *UnitTestSuite) emitChangeTrackOrder(args shared_mpe.NewChangeTrackOrderSignalArgs) {
+	changeTrackOrderSignal := shared_mpe.NewChangeTrackOrderSignal(args)
+	s.env.SignalWorkflow(shared_mpe.SignalChannelName, changeTrackOrderSignal)
+}
+
+func IndexOfTrackMedata(array []shared.TrackMetadata, trackToFind shared.TrackMetadata) int {
+	for index, track := range array {
+		if track.ID == trackToFind.ID {
+			return index
+		}
+	}
+
+	return -1
 }
 
 ///

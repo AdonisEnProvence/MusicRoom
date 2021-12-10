@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,6 +18,7 @@ import (
 func AddMpeHandler(r *mux.Router) {
 	r.Handle("/mpe/create", http.HandlerFunc(createMpeRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/mpe/add-tracks", http.HandlerFunc(MpeAddTracksHandler)).Methods(http.MethodPut)
+	r.Handle("/mpe/change-track-order", http.HandlerFunc(MpeChangeTrackOrderHandler)).Methods(http.MethodPut)
 }
 
 type MpeCreateRoomRequestBody struct {
@@ -163,4 +165,58 @@ func PerformMpeGetStateQuery(params PerformMpeGetStateQueryArgs) (shared_mpe.Mpe
 	}
 
 	return res, nil
+}
+
+type MpeChangeTrackOrderRequestBody struct {
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+
+	TrackID          string                              `json:"trackID" validate:"required"`
+	UserID           string                              `json:"userID" validate:"required"`
+	DeviceID         string                              `json:"deviceID" validate:"required"`
+	OperationToApply shared_mpe.MpeOperationToApplyValue `json:"operationToApply" validate:"required"`
+	FromIndex        int                                 `json:"fromIndex" validate:"min=0"`
+}
+
+func MpeChangeTrackOrderHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var body MpeChangeTrackOrderRequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	operationToApplyIsNotValid := !body.OperationToApply.IsValid()
+	if operationToApplyIsNotValid {
+		WriteError(w, errors.New("OperationToApplyValue is invalid"))
+		return
+	}
+
+	signal := shared_mpe.NewChangeTrackOrderSignal(shared_mpe.NewChangeTrackOrderSignalArgs{
+		DeviceID:         body.DeviceID,
+		OperationToApply: body.OperationToApply,
+		TrackID:          body.TrackID,
+		UserID:           body.UserID,
+		FromIndex:        body.FromIndex,
+	})
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		shared.NoWorkflowRunID,
+		shared_mpe.SignalChannelName,
+		signal,
+	); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	res := make(map[string]interface{})
+	res["ok"] = 1
+	json.NewEncoder(w).Encode(res)
 }

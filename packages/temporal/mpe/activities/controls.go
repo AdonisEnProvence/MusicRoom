@@ -69,3 +69,42 @@ func (a *Activities) AcknowledgeAddingTracksActivity(ctx context.Context, args A
 
 	return err
 }
+
+type RejectChangeTrackOrderActivityArgs struct {
+	DeviceID string `json:"deviceID"`
+	UserID   string `json:"userID"`
+}
+
+type AcknowledgeChangeTrackOrderActivityArgs struct {
+	State    shared_mpe.MpeRoomExposedState `json:"state"`
+	DeviceID string                         `json:"deviceID"`
+	UserID   string                         `json:"userID"`
+}
+
+func (a *Activities) AcknowledgeChangeTrackOrderActivity(ctx context.Context, args AcknowledgeChangeTrackOrderActivityArgs) error {
+	requestBody := args
+
+	marshaledBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	url := ADONIS_MPE_ENDPOINT + "/acknowledge-change-track-order"
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+
+	return err
+}
+
+func (a *Activities) RejectChangeTrackOrderActivity(ctx context.Context, args RejectChangeTrackOrderActivityArgs) error {
+	requestBody := args
+
+	marshaledBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	url := ADONIS_MPE_ENDPOINT + "/reject-change-track-order"
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+
+	return err
+}

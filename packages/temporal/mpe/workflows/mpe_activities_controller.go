@@ -68,3 +68,33 @@ func sendAcknowledgeAddingTracksActivity(ctx workflow.Context, args activities_m
 		args,
 	)
 }
+
+func sendRejectChangeTrackOrderActivity(ctx workflow.Context, args activities_mpe.RejectChangeTrackOrderActivityArgs) {
+	options := workflow.ActivityOptions{
+		ScheduleToStartTimeout: time.Minute,
+		StartToCloseTimeout:    time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, options)
+
+	var a *activities_mpe.Activities
+	workflow.ExecuteActivity(
+		ctx,
+		a.RejectChangeTrackOrderActivity,
+		args,
+	)
+}
+
+func sendAcknowledgeChangeTrackOrderActivity(ctx workflow.Context, args activities_mpe.AcknowledgeChangeTrackOrderActivityArgs) {
+	options := workflow.ActivityOptions{
+		ScheduleToStartTimeout: time.Minute,
+		StartToCloseTimeout:    time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, options)
+
+	var a *activities_mpe.Activities
+	workflow.ExecuteActivity(
+		ctx,
+		a.AcknowledgeChangeTrackOrderActivity,
+		args,
+	)
+}

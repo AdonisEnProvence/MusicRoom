@@ -1,4 +1,4 @@
-package activities
+package activities_mtv
 
 import (
 	"bytes"
@@ -6,16 +6,17 @@ import (
 	"encoding/json"
 	"net/http"
 
+	activities "github.com/AdonisEnProvence/MusicRoom/activities"
 	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 )
 
-func PingActivity(_ context.Context) error {
-	_, err := http.Get(ADONIS_ENDPOINT + "/ping")
+func (a *Activities) PingActivity(_ context.Context) error {
+	_, err := http.Get(activities.ADONIS_ENDPOINT + "/ping")
 
 	return err
 }
 
-func PauseActivity(_ context.Context, state shared_mtv.MtvRoomExposedState) error {
+func (a *Activities) PauseActivity(_ context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -23,13 +24,13 @@ func PauseActivity(_ context.Context, state shared_mtv.MtvRoomExposedState) erro
 		return err
 	}
 
-	url := ADONIS_MTV_ENDPOINT + "/pause"
+	url := activities.ADONIS_MTV_ENDPOINT + "/pause"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
 }
 
-func PlayActivity(_ context.Context, state shared_mtv.MtvRoomExposedState) error {
+func (a *Activities) PlayActivity(_ context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -37,19 +38,19 @@ func PlayActivity(_ context.Context, state shared_mtv.MtvRoomExposedState) error
 		return err
 	}
 
-	url := ADONIS_MTV_ENDPOINT + "/play"
+	url := activities.ADONIS_MTV_ENDPOINT + "/play"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
 }
 
-func CreationAcknowledgementActivity(_ context.Context, state shared_mtv.MtvRoomExposedState) error {
+func (a *Activities) CreationAcknowledgementActivity(_ context.Context, state shared_mtv.MtvRoomExposedState) error {
 	marshaledBody, err := json.Marshal(state)
 	if err != nil {
 		return err
 	}
 
-	url := ADONIS_MTV_ENDPOINT + "/mtv-creation-acknowledgement"
+	url := activities.ADONIS_MTV_ENDPOINT + "/mtv-creation-acknowledgement"
 
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
@@ -58,13 +59,13 @@ func CreationAcknowledgementActivity(_ context.Context, state shared_mtv.MtvRoom
 
 // As we removed a user we need to send back the new UserLength value to every others clients
 // Calculated in the internalState.Export()
-func UserLengthUpdateActivity(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
+func (a *Activities) UserLengthUpdateActivity(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
 	marshaledBody, err := json.Marshal(state)
 	if err != nil {
 		return err
 	}
 
-	url := ADONIS_MTV_ENDPOINT + "/user-length-update"
+	url := activities.ADONIS_MTV_ENDPOINT + "/user-length-update"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
@@ -75,7 +76,7 @@ type MtvJoinCallbackRequestBody struct {
 	JoiningUserID string                         `json:"joiningUserID"`
 }
 
-func JoinActivity(ctx context.Context, args MtvJoinCallbackRequestBody) error {
+func (a *Activities) JoinActivity(ctx context.Context, args MtvJoinCallbackRequestBody) error {
 	requestBody := args
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -83,7 +84,7 @@ func JoinActivity(ctx context.Context, args MtvJoinCallbackRequestBody) error {
 		return err
 	}
 
-	url := ADONIS_MTV_ENDPOINT + "/join"
+	url := activities.ADONIS_MTV_ENDPOINT + "/join"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
@@ -94,7 +95,7 @@ type AcknowledgeLeaveRoomRequestBody struct {
 	LeavingUserID string                         `json:"leavingUserID"`
 }
 
-func LeaveActivity(ctx context.Context, args AcknowledgeLeaveRoomRequestBody) error {
+func (a *Activities) LeaveActivity(ctx context.Context, args AcknowledgeLeaveRoomRequestBody) error {
 	requestBody := AcknowledgeLeaveRoomRequestBody{
 		State:         args.State,
 		LeavingUserID: args.LeavingUserID,
@@ -105,13 +106,13 @@ func LeaveActivity(ctx context.Context, args AcknowledgeLeaveRoomRequestBody) er
 		return err
 	}
 
-	url := ADONIS_MTV_ENDPOINT + "/leave"
+	url := activities.ADONIS_MTV_ENDPOINT + "/leave"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
 }
 
-func UserVoteForTrackAcknowledgement(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
+func (a *Activities) UserVoteForTrackAcknowledgement(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -119,13 +120,13 @@ func UserVoteForTrackAcknowledgement(ctx context.Context, state shared_mtv.MtvRo
 		return err
 	}
 
-	url := ADONIS_MTV_ENDPOINT + "/acknowledge-user-vote-for-track"
+	url := activities.ADONIS_MTV_ENDPOINT + "/acknowledge-user-vote-for-track"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
 }
 
-func ChangeUserEmittingDeviceActivity(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
+func (a *Activities) ChangeUserEmittingDeviceActivity(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -133,13 +134,13 @@ func ChangeUserEmittingDeviceActivity(ctx context.Context, state shared_mtv.MtvR
 		return err
 	}
 
-	url := ADONIS_MTV_ENDPOINT + "/change-user-emitting-device"
+	url := activities.ADONIS_MTV_ENDPOINT + "/change-user-emitting-device"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
 }
 
-func NotifySuggestOrVoteUpdateActivity(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
+func (a *Activities) NotifySuggestOrVoteUpdateActivity(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -147,7 +148,7 @@ func NotifySuggestOrVoteUpdateActivity(ctx context.Context, state shared_mtv.Mtv
 		return err
 	}
 
-	url := ADONIS_MTV_ENDPOINT + "/suggest-or-vote-update"
+	url := activities.ADONIS_MTV_ENDPOINT + "/suggest-or-vote-update"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
@@ -158,7 +159,7 @@ type AcknowledgeTracksSuggestionArgs struct {
 	DeviceID string                         `json:"deviceID"`
 }
 
-func AcknowledgeTracksSuggestion(ctx context.Context, args AcknowledgeTracksSuggestionArgs) error {
+func (a *Activities) AcknowledgeTracksSuggestion(ctx context.Context, args AcknowledgeTracksSuggestionArgs) error {
 	requestBody := args
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -166,7 +167,7 @@ func AcknowledgeTracksSuggestion(ctx context.Context, args AcknowledgeTracksSugg
 		return err
 	}
 
-	url := ADONIS_MTV_ENDPOINT + "/acknowledge-tracks-suggestion"
+	url := activities.ADONIS_MTV_ENDPOINT + "/acknowledge-tracks-suggestion"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
@@ -176,7 +177,7 @@ type AcknowledgeTracksSuggestionFailArgs struct {
 	DeviceID string `json:"deviceID"`
 }
 
-func AcknowledgeTracksSuggestionFail(ctx context.Context, args AcknowledgeTracksSuggestionFailArgs) error {
+func (a *Activities) AcknowledgeTracksSuggestionFail(ctx context.Context, args AcknowledgeTracksSuggestionFailArgs) error {
 	requestBody := args
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -184,13 +185,13 @@ func AcknowledgeTracksSuggestionFail(ctx context.Context, args AcknowledgeTracks
 		return err
 	}
 
-	url := ADONIS_MTV_ENDPOINT + "/acknowledge-tracks-suggestion-fail"
+	url := activities.ADONIS_MTV_ENDPOINT + "/acknowledge-tracks-suggestion-fail"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
 }
 
-func AcknowledgeUpdateUserFitsPositionConstraint(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
+func (a *Activities) AcknowledgeUpdateUserFitsPositionConstraint(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -198,13 +199,13 @@ func AcknowledgeUpdateUserFitsPositionConstraint(ctx context.Context, state shar
 		return err
 	}
 
-	url := ADONIS_MTV_ENDPOINT + "/acknowledge-update-user-fits-position-constraint"
+	url := activities.ADONIS_MTV_ENDPOINT + "/acknowledge-update-user-fits-position-constraint"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
 }
 
-func AcknowledgeUpdateDelegationOwner(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
+func (a *Activities) AcknowledgeUpdateDelegationOwner(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -212,13 +213,13 @@ func AcknowledgeUpdateDelegationOwner(ctx context.Context, state shared_mtv.MtvR
 		return err
 	}
 
-	url := ADONIS_MTV_ENDPOINT + "/acknowledge-update-delegation-owner"
+	url := activities.ADONIS_MTV_ENDPOINT + "/acknowledge-update-delegation-owner"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
 }
 
-func AcknowledgeUpdateControlAndDelegationPermission(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
+func (a *Activities) AcknowledgeUpdateControlAndDelegationPermission(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -226,13 +227,13 @@ func AcknowledgeUpdateControlAndDelegationPermission(ctx context.Context, state 
 		return err
 	}
 
-	url := ADONIS_MTV_ENDPOINT + "/acknowledge-update-control-and-delegation-permission"
+	url := activities.ADONIS_MTV_ENDPOINT + "/acknowledge-update-control-and-delegation-permission"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err
 }
 
-func AcknowledgeUpdateTimeConstraint(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
+func (a *Activities) AcknowledgeUpdateTimeConstraint(ctx context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -240,7 +241,7 @@ func AcknowledgeUpdateTimeConstraint(ctx context.Context, state shared_mtv.MtvRo
 		return err
 	}
 
-	url := ADONIS_MTV_ENDPOINT + "/acknowledge-update-time-constraint"
+	url := activities.ADONIS_MTV_ENDPOINT + "/acknowledge-update-time-constraint"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err

@@ -4,6 +4,7 @@ import (
 	"log"
 
 	activities_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/activities"
+	activities_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/activities"
 
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
@@ -24,30 +25,23 @@ func main() {
 	// This worker hosts both Worker and Activity functions
 	w := worker.New(c, shared_mtv.ControlTaskQueue, worker.Options{})
 
-	w.RegisterWorkflow(mtv.MtvRoomWorkflow)
-
-	w.RegisterActivity(activities.PingActivity)
-	w.RegisterActivity(activities.PlayActivity)
-	w.RegisterActivity(activities.PauseActivity)
-	w.RegisterActivity(activities.JoinActivity)
-	w.RegisterActivity(activities.CreationAcknowledgementActivity)
+	// Common activities
 	w.RegisterActivity(activities.FetchTracksInformationActivity)
 	w.RegisterActivity(activities.FetchTracksInformationActivityAndForwardInitiator)
-	w.RegisterActivity(activities.UserLengthUpdateActivity)
-	w.RegisterActivity(activities.ChangeUserEmittingDeviceActivity)
-	w.RegisterActivity(activities.NotifySuggestOrVoteUpdateActivity)
-	w.RegisterActivity(activities.UserVoteForTrackAcknowledgement)
-	w.RegisterActivity(activities.AcknowledgeTracksSuggestion)
-	w.RegisterActivity(activities.AcknowledgeTracksSuggestionFail)
-	w.RegisterActivity(activities.AcknowledgeUpdateUserFitsPositionConstraint)
-	w.RegisterActivity(activities.AcknowledgeUpdateDelegationOwner)
-	w.RegisterActivity(activities.AcknowledgeUpdateControlAndDelegationPermission)
-	w.RegisterActivity(activities.AcknowledgeUpdateTimeConstraint)
-	w.RegisterActivity(activities.LeaveActivity)
 
+	// Mtv workflows
+	w.RegisterWorkflow(mtv.MtvRoomWorkflow)
+
+	// Mtv activities
+	var mtvActivities *activities_mtv.Activities
+	w.RegisterActivity(mtvActivities)
+
+	// Mpe workflow
 	w.RegisterWorkflow(mpe.MpeRoomWorkflow)
 
-	w.RegisterActivity(activities_mpe.MpeCreationAcknowledgementActivity)
+	// Mpe activities
+	var mpeActivities *activities_mpe.Activities
+	w.RegisterActivity(mpeActivities)
 
 	// Start listening to the Task Queue
 	err = w.Run(worker.InterruptCh())

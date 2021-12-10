@@ -25,6 +25,7 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflow() {
 		faker.UUIDHyphenated(),
 	}
 	params, _ := s.getWorkflowInitParams(initialTracksIDs)
+	var a *activities_mpe.Activities
 
 	tracks := []shared.TrackMetadata{
 		{
@@ -46,7 +47,7 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflow() {
 		initialTracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities_mpe.MpeCreationAcknowledgementActivity,
+		a.MpeCreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -85,6 +86,7 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflowWithSeveralInitialTrac
 		faker.UUIDHyphenated(),
 	}
 	params, _ := s.getWorkflowInitParams(initialTracksIDs)
+	var a *activities_mpe.Activities
 
 	tracks := []shared.TrackMetadata{
 		{
@@ -124,7 +126,7 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflowWithSeveralInitialTrac
 		initialTracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities_mpe.MpeCreationAcknowledgementActivity,
+		a.MpeCreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()

@@ -363,9 +363,10 @@ func acknowledgeRoomCreation(ctx workflow.Context, state shared_mpe.MpeRoomExpos
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
+	var a *activities_mpe.Activities
 	if err := workflow.ExecuteActivity(
 		ctx,
-		activities_mpe.MpeCreationAcknowledgementActivity,
+		a.MpeCreationAcknowledgementActivity,
 		state,
 	).Get(ctx, nil); err != nil {
 		return err

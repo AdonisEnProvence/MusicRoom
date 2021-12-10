@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
+	activities_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/activities"
 	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/Devessier/brainy"
@@ -419,7 +420,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 							),
 							brainy.ActionFn(
 								func(c brainy.Context, e brainy.Event) error {
-									if err := acknowledgeRoomCreation(
+									if err := sendAcknowledgeRoomCreation(
 										ctx,
 										internalState.Export(internalState.initialParams.RoomCreatorUserID),
 									); err != nil {
@@ -668,7 +669,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 
 							internalState.AddUser(event.User)
 
-							joinActivityArgs := activities.MtvJoinCallbackRequestBody{
+							joinActivityArgs := activities_mtv.MtvJoinCallbackRequestBody{
 								State:         internalState.Export(event.User.UserID),
 								JoiningUserID: event.User.UserID,
 							}
@@ -820,7 +821,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 									internalState.DelegationOwnerUserID = &(internalState.initialParams.RoomCreatorUserID)
 								}
 
-								joinActivityArgs := activities.AcknowledgeLeaveRoomRequestBody{
+								joinActivityArgs := activities_mtv.AcknowledgeLeaveRoomRequestBody{
 									LeavingUserID: event.UserID,
 									State:         internalState.Export(shared_mtv.NoRelatedUserID),
 								}
@@ -885,12 +886,12 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 
 							if hasNoTracksToFetch {
 								if hasNoSuccessfullVoteForDuplicate {
-									sendAcknowledgeTracksSuggestionFailActivity(ctx, activities.AcknowledgeTracksSuggestionFailArgs{
+									sendAcknowledgeTracksSuggestionFailActivity(ctx, activities_mtv.AcknowledgeTracksSuggestionFailArgs{
 										DeviceID: event.DeviceID,
 									})
 
 								} else {
-									sendAcknowledgeTracksSuggestionActivity(ctx, activities.AcknowledgeTracksSuggestionArgs{
+									sendAcknowledgeTracksSuggestionActivity(ctx, activities_mtv.AcknowledgeTracksSuggestionArgs{
 										DeviceID: event.DeviceID,
 										State:    internalState.Export(event.UserID),
 									})
@@ -935,7 +936,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 								}
 							}
 
-							sendAcknowledgeTracksSuggestionActivity(ctx, activities.AcknowledgeTracksSuggestionArgs{
+							sendAcknowledgeTracksSuggestionActivity(ctx, activities_mtv.AcknowledgeTracksSuggestionArgs{
 								DeviceID: event.DeviceID,
 								State:    internalState.Export(event.UserID),
 							})
@@ -1295,24 +1296,6 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 func removeFutureFromSlice(slice []workflow.Future, index int) []workflow.Future {
 	slice[index] = slice[len(slice)-1]
 	return slice[:len(slice)-1]
-}
-
-func acknowledgeRoomCreation(ctx workflow.Context, state shared_mtv.MtvRoomExposedState) error {
-	ao := workflow.ActivityOptions{
-		ScheduleToStartTimeout: time.Minute,
-		StartToCloseTimeout:    time.Minute,
-	}
-	ctx = workflow.WithActivityOptions(ctx, ao)
-
-	if err := workflow.ExecuteActivity(
-		ctx,
-		activities.CreationAcknowledgementActivity,
-		state,
-	).Get(ctx, nil); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 type TimeWrapperType func() time.Time

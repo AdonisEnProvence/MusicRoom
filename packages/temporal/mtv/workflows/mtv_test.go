@@ -8,6 +8,7 @@ import (
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
 	"github.com/AdonisEnProvence/MusicRoom/mocks"
+	activities_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/activities"
 	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 	"github.com/AdonisEnProvence/MusicRoom/random"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
@@ -140,6 +141,8 @@ func (s *UnitTestSuite) emitChangeUserEmittingDevice(userID string, deviceID str
 }
 
 func (s *UnitTestSuite) mockOnceSuggest(userID string, deviceID string, roomID string, tracks []shared.TrackMetadata) {
+	var a *activities_mtv.Activities
+
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivityAndForwardInitiator,
 		mock.Anything,
@@ -153,7 +156,7 @@ func (s *UnitTestSuite) mockOnceSuggest(userID string, deviceID string, roomID s
 	}, nil).Once()
 
 	s.env.OnActivity(
-		activities.AcknowledgeTracksSuggestion,
+		a.AcknowledgeTracksSuggestion,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -236,6 +239,7 @@ func getWorkflowInitParams(tracksIDs []string, minimumScoreToBePlayed int) (shar
 // Test_PlayThenPauseTrack scenario:
 // TODO redict the scenario
 func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
+	var a *activities_mtv.Activities
 	firstTrackDuration := random.GenerateRandomDuration()
 	firstTrackDurationFirstThird := firstTrackDuration / 3
 	secondTrackDuration := random.GenerateRandomDuration()
@@ -268,17 +272,17 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.PlayActivity,
+		a.PlayActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Times(3)
 	s.env.OnActivity(
-		activities.PauseActivity,
+		a.PauseActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Times(3)
@@ -430,6 +434,8 @@ func (s *UnitTestSuite) Test_PlayThenPauseTrack() {
 // now two users.
 func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 	var (
+		a *activities_mtv.Activities
+
 		fakeUserID   = faker.UUIDHyphenated()
 		fakeDeviceID = faker.UUIDHyphenated()
 	)
@@ -458,17 +464,17 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.JoinActivity,
+		a.JoinActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Times(2)
 	s.env.OnActivity(
-		activities.UserLengthUpdateActivity,
+		a.UserLengthUpdateActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Times(2)
@@ -595,6 +601,8 @@ func (s *UnitTestSuite) Test_JoinCreatedRoom() {
 
 func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 	var (
+		a *activities_mtv.Activities
+
 		fakeUserID   = faker.UUIDHyphenated()
 		fakeDeviceID = faker.UUIDHyphenated()
 	)
@@ -623,17 +631,17 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.ChangeUserEmittingDeviceActivity,
+		a.ChangeUserEmittingDeviceActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.JoinActivity,
+		a.JoinActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -769,6 +777,8 @@ func (s *UnitTestSuite) Test_ChangeUserEmittingDevice() {
 // the current one.
 func (s *UnitTestSuite) Test_GoToNextTrack() {
 	var (
+		a *activities_mtv.Activities
+
 		defaultDuration = 1 * time.Millisecond
 	)
 
@@ -800,17 +810,17 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.PlayActivity,
+		a.PlayActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.PauseActivity,
+		a.PauseActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Times(2)
@@ -907,6 +917,8 @@ func (s *UnitTestSuite) Test_GoToNextTrack() {
 
 func (s *UnitTestSuite) Test_UserLeaveRoom() {
 	var (
+		a *activities_mtv.Activities
+
 		defaultDuration = 1 * time.Millisecond
 		joiningUserID   = faker.UUIDHyphenated()
 	)
@@ -939,17 +951,17 @@ func (s *UnitTestSuite) Test_UserLeaveRoom() {
 		mock.Anything,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.UserLengthUpdateActivity,
+		a.UserLengthUpdateActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Times(2)
 	s.env.OnActivity(
-		activities.LeaveActivity,
+		a.LeaveActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -1018,6 +1030,8 @@ func (s *UnitTestSuite) Test_UserLeaveRoom() {
 }
 
 func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrackThatEnded() {
+	var a *activities_mtv.Activities
+
 	firstTrackDuration := random.GenerateRandomDuration()
 
 	tracks := []shared.TrackMetadata{
@@ -1042,17 +1056,17 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.PlayActivity,
+		a.PlayActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Times(1)
 	s.env.OnActivity(
-		activities.PauseActivity,
+		a.PauseActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Times(2)
@@ -1134,6 +1148,8 @@ func (s *UnitTestSuite) Test_PlayActivityIsNotCalledWhenTryingToPlayTheLastTrack
 }
 
 func (s *UnitTestSuite) Test_CanSuggestTracks() {
+	var a *activities_mtv.Activities
+
 	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
@@ -1190,22 +1206,22 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 	}, nil).Once()
 
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.NotifySuggestOrVoteUpdateActivity,
+		a.NotifySuggestOrVoteUpdateActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.AcknowledgeTracksSuggestion,
+		a.AcknowledgeTracksSuggestion,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Times(2)
 	s.env.OnActivity(
-		activities.AcknowledgeTracksSuggestionFail,
+		a.AcknowledgeTracksSuggestionFail,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -1405,6 +1421,8 @@ func (s *UnitTestSuite) Test_CanSuggestTracks() {
 }
 
 func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInformationHaveBeenFetchedAreNotLost() {
+	var a *activities_mtv.Activities
+
 	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
@@ -1577,17 +1595,17 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 	}, nil).Once()
 
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.NotifySuggestOrVoteUpdateActivity,
+		a.NotifySuggestOrVoteUpdateActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Times(2)
 	s.env.OnActivity(
-		activities.AcknowledgeTracksSuggestion,
+		a.AcknowledgeTracksSuggestion,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Twice()
@@ -1651,6 +1669,8 @@ func (s *UnitTestSuite) Test_TracksSuggestedBeforePreviousSuggestedTracksInforma
 
 func (s *UnitTestSuite) Test_VoteForTrack() {
 	var (
+		a *activities_mtv.Activities
+
 		fakeUserID      = faker.UUIDHyphenated()
 		joiningUserID   = faker.UUIDHyphenated()
 		joiningDeviceID = faker.UUIDHyphenated()
@@ -1705,27 +1725,27 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.JoinActivity,
+		a.JoinActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.UserVoteForTrackAcknowledgement,
+		a.UserVoteForTrackAcknowledgement,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.NotifySuggestOrVoteUpdateActivity,
+		a.NotifySuggestOrVoteUpdateActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Times(1)
 	s.env.OnActivity(
-		activities.AcknowledgeTracksSuggestionFail,
+		a.AcknowledgeTracksSuggestionFail,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Times(1)
@@ -2072,6 +2092,8 @@ func (s *UnitTestSuite) Test_VoteForTrack() {
 
 func (s *UnitTestSuite) Test_EmptyCurrentTrackAutoPlayAfterOneGetReadyToBePlayed() {
 	var (
+		a *activities_mtv.Activities
+
 		joiningUserID   = faker.UUIDHyphenated()
 		joiningDeviceID = faker.UUIDHyphenated()
 	)
@@ -2111,7 +2133,7 @@ func (s *UnitTestSuite) Test_EmptyCurrentTrackAutoPlayAfterOneGetReadyToBePlayed
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -2229,6 +2251,8 @@ func (s *UnitTestSuite) Test_EmptyCurrentTrackAutoPlayAfterOneGetReadyToBePlayed
 
 func (s *UnitTestSuite) Test_LoadedCurrentTrackAndReadyToBePlayedListNoAutoPlayAfterOneGetReadyToBePlayed() {
 	var (
+		a *activities_mtv.Activities
+
 		joiningUserID   = faker.UUIDHyphenated()
 		joiningDeviceID = faker.UUIDHyphenated()
 	)
@@ -2268,7 +2292,7 @@ func (s *UnitTestSuite) Test_LoadedCurrentTrackAndReadyToBePlayedListNoAutoPlayA
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -2367,6 +2391,8 @@ func (s *UnitTestSuite) Test_LoadedCurrentTrackAndReadyToBePlayedListNoAutoPlayA
 
 func (s *UnitTestSuite) Test_LoadedAndEndedCurrentTrackAndNoTrackReadyToBePlayedAutoPlayAfterOneGetReadyToBePlayed() {
 	var (
+		a *activities_mtv.Activities
+
 		joiningUserID   = faker.UUIDHyphenated()
 		joiningDeviceID = faker.UUIDHyphenated()
 	)
@@ -2394,7 +2420,7 @@ func (s *UnitTestSuite) Test_LoadedAndEndedCurrentTrackAndNoTrackReadyToBePlayed
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -2578,6 +2604,7 @@ func (s *UnitTestSuite) Test_LoadedAndEndedCurrentTrackAndNoTrackReadyToBePlayed
 }
 
 func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPositionConstraint() {
+	var a *activities_mtv.Activities
 
 	falseValue := false
 	trueValue := true
@@ -2628,12 +2655,12 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.AcknowledgeUpdateUserFitsPositionConstraint,
+		a.AcknowledgeUpdateUserFitsPositionConstraint,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -2741,6 +2768,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestPosit
 }
 
 func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestTimeConstraint() {
+	var a *activities_mtv.Activities
 
 	falseValue := false
 	trueValue := true
@@ -2791,7 +2819,7 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestTimeC
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -2925,8 +2953,9 @@ func (s *UnitTestSuite) Test_CreateRoomWithPositionAndTimeConstraintAndTestTimeC
 }
 
 func (s *UnitTestSuite) Test_CreateDirectRoomAndUpdateDelegationOwner() {
-
 	var (
+		a *activities_mtv.Activities
+
 		joiningUserID       = faker.UUIDHyphenated()
 		joiningUserDeviceID = faker.UUIDHyphenated()
 	)
@@ -2955,12 +2984,12 @@ func (s *UnitTestSuite) Test_CreateDirectRoomAndUpdateDelegationOwner() {
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.AcknowledgeUpdateDelegationOwner,
+		a.AcknowledgeUpdateDelegationOwner,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -3114,8 +3143,9 @@ func (s *UnitTestSuite) Test_CreateDirectRoomAndUpdateDelegationOwner() {
 }
 
 func (s *UnitTestSuite) Test_CreateBroadcastRoomAndAttemptToExecuteDelegationOperation() {
-
 	var (
+		a *activities_mtv.Activities
+
 		joiningUserID       = faker.UUIDHyphenated()
 		joiningUserDeviceID = faker.UUIDHyphenated()
 	)
@@ -3144,12 +3174,12 @@ func (s *UnitTestSuite) Test_CreateBroadcastRoomAndAttemptToExecuteDelegationOpe
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.AcknowledgeUpdateDelegationOwner,
+		a.AcknowledgeUpdateDelegationOwner,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Never()
@@ -3217,6 +3247,8 @@ func (s *UnitTestSuite) Test_CreateBroadcastRoomAndAttemptToExecuteDelegationOpe
 
 func (s *UnitTestSuite) Test_CanUpdateControlAndDelegationPermission() {
 	var (
+		a *activities_mtv.Activities
+
 		joiningUserID       = faker.UUIDHyphenated()
 		joiningUserDeviceID = faker.UUIDHyphenated()
 	)
@@ -3244,12 +3276,12 @@ func (s *UnitTestSuite) Test_CanUpdateControlAndDelegationPermission() {
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.AcknowledgeUpdateControlAndDelegationPermission,
+		a.AcknowledgeUpdateControlAndDelegationPermission,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -3312,8 +3344,9 @@ func (s *UnitTestSuite) Test_CanUpdateControlAndDelegationPermission() {
 }
 
 func (s *UnitTestSuite) Test_GetUsersListQuery() {
-
 	var (
+		a *activities_mtv.Activities
+
 		joiningUserID       = faker.UUIDHyphenated()
 		joiningUserDeviceID = faker.UUIDHyphenated()
 	)
@@ -3342,7 +3375,7 @@ func (s *UnitTestSuite) Test_GetUsersListQuery() {
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -3403,8 +3436,9 @@ func (s *UnitTestSuite) Test_GetUsersListQuery() {
 }
 
 func (s *UnitTestSuite) Test_GetUsersListQueryInDirectRoom() {
-
 	var (
+		a *activities_mtv.Activities
+
 		joiningUserID       = faker.UUIDHyphenated()
 		joiningUserDeviceID = faker.UUIDHyphenated()
 	)
@@ -3433,12 +3467,12 @@ func (s *UnitTestSuite) Test_GetUsersListQueryInDirectRoom() {
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.AcknowledgeUpdateDelegationOwner,
+		a.AcknowledgeUpdateDelegationOwner,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -3528,8 +3562,9 @@ func (s *UnitTestSuite) Test_GetUsersListQueryInDirectRoom() {
 }
 
 func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionPlay() {
-
 	var (
+		a *activities_mtv.Activities
+
 		joiningUserID       = faker.UUIDHyphenated()
 		joiningUserDeviceID = faker.UUIDHyphenated()
 	)
@@ -3558,12 +3593,12 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionPlay() {
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.PlayActivity,
+		a.PlayActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -3651,8 +3686,9 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionPlay() {
 }
 
 func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionPause() {
-
 	var (
+		a *activities_mtv.Activities
+
 		joiningUserID       = faker.UUIDHyphenated()
 		joiningUserDeviceID = faker.UUIDHyphenated()
 	)
@@ -3681,19 +3717,19 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionPause() {
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.PlayActivity,
+		a.PlayActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	//First call after initial tracks fetch
 	//Second call after Custom emit pause signal
 	s.env.OnActivity(
-		activities.PauseActivity,
+		a.PauseActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Times(2)
@@ -3795,8 +3831,9 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionPause() {
 }
 
 func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionGoToNextTrack() {
-
 	var (
+		a *activities_mtv.Activities
+
 		joiningUserID       = faker.UUIDHyphenated()
 		joiningUserDeviceID = faker.UUIDHyphenated()
 	)
@@ -3830,12 +3867,12 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionGoToNextTrack(
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
 	s.env.OnActivity(
-		activities.PlayActivity,
+		a.PlayActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -3945,8 +3982,9 @@ func (s *UnitTestSuite) Test_UserHasControlAndDelegationPermissionGoToNextTrack(
 }
 
 func (s *UnitTestSuite) Test_OnlyInvitedUsersAndCreatorCanVoteInOpenRoom() {
-
 	var (
+		a *activities_mtv.Activities
+
 		joiningUserID       = faker.UUIDHyphenated()
 		joiningUserDeviceID = faker.UUIDHyphenated()
 		invitedUserID       = faker.UUIDHyphenated()
@@ -3998,7 +4036,7 @@ func (s *UnitTestSuite) Test_OnlyInvitedUsersAndCreatorCanVoteInOpenRoom() {
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -4275,8 +4313,9 @@ func (s *UnitTestSuite) Test_OnlyInvitedUsersAndCreatorCanVoteInOpenRoom() {
 }
 
 func (s *UnitTestSuite) Test_SuggestOrVoteSentActivityBaseOnCurrentTrack() {
-
 	var (
+		a *activities_mtv.Activities
+
 		joiningUserID       = faker.UUIDHyphenated()
 		joiningUserDeviceID = faker.UUIDHyphenated()
 	)
@@ -4299,7 +4338,7 @@ func (s *UnitTestSuite) Test_SuggestOrVoteSentActivityBaseOnCurrentTrack() {
 	defer resetMock()
 
 	s.env.OnActivity(
-		activities.NotifySuggestOrVoteUpdateActivity,
+		a.NotifySuggestOrVoteUpdateActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -4309,7 +4348,7 @@ func (s *UnitTestSuite) Test_SuggestOrVoteSentActivityBaseOnCurrentTrack() {
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -4410,6 +4449,7 @@ func (s *UnitTestSuite) Test_SuggestOrVoteSentActivityBaseOnCurrentTrack() {
 }
 
 func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartBeforeNow() {
+	var a *activities_mtv.Activities
 
 	tracks := []shared.TrackMetadata{
 		{
@@ -4444,7 +4484,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartBeforeNow() {
 	defer resetMock()
 
 	s.env.OnActivity(
-		activities.AcknowledgeUpdateTimeConstraint,
+		a.AcknowledgeUpdateTimeConstraint,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -4454,7 +4494,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartBeforeNow() {
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -4485,6 +4525,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartBeforeNow() {
 }
 
 func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartAfterNow() {
+	var a *activities_mtv.Activities
 
 	tracks := []shared.TrackMetadata{
 		{
@@ -4519,7 +4560,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartAfterNow() {
 	defer resetMock()
 
 	s.env.OnActivity(
-		activities.AcknowledgeUpdateTimeConstraint,
+		a.AcknowledgeUpdateTimeConstraint,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Twice()
@@ -4529,7 +4570,7 @@ func (s *UnitTestSuite) Test_MtvRoomWithConstraintTimeIsValidStartAfterNow() {
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -4878,6 +4919,8 @@ func (s *UnitTestSuite) Test_MtvRoomFailIsOpenOnlyInvitedUsersCanVoteTrueButIsOp
 }
 
 func (s *UnitTestSuite) Test_UserOutsideRoomAreaSuggestingTrackMustTriggerTracksListUpdate() {
+	var a *activities_mtv.Activities
+
 	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
@@ -4942,7 +4985,7 @@ func (s *UnitTestSuite) Test_UserOutsideRoomAreaSuggestingTrackMustTriggerTracks
 	}, nil).Once()
 
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -4950,7 +4993,7 @@ func (s *UnitTestSuite) Test_UserOutsideRoomAreaSuggestingTrackMustTriggerTracks
 	// This activity must be called when a user outside of the
 	// room area suggests a song.
 	s.env.OnActivity(
-		activities.NotifySuggestOrVoteUpdateActivity,
+		a.NotifySuggestOrVoteUpdateActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -5041,6 +5084,8 @@ func (s *UnitTestSuite) Test_UserOutsideRoomAreaSuggestingTrackMustTriggerTracks
 }
 
 func (s *UnitTestSuite) Test_GetMtvRoomConstraintsDetails() {
+	var a *activities_mtv.Activities
+
 	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
@@ -5082,7 +5127,7 @@ func (s *UnitTestSuite) Test_GetMtvRoomConstraintsDetails() {
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()
@@ -5112,6 +5157,8 @@ func (s *UnitTestSuite) Test_GetMtvRoomConstraintsDetails() {
 }
 
 func (s *UnitTestSuite) Test_GetMtvRoomConstraintsDetailsFailRoomDoesntHaveConstraints() {
+	var a *activities_mtv.Activities
+
 	tracks := []shared.TrackMetadata{
 		{
 			ID:         faker.UUIDHyphenated(),
@@ -5134,7 +5181,7 @@ func (s *UnitTestSuite) Test_GetMtvRoomConstraintsDetailsFailRoomDoesntHaveConst
 		tracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
-		activities.CreationAcknowledgementActivity,
+		a.CreationAcknowledgementActivity,
 		mock.Anything,
 		mock.Anything,
 	).Return(nil).Once()

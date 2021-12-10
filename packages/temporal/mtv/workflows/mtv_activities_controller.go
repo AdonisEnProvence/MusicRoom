@@ -4,25 +4,46 @@ import (
 	"time"
 
 	"github.com/AdonisEnProvence/MusicRoom/activities"
+	activities_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/activities"
 	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 	"go.temporal.io/sdk/workflow"
 )
 
-func sendAcknowledgeTracksSuggestionFailActivity(ctx workflow.Context, args activities.AcknowledgeTracksSuggestionFailArgs) {
+func sendAcknowledgeRoomCreation(ctx workflow.Context, state shared_mtv.MtvRoomExposedState) error {
+	ao := workflow.ActivityOptions{
+		ScheduleToStartTimeout: time.Minute,
+		StartToCloseTimeout:    time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	var a *activities_mtv.Activities
+	if err := workflow.ExecuteActivity(
+		ctx,
+		a.CreationAcknowledgementActivity,
+		state,
+	).Get(ctx, nil); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func sendAcknowledgeTracksSuggestionFailActivity(ctx workflow.Context, args activities_mtv.AcknowledgeTracksSuggestionFailArgs) {
 	options := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
 		StartToCloseTimeout:    time.Minute,
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	var a *activities_mtv.Activities
 	workflow.ExecuteActivity(
 		ctx,
-		activities.AcknowledgeTracksSuggestionFail,
+		a.AcknowledgeTracksSuggestionFail,
 		args,
 	)
 }
 
-func sendAcknowledgeTracksSuggestionActivity(ctx workflow.Context, args activities.AcknowledgeTracksSuggestionArgs) {
+func sendAcknowledgeTracksSuggestionActivity(ctx workflow.Context, args activities_mtv.AcknowledgeTracksSuggestionArgs) {
 
 	options := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
@@ -30,9 +51,10 @@ func sendAcknowledgeTracksSuggestionActivity(ctx workflow.Context, args activiti
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	var a *activities_mtv.Activities
 	workflow.ExecuteActivity(
 		ctx,
-		activities.AcknowledgeTracksSuggestion,
+		a.AcknowledgeTracksSuggestion,
 		args,
 	)
 }
@@ -45,9 +67,10 @@ func sendAcknowledgeUpdateUserFitsPositionConstraintActivity(ctx workflow.Contex
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	var a *activities_mtv.Activities
 	workflow.ExecuteActivity(
 		ctx,
-		activities.AcknowledgeUpdateUserFitsPositionConstraint,
+		a.AcknowledgeUpdateUserFitsPositionConstraint,
 		state,
 	)
 }
@@ -60,9 +83,10 @@ func sendAcknowledgeUpdateDelegationOwnerActivity(ctx workflow.Context, state sh
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	var a *activities_mtv.Activities
 	workflow.ExecuteActivity(
 		ctx,
-		activities.AcknowledgeUpdateDelegationOwner,
+		a.AcknowledgeUpdateDelegationOwner,
 		state,
 	)
 }
@@ -74,9 +98,10 @@ func sendAcknowledgeUpdateControlAndDelegationPermissionActivity(ctx workflow.Co
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	var a *activities_mtv.Activities
 	workflow.ExecuteActivity(
 		ctx,
-		activities.AcknowledgeUpdateControlAndDelegationPermission,
+		a.AcknowledgeUpdateControlAndDelegationPermission,
 		state,
 	)
 }
@@ -89,14 +114,15 @@ func sendUserLengthUpdateActivity(ctx workflow.Context, state shared_mtv.MtvRoom
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	var a *activities_mtv.Activities
 	workflow.ExecuteActivity(
 		ctx,
-		activities.UserLengthUpdateActivity,
+		a.UserLengthUpdateActivity,
 		state,
 	)
 }
 
-func sendLeaveActivity(ctx workflow.Context, args activities.AcknowledgeLeaveRoomRequestBody) {
+func sendLeaveActivity(ctx workflow.Context, args activities_mtv.AcknowledgeLeaveRoomRequestBody) {
 
 	options := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
@@ -104,9 +130,10 @@ func sendLeaveActivity(ctx workflow.Context, args activities.AcknowledgeLeaveRoo
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	var a *activities_mtv.Activities
 	workflow.ExecuteActivity(
 		ctx,
-		activities.LeaveActivity,
+		a.LeaveActivity,
 		args,
 	)
 }
@@ -118,9 +145,10 @@ func sendNotifySuggestOrVoteUpdateActivity(ctx workflow.Context, state shared_mt
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	var a *activities_mtv.Activities
 	workflow.ExecuteActivity(
 		ctx,
-		activities.NotifySuggestOrVoteUpdateActivity,
+		a.NotifySuggestOrVoteUpdateActivity,
 		state,
 	)
 }
@@ -163,23 +191,25 @@ func sendUserVoteForTrackAcknowledgementActivity(ctx workflow.Context, state sha
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	var a *activities_mtv.Activities
 	workflow.ExecuteActivity(
 		ctx,
-		activities.UserVoteForTrackAcknowledgement,
+		a.UserVoteForTrackAcknowledgement,
 		state,
 	)
 }
 
-func sendJoinActivity(ctx workflow.Context, args activities.MtvJoinCallbackRequestBody) {
+func sendJoinActivity(ctx workflow.Context, args activities_mtv.MtvJoinCallbackRequestBody) {
 	options := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
 		StartToCloseTimeout:    time.Minute,
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	var a *activities_mtv.Activities
 	workflow.ExecuteActivity(
 		ctx,
-		activities.JoinActivity,
+		a.JoinActivity,
 		args,
 	)
 }
@@ -191,9 +221,10 @@ func sendChangeUserEmittingDeviceActivity(ctx workflow.Context, state shared_mtv
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	var a *activities_mtv.Activities
 	workflow.ExecuteActivity(
 		ctx,
-		activities.ChangeUserEmittingDeviceActivity,
+		a.ChangeUserEmittingDeviceActivity,
 		state,
 	)
 }
@@ -205,9 +236,10 @@ func sendPauseActivity(ctx workflow.Context, state shared_mtv.MtvRoomExposedStat
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	var a *activities_mtv.Activities
 	workflow.ExecuteActivity(
 		ctx,
-		activities.PauseActivity,
+		a.PauseActivity,
 		state,
 	)
 }
@@ -219,9 +251,10 @@ func sendPlayActivity(ctx workflow.Context, state shared_mtv.MtvRoomExposedState
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	var a *activities_mtv.Activities
 	workflow.ExecuteActivity(
 		ctx,
-		activities.PlayActivity,
+		a.PlayActivity,
 		state,
 	)
 }
@@ -233,9 +266,10 @@ func sendAcknowledgeUpdateTimeConstraintActivity(ctx workflow.Context, state sha
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	var a *activities_mtv.Activities
 	workflow.ExecuteActivity(
 		ctx,
-		activities.AcknowledgeUpdateTimeConstraint,
+		a.AcknowledgeUpdateTimeConstraint,
 		state,
 	)
 }

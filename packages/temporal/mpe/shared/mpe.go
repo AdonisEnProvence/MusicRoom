@@ -127,12 +127,16 @@ func inBetweenMinMaxIncluded(i, min, max int) bool {
 	}
 }
 
-func (s *TrackMetadataSet) Swap(srcIndex, destIndex int) error {
+func (s *TrackMetadataSet) GivenIndexFitTracksRange(index int) bool {
 	indexMax := len(s.tracks) - 1
 	indexMin := 0
 
-	srcIndexIsInRange := inBetweenMinMaxIncluded(srcIndex, indexMin, indexMax)
-	destIndexIsInRange := inBetweenMinMaxIncluded(destIndex, indexMin, indexMax)
+	return inBetweenMinMaxIncluded(index, indexMin, indexMax)
+}
+
+func (s *TrackMetadataSet) Swap(srcIndex, destIndex int) error {
+	srcIndexIsInRange := s.GivenIndexFitTracksRange(srcIndex)
+	destIndexIsInRange := s.GivenIndexFitTracksRange(destIndex)
 
 	if !srcIndexIsInRange {
 		return errors.New("srcIndexIsInRange is not in tracks set range")
@@ -142,9 +146,7 @@ func (s *TrackMetadataSet) Swap(srcIndex, destIndex int) error {
 		return errors.New("destIndexIsInRange is not in tracks set range")
 	}
 
-	tmp := s.tracks[srcIndex]
-	s.tracks[srcIndex] = s.tracks[destIndex]
-	s.tracks[destIndex] = tmp
+	s.tracks[srcIndex], s.tracks[destIndex] = s.tracks[destIndex], s.tracks[srcIndex]
 
 	return nil
 }

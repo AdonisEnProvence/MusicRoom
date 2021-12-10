@@ -267,13 +267,30 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 						},
 					},
 
-					MpeRoomChangeTrackOrderEventType: brainy.Transition{
-						Cond: userCanPerformChangeTrackPlaylistEditionOperation(&internalState),
+					MpeRoomChangeTrackOrderEventType: brainy.Transitions{
+						{
+							Cond: userCanPerformChangeTrackPlaylistEditionOperation(&internalState),
 
-						Actions: brainy.Actions{
-							brainy.ActionFn(
-								attempTochangeTrackOrder(&internalState),
-							),
+							Actions: brainy.Actions{
+								brainy.ActionFn(
+									changeTrackOrder(ctx, &internalState),
+								),
+							},
+						},
+						{
+							Actions: brainy.Actions{
+								brainy.ActionFn(
+									func(c brainy.Context, e brainy.Event) error {
+										fmt.Println("userCanPerformChangeTrackPlaylistEditionOperation is false")
+										event := e.(MpeRoomChangeTrackOrderEvent)
+
+										sendRejectChangeTrackOrderActivity(ctx, activities_mpe.RejectChangeTrackOrderActivityArgs{
+											DeviceID: event.DeviceID,
+											UserID:   event.UserID,
+										})
+										return nil
+									}),
+							},
 						},
 					},
 				},

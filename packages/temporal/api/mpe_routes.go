@@ -196,6 +196,7 @@ func MpeChangeTrackOrderHandler(w http.ResponseWriter, r *http.Request) {
 	operationToApplyIsNotValid := !body.OperationToApply.IsValid()
 	if operationToApplyIsNotValid {
 		WriteError(w, errors.New("OperationToApplyValue is invalid"))
+		return
 	}
 
 	signal := shared_mpe.NewChangeTrackOrderSignal(shared_mpe.NewChangeTrackOrderSignalArgs{

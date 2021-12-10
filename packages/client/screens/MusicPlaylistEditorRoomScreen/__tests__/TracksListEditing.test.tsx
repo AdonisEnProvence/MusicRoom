@@ -1,13 +1,15 @@
-import { MpeWorkflowState } from '@musicroom/types';
+import { AllClientToServerEvents, MpeWorkflowState } from '@musicroom/types';
 import { datatype } from 'faker';
+import Toast from 'react-native-toast-message';
 import { serverSocket } from '../../../services/websockets';
-import { generateTrackMetadata } from '../../../tests/data';
+import { db, generateTrackMetadata } from '../../../tests/data';
 import {
     renderApp,
     fireEvent,
     waitFor,
     within,
     waitForElementToBeRemoved,
+    render,
 } from '../../../tests/tests-utils';
 
 function toTrackCardContainerTestID(id: string): string {
@@ -18,15 +20,21 @@ function extractTrackIDFromCardContainerTestID(testID: string): string {
     return testID.replace('-track-card-container', '');
 }
 
+interface StateRef {
+    value: MpeWorkflowState | undefined;
+}
+
 /**
  * Copy-pasted from https://github.com/AdonisEnProvence/MusicRoom/blob/05409fdb003d7060de8a7314a23d923e6704d398/packages/client/screens/MusicPlaylistEditorListScreen/__tests__/CreateMpeRoom.test.tsx.
  */
 async function createMpeRoom() {
     const track = generateTrackMetadata();
 
-    let state: MpeWorkflowState | undefined;
+    const state: StateRef = {
+        value: undefined,
+    };
     serverSocket.on('MPE_CREATE_ROOM', (params) => {
-        state = {
+        state.value = {
             isOpen: params.isOpen,
             isOpenOnlyInvitedUsersCanEdit: params.isOpenOnlyInvitedUsersCanEdit,
             name: params.name,
@@ -37,13 +45,13 @@ async function createMpeRoom() {
             usersLength: 1,
         };
 
-        serverSocket.emit('MPE_CREATE_ROOM_SYNCED_CALLBACK', state);
+        serverSocket.emit('MPE_CREATE_ROOM_SYNCED_CALLBACK', state.value);
 
         setTimeout(() => {
-            if (state === undefined) {
+            if (state.value === undefined) {
                 throw new Error('state is undefined');
             }
-            serverSocket.emit('MPE_CREATE_ROOM_CALLBACK', state);
+            serverSocket.emit('MPE_CREATE_ROOM_CALLBACK', state.value);
         }, 10);
     });
 
@@ -73,34 +81,159 @@ async function createMpeRoom() {
         throw new Error('state is undefined');
     }
 
-    const stateCpy = state;
-
-    const mpeRoomListItem = await screen.findByText(new RegExp(state.name));
+    const mpeRoomListItem = await screen.findByText(
+        new RegExp(state.value!.name),
+    );
     expect(mpeRoomListItem).toBeTruthy();
 
     fireEvent.press(mpeRoomListItem);
 
     await waitFor(() => {
         const playlistTitle = screen.getByText(
-            new RegExp(`Playlist.*${stateCpy.name}`),
+            new RegExp(`Playlist.*${state.value!.name}`),
         );
         expect(playlistTitle).toBeTruthy();
     });
 
-    return screen;
+    return {
+        screen,
+        state,
+    };
 }
 
-test('Add track', async () => {
-    const screen = await createMpeRoom();
+test('Add track and trigger sucess toast', async () => {
+    const fakeTrack = db.searchableTracks.create();
+
+    const { screen, state } = await createMpeRoom();
+
+    const addTracksSpy = jest.fn<
+        ReturnType<AllClientToServerEvents['MPE_ADD_TRACKS']>,
+        Parameters<AllClientToServerEvents['MPE_ADD_TRACKS']>
+    >(({ roomID }) => {
+        setTimeout(() => {
+            serverSocket.emit('MPE_ADD_TRACKS_SUCCESS_CALLBACK', {
+                roomID,
+                state: {
+                    ...state.value!,
+                    tracks: [...state.value!.tracks, fakeTrack],
+                },
+            });
+        }, 10);
+    });
+    serverSocket.on('MPE_ADD_TRACKS', addTracksSpy);
 
     const addTrackButton = await screen.findByText(/add.*track/i);
     expect(addTrackButton).toBeTruthy();
 
     fireEvent.press(addTrackButton);
 
+    const searchTrackInput = await waitFor(() => {
+        const searchTrackInputElement =
+            screen.getByPlaceholderText(/search.*track/i);
+        expect(searchTrackInputElement).toBeTruthy();
+
+        return searchTrackInputElement;
+    });
+
+    fireEvent(searchTrackInput, 'focus');
+    fireEvent.changeText(searchTrackInput, fakeTrack.title.slice(0, 3));
+    fireEvent(searchTrackInput, 'submitEditing');
+
+    const searchedTrackCard = await waitFor(() => {
+        const searchedTrackCardElement = screen.getByText(fakeTrack.title);
+        expect(searchedTrackCardElement).toBeTruthy();
+
+        return searchedTrackCardElement;
+    });
+
+    const waitForSearchTrackInputToDisappearPromise = waitForElementToBeRemoved(
+        () => screen.getByPlaceholderText(/search.*track/i),
+    );
+
+    fireEvent.press(searchedTrackCard);
+
+    await waitForSearchTrackInputToDisappearPromise;
+
+    // There operations should occur concurrently.
+    await Promise.all([
+        waitFor(() => {
+            const trackCardElement = screen.getByText(fakeTrack.title);
+            expect(trackCardElement).toBeTruthy();
+        }),
+
+        waitFor(() => {
+            expect(Toast.show).toHaveBeenNthCalledWith(1, {
+                type: 'success',
+                text1: expect.any(String),
+            });
+        }),
+    ]);
+
     await waitFor(() => {
-        const trackCardElement = screen.getByTestId(/track-card-container/i);
-        expect(trackCardElement).toBeTruthy();
+        expect(screen.getByText(/add.*track/i)).not.toBeDisabled();
+    });
+});
+
+test('Fail when adding track already in playlist', async () => {
+    const { screen, state } = await createMpeRoom();
+    const trackAlreadyInPlaylist = state.value!.tracks[0];
+
+    db.searchableTracks.create(trackAlreadyInPlaylist);
+
+    const addTracksSpy = jest.fn<
+        ReturnType<AllClientToServerEvents['MPE_ADD_TRACKS']>,
+        Parameters<AllClientToServerEvents['MPE_ADD_TRACKS']>
+    >(({ roomID }) => {
+        setTimeout(() => {
+            serverSocket.emit('MPE_ADD_TRACKS_FAIL_CALLBACK', {
+                roomID,
+            });
+        }, 10);
+    });
+    serverSocket.on('MPE_ADD_TRACKS', addTracksSpy);
+
+    const addTrackButton = await screen.findByText(/add.*track/i);
+    expect(addTrackButton).toBeTruthy();
+
+    fireEvent.press(addTrackButton);
+
+    const searchTrackInput = await waitFor(() => {
+        const searchTrackInputElement =
+            screen.getByPlaceholderText(/search.*track/i);
+        expect(searchTrackInputElement).toBeTruthy();
+
+        return searchTrackInputElement;
+    });
+
+    fireEvent(searchTrackInput, 'focus');
+    fireEvent.changeText(
+        searchTrackInput,
+        trackAlreadyInPlaylist.title.slice(0, 3),
+    );
+    fireEvent(searchTrackInput, 'submitEditing');
+
+    const searchedTrackCard = await waitFor(() => {
+        const [, searchedTrackCardElement] = screen.getAllByText(
+            trackAlreadyInPlaylist.title,
+        );
+        expect(searchedTrackCardElement).toBeTruthy();
+
+        return searchedTrackCardElement;
+    });
+
+    const waitForSearchTrackInputToDisappearPromise = waitForElementToBeRemoved(
+        () => screen.getByPlaceholderText(/search.*track/i),
+    );
+
+    fireEvent.press(searchedTrackCard);
+
+    await waitForSearchTrackInputToDisappearPromise;
+
+    await waitFor(() => {
+        expect(Toast.show).toHaveBeenNthCalledWith(1, {
+            type: 'error',
+            text1: expect.any(String),
+        });
     });
 
     await waitFor(() => {
@@ -108,32 +241,90 @@ test('Add track', async () => {
     });
 });
 
-test('Move track', async () => {
-    const screen = await createMpeRoom();
-    let tracksIDs: string[] = [];
+async function addTrack({
+    screen,
+    trackToAdd,
+    state,
+}: {
+    screen: ReturnType<typeof render>;
+    trackToAdd: ReturnType<typeof db['searchableTracks']['create']>;
+    state: StateRef;
+}) {
+    const addTracksSpy = jest.fn<
+        ReturnType<AllClientToServerEvents['MPE_ADD_TRACKS']>,
+        Parameters<AllClientToServerEvents['MPE_ADD_TRACKS']>
+    >(({ roomID }) => {
+        setTimeout(() => {
+            state.value = {
+                ...state.value!,
+                tracks: [...state.value!.tracks, trackToAdd],
+            };
 
-    {
-        const addTrackButton = await screen.findByText(/add.*track/i);
-        expect(addTrackButton).toBeTruthy();
+            serverSocket.emit('MPE_ADD_TRACKS_SUCCESS_CALLBACK', {
+                roomID,
+                state: state.value,
+            });
+        }, 10);
+    });
+    serverSocket.on('MPE_ADD_TRACKS', addTracksSpy);
 
-        fireEvent.press(addTrackButton);
-    }
+    const addTrackButton = await screen.findByText(/add.*track/i);
+    expect(addTrackButton).toBeTruthy();
 
-    await waitFor(() => {
-        const trackCardElement = screen.getByTestId(/track-card-container/i);
-        expect(trackCardElement).toBeTruthy();
+    fireEvent.press(addTrackButton);
+
+    const searchTrackInput = await waitFor(() => {
+        const searchTrackInputElement =
+            screen.getByPlaceholderText(/search.*track/i);
+        expect(searchTrackInputElement).toBeTruthy();
+
+        return searchTrackInputElement;
     });
 
-    {
-        const addTrackButton = await waitFor(() => {
-            const button = screen.getByText(/add.*track/i);
-            expect(button).not.toBeDisabled();
+    fireEvent(searchTrackInput, 'focus');
+    fireEvent.changeText(searchTrackInput, trackToAdd.title.slice(0, 3));
+    fireEvent(searchTrackInput, 'submitEditing');
 
-            return button;
+    const searchedTrackCard = await waitFor(() => {
+        const searchedTrackCardElement = screen.getByText(trackToAdd.title);
+        expect(searchedTrackCardElement).toBeTruthy();
+
+        return searchedTrackCardElement;
+    });
+
+    const waitForSearchTrackInputToDisappearPromise = waitForElementToBeRemoved(
+        () => screen.getByPlaceholderText(/search.*track/i),
+    );
+
+    fireEvent.press(searchedTrackCard);
+
+    await waitForSearchTrackInputToDisappearPromise;
+
+    await waitFor(() => {
+        expect(Toast.show).toHaveBeenNthCalledWith(1, {
+            type: 'success',
+            text1: expect.any(String),
         });
+    });
 
-        fireEvent.press(addTrackButton);
-    }
+    await waitFor(() => {
+        expect(screen.getByText(/add.*track/i)).not.toBeDisabled();
+    });
+}
+
+test('Move track', async () => {
+    const { screen, state } = await createMpeRoom();
+    const fakeTracks = [
+        db.searchableTracks.create(),
+        db.searchableTracks.create(),
+    ];
+    let tracksIDs: string[] = [];
+
+    await addTrack({
+        screen,
+        state,
+        trackToAdd: fakeTracks[0],
+    });
 
     {
         /**
@@ -148,7 +339,9 @@ test('Move track', async () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByText(/add.*track/i)).not.toBeDisabled();
+            const [addTrackButton] = screen.getAllByText(/add.*track/i);
+
+            expect(addTrackButton).not.toBeDisabled();
         });
 
         tracksIDs = trackCardElements.map(({ props: { testID } }) =>
@@ -167,7 +360,9 @@ test('Move track', async () => {
     }
 
     await waitFor(() => {
-        expect(screen.getByText(/add.*track/i)).not.toBeDisabled();
+        const [addTrackButton] = screen.getAllByText(/add.*track/i);
+
+        expect(addTrackButton).not.toBeDisabled();
     });
 
     {
@@ -187,7 +382,7 @@ test('Move track', async () => {
         );
 
         /**
-         * Move up the last trac.
+         * Move up the last track.
          */
         const moveUpLastTrackButton = within(
             trackCardElements[1],
@@ -198,7 +393,9 @@ test('Move track', async () => {
     }
 
     await waitFor(() => {
-        expect(screen.getByText(/add.*track/i)).not.toBeDisabled();
+        const [addTrackButton] = screen.getAllByText(/add.*track/i);
+
+        expect(addTrackButton).not.toBeDisabled();
     });
 
     {
@@ -220,33 +417,23 @@ test('Move track', async () => {
 });
 
 test('Remove track', async () => {
-    const screen = await createMpeRoom();
+    const { screen, state } = await createMpeRoom();
+    const trackAlreadyInPlaylist = state.value!.tracks[0];
 
-    const addTrackButton = await screen.findByText(/add.*track/i);
-    expect(addTrackButton).toBeTruthy();
-
-    fireEvent.press(addTrackButton);
-
-    const trackCardElement = await waitFor(() => {
-        const trackCardElement = screen.getByTestId(/track-card-container/i);
+    const trackCard = await waitFor(() => {
+        const trackCardElement = screen.getByTestId(
+            toTrackCardContainerTestID(trackAlreadyInPlaylist.id),
+        );
         expect(trackCardElement).toBeTruthy();
 
         return trackCardElement;
     });
-    const addedTrackID = extractTrackIDFromCardContainerTestID(
-        trackCardElement.props.testID,
-    );
 
-    await waitFor(() => {
-        expect(screen.getByText(/add.*track/i)).not.toBeDisabled();
-    });
-
-    const deleteTrackButton =
-        within(trackCardElement).getByLabelText(/delete/i);
+    const deleteTrackButton = within(trackCard).getByLabelText(/delete/i);
     expect(deleteTrackButton).toBeTruthy();
 
     const waitForTrackCardElementToDisappearPromise = waitForElementToBeRemoved(
-        () => screen.getByTestId(toTrackCardContainerTestID(addedTrackID)),
+        () => screen.getByText(trackAlreadyInPlaylist.title),
     );
 
     fireEvent.press(deleteTrackButton);

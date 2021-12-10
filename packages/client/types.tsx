@@ -38,7 +38,12 @@ export type SearchTracksParamsList = {
 
 export type LibraryParamsList = {
     MpeRooms: undefined;
-    MpeRoom: MpeRoomParams;
+    MpeRoom: NavigatorScreenParams<MpeRoomParamsList>;
+};
+
+export type MpeRoomParamsList = {
+    Room: MpeRoomParams;
+    SearchTracks: MpeRoomParams;
 };
 
 export type RootStackParamList = {
@@ -360,13 +365,39 @@ export type MpeTabMpeRoomsScreenProps = {
 export type MpeTabMpeRoomScreenProps = {
     navigation: CompositeNavigationProp<
         CompositeNavigationProp<
-            StackNavigationProp<RootStackParamList, 'Main'>,
-            StackNavigationProp<MainStackParamList, 'Root'>
+            CompositeNavigationProp<
+                StackNavigationProp<RootStackParamList, 'Main'>,
+                StackNavigationProp<MainStackParamList, 'Root'>
+            >,
+            CompositeNavigationProp<
+                BottomTabNavigationProp<BottomTabNavigatorParamList, 'Library'>,
+                StackNavigationProp<LibraryParamsList, 'MpeRoom'>
+            >
         >,
         CompositeNavigationProp<
-            BottomTabNavigationProp<BottomTabNavigatorParamList, 'Library'>,
-            StackNavigationProp<LibraryParamsList, 'MpeRoom'>
+            StackNavigationProp<LibraryParamsList, 'MpeRoom'>,
+            StackNavigationProp<MpeRoomParamsList, 'Room'>
         >
     >;
-    route: RouteProp<LibraryParamsList, 'MpeRoom'>;
+    route: RouteProp<MpeRoomParamsList, 'Room'>;
+};
+
+export type MpeTabMpeSearchTracksScreenProps = {
+    navigation: CompositeNavigationProp<
+        CompositeNavigationProp<
+            CompositeNavigationProp<
+                StackNavigationProp<RootStackParamList, 'Main'>,
+                StackNavigationProp<MainStackParamList, 'Root'>
+            >,
+            CompositeNavigationProp<
+                BottomTabNavigationProp<BottomTabNavigatorParamList, 'Library'>,
+                StackNavigationProp<LibraryParamsList, 'MpeRoom'>
+            >
+        >,
+        CompositeNavigationProp<
+            StackNavigationProp<LibraryParamsList, 'MpeRoom'>,
+            StackNavigationProp<MpeRoomParamsList, 'SearchTracks'>
+        >
+    >;
+    route: RouteProp<MpeRoomParamsList, 'SearchTracks'>;
 };

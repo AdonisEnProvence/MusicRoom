@@ -48,7 +48,10 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> = ({
 
     function handleRoomPress(roomID: string) {
         navigation.navigate('MpeRoom', {
-            id: roomID,
+            screen: 'Room',
+            params: {
+                id: roomID,
+            },
         });
     }
 

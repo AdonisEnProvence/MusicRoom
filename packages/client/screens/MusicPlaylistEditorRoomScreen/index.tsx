@@ -169,7 +169,7 @@ const TrackListItemWrapper: React.FC<TrackListItemWrapperProps> = ({
 };
 
 const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps> =
-    ({ playlist }) => {
+    ({ navigation, playlist, playlist: { id: playlistID } }) => {
         const insets = useSafeAreaInsets();
         const playlistRef = playlist.ref;
         const roomName = useSelector(
@@ -189,12 +189,8 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
         );
 
         function handleAddTrack() {
-            playlistRef.send({
-                type: 'ADD_TRACK',
-                id: datatype.uuid(),
-                artistName: name.findName(),
-                duration: 0,
-                title: name.findName(),
+            navigation.navigate('SearchTracks', {
+                id: playlistID,
             });
         }
 

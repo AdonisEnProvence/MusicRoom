@@ -13,6 +13,7 @@ import {
     MpeWorkflowState,
     MpeRoomClientToServerCreateArgs,
 } from '@musicroom/types';
+import Toast from 'react-native-toast-message';
 import { SocketClient } from '../contexts/SocketContext';
 import {
     createPlaylistMachine,
@@ -63,7 +64,15 @@ export const appMusicPlaylistsModel = createModel(
 const spawnPlaylistActor = appMusicPlaylistsModel.assign(
     {
         playlistsActorsRefs: ({ playlistsActorsRefs }, { state }) => {
-            const playlistMachine = createPlaylistMachine(state);
+            const playlistMachine = createPlaylistMachine({
+                initialState: state,
+                triggerSuccessfulAddingTrackToast: () => {
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Track added successfully',
+                    });
+                },
+            });
             const playlist: MusicPlaylist = {
                 id: state.roomID,
                 roomName: state.name,

@@ -189,19 +189,23 @@ type PlaylistMachine = ReturnType<typeof playlistModel['createMachine']>;
 
 export type PlaylistActorRef = ActorRefFrom<PlaylistMachine>;
 
-type CreatePlaylistMachineArgs = MpeWorkflowState;
+interface CreatePlaylistMachineArgs {
+    initialState: MpeWorkflowState;
+    triggerSuccessfulAddingTrackToast: () => void;
+}
 
-export function createPlaylistMachine(
-    state: CreatePlaylistMachineArgs,
-): PlaylistMachine {
-    const roomID = state.roomID;
+export function createPlaylistMachine({
+    initialState,
+    triggerSuccessfulAddingTrackToast,
+}: CreatePlaylistMachineArgs): PlaylistMachine {
+    const roomID = initialState.roomID;
 
     return createMachine({
         initial: 'idle',
 
         context: {
             ...playlistModel.initialContext,
-            state,
+            state: initialState,
         },
 
         states: {
@@ -312,7 +316,10 @@ export function createPlaylistMachine(
                             RECEIVED_TRACK_TO_ADD_CALLBACK: {
                                 target: 'debouncing',
 
-                                actions: [assignStateAfterAddingTracksSuccess],
+                                actions: [
+                                    assignStateAfterAddingTracksSuccess,
+                                    triggerSuccessfulAddingTrackToast,
+                                ],
                             },
                         },
                     },

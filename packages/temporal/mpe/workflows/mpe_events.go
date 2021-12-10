@@ -8,15 +8,15 @@ import (
 type MpeRoomInitialTrackFetchedEvent struct {
 	brainy.EventWithType
 
-	Track shared.TrackMetadata
+	Tracks []shared.TrackMetadata
 }
 
-func NewMpeRoomInitialTracksFetchedEvent(track shared.TrackMetadata) MpeRoomInitialTrackFetchedEvent {
+func NewMpeRoomInitialTracksFetchedEvent(tracks []shared.TrackMetadata) MpeRoomInitialTrackFetchedEvent {
 	return MpeRoomInitialTrackFetchedEvent{
 		EventWithType: brainy.EventWithType{
 			Event: MpeRoomInitialTracksFetched,
 		},
-		Track: track,
+		Tracks: tracks,
 	}
 }
 

@@ -4,12 +4,14 @@ import (
 	"github.com/Devessier/brainy"
 )
 
-func assignInitialFetchedTrack(internalState *MpeRoomInternalState) brainy.Action {
+func assignInitialFetchedTracks(internalState *MpeRoomInternalState) brainy.Action {
 	return func(c brainy.Context, e brainy.Event) error {
 		event := e.(MpeRoomInitialTrackFetchedEvent)
 
 		internalState.Tracks.Clear()
-		internalState.Tracks.Add(event.Track)
+		for _, fetchedTrack := range event.Tracks {
+			internalState.Tracks.Add(fetchedTrack)
+		}
 
 		return nil
 	}

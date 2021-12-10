@@ -19,10 +19,10 @@ type InternalStateUser struct {
 }
 
 type MpeRoomParameters struct {
-	RoomID            string `validate:"required"`
-	RoomCreatorUserID string `validate:"required"`
-	RoomName          string `validate:"required"`
-	InitialTrackID    string `validate:"required"`
+	RoomID            string   `validate:"required"`
+	RoomCreatorUserID string   `validate:"required"`
+	RoomName          string   `validate:"required"`
+	InitialTracksIDs  []string `validate:"min=1,required,dive,required"`
 
 	CreatorUserRelatedInformation *InternalStateUser
 	IsOpen                        bool

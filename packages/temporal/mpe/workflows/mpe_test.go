@@ -21,13 +21,14 @@ type CreateMpeWorkflowTestUnit struct {
 }
 
 func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflow() {
-	params, _ := s.getWorkflowInitParams("just a track id")
-	tracksIDs := []string{
-		params.InitialTrackID,
+	initialTracksIDs := []string{
+		faker.UUIDHyphenated(),
 	}
+	params, _ := s.getWorkflowInitParams(initialTracksIDs)
+
 	tracks := []shared.TrackMetadata{
 		{
-			ID:         faker.UUIDHyphenated(),
+			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
 			Duration:   42000,
@@ -42,7 +43,7 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflow() {
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
 		mock.Anything,
-		tracksIDs,
+		initialTracksIDs,
 	).Return(tracks, nil).Once()
 	s.env.OnActivity(
 		activities_mpe.MpeCreationAcknowledgementActivity,
@@ -76,9 +77,89 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflow() {
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
+func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflowWithSeveralInitialTracksIDs() {
+	initialTracksIDs := []string{
+		faker.UUIDHyphenated(),
+		faker.UUIDHyphenated(),
+		faker.UUIDHyphenated(),
+		faker.UUIDHyphenated(),
+	}
+	params, _ := s.getWorkflowInitParams(initialTracksIDs)
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         initialTracksIDs[0],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+		{
+			ID:         initialTracksIDs[1],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+		{
+			ID:         initialTracksIDs[2],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+		{
+			ID:         initialTracksIDs[3],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+	}
+
+	defaultDuration := 200 * time.Millisecond
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		initialTracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		activities_mpe.MpeCreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
+	checkOnlyOneUser := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+		expectedTracks := tracks
+		expectedExposedMpeState := shared_mpe.MpeRoomExposedState{
+			IsOpen:                        params.IsOpen,
+			IsOpenOnlyInvitedUsersCanEdit: params.IsOpenOnlyInvitedUsersCanEdit,
+			RoomCreatorUserID:             params.RoomCreatorUserID,
+			RoomID:                        params.RoomID,
+			RoomName:                      params.RoomName,
+			UsersLength:                   1,
+			Tracks:                        expectedTracks,
+			PlaylistTotalDuration:         42000, //tmp
+		}
+
+		s.Equal(expectedExposedMpeState, mpeState)
+	}, checkOnlyOneUser)
+
+	s.env.ExecuteWorkflow(MpeRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
 func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflowFailIsOpenOnlyInvitedUsersCanEditTrueButIsOpenFalse() {
 
-	params, _ := s.getWorkflowInitParams("just a track id")
+	initialTracksIDs := []string{
+		faker.UUIDHyphenated(),
+	}
+	params, _ := s.getWorkflowInitParams(initialTracksIDs)
 	params.IsOpenOnlyInvitedUsersCanEdit = true
 	params.IsOpen = false
 
@@ -99,8 +180,11 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflowFailIsOpenOnlyInvitedU
 //Below testing only initialTrackID but also parsing others params field in reality
 func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflowFailValidateParamsFailed() {
 
-	params, _ := s.getWorkflowInitParams("just a track id")
-	params.InitialTrackID = ""
+	initialTracksIDs := []string{
+		faker.UUIDHyphenated(),
+	}
+	params, _ := s.getWorkflowInitParams(initialTracksIDs)
+	params.InitialTracksIDs = []string{}
 
 	resetMock, _ := s.initTestEnv()
 
@@ -117,10 +201,10 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflowFailValidateParamsFail
 }
 
 func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflowFetchInitialTrackFailed() {
-	params, _ := s.getWorkflowInitParams("just a track id")
-	tracksIDs := []string{
-		params.InitialTrackID,
+	initialTracksIDs := []string{
+		faker.UUIDHyphenated(),
 	}
+	params, _ := s.getWorkflowInitParams(initialTracksIDs)
 
 	defaultDuration := 1 * time.Millisecond
 	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
@@ -130,7 +214,7 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflowFetchInitialTrackFaile
 	s.env.OnActivity(
 		activities.FetchTracksInformationActivity,
 		mock.Anything,
-		tracksIDs,
+		initialTracksIDs,
 	).Return(nil, nil).Once()
 
 	checkOnlyOneUser := defaultDuration

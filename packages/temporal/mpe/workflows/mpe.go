@@ -139,7 +139,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 					brainy.ActionFn(
 						func(c brainy.Context, e brainy.Event) error {
 
-							fetchedInitialTracksFuture = sendFetchTracksInformationActivity(ctx, internalState.initialParams.InitialTrackID)
+							fetchedInitialTracksFuture = sendFetchTracksInformationActivity(ctx, internalState.initialParams.InitialTracksIDs)
 
 							return nil
 						},
@@ -152,7 +152,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 
 						Actions: brainy.Actions{
 							brainy.ActionFn(
-								assignInitialFetchedTrack(&internalState),
+								assignInitialFetchedTracks(&internalState),
 							),
 							brainy.ActionFn(
 								func(c brainy.Context, e brainy.Event) error {
@@ -315,17 +315,11 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 					return
 				}
 
-				if len(initialTrackActivityResult) != 1 {
-					logger.Error("error occured initialTrackActivityResult", err)
-
-					return
-				}
-
 				fmt.Println("**********************************")
 				fmt.Printf("\n%+v\n", initialTrackActivityResult)
 				fmt.Println("**********************************")
 				internalState.Machine.Send(
-					NewMpeRoomInitialTracksFetchedEvent(initialTrackActivityResult[0]),
+					NewMpeRoomInitialTracksFetchedEvent(initialTrackActivityResult),
 				)
 			})
 		}

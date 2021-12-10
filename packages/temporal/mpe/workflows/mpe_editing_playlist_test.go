@@ -19,11 +19,10 @@ type EditingPlaylistTestSuite struct {
 }
 
 func (s *EditingPlaylistTestSuite) Test_AddTracks() {
-	params, _ := s.getWorkflowInitParams(faker.UUIDHyphenated())
-	roomCreatorDeviceID := faker.UUIDHyphenated()
 	initialTracksIDs := []string{
-		params.InitialTrackID,
+		faker.UUIDHyphenated(),
 	}
+	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
 	initialTracksMetadata := []shared.TrackMetadata{
 		{
 			ID:         initialTracksIDs[0],
@@ -123,11 +122,11 @@ func (s *EditingPlaylistTestSuite) Test_AddTracks() {
 }
 
 func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistBeforeFetchingInformationFails() {
-	params, _ := s.getWorkflowInitParams(faker.UUIDHyphenated())
-	roomCreatorDeviceID := faker.UUIDHyphenated()
 	initialTracksIDs := []string{
-		params.InitialTrackID,
+		faker.UUIDHyphenated(),
 	}
+	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+
 	initialTracksMetadata := []shared.TrackMetadata{
 		{
 			ID:         initialTracksIDs[0],
@@ -202,11 +201,11 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistBeforeFetchi
 }
 
 func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchingInformationSucceedsIfNotAllTracksAreDuplicated() {
-	params, _ := s.getWorkflowInitParams(faker.UUIDHyphenated())
-	roomCreatorDeviceID := faker.UUIDHyphenated()
 	initialTracksIDs := []string{
-		params.InitialTrackID,
+		faker.UUIDHyphenated(),
 	}
+	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+
 	initialTracksMetadata := []shared.TrackMetadata{
 		{
 			ID:         initialTracksIDs[0],
@@ -344,11 +343,11 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchin
 }
 
 func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchingInformationFailsIfAllTracksAreDuplicated() {
-	params, _ := s.getWorkflowInitParams(faker.UUIDHyphenated())
-	roomCreatorDeviceID := faker.UUIDHyphenated()
 	initialTracksIDs := []string{
-		params.InitialTrackID,
+		faker.UUIDHyphenated(),
 	}
+	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+
 	initialTracksMetadata := []shared.TrackMetadata{
 		{
 			ID:         initialTracksIDs[0],

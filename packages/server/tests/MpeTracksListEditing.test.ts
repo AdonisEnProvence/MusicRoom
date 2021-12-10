@@ -97,6 +97,7 @@ test.group('MPE Rooms Tracks List Editing', (group) => {
             .callsFake(async ({ deviceID }) => {
                 setTimeout(async function simulateFail() {
                     const body: MpeRejectAddingTracksRequestBody = {
+                        userID: creatorUserID,
                         deviceID,
                         roomID,
                     };
@@ -173,6 +174,7 @@ test.group('MPE Rooms Tracks List Editing', (group) => {
             .callsFake(async ({ deviceID }) => {
                 setTimeout(async function simulateFail() {
                     const body: MpeAcknowledgeAddingTracksRequestBody = {
+                        userID: creatorUserID,
                         deviceID,
                         state: roomState,
                     };
@@ -253,6 +255,7 @@ test.group('MPE Rooms Tracks List Editing', (group) => {
                 .callsFake(async ({ deviceID }) => {
                     setTimeout(async function simulateFail() {
                         const body: MpeAcknowledgeAddingTracksRequestBody = {
+                            userID: creatorUserID,
                             deviceID,
                             state: roomState,
                         };
@@ -283,9 +286,9 @@ test.group('MPE Rooms Tracks List Editing', (group) => {
             );
 
             const userASocket2TracksListUpdateSpy =
-                sinon.spy<
-                    AllServerToClientEvents['MPE_ADD_TRACKS_SUCCESS_CALLBACK']
-                >(noop);
+                sinon.spy<AllServerToClientEvents['MPE_TRACKS_LIST_UPDATE']>(
+                    noop,
+                );
             userASocket2.on(
                 'MPE_TRACKS_LIST_UPDATE',
                 userASocket2TracksListUpdateSpy,
@@ -341,6 +344,7 @@ test.group('MPE Rooms Tracks List Editing', (group) => {
                 .callsFake(async ({ deviceID }) => {
                     setTimeout(async function simulateFail() {
                         const body: MpeAcknowledgeAddingTracksRequestBody = {
+                            userID: creatorUserID,
                             deviceID,
                             state: roomState,
                         };
@@ -371,9 +375,9 @@ test.group('MPE Rooms Tracks List Editing', (group) => {
             );
 
             const userBSocket1TracksListUpdateSpy =
-                sinon.spy<
-                    AllServerToClientEvents['MPE_ADD_TRACKS_SUCCESS_CALLBACK']
-                >(noop);
+                sinon.spy<AllServerToClientEvents['MPE_TRACKS_LIST_UPDATE']>(
+                    noop,
+                );
             userBSocket1.on(
                 'MPE_TRACKS_LIST_UPDATE',
                 userBSocket1TracksListUpdateSpy,

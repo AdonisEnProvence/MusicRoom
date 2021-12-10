@@ -192,6 +192,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 									if noTracksHaveBeenAccepted {
 										sendRejectAddingTracksActivity(ctx, activities_mpe.RejectAddingTracksActivityArgs{
 											RoomID:   params.RoomID,
+											UserID:   event.UserID,
 											DeviceID: event.DeviceID,
 										})
 
@@ -231,6 +232,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 									if allTracksAreDuplicated {
 										sendRejectAddingTracksActivity(ctx, activities_mpe.RejectAddingTracksActivityArgs{
 											RoomID:   params.RoomID,
+											UserID:   event.UserID,
 											DeviceID: event.DeviceID,
 										})
 
@@ -243,6 +245,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 
 									sendAcknowledgeAddingTracksActivity(ctx, activities_mpe.AcknowledgeAddingTracksActivityArgs{
 										State:    internalState.Export(),
+										UserID:   event.UserID,
 										DeviceID: event.DeviceID,
 									})
 

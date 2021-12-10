@@ -19,11 +19,13 @@ var (
 
 type RejectAddingTracksActivityArgs struct {
 	RoomID   string `json:"roomID"`
+	UserID   string `json:"userID"`
 	DeviceID string `json:"deviceID"`
 }
 
 type AcknowledgeAddingTracksActivityArgs struct {
 	State    shared_mpe.MpeRoomExposedState `json:"state"`
+	UserID   string                         `json:"userID"`
 	DeviceID string                         `json:"deviceID"`
 }
 

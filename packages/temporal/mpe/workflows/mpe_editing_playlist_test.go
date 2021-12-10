@@ -163,6 +163,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistBeforeFetchi
 		mock.Anything,
 		activities_mpe.RejectAddingTracksActivityArgs{
 			RoomID:   params.RoomID,
+			UserID:   params.RoomCreatorUserID,
 			DeviceID: roomCreatorDeviceID,
 		},
 	).Return(nil).Once()
@@ -439,6 +440,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchin
 		mock.Anything,
 		activities_mpe.RejectAddingTracksActivityArgs{
 			RoomID:   params.RoomID,
+			UserID:   params.RoomCreatorUserID,
 			DeviceID: roomCreatorDeviceID,
 		},
 	).Return(nil).Once()

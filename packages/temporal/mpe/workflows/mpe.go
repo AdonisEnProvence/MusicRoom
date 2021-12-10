@@ -184,6 +184,8 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 			MpeRoomReady: &brainy.StateNode{
 				On: brainy.Events{
 					MpeRoomAddTracksEventType: brainy.Transition{
+						//Add cond here ( user exists and user has been invited nor is creator )
+
 						Actions: brainy.Actions{
 							brainy.ActionFn(
 								func(c brainy.Context, e brainy.Event) error {

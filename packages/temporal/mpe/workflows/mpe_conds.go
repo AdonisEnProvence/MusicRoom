@@ -7,25 +7,38 @@ import (
 	"github.com/Devessier/brainy"
 )
 
+func userExistsAndUserCanEditTheTracksList(internalState *MpeRoomInternalState, UserID string) bool {
+	user := internalState.GetUserRelatedInformation(UserID)
+	fmt.Println("CECI EST LE USER", user)
+	if user == nil {
+		fmt.Println("userCanPerformEditionOperationOnTheTracksList user not found")
+		return false
+	}
+
+	roomIsOpenAndOnlyInvitedUsersCanEdit := internalState.getRoomIsOpenAndOnlyInvitedUsersCanEdit()
+	if roomIsOpenAndOnlyInvitedUsersCanEdit {
+
+		userHasNotBeenInvited := !user.UserHasBeenInvited
+		userIsNotTheRoomCreator := internalState.initialParams.RoomCreatorUserID != UserID
+		if userHasNotBeenInvited && userIsNotTheRoomCreator {
+			fmt.Println("userCanPerformEditionOperationOnTheTracksList user has not been invited and only invited users can edit is true")
+			return false
+		}
+	}
+
+	return true
+}
+
 //The event listener will send back a reject activity if this condition is false
 func userCanPerformChangeTrackPlaylistEditionOperation(internalState *MpeRoomInternalState) brainy.Cond {
 	return func(c brainy.Context, e brainy.Event) bool {
 		event := e.(MpeRoomChangeTrackOrderEvent)
 
-		user := internalState.GetUserRelatedInformation(event.UserID)
-		if user == nil {
-			fmt.Println("userCanPerformChangeTrackPlaylistEditionOperation user not found")
+		//Note that even if the user doesnot exist we will still send back a reject activity
+		userDoesnotExistsOrUserCannotEditTheTracksList := !userExistsAndUserCanEditTheTracksList(internalState, event.UserID)
+		if userDoesnotExistsOrUserCannotEditTheTracksList {
+			fmt.Println("userCanPerformChangeTrackPlaylistEditionOperation user doesnot exist or cannot edit the playlist")
 			return false
-		}
-
-		roomIsOpenAndOnlyInvitedUsersCanEdit := internalState.getRoomIsOpenAndOnlyInvitedUsersCanEdit()
-		if roomIsOpenAndOnlyInvitedUsersCanEdit {
-
-			userHasNotBeenInvited := !user.UserHasBeenInvited
-			if userHasNotBeenInvited {
-				fmt.Println("userCanPerformChangeTrackPlaylistEditionOperation user has not been invited")
-				return false
-			}
 		}
 
 		trackCurrentIndexFromTracksSet := internalState.Tracks.IndexOf(event.TrackID)

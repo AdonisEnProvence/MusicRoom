@@ -174,9 +174,7 @@ type MpeChangeTrackOrderRequestBody struct {
 	UserID           string                              `json:"userID" validate:"required"`
 	DeviceID         string                              `json:"deviceID" validate:"required"`
 	OperationToApply shared_mpe.MpeOperationToApplyValue `json:"operationToApply" validate:"required"`
-
-	//Using a pointer on int to avoid validator to throw an error with fromIndex = 0
-	FromIndex *int `json:"fromIndex" validate:"required"`
+	FromIndex        int                                 `json:"fromIndex" validate:"min=0"`
 }
 
 func MpeChangeTrackOrderHandler(w http.ResponseWriter, r *http.Request) {

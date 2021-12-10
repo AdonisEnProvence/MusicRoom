@@ -4,7 +4,6 @@ import { useSelector } from '@xstate/react';
 import { FlatList, TouchableOpacity } from 'react-native';
 import { useSx, Text, View } from 'dripsy';
 import { View as MotiView } from 'moti';
-import { datatype, name } from 'faker';
 import { Ionicons } from '@expo/vector-icons';
 import {
     AppScreen,
@@ -13,7 +12,7 @@ import {
     Typo,
 } from '../../components/kit';
 import { MpeTabMpeRoomScreenProps } from '../../types';
-import { useMusicPlaylistsActor } from '../../hooks/useMusicPlaylistsActor';
+import { usePlaylist } from '../../hooks/useMusicPlaylistsActor';
 import { MusicPlaylist } from '../../machines/appMusicPlaylistsMachine';
 import TrackListItem from '../../components/Track/TrackListItem';
 import { PlaylistActorRef } from '../../machines/playlistMachine';
@@ -300,15 +299,8 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
 const MusicPlaylistEditorRoomWrapper: React.FC<MpeTabMpeRoomScreenProps> = (
     props,
 ) => {
-    const { appMusicPlaylistsActorRef } = useMusicPlaylistsActor();
     const playlistID = props.route.params.id;
-    const playlist = useSelector(appMusicPlaylistsActorRef, (state) =>
-        state.context.playlistsActorsRefs.find(({ id }) => id === playlistID),
-    );
-
-    if (playlist === undefined) {
-        return null;
-    }
+    const playlist = usePlaylist(playlistID);
 
     return <MusicPlaylistEditorRoomScreen {...props} playlist={playlist} />;
 };

@@ -14,6 +14,7 @@ func userCanPerformChangeTrackPlaylistEditionOperation(internalState *MpeRoomInt
 
 		user := internalState.GetUserRelatedInformation(event.UserID)
 		if user == nil {
+			fmt.Println("userCanPerformChangeTrackPlaylistEditionOperation user not found")
 			return false
 		}
 
@@ -22,35 +23,39 @@ func userCanPerformChangeTrackPlaylistEditionOperation(internalState *MpeRoomInt
 
 			userHasNotBeenInvited := !user.UserHasBeenInvited
 			if userHasNotBeenInvited {
+				fmt.Println("userCanPerformChangeTrackPlaylistEditionOperation user has not been invited")
 				return false
 			}
 		}
 
-		trackCurrentIndexFromTracksSet, err := internalState.Tracks.IndexOf(event.TrackID)
-		if err || trackCurrentIndexFromTracksSet == -1 {
+		trackCurrentIndexFromTracksSet := internalState.Tracks.IndexOf(event.TrackID)
+		if trackCurrentIndexFromTracksSet == -1 {
+			fmt.Println("userCanPerformChangeTrackPlaylistEditionOperation track not found")
 			return false
 		}
 
 		givenTrackIndexIsOutdated := trackCurrentIndexFromTracksSet != event.FromIndex
 		if givenTrackIndexIsOutdated {
+			fmt.Println("userCanPerformChangeTrackPlaylistEditionOperation given fromIndex is outdated")
 			return false
 		}
 
 		switch event.OperationToApply {
 		case shared_mpe.MpeOperationToApplyUp:
 
-			fmt.Println("CHECK UP")
 			if indexDoesNotFitTracksRange := !internalState.Tracks.GivenIndexFitTracksRange(event.FromIndex - 1); indexDoesNotFitTracksRange {
-				fmt.Println("CHECK UP FAILED")
+				fmt.Println("userCanPerformChangeTrackPlaylistEditionOperation Index doesNotFitTracksRange")
 				return false
 			}
 		case shared_mpe.MpeOperationToApplyDown:
 
-			fmt.Println("CHECK DOWN")
 			if indexDoesNotFitTracksRange := !internalState.Tracks.GivenIndexFitTracksRange(event.FromIndex + 1); indexDoesNotFitTracksRange {
-				fmt.Println("CHECK DOWN FAILED")
+				fmt.Println("userCanPerformChangeTrackPlaylistEditionOperation Index doesNotFitTracksRange")
 				return false
 			}
+		default:
+			fmt.Println("userCanPerformChangeTrackPlaylistEditionOperation event.OperationToApply unkown value")
+			return false
 		}
 
 		return true

@@ -36,8 +36,7 @@ type ChangeTrackOrderSignal struct {
 	UserID           string                   `validate:"required"`
 	DeviceID         string                   `validate:"required"`
 	OperationToApply MpeOperationToApplyValue `validate:"required"`
-	//Using a pointer on int to avoid validator to throw an error with fromIndex = 0
-	FromIndex *int `json:"fromIndex" validate:"required"`
+	FromIndex        int                      `validate:"min=0"`
 }
 
 type NewChangeTrackOrderSignalArgs struct {
@@ -45,8 +44,7 @@ type NewChangeTrackOrderSignalArgs struct {
 	UserID           string
 	DeviceID         string
 	OperationToApply MpeOperationToApplyValue
-	//Using a pointer on int to avoid validator to throw an error with fromIndex = 0
-	FromIndex *int `json:"fromIndex" validate:"required"`
+	FromIndex        int `validate:"min=0"`
 }
 
 func NewChangeTrackOrderSignal(args NewChangeTrackOrderSignalArgs) ChangeTrackOrderSignal {
@@ -56,5 +54,6 @@ func NewChangeTrackOrderSignal(args NewChangeTrackOrderSignalArgs) ChangeTrackOr
 		UserID:           args.UserID,
 		DeviceID:         args.DeviceID,
 		OperationToApply: args.OperationToApply,
+		FromIndex:        args.FromIndex,
 	}
 }

@@ -341,7 +341,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 				)
 			case shared_mpe.SignalChangeTrackOrder:
 				var message shared_mpe.ChangeTrackOrderSignal
-
+				fmt.Printf("\n RECEIVED SIGNAL SignalChangeTrackOrder \n%+v\n", signal)
 				if err := mapstructure.Decode(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
@@ -350,6 +350,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 					logger.Error("Validation error: %v", err)
 					return
 				}
+				fmt.Printf("\n RECEIVED SIGNAL SignalChangeTrackOrder \n%+v\n", message)
 
 				operationToApplyIsNotValid := !message.OperationToApply.IsValid()
 				if operationToApplyIsNotValid {
@@ -363,7 +364,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 						UserID:           message.UserID,
 						DeviceID:         message.DeviceID,
 						OperationToApply: message.OperationToApply,
-						FromIndex:        *message.FromIndex,
+						FromIndex:        message.FromIndex,
 					}),
 				)
 			}

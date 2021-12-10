@@ -109,14 +109,14 @@ func (s *TrackMetadataSet) Values() []shared.TrackMetadata {
 }
 
 //Returns -1 if element is not found
-func (s *TrackMetadataSet) IndexOf(trackID string) (int, bool) {
+func (s *TrackMetadataSet) IndexOf(trackID string) int {
 	for index, track := range s.tracks {
 		if track.ID == trackID {
-			return index, true
+			return index
 		}
 	}
 
-	return -1, false
+	return -1
 }
 
 func inBetweenMinMaxIncluded(i, min, max int) bool {

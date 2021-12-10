@@ -52,6 +52,10 @@ export const appMusicPlaylistsModel = createModel(
                 trackID,
             }),
             SENT_TRACK_TO_ADD_TO_SERVER: (roomID: string) => ({ roomID }),
+            RECEIVED_ADD_TRACKS_SUCCESS_CALLBACK: (args: {
+                roomID: string;
+                state: MpeWorkflowState;
+            }) => args,
         },
     },
 );
@@ -116,6 +120,17 @@ export function createAppMusicPlaylistsMachine({
                         });
                     });
 
+                    socket.on(
+                        'MPE_ADD_TRACKS_SUCCESS_CALLBACK',
+                        ({ roomID, state }) => {
+                            sendBack({
+                                type: 'RECEIVED_ADD_TRACKS_SUCCESS_CALLBACK',
+                                roomID,
+                                state,
+                            });
+                        },
+                    );
+
                     onReceive((event) => {
                         switch (event.type) {
                             case 'CREATE_ROOM': {
@@ -166,6 +181,19 @@ export function createAppMusicPlaylistsMachine({
                     SENT_TRACK_TO_ADD_TO_SERVER: {
                         actions: send(
                             playlistModel.events.SENT_TRACK_TO_ADD_TO_SERVER(),
+                            {
+                                to: (_, { roomID }) =>
+                                    getPlaylistMachineActorName(roomID),
+                            },
+                        ),
+                    },
+
+                    RECEIVED_ADD_TRACKS_SUCCESS_CALLBACK: {
+                        actions: send(
+                            (_, { state }) =>
+                                playlistModel.events.RECEIVED_TRACK_TO_ADD_CALLBACK(
+                                    { state },
+                                ),
                             {
                                 to: (_, { roomID }) =>
                                     getPlaylistMachineActorName(roomID),

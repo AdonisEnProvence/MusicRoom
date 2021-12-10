@@ -28,6 +28,9 @@ export const playlistModel = createModel(
         events: {
             ADD_TRACK: (trackID: string) => ({ trackID }),
             SENT_TRACK_TO_ADD_TO_SERVER: () => ({}),
+            RECEIVED_TRACK_TO_ADD_CALLBACK: (args: {
+                state: MpeWorkflowState;
+            }) => args,
 
             MOVE_UP_TRACK: (trackID: string) => ({ trackID }),
             MOVE_DOWN_TRACK: (trackID: string) => ({ trackID }),
@@ -43,6 +46,13 @@ const assignTrackIDToAdd = playlistModel.assign(
         trackIDToAdd: (_, { trackID }) => trackID,
     },
     'ADD_TRACK',
+);
+
+const assignStateAfterAddingTracksSuccess = playlistModel.assign(
+    {
+        state: (_, { state }) => state,
+    },
+    'RECEIVED_TRACK_TO_ADD_CALLBACK',
 );
 
 const assignTrackToMoveUp = playlistModel.assign(
@@ -298,11 +308,11 @@ export function createPlaylistMachine(
                     },
 
                     waitingForServerAcknowledgement: {
-                        after: {
-                            200: {
+                        on: {
+                            RECEIVED_TRACK_TO_ADD_CALLBACK: {
                                 target: 'debouncing',
 
-                                actions: assignTrackToTracksList,
+                                actions: [assignStateAfterAddingTracksSuccess],
                             },
                         },
                     },

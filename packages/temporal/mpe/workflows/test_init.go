@@ -62,7 +62,7 @@ func (s *UnitTestSuite) initTestEnv() (func(), func(callback func(), durationToA
 
 //Tests tools
 
-func (s *UnitTestSuite) getWorkflowInitParams(trackID string) (shared_mpe.MpeRoomParameters, string) {
+func (s *UnitTestSuite) getWorkflowInitParams(tracksIDs []string) (shared_mpe.MpeRoomParameters, string) {
 	var (
 		workflowID          = faker.UUIDHyphenated()
 		roomCreatorUserID   = faker.UUIDHyphenated()
@@ -81,7 +81,7 @@ func (s *UnitTestSuite) getWorkflowInitParams(trackID string) (shared_mpe.MpeRoo
 		CreatorUserRelatedInformation: creatorUserRelatedInformation,
 		IsOpen:                        true,
 		IsOpenOnlyInvitedUsersCanEdit: false,
-		InitialTrackID:                trackID,
+		InitialTracksIDs:              tracksIDs,
 	}, roomCreatorDeviceID
 }
 

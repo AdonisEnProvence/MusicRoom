@@ -8,7 +8,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func sendFetchTracksInformationActivity(ctx workflow.Context, trackID string) workflow.Future {
+func sendFetchTracksInformationActivity(ctx workflow.Context, tracksIDs []string) workflow.Future {
 
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
@@ -19,9 +19,7 @@ func sendFetchTracksInformationActivity(ctx workflow.Context, trackID string) wo
 	return workflow.ExecuteActivity(
 		ctx,
 		activities.FetchTracksInformationActivity,
-		[]string{
-			trackID,
-		},
+		tracksIDs,
 	)
 }
 

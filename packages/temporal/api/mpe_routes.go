@@ -70,7 +70,7 @@ func createMpeRoomHandler(w http.ResponseWriter, r *http.Request) {
 		RoomCreatorUserID:             body.UserID,
 		RoomName:                      body.Name,
 		CreatorUserRelatedInformation: creatorUserRelatedInformation,
-		InitialTrackID:                initialTrackID,
+		InitialTracksIDs:              []string{initialTrackID},
 		IsOpen:                        body.IsOpen,
 		IsOpenOnlyInvitedUsersCanEdit: body.IsOpenOnlyInvitedUsersCanEdit,
 	}

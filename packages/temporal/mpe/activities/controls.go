@@ -81,7 +81,7 @@ type AcknowledgeChangeTrackOrderActivityArgs struct {
 	UserID   string                         `json:"userID"`
 }
 
-func AcknowledgeChangeTrackOrderActivity(ctx context.Context, args AcknowledgeChangeTrackOrderActivityArgs) error {
+func (a *Activities) AcknowledgeChangeTrackOrderActivity(ctx context.Context, args AcknowledgeChangeTrackOrderActivityArgs) error {
 	requestBody := args
 
 	marshaledBody, err := json.Marshal(requestBody)
@@ -95,7 +95,7 @@ func AcknowledgeChangeTrackOrderActivity(ctx context.Context, args AcknowledgeCh
 	return err
 }
 
-func RejectChangeTrackOrderActivity(ctx context.Context, args RejectChangeTrackOrderActivityArgs) error {
+func (a *Activities) RejectChangeTrackOrderActivity(ctx context.Context, args RejectChangeTrackOrderActivityArgs) error {
 	requestBody := args
 
 	marshaledBody, err := json.Marshal(requestBody)

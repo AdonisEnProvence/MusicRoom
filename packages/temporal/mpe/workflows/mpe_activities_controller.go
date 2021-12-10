@@ -76,9 +76,10 @@ func sendRejectChangeTrackOrderActivity(ctx workflow.Context, args activities_mp
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	var a *activities_mpe.Activities
 	workflow.ExecuteActivity(
 		ctx,
-		activities_mpe.RejectChangeTrackOrderActivity,
+		a.RejectChangeTrackOrderActivity,
 		args,
 	)
 }
@@ -90,9 +91,10 @@ func sendAcknowledgeChangeTrackOrderActivity(ctx workflow.Context, args activiti
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	var a *activities_mpe.Activities
 	workflow.ExecuteActivity(
 		ctx,
-		activities_mpe.AcknowledgeChangeTrackOrderActivity,
+		a.AcknowledgeChangeTrackOrderActivity,
 		args,
 	)
 }

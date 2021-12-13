@@ -160,7 +160,18 @@ async function joinerJoinsRoom({
     await miniPlayerWithRoomName.click();
 }
 
-async function joinerSuggestsTrack({ joinerPage }: { joinerPage: Page }) {
+async function joinerSuggestsTrack({
+    joinerPage,
+    query,
+    trackToSelect,
+}: {
+    joinerPage: Page;
+    query: string;
+    //After a long test the specific searched track to select could be
+    //Displayed a lot, picking the last nth on first matching element
+    //wouldnot be accurate anymore
+    trackToSelect?: string;
+}) {
     const suggestTrackButton = joinerPage.locator(
         'css=[aria-label="Suggest a track"]',
     );
@@ -177,13 +188,14 @@ async function joinerSuggestsTrack({ joinerPage }: { joinerPage: Page }) {
     );
     await expect(searchTrackInput).toBeVisible();
 
-    const searchedTrackName = 'Biolay - Vendredi 12';
+    // const searchedTrackName = ;
+    const searchedTrackName = query;
     await searchTrackInput.fill(searchedTrackName);
     await joinerPage.keyboard.press('Enter');
 
     const firstMatchingSong = joinerPage
-        .locator(`text=${searchedTrackName}`)
-        .first();
+        .locator(`text=${trackToSelect ?? searchedTrackName} >> visible=true`)
+        .last();
     await expect(firstMatchingSong).toBeVisible();
 
     const selectedSongTitle = await firstMatchingSong.textContent();
@@ -254,19 +266,6 @@ async function creatorGoesToNextTrack({ creatorPage }: { creatorPage: Page }) {
     await expect(goToNextTrackButton).toBeVisible();
 
     await goToNextTrackButton.click();
-}
-
-async function joinerVotesForInitialTrack({
-    joinerPage,
-    initialTrack,
-}: {
-    joinerPage: Page;
-    initialTrack: string;
-}) {
-    const trackToVoteForElement = joinerPage.locator(`text=${initialTrack}`);
-    await expect(trackToVoteForElement).toBeVisible();
-
-    await trackToVoteForElement.click();
 }
 
 async function waitForVideoToBePausedForUserWithControl(page: Page) {
@@ -358,7 +357,10 @@ test('Test A', async ({ browser }) => {
 
     await joinerJoinsRoom({ joinerPage, roomName });
 
-    const { joinerSuggestedTrack } = await joinerSuggestsTrack({ joinerPage });
+    const { joinerSuggestedTrack } = await joinerSuggestsTrack({
+        joinerPage,
+        query: 'Biolay - Vendredi 12',
+    });
 
     await Promise.all([
         waitForYouTubeVideoToLoad(creatorPage),
@@ -372,9 +374,10 @@ test('Test A', async ({ browser }) => {
 
     await creatorPausesTrack({ creatorPage, joinerPage });
 
-    await joinerVotesForInitialTrack({
+    await joinerSuggestsTrack({
         joinerPage,
-        initialTrack,
+        query: 'BB Brunes',
+        trackToSelect: knownSearches['BB Brunes'][0].title,
     });
 
     await Promise.all([

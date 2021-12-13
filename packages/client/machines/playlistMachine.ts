@@ -44,10 +44,6 @@ export const playlistModel = createModel(
             DELETE_TRACK: (trackID: string) => ({ trackID }),
             ASSIGN_MERGE_NEW_STATE: (state: MpeWorkflowState) => ({ state }),
         },
-        actions: {
-            triggerSuccessfulAddingTrackToast: () => ({}),
-            triggerFailureAddingTrackToast: () => ({}),
-        },
     },
 );
 

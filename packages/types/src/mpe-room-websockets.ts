@@ -53,11 +53,18 @@ export type MpeRoomClientToServerChangeTrackOrderUpDownArgs = z.infer<
 >;
 
 export const MpeRoomServerToClientChangeTrackFailCallbackArgs = z.object({
-    deviceID: z.string().uuid(),
-    userID: z.string().uuid(),
+    roomID: z.string().uuid(),
 });
 export type MpeRoomServerToClientChangeTrackFailCallbackArgs = z.infer<
     typeof MpeRoomServerToClientChangeTrackFailCallbackArgs
+>;
+
+export const MpeRoomServerToClientChangeTrackSuccessCallbackARgs = z.object({
+    roomID: z.string().uuid(),
+    state: MpeWorkflowState,
+});
+export type MpeRoomServerToClientChangeTrackSuccessCallbackARgs = z.infer<
+    typeof MpeRoomServerToClientChangeTrackSuccessCallbackARgs
 >;
 
 export interface MpeRoomClientToServerEvents {
@@ -84,6 +91,10 @@ export interface MpeRoomServerToClientEvents {
     MPE_ADD_TRACKS_SUCCESS_CALLBACK: (
         args: MpeRoomServerToClientTracksSuccessCallbackArgs,
     ) => void;
-    MPE_CHANGE_TRACK_ORDER_SUCCESS_CALLBACK: (state: MpeWorkflowState) => void;
-    MPE_CHANGE_TRACK_ORDER_FAIL_CALLBACK: () => void;
+    MPE_CHANGE_TRACK_ORDER_SUCCESS_CALLBACK: (
+        args: MpeRoomServerToClientChangeTrackSuccessCallbackARgs,
+    ) => void;
+    MPE_CHANGE_TRACK_ORDER_FAIL_CALLBACK: (
+        args: MpeRoomServerToClientChangeTrackFailCallbackArgs,
+    ) => void;
 }

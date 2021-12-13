@@ -1,4 +1,3 @@
-import { userAgent } from '@googlemaps/google-maps-services-js';
 import {
     MpeChangeTrackOrderOperationToApply,
     MpeRoomClientToServerAddTracksArgs,
@@ -88,10 +87,10 @@ export default function initMpeSocketEventListeners(socket: TypedSocket): void {
     });
 
     socket.on('MPE_CHANGE_TRACK_ORDER_DOWN', async (raw) => {
-        try {
-            const { fromIndex, trackID, roomID } =
-                MpeRoomClientToServerChangeTrackOrderUpDownArgs.parse(raw);
+        const { fromIndex, trackID, roomID } =
+            MpeRoomClientToServerChangeTrackOrderUpDownArgs.parse(raw);
 
+        try {
             const { user, deviceID } =
                 await SocketLifecycle.getSocketConnectionCredentials(socket);
 
@@ -112,15 +111,17 @@ export default function initMpeSocketEventListeners(socket: TypedSocket): void {
         } catch (e) {
             console.error(e);
 
-            socket.emit('MPE_CHANGE_TRACK_ORDER_FAIL_CALLBACK');
+            socket.emit('MPE_CHANGE_TRACK_ORDER_FAIL_CALLBACK', {
+                roomID,
+            });
         }
     });
 
     socket.on('MPE_CHANGE_TRACK_ORDER_UP', async (raw) => {
-        try {
-            const { fromIndex, trackID, roomID } =
-                MpeRoomClientToServerChangeTrackOrderUpDownArgs.parse(raw);
+        const { fromIndex, trackID, roomID } =
+            MpeRoomClientToServerChangeTrackOrderUpDownArgs.parse(raw);
 
+        try {
             const { user, deviceID } =
                 await SocketLifecycle.getSocketConnectionCredentials(socket);
 
@@ -140,7 +141,9 @@ export default function initMpeSocketEventListeners(socket: TypedSocket): void {
         } catch (e) {
             console.error(e);
 
-            socket.emit('MPE_CHANGE_TRACK_ORDER_FAIL_CALLBACK');
+            socket.emit('MPE_CHANGE_TRACK_ORDER_FAIL_CALLBACK', {
+                roomID,
+            });
         }
     });
 }

@@ -19,11 +19,13 @@ import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import HomeScreen from '../screens/HomeScreen';
 import MusicPlaylistEditorListScreen from '../screens/MusicPlaylistEditorListScreen';
 import MusicPlaylistEditorRoomScreen from '../screens/MusicPlaylistEditorRoomScreen';
+import MusicPlaylistEditorSearchTracksScreen from '../screens/MusicPlaylistEditorSearchTracksScreen';
 import SearchTrackScreen from '../screens/SearchTrackScreen';
 import {
     BottomTabNavigatorParamList,
     HomeParamsList,
     LibraryParamsList,
+    MpeRoomParamsList,
     SearchTracksParamsList,
 } from '../types';
 
@@ -253,10 +255,30 @@ const TabLibraryNavigator: React.FC = () => {
 
             <TabLibraryStack.Screen
                 name="MpeRoom"
-                component={MusicPlaylistEditorRoomScreen}
-                options={{ headerTitle: 'Library', headerShown: false }}
+                component={MpeRoomNavigator}
+                options={{ headerTitle: 'Room', headerShown: false }}
             />
         </TabLibraryStack.Navigator>
+    );
+};
+
+const MpeRoomStack = createStackNavigator<MpeRoomParamsList>();
+
+const MpeRoomNavigator: React.FC = () => {
+    return (
+        <MpeRoomStack.Navigator initialRouteName="Room">
+            <MpeRoomStack.Screen
+                name="Room"
+                component={MusicPlaylistEditorRoomScreen}
+                options={{ headerTitle: 'Room', headerShown: false }}
+            />
+
+            <MpeRoomStack.Screen
+                name="SearchTracks"
+                component={MusicPlaylistEditorSearchTracksScreen}
+                options={{ headerTitle: 'Search tracks', headerShown: false }}
+            />
+        </MpeRoomStack.Navigator>
     );
 };
 

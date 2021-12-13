@@ -14,7 +14,12 @@ import {
     MpeRoomClientToServerCreateArgs,
 } from '@musicroom/types';
 import { SocketClient } from '../contexts/SocketContext';
-import { createPlaylistMachine, PlaylistActorRef } from './playlistMachine';
+import {
+    createPlaylistMachine,
+    PlaylistActorRef,
+    playlistModel,
+} from './playlistMachine';
+import { getPlaylistMachineOptions } from './options/playlistMachineOptions';
 
 export interface MusicPlaylist {
     id: string;
@@ -25,7 +30,7 @@ export interface MusicPlaylist {
 type MusicPlaylistsContext = ContextFrom<typeof appMusicPlaylistsModel>;
 type MusicPlaylistsEvents = EventFrom<typeof appMusicPlaylistsModel>;
 
-const appMusicPlaylistsModel = createModel(
+export const appMusicPlaylistsModel = createModel(
     {
         playlistsActorsRefs: [] as MusicPlaylist[],
     },
@@ -42,6 +47,15 @@ const appMusicPlaylistsModel = createModel(
             ) => ({
                 state,
             }),
+
+            ADD_TRACK: (args: { roomID: string; trackID: string }) => args,
+            SENT_TRACK_TO_ADD_TO_SERVER: (args: { roomID: string }) => args,
+            RECEIVED_ADD_TRACKS_SUCCESS_CALLBACK: (args: {
+                roomID: string;
+                state: MpeWorkflowState;
+            }) => args,
+            RECEIVED_ADD_TRACKS_FAIL_CALLBACK: (args: { roomID: string }) =>
+                args,
         },
     },
 );
@@ -49,7 +63,9 @@ const appMusicPlaylistsModel = createModel(
 const spawnPlaylistActor = appMusicPlaylistsModel.assign(
     {
         playlistsActorsRefs: ({ playlistsActorsRefs }, { state }) => {
-            const playlistMachine = createPlaylistMachine(state);
+            const playlistMachine = createPlaylistMachine({
+                initialState: state,
+            }).withConfig(getPlaylistMachineOptions());
             const playlist: MusicPlaylist = {
                 id: state.roomID,
                 roomName: state.name,
@@ -106,12 +122,52 @@ export function createAppMusicPlaylistsMachine({
                         });
                     });
 
+                    socket.on(
+                        'MPE_ADD_TRACKS_SUCCESS_CALLBACK',
+                        ({ roomID, state }) => {
+                            sendBack({
+                                type: 'RECEIVED_ADD_TRACKS_SUCCESS_CALLBACK',
+                                roomID,
+                                state,
+                            });
+                        },
+                    );
+
+                    socket.on('MPE_ADD_TRACKS_FAIL_CALLBACK', ({ roomID }) => {
+                        sendBack({
+                            type: 'RECEIVED_ADD_TRACKS_FAIL_CALLBACK',
+                            roomID,
+                        });
+                    });
+
                     onReceive((event) => {
                         switch (event.type) {
                             case 'CREATE_ROOM': {
                                 socket.emit('MPE_CREATE_ROOM', event.params);
 
                                 break;
+                            }
+
+                            case 'ADD_TRACK': {
+                                const { roomID, trackID } = event;
+
+                                socket.emit('MPE_ADD_TRACKS', {
+                                    roomID,
+                                    tracksIDs: [trackID],
+                                });
+
+                                sendBack({
+                                    type: 'SENT_TRACK_TO_ADD_TO_SERVER',
+                                    roomID,
+                                });
+
+                                break;
+                            }
+
+                            default: {
+                                throw new Error(
+                                    `Received unknown event: ${event.type}`,
+                                );
                             }
                         }
                     });
@@ -125,6 +181,43 @@ export function createAppMusicPlaylistsMachine({
                 on: {
                     CREATE_ROOM: {
                         actions: forwardTo('socketConnection'),
+                    },
+
+                    ADD_TRACK: {
+                        actions: forwardTo('socketConnection'),
+                    },
+
+                    SENT_TRACK_TO_ADD_TO_SERVER: {
+                        actions: send(
+                            playlistModel.events.SENT_TRACK_TO_ADD_TO_SERVER(),
+                            {
+                                to: (_, { roomID }) =>
+                                    getPlaylistMachineActorName(roomID),
+                            },
+                        ),
+                    },
+
+                    RECEIVED_ADD_TRACKS_SUCCESS_CALLBACK: {
+                        actions: send(
+                            (_, { state }) =>
+                                playlistModel.events.RECEIVED_TRACK_TO_ADD_SUCCESS_CALLBACK(
+                                    { state },
+                                ),
+                            {
+                                to: (_, { roomID }) =>
+                                    getPlaylistMachineActorName(roomID),
+                            },
+                        ),
+                    },
+
+                    RECEIVED_ADD_TRACKS_FAIL_CALLBACK: {
+                        actions: send(
+                            playlistModel.events.RECEIVED_TRACK_TO_ADD_FAIL_CALLBACK(),
+                            {
+                                to: (_, { roomID }) =>
+                                    getPlaylistMachineActorName(roomID),
+                            },
+                        ),
                     },
                 },
             },

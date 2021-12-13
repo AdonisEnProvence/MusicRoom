@@ -1,8 +1,15 @@
-import { ActorRefFrom, createMachine } from 'xstate';
+import {
+    ActorRefFrom,
+    ContextFrom,
+    createMachine,
+    EventFrom,
+    sendParent,
+} from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { MpeWorkflowState, TrackMetadata } from '@musicroom/types';
+import { MpeWorkflowState } from '@musicroom/types';
+import { appMusicPlaylistsModel } from './appMusicPlaylistsMachine';
 
-const playlistModel = createModel(
+export const playlistModel = createModel(
     {
         state: {
             isOpenOnlyInvitedUsersCanEdit: false,
@@ -15,7 +22,8 @@ const playlistModel = createModel(
             usersLength: 0,
         } as MpeWorkflowState,
 
-        trackToAdd: undefined as TrackMetadata | undefined,
+        trackIDToAdd: undefined as string | undefined,
+
         trackToMove: undefined as
             | { previousIndex: number; nextIndex: number; trackID: string }
             | undefined,
@@ -23,26 +31,33 @@ const playlistModel = createModel(
     },
     {
         events: {
-            ADD_TRACK: (track: TrackMetadata) => ({ ...track }),
+            ADD_TRACK: (trackID: string) => ({ trackID }),
+            SENT_TRACK_TO_ADD_TO_SERVER: () => ({}),
+            RECEIVED_TRACK_TO_ADD_SUCCESS_CALLBACK: (args: {
+                state: MpeWorkflowState;
+            }) => args,
+            RECEIVED_TRACK_TO_ADD_FAIL_CALLBACK: () => ({}),
+
             MOVE_UP_TRACK: (trackID: string) => ({ trackID }),
             MOVE_DOWN_TRACK: (trackID: string) => ({ trackID }),
             DELETE_TRACK: (trackID: string) => ({ trackID }),
             ASSIGN_MERGE_NEW_STATE: (state: MpeWorkflowState) => ({ state }),
         },
-        actions: {},
     },
 );
 
-const assignTrackToAdd = playlistModel.assign(
+const assignTrackIDToAdd = playlistModel.assign(
     {
-        trackToAdd: (_, { id, title, artistName, duration }) => ({
-            id,
-            title,
-            artistName,
-            duration,
-        }),
+        trackIDToAdd: (_, { trackID }) => trackID,
     },
     'ADD_TRACK',
+);
+
+const assignStateAfterAddingTracksSuccess = playlistModel.assign(
+    {
+        state: (_, { state }) => state,
+    },
+    'RECEIVED_TRACK_TO_ADD_SUCCESS_CALLBACK',
 );
 
 const assignTrackToMoveUp = playlistModel.assign(
@@ -107,28 +122,6 @@ const assignMergeNewState = playlistModel.assign(
     'ASSIGN_MERGE_NEW_STATE',
 );
 
-const assignTrackToTracksList = playlistModel.assign(
-    {
-        state: (context) => {
-            const {
-                trackToAdd,
-                state: { tracks },
-            } = context;
-
-            if (trackToAdd === undefined) {
-                return context.state;
-            }
-
-            return {
-                ...context.state,
-                tracks: [...tracks, trackToAdd],
-            };
-        },
-        trackToAdd: undefined,
-    },
-    undefined,
-);
-
 const assignTrackToMoveToTracksList = playlistModel.assign(
     {
         state: ({ state, trackToMove }) => {
@@ -176,21 +169,28 @@ const assignTrackToRemoveToTracksList = playlistModel.assign(
 );
 
 type PlaylistMachine = ReturnType<typeof playlistModel['createMachine']>;
+export type PlaylistMachineContext = ContextFrom<typeof playlistModel>;
+export type PlaylistMachineEvents = EventFrom<typeof playlistModel>;
 
 export type PlaylistActorRef = ActorRefFrom<PlaylistMachine>;
 
-type CreatePlaylistMachineArgs = MpeWorkflowState;
+interface CreatePlaylistMachineArgs {
+    initialState: MpeWorkflowState;
+}
 
-export function createPlaylistMachine(
-    state: CreatePlaylistMachineArgs,
-): PlaylistMachine {
+export function createPlaylistMachine({
+    initialState,
+}: CreatePlaylistMachineArgs): PlaylistMachine {
+    const roomID = initialState.roomID;
+
     return createMachine({
         initial: 'idle',
 
         context: {
             ...playlistModel.initialContext,
-            state,
+            state: initialState,
         },
+
         states: {
             idle: {
                 on: {
@@ -201,7 +201,7 @@ export function createPlaylistMachine(
                     ADD_TRACK: {
                         target: 'addingTrack',
 
-                        actions: assignTrackToAdd,
+                        actions: assignTrackIDToAdd,
                     },
 
                     MOVE_DOWN_TRACK: {
@@ -274,19 +274,41 @@ export function createPlaylistMachine(
 
                 states: {
                     sendingToServer: {
-                        after: {
-                            200: {
+                        entry: sendParent(({ trackIDToAdd }) => {
+                            if (trackIDToAdd === undefined) {
+                                throw new Error(
+                                    'trackIDToAdd must be defined before requesting the server',
+                                );
+                            }
+
+                            return appMusicPlaylistsModel.events.ADD_TRACK({
+                                roomID,
+                                trackID: trackIDToAdd,
+                            });
+                        }),
+
+                        on: {
+                            SENT_TRACK_TO_ADD_TO_SERVER: {
                                 target: 'waitingForServerAcknowledgement',
                             },
                         },
                     },
 
                     waitingForServerAcknowledgement: {
-                        after: {
-                            200: {
+                        on: {
+                            RECEIVED_TRACK_TO_ADD_SUCCESS_CALLBACK: {
                                 target: 'debouncing',
 
-                                actions: assignTrackToTracksList,
+                                actions: [
+                                    assignStateAfterAddingTracksSuccess,
+                                    'triggerSuccessfulAddingTrackToast',
+                                ],
+                            },
+
+                            RECEIVED_TRACK_TO_ADD_FAIL_CALLBACK: {
+                                target: 'debouncing',
+
+                                actions: 'triggerFailureAddingTrackToast',
                             },
                         },
                     },

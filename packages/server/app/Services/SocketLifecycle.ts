@@ -22,12 +22,12 @@ export default class SocketLifecycle {
      * @param socket socket to sync
      * @param mtvRoomID room whom to be sync with
      */
-    private static async syncMtvRoomContext(
+    private static async remoteJoinSocketIoRoom(
         socket: TypedSocket,
-        mtvRoomID: string,
+        roomID: string,
     ): Promise<void> {
         const adapter = Ws.adapter();
-        await adapter.remoteJoin(socket.id, mtvRoomID);
+        await adapter.remoteJoin(socket.id, roomID);
     }
 
     public static async doesRoomExist(roomID: string): Promise<MtvRoom | null> {
@@ -138,7 +138,7 @@ export default class SocketLifecycle {
                 `User ${deviceOwner.uuid} is already a mtv room member, retrieve context`,
             );
 
-            await this.syncMtvRoomContext(socket, deviceOwner.mtvRoomID);
+            await this.remoteJoinSocketIoRoom(socket, deviceOwner.mtvRoomID);
             await MtvRoomsWsController.checkUserDevicesPositionIfRoomHasPositionConstraints(
                 {
                     user: deviceOwner,
@@ -157,6 +157,32 @@ export default class SocketLifecycle {
         }
         await UserService.emitConnectedDevicesUpdateToEveryUserDevices(
             deviceOwner.uuid,
+        );
+    }
+
+    /**
+     * Will look for user related MPE rooms and will sync
+     * given socket to the mpe rooms socket io rooms
+     */
+    public static async registeredDeviceLookForMpeContext({
+        socket,
+        newDevice,
+    }: {
+        socket: TypedSocket;
+        newDevice: Device;
+    }): Promise<void> {
+        await newDevice.load('user');
+        const deviceOwner = newDevice.user;
+        if (deviceOwner === null) {
+            throw new Error("device hasn't been sync correctly to it's user");
+        }
+
+        await deviceOwner.load('mpeRooms');
+        await Promise.all(
+            deviceOwner.mpeRooms.map(
+                async (mpeRoom) =>
+                    await this.remoteJoinSocketIoRoom(socket, mpeRoom.uuid),
+            ),
         );
     }
 

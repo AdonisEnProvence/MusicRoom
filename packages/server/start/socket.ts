@@ -32,12 +32,18 @@ Ws.io.on('connection', async (socket) => {
         if (hasDeviceNotBeenFound) {
             //Registering the new device in the Device model + relationship with user
             const newDevice = await SocketLifecycle.registerDevice(socket);
+
             //Looking for mtvRoom to sync to the new device
             await SocketLifecycle.registeredDeviceLookForMtvContext({
                 socket,
                 newDevice,
             });
+
             //Looking for mpeRooms to sync to the new device
+            await SocketLifecycle.registeredDeviceLookForMpeContext({
+                socket,
+                newDevice,
+            });
         } else {
             console.log('socketID already registered');
         }

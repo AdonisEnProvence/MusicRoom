@@ -36,6 +36,44 @@ test.group(`mpe rooms relationship tests`, (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
+    test('It should sync both yser socket instance to the related mpeRooms', async (assert) => {
+        const creatorUserID = datatype.uuid();
+        const mpeRoomsIDs = Array.from({ length: 10 }).map(() => ({
+            roomName: random.words(4),
+            roomID: datatype.uuid(),
+        }));
+
+        const creatorSocket = await createUserAndGetSocket({
+            userID: creatorUserID,
+            mpeRoomIDToAssociate: mpeRoomsIDs,
+        });
+        const creatorSocketB = await createSocketConnection({
+            userID: creatorUserID,
+        });
+
+        const userB = await createUserAndGetSocket({
+            userID: datatype.uuid(),
+        });
+
+        //testing
+        let lastHasBeenHit = false;
+        await Promise.all(
+            mpeRoomsIDs.map(async (room, index) => {
+                const connectedSockets =
+                    await SocketLifecycle.getConnectedSocketToRoom(room.roomID);
+                assert.isTrue(connectedSockets.has(creatorSocket.id));
+                assert.isTrue(connectedSockets.has(creatorSocketB.id));
+                assert.isFalse(connectedSockets.has(userB.id));
+
+                if (index === mpeRoomsIDs.length - 1) {
+                    lastHasBeenHit = true;
+                }
+            }),
+        );
+
+        assert.isTrue(lastHasBeenHit);
+    });
+
     test('It should create MPE room ', async (assert) => {
         const creatorUserID = datatype.uuid();
         const creatorSocket = await createUserAndGetSocket({

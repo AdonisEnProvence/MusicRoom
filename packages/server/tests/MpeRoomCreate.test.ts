@@ -12,6 +12,7 @@ import urlcat from 'urlcat';
 import { MPE_TEMPORAL_LISTENER } from '../start/routes';
 import {
     BASE_URL,
+    createSpyOnClientSocketEvent,
     getDefaultMpeRoomCreateRoomArgs,
     initTestUtils,
 } from './utils/TestUtils';

@@ -2,7 +2,6 @@ package mpe
 
 import (
 	"errors"
-	"strings"
 	"testing"
 	"time"
 
@@ -287,9 +286,9 @@ func (s *UnitTestSuite) Test_MtvRoomPanicAfterUnkownWorkflowSignal() {
 	s.True(s.env.IsWorkflowCompleted())
 	err := s.env.GetWorkflowError()
 	s.Error(err)
-	var workflowExecutionError *temporal.WorkflowExecutionError
-	s.True(errors.As(err, &workflowExecutionError))
-	s.True(strings.Contains(workflowExecutionError.Error(), "Encountered an unkown MPE workflow signal"))
+	var panicError *temporal.PanicError
+	s.True(errors.As(err, &panicError))
+	s.Contains(panicError.Error(), ErrUnknownWorflowSignal.Error())
 }
 func TestUnitTestSuite(t *testing.T) {
 	suite.Run(t, new(CreateMpeWorkflowTestUnit))

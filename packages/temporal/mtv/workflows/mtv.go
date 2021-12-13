@@ -18,6 +18,7 @@ import (
 
 var (
 	ErrRoomDoesNotHaveConstraints = errors.New("room does not have constraints")
+	ErrUnknownWorflowSignal       = errors.New("encountered an unkown MTV workflow signal")
 )
 
 type MtvRoomInternalState struct {
@@ -1173,7 +1174,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 			case shared_mtv.SignalRouteTerminate:
 				terminated = true
 			default:
-				panic("Encountered an unkown MTV workflow signal")
+				panic(ErrUnknownWorflowSignal)
 			}
 		})
 

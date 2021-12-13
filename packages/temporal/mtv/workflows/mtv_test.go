@@ -3,7 +3,6 @@ package mtv
 import (
 	"errors"
 	"fmt"
-	"strings"
 	"testing"
 	"time"
 
@@ -5253,9 +5252,9 @@ func (s *UnitTestSuite) Test_MtvRoomPanicAfterUnkownWorkflowSignal() {
 	s.True(s.env.IsWorkflowCompleted())
 	err := s.env.GetWorkflowError()
 	s.Error(err)
-	var workflowExecutionError *temporal.WorkflowExecutionError
-	s.True(errors.As(err, &workflowExecutionError))
-	s.True(strings.Contains(workflowExecutionError.Error(), "Encountered an unkown MTV workflow signal"))
+	var panicError *temporal.PanicError
+	s.True(errors.As(err, &panicError))
+	s.Contains(panicError.Error(), ErrUnknownWorflowSignal.Error())
 }
 
 func TestUnitTestSuite(t *testing.T) {

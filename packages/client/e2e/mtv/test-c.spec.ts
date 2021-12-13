@@ -1,10 +1,15 @@
 import { test, expect, Page, Locator } from '@playwright/test';
-import { assertIsNotNull, assertIsNotUndefined } from './_utils/assert';
-import { hitGoNextButton } from './_utils/global';
-import { KnownSearchesRecord } from './_utils/mock-http';
-import { closeAllContexts, setupAndGetUserPage } from './_utils/page';
+import {
+    assertIsNotNull,
+    assertIsNotUndefined,
+    assertMusicPlayerStatusIs,
+} from '../_utils/assert';
+import { hitGoNextButton } from '../_utils/global';
+import { KnownSearchesRecord } from '../_utils/mock-http';
+import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
+import { waitForYouTubeVideoToLoad } from '../_utils/wait-youtube';
 
-async function createPrivateRoom(page: Page) {
+async function createPublicRoomWithInvitation(page: Page) {
     await expect(page.locator('text="Home"').first()).toBeVisible();
 
     const goToTracksSearch = page.locator('text="Search"');
@@ -42,12 +47,12 @@ async function createPrivateRoom(page: Page) {
         page.locator('text="What is the opening status of the room?"'),
     ).toBeVisible();
 
-    const privateMode = page.locator(
-        'css=[aria-selected="false"] >> text="Private"',
+    const publicMode = page.locator(
+        'css=[aria-selected="true"] >> text="Public"',
     );
-    //need to verify that only invited user can vote is enabled
-    await expect(privateMode).toBeVisible();
-    await privateMode.click();
+    await expect(publicMode).toBeVisible();
+    const invitationModeSwitch = page.locator('css=[role="switch"]');
+    await invitationModeSwitch.click();
     await hitGoNextButton({
         page,
     });
@@ -78,9 +83,9 @@ async function createPrivateRoom(page: Page) {
     });
 
     await expect(page.locator('text="Confirm room creation"')).toBeVisible();
-    const elementWithSelectedSongTitle = page.locator(
-        `text=${selectedSongTitle}`,
-    );
+    const elementWithSelectedSongTitle = page
+        .locator(`text=${selectedSongTitle}`)
+        .first();
     await expect(elementWithSelectedSongTitle).toBeVisible();
     await hitGoNextButton({
         page,
@@ -97,17 +102,11 @@ async function createPrivateRoom(page: Page) {
 
     return {
         roomName,
-        initialTrack: selectedSongTitle,
+        initialTrackTitle: selectedSongTitle,
     };
 }
 
-async function joinInvitedRoom({
-    page,
-    roomName,
-}: {
-    page: Page;
-    roomName: string;
-}) {
+async function joinRoom({ page, roomName }: { page: Page; roomName: string }) {
     await page.click('text="Go to Music Track Vote"');
 
     // Code to use infinite scroll
@@ -144,7 +143,20 @@ async function joinInvitedRoom({
     await miniPlayerWithRoomName.click();
 }
 
-async function inviteUser({
+async function voteForTrackInMusicPlayerFullScreen({
+    page,
+    trackToVoteFor,
+}: {
+    page: Page;
+    trackToVoteFor: string;
+}) {
+    const trackToVoteForElement = page.locator(`text=${trackToVoteFor}`);
+    await expect(trackToVoteForElement).toBeVisible();
+
+    await trackToVoteForElement.click();
+}
+
+async function inviteUserAndGoBackTwice({
     page,
     userName,
 }: {
@@ -178,13 +190,54 @@ async function inviteUser({
         `css=[data-testid="${userName}-user-card"] [aria-label="Has been invited"]`,
     );
     await expect(hasBeenInvitedIcon).toBeVisible();
+
+    //UserA goes back he should see the music player fullscreen
+    const usersListCancelButton = page.locator('text="Cancel"').last();
+    await expect(usersListCancelButton).toBeVisible();
+    await usersListCancelButton.click();
+    await userHitsLastVisibleGoBackButton({
+        page,
+    });
+    await userHitsLastVisibleGoBackButton({
+        page,
+    });
+}
+
+async function userHitsLastVisibleGoBackButton({ page }: { page: Page }) {
+    const goBackButton = page
+        .locator('css=[aria-label="Go back"] >> visible=true')
+        .last();
+    await expect(goBackButton).toBeVisible();
+    await goBackButton.click();
+}
+
+async function pressRoomInvitationToast({
+    page,
+    inviterUserName,
+    roomName,
+}: {
+    page: Page;
+    inviterUserName: string;
+    roomName: string;
+}) {
+    const invitationToast = page.locator(
+        `text="${inviterUserName} sent you an invitation"`,
+    );
+    await expect(invitationToast).toBeVisible();
+
+    await invitationToast.click();
+
+    const miniPlayerWithRoomName = page.locator(`text="${roomName}"`).first();
+    await expect(miniPlayerWithRoomName).toBeVisible();
+
+    await miniPlayerWithRoomName.click();
 }
 
 test.afterEach(async ({ browser }) => {
     await closeAllContexts(browser);
 });
 
-test('Test G', async ({ browser }) => {
+test('Test C', async ({ browser }) => {
     const knownSearches: KnownSearchesRecord = {
         'BB Brunes': [
             {
@@ -219,18 +272,58 @@ test('Test G', async ({ browser }) => {
             },
         ],
     };
-    const [{ page: userAPage }, { page: userBPage, userNickname: userBName }] =
-        await Promise.all([
-            setupAndGetUserPage({ browser, userIndex: 0, knownSearches }),
-            setupAndGetUserPage({ browser, userIndex: 1, knownSearches }),
-        ]);
+    const [
+        { page: userAPage, userNickname: userAName },
+        { page: userBPage },
+        { page: userCPage, userNickname: userCName },
+    ] = await Promise.all([
+        setupAndGetUserPage({ browser, userIndex: 0, knownSearches }),
+        setupAndGetUserPage({ browser, userIndex: 1, knownSearches }),
+        setupAndGetUserPage({ browser, userIndex: 2, knownSearches }),
+    ]);
 
-    const { roomName } = await createPrivateRoom(userAPage);
+    const { roomName, initialTrackTitle } =
+        await createPublicRoomWithInvitation(userAPage);
 
-    await inviteUser({ page: userAPage, userName: userBName });
+    await joinRoom({ page: userBPage, roomName });
 
-    await joinInvitedRoom({
+    await voteForTrackInMusicPlayerFullScreen({
         page: userBPage,
-        roomName,
+        trackToVoteFor: initialTrackTitle,
     });
+
+    await Promise.all([
+        inviteUserAndGoBackTwice({ page: userAPage, userName: userCName }),
+
+        pressRoomInvitationToast({
+            page: userCPage,
+            inviterUserName: userAName,
+            roomName,
+        }),
+    ]);
+
+    await Promise.all([
+        waitForYouTubeVideoToLoad(userAPage),
+        waitForYouTubeVideoToLoad(userBPage),
+        waitForYouTubeVideoToLoad(userCPage),
+        voteForTrackInMusicPlayerFullScreen({
+            page: userCPage,
+            trackToVoteFor: initialTrackTitle,
+        }),
+    ]);
+
+    await Promise.all([
+        assertMusicPlayerStatusIs({
+            page: userCPage,
+            testID: 'music-player-playing-device-emitting',
+        }),
+        assertMusicPlayerStatusIs({
+            page: userBPage,
+            testID: 'music-player-playing-device-emitting',
+        }),
+        assertMusicPlayerStatusIs({
+            page: userAPage,
+            testID: 'music-player-playing-device-emitting',
+        }),
+    ]);
 });

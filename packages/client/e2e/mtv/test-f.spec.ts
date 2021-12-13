@@ -4,16 +4,16 @@ import {
     assertIsNotNull,
     assertIsNotUndefined,
     assertMusicPlayerStatusIs,
-} from './_utils/assert';
-import { hitGoNextButton } from './_utils/global';
+} from '../_utils/assert';
+import { hitGoNextButton } from '../_utils/global';
 import {
     closeAllContexts,
     createNewTabFromExistingContext,
     GEOLOCATION_POSITIONS,
     initPage,
     setupAndGetUserPage,
-} from './_utils/page';
-import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
+} from '../_utils/page';
+import { waitForYouTubeVideoToLoad } from '../_utils/wait-youtube';
 
 const knownSearches = {
     'Biolay - Vendredi 12': [

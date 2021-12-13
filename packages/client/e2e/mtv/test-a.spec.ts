@@ -3,11 +3,11 @@ import {
     assertIsNotNull,
     assertIsNotUndefined,
     assertMusicPlayerStatusIs,
-} from './_utils/assert';
-import { hitGoNextButton } from './_utils/global';
-import { KnownSearchesRecord } from './_utils/mock-http';
-import { closeAllContexts, setupAndGetUserPage } from './_utils/page';
-import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
+} from '../_utils/assert';
+import { hitGoNextButton } from '../_utils/global';
+import { KnownSearchesRecord } from '../_utils/mock-http';
+import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
+import { waitForYouTubeVideoToLoad } from '../_utils/wait-youtube';
 
 async function createRoom({ creatorPage }: { creatorPage: Page }) {
     await expect(creatorPage.locator('text="Home"').first()).toBeVisible();

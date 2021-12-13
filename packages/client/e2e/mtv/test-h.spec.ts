@@ -10,15 +10,15 @@ import {
     assertIsNotNull,
     assertIsNotUndefined,
     assertMusicPlayerStatusIs,
-} from './_utils/assert';
-import { hitGoNextButton } from './_utils/global';
-import { KnownSearchesRecord } from './_utils/mock-http';
+} from '../_utils/assert';
+import { hitGoNextButton } from '../_utils/global';
+import { KnownSearchesRecord } from '../_utils/mock-http';
 import {
     closeAllContexts,
     GEOLOCATION_POSITIONS,
     setupAndGetUserPage,
-} from './_utils/page';
-import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
+} from '../_utils/page';
+import { waitForYouTubeVideoToLoad } from '../_utils/wait-youtube';
 
 const knownSearches: KnownSearchesRecord = {
     'BB Brunes': [

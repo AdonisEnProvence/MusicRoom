@@ -210,9 +210,9 @@ async function joinerSuggestsTrack({
     );
     await expect(successfulToast).toBeVisible();
 
-    const suggestTrackInTracksList = joinerPage.locator(
-        `text=${selectedSongTitle}`,
-    );
+    const suggestTrackInTracksList = joinerPage
+        .locator(`text=${selectedSongTitle} >> visible=true`)
+        .last();
     await expect(suggestTrackInTracksList).toBeVisible();
 
     return {

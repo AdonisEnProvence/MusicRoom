@@ -1,42 +1,14 @@
-import { useActor, useMachine } from '@xstate/react';
 import { ActivityIndicator, View } from 'dripsy';
-import { FlatList } from 'react-native';
-import React, { useState } from 'react';
-import { ActorRef } from 'xstate';
-import TrackListItem from '../components/Track/TrackListItem';
+import React from 'react';
 import { useSuggestTracks } from '../hooks/musicPlayerHooks';
-import { AppScreenWithSearchBar } from '../components/kit';
-import {
-    AppScreenHeaderWithSearchBarMachineEvent,
-    AppScreenHeaderWithSearchBarMachineState,
-} from '../machines/appScreenHeaderWithSearchBarMachine';
-import { searchTrackMachine } from '../machines/searchTrackMachine';
-import { assertEventType } from '../machines/utils';
 import { SuggestTrackModalProps } from '../types';
+import AppSuggestTrackScreen from '../components/AppSuggestTrackScreen';
 
 const SuggestTrackModal: React.FC<SuggestTrackModalProps> = ({
     navigation,
 }) => {
     const { suggestTracks, showActivityIndicatorOnSuggestionsResultsScreen } =
         useSuggestTracks(exitModal);
-    const [screenOffsetY, setScreenOffsetY] = useState(0);
-    const [state, sendToSearchTracks] = useMachine(searchTrackMachine, {
-        actions: {
-            handleTrackPressed: (_, event) => {
-                assertEventType(event, 'PRESS_TRACK');
-                const { trackID } = event;
-
-                suggestTracks([trackID]);
-            },
-        },
-    });
-    const tracksResults = state.context.tracks;
-    const searchBarActor: ActorRef<
-        AppScreenHeaderWithSearchBarMachineEvent,
-        AppScreenHeaderWithSearchBarMachineState
-    > = state.children.searchBarMachine;
-    const [searchState, sendToSearch] = useActor(searchBarActor);
-    const showHeader = searchState.hasTag('showHeaderTitle');
 
     function exitModal() {
         navigation.popToTop();
@@ -47,64 +19,34 @@ const SuggestTrackModal: React.FC<SuggestTrackModalProps> = ({
         navigation.goBack();
     }
 
-    function handleTrackPress(trackID: string) {
-        return () => {
-            sendToSearchTracks({
-                type: 'PRESS_TRACK',
-                trackID,
-            });
-        };
+    function handleTracksSelected([trackID]: string[]) {
+        suggestTracks([trackID]);
     }
 
     return (
-        <AppScreenWithSearchBar
-            canGoBack
-            title="Suggest Track"
-            searchInputPlaceholder="Search a track..."
-            showHeader={showHeader}
-            screenOffsetY={showHeader === true ? 0 : screenOffsetY}
-            setScreenOffsetY={setScreenOffsetY}
-            searchQuery={searchState.context.searchQuery}
-            sendToSearch={sendToSearch}
-            goBack={handleGoBack}
-        >
-            <FlatList
-                data={tracksResults ?? []}
-                renderItem={({ item: { id, title, artistName }, index }) => (
+        <AppSuggestTrackScreen
+            screenTitle="Suggest Track"
+            onTracksSelected={handleTracksSelected}
+            onGoBack={handleGoBack}
+            Loader={
+                showActivityIndicatorOnSuggestionsResultsScreen === true ? (
                     <View
                         sx={{
-                            marginBottom: 'm',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+
+                            justifyContent: 'center',
+                            alignItems: 'center',
                         }}
                     >
-                        <TrackListItem
-                            index={index + 1}
-                            title={title}
-                            trackID={id}
-                            artistName={artistName}
-                            onPress={handleTrackPress(id)}
-                        />
+                        <ActivityIndicator size="large" />
                     </View>
-                )}
-                keyExtractor={(_, index) => String(index)}
-            />
-
-            {showActivityIndicatorOnSuggestionsResultsScreen === true && (
-                <View
-                    sx={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
-                >
-                    <ActivityIndicator size="large" />
-                </View>
-            )}
-        </AppScreenWithSearchBar>
+                ) : null
+            }
+        />
     );
 };
 

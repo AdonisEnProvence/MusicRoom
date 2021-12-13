@@ -15,7 +15,7 @@
     "parserOptions": {
         "ecmaVersion": 12
     },
-    "plugins": ["@typescript-eslint", "jest", "prettier"],
+    "plugins": ["@typescript-eslint", "jest", "no-only-tests", "prettier"],
     "rules": {
         "prefer-const": "error",
         "@typescript-eslint/no-unsafe-member-access": "off",
@@ -35,6 +35,7 @@
         "import/namespace": ["off"],
         "import/order": ["error", {
             "newlines-between": "never"
-        }]
+        }],
+        "no-only-tests/no-only-tests": "error"
     }
 }

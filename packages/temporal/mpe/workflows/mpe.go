@@ -19,6 +19,7 @@ import (
 
 var (
 	ErrRoomDoesNotHaveConstraints = errors.New("room does not have constraints")
+	ErrUnknownWorflowSignal       = errors.New("encountered an unkown MPE workflow signal")
 )
 
 type MpeRoomInternalState struct {
@@ -369,6 +370,8 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 						FromIndex:        message.FromIndex,
 					}),
 				)
+			default:
+				panic(ErrUnknownWorflowSignal)
 			}
 		})
 

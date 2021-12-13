@@ -22,3 +22,27 @@ export const MpeAddTracksResponseBody = z.object({
     ok: z.literal(1),
 });
 export type MpeAddTracksResponseBody = z.infer<typeof MpeAddTracksResponseBody>;
+
+export const MpeChangeTrackOrderOperationToApply = z.enum(['UP', 'DOWN']);
+export type MpeChangeTrackOrderOperationToApply = z.infer<
+    typeof MpeChangeTrackOrderOperationToApply
+>;
+
+export const MpeChangeTrackOrderRequestBody = z.object({
+    workflowID: z.string(),
+    trackID: z.string(),
+    fromIndex: z.number().min(0),
+    userID: z.string(),
+    deviceID: z.string(),
+    operationToApply: MpeChangeTrackOrderOperationToApply,
+});
+export type MpeChangeTrackOrderRequestBody = z.infer<
+    typeof MpeChangeTrackOrderRequestBody
+>;
+
+export const MpeChangeTrackOrderResponseBody = z.object({
+    ok: z.literal(1),
+});
+export type MpeChangeTrackOrderResponseBody = z.infer<
+    typeof MpeChangeTrackOrderResponseBody
+>;

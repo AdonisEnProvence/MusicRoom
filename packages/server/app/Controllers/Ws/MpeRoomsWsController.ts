@@ -1,5 +1,7 @@
 import { randomUUID } from 'crypto';
 import {
+    MpeChangeTrackOrderOperationToApply,
+    MpeChangeTrackOrderRequestBody,
     MpeCreateWorkflowResponse,
     MpeRoomClientToServerCreateArgs,
 } from '@musicroom/types';
@@ -18,6 +20,15 @@ interface MpeOnAddTracksArgs {
     tracksIDs: string[];
     userID: string;
     deviceID: string;
+}
+
+interface MpeOnChangeTrackOrderArgs {
+    operationToApply: MpeChangeTrackOrderOperationToApply;
+    roomID: string;
+    userID: string;
+    deviceID: string;
+    trackID: string;
+    fromIndex: number;
 }
 
 export default class MpeRoomsWsController {
@@ -122,5 +133,16 @@ export default class MpeRoomsWsController {
             userID,
             deviceID,
         });
+    }
+
+    public static async onChangeTrackOrder(
+        params: MpeOnChangeTrackOrderArgs,
+    ): Promise<void> {
+        const { roomID, ...rest } = params;
+        const body: MpeChangeTrackOrderRequestBody = {
+            ...rest,
+            workflowID: roomID,
+        };
+        await MpeServerToTemporalController.changeTrackOrder(body);
     }
 }

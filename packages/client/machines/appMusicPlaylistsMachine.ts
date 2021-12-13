@@ -48,11 +48,8 @@ export const appMusicPlaylistsModel = createModel(
                 state,
             }),
 
-            ADD_TRACK: (roomID: string, trackID: string) => ({
-                roomID,
-                trackID,
-            }),
-            SENT_TRACK_TO_ADD_TO_SERVER: (roomID: string) => ({ roomID }),
+            ADD_TRACK: (args: { roomID: string; trackID: string }) => args,
+            SENT_TRACK_TO_ADD_TO_SERVER: (args: { roomID: string }) => args,
             RECEIVED_ADD_TRACKS_SUCCESS_CALLBACK: (args: {
                 roomID: string;
                 state: MpeWorkflowState;

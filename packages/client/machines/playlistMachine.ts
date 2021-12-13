@@ -308,10 +308,10 @@ export function createPlaylistMachine({
                                 );
                             }
 
-                            return appMusicPlaylistsModel.events.ADD_TRACK(
+                            return appMusicPlaylistsModel.events.ADD_TRACK({
                                 roomID,
-                                trackIDToAdd,
-                            );
+                                trackID: trackIDToAdd,
+                            });
                         }),
 
                         on: {

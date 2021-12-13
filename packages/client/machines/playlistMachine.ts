@@ -6,7 +6,7 @@ import {
     sendParent,
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { MpeWorkflowState, TrackMetadata } from '@musicroom/types';
+import { MpeWorkflowState } from '@musicroom/types';
 import { appMusicPlaylistsModel } from './appMusicPlaylistsMachine';
 
 export const playlistModel = createModel(
@@ -24,7 +24,6 @@ export const playlistModel = createModel(
 
         trackIDToAdd: undefined as string | undefined,
 
-        trackToAdd: undefined as TrackMetadata | undefined,
         trackToMove: undefined as
             | { previousIndex: number; nextIndex: number; trackID: string }
             | undefined,
@@ -121,28 +120,6 @@ const assignMergeNewState = playlistModel.assign(
         },
     },
     'ASSIGN_MERGE_NEW_STATE',
-);
-
-const assignTrackToTracksList = playlistModel.assign(
-    {
-        state: (context) => {
-            const {
-                trackToAdd,
-                state: { tracks },
-            } = context;
-
-            if (trackToAdd === undefined) {
-                return context.state;
-            }
-
-            return {
-                ...context.state,
-                tracks: [...tracks, trackToAdd],
-            };
-        },
-        trackToAdd: undefined,
-    },
-    undefined,
 );
 
 const assignTrackToMoveToTracksList = playlistModel.assign(

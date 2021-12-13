@@ -108,6 +108,17 @@ func (s *UnitTestSuite) emitChangeTrackOrder(args shared_mpe.NewChangeTrackOrder
 	s.env.SignalWorkflow(shared_mpe.SignalChannelName, changeTrackOrderSignal)
 }
 
+func (s *UnitTestSuite) emitUnkownSignal() {
+	fmt.Println("-----EMIT UNKOWN SIGNAL CALLED IN TEST-----")
+	unkownSignal := struct {
+		Route shared.SignalRoute `validate:"required"`
+	}{
+		Route: "UnknownOperation",
+	}
+
+	s.env.SignalWorkflow(shared_mpe.SignalChannelName, unkownSignal)
+}
+
 func IndexOfTrackMedata(array []shared.TrackMetadata, trackToFind shared.TrackMetadata) int {
 	for index, track := range array {
 		if track.ID == trackToFind.ID {

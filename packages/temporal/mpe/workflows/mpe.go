@@ -369,6 +369,8 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 						FromIndex:        message.FromIndex,
 					}),
 				)
+			default:
+				panic("Encountered an unkown MPE workflow signal")
 			}
 		})
 

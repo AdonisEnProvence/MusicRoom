@@ -3,6 +3,7 @@ package mtv
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -70,6 +71,17 @@ func (s *UnitTestSuite) getUsersList() []shared_mtv.ExposedInternalStateUserList
 	s.NoError(err)
 
 	return usersList
+}
+
+func (s *UnitTestSuite) emitUnkownSignal() {
+	fmt.Println("-----EMIT UNKOWN SIGNAL CALLED IN TEST-----")
+	unkownSignal := struct {
+		Route shared.SignalRoute `validate:"required"`
+	}{
+		Route: "UnknownOperation",
+	}
+
+	s.env.SignalWorkflow(shared_mtv.SignalChannelName, unkownSignal)
 }
 
 func (s *UnitTestSuite) emitPlaySignal(args shared_mtv.NewPlaySignalArgs) {
@@ -5199,6 +5211,51 @@ func (s *UnitTestSuite) Test_GetMtvRoomConstraintsDetailsFailRoomDoesntHaveConst
 	s.True(s.env.IsWorkflowCompleted())
 	err := s.env.GetWorkflowError()
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
+func (s *UnitTestSuite) Test_MtvRoomPanicAfterUnkownWorkflowSignal() {
+	var a *activities_mtv.Activities
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	tracksIDs := []string{tracks[0].ID}
+
+	params, _ := getWorkflowInitParams(tracksIDs, 1)
+	defaultDuration := 200 * time.Millisecond
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		tracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		a.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
+	init := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitUnkownSignal()
+	}, init)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.Error(err)
+	var workflowExecutionError *temporal.WorkflowExecutionError
+	s.True(errors.As(err, &workflowExecutionError))
+	s.True(strings.Contains(workflowExecutionError.Error(), "Encountered an unkown MTV workflow signal"))
 }
 
 func TestUnitTestSuite(t *testing.T) {

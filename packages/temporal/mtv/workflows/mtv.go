@@ -1172,6 +1172,8 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 
 			case shared_mtv.SignalRouteTerminate:
 				terminated = true
+			default:
+				panic("Encountered an unkown MTV workflow signal")
 			}
 		})
 

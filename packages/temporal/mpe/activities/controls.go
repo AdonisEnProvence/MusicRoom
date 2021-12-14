@@ -81,13 +81,11 @@ type AcknowledgeChangeTrackOrderActivityArgs struct {
 	UserID   string                         `json:"userID"`
 }
 
-
 type AcknowledgeDeletingTracksActivityArgs struct {
 	State    shared_mpe.MpeRoomExposedState `json:"state"`
 	DeviceID string                         `json:"deviceID"`
 	UserID   string                         `json:"userID"`
 }
-
 
 func (a *Activities) AcknowledgeChangeTrackOrderActivity(ctx context.Context, args AcknowledgeChangeTrackOrderActivityArgs) error {
 	requestBody := args
@@ -117,8 +115,7 @@ func (a *Activities) RejectChangeTrackOrderActivity(ctx context.Context, args Re
 	return err
 }
 
-
-func (a *Activities)  AcknowledgeDeletingTracksActivity(ctx context.Context, args AcknowledgeDeletingTracksActivityArgs) error {
+func (a *Activities) AcknowledgeDeletingTracksActivity(ctx context.Context, args AcknowledgeDeletingTracksActivityArgs) error {
 	requestBody := args
 
 	marshaledBody, err := json.Marshal(requestBody)

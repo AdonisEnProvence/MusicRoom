@@ -23,6 +23,20 @@ export function getPlaylistMachineOptions(): Partial<
                     text1: 'Track could not be added',
                 });
             },
+
+            triggerSuccessfulChangeTrackOrderToast: () => {
+                Toast.show({
+                    type: 'success',
+                    text1: 'Track moved successfully',
+                });
+            },
+
+            triggerFailureChangeTrackOrderToast: () => {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Track could not be moved',
+                });
+            },
         },
     };
 }

@@ -1,4 +1,8 @@
-import { AllClientToServerEvents, MpeWorkflowState } from '@musicroom/types';
+import {
+    AllClientToServerEvents,
+    MpeChangeTrackOrderOperationToApply,
+    MpeWorkflowState,
+} from '@musicroom/types';
 import { datatype } from 'faker';
 import Toast from 'react-native-toast-message';
 import { serverSocket } from '../../../services/websockets';
@@ -21,10 +25,17 @@ interface StateRef {
     value: MpeWorkflowState | undefined;
 }
 
+interface DefinedStateRef {
+    value: MpeWorkflowState;
+}
+
 /**
  * Copy-pasted from https://github.com/AdonisEnProvence/MusicRoom/blob/05409fdb003d7060de8a7314a23d923e6704d398/packages/client/screens/MusicPlaylistEditorListScreen/__tests__/CreateMpeRoom.test.tsx.
  */
-async function createMpeRoom() {
+async function createMpeRoom(): Promise<{
+    screen: ReturnType<typeof render>;
+    state: DefinedStateRef;
+}> {
     const track = generateTrackMetadata();
 
     const state: StateRef = {
@@ -74,12 +85,12 @@ async function createMpeRoom() {
         expect(state).not.toBeUndefined();
     });
 
-    if (state === undefined) {
+    if (state.value === undefined) {
         throw new Error('state is undefined');
     }
 
     const mpeRoomListItem = await screen.findByText(
-        new RegExp(state.value!.name),
+        new RegExp(state.value.name),
     );
     expect(mpeRoomListItem).toBeTruthy();
 
@@ -94,7 +105,9 @@ async function createMpeRoom() {
 
     return {
         screen,
-        state,
+        state: {
+            value: state.value,
+        },
     };
 }
 
@@ -111,8 +124,8 @@ test('Add track and trigger sucess toast', async () => {
             serverSocket.emit('MPE_ADD_TRACKS_SUCCESS_CALLBACK', {
                 roomID,
                 state: {
-                    ...state.value!,
-                    tracks: [...state.value!.tracks, fakeTrack],
+                    ...state.value,
+                    tracks: [...state.value.tracks, fakeTrack],
                 },
             });
         }, 10);
@@ -173,7 +186,7 @@ test('Add track and trigger sucess toast', async () => {
 
 test('Fail when adding track already in playlist', async () => {
     const { screen, state } = await createMpeRoom();
-    const trackAlreadyInPlaylist = state.value!.tracks[0];
+    const trackAlreadyInPlaylist = state.value.tracks[0];
 
     db.searchableTracks.create(trackAlreadyInPlaylist);
 
@@ -245,7 +258,7 @@ async function addTrack({
 }: {
     screen: ReturnType<typeof render>;
     trackToAdd: ReturnType<typeof db['searchableTracks']['create']>;
-    state: StateRef;
+    state: DefinedStateRef;
 }) {
     const addTracksSpy = jest.fn<
         ReturnType<AllClientToServerEvents['MPE_ADD_TRACKS']>,
@@ -253,8 +266,8 @@ async function addTrack({
     >(({ roomID }) => {
         setTimeout(() => {
             state.value = {
-                ...state.value!,
-                tracks: [...state.value!.tracks, trackToAdd],
+                ...state.value,
+                tracks: [...state.value.tracks, trackToAdd],
             };
 
             serverSocket.emit('MPE_ADD_TRACKS_SUCCESS_CALLBACK', {
@@ -309,57 +322,89 @@ async function addTrack({
     });
 }
 
-test('Move track', async () => {
-    const { screen, state } = await createMpeRoom();
-    const fakeTracks = [
-        db.searchableTracks.create(),
-        db.searchableTracks.create(),
-    ];
-    let tracksIDs: string[] = [];
-
-    await addTrack({
-        screen,
-        state,
-        trackToAdd: fakeTracks[0],
-    });
-
-    {
-        /**
-         * Ensure two tracks have been added
-         */
-        const trackCardElements = await waitFor(() => {
-            const trackCardElements =
-                screen.getAllByTestId(/track-card-container/i);
-            expect(trackCardElements.length).toBe(2);
-
-            return trackCardElements;
-        });
-
-        await waitFor(() => {
-            const [addTrackButton] = screen.getAllByText(/add.*track/i);
-
-            expect(addTrackButton).not.toBeDisabled();
-        });
-
-        tracksIDs = trackCardElements.map(({ props: { testID } }) =>
-            extractTrackIDFromCardContainerTestID(testID),
-        );
-
-        /**
-         * Move down the first track.
-         */
-        const moveDownFirstTrackButton = within(
-            trackCardElements[0],
-        ).getByLabelText(/move.*down/i);
-        expect(moveDownFirstTrackButton).toBeTruthy();
-
-        fireEvent.press(moveDownFirstTrackButton);
-    }
-
+async function playlistUIHasUnfreezed(screen: ReturnType<typeof render>) {
     await waitFor(() => {
         const [addTrackButton] = screen.getAllByText(/add.*track/i);
 
         expect(addTrackButton).not.toBeDisabled();
+    });
+}
+
+/**
+ * Will emit corresponding client socket event to perform a change track order operation
+ * Will also check that track has been moved
+ * Warning: don't forget to init the serverSocket handlers
+ */
+async function changeTrackOrder({
+    screen,
+    state,
+    trackToMove: { operationToApply, fromIndex },
+}: {
+    state: DefinedStateRef;
+    screen: ReturnType<typeof render>;
+    trackToMove: {
+        fromIndex: number;
+        operationToApply: MpeChangeTrackOrderOperationToApply;
+    };
+}): Promise<void> {
+    const destIndex =
+        fromIndex +
+        (operationToApply === MpeChangeTrackOrderOperationToApply.Values.DOWN
+            ? 1
+            : -1);
+
+    /**
+     * Using waitFor and playlistUIHasUnfreezed to prevent any calling test context issue
+     */
+    const trackCardElements = await waitFor(() => {
+        const trackCardElements =
+            screen.getAllByTestId(/track-card-container/i);
+        expect(trackCardElements.length).toBe(state.value.tracks.length);
+
+        return trackCardElements;
+    });
+
+    await waitFor(async () => {
+        await playlistUIHasUnfreezed(screen);
+    });
+
+    const tracksIDs = trackCardElements.map(({ props: { testID } }) =>
+        extractTrackIDFromCardContainerTestID(testID),
+    );
+
+    expect(fromIndex < state.value.tracks.length).toBeTruthy();
+
+    const moveDownTrackButton = within(
+        trackCardElements[fromIndex],
+    ).getByLabelText(/move.*down/i);
+    expect(moveDownTrackButton).toBeTruthy();
+
+    const moveUpTrackButton = within(
+        trackCardElements[fromIndex],
+    ).getByLabelText(/move.*up/i);
+    expect(moveUpTrackButton).toBeTruthy();
+
+    const trackToMoveIsFirstTrack = fromIndex === 0;
+    const trackToMoveIsLastTrack = fromIndex === state.value.tracks.length - 1;
+    if (trackToMoveIsFirstTrack) {
+        expect(moveUpTrackButton).toBeDisabled();
+        expect(moveDownTrackButton).not.toBeDisabled();
+    } else if (trackToMoveIsLastTrack) {
+        expect(moveUpTrackButton).toBeEnabled();
+        expect(moveDownTrackButton).toBeDisabled();
+    } else {
+        expect(moveUpTrackButton).not.toBeDisabled();
+        expect(moveDownTrackButton).not.toBeDisabled();
+    }
+
+    if (operationToApply === MpeChangeTrackOrderOperationToApply.Values.DOWN) {
+        fireEvent.press(moveDownTrackButton);
+    } else {
+        fireEvent.press(moveUpTrackButton);
+    }
+
+    await waitFor(async () => {
+        await playlistUIHasUnfreezed(screen);
     });
 
     {
@@ -369,53 +414,94 @@ test('Move track', async () => {
         /**
          * Tracks have been swapped
          */
-        expect(trackCardElements[0]).toHaveProp(
+        expect(trackCardElements[fromIndex]).toHaveProp(
             'testID',
-            toTrackCardContainerTestID(tracksIDs[1]),
+            toTrackCardContainerTestID(tracksIDs[destIndex]),
         );
-        expect(trackCardElements[1]).toHaveProp(
+        expect(trackCardElements[destIndex]).toHaveProp(
             'testID',
-            toTrackCardContainerTestID(tracksIDs[0]),
+            toTrackCardContainerTestID(tracksIDs[fromIndex]),
         );
-
-        /**
-         * Move up the last track.
-         */
-        const moveUpLastTrackButton = within(
-            trackCardElements[1],
-        ).getByLabelText(/move.*up/i);
-        expect(moveUpLastTrackButton).toBeTruthy();
-
-        fireEvent.press(moveUpLastTrackButton);
     }
+}
 
-    await waitFor(() => {
-        const [addTrackButton] = screen.getAllByText(/add.*track/i);
+test('Move track', async () => {
+    const { screen, state } = await createMpeRoom();
+    const fakeTracks = [
+        db.searchableTracks.create(),
+        db.searchableTracks.create(),
+    ];
 
-        expect(addTrackButton).not.toBeDisabled();
+    //Init serverSocket listeners
+    const changeTrackOrderHandler = ({
+        destIndex,
+        fromIndex,
+    }: {
+        destIndex: number;
+        fromIndex: number;
+    }) => {
+        console.log(state.value.tracks);
+        [state.value.tracks[fromIndex], state.value.tracks[destIndex]] = [
+            state.value.tracks[destIndex],
+            state.value.tracks[fromIndex],
+        ];
+        console.log(state.value.tracks);
+
+        serverSocket.emit('MPE_CHANGE_TRACK_ORDER_SUCCESS_CALLBACK', {
+            roomID: state.value.roomID,
+            state: state.value,
+        });
+
+        serverSocket.emit('MPE_TRACKS_LIST_UPDATE', {
+            roomID: state.value.roomID,
+            state: state.value,
+        });
+    };
+
+    serverSocket.on('MPE_CHANGE_TRACK_ORDER_DOWN', ({ fromIndex }) => {
+        changeTrackOrderHandler({
+            fromIndex,
+            destIndex: fromIndex + 1,
+        });
     });
 
-    {
-        const trackCardElements =
-            screen.getAllByTestId(/track-card-container/i);
+    serverSocket.on('MPE_CHANGE_TRACK_ORDER_UP', ({ fromIndex }) => {
+        changeTrackOrderHandler({
+            fromIndex,
+            destIndex: fromIndex - 1,
+        });
+    });
+    ///
 
-        /**
-         * Tracks have returned their initial position.
-         */
-        expect(trackCardElements[0]).toHaveProp(
-            'testID',
-            toTrackCardContainerTestID(tracksIDs[0]),
-        );
-        expect(trackCardElements[1]).toHaveProp(
-            'testID',
-            toTrackCardContainerTestID(tracksIDs[1]),
-        );
-    }
+    await addTrack({
+        screen,
+        state,
+        trackToAdd: fakeTracks[0],
+    });
+
+    console.log('FIRST TRACK', state.value);
+    // await changeTrackOrder({
+    //     screen,
+    //     state,
+    //     trackToMove: {
+    //         fromIndex: 0,
+    //         operationToApply: MpeChangeTrackOrderOperationToApply.Values.DOWN,
+    //     },
+    // });
+    console.log('SECOND TRACK', state.value);
+    await changeTrackOrder({
+        screen,
+        state,
+        trackToMove: {
+            fromIndex: 1,
+            operationToApply: MpeChangeTrackOrderOperationToApply.Values.UP,
+        },
+    });
 });
 
 test('Remove track', async () => {
     const { screen, state } = await createMpeRoom();
-    const trackAlreadyInPlaylist = state.value!.tracks[0];
+    const trackAlreadyInPlaylist = state.value.tracks[0];
 
     const trackCard = await waitFor(() => {
         const trackCardElement = screen.getByTestId(

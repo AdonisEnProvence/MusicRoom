@@ -8,7 +8,6 @@ import {
 import { createModel } from 'xstate/lib/model';
 import {
     MpeChangeTrackOrderOperationToApply,
-    MpeRoomClientToServerChangeTrackOrderUpDownArgs,
     MpeWorkflowState,
 } from '@musicroom/types';
 import { appMusicPlaylistsModel } from './appMusicPlaylistsMachine';

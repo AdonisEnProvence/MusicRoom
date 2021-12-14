@@ -229,176 +229,166 @@ test.group('MPE Rooms Tracks List Editing', (group) => {
         assert.isTrue(userASocket1TracksListUpdateSpy.notCalled);
     });
 
-    test.failing(
-        "Sends tracks list update to every other user's devices if adding tracks succeeded",
-        async (assert) => {
-            const creatorUserID = datatype.uuid();
-            const roomID = datatype.uuid();
-            const userASocket1 = await createUserAndGetSocket({
-                userID: creatorUserID,
-                mpeRoomIDToAssociate: [
-                    {
-                        roomID,
-                    },
-                ],
-            });
-            const userASocket2 = await createSocketConnection({
-                userID: creatorUserID,
-            });
-            const roomState = generateMpeWorkflowState({
-                roomID,
-                roomCreatorUserID: creatorUserID,
-            });
+    test("Sends tracks list update to every other user's devices if adding tracks succeeded", async (assert) => {
+        const creatorUserID = datatype.uuid();
+        const roomID = datatype.uuid();
+        const userASocket1 = await createUserAndGetSocket({
+            userID: creatorUserID,
+            mpeRoomIDToAssociate: [
+                {
+                    roomID,
+                },
+            ],
+        });
+        const userASocket2 = await createSocketConnection({
+            userID: creatorUserID,
+        });
+        const roomState = generateMpeWorkflowState({
+            roomID,
+            roomCreatorUserID: creatorUserID,
+        });
 
-            sinon
-                .stub(MpeServerToTemporalController, 'addTracks')
-                .callsFake(async ({ deviceID }) => {
-                    setTimeout(async function simulateFail() {
-                        const body: MpeAcknowledgeAddingTracksRequestBody = {
-                            userID: creatorUserID,
-                            deviceID,
-                            state: roomState,
-                        };
-
-                        await supertest(BASE_URL)
-                            .post(
-                                urlcat(
-                                    MPE_TEMPORAL_LISTENER,
-                                    'acknowledge-adding-tracks',
-                                ),
-                            )
-                            .send(body)
-                            .expect(200);
-                    }, 10);
-
-                    return Promise.resolve({
-                        ok: 1,
-                    });
-                });
-
-            const userASocket2AddTracksSuccessCallbackSpy =
-                sinon.spy<
-                    AllServerToClientEvents['MPE_ADD_TRACKS_SUCCESS_CALLBACK']
-                >(noop);
-            userASocket2.on(
-                'MPE_ADD_TRACKS_SUCCESS_CALLBACK',
-                userASocket2AddTracksSuccessCallbackSpy,
-            );
-
-            const userASocket2TracksListUpdateSpy =
-                sinon.spy<AllServerToClientEvents['MPE_TRACKS_LIST_UPDATE']>(
-                    noop,
-                );
-            userASocket2.on(
-                'MPE_TRACKS_LIST_UPDATE',
-                userASocket2TracksListUpdateSpy,
-            );
-
-            const tracksToAdd = [datatype.uuid()];
-            userASocket1.emit('MPE_ADD_TRACKS', {
-                roomID,
-                tracksIDs: tracksToAdd,
-            });
-
-            await waitFor(() => {
-                assert.isTrue(
-                    userASocket2TracksListUpdateSpy.calledOnceWithExactly({
-                        roomID,
+        sinon
+            .stub(MpeServerToTemporalController, 'addTracks')
+            .callsFake(async ({ deviceID }) => {
+                setTimeout(async function simulateFail() {
+                    const body: MpeAcknowledgeAddingTracksRequestBody = {
+                        userID: creatorUserID,
+                        deviceID,
                         state: roomState,
-                    }),
-                );
-            });
+                    };
 
-            assert.isTrue(userASocket2AddTracksSuccessCallbackSpy.notCalled);
-        },
-    );
+                    await supertest(BASE_URL)
+                        .post(
+                            urlcat(
+                                MPE_TEMPORAL_LISTENER,
+                                'acknowledge-adding-tracks',
+                            ),
+                        )
+                        .send(body)
+                        .expect(200);
+                }, 10);
 
-    test.failing(
-        'Sends tracks list update to every other user if adding tracks succeeded',
-        async (assert) => {
-            const creatorUserID = datatype.uuid();
-            const roomID = datatype.uuid();
-            const userASocket1 = await createUserAndGetSocket({
-                userID: creatorUserID,
-                mpeRoomIDToAssociate: [
-                    {
-                        roomID,
-                    },
-                ],
-            });
-            const userBSocket1 = await createUserAndGetSocket({
-                userID: datatype.uuid(),
-                mpeRoomIDToAssociate: [
-                    {
-                        roomID,
-                    },
-                ],
-            });
-            const roomState = generateMpeWorkflowState({
-                roomID,
-                roomCreatorUserID: creatorUserID,
-            });
-
-            sinon
-                .stub(MpeServerToTemporalController, 'addTracks')
-                .callsFake(async ({ deviceID }) => {
-                    setTimeout(async function simulateFail() {
-                        const body: MpeAcknowledgeAddingTracksRequestBody = {
-                            userID: creatorUserID,
-                            deviceID,
-                            state: roomState,
-                        };
-
-                        await supertest(BASE_URL)
-                            .post(
-                                urlcat(
-                                    MPE_TEMPORAL_LISTENER,
-                                    'acknowledge-adding-tracks',
-                                ),
-                            )
-                            .send(body)
-                            .expect(200);
-                    }, 10);
-
-                    return Promise.resolve({
-                        ok: 1,
-                    });
+                return Promise.resolve({
+                    ok: 1,
                 });
-
-            const userBSocket1AddTracksSuccessCallbackSpy =
-                sinon.spy<
-                    AllServerToClientEvents['MPE_ADD_TRACKS_SUCCESS_CALLBACK']
-                >(noop);
-            userBSocket1.on(
-                'MPE_ADD_TRACKS_SUCCESS_CALLBACK',
-                userBSocket1AddTracksSuccessCallbackSpy,
-            );
-
-            const userBSocket1TracksListUpdateSpy =
-                sinon.spy<AllServerToClientEvents['MPE_TRACKS_LIST_UPDATE']>(
-                    noop,
-                );
-            userBSocket1.on(
-                'MPE_TRACKS_LIST_UPDATE',
-                userBSocket1TracksListUpdateSpy,
-            );
-
-            const tracksToAdd = [datatype.uuid()];
-            userASocket1.emit('MPE_ADD_TRACKS', {
-                roomID,
-                tracksIDs: tracksToAdd,
             });
 
-            await waitFor(() => {
-                assert.isTrue(
-                    userBSocket1TracksListUpdateSpy.calledOnceWithExactly({
-                        roomID,
+        const userASocket2AddTracksSuccessCallbackSpy =
+            sinon.spy<
+                AllServerToClientEvents['MPE_ADD_TRACKS_SUCCESS_CALLBACK']
+            >(noop);
+        userASocket2.on(
+            'MPE_ADD_TRACKS_SUCCESS_CALLBACK',
+            userASocket2AddTracksSuccessCallbackSpy,
+        );
+
+        const userASocket2TracksListUpdateSpy =
+            sinon.spy<AllServerToClientEvents['MPE_TRACKS_LIST_UPDATE']>(noop);
+        userASocket2.on(
+            'MPE_TRACKS_LIST_UPDATE',
+            userASocket2TracksListUpdateSpy,
+        );
+
+        const tracksToAdd = [datatype.uuid()];
+        userASocket1.emit('MPE_ADD_TRACKS', {
+            roomID,
+            tracksIDs: tracksToAdd,
+        });
+
+        await waitFor(() => {
+            assert.isTrue(
+                userASocket2TracksListUpdateSpy.calledOnceWithExactly({
+                    roomID,
+                    state: roomState,
+                }),
+            );
+        });
+
+        assert.isTrue(userASocket2AddTracksSuccessCallbackSpy.notCalled);
+    });
+
+    test('Sends tracks list update to every other user if adding tracks succeeded', async (assert) => {
+        const creatorUserID = datatype.uuid();
+        const roomID = datatype.uuid();
+        const userASocket1 = await createUserAndGetSocket({
+            userID: creatorUserID,
+            mpeRoomIDToAssociate: [
+                {
+                    roomID,
+                },
+            ],
+        });
+        const userBSocket1 = await createUserAndGetSocket({
+            userID: datatype.uuid(),
+            mpeRoomIDToAssociate: [
+                {
+                    roomID,
+                },
+            ],
+        });
+        const roomState = generateMpeWorkflowState({
+            roomID,
+            roomCreatorUserID: creatorUserID,
+        });
+
+        sinon
+            .stub(MpeServerToTemporalController, 'addTracks')
+            .callsFake(async ({ deviceID }) => {
+                setTimeout(async function simulateFail() {
+                    const body: MpeAcknowledgeAddingTracksRequestBody = {
+                        userID: creatorUserID,
+                        deviceID,
                         state: roomState,
-                    }),
-                );
+                    };
+
+                    await supertest(BASE_URL)
+                        .post(
+                            urlcat(
+                                MPE_TEMPORAL_LISTENER,
+                                'acknowledge-adding-tracks',
+                            ),
+                        )
+                        .send(body)
+                        .expect(200);
+                }, 10);
+
+                return Promise.resolve({
+                    ok: 1,
+                });
             });
 
-            assert.isTrue(userBSocket1AddTracksSuccessCallbackSpy.notCalled);
-        },
-    );
+        const userBSocket1AddTracksSuccessCallbackSpy =
+            sinon.spy<
+                AllServerToClientEvents['MPE_ADD_TRACKS_SUCCESS_CALLBACK']
+            >(noop);
+        userBSocket1.on(
+            'MPE_ADD_TRACKS_SUCCESS_CALLBACK',
+            userBSocket1AddTracksSuccessCallbackSpy,
+        );
+
+        const userBSocket1TracksListUpdateSpy =
+            sinon.spy<AllServerToClientEvents['MPE_TRACKS_LIST_UPDATE']>(noop);
+        userBSocket1.on(
+            'MPE_TRACKS_LIST_UPDATE',
+            userBSocket1TracksListUpdateSpy,
+        );
+
+        const tracksToAdd = [datatype.uuid()];
+        userASocket1.emit('MPE_ADD_TRACKS', {
+            roomID,
+            tracksIDs: tracksToAdd,
+        });
+
+        await waitFor(() => {
+            assert.isTrue(
+                userBSocket1TracksListUpdateSpy.calledOnceWithExactly({
+                    roomID,
+                    state: roomState,
+                }),
+            );
+        });
+
+        assert.isTrue(userBSocket1AddTracksSuccessCallbackSpy.notCalled);
+    });
 });

@@ -22,12 +22,12 @@ export default class SocketLifecycle {
      * @param socket socket to sync
      * @param mtvRoomID room whom to be sync with
      */
-    private static async syncMtvRoomContext(
+    private static async remoteJoinSocketIoRoom(
         socket: TypedSocket,
-        mtvRoomID: string,
+        roomID: string,
     ): Promise<void> {
         const adapter = Ws.adapter();
-        await adapter.remoteJoin(socket.id, mtvRoomID);
+        await adapter.remoteJoin(socket.id, roomID);
     }
 
     public static async doesRoomExist(roomID: string): Promise<MtvRoom | null> {
@@ -61,7 +61,7 @@ export default class SocketLifecycle {
      * Then associates it to the creator userModel
      * @param socket Socket to match to a device
      */
-    public static async registerDevice(socket: TypedSocket): Promise<void> {
+    public static async registerDevice(socket: TypedSocket): Promise<Device> {
         const queryUserID = socket.handshake.query['userID'];
         let deviceName = socket.handshake.query['deviceName'];
 
@@ -97,6 +97,27 @@ export default class SocketLifecycle {
             name: deviceName,
         });
         await newDevice.related('user').associate(deviceOwner);
+
+        return newDevice;
+    }
+
+    /**
+     * Will look for user related MTV room and will sync
+     * given socket to the mtv room socket io room
+     */
+    public static async registeredDeviceLookForMtvContext({
+        socket,
+        newDevice,
+    }: {
+        socket: TypedSocket;
+        newDevice: Device;
+    }): Promise<void> {
+        await newDevice.load('user');
+        const deviceOwner = newDevice.user;
+        if (deviceOwner === null) {
+            throw new Error("device hasn't been sync correctly to it's user");
+        }
+
         if (deviceOwner.mtvRoomID) {
             await deviceOwner.load('mtvRoom');
             if (deviceOwner.mtvRoom === undefined) {
@@ -114,9 +135,10 @@ export default class SocketLifecycle {
                 uuid: roomID,
             } = deviceOwner.mtvRoom;
             console.log(
-                `User ${queryUserID} is already a mtv room member, retrieve context`,
+                `User ${deviceOwner.uuid} is already a mtv room member, retrieve context`,
             );
-            await this.syncMtvRoomContext(socket, deviceOwner.mtvRoomID);
+
+            await this.remoteJoinSocketIoRoom(socket, deviceOwner.mtvRoomID);
             await MtvRoomsWsController.checkUserDevicesPositionIfRoomHasPositionConstraints(
                 {
                     user: deviceOwner,
@@ -135,6 +157,32 @@ export default class SocketLifecycle {
         }
         await UserService.emitConnectedDevicesUpdateToEveryUserDevices(
             deviceOwner.uuid,
+        );
+    }
+
+    /**
+     * Will look for user related MPE rooms and will sync
+     * given socket to the mpe rooms socket io rooms
+     */
+    public static async registeredDeviceLookForMpeContext({
+        socket,
+        newDevice,
+    }: {
+        socket: TypedSocket;
+        newDevice: Device;
+    }): Promise<void> {
+        await newDevice.load('user');
+        const deviceOwner = newDevice.user;
+        if (deviceOwner === null) {
+            throw new Error("device hasn't been sync correctly to it's user");
+        }
+
+        await deviceOwner.load('mpeRooms');
+        await Promise.all(
+            deviceOwner.mpeRooms.map(
+                async (mpeRoom) =>
+                    await this.remoteJoinSocketIoRoom(socket, mpeRoom.uuid),
+            ),
         );
     }
 

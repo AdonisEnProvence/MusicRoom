@@ -108,6 +108,11 @@ func (s *UnitTestSuite) emitChangeTrackOrder(args shared_mpe.NewChangeTrackOrder
 	s.env.SignalWorkflow(shared_mpe.SignalChannelName, changeTrackOrderSignal)
 }
 
+func (s *UnitTestSuite) emitDeleteTracksSignal(args shared_mpe.NewDeleteTracksSignalArgs) {
+	deleteTracksSignal := shared_mpe.NewDeleteTracksSignal(args)
+	s.env.SignalWorkflow(shared_mpe.SignalChannelName, deleteTracksSignal)
+}
+
 func (s *UnitTestSuite) emitUnkownSignal() {
 	fmt.Println("-----EMIT UNKOWN SIGNAL CALLED IN TEST-----")
 	unkownSignal := struct {

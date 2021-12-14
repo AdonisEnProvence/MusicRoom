@@ -5,6 +5,7 @@ import "github.com/AdonisEnProvence/MusicRoom/shared"
 const (
 	SignalAddTracks        shared.SignalRoute = "add-tracks"
 	SignalChangeTrackOrder shared.SignalRoute = "change-track-order"
+	SignalDeleteTracks     shared.SignalRoute = "delete-tracks"
 )
 
 type AddTracksSignal struct {
@@ -55,5 +56,29 @@ func NewChangeTrackOrderSignal(args NewChangeTrackOrderSignalArgs) ChangeTrackOr
 		DeviceID:         args.DeviceID,
 		OperationToApply: args.OperationToApply,
 		FromIndex:        args.FromIndex,
+	}
+}
+
+type DeleteTracksSignal struct {
+	Route shared.SignalRoute `validate:"required"`
+
+	TracksIDs []string `validate:"required,dive,required"`
+	UserID    string   `validate:"required"`
+	DeviceID  string   `validate:"required"`
+}
+
+type NewDeleteTracksSignalArgs struct {
+	TracksIDs []string
+	UserID    string
+	DeviceID  string
+}
+
+func NewDeleteTracksSignal(args NewDeleteTracksSignalArgs) DeleteTracksSignal {
+	return DeleteTracksSignal{
+		Route: SignalDeleteTracks,
+
+		TracksIDs: args.TracksIDs,
+		UserID:    args.UserID,
+		DeviceID:  args.DeviceID,
 	}
 }

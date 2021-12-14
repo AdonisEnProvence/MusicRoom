@@ -74,3 +74,17 @@ func userCanPerformChangeTrackPlaylistEditionOperation(internalState *MpeRoomInt
 		return true
 	}
 }
+
+func userCanPerformDeleteTracksOperation(internalState *MpeRoomInternalState) brainy.Cond {
+	return func(c brainy.Context, e brainy.Event) bool {
+		event := e.(MpeRoomDeleteTracksEvent)
+
+		userDoesnotExistsOrUserCannotEditTheTracksList := !userExistsAndUserCanEditTheTracksList(internalState, event.UserID)
+		if userDoesnotExistsOrUserCannotEditTheTracksList {
+			fmt.Println("userCanPerformDeleteTracksOperation user doesnot exist or cannot edit the playlist")
+			return false
+		}
+
+		return true
+	}
+}

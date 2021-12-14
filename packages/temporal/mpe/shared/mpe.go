@@ -150,3 +150,12 @@ func (s *TrackMetadataSet) Swap(srcIndex, destIndex int) error {
 
 	return nil
 }
+
+func (s *TrackMetadataSet) Delete(trackID string) {
+	for index, track := range s.tracks {
+		if track.ID == trackID {
+			s.tracks = append(s.tracks[:index], s.tracks[index+1:]...)
+			return
+		}
+	}
+}

@@ -104,3 +104,29 @@ func NewMpeRoomChangeTrackOrderEvent(args NewMpeRoomChangeTrackOrderEventArgs) M
 		FromIndex:        args.FromIndex,
 	}
 }
+
+type MpeRoomDeleteTracksEvent struct {
+	brainy.EventWithType
+
+	TracksIDs []string `validate:"required,dive,required"`
+	UserID    string   `validate:"required,uuid"`
+	DeviceID  string   `validate:"required,uuid"`
+}
+
+type NewMpeRoomDeleteTracksEventArgs struct {
+	TracksIDs []string
+	UserID    string
+	DeviceID  string
+}
+
+func NewMpeRoomDeleteTracksEvent(args NewMpeRoomDeleteTracksEventArgs) MpeRoomDeleteTracksEvent {
+	return MpeRoomDeleteTracksEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MpeRoomDeleteTracksEventType,
+		},
+
+		TracksIDs: args.TracksIDs,
+		UserID:    args.UserID,
+		DeviceID:  args.DeviceID,
+	}
+}

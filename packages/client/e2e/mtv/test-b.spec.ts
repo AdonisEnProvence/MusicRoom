@@ -2,15 +2,15 @@ import { test, expect, Page, Locator } from '@playwright/test';
 import {
     assertIsNotUndefined,
     assertMusicPlayerStatusIs,
-} from './_utils/assert';
-import { hitGoNextButton } from './_utils/global';
-import { KnownSearchesRecord } from './_utils/mock-http';
+} from '../_utils/assert';
+import { hitGoNextButton } from '../_utils/global';
+import { KnownSearchesRecord } from '../_utils/mock-http';
 import {
     closeAllContexts,
     setupAndGetUserPage,
     createNewTabFromExistingContext,
-} from './_utils/page';
-import { waitForYouTubeVideoToLoad } from './_utils/wait-youtube';
+} from '../_utils/page';
+import { waitForYouTubeVideoToLoad } from '../_utils/wait-youtube';
 
 type FindMiniPlayerWithRoomNameAndGoFullscreenArgs = {
     roomName: string;

@@ -1,9 +1,9 @@
 import { test, expect, Page, Locator } from '@playwright/test';
 import { lorem } from 'faker';
-import { assertIsNotUndefined } from './_utils/assert';
-import { hitGoNextButton } from './_utils/global';
-import { KnownSearchesRecord } from './_utils/mock-http';
-import { closeAllContexts, setupAndGetUserPage } from './_utils/page';
+import { assertIsNotUndefined } from '../_utils/assert';
+import { hitGoNextButton } from '../_utils/global';
+import { KnownSearchesRecord } from '../_utils/mock-http';
+import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
 
 type FindMiniPlayerWithRoomNameAndGoFullscreenArgs = {
     roomName: string;

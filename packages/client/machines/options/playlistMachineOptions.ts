@@ -37,6 +37,13 @@ export function getPlaylistMachineOptions(): Partial<
                     text1: 'Track could not be moved',
                 });
             },
+
+            triggerSuccessfulDeletingTrackToast: () => {
+                Toast.show({
+                    type: 'success',
+                    text1: 'Track deleted successfully',
+                });
+            },
         },
     };
 }

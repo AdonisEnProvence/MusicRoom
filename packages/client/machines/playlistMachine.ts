@@ -32,9 +32,9 @@ export const playlistModel = createModel(
         } as MpeWorkflowState,
 
         trackIDToAdd: undefined as string | undefined,
+        trackIDToDelete: undefined as string | undefined,
 
         trackToMove: undefined as TrackToMove | undefined,
-        trackToDelete: undefined as string | undefined,
     },
     {
         events: {
@@ -58,6 +58,11 @@ export const playlistModel = createModel(
             ///
 
             DELETE_TRACK: (trackID: string) => ({ trackID }),
+            SENT_TRACK_TO_DELETE_TO_SERVER: () => ({}),
+            RECEIVED_TRACK_TO_DELETE_SUCCESS_CALLBACK: (args: {
+                state: MpeWorkflowState;
+            }) => args,
+
             ASSIGN_MERGE_NEW_STATE: (state: MpeWorkflowState) => ({ state }),
         },
     },
@@ -83,6 +88,20 @@ const assignStateAfterChangeTrackOrderSuccess = playlistModel.assign(
         trackToMove: (_) => undefined,
     },
     'RECEIVED_CHANGE_TRACK_ORDER_SUCCESS_CALLBACK',
+);
+
+const assignTrackIDToDelete = playlistModel.assign(
+    {
+        trackIDToDelete: (_, { trackID }) => trackID,
+    },
+    'DELETE_TRACK',
+);
+
+const assignStateAfterDeletingTracksSuccess = playlistModel.assign(
+    {
+        state: (_, { state }) => state,
+    },
+    'RECEIVED_TRACK_TO_DELETE_SUCCESS_CALLBACK',
 );
 
 const assignTrackToMoveUp = playlistModel.assign(
@@ -122,20 +141,6 @@ const assignTrackToMoveDown = playlistModel.assign(
     'CHANGE_TRACK_ORDER_DOWN',
 );
 
-const assignTrackToDelete = playlistModel.assign(
-    {
-        trackToDelete: ({ state: { tracks } }, { trackID }) => {
-            const doesTrackExist = tracks.some(({ id }) => id === trackID);
-            if (doesTrackExist === false) {
-                return undefined;
-            }
-
-            return trackID;
-        },
-    },
-    'DELETE_TRACK',
-);
-
 const assignMergeNewState = playlistModel.assign(
     {
         state: (context, event) => {
@@ -146,23 +151,6 @@ const assignMergeNewState = playlistModel.assign(
         },
     },
     'ASSIGN_MERGE_NEW_STATE',
-);
-
-const assignTrackToRemoveToTracksList = playlistModel.assign(
-    {
-        state: ({ state, trackToDelete }) => {
-            const { tracks } = state;
-            if (trackToDelete === undefined) {
-                return state;
-            }
-
-            return {
-                ...state,
-                tracks: tracks.filter(({ id }) => id !== trackToDelete),
-            };
-        },
-    },
-    undefined,
 );
 
 type PlaylistMachine = ReturnType<typeof playlistModel['createMachine']>;
@@ -259,7 +247,7 @@ export function createPlaylistMachine({
 
                         target: 'deletingTrack',
 
-                        actions: assignTrackToDelete,
+                        actions: assignTrackIDToDelete,
                     },
                 },
             },
@@ -416,19 +404,35 @@ export function createPlaylistMachine({
 
                 states: {
                     sendingToServer: {
-                        after: {
-                            200: {
+                        entry: sendParent(({ trackIDToDelete }) => {
+                            if (trackIDToDelete === undefined) {
+                                throw new Error(
+                                    'trackIDToDelete must be defined before requesting the server',
+                                );
+                            }
+
+                            return appMusicPlaylistsModel.events.DELETE_TRACK({
+                                roomID,
+                                trackID: trackIDToDelete,
+                            });
+                        }),
+
+                        on: {
+                            SENT_TRACK_TO_DELETE_TO_SERVER: {
                                 target: 'waitingForServerAcknowledgement',
                             },
                         },
                     },
 
                     waitingForServerAcknowledgement: {
-                        after: {
-                            200: {
+                        on: {
+                            RECEIVED_TRACK_TO_DELETE_SUCCESS_CALLBACK: {
                                 target: 'debouncing',
 
-                                actions: assignTrackToRemoveToTracksList,
+                                actions: [
+                                    assignStateAfterDeletingTracksSuccess,
+                                    'triggerSuccessfulDeletingTrackToast',
+                                ],
                             },
                         },
                     },

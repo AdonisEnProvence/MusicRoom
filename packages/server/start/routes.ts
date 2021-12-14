@@ -129,6 +129,11 @@ Route.group(() => {
         `/reject-change-track-order`,
         'Temporal/MpeTemporalToServerController.changeTrackOrderRejection',
     );
+
+    Route.post(
+        `/acknowledge-deleting-tracks`,
+        'Temporal/MpeTemporalToServerController.deleteTracksAcknowledgement',
+    );
 }).prefix(MPE_TEMPORAL_LISTENER);
 
 /// //////// ////// ///

@@ -75,6 +75,14 @@ export type MpeRoomServerToClientChangeTrackSuccessCallbackARgs = z.infer<
     typeof MpeRoomServerToClientChangeTrackSuccessCallbackARgs
 >;
 
+export const MpeRoomServerToClientDeleteTracksSuccessCallbackArgs = z.object({
+    roomID: z.string().uuid(),
+    state: MpeWorkflowState,
+});
+export type MpeRoomServerToClientDeleteTracksSuccessCallbackArgs = z.infer<
+    typeof MpeRoomServerToClientDeleteTracksSuccessCallbackArgs
+>;
+
 export interface MpeRoomClientToServerEvents {
     MPE_CREATE_ROOM: (args: MpeRoomClientToServerCreateArgs) => void;
     MPE_ADD_TRACKS: (args: MpeRoomClientToServerAddTracksArgs) => void;
@@ -105,5 +113,8 @@ export interface MpeRoomServerToClientEvents {
     ) => void;
     MPE_CHANGE_TRACK_ORDER_FAIL_CALLBACK: (
         args: MpeRoomServerToClientChangeTrackFailCallbackArgs,
+    ) => void;
+    MPE_DELETE_TRACKS_SUCCESS_CALLBACK: (
+        args: MpeRoomServerToClientDeleteTracksSuccessCallbackArgs,
     ) => void;
 }

@@ -4,8 +4,8 @@ import {
     MpeWorkflowState,
     MpeAcknowledgeAddingTracksRequestBody,
     MpeRejectChangeTrackOrderRequestBody,
+    MpeAcknowledgeChangeTrackOrderRequestBody,
 } from '@musicroom/types';
-import { MpeAcknowledgeChangeTrackOrderRequestBody } from '@musicroom/types/src/mpe-temporal-to-server';
 import Device from 'App/Models/Device';
 import Ws from 'App/Services/Ws';
 

@@ -654,6 +654,7 @@ export function createSpyOnClientSocketEvent<
 > {
     const customSpy = sinon.spy<AllServerToClientEvents[Event]>(noop);
 
-    socket.on(event, customSpy as any); //tmp fix ?
+    //@ts-expect-error socket will raise a type error as customSpy doesn't wrap native socket-io event
+    socket.on(event, customSpy);
     return customSpy;
 }

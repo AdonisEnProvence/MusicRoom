@@ -19,16 +19,12 @@ export async function throwErrorIfUserIsNotInGivenMpeRoom({
     userID,
     roomID,
 }: IsUserInMpeRoomArgs): Promise<void> {
-    const mpeRoom = await MpeRoom.query()
+    await MpeRoom.query()
         .where('uuid', roomID)
         .andWhereHas('members', (queryUser) => {
             return queryUser.where('uuid', userID);
         })
-        .first();
-    const userIsNotInRoom = mpeRoom === null;
-    if (userIsNotInRoom) {
-        throw new Error('User is not in given MPE room');
-    }
+        .firstOrFail();
 }
 
 export default function initMpeSocketEventListeners(socket: TypedSocket): void {

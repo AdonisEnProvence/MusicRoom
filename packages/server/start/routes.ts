@@ -120,6 +120,15 @@ Route.group(() => {
         `/acknowledge-adding-tracks`,
         'Temporal/MpeTemporalToServerController.addingTracksAcknowledgement',
     );
+
+    Route.post(
+        `/acknowledge-change-track-order`,
+        'Temporal/MpeTemporalToServerController.changeTrackOrderAcknowledgement',
+    );
+    Route.post(
+        `/reject-change-track-order`,
+        'Temporal/MpeTemporalToServerController.changeTrackOrderRejection',
+    );
 }).prefix(MPE_TEMPORAL_LISTENER);
 
 /// //////// ////// ///

@@ -325,8 +325,8 @@ export function initTestUtils(): TestUtilsReturnedValue {
                 mpeRoomIDToAssociate.map(
                     async ({ roomID, roomName: mpeRoomName }) => {
                         let mpeRoomToAssociate = await MpeRoom.find(roomID);
-                        console.log('CREATING MPE ROOM FROM TEST UTILS');
                         if (mpeRoomToAssociate === null) {
+                            console.log('CREATING MPE ROOM FROM TEST UTILS');
                             mpeRoomToAssociate = await MpeRoom.create({
                                 uuid: roomID,
                                 runID: datatype.uuid(),
@@ -637,4 +637,24 @@ export function generateMpeWorkflowState(
 
         ...overrides,
     };
+}
+
+export function noop(): void {
+    return undefined;
+}
+
+export function createSpyOnClientSocketEvent<
+    Event extends keyof AllServerToClientEvents,
+>(
+    socket: TypedTestSocket,
+    event: Event,
+): sinon.SinonSpy<
+    Parameters<AllServerToClientEvents[Event]>,
+    ReturnType<AllServerToClientEvents[Event]>
+> {
+    const customSpy = sinon.spy<AllServerToClientEvents[Event]>(noop);
+
+    //@ts-expect-error socket will raise a type error as customSpy doesn't wrap native socket-io event
+    socket.on(event, customSpy);
+    return customSpy;
 }

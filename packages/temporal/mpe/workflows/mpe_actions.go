@@ -36,6 +36,7 @@ func changeTrackOrder(ctx workflow.Context, internalState *MpeRoomInternalState)
 				sendRejectChangeTrackOrderActivity(ctx, activities_mpe.RejectChangeTrackOrderActivityArgs{
 					DeviceID: event.DeviceID,
 					UserID:   event.UserID,
+					RoomID:   internalState.initialParams.RoomID,
 				})
 				fmt.Println("UP FAILED", err)
 				return nil
@@ -48,6 +49,7 @@ func changeTrackOrder(ctx workflow.Context, internalState *MpeRoomInternalState)
 				sendRejectChangeTrackOrderActivity(ctx, activities_mpe.RejectChangeTrackOrderActivityArgs{
 					DeviceID: event.DeviceID,
 					UserID:   event.UserID,
+					RoomID:   internalState.initialParams.RoomID,
 				})
 				fmt.Println("DOWN FAILED", err)
 				return nil

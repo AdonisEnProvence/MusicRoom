@@ -3,6 +3,8 @@ import {
     MpeRejectAddingTracksRequestBody,
     MpeWorkflowState,
     MpeAcknowledgeAddingTracksRequestBody,
+    MpeRejectChangeTrackOrderRequestBody,
+    MpeAcknowledgeChangeTrackOrderRequestBody,
 } from '@musicroom/types';
 import Device from 'App/Models/Device';
 import Ws from 'App/Services/Ws';
@@ -54,5 +56,38 @@ export default class MpeTemporalToServerController {
                 roomID,
                 state,
             });
+    }
+
+    public async changeTrackOrderAcknowledgement({
+        request,
+    }: HttpContextContract): Promise<void> {
+        const { state, deviceID } =
+            MpeAcknowledgeChangeTrackOrderRequestBody.parse(request.body());
+
+        const device = await Device.findOrFail(deviceID);
+        Ws.io
+            .to(device.socketID)
+            .emit('MPE_CHANGE_TRACK_ORDER_SUCCESS_CALLBACK', {
+                roomID: state.roomID,
+                state,
+            });
+
+        Ws.io
+            .to(state.roomID)
+            .except(device.socketID)
+            .emit('MPE_TRACKS_LIST_UPDATE', { roomID: state.roomID, state });
+    }
+
+    public async changeTrackOrderRejection({
+        request,
+    }: HttpContextContract): Promise<void> {
+        const { deviceID, roomID } = MpeRejectChangeTrackOrderRequestBody.parse(
+            request.body(),
+        );
+
+        const device = await Device.findOrFail(deviceID);
+        Ws.io.to(device.socketID).emit('MPE_CHANGE_TRACK_ORDER_FAIL_CALLBACK', {
+            roomID,
+        });
     }
 }

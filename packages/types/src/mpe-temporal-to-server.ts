@@ -18,3 +18,21 @@ export const MpeAcknowledgeAddingTracksRequestBody = z.object({
 export type MpeAcknowledgeAddingTracksRequestBody = z.infer<
     typeof MpeAcknowledgeAddingTracksRequestBody
 >;
+
+export const MpeAcknowledgeChangeTrackOrderRequestBody = z.object({
+    state: MpeWorkflowState,
+    userID: z.string().uuid(),
+    deviceID: z.string().uuid(),
+});
+export type MpeAcknowledgeChangeTrackOrderRequestBody = z.infer<
+    typeof MpeAcknowledgeChangeTrackOrderRequestBody
+>;
+
+export const MpeRejectChangeTrackOrderRequestBody = z.object({
+    roomID: z.string().uuid(),
+    userID: z.string().uuid(),
+    deviceID: z.string().uuid(),
+});
+export type MpeRejectChangeTrackOrderRequestBody = z.infer<
+    typeof MpeRejectChangeTrackOrderRequestBody
+>;

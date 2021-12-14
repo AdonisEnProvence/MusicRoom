@@ -1,5 +1,7 @@
 import { randomUUID } from 'crypto';
 import {
+    MpeChangeTrackOrderOperationToApply,
+    MpeChangeTrackOrderRequestBody,
     MpeCreateWorkflowResponse,
     MpeRoomClientToServerCreateArgs,
 } from '@musicroom/types';
@@ -7,7 +9,9 @@ import MpeRoom from 'App/Models/MpeRoom';
 import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
+import { TypedSocket } from 'start/socket';
 import MpeServerToTemporalController from '../Http/Temporal/MpeServerToTemporalController';
+import { throwErrorIfUserIsNotInGivenMpeRoom } from '../../../start/mpeSocket';
 
 interface MpeOnCreateArgs extends MpeRoomClientToServerCreateArgs {
     roomCreator: User;
@@ -18,6 +22,15 @@ interface MpeOnAddTracksArgs {
     tracksIDs: string[];
     userID: string;
     deviceID: string;
+}
+
+interface MpeOnChangeTrackOrderArgs {
+    operationToApply: MpeChangeTrackOrderOperationToApply;
+    roomID: string;
+    userID: string;
+    deviceID: string;
+    trackID: string;
+    fromIndex: number;
 }
 
 export default class MpeRoomsWsController {
@@ -122,5 +135,28 @@ export default class MpeRoomsWsController {
             userID,
             deviceID,
         });
+    }
+
+    public static async onChangeTrackOrder(
+        params: MpeOnChangeTrackOrderArgs,
+        socket: TypedSocket,
+    ): Promise<void> {
+        try {
+            const { roomID, ...rest } = params;
+            await throwErrorIfUserIsNotInGivenMpeRoom({
+                userID: params.userID,
+                roomID,
+            });
+
+            const body: MpeChangeTrackOrderRequestBody = {
+                ...rest,
+                workflowID: roomID,
+            };
+            await MpeServerToTemporalController.changeTrackOrder(body);
+        } catch (e) {
+            socket.emit('MPE_CHANGE_TRACK_ORDER_FAIL_CALLBACK', {
+                roomID: params.roomID,
+            });
+        }
     }
 }

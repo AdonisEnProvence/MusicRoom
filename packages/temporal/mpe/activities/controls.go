@@ -73,6 +73,7 @@ func (a *Activities) AcknowledgeAddingTracksActivity(ctx context.Context, args A
 type RejectChangeTrackOrderActivityArgs struct {
 	DeviceID string `json:"deviceID"`
 	UserID   string `json:"userID"`
+	RoomID   string `json:"roomID"`
 }
 
 type AcknowledgeChangeTrackOrderActivityArgs struct {

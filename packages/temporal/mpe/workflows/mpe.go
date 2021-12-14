@@ -290,6 +290,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 										sendRejectChangeTrackOrderActivity(ctx, activities_mpe.RejectChangeTrackOrderActivityArgs{
 											DeviceID: event.DeviceID,
 											UserID:   event.UserID,
+											RoomID:   internalState.initialParams.RoomID,
 										})
 										return nil
 									}),

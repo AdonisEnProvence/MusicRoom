@@ -4,6 +4,8 @@ import {
     MpeRoomClientToServerCreateArgs,
     MpeAddTracksRequestBody,
     MpeAddTracksResponseBody,
+    MpeChangeTrackOrderResponseBody,
+    MpeChangeTrackOrderRequestBody,
 } from '@musicroom/types';
 import got from 'got';
 import urlcat from 'urlcat';
@@ -37,6 +39,20 @@ export default class MpeServerToTemporalController {
         const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/add-tracks');
 
         return MpeAddTracksResponseBody.parse(
+            await got
+                .put(url, {
+                    json: body,
+                })
+                .json(),
+        );
+    }
+
+    public static async changeTrackOrder(
+        body: MpeChangeTrackOrderRequestBody,
+    ): Promise<MpeChangeTrackOrderResponseBody> {
+        const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/change-track-order');
+
+        return MpeChangeTrackOrderResponseBody.parse(
             await got
                 .put(url, {
                     json: body,

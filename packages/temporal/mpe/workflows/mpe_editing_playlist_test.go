@@ -650,6 +650,88 @@ func (s *EditingPlaylistTestSuite) Test_PreventUnknownUserFromDeletingTracks() {
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
+func (s *EditingPlaylistTestSuite) Test_AcknowledgeDeletionEvenWhenNoTracksWereDeleted() {
+	initialTracksIDs := []string{
+		faker.UUIDHyphenated(),
+		faker.UUIDHyphenated(),
+	}
+	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+	var a *activities_mpe.Activities
+
+	initialTracksMetadata := []shared.TrackMetadata{
+		{
+			ID:         initialTracksIDs[0],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+		{
+			ID:         initialTracksIDs[1],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+	}
+
+	tick := 1 * time.Millisecond
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	// Common activities calls
+	s.env.OnActivity(
+		a.MpeCreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		initialTracksIDs,
+	).Return(initialTracksMetadata, nil).Once()
+
+	// Specific activities calls
+	s.env.OnActivity(
+		a.AcknowledgeDeletingTracksActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
+	initialTracksFetched := tick * 200
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		s.Equal(initialTracksMetadata, mpeState.Tracks)
+	}, initialTracksFetched)
+
+	deleteTracks := tick * 200
+	registerDelayedCallbackWrapper(func() {
+		tracksIDsToDelete := []string{
+			faker.UUIDHyphenated(),
+			faker.UUIDHyphenated(),
+		}
+
+		s.emitDeleteTracksSignal(shared_mpe.NewDeleteTracksSignalArgs{
+			TracksIDs: tracksIDsToDelete,
+			UserID:    params.RoomCreatorUserID,
+			DeviceID:  roomCreatorDeviceID,
+		})
+	}, deleteTracks)
+
+	checkDeletedTracks := tick * 200
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		s.Equal(initialTracksMetadata, mpeState.Tracks)
+	}, checkDeletedTracks)
+
+	s.env.ExecuteWorkflow(MpeRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
 func TestEditingPlaylistTestSuite(t *testing.T) {
 	suite.Run(t, new(EditingPlaylistTestSuite))
 }

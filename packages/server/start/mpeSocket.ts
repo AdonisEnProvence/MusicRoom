@@ -3,6 +3,7 @@ import {
     MpeRoomClientToServerAddTracksArgs,
     MpeRoomClientToServerChangeTrackOrderUpDownArgs,
     MpeRoomClientToServerCreateArgs,
+    MpeRoomClientToServerDeleteTracksArgs,
 } from '@musicroom/types';
 import MpeRoomsWsController from 'App/Controllers/Ws/MpeRoomsWsController';
 import MpeRoom from 'App/Models/MpeRoom';
@@ -129,6 +130,27 @@ export default function initMpeSocketEventListeners(socket: TypedSocket): void {
             );
         } catch (e) {
             console.error(e);
+        }
+    });
+
+    socket.on('MPE_DELETE_TRACKS', async (rawArgs) => {
+        try {
+            const { roomID, tracksIDs } =
+                MpeRoomClientToServerDeleteTracksArgs.parse(rawArgs);
+
+            const { user, deviceID } =
+                await SocketLifecycle.getSocketConnectionCredentials(socket);
+
+            await MpeRoomsWsController.onDeleteTracks({
+                socket,
+
+                roomID,
+                tracksIDs,
+                userID: user.uuid,
+                deviceID,
+            });
+        } catch (err) {
+            console.error(err);
         }
     });
 }

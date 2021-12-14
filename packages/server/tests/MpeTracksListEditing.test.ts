@@ -391,4 +391,42 @@ test.group('MPE Rooms Tracks List Editing', (group) => {
 
         assert.isTrue(userBSocket1AddTracksSuccessCallbackSpy.notCalled);
     });
+
+    test('Sends request to Temporal when deleting tracks', async (assert) => {
+        const creatorUserID = datatype.uuid();
+        const roomID = datatype.uuid();
+        const userASocket1 = await createUserAndGetSocket({
+            userID: creatorUserID,
+            mpeRoomIDToAssociate: [
+                {
+                    roomID,
+                },
+            ],
+        });
+
+        const deleteTracksSpy = sinon
+            .stub(MpeServerToTemporalController, 'deleteTracks')
+            .callsFake(() => {
+                return Promise.resolve({
+                    ok: 1,
+                });
+            });
+
+        const tracksToDelete = [datatype.uuid()];
+        userASocket1.emit('MPE_DELETE_TRACKS', {
+            roomID,
+            tracksIDs: tracksToDelete,
+        });
+
+        await waitFor(() => {
+            assert.isTrue(
+                deleteTracksSpy.calledOnceWithExactly({
+                    deviceID: sinon.match.string,
+                    workflowID: roomID,
+                    tracksIDs: tracksToDelete,
+                    userID: creatorUserID,
+                }),
+            );
+        });
+    });
 });

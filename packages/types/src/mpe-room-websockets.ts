@@ -20,6 +20,14 @@ export type MpeRoomClientToServerAddTracksArgs = z.infer<
     typeof MpeRoomClientToServerAddTracksArgs
 >;
 
+export const MpeRoomClientToServerDeleteTracksArgs = z.object({
+    roomID: z.string().uuid(),
+    tracksIDs: z.array(z.string()).min(1),
+});
+export type MpeRoomClientToServerDeleteTracksArgs = z.infer<
+    typeof MpeRoomClientToServerDeleteTracksArgs
+>;
+
 export const MpeRoomServerToClientAddTracksFailCallbackArgs = z.object({
     roomID: z.string().uuid(),
 });
@@ -76,6 +84,7 @@ export interface MpeRoomClientToServerEvents {
     MPE_CHANGE_TRACK_ORDER_UP: (
         args: MpeRoomClientToServerChangeTrackOrderUpDownArgs,
     ) => void;
+    MPE_DELETE_TRACKS: (args: MpeRoomClientToServerDeleteTracksArgs) => void;
 }
 
 export interface MpeRoomServerToClientEvents {

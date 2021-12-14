@@ -9,7 +9,9 @@ import MpeRoom from 'App/Models/MpeRoom';
 import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
+import { TypedSocket } from 'start/socket';
 import MpeServerToTemporalController from '../Http/Temporal/MpeServerToTemporalController';
+import { throwErrorIfUserIsNotInGivenMpeRoom } from '../../../start/mpeSocket';
 
 interface MpeOnCreateArgs extends MpeRoomClientToServerCreateArgs {
     roomCreator: User;
@@ -137,12 +139,24 @@ export default class MpeRoomsWsController {
 
     public static async onChangeTrackOrder(
         params: MpeOnChangeTrackOrderArgs,
+        socket: TypedSocket,
     ): Promise<void> {
-        const { roomID, ...rest } = params;
-        const body: MpeChangeTrackOrderRequestBody = {
-            ...rest,
-            workflowID: roomID,
-        };
-        await MpeServerToTemporalController.changeTrackOrder(body);
+        try {
+            const { roomID, ...rest } = params;
+            await throwErrorIfUserIsNotInGivenMpeRoom({
+                userID: params.userID,
+                roomID,
+            });
+
+            const body: MpeChangeTrackOrderRequestBody = {
+                ...rest,
+                workflowID: roomID,
+            };
+            await MpeServerToTemporalController.changeTrackOrder(body);
+        } catch (e) {
+            socket.emit('MPE_CHANGE_TRACK_ORDER_FAIL_CALLBACK', {
+                roomID: params.roomID,
+            });
+        }
     }
 }

@@ -384,7 +384,7 @@ test.group(`mpe rooms change track order group test`, (group) => {
         });
     });
 
-    test.skip('It should reject change track order if fromIndex params is negative ', async (assert) => {
+    test('It should cancel operation change track order if fromIndex params is negative ', async (assert) => {
         const creatorUserID = datatype.uuid();
         const mpeRoomIDToAssociate = datatype.uuid();
 
@@ -431,7 +431,7 @@ test.group(`mpe rooms change track order group test`, (group) => {
                 creatorSocketMpeChangeTrackOrderSucessCallbackSpy.notCalled,
             );
             assert.isTrue(
-                creatorSocketMpeChangeTrackOrderFailCallbackSpy.calledOnce,
+                creatorSocketMpeChangeTrackOrderFailCallbackSpy.notCalled,
             );
         });
     });

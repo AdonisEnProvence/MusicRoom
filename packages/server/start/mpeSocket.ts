@@ -15,7 +15,7 @@ interface IsUserInMpeRoomArgs {
     roomID: string;
 }
 
-async function throwErrorIfUserIsNotInGivenMpeRoom({
+export async function throwErrorIfUserIsNotInGivenMpeRoom({
     userID,
     roomID,
 }: IsUserInMpeRoomArgs): Promise<void> {
@@ -87,63 +87,52 @@ export default function initMpeSocketEventListeners(socket: TypedSocket): void {
     });
 
     socket.on('MPE_CHANGE_TRACK_ORDER_DOWN', async (raw) => {
-        const { fromIndex, trackID, roomID } =
-            MpeRoomClientToServerChangeTrackOrderUpDownArgs.parse(raw);
-
         try {
+            const { fromIndex, trackID, roomID } =
+                MpeRoomClientToServerChangeTrackOrderUpDownArgs.parse(raw);
+
             const { user, deviceID } =
                 await SocketLifecycle.getSocketConnectionCredentials(socket);
 
-            await throwErrorIfUserIsNotInGivenMpeRoom({
-                userID: user.uuid,
-                roomID,
-            });
-
-            await MpeRoomsWsController.onChangeTrackOrder({
-                roomID,
-                trackID,
-                userID: user.uuid,
-                deviceID,
-                fromIndex,
-                operationToApply:
-                    MpeChangeTrackOrderOperationToApply.Values.DOWN,
-            });
+            await MpeRoomsWsController.onChangeTrackOrder(
+                {
+                    roomID,
+                    trackID,
+                    userID: user.uuid,
+                    deviceID,
+                    fromIndex,
+                    operationToApply:
+                        MpeChangeTrackOrderOperationToApply.Values.DOWN,
+                },
+                socket,
+            );
         } catch (e) {
             console.error(e);
-
-            socket.emit('MPE_CHANGE_TRACK_ORDER_FAIL_CALLBACK', {
-                roomID,
-            });
         }
     });
 
     socket.on('MPE_CHANGE_TRACK_ORDER_UP', async (raw) => {
-        const { fromIndex, trackID, roomID } =
-            MpeRoomClientToServerChangeTrackOrderUpDownArgs.parse(raw);
-
         try {
+            const { fromIndex, trackID, roomID } =
+                MpeRoomClientToServerChangeTrackOrderUpDownArgs.parse(raw);
+
             const { user, deviceID } =
                 await SocketLifecycle.getSocketConnectionCredentials(socket);
 
-            await throwErrorIfUserIsNotInGivenMpeRoom({
-                userID: user.uuid,
-                roomID,
-            });
-
-            await MpeRoomsWsController.onChangeTrackOrder({
-                roomID,
-                trackID,
-                userID: user.uuid,
-                deviceID,
-                fromIndex,
-                operationToApply: MpeChangeTrackOrderOperationToApply.Values.UP,
-            });
+            await MpeRoomsWsController.onChangeTrackOrder(
+                {
+                    roomID,
+                    trackID,
+                    userID: user.uuid,
+                    deviceID,
+                    fromIndex,
+                    operationToApply:
+                        MpeChangeTrackOrderOperationToApply.Values.UP,
+                },
+                socket,
+            );
         } catch (e) {
             console.error(e);
-
-            socket.emit('MPE_CHANGE_TRACK_ORDER_FAIL_CALLBACK', {
-                roomID,
-            });
         }
     });
 }

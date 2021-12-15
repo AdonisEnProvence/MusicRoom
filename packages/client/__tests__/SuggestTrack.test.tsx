@@ -1,16 +1,11 @@
 import { MtvWorkflowState } from '@musicroom/types';
-import { NavigationContainer } from '@react-navigation/native';
 import { datatype, random } from 'faker';
-import React from 'react';
 import toast from 'react-native-toast-message';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { db, generateTrackMetadata } from '../tests/data';
 import {
     fireEvent,
-    noop,
-    render,
+    renderApp,
     waitFor,
     waitForElementToBeRemoved,
     within,
@@ -99,16 +94,7 @@ test(`A user can suggest tracks to play`, async () => {
         serverSocket.emit('MTV_SUGGEST_TRACKS_CALLBACK');
     });
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -221,16 +207,7 @@ test('Suggested tracks are reset when pressing clear button', async () => {
         serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
     });
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -339,16 +316,7 @@ test('Suggested tracks are reset when pressing cancel button', async () => {
         serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
     });
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -457,16 +425,7 @@ test('Search query can be changed and submitted after a first submission', async
         serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
     });
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -566,16 +525,7 @@ test('Display a failure toast when track could not be suggested', async () => {
         serverSocket.emit('MTV_SUGGEST_TRACKS_FAIL_CALLBACK');
     });
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 

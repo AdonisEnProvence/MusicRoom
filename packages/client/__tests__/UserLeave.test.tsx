@@ -1,12 +1,8 @@
 import { MtvWorkflowState, UserDevice } from '@musicroom/types';
-import { NavigationContainer } from '@react-navigation/native';
 import { datatype, random } from 'faker';
-import React from 'react';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
-import { fireEvent, noop, render, waitFor, within } from '../tests/tests-utils';
+import { fireEvent, renderApp, waitFor, within } from '../tests/tests-utils';
 
 test(`
 User should go to the musicPlayer into the settings tab an hit the leave button
@@ -48,22 +44,7 @@ He will be redirected to the home and will view the default mini music player
         leaveRoomServerListenerHasBeenCalled = true;
     });
 
-    const {
-        findByText,
-        getByTestId,
-        getAllByText,
-        findByA11yState,
-        queryAllByA11yState,
-    } = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     /**
      * Retrieve context to have the appMusicPlayerMachine directly
@@ -73,12 +54,14 @@ He will be redirected to the home and will view the default mini music player
 
     serverSocket.emit('MTV_RETRIEVE_CONTEXT', state);
 
-    const musicPlayerMini = getByTestId('music-player-mini');
+    const musicPlayerMini = screen.getByTestId('music-player-mini');
     expect(musicPlayerMini).toBeTruthy();
 
     fireEvent.press(musicPlayerMini);
 
-    const musicPlayerFullScreen = await findByA11yState({ expanded: true });
+    const musicPlayerFullScreen = await screen.findByA11yState({
+        expanded: true,
+    });
     expect(musicPlayerFullScreen).toBeTruthy();
 
     /**
@@ -92,7 +75,7 @@ He will be redirected to the home and will view the default mini music player
     expect(goSettingsButton).toBeTruthy();
     fireEvent.press(goSettingsButton);
 
-    expect(await findByText(/settings tab/i)).toBeTruthy();
+    expect(await screen.findByText(/settings tab/i)).toBeTruthy();
 
     /**
      * Press on the leave room button
@@ -114,12 +97,12 @@ He will be redirected to the home and will view the default mini music player
     serverSocket.emit('MTV_LEAVE_ROOM_CALLBACK');
 
     await waitFor(() => {
-        const elements = queryAllByA11yState({ expanded: false });
+        const elements = screen.queryAllByA11yState({ expanded: false });
         expect(elements.length).toBe(0);
     });
 
     expect(leaveRoomServerListenerHasBeenCalled).toBeTruthy();
-    expect(getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
     expect(
         within(musicPlayerMini).getByText(/Join a room to listen to music/i),
     ).toBeTruthy();

@@ -1,12 +1,7 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { db } from '../tests/data';
 import {
     fireEvent,
-    noop,
-    render,
+    renderApp,
     waitFor,
     waitForElementToBeRemoved,
 } from '../tests/tests-utils';
@@ -14,16 +9,7 @@ import {
 test('SearchTracksScreen is dismissed when pressing on a track card', async () => {
     const fakeTrack = db.searchableTracks.create();
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -83,16 +69,7 @@ test('SearchTracksScreen is dismissed when pressing on a track card', async () =
 test('SearchTracksScreen keeps its state when going back to it', async () => {
     const fakeTrack = db.searchableTracks.create();
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -161,16 +138,7 @@ test('SearchTracksScreen keeps its state when going back to it', async () => {
 test('SearchTracksScreen results are reset when pressing clear button', async () => {
     const fakeTrack = db.searchableTracks.create();
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -224,16 +192,7 @@ test('SearchTracksScreen results are reset when pressing clear button', async ()
 test('SearchTracksScreen results are reset when pressing cancel button', async () => {
     const fakeTrack = db.searchableTracks.create();
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 

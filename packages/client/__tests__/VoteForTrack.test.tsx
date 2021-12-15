@@ -1,21 +1,18 @@
 import { MtvWorkflowStateWithUserRelatedInformation } from '@musicroom/types';
-import { NavigationContainer } from '@react-navigation/native';
 import { LocationPermissionResponse, PermissionStatus } from 'expo-location';
-import faker, { datatype, random } from 'faker';
-import React from 'react';
+import { datatype, random } from 'faker';
 import {
     getCurrentPositionAsyncMocked,
     requestForegroundPermissionsAsyncMocked,
 } from '../jest.setup';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
+import { extractTrackIDFromCardContainerTestID } from '../screens/MusicPlaylistEditorRoomScreen/__tests__/TracksListEditing.test';
 import { serverSocket } from '../services/websockets';
 import {
     generateArray,
     generateLocationObject,
     generateTrackMetadata,
 } from '../tests/data';
-import { fireEvent, noop, render, within } from '../tests/tests-utils';
+import { fireEvent, renderApp, waitFor, within } from '../tests/tests-utils';
 
 test(`
 User should go to the musicPlayer into the tracks tab and hit a track card to vote for it
@@ -63,10 +60,20 @@ After the vote has been accepted the score will be updated and the card disabled
     if (state.tracks === null) throw new Error('state.track is null');
 
     serverSocket.on('MTV_VOTE_FOR_TRACK', ({ trackID }) => {
+        console.log('SERVER IS PROCESSING MTV_VOTE_FOR_TRACK');
         if (state.tracks === null) throw new Error('state.track is null');
-        state.userRelatedInformation.tracksVotedFor.push(trackID);
+        const stateCpy: MtvWorkflowStateWithUserRelatedInformation = {
+            ...state,
+            userRelatedInformation: {
+                ...state.userRelatedInformation,
+                tracksVotedFor: [
+                    ...state.userRelatedInformation.tracksVotedFor,
+                    trackID,
+                ],
+            },
+        };
 
-        state.tracks = state.tracks
+        stateCpy.tracks = state.tracks
             .map((track) => {
                 if (track.id === trackID) {
                     return {
@@ -78,23 +85,15 @@ After the vote has been accepted the score will be updated and the card disabled
             })
             .sort((a, b) => (a.score < b.score ? 1 : -1));
 
-        serverSocket.emit('MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK', state);
+        console.log('EMITTING BULLSHIT');
+        serverSocket.emit('MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK', stateCpy);
     });
 
     serverSocket.on('MTV_GET_CONTEXT', () => {
         serverSocket.emit('MTV_RETRIEVE_CONTEXT', state);
     });
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     /**
      * Retrieve context to have the appMusicPlayerMachine directly
@@ -120,27 +119,37 @@ After the vote has been accepted the score will be updated and the card disabled
     /**
      * Find the last track card element
      */
-    const lastTrackElement = state.tracks[state.tracks.length - 1];
-    const lastTrack = await within(musicPlayerFullScreen).findByText(
-        lastTrackElement.title,
+    const trackCardElements = await waitFor(() => {
+        const trackCardElements =
+            screen.getAllByTestId(/track-card-container/i);
+        expect(trackCardElements.length).toBe(state.tracks!.length);
+
+        return trackCardElements;
+    });
+
+    const tracksIDs = trackCardElements.map(({ props: { testID } }) =>
+        extractTrackIDFromCardContainerTestID(testID),
     );
-    expect(lastTrack).toBeTruthy();
 
-    fireEvent.press(lastTrack);
+    const trackToVoteFor = trackCardElements[trackCardElements.length - 1];
+    const trackToVoteForID = tracksIDs[trackCardElements.length - 1];
+    expect(trackToVoteFor).toBeTruthy();
+    expect(trackToVoteFor).not.toBeDisabled();
 
-    const firstTrackElement = state.tracks[0];
-    expect(
-        await within(musicPlayerFullScreen).findAllByText(
-            new RegExp(
-                `${firstTrackElement.score}/${state.minimumScoreToBePlayed}`,
-            ),
-        ),
-    ).toBeTruthy();
+    console.log('pressing');
+    fireEvent.press(trackToVoteFor);
 
-    const votedTrackCard = await within(musicPlayerFullScreen).findByText(
-        firstTrackElement.title,
-    );
-    expect(votedTrackCard).toBeDisabled();
+    await waitFor(() => {
+        expect(
+            screen.getByText(`1/${state.minimumScoreToBePlayed}`),
+        ).toBeTruthy();
+
+        const trackVotedForCard = screen.getByTestId(
+            `${trackToVoteForID}-track-card`,
+        );
+        expect(trackVotedForCard).toBeTruthy();
+        expect(trackVotedForCard).toBeDisabled();
+    });
 });
 
 test('Voting is disabled for users outside of physical constraints bounds', async () => {
@@ -208,16 +217,7 @@ test('Voting is disabled for users outside of physical constraints bounds', asyn
     const voteForTrackCallbackMock = jest.fn();
     serverSocket.on('MTV_VOTE_FOR_TRACK', voteForTrackCallbackMock);
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     const musicPlayerMini = await screen.findByTestId('music-player-mini');
     expect(musicPlayerMini).toBeTruthy();
@@ -314,23 +314,16 @@ test('Voting is disabled for users outside of time bounds', async () => {
     const voteForTrackCallbackMock = jest.fn();
     serverSocket.on('MTV_VOTE_FOR_TRACK', voteForTrackCallbackMock);
 
-    const { getByTestId, findByA11yState } = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
-    const musicPlayerMini = getByTestId('music-player-mini');
+    const musicPlayerMini = screen.getByTestId('music-player-mini');
     expect(musicPlayerMini).toBeTruthy();
 
     fireEvent.press(musicPlayerMini);
 
-    const musicPlayerFullScreen = await findByA11yState({ expanded: true });
+    const musicPlayerFullScreen = await screen.findByA11yState({
+        expanded: true,
+    });
     expect(musicPlayerFullScreen).toBeTruthy();
 
     /**

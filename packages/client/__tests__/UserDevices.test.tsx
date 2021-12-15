@@ -1,12 +1,8 @@
 import { MtvWorkflowState, UserDevice } from '@musicroom/types';
-import { NavigationContainer } from '@react-navigation/native';
 import { datatype, random } from 'faker';
-import React from 'react';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
-import { fireEvent, noop, render, waitFor, within } from '../tests/tests-utils';
+import { fireEvent, renderApp, waitFor, within } from '../tests/tests-utils';
 
 test(`
 On userMachine mounting it should retrieve user connected devices and list them in the MTV settings section
@@ -69,16 +65,7 @@ After clicking on one not emitting device card it should set the clicked one as 
         serverSocket.emit('MTV_RETRIEVE_CONTEXT', state);
     });
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     /**
      * Retrieve context to have the appMusicPlayerMachine directly

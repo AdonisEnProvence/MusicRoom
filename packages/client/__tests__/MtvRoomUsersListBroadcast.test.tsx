@@ -3,18 +3,13 @@ import {
     MtvRoomUsersListElement,
     MtvWorkflowState,
 } from '@musicroom/types';
-import { NavigationContainer } from '@react-navigation/native';
 import { datatype, random } from 'faker';
-import React from 'react';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
 import {
     fireEvent,
     getFakeUsersList,
-    noop,
-    render,
+    renderApp,
     waitFor,
     within,
 } from '../tests/tests-utils';
@@ -67,16 +62,7 @@ describe('User list tests', () => {
             cb(fakeUsersArray);
         });
 
-        const screen = render(
-            <NavigationContainer
-                ref={navigationRef}
-                onReady={() => {
-                    isReadyRef.current = true;
-                }}
-            >
-                <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-            </NavigationContainer>,
-        );
+        const screen = await renderApp();
 
         expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -230,16 +216,7 @@ describe('User list tests', () => {
             cb(fakeUsersArray);
         });
 
-        const screen = render(
-            <NavigationContainer
-                ref={navigationRef}
-                onReady={() => {
-                    isReadyRef.current = true;
-                }}
-            >
-                <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-            </NavigationContainer>,
-        );
+        const screen = await renderApp();
 
         expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -372,16 +349,7 @@ describe('User list tests', () => {
             cb(fakeUsersArray);
         });
 
-        const screen = render(
-            <NavigationContainer
-                ref={navigationRef}
-                onReady={() => {
-                    isReadyRef.current = true;
-                }}
-            >
-                <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-            </NavigationContainer>,
-        );
+        const screen = await renderApp();
 
         expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -531,16 +499,7 @@ describe('User list tests', () => {
             },
         );
 
-        const screen = render(
-            <NavigationContainer
-                ref={navigationRef}
-                onReady={() => {
-                    isReadyRef.current = true;
-                }}
-            >
-                <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-            </NavigationContainer>,
-        );
+        const screen = await renderApp();
 
         expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -663,16 +622,7 @@ describe('User list tests', () => {
             cb(fakeUsersArray);
         });
 
-        const screen = render(
-            <NavigationContainer
-                ref={navigationRef}
-                onReady={() => {
-                    isReadyRef.current = true;
-                }}
-            >
-                <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-            </NavigationContainer>,
-        );
+        const screen = await renderApp();
 
         expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -798,16 +748,7 @@ describe('User list tests', () => {
             cb(fakeUsersArray);
         });
 
-        const screen = render(
-            <NavigationContainer
-                ref={navigationRef}
-                onReady={() => {
-                    isReadyRef.current = true;
-                }}
-            >
-                <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-            </NavigationContainer>,
-        );
+        const screen = await renderApp();
 
         expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 

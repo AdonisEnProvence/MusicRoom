@@ -1,15 +1,10 @@
 import { MtvWorkflowState } from '@musicroom/types';
-import { NavigationContainer } from '@react-navigation/native';
 import { datatype, random } from 'faker';
-import React from 'react';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
 import {
     fireEvent,
-    noop,
-    render,
+    renderApp,
     waitFor,
     waitForTimeout,
     within,
@@ -59,22 +54,13 @@ it(`When the user clicks on next track button, it should play the next track, if
         });
     });
 
-    const { getAllByText, getByTestId, findByA11yState } = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
 
-    expect(getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const musicPlayerMini = getByTestId('music-player-mini');
+    const musicPlayerMini = screen.getByTestId('music-player-mini');
     expect(musicPlayerMini).toBeTruthy();
 
     const miniPlayerTrackTitle = await within(musicPlayerMini).findByText(
@@ -84,7 +70,9 @@ it(`When the user clicks on next track button, it should play the next track, if
 
     fireEvent.press(miniPlayerTrackTitle);
 
-    const musicPlayerFullScreen = await findByA11yState({ expanded: true });
+    const musicPlayerFullScreen = await screen.findByA11yState({
+        expanded: true,
+    });
     expect(musicPlayerFullScreen).toBeTruthy();
     expect(
         within(musicPlayerFullScreen).getByText(tracksList[0].title),

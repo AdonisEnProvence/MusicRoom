@@ -1,19 +1,14 @@
 import { MtvPlayingModes, MtvWorkflowState } from '@musicroom/types';
-import { NavigationContainer } from '@react-navigation/native';
 import { datatype, random } from 'faker';
-import React from 'react';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
 import {
     fireEvent,
     getFakeUsersList,
-    noop,
-    render,
+    renderApp,
     waitFor,
-    within,
     waitForElementToBeRemoved,
+    within,
 } from '../tests/tests-utils';
 
 test('Clearing search input displays users without filtering', async () => {
@@ -60,16 +55,7 @@ test('Clearing search input displays users without filtering', async () => {
         cb(fakeUsersArray);
     });
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -194,16 +180,7 @@ test('Cancelling search input displays users without filtering', async () => {
         cb(fakeUsersArray);
     });
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 

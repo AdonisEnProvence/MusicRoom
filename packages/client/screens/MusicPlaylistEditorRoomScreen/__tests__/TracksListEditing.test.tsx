@@ -4,19 +4,19 @@ import Toast from 'react-native-toast-message';
 import { serverSocket } from '../../../services/websockets';
 import { db, generateTrackMetadata } from '../../../tests/data';
 import {
-    renderApp,
     fireEvent,
-    waitFor,
-    within,
-    waitForElementToBeRemoved,
     render,
+    renderApp,
+    waitFor,
+    waitForElementToBeRemoved,
+    within,
 } from '../../../tests/tests-utils';
 
 function toTrackCardContainerTestID(id: string): string {
     return `${id}-track-card-container`;
 }
 
-function extractTrackIDFromCardContainerTestID(testID: string): string {
+export function extractTrackIDFromCardContainerTestID(testID: string): string {
     return testID.replace('-track-card-container', '');
 }
 

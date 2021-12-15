@@ -1,23 +1,19 @@
 import { MtvWorkflowState } from '@musicroom/types';
-import { NavigationContainer } from '@react-navigation/native';
 import { createModel as createTestModel } from '@xstate/test';
 import { addHours, subMinutes } from 'date-fns';
 import { datatype, name, random } from 'faker';
-import React from 'react';
 import { ContextFrom, EventFrom, State } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import * as z from 'zod';
 import { formatDateTime } from '../hooks/useFormatDateTime';
 import { requestForegroundPermissionsAsyncMocked } from '../jest.setup';
 import { MtvRoomMinimumVotesForATrackToBePlayed } from '../machines/creationMtvRoomForm';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { db } from '../tests/data';
 import {
     fireEvent,
-    noop,
     render,
+    renderApp,
     waitFor,
     waitForElementToBeRemoved,
     waitForTimeout,
@@ -136,10 +132,12 @@ const createMtvRoomWithSettingsMachine =
         states: {
             home: {
                 meta: {
-                    test: ({ screen }: TestingContext) => {
-                        expect(
-                            screen.getAllByText(/home/i).length,
-                        ).toBeGreaterThanOrEqual(1);
+                    test: async ({ screen }: TestingContext) => {
+                        await waitFor(() => {
+                            expect(
+                                screen.getAllByText(/home/i).length,
+                            ).toBeGreaterThanOrEqual(1);
+                        });
                     },
                 },
 
@@ -866,25 +864,20 @@ const createMtvRoomWithSettingsMachine =
                             ).toBeCalledTimes(0);
                         }
 
-                        let receivedActionPlay = false;
                         serverSocket.on('MTV_ACTION_PLAY', () => {
                             serverSocket.emit('MTV_ACTION_PLAY_CALLBACK', {
                                 ...musicPlayerState,
                                 playing: true,
                             });
-                            receivedActionPlay = true;
                         });
 
                         fireEvent.press(newPlayButton);
 
-                        await waitFor(async () => {
-                            expect(receivedActionPlay).toBeTruthy();
-                            const pauseButton = await within(
-                                musicPlayerFullScreen,
-                            ).findByA11yLabel(/pause.*video/i);
-                            expect(pauseButton).toBeTruthy();
-                            expect(pauseButton).not.toBeDisabled();
-                        });
+                        const pauseButton = await within(
+                            musicPlayerFullScreen,
+                        ).findByA11yLabel(/pause.*video/i);
+                        expect(pauseButton).toBeTruthy();
+                        expect(pauseButton).not.toBeDisabled();
 
                         expect(
                             await within(musicPlayerFullScreen).findByText(
@@ -1377,19 +1370,7 @@ describe('Create mtv room with custom settings', () => {
                         serverSocket.emit('MTV_ACTION_PLAY_CALLBACK', state);
                     });
 
-                    const screen = render(
-                        <NavigationContainer
-                            ref={navigationRef}
-                            onReady={() => {
-                                isReadyRef.current = true;
-                            }}
-                        >
-                            <RootNavigator
-                                colorScheme="dark"
-                                toggleColorScheme={noop}
-                            />
-                        </NavigationContainer>,
-                    );
+                    const screen = await renderApp();
 
                     await path.test({
                         fakeTrack,

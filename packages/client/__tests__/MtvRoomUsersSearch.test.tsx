@@ -1,48 +1,35 @@
-import React from 'react';
-import { createModel } from 'xstate/lib/model';
-import { createModel as createTestingModel } from '@xstate/test';
-import { ContextFrom, StateFrom } from 'xstate';
-import * as z from 'zod';
-import { internet } from 'faker';
-import { NavigationContainer } from '@react-navigation/native';
 import {
-    UserSummary,
     MtvRoomCreatorInviteUserArgs,
     MtvWorkflowState,
+    UserSummary,
 } from '@musicroom/types';
-import {
-    fireEvent,
-    noop,
-    render,
-    within,
-    waitFor,
-    waitForElementToBeRemoved,
-    getFakeUsersList,
-} from '../tests/tests-utils';
+import { createModel as createTestingModel } from '@xstate/test';
+import { internet } from 'faker';
+import { ContextFrom, StateFrom } from 'xstate';
+import { createModel } from 'xstate/lib/model';
+import * as z from 'zod';
+import { friends } from '../services/UsersSearchService';
+import { serverSocket } from '../services/websockets';
 import {
     db,
     generateArray,
     generateMtvWorklowState,
     generateUserSummary,
 } from '../tests/data';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
-import { friends } from '../services/UsersSearchService';
-import { serverSocket } from '../services/websockets';
+import {
+    fireEvent,
+    getFakeUsersList,
+    render,
+    renderApp,
+    waitFor,
+    waitForElementToBeRemoved,
+    within,
+} from '../tests/tests-utils';
 
 async function renderInviteUsers(
     initialState: MtvWorkflowState,
 ): Promise<ReturnType<typeof render>> {
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -758,16 +745,7 @@ test('Users outside of creator can not access to users search', async () => {
         serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
     });
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 

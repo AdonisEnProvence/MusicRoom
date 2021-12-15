@@ -1,14 +1,9 @@
 import { MtvRoomSummary } from '@musicroom/types';
-import { NavigationContainer } from '@react-navigation/native';
 import { datatype, random } from 'faker';
-import React from 'react';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { db, generateArray } from '../tests/data';
 import {
     fireEvent,
-    noop,
-    render,
+    renderApp,
     waitFor,
     waitForElementToBeRemoved,
     within,
@@ -23,16 +18,7 @@ test('Rooms are listed when coming to the screen and infinitely loaded', async (
     const firstPageRooms = rooms.slice(0, 10);
     const secondPageRooms = rooms.slice(10);
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -141,16 +127,7 @@ test('Rooms are filtered and infinitely loaded', async () => {
         roomName: datatype.uuid(),
     });
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -233,16 +210,7 @@ test('Clearing search input displays rooms without filter', async () => {
         roomName: datatype.uuid(),
     });
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -306,16 +274,7 @@ test('Cancelling search input displays rooms without filter', async () => {
         roomName: datatype.uuid(),
     });
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -367,16 +326,7 @@ test('Cancelling search input displays rooms without filter', async () => {
 });
 
 test('Displays empty state when no rooms match the query', async () => {
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -414,16 +364,7 @@ test('Room card specific icon for isOpen isInvited', async () => {
         },
     });
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 

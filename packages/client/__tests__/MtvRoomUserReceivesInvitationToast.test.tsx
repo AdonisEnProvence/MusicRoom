@@ -1,26 +1,13 @@
-import { NavigationContainer } from '@react-navigation/native';
-import React from 'react';
 import Toast from 'react-native-toast-message';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateMtvRoomSummary } from '../tests/data';
-import { noop, render, waitFor, waitForTimeout } from '../tests/tests-utils';
+import { renderApp, waitFor, waitForTimeout } from '../tests/tests-utils';
 
 it(`It should display an invitation toast to the user
 then press it and emit a MTV_JOIN_ROOM client socket event`, async () => {
     const mtvRoomSummary = generateMtvRoomSummary();
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
     await waitForTimeout(1000);

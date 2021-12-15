@@ -1,24 +1,19 @@
 import { MtvWorkflowState } from '@musicroom/types';
-import { NavigationContainer } from '@react-navigation/native';
 import {
     LocationObject,
     LocationPermissionResponse,
     PermissionStatus,
 } from 'expo-location';
 import { datatype, random } from 'faker';
-import React from 'react';
 import {
     getCurrentPositionAsyncMocked,
     requestForegroundPermissionsAsyncMocked,
 } from '../jest.setup';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
 import {
     fireEvent,
-    noop,
-    render,
+    renderApp,
     waitForTimeout,
     within,
 } from '../tests/tests-utils';
@@ -117,16 +112,7 @@ describe('User device location tests', () => {
             receivedEvents.push('UPDATE_DEVICE_POSITION');
         });
 
-        const { getByTestId, findByA11yState, findByText } = render(
-            <NavigationContainer
-                ref={navigationRef}
-                onReady={() => {
-                    isReadyRef.current = true;
-                }}
-            >
-                <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-            </NavigationContainer>,
-        );
+        const screen = await renderApp();
 
         await waitForTimeout(1000);
 
@@ -134,12 +120,14 @@ describe('User device location tests', () => {
         expect(requestForegroundPermissionsAsyncMocked).toBeCalledTimes(1);
         expect(getCurrentPositionAsyncMocked).toBeCalled();
 
-        const musicPlayerMini = getByTestId('music-player-mini');
+        const musicPlayerMini = screen.getByTestId('music-player-mini');
         expect(musicPlayerMini).toBeTruthy();
 
         fireEvent.press(musicPlayerMini);
 
-        const musicPlayerFullScreen = await findByA11yState({ expanded: true });
+        const musicPlayerFullScreen = await screen.findByA11yState({
+            expanded: true,
+        });
         expect(musicPlayerFullScreen).toBeTruthy();
 
         /**
@@ -153,7 +141,7 @@ describe('User device location tests', () => {
         expect(goSettingsButton).toBeTruthy();
         fireEvent.press(goSettingsButton);
 
-        expect(await findByText(/settings tab/i)).toBeTruthy();
+        expect(await screen.findByText(/settings tab/i)).toBeTruthy();
 
         /**
          * Press on the leave room button

@@ -1,12 +1,8 @@
-import { MtvWorkflowState, UserDevice } from '@musicroom/types';
-import { NavigationContainer } from '@react-navigation/native';
+import { MtvWorkflowState } from '@musicroom/types';
 import { datatype, random } from 'faker';
-import React from 'react';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
-import { generateTrackMetadata, db } from '../tests/data';
-import { fireEvent, noop, render, waitFor, within } from '../tests/tests-utils';
+import { db, generateTrackMetadata } from '../tests/data';
+import { fireEvent, renderApp, waitFor, within } from '../tests/tests-utils';
 
 test(`Device should still be playing while entering the mtvRoomCreation form while already being in a room`, async () => {
     const fakeTrack = db.searchableTracks.create();
@@ -56,16 +52,7 @@ test(`Device should still be playing while entering the mtvRoomCreation form whi
         });
     });
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     serverSocket.emit('MTV_RETRIEVE_CONTEXT', state);
 

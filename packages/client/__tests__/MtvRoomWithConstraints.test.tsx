@@ -2,23 +2,19 @@ import {
     MtvPlayingModes,
     MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
-import { NavigationContainer } from '@react-navigation/native';
 import {
     LocationObject,
     LocationPermissionResponse,
     PermissionStatus,
 } from 'expo-location';
 import { datatype, random } from 'faker';
-import React from 'react';
 import {
     getCurrentPositionAsyncMocked,
     requestForegroundPermissionsAsyncMocked,
 } from '../jest.setup';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
-import { fireEvent, noop, render, waitFor } from '../tests/tests-utils';
+import { fireEvent, renderApp, waitFor } from '../tests/tests-utils';
 
 /* eslint-disable @typescript-eslint/require-await */
 
@@ -109,16 +105,7 @@ describe('Room with constraints tests', () => {
             serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
         });
 
-        const screen = render(
-            <NavigationContainer
-                ref={navigationRef}
-                onReady={() => {
-                    isReadyRef.current = true;
-                }}
-            >
-                <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-            </NavigationContainer>,
-        );
+        const screen = await renderApp();
 
         expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 

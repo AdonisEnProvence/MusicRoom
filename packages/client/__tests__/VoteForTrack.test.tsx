@@ -5,14 +5,19 @@ import {
     getCurrentPositionAsyncMocked,
     requestForegroundPermissionsAsyncMocked,
 } from '../jest.setup';
-import { extractTrackIDFromCardContainerTestID } from '../screens/MusicPlaylistEditorRoomScreen/__tests__/TracksListEditing.test';
 import { serverSocket } from '../services/websockets';
 import {
     generateArray,
     generateLocationObject,
     generateTrackMetadata,
 } from '../tests/data';
-import { fireEvent, renderApp, waitFor, within } from '../tests/tests-utils';
+import {
+    extractTrackIDFromCardContainerTestID,
+    fireEvent,
+    renderApp,
+    waitFor,
+    within,
+} from '../tests/tests-utils';
 
 test(`
 User should go to the musicPlayer into the tracks tab and hit a track card to vote for it

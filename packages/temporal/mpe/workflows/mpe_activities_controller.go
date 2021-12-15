@@ -98,3 +98,18 @@ func sendAcknowledgeChangeTrackOrderActivity(ctx workflow.Context, args activiti
 		args,
 	)
 }
+
+func sendAcknowledgeDeletingTracksActivity(ctx workflow.Context, args activities_mpe.AcknowledgeDeletingTracksActivityArgs) {
+	options := workflow.ActivityOptions{
+		ScheduleToStartTimeout: time.Minute,
+		StartToCloseTimeout:    time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, options)
+
+	var a *activities_mpe.Activities
+	workflow.ExecuteActivity(
+		ctx,
+		a.AcknowledgeDeletingTracksActivity,
+		args,
+	)
+}

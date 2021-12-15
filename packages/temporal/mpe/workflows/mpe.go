@@ -84,6 +84,7 @@ const (
 	MpeRoomAddTracksEventType                     brainy.EventType = "ADD_TRACKS"
 	MpeRoomAddedTracksInformationFetchedEventType brainy.EventType = "ADDED_TRACKS_INFORMATION_FETCHED"
 	MpeRoomChangeTrackOrderEventType              brainy.EventType = "CHANGE_TRACK_ORDER"
+	MpeRoomDeleteTracksEventType                  brainy.EventType = "DELETE_TRACKS"
 )
 
 func getNowFromSideEffect(ctx workflow.Context) time.Time {
@@ -297,6 +298,32 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 							},
 						},
 					},
+
+					MpeRoomDeleteTracksEventType: brainy.Transitions{
+						{
+							Cond: userCanPerformDeleteTracksOperation(&internalState),
+
+							Actions: brainy.Actions{
+								brainy.ActionFn(
+									func(c brainy.Context, e brainy.Event) error {
+										event := e.(MpeRoomDeleteTracksEvent)
+
+										for _, trackID := range event.TracksIDs {
+											internalState.Tracks.Delete(trackID)
+										}
+
+										sendAcknowledgeDeletingTracksActivity(ctx, activities_mpe.AcknowledgeDeletingTracksActivityArgs{
+											State:    internalState.Export(),
+											UserID:   event.UserID,
+											DeviceID: event.DeviceID,
+										})
+
+										return nil
+									},
+								),
+							},
+						},
+					},
 				},
 			},
 		},
@@ -343,6 +370,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 						DeviceID:  message.DeviceID,
 					}),
 				)
+
 			case shared_mpe.SignalChangeTrackOrder:
 				var message shared_mpe.ChangeTrackOrderSignal
 				fmt.Printf("\n RECEIVED SIGNAL SignalChangeTrackOrder \n%+v\n", signal)
@@ -371,6 +399,27 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 						FromIndex:        message.FromIndex,
 					}),
 				)
+
+			case shared_mpe.SignalDeleteTracks:
+				var message shared_mpe.DeleteTracksSignal
+
+				if err := mapstructure.Decode(signal, &message); err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
+				if err := Validate.Struct(message); err != nil {
+					logger.Error("Validation error: %v", err)
+					return
+				}
+
+				internalState.Machine.Send(
+					NewMpeRoomDeleteTracksEvent(NewMpeRoomDeleteTracksEventArgs{
+						TracksIDs: message.TracksIDs,
+						UserID:    message.UserID,
+						DeviceID:  message.DeviceID,
+					}),
+				)
+
 			default:
 				panic(ErrUnknownWorflowSignal)
 			}

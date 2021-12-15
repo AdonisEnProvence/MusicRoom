@@ -1,3 +1,3 @@
 package activities_mpe
 
-type Activities struct {}
+type Activities struct{}

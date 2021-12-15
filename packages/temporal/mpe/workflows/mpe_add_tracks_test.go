@@ -14,11 +14,11 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-type EditingPlaylistTestSuite struct {
+type AddTracksTestSuite struct {
 	UnitTestSuite
 }
 
-func (s *EditingPlaylistTestSuite) Test_AddTracks() {
+func (s *AddTracksTestSuite) Test_AddTracks() {
 	initialTracksIDs := []string{
 		faker.UUIDHyphenated(),
 	}
@@ -123,7 +123,7 @@ func (s *EditingPlaylistTestSuite) Test_AddTracks() {
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
-func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistBeforeFetchingInformationFails() {
+func (s *AddTracksTestSuite) Test_AddingTrackAlreadyInPlaylistBeforeFetchingInformationFails() {
 	initialTracksIDs := []string{
 		faker.UUIDHyphenated(),
 	}
@@ -203,7 +203,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistBeforeFetchi
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
-func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchingInformationSucceedsIfNotAllTracksAreDuplicated() {
+func (s *AddTracksTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchingInformationSucceedsIfNotAllTracksAreDuplicated() {
 	initialTracksIDs := []string{
 		faker.UUIDHyphenated(),
 	}
@@ -346,7 +346,7 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchin
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
-func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchingInformationFailsIfAllTracksAreDuplicated() {
+func (s *AddTracksTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchingInformationFailsIfAllTracksAreDuplicated() {
 	initialTracksIDs := []string{
 		faker.UUIDHyphenated(),
 	}
@@ -493,6 +493,6 @@ func (s *EditingPlaylistTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchin
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
-func TestEditingPlaylistTestSuite(t *testing.T) {
-	suite.Run(t, new(EditingPlaylistTestSuite))
+func TestAddTracksTestSuite(t *testing.T) {
+	suite.Run(t, new(AddTracksTestSuite))
 }

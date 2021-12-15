@@ -3,17 +3,13 @@ import {
     MtvRoomChatMessage,
     MtvWorkflowState,
 } from '@musicroom/types';
-import { NavigationContainer } from '@react-navigation/native';
 import { createModel as createTestingModel } from '@xstate/test';
 import { datatype, lorem, name, random } from 'faker';
-import React from 'react';
 import { ContextFrom, EventFrom, State } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import * as z from 'zod';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
-import { fireEvent, noop, render, within } from '../tests/tests-utils';
+import { fireEvent, render, renderApp, within } from '../tests/tests-utils';
 
 interface TestingContext {
     screen: ReturnType<typeof render>;
@@ -381,19 +377,7 @@ describe('Send and receive messages in MTV room chat', () => {
                         serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
                     });
 
-                    const screen = render(
-                        <NavigationContainer
-                            ref={navigationRef}
-                            onReady={() => {
-                                isReadyRef.current = true;
-                            }}
-                        >
-                            <RootNavigator
-                                colorScheme="dark"
-                                toggleColorScheme={noop}
-                            />
-                        </NavigationContainer>,
-                    );
+                    const screen = await renderApp();
 
                     const musicPlayerMini =
                         screen.getByTestId('music-player-mini');

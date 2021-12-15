@@ -35,7 +35,7 @@ const socket = {
         }
 
         SERVER_TO_CLIENT_EVENTS[event].forEach((func) => {
-            func(...args);
+            setImmediate(() => func(...args));
         });
     },
 

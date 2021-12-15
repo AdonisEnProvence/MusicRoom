@@ -1,23 +1,9 @@
-import { NavigationContainer } from '@react-navigation/native';
-import React from 'react';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { db } from '../tests/data';
-import { fireEvent, noop, render, waitFor } from '../tests/tests-utils';
+import { fireEvent, renderApp, waitFor } from '../tests/tests-utils';
 
 test('MtvRoom creation form modal can be closed', async () => {
+    const screen = await renderApp();
     const fakeTrack = db.searchableTracks.create();
-
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 

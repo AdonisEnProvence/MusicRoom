@@ -3,14 +3,12 @@ import {
     MtvRoomGetRoomConstraintDetailsCallbackArgs,
     MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
-import { NavigationContainer } from '@react-navigation/native';
 import {
     LocationObject,
     LocationPermissionResponse,
     PermissionStatus,
 } from 'expo-location';
 import { datatype, random } from 'faker';
-import React from 'react';
 import {
     formatDateTime,
     parseIsoDateTimeString,
@@ -19,11 +17,9 @@ import {
     getCurrentPositionAsyncMocked,
     requestForegroundPermissionsAsyncMocked,
 } from '../jest.setup';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
-import { fireEvent, noop, render, within, waitFor } from '../tests/tests-utils';
+import { fireEvent, renderApp, waitFor, within } from '../tests/tests-utils';
 
 /* eslint-disable @typescript-eslint/require-await */
 
@@ -80,16 +76,7 @@ describe('Mtv room contraints details test group', () => {
             mockHasbeenCalled = true;
         });
 
-        const screen = render(
-            <NavigationContainer
-                ref={navigationRef}
-                onReady={() => {
-                    isReadyRef.current = true;
-                }}
-            >
-                <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-            </NavigationContainer>,
-        );
+        const screen = await renderApp();
 
         expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -165,16 +152,7 @@ describe('Mtv room contraints details test group', () => {
             mockHasbeenCalled = true;
         });
 
-        const screen = render(
-            <NavigationContainer
-                ref={navigationRef}
-                onReady={() => {
-                    isReadyRef.current = true;
-                }}
-            >
-                <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-            </NavigationContainer>,
-        );
+        const screen = await renderApp();
 
         expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -292,16 +270,7 @@ describe('Mtv room contraints details test group', () => {
             cb(fakeConstraintsDetails);
         });
 
-        const screen = render(
-            <NavigationContainer
-                ref={navigationRef}
-                onReady={() => {
-                    isReadyRef.current = true;
-                }}
-            >
-                <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-            </NavigationContainer>,
-        );
+        const screen = await renderApp();
 
         expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -454,16 +423,7 @@ describe('Mtv room contraints details test group', () => {
             cb(fakeConstraintsDetails);
         });
 
-        const screen = render(
-            <NavigationContainer
-                ref={navigationRef}
-                onReady={() => {
-                    isReadyRef.current = true;
-                }}
-            >
-                <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-            </NavigationContainer>,
-        );
+        const screen = await renderApp();
 
         expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 

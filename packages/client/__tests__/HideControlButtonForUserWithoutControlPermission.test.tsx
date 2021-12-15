@@ -1,12 +1,8 @@
 import { MtvPlayingModes, MtvWorkflowState } from '@musicroom/types';
-import { NavigationContainer } from '@react-navigation/native';
 import { datatype, random } from 'faker';
-import React from 'react';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
-import { fireEvent, noop, render, within } from '../tests/tests-utils';
+import { fireEvent, renderApp, within } from '../tests/tests-utils';
 
 it(`It should hide control button ( play or pause and go to next track )
 if the user doesn't have the control and delegation permission`, async () => {
@@ -45,16 +41,7 @@ if the user doesn't have the control and delegation permission`, async () => {
         serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
     });
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 

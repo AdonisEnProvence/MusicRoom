@@ -1,12 +1,8 @@
 import { MtvPlayingModes, MtvWorkflowState } from '@musicroom/types';
-import { NavigationContainer } from '@react-navigation/native';
 import { datatype, random } from 'faker';
-import React from 'react';
-import { RootNavigator } from '../navigation';
-import { isReadyRef, navigationRef } from '../navigation/RootNavigation';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
-import { fireEvent, noop, render, within, waitFor } from '../tests/tests-utils';
+import { fireEvent, renderApp, within } from '../tests/tests-utils';
 
 /**
  * Concerning the element .toBeDisabled and .toBeEnabled assertions.
@@ -55,16 +51,7 @@ as user is not invited`, async () => {
         serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
     });
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
@@ -132,16 +119,7 @@ as user is invited`, async () => {
         serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
     });
 
-    const screen = render(
-        <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-                isReadyRef.current = true;
-            }}
-        >
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 

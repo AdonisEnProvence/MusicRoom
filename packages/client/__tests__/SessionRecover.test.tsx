@@ -1,14 +1,10 @@
 import { MtvWorkflowState } from '@musicroom/types';
-import { NavigationContainer } from '@react-navigation/native';
 import { datatype, name, random } from 'faker';
-import React from 'react';
-import { RootNavigator } from '../navigation';
 import { serverSocket } from '../services/websockets';
 import { db } from '../tests/data';
 import {
     fireEvent,
-    noop,
-    render,
+    renderApp,
     waitForTimeout,
     within,
 } from '../tests/tests-utils';
@@ -57,13 +53,9 @@ test(`It should display the music player corresponding to the injected state on 
         minimumScoreToBePlayed: 1,
     };
 
-    const { getAllByText, getByTestId, findByA11yState } = render(
-        <NavigationContainer>
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
-    expect(getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
     /**
      * Check that room is not ready
@@ -78,7 +70,7 @@ test(`It should display the music player corresponding to the injected state on 
 
     await waitForTimeout(1_000);
 
-    const musicPlayerMini = getByTestId('music-player-mini');
+    const musicPlayerMini = screen.getByTestId('music-player-mini');
     expect(musicPlayerMini).toBeTruthy();
 
     const miniPlayerRoomName = await within(musicPlayerMini).findByText(
@@ -95,7 +87,9 @@ test(`It should display the music player corresponding to the injected state on 
 
     await waitForTimeout(1_000);
 
-    const musicPlayerFullScreen = await findByA11yState({ expanded: true });
+    const musicPlayerFullScreen = await screen.findByA11yState({
+        expanded: true,
+    });
     expect(musicPlayerFullScreen).toBeTruthy();
 
     const playButton = within(musicPlayerFullScreen).getByLabelText(
@@ -163,13 +157,9 @@ test(`It should display the music player corresponding to the injected state on 
         minimumScoreToBePlayed: 1,
     };
 
-    const { getAllByText, getByTestId, findByA11yState } = render(
-        <NavigationContainer>
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
-    expect(getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
     /**
      * Check that room is not ready
@@ -180,7 +170,7 @@ test(`It should display the music player corresponding to the injected state on 
 
     await waitForTimeout(1_000);
 
-    const musicPlayerMini = getByTestId('music-player-mini');
+    const musicPlayerMini = screen.getByTestId('music-player-mini');
     expect(musicPlayerMini).toBeTruthy();
 
     const miniPlayerRoomName = await within(musicPlayerMini).findByText(
@@ -197,7 +187,9 @@ test(`It should display the music player corresponding to the injected state on 
 
     await waitForTimeout(1_000);
 
-    const musicPlayerFullScreen = await findByA11yState({ expanded: true });
+    const musicPlayerFullScreen = await screen.findByA11yState({
+        expanded: true,
+    });
     expect(musicPlayerFullScreen).toBeTruthy();
 
     const playButton = within(musicPlayerFullScreen).getByLabelText(
@@ -255,20 +247,16 @@ test(`It should display the already elapsed track duration and player should be 
         minimumScoreToBePlayed: 1,
     };
 
-    const { getAllByText, getByTestId, findByA11yState, debug } = render(
-        <NavigationContainer>
-            <RootNavigator colorScheme="dark" toggleColorScheme={noop} />
-        </NavigationContainer>,
-    );
+    const screen = await renderApp();
 
-    expect(getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
     serverSocket.emit('MTV_RETRIEVE_CONTEXT', state);
 
     await waitForTimeout(1_000);
     await waitForTimeout(1_000);
 
-    const musicPlayerMini = getByTestId('music-player-mini');
+    const musicPlayerMini = screen.getByTestId('music-player-mini');
     expect(musicPlayerMini).toBeTruthy();
 
     const miniPlayerRoomName = await within(musicPlayerMini).findByText(
@@ -285,7 +273,9 @@ test(`It should display the already elapsed track duration and player should be 
 
     await waitForTimeout(1_000);
 
-    const musicPlayerFullScreen = await findByA11yState({ expanded: true });
+    const musicPlayerFullScreen = await screen.findByA11yState({
+        expanded: true,
+    });
     expect(musicPlayerFullScreen).toBeTruthy();
 
     expect(

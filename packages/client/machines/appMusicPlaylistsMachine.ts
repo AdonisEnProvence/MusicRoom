@@ -79,6 +79,13 @@ export const appMusicPlaylistsModel = createModel(
             ) => args,
 
             ///
+
+            DELETE_TRACK: (args: { roomID: string; trackID: string }) => args,
+            SENT_TRACK_TO_DELETE_TO_SERVER: (args: { roomID: string }) => args,
+            RECEIVED_DELETE_TRACKS_SUCCESS_CALLBACK: (args: {
+                roomID: string;
+                state: MpeWorkflowState;
+            }) => args,
         },
     },
 );
@@ -184,6 +191,17 @@ export function createAppMusicPlaylistsMachine({
                         },
                     );
 
+                    socket.on(
+                        'MPE_DELETE_TRACKS_SUCCESS_CALLBACK',
+                        ({ roomID, state }) => {
+                            sendBack({
+                                type: 'RECEIVED_DELETE_TRACKS_SUCCESS_CALLBACK',
+                                roomID,
+                                state,
+                            });
+                        },
+                    );
+
                     onReceive((event) => {
                         switch (event.type) {
                             case 'CREATE_ROOM': {
@@ -235,6 +253,22 @@ export function createAppMusicPlaylistsMachine({
                                 sendBack({
                                     type: 'SENT_CHANGE_TRACK_ORDER_TO_SERVER',
                                     roomID: params.roomID,
+                                });
+
+                                break;
+                            }
+
+                            case 'DELETE_TRACK': {
+                                const { roomID, trackID } = event;
+
+                                socket.emit('MPE_DELETE_TRACKS', {
+                                    roomID,
+                                    tracksIDs: [trackID],
+                                });
+
+                                sendBack({
+                                    type: 'SENT_TRACK_TO_DELETE_TO_SERVER',
+                                    roomID,
                                 });
 
                                 break;
@@ -340,6 +374,33 @@ export function createAppMusicPlaylistsMachine({
                         ),
                     },
                     ///
+
+                    DELETE_TRACK: {
+                        actions: forwardTo('socketConnection'),
+                    },
+
+                    SENT_TRACK_TO_DELETE_TO_SERVER: {
+                        actions: send(
+                            playlistModel.events.SENT_TRACK_TO_DELETE_TO_SERVER(),
+                            {
+                                to: (_, { roomID }) =>
+                                    getPlaylistMachineActorName(roomID),
+                            },
+                        ),
+                    },
+
+                    RECEIVED_DELETE_TRACKS_SUCCESS_CALLBACK: {
+                        actions: send(
+                            (_, { state }) =>
+                                playlistModel.events.RECEIVED_TRACK_TO_DELETE_SUCCESS_CALLBACK(
+                                    { state },
+                                ),
+                            {
+                                to: (_, { roomID }) =>
+                                    getPlaylistMachineActorName(roomID),
+                            },
+                        ),
+                    },
                 },
             },
         },

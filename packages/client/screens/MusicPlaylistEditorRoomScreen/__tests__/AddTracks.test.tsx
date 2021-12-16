@@ -4,10 +4,8 @@ import { serverSocket } from '../../../services/websockets';
 import { db } from '../../../tests/data';
 import {
     fireEvent,
-    toTrackCardContainerTestID,
     waitFor,
     waitForElementToBeRemoved,
-    within,
 } from '../../../tests/tests-utils';
 import { createMpeRoom } from '../../../tests/tests-mpe-utils';
 
@@ -149,29 +147,4 @@ test('Fail when adding track already in playlist', async () => {
     await waitFor(() => {
         expect(screen.getByText(/add.*track/i)).not.toBeDisabled();
     });
-});
-
-test('Remove track', async () => {
-    const { screen, state } = await createMpeRoom();
-    const trackAlreadyInPlaylist = state.value.tracks[0];
-
-    const trackCard = await waitFor(() => {
-        const trackCardElement = screen.getByTestId(
-            toTrackCardContainerTestID(trackAlreadyInPlaylist.id),
-        );
-        expect(trackCardElement).toBeTruthy();
-
-        return trackCardElement;
-    });
-
-    const deleteTrackButton = within(trackCard).getByLabelText(/delete/i);
-    expect(deleteTrackButton).toBeTruthy();
-
-    const waitForTrackCardElementToDisappearPromise = waitForElementToBeRemoved(
-        () => screen.getByText(trackAlreadyInPlaylist.title),
-    );
-
-    fireEvent.press(deleteTrackButton);
-
-    await waitForTrackCardElementToDisappearPromise;
 });

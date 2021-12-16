@@ -1,6 +1,7 @@
-import { test, expect, Page } from '@playwright/test';
-import { KnownSearchesRecord } from '../_utils/mock-http';
-import { setupAndGetUserPage } from '../_utils/page';
+import { MpeChangeTrackOrderOperationToApply } from '@musicroom/types';
+import { test, expect, Page, Locator } from '@playwright/test';
+import { KnownSearchesElement, KnownSearchesRecord } from '../_utils/mock-http';
+import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
 
 const knownSearches: KnownSearchesRecord = {
     'Biolay - Vendredi 12': [
@@ -37,33 +38,37 @@ const knownSearches: KnownSearchesRecord = {
     ],
 };
 
-async function createMpeRoom({ page }: { page: Page }) {
+async function createMpeRoom({
+    page,
+    openCreatedRoom,
+}: {
+    page: Page;
+    openCreatedRoom?: boolean;
+}) {
     await expect(page.locator('text="Home"').first()).toBeVisible();
 
     const createMpeRoomButton = page.locator('text="Create MPE room"');
     await expect(createMpeRoomButton).toBeVisible();
 
     await createMpeRoomButton.click();
+
+    if (openCreatedRoom) {
+        const goToLibraryButton = page.locator('text="Library"');
+        await goToLibraryButton.click();
+
+        const libraryScreenTitle = page.locator('text="Library" >> nth=1');
+        await expect(libraryScreenTitle).toBeVisible();
+
+        const mpeRoomCard = page.locator('css=[data-testid^="mpe-room-card"]');
+        await mpeRoomCard.click();
+    }
 }
 
-test('Create MPE room', async ({ browser }) => {
-    const { page } = await setupAndGetUserPage({
-        browser,
-        knownSearches,
-        userIndex: 0,
-    });
-
-    await createMpeRoom({ page });
-
-    const goToLibraryButton = page.locator('text="Library"');
-    await goToLibraryButton.click();
-
-    const libraryScreenTitle = page.locator('text="Library" >> nth=1');
-    await expect(libraryScreenTitle).toBeVisible();
-
-    const mpeRoomCard = page.locator('css=[data-testid^="mpe-room-card"]');
-    await mpeRoomCard.click();
-
+async function addTrack({
+    page,
+}: {
+    page: Page;
+}): Promise<KnownSearchesElement> {
     const addTrackButton = page.locator('text="Add Track"');
     await expect(addTrackButton).toBeVisible();
 
@@ -85,8 +90,156 @@ test('Create MPE room', async ({ browser }) => {
     const addedTrackCard = page.locator(
         'css=[data-testid$="track-card-container"] >> nth=1',
     );
+    const addedTrack = knownSearches[searchQuery][0];
     await expect(addedTrackCard).toBeVisible();
-    await expect(addedTrackCard).toContainText(
-        knownSearches[searchQuery][0].title,
+    await expect(addedTrackCard).toContainText(addedTrack.title);
+
+    return addedTrack;
+}
+
+function getTrackChangeOrderButton({
+    page,
+    trackIDToMove,
+    operationToApply,
+}: {
+    page: Page;
+    trackIDToMove: string;
+    operationToApply: MpeChangeTrackOrderOperationToApply;
+}): Locator {
+    return page.locator(
+        `css=[data-testid="${trackIDToMove}-track-card-container"] [aria-label="Move ${
+            operationToApply === MpeChangeTrackOrderOperationToApply.Values.DOWN
+                ? 'down'
+                : 'up'
+        }"]`,
     );
+}
+
+function getTrackDeleteButton({
+    page,
+    trackID,
+}: {
+    page: Page;
+    trackID: string;
+}): Locator {
+    return page.locator(
+        `css=[data-testid="${trackID}-track-card-container"] [aria-label="Delete"]`,
+    );
+}
+
+function getAllTracksListCardElements({ page }: { page: Page }): Locator {
+    return page.locator(`css=[data-testid$="track-card-container"]`);
+}
+
+async function changeTrackOrder({
+    page,
+    trackIDToMove,
+    operationToApply,
+    trackTitle,
+}: {
+    page: Page;
+    trackIDToMove: string;
+    trackTitle: string;
+    operationToApply: MpeChangeTrackOrderOperationToApply;
+}): Promise<void> {
+    const trackToMoveChangeOrderButton = getTrackChangeOrderButton({
+        page,
+        trackIDToMove,
+        operationToApply,
+    });
+    await expect(trackToMoveChangeOrderButton).toBeVisible();
+    await expect(trackToMoveChangeOrderButton).toBeEnabled();
+
+    await trackToMoveChangeOrderButton.click();
+
+    {
+        const successfulToast = page.locator('text=Track moved successfully');
+        await expect(successfulToast).toBeVisible();
+
+        const firstTracksListElement = page.locator(
+            'css=[data-testid$="track-card-container"] >> nth=0',
+        );
+        await expect(firstTracksListElement).toContainText(trackTitle);
+    }
+}
+
+async function deleteTrack({
+    page,
+    trackID,
+}: {
+    trackID: string;
+    page: Page;
+}): Promise<void> {
+    const trackDeleteButton = getTrackDeleteButton({
+        page,
+        trackID,
+    });
+    await expect(trackDeleteButton).toBeVisible();
+    await expect(trackDeleteButton).toBeEnabled();
+
+    await trackDeleteButton.click();
+
+    {
+        const successfulToast = page.locator('text=Track deleted successfully');
+        await expect(successfulToast).toBeVisible();
+
+        const deleteButton = getTrackDeleteButton({
+            page,
+            trackID,
+        });
+        await expect(deleteButton).not.toBeVisible();
+
+        const allTracks = getAllTracksListCardElements({
+            page,
+        });
+        await expect(allTracks).toHaveCount(1);
+    }
+}
+
+test.afterEach(async ({ browser }) => {
+    await closeAllContexts(browser);
+});
+
+/**
+ * Temp test-a description:
+ *
+ * -UserA creates an basic mpe room
+ * -UserA should see the joined room on both his devices
+ * -UserA adds a track to the playlist
+ * -UserA should see the added track on both his devices
+ * -UserA change the track order of the added track to the top
+ * -UserA should see the moved track as the first tracks list element on both his devices
+ * -UserA deletes the added track from the tracks playlist
+ * -UserA shouldn't be able to see the deleted track on both his devices
+ */
+test('Create MPE room', async ({ browser }) => {
+    const { page } = await setupAndGetUserPage({
+        browser,
+        knownSearches,
+        userIndex: 0,
+    });
+
+    const { page: pageB } = await setupAndGetUserPage({
+        browser,
+        knownSearches,
+        userIndex: 0,
+    });
+
+    await createMpeRoom({ page, openCreatedRoom: true });
+
+    const addedTrack = await addTrack({
+        page,
+    });
+
+    await changeTrackOrder({
+        page,
+        operationToApply: MpeChangeTrackOrderOperationToApply.Values.UP,
+        trackIDToMove: addedTrack.id,
+        trackTitle: addedTrack.title,
+    });
+
+    await deleteTrack({
+        page,
+        trackID: addedTrack.id,
+    });
 });

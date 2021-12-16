@@ -14,6 +14,7 @@ import sinon from 'sinon';
 import supertest from 'supertest';
 import {
     BASE_URL,
+    createSpyOnClientSocketEvent,
     getDefaultMtvRoomCreateRoomArgs,
     initTestUtils,
     sleep,
@@ -182,23 +183,27 @@ test.group(
             });
 
             //USER C
-            socketC.socket.once('MTV_USER_LENGTH_UPDATE', () => {
-                /**
-                 * This is the disconnecting one, in this way it should not receive
-                 * any event
-                 */
-                // In fact, the events are received!
-                // assert.isTrue(false);
-            });
+            const socketCSocketMtvSpy = createSpyOnClientSocketEvent(
+                socketC.socket,
+                'MTV_JOIN_ROOM_CALLBACK',
+            );
 
-            socketC.socketB.once('MTV_USER_LENGTH_UPDATE', () => {
-                /**
-                 * This is the disconnecting one, in this way it should not receive
-                 * any event
-                 */
-                // In fact, the events are received!
-                // assert.isTrue(false);
-            });
+            const socketCSocketBMtvSpy = createSpyOnClientSocketEvent(
+                socketC.socketB,
+                'MTV_JOIN_ROOM_CALLBACK',
+            );
+
+            const socketCSocketUserLengthUpdateSpy =
+                createSpyOnClientSocketEvent(
+                    socketC.socket,
+                    'MTV_USER_LENGTH_UPDATE',
+                );
+
+            const socketCSocketBUserLengthUpdateSpy =
+                createSpyOnClientSocketEvent(
+                    socketC.socketB,
+                    'MTV_USER_LENGTH_UPDATE',
+                );
 
             /**
              * Emit join_room with socket C
@@ -208,11 +213,15 @@ test.group(
             socketC.socket.emit('MTV_JOIN_ROOM', {
                 roomID: mtvRoomToJoinID,
             });
-            await sleep();
-            await sleep();
 
-            assert.equal(socket.receivedEvents.length, 2);
-            assert.equal(socketB.receivedEvents.length, 1);
+            await waitFor(async () => {
+                assert.equal(socket.receivedEvents.length, 2);
+                assert.equal(socketB.receivedEvents.length, 1);
+                assert.isTrue(socketCSocketMtvSpy.calledOnce);
+                assert.isTrue(socketCSocketBMtvSpy.calledOnce);
+                assert.isTrue(socketCSocketUserLengthUpdateSpy.notCalled);
+                assert.isTrue(socketCSocketBUserLengthUpdateSpy.notCalled);
+            });
 
             let connectedSocketsToRoom =
                 await SocketLifecycle.getConnectedSocketToRoom(

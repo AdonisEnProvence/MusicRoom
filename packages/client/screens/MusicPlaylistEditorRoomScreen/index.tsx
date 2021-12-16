@@ -144,13 +144,13 @@ const TrackListItemWrapper: React.FC<TrackListItemWrapperProps> = ({
 }) => {
     const canMoveUp = useSelector(playlistRef, (state) =>
         state.can({
-            type: 'MOVE_UP_TRACK',
+            type: 'CHANGE_TRACK_ORDER_UP',
             trackID: id,
         }),
     );
     const canMoveDown = useSelector(playlistRef, (state) =>
         state.can({
-            type: 'MOVE_DOWN_TRACK',
+            type: 'CHANGE_TRACK_ORDER_DOWN',
             trackID: id,
         }),
     );
@@ -196,7 +196,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
         function handleUpPress(trackID: string) {
             return () => {
                 playlistRef.send({
-                    type: 'MOVE_UP_TRACK',
+                    type: 'CHANGE_TRACK_ORDER_UP',
                     trackID,
                 });
             };
@@ -205,7 +205,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
         function handleDownPress(trackID: string) {
             return () => {
                 playlistRef.send({
-                    type: 'MOVE_DOWN_TRACK',
+                    type: 'CHANGE_TRACK_ORDER_DOWN',
                     trackID,
                 });
             };

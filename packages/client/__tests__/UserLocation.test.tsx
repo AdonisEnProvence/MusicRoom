@@ -11,12 +11,7 @@ import {
 } from '../jest.setup';
 import { serverSocket } from '../services/websockets';
 import { generateTrackMetadata } from '../tests/data';
-import {
-    fireEvent,
-    renderApp,
-    waitForTimeout,
-    within,
-} from '../tests/tests-utils';
+import { fireEvent, renderApp, within, waitFor } from '../tests/tests-utils';
 
 /* eslint-disable @typescript-eslint/require-await */
 
@@ -114,11 +109,11 @@ describe('User device location tests', () => {
 
         const screen = await renderApp();
 
-        await waitForTimeout(1000);
-
-        expect(receivedEvents.length).toBe(2);
-        expect(requestForegroundPermissionsAsyncMocked).toBeCalledTimes(1);
-        expect(getCurrentPositionAsyncMocked).toBeCalled();
+        await waitFor(() => {
+            expect(receivedEvents.length).toBe(2);
+            expect(requestForegroundPermissionsAsyncMocked).toBeCalledTimes(1);
+            expect(getCurrentPositionAsyncMocked).toBeCalled();
+        });
 
         const musicPlayerMini = screen.getByTestId('music-player-mini');
         expect(musicPlayerMini).toBeTruthy();
@@ -152,7 +147,8 @@ describe('User device location tests', () => {
         expect(requestLocationButton).toBeTruthy();
         fireEvent.press(requestLocationButton);
 
-        await waitForTimeout(1000);
-        expect(requestForegroundPermissionsAsyncMocked).toBeCalledTimes(2);
+        await waitFor(() => {
+            expect(requestForegroundPermissionsAsyncMocked).toBeCalledTimes(2);
+        });
     });
 });

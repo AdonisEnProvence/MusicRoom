@@ -6,8 +6,17 @@ import {
     sendParent,
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { MpeWorkflowState } from '@musicroom/types';
+import {
+    MpeChangeTrackOrderOperationToApply,
+    MpeWorkflowState,
+} from '@musicroom/types';
 import { appMusicPlaylistsModel } from './appMusicPlaylistsMachine';
+
+interface TrackToMove {
+    fromIndex: number;
+    trackID: string;
+    operationToApply: MpeChangeTrackOrderOperationToApply;
+}
 
 export const playlistModel = createModel(
     {
@@ -24,22 +33,30 @@ export const playlistModel = createModel(
 
         trackIDToAdd: undefined as string | undefined,
 
-        trackToMove: undefined as
-            | { previousIndex: number; nextIndex: number; trackID: string }
-            | undefined,
+        trackToMove: undefined as TrackToMove | undefined,
         trackToDelete: undefined as string | undefined,
     },
     {
         events: {
+            //Add track
             ADD_TRACK: (trackID: string) => ({ trackID }),
             SENT_TRACK_TO_ADD_TO_SERVER: () => ({}),
             RECEIVED_TRACK_TO_ADD_SUCCESS_CALLBACK: (args: {
                 state: MpeWorkflowState;
             }) => args,
             RECEIVED_TRACK_TO_ADD_FAIL_CALLBACK: () => ({}),
+            ///
 
-            MOVE_UP_TRACK: (trackID: string) => ({ trackID }),
-            MOVE_DOWN_TRACK: (trackID: string) => ({ trackID }),
+            //Change track order
+            CHANGE_TRACK_ORDER_DOWN: (args: { trackID: string }) => args,
+            CHANGE_TRACK_ORDER_UP: (args: { trackID: string }) => args,
+            SENT_CHANGE_TRACK_ORDER_TO_SERVER: () => ({}),
+            RECEIVED_CHANGE_TRACK_ORDER_SUCCESS_CALLBACK: (args: {
+                state: MpeWorkflowState;
+            }) => args,
+            RECEIVED_CHANGE_TRACK_ORDER_FAIL_CALLBACK: () => ({}),
+            ///
+
             DELETE_TRACK: (trackID: string) => ({ trackID }),
             ASSIGN_MERGE_NEW_STATE: (state: MpeWorkflowState) => ({ state }),
         },
@@ -60,6 +77,14 @@ const assignStateAfterAddingTracksSuccess = playlistModel.assign(
     'RECEIVED_TRACK_TO_ADD_SUCCESS_CALLBACK',
 );
 
+const assignStateAfterChangeTrackOrderSuccess = playlistModel.assign(
+    {
+        state: (_, { state }) => state,
+        trackToMove: (_) => undefined,
+    },
+    'RECEIVED_CHANGE_TRACK_ORDER_SUCCESS_CALLBACK',
+);
+
 const assignTrackToMoveUp = playlistModel.assign(
     {
         trackToMove: ({ state: { tracks } }, { trackID }) => {
@@ -70,12 +95,12 @@ const assignTrackToMoveUp = playlistModel.assign(
 
             return {
                 trackID,
-                previousIndex: currentIndex,
-                nextIndex: currentIndex - 1,
+                fromIndex: currentIndex,
+                operationToApply: MpeChangeTrackOrderOperationToApply.Values.UP,
             };
         },
     },
-    'MOVE_UP_TRACK',
+    'CHANGE_TRACK_ORDER_UP',
 );
 
 const assignTrackToMoveDown = playlistModel.assign(
@@ -88,12 +113,13 @@ const assignTrackToMoveDown = playlistModel.assign(
 
             return {
                 trackID,
-                previousIndex: currentIndex,
-                nextIndex: currentIndex + 1,
+                fromIndex: currentIndex,
+                operationToApply:
+                    MpeChangeTrackOrderOperationToApply.Values.DOWN,
             };
         },
     },
-    'MOVE_DOWN_TRACK',
+    'CHANGE_TRACK_ORDER_DOWN',
 );
 
 const assignTrackToDelete = playlistModel.assign(
@@ -120,35 +146,6 @@ const assignMergeNewState = playlistModel.assign(
         },
     },
     'ASSIGN_MERGE_NEW_STATE',
-);
-
-const assignTrackToMoveToTracksList = playlistModel.assign(
-    {
-        state: ({ state, trackToMove }) => {
-            const { tracks } = state;
-            if (trackToMove === undefined) {
-                return state;
-            }
-
-            const { previousIndex, nextIndex, trackID } = trackToMove;
-
-            const trackItem = tracks.find(({ id }) => id === trackID);
-            if (trackItem === undefined) {
-                return state;
-            }
-
-            const tracksCopy = [...tracks];
-            tracksCopy.splice(previousIndex, 1);
-            tracksCopy.splice(nextIndex, 0, trackItem);
-
-            return {
-                ...state,
-                tracks: tracksCopy,
-            };
-        },
-        trackToMove: undefined,
-    },
-    undefined,
 );
 
 const assignTrackToRemoveToTracksList = playlistModel.assign(
@@ -204,7 +201,7 @@ export function createPlaylistMachine({
                         actions: assignTrackIDToAdd,
                     },
 
-                    MOVE_DOWN_TRACK: {
+                    CHANGE_TRACK_ORDER_DOWN: {
                         cond: ({ state: { tracks } }, { trackID }) => {
                             const trackIndex = tracks.findIndex(
                                 ({ id }) => id === trackID,
@@ -228,7 +225,7 @@ export function createPlaylistMachine({
                         actions: assignTrackToMoveDown,
                     },
 
-                    MOVE_UP_TRACK: {
+                    CHANGE_TRACK_ORDER_UP: {
                         cond: ({ state: { tracks } }, { trackID }) => {
                             const trackIndex = tracks.findIndex(
                                 ({ id }) => id === trackID,
@@ -338,19 +335,58 @@ export function createPlaylistMachine({
 
                 states: {
                     sendingToServer: {
-                        after: {
-                            200: {
+                        entry: sendParent(({ trackToMove }) => {
+                            if (trackToMove === undefined) {
+                                throw new Error(
+                                    'trackToMove must be defined before requesting the server',
+                                );
+                            }
+                            const { operationToApply, ...rest } = trackToMove;
+                            const operationToApplyIsDown =
+                                operationToApply ===
+                                MpeChangeTrackOrderOperationToApply.Values.DOWN;
+
+                            if (operationToApplyIsDown) {
+                                return appMusicPlaylistsModel.events.CHANGE_TRACK_ORDER_DOWN(
+                                    {
+                                        ...rest,
+                                        roomID,
+                                    },
+                                );
+                            } else {
+                                return appMusicPlaylistsModel.events.CHANGE_TRACK_ORDER_UP(
+                                    {
+                                        ...rest,
+                                        roomID,
+                                    },
+                                );
+                            }
+                        }),
+
+                        on: {
+                            SENT_CHANGE_TRACK_ORDER_TO_SERVER: {
                                 target: 'waitingForServerAcknowledgement',
                             },
                         },
                     },
 
                     waitingForServerAcknowledgement: {
-                        after: {
-                            200: {
+                        on: {
+                            RECEIVED_CHANGE_TRACK_ORDER_SUCCESS_CALLBACK: {
                                 target: 'debouncing',
 
-                                actions: assignTrackToMoveToTracksList,
+                                actions: [
+                                    assignStateAfterChangeTrackOrderSuccess,
+                                    'triggerSuccessfulChangeTrackOrderToast',
+                                ],
+                            },
+
+                            RECEIVED_CHANGE_TRACK_ORDER_FAIL_CALLBACK: {
+                                target: 'debouncing',
+
+                                actions: [
+                                    'triggerFailureChangeTrackOrderToast',
+                                ],
                             },
                         },
                     },

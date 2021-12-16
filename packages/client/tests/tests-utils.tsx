@@ -145,3 +145,7 @@ export function getFakeUsersList({
 export function extractTrackIDFromCardContainerTestID(testID: string): string {
     return testID.replace('-track-card-container', '');
 }
+
+export function toTrackCardContainerTestID(id: string): string {
+    return `${id}-track-card-container`;
+}

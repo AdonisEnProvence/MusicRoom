@@ -12,6 +12,9 @@ import { createModel } from 'xstate/lib/model';
 import {
     MpeWorkflowState,
     MpeRoomClientToServerCreateArgs,
+    MpeRoomClientToServerChangeTrackOrderUpDownArgs,
+    MpeRoomServerToClientChangeTrackFailCallbackArgs,
+    MpeRoomServerToClientChangeTrackSuccessCallbackARgs,
 } from '@musicroom/types';
 import { SocketClient } from '../contexts/SocketContext';
 import {
@@ -48,6 +51,7 @@ export const appMusicPlaylistsModel = createModel(
                 state,
             }),
 
+            //Add track
             ADD_TRACK: (args: { roomID: string; trackID: string }) => args,
             SENT_TRACK_TO_ADD_TO_SERVER: (args: { roomID: string }) => args,
             RECEIVED_ADD_TRACKS_SUCCESS_CALLBACK: (args: {
@@ -56,6 +60,25 @@ export const appMusicPlaylistsModel = createModel(
             }) => args,
             RECEIVED_ADD_TRACKS_FAIL_CALLBACK: (args: { roomID: string }) =>
                 args,
+            ///
+
+            //Change track order
+            CHANGE_TRACK_ORDER_DOWN: (
+                args: MpeRoomClientToServerChangeTrackOrderUpDownArgs,
+            ) => args,
+            CHANGE_TRACK_ORDER_UP: (
+                args: MpeRoomClientToServerChangeTrackOrderUpDownArgs,
+            ) => args,
+            SENT_CHANGE_TRACK_ORDER_TO_SERVER: (args: { roomID: string }) =>
+                args,
+            RECEIVED_CHANGE_TRACK_ORDER_SUCCESS_CALLBACK: (
+                args: MpeRoomServerToClientChangeTrackSuccessCallbackARgs,
+            ) => args,
+            RECEIVED_CHANGE_TRACK_ORDER_FAIL_CALLBACK: (
+                args: MpeRoomServerToClientChangeTrackFailCallbackArgs,
+            ) => args,
+
+            ///
         },
     },
 );
@@ -140,6 +163,27 @@ export function createAppMusicPlaylistsMachine({
                         });
                     });
 
+                    socket.on(
+                        'MPE_CHANGE_TRACK_ORDER_SUCCESS_CALLBACK',
+                        ({ roomID, state }) => {
+                            sendBack({
+                                type: 'RECEIVED_CHANGE_TRACK_ORDER_SUCCESS_CALLBACK',
+                                roomID,
+                                state,
+                            });
+                        },
+                    );
+
+                    socket.on(
+                        'MPE_CHANGE_TRACK_ORDER_FAIL_CALLBACK',
+                        ({ roomID }) => {
+                            sendBack({
+                                type: 'RECEIVED_CHANGE_TRACK_ORDER_FAIL_CALLBACK',
+                                roomID,
+                            });
+                        },
+                    );
+
                     onReceive((event) => {
                         switch (event.type) {
                             case 'CREATE_ROOM': {
@@ -164,6 +208,38 @@ export function createAppMusicPlaylistsMachine({
                                 break;
                             }
 
+                            case 'CHANGE_TRACK_ORDER_DOWN': {
+                                const { type, ...params } = event;
+
+                                socket.emit(
+                                    'MPE_CHANGE_TRACK_ORDER_DOWN',
+                                    params,
+                                );
+
+                                sendBack({
+                                    type: 'SENT_CHANGE_TRACK_ORDER_TO_SERVER',
+                                    roomID: params.roomID,
+                                });
+
+                                break;
+                            }
+
+                            case 'CHANGE_TRACK_ORDER_UP': {
+                                const { type, ...params } = event;
+
+                                socket.emit(
+                                    'MPE_CHANGE_TRACK_ORDER_UP',
+                                    params,
+                                );
+
+                                sendBack({
+                                    type: 'SENT_CHANGE_TRACK_ORDER_TO_SERVER',
+                                    roomID: params.roomID,
+                                });
+
+                                break;
+                            }
+
                             default: {
                                 throw new Error(
                                     `Received unknown event: ${event.type}`,
@@ -183,6 +259,7 @@ export function createAppMusicPlaylistsMachine({
                         actions: forwardTo('socketConnection'),
                     },
 
+                    //Add track
                     ADD_TRACK: {
                         actions: forwardTo('socketConnection'),
                     },
@@ -219,6 +296,50 @@ export function createAppMusicPlaylistsMachine({
                             },
                         ),
                     },
+                    ///
+
+                    //Change track order
+                    CHANGE_TRACK_ORDER_DOWN: {
+                        actions: forwardTo('socketConnection'),
+                    },
+
+                    CHANGE_TRACK_ORDER_UP: {
+                        actions: forwardTo('socketConnection'),
+                    },
+
+                    RECEIVED_CHANGE_TRACK_ORDER_SUCCESS_CALLBACK: {
+                        actions: send(
+                            (_, { state }) =>
+                                playlistModel.events.RECEIVED_CHANGE_TRACK_ORDER_SUCCESS_CALLBACK(
+                                    { state },
+                                ),
+                            {
+                                to: (_, { roomID }) =>
+                                    getPlaylistMachineActorName(roomID),
+                            },
+                        ),
+                    },
+
+                    RECEIVED_CHANGE_TRACK_ORDER_FAIL_CALLBACK: {
+                        actions: send(
+                            playlistModel.events.RECEIVED_CHANGE_TRACK_ORDER_FAIL_CALLBACK(),
+                            {
+                                to: (_, { roomID }) =>
+                                    getPlaylistMachineActorName(roomID),
+                            },
+                        ),
+                    },
+
+                    SENT_CHANGE_TRACK_ORDER_TO_SERVER: {
+                        actions: send(
+                            playlistModel.events.SENT_CHANGE_TRACK_ORDER_TO_SERVER(),
+                            {
+                                to: (_, { roomID }) =>
+                                    getPlaylistMachineActorName(roomID),
+                            },
+                        ),
+                    },
+                    ///
                 },
             },
         },

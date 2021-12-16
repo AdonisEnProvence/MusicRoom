@@ -14,6 +14,7 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         initSocketConnection,
         createSocketConnection,
         disconnectSocket,
+        waitFor,
     } = initTestUtils();
 
     group.beforeEach(async () => {
@@ -201,8 +202,10 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
             invitedUserID,
         });
 
-        await sleep();
-        assert.isTrue(callbackCalled);
+        await waitFor(() => {
+            assert.isTrue(callbackCalled);
+        });
+
         const createdInvitation = await MtvRoomInvitation.findBy(
             'invited_user_id',
             invitedUserID,
@@ -211,9 +214,11 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
 
         await disconnectSocket(creatorSocket);
 
-        await sleep();
-        const allRooms = await MtvRoom.all();
-        assert.equal(allRooms.length, 0);
+        await waitFor(async () => {
+            const allRooms = await MtvRoom.all();
+            assert.equal(allRooms.length, 0);
+        });
+
         const allInvitations = await MtvRoomInvitation.all();
         assert.equal(allInvitations.length, 0);
     });

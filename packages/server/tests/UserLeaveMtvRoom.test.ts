@@ -17,6 +17,7 @@ import {
     createSpyOnClientSocketEvent,
     getDefaultMtvRoomCreateRoomArgs,
     initTestUtils,
+    MtvServerToTemporalControllerLeaveWorkflowStub,
     sleep,
 } from './utils/TestUtils';
 
@@ -95,7 +96,9 @@ test.group(
                 timeConstraintIsValid: null,
             };
 
-            MtvServerToTemporalController.leaveWorkflow.restore();
+            (
+                MtvServerToTemporalController.leaveWorkflow as MtvServerToTemporalControllerLeaveWorkflowStub
+            ).restore();
             sinon
                 .stub(MtvServerToTemporalController, 'leaveWorkflow')
                 .callsFake(async ({ workflowID }) => {
@@ -328,7 +331,9 @@ test.group(
                 timeConstraintIsValid: null,
             };
 
-            MtvServerToTemporalController.leaveWorkflow.restore();
+            (
+                MtvServerToTemporalController.leaveWorkflow as MtvServerToTemporalControllerLeaveWorkflowStub
+            ).restore();
             sinon
                 .stub(MtvServerToTemporalController, 'leaveWorkflow')
                 .callsFake(async ({ workflowID }) => {
@@ -527,7 +532,9 @@ test.group(
                 minimumScoreToBePlayed: 1,
             };
 
-            MtvServerToTemporalController.leaveWorkflow.restore();
+            (
+                MtvServerToTemporalController.leaveWorkflow as MtvServerToTemporalControllerLeaveWorkflowStub
+            ).restore();
             sinon
                 .stub(MtvServerToTemporalController, 'leaveWorkflow')
                 .callsFake(async ({ workflowID }) => {
@@ -763,7 +770,9 @@ test.group(
             const userBID = datatype.uuid();
             const userCID = datatype.uuid();
 
-            MtvServerToTemporalController.leaveWorkflow.restore();
+            (
+                MtvServerToTemporalController.leaveWorkflow as MtvServerToTemporalControllerLeaveWorkflowStub
+            ).restore();
             sinon
                 .stub(MtvServerToTemporalController, 'leaveWorkflow')
                 .callsFake(async ({ workflowID }) => {

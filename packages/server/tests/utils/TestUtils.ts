@@ -86,6 +86,11 @@ interface CreateSocketConnectionArgs {
     requiredEventListeners?: (socket: TypedTestSocket) => void;
 }
 
+export type MtvServerToTemporalControllerLeaveWorkflowStub = sinon.SinonStub<
+    Parameters<typeof MtvServerToTemporalController.leaveWorkflow>,
+    ReturnType<typeof MtvServerToTemporalController.leaveWorkflow>
+> & { __brand: 'leaveWorkflow' };
+
 export const BASE_URL = `http://${process.env.HOST!}:${process.env.PORT!}`;
 
 interface TestUtilsReturnedValue {

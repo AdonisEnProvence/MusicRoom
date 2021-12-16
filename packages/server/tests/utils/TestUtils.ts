@@ -11,7 +11,7 @@ import MpeRoom from 'App/Models/MpeRoom';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
-import { datatype, random, name } from 'faker';
+import { unique, datatype, random, name } from 'faker';
 import sinon from 'sinon';
 import { io, Socket } from 'socket.io-client';
 import {
@@ -329,7 +329,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
     }: CreateUserForSocketConnectionArgs) {
         const createdUser = await User.create({
             uuid: userID,
-            nickname: userNickname ?? random.word(),
+            nickname: userNickname ?? unique(() => random.word()),
         });
 
         if (mtvRoomIDToAssociate !== undefined) {

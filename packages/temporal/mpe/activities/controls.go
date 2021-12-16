@@ -8,8 +8,6 @@ import (
 	"os"
 
 	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
-
-	"github.com/AdonisEnProvence/MusicRoom/activities"
 )
 
 var (
@@ -35,7 +33,7 @@ func (a *Activities) MpeCreationAcknowledgementActivity(_ context.Context, state
 		return err
 	}
 
-	url := activities.ADONIS_MTV_ENDPOINT + "/mpe-creation-acknowledgement"
+	url := ADONIS_MPE_ENDPOINT + "/mpe-creation-acknowledgement"
 
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 

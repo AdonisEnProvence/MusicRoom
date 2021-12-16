@@ -4,10 +4,8 @@ import { serverSocket } from '../../../services/websockets';
 import { db } from '../../../tests/data';
 import {
     fireEvent,
-    toTrackCardContainerTestID,
     waitFor,
     waitForElementToBeRemoved,
-    within,
 } from '../../../tests/tests-utils';
 import { createMpeRoom } from '../../../tests/tests-mpe-utils';
 

@@ -287,6 +287,12 @@ export default class SocketLifecycle {
 
         await UserService.emitConnectedDevicesUpdateToEveryUserDevices(userID);
         console.log('='.repeat(10));
+
+        SocketLifecycle.acknowledgeDeletingDevice(socketID);
+    }
+
+    public static acknowledgeDeletingDevice(_socketID: string): void {
+        return undefined;
     }
 
     /**

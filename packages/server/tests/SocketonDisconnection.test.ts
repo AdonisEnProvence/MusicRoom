@@ -76,11 +76,6 @@ test.group('Rooms life cycle', (group) => {
 
         /** Mocks */
         sinon
-            .stub(MtvServerToTemporalController, 'terminateWorkflow')
-            .callsFake(async (): Promise<void> => {
-                return;
-            });
-        sinon
             .stub(MtvServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
                 const state: MtvWorkflowStateWithUserRelatedInformation = {
@@ -185,11 +180,6 @@ test.group('Rooms life cycle', (group) => {
         let state: undefined | MtvWorkflowStateWithUserRelatedInformation;
 
         /** Mocks */
-        sinon
-            .stub(MtvServerToTemporalController, 'terminateWorkflow')
-            .callsFake(async () => {
-                return;
-            });
         sinon
             .stub(MtvServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
@@ -312,14 +302,6 @@ test.group('Rooms life cycle', (group) => {
             }),
             socketB: await createSocketConnection({ userID }),
         };
-
-        /** Mocks */
-        sinon
-            .stub(MtvServerToTemporalController, 'terminateWorkflow')
-            .callsFake(async () => {
-                return;
-            });
-        /** ***** */
 
         /**
          *  Check if both user's devices are in database

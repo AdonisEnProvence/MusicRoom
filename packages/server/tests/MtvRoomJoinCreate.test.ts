@@ -88,11 +88,6 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                 console.log('play mock called');
                 return;
             });
-        sinon
-            .stub(MtvServerToTemporalController, 'terminateWorkflow')
-            .callsFake(async (): Promise<void> => {
-                return;
-            });
         /** ***** */
 
         /**

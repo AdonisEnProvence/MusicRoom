@@ -10,7 +10,8 @@ import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServ
 import MpeRoom from 'App/Models/MpeRoom';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
-import { datatype, random, name } from 'faker';
+import SocketLifecycle from 'App/Services/SocketLifecycle';
+import { unique, datatype, random, name } from 'faker';
 import sinon from 'sinon';
 import { io, Socket } from 'socket.io-client';
 import {
@@ -85,6 +86,11 @@ interface CreateSocketConnectionArgs {
     requiredEventListeners?: (socket: TypedTestSocket) => void;
 }
 
+export type MtvServerToTemporalControllerLeaveWorkflowStub = sinon.SinonStub<
+    Parameters<typeof MtvServerToTemporalController.leaveWorkflow>,
+    ReturnType<typeof MtvServerToTemporalController.leaveWorkflow>
+> & { __brand: 'leaveWorkflow' };
+
 export const BASE_URL = `http://${process.env.HOST!}:${process.env.PORT!}`;
 
 interface TestUtilsReturnedValue {
@@ -115,38 +121,63 @@ export class AssertionTimeout extends Error {
 
 export function initTestUtils(): TestUtilsReturnedValue {
     let socketsConnections: TypedTestSocket[] = [];
+    let acknowledgeDeletingDeviceStub: sinon.SinonStub<
+        [socketID: string],
+        void
+    >;
 
-    const initSocketConnection = (): void => {
+    function initSocketConnection() {
         socketsConnections = [];
-    };
 
-    const disconnectEveryRemainingSocketConnection =
-        async (): Promise<void> => {
-            sinon.restore();
-            sinon
-                .stub(MtvServerToTemporalController, 'terminateWorkflow')
-                .callsFake(async () => {
-                    return;
-                });
-            sinon
-                .stub(MtvServerToTemporalController, 'leaveWorkflow')
-                .callsFake(async () => {
-                    return;
-                });
-
-            socketsConnections.forEach((socket) => {
-                socket.disconnect();
+        sinon.restore();
+        sinon
+            .stub(MtvServerToTemporalController, 'terminateWorkflow')
+            .callsFake(async () => {
+                return;
             });
-            await sleep();
-        };
+        sinon
+            .stub(MtvServerToTemporalController, 'leaveWorkflow')
+            .callsFake(async () => {
+                return;
+            });
+        acknowledgeDeletingDeviceStub = sinon.stub(
+            SocketLifecycle,
+            'acknowledgeDeletingDevice',
+        );
+    }
 
-    const disconnectSocket = async (socket: TypedTestSocket): Promise<void> => {
+    async function waitForSocketToBeDeleted(socketID: string) {
+        return await waitFor(() => {
+            if (
+                acknowledgeDeletingDeviceStub.calledWithExactly(socketID) ===
+                false
+            ) {
+                throw new Error('Socket was not deleted');
+            }
+        });
+    }
+
+    async function disconnectEveryRemainingSocketConnection() {
+        for (const socket of socketsConnections) {
+            const socketID = socket.id;
+
+            socket.disconnect();
+
+            await waitForSocketToBeDeleted(socketID);
+        }
+    }
+
+    async function disconnectSocket(socket: TypedTestSocket) {
+        const socketID = socket.id;
+
         socket.disconnect();
+
+        await waitForSocketToBeDeleted(socketID);
+
         socketsConnections = socketsConnections.filter(
             (el) => el.id !== socket.id,
         );
-        await sleep();
-    };
+    }
 
     function createSocketConnectionWithoutAcknowledgement({
         userID,
@@ -303,7 +334,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
     }: CreateUserForSocketConnectionArgs) {
         const createdUser = await User.create({
             uuid: userID,
-            nickname: userNickname ?? random.word(),
+            nickname: userNickname ?? unique(() => random.word()),
         });
 
         if (mtvRoomIDToAssociate !== undefined) {

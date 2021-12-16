@@ -36,3 +36,12 @@ export const MpeRejectChangeTrackOrderRequestBody = z.object({
 export type MpeRejectChangeTrackOrderRequestBody = z.infer<
     typeof MpeRejectChangeTrackOrderRequestBody
 >;
+
+export const MpeAcknowledgeDeletingTracksRequestBody = z.object({
+    state: MpeWorkflowState,
+    userID: z.string().uuid(),
+    deviceID: z.string().uuid(),
+});
+export type MpeAcknowledgeDeletingTracksRequestBody = z.infer<
+    typeof MpeAcknowledgeDeletingTracksRequestBody
+>;

@@ -14,8 +14,10 @@ import sinon from 'sinon';
 import supertest from 'supertest';
 import {
     BASE_URL,
+    createSpyOnClientSocketEvent,
     getDefaultMtvRoomCreateRoomArgs,
     initTestUtils,
+    MtvServerToTemporalControllerLeaveWorkflowStub,
     sleep,
 } from './utils/TestUtils';
 
@@ -94,6 +96,9 @@ test.group(
                 timeConstraintIsValid: null,
             };
 
+            (
+                MtvServerToTemporalController.leaveWorkflow as MtvServerToTemporalControllerLeaveWorkflowStub
+            ).restore();
             sinon
                 .stub(MtvServerToTemporalController, 'leaveWorkflow')
                 .callsFake(async ({ workflowID }) => {
@@ -106,11 +111,6 @@ test.group(
                     await supertest(BASE_URL)
                         .post('/temporal/mtv/user-length-update')
                         .send(roomToLeaveState);
-                    return;
-                });
-            sinon
-                .stub(MtvServerToTemporalController, 'terminateWorkflow')
-                .callsFake(async () => {
                     return;
                 });
             sinon
@@ -186,21 +186,27 @@ test.group(
             });
 
             //USER C
-            socketC.socket.once('MTV_USER_LENGTH_UPDATE', () => {
-                /**
-                 * This is the disconnecting one, in this way it should not receive
-                 * any event
-                 */
-                assert.isTrue(false);
-            });
+            const socketCSocketMtvSpy = createSpyOnClientSocketEvent(
+                socketC.socket,
+                'MTV_JOIN_ROOM_CALLBACK',
+            );
 
-            socketC.socketB.once('MTV_USER_LENGTH_UPDATE', () => {
-                /**
-                 * This is the disconnecting one, in this way it should not receive
-                 * any event
-                 */
-                assert.isTrue(false);
-            });
+            const socketCSocketBMtvSpy = createSpyOnClientSocketEvent(
+                socketC.socketB,
+                'MTV_JOIN_ROOM_CALLBACK',
+            );
+
+            const socketCSocketUserLengthUpdateSpy =
+                createSpyOnClientSocketEvent(
+                    socketC.socket,
+                    'MTV_USER_LENGTH_UPDATE',
+                );
+
+            const socketCSocketBUserLengthUpdateSpy =
+                createSpyOnClientSocketEvent(
+                    socketC.socketB,
+                    'MTV_USER_LENGTH_UPDATE',
+                );
 
             /**
              * Emit join_room with socket C
@@ -210,11 +216,15 @@ test.group(
             socketC.socket.emit('MTV_JOIN_ROOM', {
                 roomID: mtvRoomToJoinID,
             });
-            await sleep();
-            await sleep();
 
-            assert.equal(socket.receivedEvents.length, 2);
-            assert.equal(socketB.receivedEvents.length, 1);
+            await waitFor(async () => {
+                assert.equal(socket.receivedEvents.length, 2);
+                assert.equal(socketB.receivedEvents.length, 1);
+                assert.isTrue(socketCSocketMtvSpy.calledOnce);
+                assert.isTrue(socketCSocketBMtvSpy.calledOnce);
+                assert.isTrue(socketCSocketUserLengthUpdateSpy.notCalled);
+                assert.isTrue(socketCSocketBUserLengthUpdateSpy.notCalled);
+            });
 
             let connectedSocketsToRoom =
                 await SocketLifecycle.getConnectedSocketToRoom(
@@ -321,6 +331,9 @@ test.group(
                 timeConstraintIsValid: null,
             };
 
+            (
+                MtvServerToTemporalController.leaveWorkflow as MtvServerToTemporalControllerLeaveWorkflowStub
+            ).restore();
             sinon
                 .stub(MtvServerToTemporalController, 'leaveWorkflow')
                 .callsFake(async ({ workflowID }) => {
@@ -333,11 +346,6 @@ test.group(
                     await supertest(BASE_URL)
                         .post('/temporal/mtv/user-length-update')
                         .send(roomToLeaveState);
-                    return;
-                });
-            sinon
-                .stub(MtvServerToTemporalController, 'terminateWorkflow')
-                .callsFake(async () => {
                     return;
                 });
             sinon
@@ -524,6 +532,9 @@ test.group(
                 minimumScoreToBePlayed: 1,
             };
 
+            (
+                MtvServerToTemporalController.leaveWorkflow as MtvServerToTemporalControllerLeaveWorkflowStub
+            ).restore();
             sinon
                 .stub(MtvServerToTemporalController, 'leaveWorkflow')
                 .callsFake(async ({ workflowID }) => {
@@ -536,11 +547,6 @@ test.group(
                     await supertest(BASE_URL)
                         .post('/temporal/mtv/user-length-update')
                         .send(roomToLeaveState);
-                    return;
-                });
-            sinon
-                .stub(MtvServerToTemporalController, 'terminateWorkflow')
-                .callsFake(async () => {
                     return;
                 });
             sinon
@@ -764,11 +770,9 @@ test.group(
             const userBID = datatype.uuid();
             const userCID = datatype.uuid();
 
-            sinon
-                .stub(MtvServerToTemporalController, 'terminateWorkflow')
-                .callsFake(async () => {
-                    return;
-                });
+            (
+                MtvServerToTemporalController.leaveWorkflow as MtvServerToTemporalControllerLeaveWorkflowStub
+            ).restore();
             sinon
                 .stub(MtvServerToTemporalController, 'leaveWorkflow')
                 .callsFake(async ({ workflowID }) => {

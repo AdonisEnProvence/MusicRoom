@@ -21,7 +21,7 @@ function noop() {
     return undefined;
 }
 
-test.group('MPE Rooms Tracks List Editing', (group) => {
+test.group('MPE Add Tracks', (group) => {
     const {
         createUserAndGetSocket,
         createSocketConnection,

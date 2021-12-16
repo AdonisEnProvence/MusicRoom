@@ -33,6 +33,15 @@ interface MpeOnChangeTrackOrderArgs {
     fromIndex: number;
 }
 
+interface MpeOnDeleteTracksArgs {
+    socket: TypedSocket;
+
+    roomID: string;
+    tracksIDs: string[];
+    userID: string;
+    deviceID: string;
+}
+
 export default class MpeRoomsWsController {
     public static async onCreate(
         args: MpeOnCreateArgs,
@@ -158,5 +167,24 @@ export default class MpeRoomsWsController {
                 roomID: params.roomID,
             });
         }
+    }
+
+    public static async onDeleteTracks({
+        roomID,
+        tracksIDs,
+        userID,
+        deviceID,
+    }: MpeOnDeleteTracksArgs): Promise<void> {
+        await throwErrorIfUserIsNotInGivenMpeRoom({
+            userID,
+            roomID,
+        });
+
+        await MpeServerToTemporalController.deleteTracks({
+            workflowID: roomID,
+            tracksIDs,
+            userID,
+            deviceID,
+        });
     }
 }

@@ -50,6 +50,10 @@ export const appMusicPlaylistsModel = createModel(
             ) => ({
                 state,
             }),
+            MPE_TRACKS_LIST_UPDATE: (args: {
+                state: MpeWorkflowState;
+                roomID: string;
+            }) => args,
 
             //Add track
             ADD_TRACK: (args: { roomID: string; trackID: string }) => args,
@@ -202,6 +206,14 @@ export function createAppMusicPlaylistsMachine({
                         },
                     );
 
+                    socket.on('MPE_TRACKS_LIST_UPDATE', ({ roomID, state }) => {
+                        sendBack({
+                            type: 'MPE_TRACKS_LIST_UPDATE',
+                            roomID,
+                            state,
+                        });
+                    });
+
                     onReceive((event) => {
                         switch (event.type) {
                             case 'CREATE_ROOM': {
@@ -291,6 +303,19 @@ export function createAppMusicPlaylistsMachine({
                 on: {
                     CREATE_ROOM: {
                         actions: forwardTo('socketConnection'),
+                    },
+
+                    MPE_TRACKS_LIST_UPDATE: {
+                        actions: send(
+                            (_, { state }) =>
+                                playlistModel.events.ASSIGN_MERGE_NEW_STATE(
+                                    state,
+                                ),
+                            {
+                                to: (_, { roomID }) =>
+                                    getPlaylistMachineActorName(roomID),
+                            },
+                        ),
                     },
 
                     //Add track

@@ -27,6 +27,6 @@ test('It should merge given state into the involved playlist', async () => {
     await waitFor(() => {
         const trackCardElements =
             screen.getAllByTestId(/track-card-container/i);
-        expect(trackCardElements.length).toBe(newState.tracks.length - 1);
+        expect(trackCardElements.length).toBe(newState.tracks.length);
     });
 });

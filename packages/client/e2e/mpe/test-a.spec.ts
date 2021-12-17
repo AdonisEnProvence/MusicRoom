@@ -1,5 +1,6 @@
 import { MpeChangeTrackOrderOperationToApply } from '@musicroom/types';
 import { test, expect, Page, Locator } from '@playwright/test';
+import { promise } from 'zod';
 import { KnownSearchesElement, KnownSearchesRecord } from '../_utils/mock-http';
 import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
 
@@ -41,9 +42,11 @@ const knownSearches: KnownSearchesRecord = {
 async function createMpeRoom({
     page,
     openCreatedRoom,
+    deviceToOpenRoomOn,
 }: {
     page: Page;
     openCreatedRoom?: boolean;
+    deviceToOpenRoomOn: Page[];
 }) {
     await expect(page.locator('text="Home"').first()).toBeVisible();
 
@@ -53,21 +56,31 @@ async function createMpeRoom({
     await createMpeRoomButton.click();
 
     if (openCreatedRoom) {
-        const goToLibraryButton = page.locator('text="Library"');
-        await goToLibraryButton.click();
+        await Promise.all(
+            [page, ...deviceToOpenRoomOn].map(async (page) => {
+                const goToLibraryButton = page.locator('text="Library"');
+                await goToLibraryButton.click();
 
-        const libraryScreenTitle = page.locator('text="Library" >> nth=1');
-        await expect(libraryScreenTitle).toBeVisible();
+                const libraryScreenTitle = page.locator(
+                    'text="Library" >> nth=1',
+                );
+                await expect(libraryScreenTitle).toBeVisible();
 
-        const mpeRoomCard = page.locator('css=[data-testid^="mpe-room-card"]');
-        await mpeRoomCard.click();
+                const mpeRoomCard = page.locator(
+                    'css=[data-testid^="mpe-room-card"]',
+                );
+                await mpeRoomCard.click();
+            }),
+        );
     }
 }
 
 async function addTrack({
     page,
+    deviceToApplyAssertionOn,
 }: {
     page: Page;
+    deviceToApplyAssertionOn: Page[];
 }): Promise<KnownSearchesElement> {
     const addTrackButton = page.locator('text="Add Track"');
     await expect(addTrackButton).toBeVisible();
@@ -87,14 +100,19 @@ async function addTrack({
     );
     await trackToAdd.click();
 
-    const addedTrackCard = page.locator(
-        'css=[data-testid$="track-card-container"] >> nth=1',
+    const addedTracks = await Promise.all(
+        [page, ...deviceToApplyAssertionOn].map(async (page) => {
+            const addedTrackCard = page.locator(
+                'css=[data-testid$="track-card-container"] >> nth=1',
+            );
+            const addedTrack = knownSearches[searchQuery][0];
+            await expect(addedTrackCard).toBeVisible();
+            await expect(addedTrackCard).toContainText(addedTrack.title);
+            return addedTrack;
+        }),
     );
-    const addedTrack = knownSearches[searchQuery][0];
-    await expect(addedTrackCard).toBeVisible();
-    await expect(addedTrackCard).toContainText(addedTrack.title);
 
-    return addedTrack;
+    return addedTracks[0];
 }
 
 function getTrackChangeOrderButton({
@@ -136,11 +154,13 @@ async function changeTrackOrder({
     trackIDToMove,
     operationToApply,
     trackTitle,
+    deviceToApplyAssertionOn,
 }: {
     page: Page;
     trackIDToMove: string;
     trackTitle: string;
     operationToApply: MpeChangeTrackOrderOperationToApply;
+    deviceToApplyAssertionOn: Page[];
 }): Promise<void> {
     const trackToMoveChangeOrderButton = getTrackChangeOrderButton({
         page,
@@ -156,19 +176,25 @@ async function changeTrackOrder({
         const successfulToast = page.locator('text=Track moved successfully');
         await expect(successfulToast).toBeVisible();
 
-        const firstTracksListElement = page.locator(
-            'css=[data-testid$="track-card-container"] >> nth=0',
+        await Promise.all(
+            [page, ...deviceToApplyAssertionOn].map(async (page) => {
+                const firstTracksListElement = page.locator(
+                    'css=[data-testid$="track-card-container"] >> nth=0',
+                );
+                await expect(firstTracksListElement).toContainText(trackTitle);
+            }),
         );
-        await expect(firstTracksListElement).toContainText(trackTitle);
     }
 }
 
 async function deleteTrack({
     page,
     trackID,
+    deviceToApplyAssertionOn,
 }: {
     trackID: string;
     page: Page;
+    deviceToApplyAssertionOn: Page[];
 }): Promise<void> {
     const trackDeleteButton = getTrackDeleteButton({
         page,
@@ -183,16 +209,20 @@ async function deleteTrack({
         const successfulToast = page.locator('text=Track deleted successfully');
         await expect(successfulToast).toBeVisible();
 
-        const deleteButton = getTrackDeleteButton({
-            page,
-            trackID,
-        });
-        await expect(deleteButton).not.toBeVisible();
+        await Promise.all(
+            [page, ...deviceToApplyAssertionOn].map(async (page) => {
+                const deleteButton = getTrackDeleteButton({
+                    page,
+                    trackID,
+                });
+                await expect(deleteButton).not.toBeVisible();
 
-        const allTracks = getAllTracksListCardElements({
-            page,
-        });
-        await expect(allTracks).toHaveCount(1);
+                const allTracks = getAllTracksListCardElements({
+                    page,
+                });
+                await expect(allTracks).toHaveCount(1);
+            }),
+        );
     }
 }
 
@@ -225,10 +255,15 @@ test('Create MPE room', async ({ browser }) => {
         userIndex: 0,
     });
 
-    await createMpeRoom({ page, openCreatedRoom: true });
+    await createMpeRoom({
+        page,
+        openCreatedRoom: true,
+        deviceToOpenRoomOn: [pageB],
+    });
 
     const addedTrack = await addTrack({
         page,
+        deviceToApplyAssertionOn: [pageB],
     });
 
     await changeTrackOrder({
@@ -236,10 +271,12 @@ test('Create MPE room', async ({ browser }) => {
         operationToApply: MpeChangeTrackOrderOperationToApply.Values.UP,
         trackIDToMove: addedTrack.id,
         trackTitle: addedTrack.title,
+        deviceToApplyAssertionOn: [pageB],
     });
 
     await deleteTrack({
         page,
         trackID: addedTrack.id,
+        deviceToApplyAssertionOn: [pageB],
     });
 });

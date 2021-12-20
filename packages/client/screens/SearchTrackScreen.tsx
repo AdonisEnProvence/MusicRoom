@@ -1,50 +1,177 @@
-import { useActor, useMachine } from '@xstate/react';
+import { useActor, useInterpret, useSelector } from '@xstate/react';
 import React, { useState } from 'react';
-import { FlatList } from 'react-native';
-import { View } from 'dripsy';
+import { FlatList, Modal, TouchableOpacity } from 'react-native';
+import { Text, useSx, View } from 'dripsy';
 import { ActorRef } from 'xstate';
+import { createModel } from 'xstate/lib/model';
+import invariant from 'tiny-invariant';
 import { AppScreenWithSearchBar } from '../components/kit';
 import TrackListItem from '../components/Track/TrackListItem';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
 } from '../machines/appScreenHeaderWithSearchBarMachine';
-import { searchTrackMachine } from '../machines/searchTrackMachine';
+import {
+    SearchTrackActorRef,
+    searchTrackMachine,
+} from '../machines/searchTrackMachine';
 import { SearchTabSearchTracksScreenProps } from '../types';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
-import { assertEventType } from '../machines/utils';
+
+const searchTracksScreenModel = createModel(
+    {
+        selectedTrackID: undefined as string | undefined,
+    },
+    {
+        events: {
+            OPEN_MODAL: (args: { trackID: string }) => args,
+            CLOSE_MODAL: () => ({}),
+
+            CREATE_MTV: () => ({}),
+            CREATE_MPE: () => ({}),
+        },
+
+        actions: {
+            forwardMtvCreation: () => ({}),
+            forwardMpeCreation: () => ({}),
+        },
+    },
+);
+
+const assignSelectedTrackToContext = searchTracksScreenModel.assign(
+    {
+        selectedTrackID: (_, event) => event.trackID,
+    },
+    'OPEN_MODAL',
+);
+
+const searchTrackScreenMachine = searchTracksScreenModel.createMachine(
+    {
+        type: 'parallel',
+
+        states: {
+            search: {
+                invoke: {
+                    id: 'searchTracks',
+
+                    src: searchTrackMachine,
+                },
+            },
+
+            modal: {
+                initial: 'closed',
+
+                states: {
+                    closed: {
+                        tags: 'hideModal',
+
+                        on: {
+                            OPEN_MODAL: {
+                                target: 'open',
+
+                                actions: assignSelectedTrackToContext,
+                            },
+                        },
+                    },
+
+                    open: {
+                        tags: 'showModal',
+
+                        on: {
+                            CLOSE_MODAL: {
+                                target: 'closed',
+
+                                actions: searchTracksScreenModel.reset(),
+                            },
+
+                            CREATE_MTV: {
+                                cond: 'isSelectedTrackIDSet',
+
+                                target: 'closed',
+
+                                actions: 'forwardMtvCreation',
+                            },
+
+                            CREATE_MPE: {
+                                cond: 'isSelectedTrackIDSet',
+
+                                target: 'closed',
+
+                                actions: 'forwardMpeCreation',
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    },
+    {
+        guards: {
+            isSelectedTrackIDSet: (context) =>
+                context.selectedTrackID !== undefined,
+        },
+    },
+);
 
 const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
     navigation,
 }) => {
+    const sx = useSx();
     const [screenOffsetY, setScreenOffsetY] = useState(0);
     const { sendToMusicPlayerMachine } = useMusicPlayerContext();
-    const [state, sendToSearchTracks] = useMachine(searchTrackMachine, {
-        actions: {
-            handleTrackPressed: (_, event) => {
-                assertEventType(event, 'PRESS_TRACK');
-                const { trackID } = event;
+    const searchTracksScreenService = useInterpret(
+        searchTrackScreenMachine.withConfig({
+            actions: {
+                forwardMtvCreation: ({ selectedTrackID }) => {
+                    invariant(
+                        selectedTrackID !== undefined,
+                        'Creating a MTV requires a selected track',
+                    );
 
-                sendToMusicPlayerMachine({
-                    type: 'CREATE_ROOM',
-                    roomName: trackID,
-                    initialTracksIDs: [trackID],
-                });
+                    sendToMusicPlayerMachine({
+                        type: 'CREATE_ROOM',
+                        roomName: selectedTrackID,
+                        initialTracksIDs: [selectedTrackID],
+                    });
+                },
+
+                forwardMpeCreation: ({ selectedTrackID }) => {
+                    invariant(
+                        selectedTrackID !== undefined,
+                        'Creating a MPE requires a selected track',
+                    );
+
+                    console.log('create mpe room with ', selectedTrackID);
+                },
             },
-        },
-    });
-    const tracksResults = state.context.tracks;
-    const searchBarActor: ActorRef<
-        AppScreenHeaderWithSearchBarMachineEvent,
-        AppScreenHeaderWithSearchBarMachineState
-    > = state.children.searchBarMachine;
+        }),
+    );
+    const showModal = useSelector(searchTracksScreenService, (state) =>
+        state.hasTag('showModal'),
+    );
+    const searchTracksActor = useSelector(
+        searchTracksScreenService,
+        (state) => state.children.searchTracks as SearchTrackActorRef,
+    );
+    const tracksResults = useSelector(
+        searchTracksActor,
+        (state) => state.context.tracks,
+    );
+    const searchBarActor = useSelector(
+        searchTracksActor,
+        (state) =>
+            state.children.searchBarMachine as ActorRef<
+                AppScreenHeaderWithSearchBarMachineEvent,
+                AppScreenHeaderWithSearchBarMachineState
+            >,
+    );
     const [searchState, sendToSearch] = useActor(searchBarActor);
     const showHeader = searchState.hasTag('showHeaderTitle');
 
     function handleTrackPress(trackID: string) {
         return () => {
-            sendToSearchTracks({
-                type: 'PRESS_TRACK',
+            searchTracksScreenService.send({
+                type: 'OPEN_MODAL',
                 trackID,
             });
         };
@@ -79,6 +206,113 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
                 )}
                 keyExtractor={(_, index) => String(index)}
             />
+
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={showModal}
+                onRequestClose={() => {
+                    searchTracksScreenService.send({
+                        type: 'CLOSE_MODAL',
+                    });
+                }}
+            >
+                <View
+                    sx={{
+                        flex: 1,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <View
+                        sx={{
+                            backgroundColor: 'grey',
+                            borderRadius: 's',
+                            padding: 'xl',
+                            margin: 'm',
+
+                            shadowColor: '#000',
+                            shadowOffset: {
+                                width: 0,
+                                height: 2,
+                            },
+                            shadowOpacity: 0.25,
+                            shadowRadius: 4,
+                            elevation: 5,
+                        }}
+                    >
+                        <Text
+                            sx={{
+                                color: 'white',
+                                marginBottom: 'l',
+                                textAlign: 'center',
+                            }}
+                        >
+                            What do you want to do with this track?
+                        </Text>
+
+                        <View
+                            sx={{
+                                flexDirection: 'row',
+                                justifyContent: 'center',
+                                flexWrap: 'wrap',
+                                alignItems: 'center',
+                                flex: 1,
+                            }}
+                        >
+                            <TouchableOpacity
+                                onPress={() => {
+                                    searchTracksScreenService.send({
+                                        type: 'CREATE_MTV',
+                                    });
+                                }}
+                                style={sx({
+                                    borderRadius: 'full',
+                                    borderWidth: 2,
+                                    borderColor: 'secondary',
+                                    paddingX: 'l',
+                                    paddingY: 's',
+                                    margin: 'm',
+                                })}
+                            >
+                                <Text
+                                    sx={{
+                                        color: 'secondary',
+                                        fontWeight: 'bold',
+                                    }}
+                                >
+                                    Create MTV
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={() => {
+                                    searchTracksScreenService.send({
+                                        type: 'CREATE_MPE',
+                                    });
+                                }}
+                                style={sx({
+                                    borderRadius: 'full',
+                                    borderWidth: 2,
+                                    borderColor: 'secondary',
+                                    paddingX: 'l',
+                                    paddingY: 's',
+                                    margin: 'm',
+                                })}
+                            >
+                                <Text
+                                    sx={{
+                                        color: 'secondary',
+                                        fontWeight: 'bold',
+                                    }}
+                                >
+                                    Create MPE
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </AppScreenWithSearchBar>
     );
 };

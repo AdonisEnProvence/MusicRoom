@@ -1,6 +1,6 @@
 import { createModel } from 'xstate/lib/model';
 import { TrackMetadata } from '@musicroom/types';
-import { forwardTo } from 'xstate';
+import { ActorRefFrom } from 'xstate';
 import { fetchTracksSuggestions } from '../services/search-tracks';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 
@@ -21,6 +21,8 @@ const searchTrackModel = createModel(
         },
     },
 );
+
+export type SearchTrackActorRef = ActorRefFrom<typeof searchTrackMachine>;
 
 const assignTracksToContext = searchTrackModel.assign(
     {

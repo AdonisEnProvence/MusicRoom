@@ -4,6 +4,7 @@ import {
     MpeRoomClientToServerChangeTrackOrderUpDownArgs,
     MpeRoomClientToServerCreateArgs,
     MpeRoomClientToServerDeleteTracksArgs,
+    MpeRoomClientToServerGetContextArgs,
 } from '@musicroom/types';
 import MpeRoomsWsController from 'App/Controllers/Ws/MpeRoomsWsController';
 import MpeRoom from 'App/Models/MpeRoom';
@@ -149,6 +150,26 @@ export default function initMpeSocketEventListeners(socket: TypedSocket): void {
                 userID: user.uuid,
                 deviceID,
             });
+        } catch (err) {
+            console.error(err);
+        }
+    });
+
+    socket.on(`MPE_GET_CONTEXT`, async (rawArgs) => {
+        try {
+            const { roomID } =
+                MpeRoomClientToServerGetContextArgs.parse(rawArgs);
+
+            const { user } =
+                await SocketLifecycle.getSocketConnectionCredentials(socket);
+
+            const response = await MpeRoomsWsController.onGetContext({
+                roomID,
+                socket,
+                user,
+            });
+
+            socket.emit('MPE_GET_CONTEXT_SUCCESS_CALLBACK', response);
         } catch (err) {
             console.error(err);
         }

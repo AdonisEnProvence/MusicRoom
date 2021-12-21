@@ -4,6 +4,7 @@ import {
     MpeChangeTrackOrderRequestBody,
     MpeCreateWorkflowResponse,
     MpeRoomClientToServerCreateArgs,
+    MpeRoomServerToClientGetContextSuccessCallbackArgs,
 } from '@musicroom/types';
 import MpeRoom from 'App/Models/MpeRoom';
 import User from 'App/Models/User';
@@ -40,6 +41,12 @@ interface MpeOnDeleteTracksArgs {
     tracksIDs: string[];
     userID: string;
     deviceID: string;
+}
+
+interface MpeOnGetContextArgs {
+    user: User;
+    socket: TypedSocket;
+    roomID: string;
 }
 
 export default class MpeRoomsWsController {
@@ -186,5 +193,46 @@ export default class MpeRoomsWsController {
             userID,
             deviceID,
         });
+    }
+
+    public static async onGetContext({
+        roomID,
+        user,
+        socket,
+    }: MpeOnGetContextArgs): Promise<MpeRoomServerToClientGetContextSuccessCallbackArgs> {
+        try {
+            const room = await MpeRoom.findOrFail(roomID);
+            //If room is private look for mtvRoomInvitation
+
+            const roomIsPrivate = !room.isOpen;
+            if (roomIsPrivate) {
+                throw new Error(
+                    'to refactor after implem the mpe room invitations',
+                );
+            }
+
+            const { state } = await MpeServerToTemporalController.getStateQuery(
+                {
+                    workflowID: roomID,
+                },
+            );
+
+            await user.load('mpeRooms', (mpeRoomQuery) => {
+                return mpeRoomQuery.where('uuid', roomID);
+            });
+
+            const userIsNotInRoom = user.mpeRooms === null;
+
+            return {
+                roomID,
+                state,
+                userIsNotInRoom,
+            };
+        } catch (e) {
+            socket.emit('MPE_GET_CONTEXT_FAIL_CALLBACK', {
+                roomID,
+            });
+            throw new Error('onGetContext error');
+        }
     }
 }

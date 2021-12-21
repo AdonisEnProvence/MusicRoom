@@ -24,6 +24,7 @@ import {
     playlistModel,
 } from './playlistMachine';
 import { getPlaylistMachineOptions } from './options/playlistMachineOptions';
+import { creationMpeRoomFormMachine } from './creationMpeRoomForm';
 
 export interface MusicPlaylist {
     id: string;
@@ -428,6 +429,12 @@ export function createAppMusicPlaylistsMachine({
 
                     creatingRoom: {
                         entry: 'openCreationMpeFormModal',
+
+                        invoke: {
+                            id: 'creationMpeRoomForm',
+
+                            src: creationMpeRoomFormMachine,
+                        },
                     },
                 },
             },

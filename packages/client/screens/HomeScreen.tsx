@@ -135,8 +135,8 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                 <Button
                     title="MPE Creation Form"
                     onPress={() => {
-                        navigation.navigate('MusicPlaylistEditorCreationForm', {
-                            screen: 'MusicPlaylistEditorCreationFormName',
+                        appMusicPlaylistsActorRef.send({
+                            type: 'OPEN_CREATION_FORM',
                         });
                     }}
                 />

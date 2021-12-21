@@ -40,6 +40,8 @@ export const appMusicPlaylistsModel = createModel(
     },
     {
         events: {
+            OPEN_CREATION_FORM: () => ({}),
+
             CREATE_ROOM: (params: MpeRoomClientToServerCreateArgs) => ({
                 params,
             }),
@@ -108,6 +110,10 @@ export const appMusicPlaylistsModel = createModel(
                 roomID: string;
                 state: MpeWorkflowState;
             }) => args,
+        },
+
+        actions: {
+            openCreationMpeFormModal: () => ({}),
         },
     },
 );
@@ -405,10 +411,28 @@ export function createAppMusicPlaylistsMachine({
                 },
         },
 
-        initial: 'idle',
+        initial: 'waitingForRoomCreation',
 
         states: {
-            idle: {
+            waitingForRoomCreation: {
+                initial: 'idle',
+
+                states: {
+                    idle: {
+                        on: {
+                            OPEN_CREATION_FORM: {
+                                target: 'creatingRoom',
+                            },
+                        },
+                    },
+
+                    creatingRoom: {
+                        entry: 'openCreationMpeFormModal',
+                    },
+                },
+            },
+
+            createdRoom: {
                 on: {
                     CREATE_ROOM: {
                         actions: forwardTo('socketConnection'),
@@ -581,6 +605,10 @@ export function createAppMusicPlaylistsMachine({
         },
 
         on: {
+            CREATE_ROOM: {
+                actions: forwardTo('socketConnection'),
+            },
+
             FORWARD_ASSIGN_MERGE_NEW_STATE_TO_INVOLVED_PLAYLIST: {
                 actions: send(
                     (_, { state, userIsNotInRoom }) =>

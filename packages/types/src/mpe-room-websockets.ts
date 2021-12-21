@@ -83,6 +83,29 @@ export type MpeRoomServerToClientDeleteTracksSuccessCallbackArgs = z.infer<
     typeof MpeRoomServerToClientDeleteTracksSuccessCallbackArgs
 >;
 
+export const MpeRoomClientToServerGetContextArgs = z.object({
+    roomID: z.string().uuid(),
+});
+export type MpeRoomClientToServerGetContextArgs = z.infer<
+    typeof MpeRoomClientToServerGetContextArgs
+>;
+
+export const MpeRoomServerToClientGetContextFailCallbackArgs = z.object({
+    roomID: z.string().uuid(),
+});
+export type MpeRoomServerToClientGetContextFailCallbackArgs = z.infer<
+    typeof MpeRoomServerToClientGetContextFailCallbackArgs
+>;
+
+export const MpeRoomServerToClientGetContextSuccessCallbackArgs = z.object({
+    state: MpeWorkflowState,
+    roomID: z.string().uuid(),
+    userIsNotInRoom: z.boolean(),
+});
+export type MpeRoomServerToClientGetContextSuccessCallbackArgs = z.infer<
+    typeof MpeRoomServerToClientGetContextSuccessCallbackArgs
+>;
+
 export interface MpeRoomClientToServerEvents {
     MPE_CREATE_ROOM: (args: MpeRoomClientToServerCreateArgs) => void;
     MPE_ADD_TRACKS: (args: MpeRoomClientToServerAddTracksArgs) => void;
@@ -93,6 +116,7 @@ export interface MpeRoomClientToServerEvents {
         args: MpeRoomClientToServerChangeTrackOrderUpDownArgs,
     ) => void;
     MPE_DELETE_TRACKS: (args: MpeRoomClientToServerDeleteTracksArgs) => void;
+    MPE_GET_CONTEXT: (args: MpeRoomClientToServerGetContextArgs) => void;
 }
 
 export interface MpeRoomServerToClientEvents {
@@ -116,5 +140,11 @@ export interface MpeRoomServerToClientEvents {
     ) => void;
     MPE_DELETE_TRACKS_SUCCESS_CALLBACK: (
         args: MpeRoomServerToClientDeleteTracksSuccessCallbackArgs,
+    ) => void;
+    MPE_GET_CONTEXT_SUCCESS_CALLBACK: (
+        args: MpeRoomServerToClientGetContextSuccessCallbackArgs,
+    ) => void;
+    MPE_GET_CONTEXT_FAIL_CALLBACK: (
+        args: MpeRoomServerToClientGetContextFailCallbackArgs,
     ) => void;
 }

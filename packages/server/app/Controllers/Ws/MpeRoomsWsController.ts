@@ -202,12 +202,22 @@ export default class MpeRoomsWsController {
     }: MpeOnGetContextArgs): Promise<MpeRoomServerToClientGetContextSuccessCallbackArgs> {
         try {
             const room = await MpeRoom.findOrFail(roomID);
-            //If room is private look for mtvRoomInvitation
+
+            await user.load('mpeRooms', (mpeRoomQuery) => {
+                return mpeRoomQuery.where('uuid', roomID);
+            });
 
             const roomIsPrivate = !room.isOpen;
-            if (roomIsPrivate) {
+            const userIsNotInRoom =
+                user.mpeRooms === null ||
+                (user.mpeRooms !== null && user.mpeRooms.length !== 1);
+
+            //If room is private and user is not already in look for mtvRoomInvitation
+            const userIsNotInRoomAndRoomIsPrivate =
+                userIsNotInRoom && roomIsPrivate;
+            if (userIsNotInRoomAndRoomIsPrivate) {
                 throw new Error(
-                    'to refactor after implem the mpe room invitations',
+                    'to refactor after implem the mpe room invitations', //TODO
                 );
             }
 
@@ -216,12 +226,6 @@ export default class MpeRoomsWsController {
                     workflowID: roomID,
                 },
             );
-
-            await user.load('mpeRooms', (mpeRoomQuery) => {
-                return mpeRoomQuery.where('uuid', roomID);
-            });
-
-            const userIsNotInRoom = user.mpeRooms === null;
 
             return {
                 roomID,

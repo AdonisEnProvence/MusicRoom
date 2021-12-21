@@ -4,6 +4,7 @@ import {
     MpeChangeTrackOrderRequestBody,
     MpeCreateWorkflowResponse,
     MpeRoomClientToServerCreateArgs,
+    MpeRoomServerToClientGetContextSuccessCallbackArgs,
 } from '@musicroom/types';
 import MpeRoom from 'App/Models/MpeRoom';
 import User from 'App/Models/User';
@@ -40,6 +41,12 @@ interface MpeOnDeleteTracksArgs {
     tracksIDs: string[];
     userID: string;
     deviceID: string;
+}
+
+interface MpeOnGetContextArgs {
+    user: User;
+    socket: TypedSocket;
+    roomID: string;
 }
 
 export default class MpeRoomsWsController {
@@ -186,5 +193,50 @@ export default class MpeRoomsWsController {
             userID,
             deviceID,
         });
+    }
+
+    public static async onGetContext({
+        roomID,
+        user,
+        socket,
+    }: MpeOnGetContextArgs): Promise<MpeRoomServerToClientGetContextSuccessCallbackArgs> {
+        try {
+            const room = await MpeRoom.findOrFail(roomID);
+
+            await user.load('mpeRooms', (mpeRoomQuery) => {
+                return mpeRoomQuery.where('uuid', roomID);
+            });
+
+            const roomIsPrivate = !room.isOpen;
+            const userIsNotInRoom =
+                user.mpeRooms === null ||
+                (user.mpeRooms !== null && user.mpeRooms.length !== 1);
+
+            //If room is private and user is not already in look for mtvRoomInvitation
+            const userIsNotInRoomAndRoomIsPrivate =
+                userIsNotInRoom && roomIsPrivate;
+            if (userIsNotInRoomAndRoomIsPrivate) {
+                throw new Error(
+                    'to refactor after implem the mpe room invitations', //TODO
+                );
+            }
+
+            const { state } = await MpeServerToTemporalController.getStateQuery(
+                {
+                    workflowID: roomID,
+                },
+            );
+
+            return {
+                roomID,
+                state,
+                userIsNotInRoom,
+            };
+        } catch (e) {
+            socket.emit('MPE_GET_CONTEXT_FAIL_CALLBACK', {
+                roomID,
+            });
+            throw new Error('onGetContext error');
+        }
     }
 }

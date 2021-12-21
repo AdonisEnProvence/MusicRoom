@@ -63,3 +63,18 @@ export const MpeDeleteTracksResponseBody = z.object({
 export type MpeDeleteTracksResponseBody = z.infer<
     typeof MpeDeleteTracksResponseBody
 >;
+
+export const MpeGetStateQueryResponseBody = z.object({
+    workflowID: z.string().uuid(),
+    state: MpeWorkflowState,
+});
+export type MpeGetStateQueryResponseBody = z.infer<
+    typeof MpeGetStateQueryResponseBody
+>;
+
+export const MpeGetStateQueryRequestBody = z.object({
+    workflowID: z.string().uuid(),
+});
+export type MpeGetStateQueryRequestBody = z.infer<
+    typeof MpeGetStateQueryRequestBody
+>;

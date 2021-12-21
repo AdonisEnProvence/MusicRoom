@@ -69,6 +69,7 @@ interface CreateUserForSocketConnectionArgs {
     mpeRoomIDToAssociate?: {
         roomName?: string;
         roomID: string;
+        isOpen?: boolean;
     }[];
     roomName?: string;
     userNickname?: string;
@@ -354,12 +355,13 @@ export function initTestUtils(): TestUtilsReturnedValue {
         if (mpeRoomIDToAssociate !== undefined) {
             await Promise.all(
                 mpeRoomIDToAssociate.map(
-                    async ({ roomID, roomName: mpeRoomName }) => {
+                    async ({ roomID, roomName: mpeRoomName, isOpen }) => {
                         let mpeRoomToAssociate = await MpeRoom.find(roomID);
                         if (mpeRoomToAssociate === null) {
                             console.log('CREATING MPE ROOM FROM TEST UTILS');
                             mpeRoomToAssociate = await MpeRoom.create({
                                 uuid: roomID,
+                                isOpen: isOpen ?? true,
                                 runID: datatype.uuid(),
                                 name: mpeRoomName ?? random.words(2),
                                 creatorID: createdUser.uuid,

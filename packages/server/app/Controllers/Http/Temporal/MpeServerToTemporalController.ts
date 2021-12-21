@@ -8,6 +8,8 @@ import {
     MpeChangeTrackOrderRequestBody,
     MpeDeleteTracksRequestBody,
     MpeDeleteTracksResponseBody,
+    MpeGetStateQueryRequestBody,
+    MpeGetStateQueryResponseBody,
 } from '@musicroom/types';
 import got from 'got';
 import urlcat from 'urlcat';
@@ -69,6 +71,20 @@ export default class MpeServerToTemporalController {
         const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/delete-tracks');
 
         return MpeDeleteTracksResponseBody.parse(
+            await got
+                .put(url, {
+                    json: body,
+                })
+                .json(),
+        );
+    }
+
+    public static async getStateQuery(
+        body: MpeGetStateQueryRequestBody,
+    ): Promise<MpeGetStateQueryResponseBody> {
+        const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/get-state');
+
+        return MpeGetStateQueryResponseBody.parse(
             await got
                 .put(url, {
                     json: body,

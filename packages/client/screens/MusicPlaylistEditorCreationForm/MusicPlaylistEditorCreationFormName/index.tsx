@@ -1,8 +1,11 @@
+import { useSelector } from '@xstate/react';
 import { Text, View } from 'dripsy';
 import React from 'react';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { TextField } from '../../../components/kit';
 import MtvRoomCreationFormScreen from '../../../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
+import { useMpeRoomCreationFormActor } from '../../../hooks/useMusicPlaylistsActor';
+import { CreationMpeRoomFormActorRef } from '../../../machines/creationMpeRoomForm';
 
 export interface MusicTrackVoteCreationFormNameFormFieldValues {
     roomName: string;
@@ -76,22 +79,53 @@ const MusicPlaylistEditorCreationFormNameContent: React.FC<MusicTrackVoteCreatio
         );
     };
 
-const MusicPlaylistEditorCreationFormName: React.FC = () => {
-    return (
-        <MusicPlaylistEditorCreationFormNameContent
-            defaultRoomName="MPE"
-            handleGoBack={() => {
-                return undefined;
-            }}
-            handleGoNext={() => {
-                return undefined;
-            }}
-        />
-    );
-};
+interface MusicPlaylistEditorCreationFormNameProps {
+    creationFormActor: CreationMpeRoomFormActorRef;
+}
+
+const MusicPlaylistEditorCreationFormName: React.FC<MusicPlaylistEditorCreationFormNameProps> =
+    ({ creationFormActor }) => {
+        const defaultRoomName = useSelector(
+            creationFormActor,
+            (state) => state.context.roomName,
+        );
+
+        function handleGoBack() {
+            creationFormActor.send({
+                type: 'GO_BACK',
+            });
+        }
+
+        function handleGoNext(roomName: string) {
+            creationFormActor.send({
+                type: 'SET_ROOM_NAME_AND_GO_NEXT',
+                roomName,
+            });
+        }
+
+        return (
+            <MusicPlaylistEditorCreationFormNameContent
+                defaultRoomName={defaultRoomName}
+                handleGoBack={handleGoBack}
+                handleGoNext={({ roomName }) => {
+                    handleGoNext(roomName);
+                }}
+            />
+        );
+    };
 
 const MusicPlaylistEditorCreationFormNameWrapper: React.FC = () => {
-    return <MusicPlaylistEditorCreationFormName />;
+    const creationFormActor = useMpeRoomCreationFormActor();
+
+    if (creationFormActor === undefined) {
+        return null;
+    }
+
+    return (
+        <MusicPlaylistEditorCreationFormName
+            creationFormActor={creationFormActor}
+        />
+    );
 };
 
 export default MusicPlaylistEditorCreationFormNameWrapper;

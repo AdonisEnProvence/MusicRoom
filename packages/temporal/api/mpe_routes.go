@@ -20,6 +20,55 @@ func AddMpeHandler(r *mux.Router) {
 	r.Handle("/mpe/add-tracks", http.HandlerFunc(MpeAddTracksHandler)).Methods(http.MethodPut)
 	r.Handle("/mpe/change-track-order", http.HandlerFunc(MpeChangeTrackOrderHandler)).Methods(http.MethodPut)
 	r.Handle("/mpe/delete-tracks", http.HandlerFunc(MpeDeleteTracksHandler)).Methods(http.MethodPut)
+	r.Handle("/mpe/get-state", http.HandlerFunc(getStateQueryHandler)).Methods(http.MethodPut)
+}
+
+type MpeGetStateQueryRequestBody struct {
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+}
+
+type MpeGetStateQueryResponse struct {
+	State      shared_mpe.MpeRoomExposedState `json:"state"`
+	WorkflowID string                         `json:"workflowID"`
+}
+
+func getStateQueryHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	var body MpeGetStateQueryRequestBody
+
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		log.Println("create room body decode error", err)
+		WriteError(w, err)
+		return
+	}
+
+	fmt.Printf("received body from server is = %+v\n", body)
+
+	if err := validate.Struct(body); err != nil {
+		log.Println("create room validation error", err)
+		WriteError(w, err)
+		return
+	}
+
+	args := PerformMpeGetStateQueryArgs{
+		WorkflowID: body.WorkflowID,
+		RunID:      shared.NoWorkflowRunID,
+	}
+
+	mpeRoomExposedState, err := PerformMpeGetStateQuery(args)
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	res := MpeCreateRoomResponse{
+		State:      mpeRoomExposedState,
+		WorkflowID: mpeRoomExposedState.RoomID,
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(res)
 }
 
 type MpeCreateRoomRequestBody struct {

@@ -42,9 +42,11 @@ export const appMusicPlaylistsModel = createModel(
             CREATE_ROOM: (params: MpeRoomClientToServerCreateArgs) => ({
                 params,
             }),
-            SPAWN_NEW_PLAYLIST_ACTOR_FROM_STATE: (state: MpeWorkflowState) => ({
-                state,
-            }),
+            SPAWN_NEW_PLAYLIST_ACTOR_FROM_STATE: (args: {
+                state: MpeWorkflowState;
+            }) => args,
+            SPAWN_NEW_PLAYLIST_ACTOR_FROM_ROOM_ID: (args: { roomID: string }) =>
+                args,
             FORWARD_ASSIGN_MERGE_NEW_STATE_TO_INVOLVED_PLAYLIST: (
                 state: MpeWorkflowState,
             ) => ({
@@ -54,6 +56,17 @@ export const appMusicPlaylistsModel = createModel(
                 state: MpeWorkflowState;
                 roomID: string;
             }) => args,
+
+            //Get context
+            MPE_GET_CONTEXT: (args: { roomID: string }) => args,
+            RECEIVED_MPE_GET_CONTEXT_SUCCESS_CALLBACK: (args: {
+                state: MpeWorkflowState;
+                roomID: string;
+            }) => args,
+            RECEIVED_MPE_GET_CONTEXT_FAIL_CALLBACK: (args: {
+                roomID: string;
+            }) => args,
+            ///
 
             //Add track
             ADD_TRACK: (args: { roomID: string; trackID: string }) => args,
@@ -94,11 +107,36 @@ export const appMusicPlaylistsModel = createModel(
     },
 );
 
+const stopPlaylistActor = appMusicPlaylistsModel.assign(
+    {
+        playlistsActorsRefs: ({ playlistsActorsRefs }, { roomID }) => {
+            const actor = playlistsActorsRefs.find(
+                (actor) => actor.id === roomID,
+            );
+
+            if (actor === undefined) {
+                console.error(
+                    'encountered unkown roomID in stop playlist actor',
+                );
+                return playlistsActorsRefs;
+            }
+
+            if (actor.ref.stop) {
+                actor.ref.stop();
+            }
+
+            return playlistsActorsRefs.filter((actor) => actor.id !== roomID);
+        },
+    },
+    'RECEIVED_MPE_GET_CONTEXT_FAIL_CALLBACK',
+);
+
 const spawnPlaylistActor = appMusicPlaylistsModel.assign(
     {
         playlistsActorsRefs: ({ playlistsActorsRefs }, { state }) => {
             const playlistMachine = createPlaylistMachine({
                 initialState: state,
+                roomID: state.roomID,
             }).withConfig(getPlaylistMachineOptions());
             const playlist: MusicPlaylist = {
                 id: state.roomID,
@@ -112,6 +150,28 @@ const spawnPlaylistActor = appMusicPlaylistsModel.assign(
         },
     },
     'SPAWN_NEW_PLAYLIST_ACTOR_FROM_STATE',
+);
+
+const spawnPlaylistActorFromRoomID = appMusicPlaylistsModel.assign(
+    {
+        playlistsActorsRefs: ({ playlistsActorsRefs }, { roomID }) => {
+            const playlistMachine = createPlaylistMachine({
+                initialState: undefined,
+                roomID,
+            }).withConfig(getPlaylistMachineOptions());
+
+            const playlist: MusicPlaylist = {
+                id: roomID,
+                roomName: roomID,
+                ref: spawn(playlistMachine, {
+                    name: getPlaylistMachineActorName(roomID),
+                }),
+            };
+
+            return [...playlistsActorsRefs, playlist];
+        },
+    },
+    'SPAWN_NEW_PLAYLIST_ACTOR_FROM_ROOM_ID',
 );
 
 type AppMusicPlaylistsMachine = ReturnType<
@@ -214,6 +274,24 @@ export function createAppMusicPlaylistsMachine({
                         });
                     });
 
+                    socket.on(
+                        'MPE_GET_CONTEXT_SUCCESS_CALLBACK',
+                        ({ state, roomID }) => {
+                            sendBack({
+                                type: 'RECEIVED_MPE_GET_CONTEXT_SUCCESS_CALLBACK',
+                                roomID,
+                                state,
+                            });
+                        },
+                    );
+
+                    socket.on('MPE_GET_CONTEXT_FAIL_CALLBACK', ({ roomID }) => {
+                        sendBack({
+                            type: 'RECEIVED_MPE_GET_CONTEXT_FAIL_CALLBACK',
+                            roomID,
+                        });
+                    });
+
                     onReceive((event) => {
                         switch (event.type) {
                             case 'CREATE_ROOM': {
@@ -280,6 +358,16 @@ export function createAppMusicPlaylistsMachine({
 
                                 sendBack({
                                     type: 'SENT_TRACK_TO_DELETE_TO_SERVER',
+                                    roomID,
+                                });
+
+                                break;
+                            }
+
+                            case 'MPE_GET_CONTEXT': {
+                                const { roomID } = event;
+
+                                socket.emit('MPE_GET_CONTEXT', {
                                     roomID,
                                 });
 
@@ -400,6 +488,29 @@ export function createAppMusicPlaylistsMachine({
                     },
                     ///
 
+                    //Get context
+                    MPE_GET_CONTEXT: {
+                        actions: forwardTo('socketConnection'),
+                    },
+
+                    RECEIVED_MPE_GET_CONTEXT_FAIL_CALLBACK: {
+                        actions: stopPlaylistActor,
+                    },
+
+                    RECEIVED_MPE_GET_CONTEXT_SUCCESS_CALLBACK: {
+                        actions: send(
+                            (_, { state }) =>
+                                playlistModel.events.ASSIGN_MERGE_NEW_STATE(
+                                    state,
+                                ),
+                            {
+                                to: (_, { roomID }) =>
+                                    getPlaylistMachineActorName(roomID),
+                            },
+                        ),
+                    },
+                    ///
+
                     DELETE_TRACK: {
                         actions: forwardTo('socketConnection'),
                     },
@@ -451,6 +562,10 @@ export function createAppMusicPlaylistsMachine({
 
             SPAWN_NEW_PLAYLIST_ACTOR_FROM_STATE: {
                 actions: spawnPlaylistActor,
+            },
+
+            SPAWN_NEW_PLAYLIST_ACTOR_FROM_ROOM_ID: {
+                actions: spawnPlaylistActorFromRoomID,
             },
         },
     });

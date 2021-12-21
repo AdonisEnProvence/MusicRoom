@@ -1,4 +1,5 @@
 import {
+    send,
     ActorRefFrom,
     ContextFrom,
     createMachine,
@@ -64,6 +65,8 @@ export const playlistModel = createModel(
             }) => args,
 
             ASSIGN_MERGE_NEW_STATE: (state: MpeWorkflowState) => ({ state }),
+
+            GET_CONTEXT: () => ({}),
         },
     },
 );
@@ -160,23 +163,59 @@ export type PlaylistMachineEvents = EventFrom<typeof playlistModel>;
 export type PlaylistActorRef = ActorRefFrom<PlaylistMachine>;
 
 interface CreatePlaylistMachineArgs {
-    initialState: MpeWorkflowState;
+    initialState: MpeWorkflowState | undefined;
+    roomID: string;
 }
 
 export function createPlaylistMachine({
     initialState,
+    roomID,
 }: CreatePlaylistMachineArgs): PlaylistMachine {
-    const roomID = initialState.roomID;
-
     return createMachine({
-        initial: 'idle',
+        initial: 'init',
 
         context: {
             ...playlistModel.initialContext,
-            state: initialState,
+            state: initialState || playlistModel.initialContext.state,
         },
 
         states: {
+            init: {
+                entry: send(playlistModel.events.GET_CONTEXT()),
+
+                on: {
+                    GET_CONTEXT: [
+                        {
+                            cond: () => {
+                                const playlistHasBeenSpawnedWithoutInitialContext =
+                                    initialState === undefined;
+                                return playlistHasBeenSpawnedWithoutInitialContext;
+                            },
+
+                            target: 'retrievingContext',
+                        },
+                        {
+                            target: 'idle',
+                        },
+                    ],
+                },
+            },
+
+            retrievingContext: {
+                entry: sendParent(({ state: { roomID } }) => {
+                    return appMusicPlaylistsModel.events.MPE_GET_CONTEXT({
+                        roomID,
+                    });
+                }),
+
+                on: {
+                    ASSIGN_MERGE_NEW_STATE: {
+                        actions: assignMergeNewState,
+                        target: 'idle',
+                    },
+                },
+            },
+
             idle: {
                 on: {
                     ASSIGN_MERGE_NEW_STATE: {

@@ -24,7 +24,7 @@ import {
     playlistModel,
 } from './playlistMachine';
 import { getPlaylistMachineOptions } from './options/playlistMachineOptions';
-import { creationMpeRoomFormMachine } from './creationMpeRoomForm';
+import { createCreationMpeRoomFormMachine } from './creationMpeRoomForm';
 
 export interface MusicPlaylist {
     id: string;
@@ -433,7 +433,11 @@ export function createAppMusicPlaylistsMachine({
                         invoke: {
                             id: 'creationMpeRoomForm',
 
-                            src: creationMpeRoomFormMachine,
+                            src: () =>
+                                // TODO: use tracksIDs picked by the user
+                                createCreationMpeRoomFormMachine({
+                                    initialTracksIDs: ['Q7HhEhxAtt8'],
+                                }),
                         },
                     },
                 },

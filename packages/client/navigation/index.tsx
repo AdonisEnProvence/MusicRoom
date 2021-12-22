@@ -42,6 +42,7 @@ import MusicTrackVoteConstraintsDetailsModal from '../screens/MusicTrackVoteCons
 import MusicPlaylistEditorRoomsSearchScreen from '../screens/MusicPlaylistEditorRoomsSearchScreen';
 import MusicPlaylistEditorCreationFormName from '../screens/MusicPlaylistEditorCreationForm/MusicPlaylistEditorCreationFormName';
 import MusicPlaylistEditorCreationFormOpeningStatus from '../screens/MusicPlaylistEditorCreationForm/MusicPlaylistEditorCreationFormOpeningStatus';
+import MusicPlaylistEditorCreationFormConfirmation from '../screens/MusicPlaylistEditorCreationForm/MusicPlaylistEditorCreationFormConfirmation';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
@@ -251,6 +252,11 @@ export const MusicPlaylistEditorCreationFormNavigator: React.FC<ColorModeProps> 
                 <MusicPlaylistEditorCreationFormStack.Screen
                     name="MusicPlaylistEditorCreationFormOpeningStatus"
                     component={MusicPlaylistEditorCreationFormOpeningStatus}
+                />
+
+                <MusicPlaylistEditorCreationFormStack.Screen
+                    name="MusicPlaylistEditorCreationFormConfirmation"
+                    component={MusicPlaylistEditorCreationFormConfirmation}
                 />
             </MusicPlaylistEditorCreationFormStack.Navigator>
         );

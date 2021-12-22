@@ -1,10 +1,15 @@
-import { ActorRefFrom } from 'xstate';
+import { TrackMetadata } from '@musicroom/types';
+import invariant from 'tiny-invariant';
+import { ActorRefFrom, ContextFrom, EventFrom, StateMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { navigateFromRef } from '../navigation/RootNavigation';
+import { fetchTracksByID } from '../services/search-tracks';
 import { MusicPlaylistEditorCreationFormParamList } from '../types';
 
 const creationMpeRoomFormModel = createModel(
     {
+        initialTracksMetadata: undefined as TrackMetadata[] | undefined,
+
         roomName: '',
         isOpen: false,
         onlyInvitedUsersCanVote: false,
@@ -16,6 +21,9 @@ const creationMpeRoomFormModel = createModel(
             SET_INVITED_USERS_VOTE_RESTRICTION: (args: {
                 onlyInvitedUsersCanVote: boolean;
             }) => args,
+            RECEIVED_INITIAL_TRACKS_METADATA: (args: {
+                tracksMetadata: TrackMetadata[];
+            }) => args,
             NEXT: () => ({}),
             GO_BACK: () => ({}),
         },
@@ -24,6 +32,8 @@ const creationMpeRoomFormModel = createModel(
             redirectToScreen: (args: {
                 screen: keyof MusicPlaylistEditorCreationFormParamList;
             }) => args,
+
+            assignIsOpenToContext: (args: { isOpen: boolean }) => args,
         },
     },
 );
@@ -39,13 +49,6 @@ const resetOnlyInvitedUsersCanVote = creationMpeRoomFormModel.assign({
     onlyInvitedUsersCanVote: false,
 });
 
-const assignOpeningStatusToContext = creationMpeRoomFormModel.assign(
-    {
-        isOpen: (_, event) => event.isOpen,
-    },
-    'SET_OPENING_STATUS',
-);
-
 const assignOnlyInvitedUsersCanVoteToContext = creationMpeRoomFormModel.assign(
     {
         onlyInvitedUsersCanVote: (_context, { onlyInvitedUsersCanVote }) =>
@@ -54,12 +57,30 @@ const assignOnlyInvitedUsersCanVoteToContext = creationMpeRoomFormModel.assign(
     'SET_INVITED_USERS_VOTE_RESTRICTION',
 );
 
+const assignInitialTracksMetadataToContext = creationMpeRoomFormModel.assign(
+    {
+        initialTracksMetadata: (_, event) => event.tracksMetadata,
+    },
+    'RECEIVED_INITIAL_TRACKS_METADATA',
+);
+
+export type CreationMpeRoomFormMachine = StateMachine<
+    ContextFrom<typeof creationMpeRoomFormModel>,
+    any,
+    EventFrom<typeof creationMpeRoomFormModel>
+>;
 export type CreationMpeRoomFormActorRef = ActorRefFrom<
-    typeof creationMpeRoomFormMachine
+    typeof createCreationMpeRoomFormMachine
 >;
 
-export const creationMpeRoomFormMachine =
-    creationMpeRoomFormModel.createMachine(
+interface CreateCreationMpeRoomFormMachineArgs {
+    initialTracksIDs: string[];
+}
+
+export function createCreationMpeRoomFormMachine({
+    initialTracksIDs,
+}: CreateCreationMpeRoomFormMachineArgs): CreationMpeRoomFormMachine {
+    return creationMpeRoomFormModel.createMachine(
         {
             id: 'creationMpeRoomForm',
 
@@ -91,7 +112,14 @@ export const creationMpeRoomFormMachine =
                         public: {
                             tags: 'isRoomPublic',
 
-                            entry: resetOnlyInvitedUsersCanVote,
+                            entry: [
+                                creationMpeRoomFormModel.actions.assignIsOpenToContext(
+                                    {
+                                        isOpen: true,
+                                    },
+                                ),
+                                resetOnlyInvitedUsersCanVote,
+                            ],
 
                             on: {
                                 SET_INVITED_USERS_VOTE_RESTRICTION: {
@@ -103,6 +131,12 @@ export const creationMpeRoomFormMachine =
 
                         private: {
                             tags: 'isRoomPrivate',
+
+                            entry: creationMpeRoomFormModel.actions.assignIsOpenToContext(
+                                {
+                                    isOpen: false,
+                                },
+                            ),
                         },
                     },
 
@@ -112,14 +146,10 @@ export const creationMpeRoomFormMachine =
                                 cond: (_context, { isOpen }) => isOpen === true,
 
                                 target: '.public',
-
-                                actions: assignOpeningStatusToContext,
                             },
 
                             {
                                 target: '.private',
-
-                                actions: assignOpeningStatusToContext,
                             },
                         ],
 
@@ -137,6 +167,37 @@ export const creationMpeRoomFormMachine =
                     entry: creationMpeRoomFormModel.actions.redirectToScreen({
                         screen: 'MusicPlaylistEditorCreationFormConfirmation',
                     }),
+
+                    initial: 'fetchingInitialTracksInformation',
+
+                    states: {
+                        fetchingInitialTracksInformation: {
+                            invoke: {
+                                src: 'fetchTracksInformation',
+                            },
+
+                            on: {
+                                RECEIVED_INITIAL_TRACKS_METADATA: {
+                                    target: 'debouncing',
+
+                                    actions:
+                                        assignInitialTracksMetadataToContext,
+                                },
+                            },
+                        },
+
+                        debouncing: {
+                            after: {
+                                1000: {
+                                    target: 'fetchedInitialTracksInformation',
+                                },
+                            },
+                        },
+
+                        fetchedInitialTracksInformation: {
+                            tags: 'hasFetchedInitialTracksInformation',
+                        },
+                    },
 
                     on: {
                         GO_BACK: {
@@ -161,6 +222,35 @@ export const creationMpeRoomFormMachine =
                 redirectToScreen: (_context, _event, meta) => {
                     navigateFromRef(meta.action.screen);
                 },
+
+                assignIsOpenToContext: creationMpeRoomFormModel.assign(
+                    {
+                        isOpen: (_context, _event, meta) => meta.action.isOpen,
+                    },
+                    undefined,
+                ),
+            },
+
+            services: {
+                fetchTracksInformation: () => async (sendBack) => {
+                    try {
+                        const tracksMetadata = await fetchTracksByID(
+                            initialTracksIDs,
+                        );
+                        invariant(
+                            tracksMetadata !== undefined,
+                            'Could not fetch tracks metadata',
+                        );
+
+                        sendBack({
+                            type: 'RECEIVED_INITIAL_TRACKS_METADATA',
+                            tracksMetadata,
+                        });
+                    } catch (err) {
+                        console.error(err);
+                    }
+                },
             },
         },
     );
+}

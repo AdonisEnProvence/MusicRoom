@@ -1,17 +1,29 @@
 import { ActorRefFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { navigateFromRef } from '../navigation/RootNavigation';
+import { MusicPlaylistEditorCreationFormParamList } from '../types';
 
 const creationMpeRoomFormModel = createModel(
     {
         roomName: '',
         isOpen: false,
+        onlyInvitedUsersCanVote: false,
     },
     {
         events: {
             SET_ROOM_NAME_AND_GO_NEXT: (args: { roomName: string }) => args,
             SET_OPENING_STATUS: (args: { isOpen: boolean }) => args,
-            CONFIRM: () => ({}),
+            SET_INVITED_USERS_VOTE_RESTRICTION: (args: {
+                onlyInvitedUsersCanVote: boolean;
+            }) => args,
+            NEXT: () => ({}),
             GO_BACK: () => ({}),
+        },
+
+        actions: {
+            redirectToScreen: (args: {
+                screen: keyof MusicPlaylistEditorCreationFormParamList;
+            }) => args,
         },
     },
 );
@@ -23,6 +35,10 @@ const assignRoomNameToContext = creationMpeRoomFormModel.assign(
     'SET_ROOM_NAME_AND_GO_NEXT',
 );
 
+const resetOnlyInvitedUsersCanVote = creationMpeRoomFormModel.assign({
+    onlyInvitedUsersCanVote: false,
+});
+
 const assignOpeningStatusToContext = creationMpeRoomFormModel.assign(
     {
         isOpen: (_, event) => event.isOpen,
@@ -30,57 +46,121 @@ const assignOpeningStatusToContext = creationMpeRoomFormModel.assign(
     'SET_OPENING_STATUS',
 );
 
+const assignOnlyInvitedUsersCanVoteToContext = creationMpeRoomFormModel.assign(
+    {
+        onlyInvitedUsersCanVote: (_context, { onlyInvitedUsersCanVote }) =>
+            onlyInvitedUsersCanVote,
+    },
+    'SET_INVITED_USERS_VOTE_RESTRICTION',
+);
+
 export type CreationMpeRoomFormActorRef = ActorRefFrom<
     typeof creationMpeRoomFormMachine
 >;
 
 export const creationMpeRoomFormMachine =
-    creationMpeRoomFormModel.createMachine({
-        id: 'creationMpeRoomForm',
+    creationMpeRoomFormModel.createMachine(
+        {
+            id: 'creationMpeRoomForm',
 
-        initial: 'roomName',
+            initial: 'roomName',
 
-        states: {
-            roomName: {
-                on: {
-                    SET_ROOM_NAME_AND_GO_NEXT: {
-                        target: 'openingStatus',
+            states: {
+                roomName: {
+                    entry: creationMpeRoomFormModel.actions.redirectToScreen({
+                        screen: 'MusicPlaylistEditorCreationFormName',
+                    }),
 
-                        actions: assignRoomNameToContext,
+                    on: {
+                        SET_ROOM_NAME_AND_GO_NEXT: {
+                            target: 'openingStatus',
+
+                            actions: assignRoomNameToContext,
+                        },
                     },
                 },
-            },
 
-            openingStatus: {
-                on: {
-                    SET_OPENING_STATUS: {
-                        target: 'confirmation',
+                openingStatus: {
+                    entry: creationMpeRoomFormModel.actions.redirectToScreen({
+                        screen: 'MusicPlaylistEditorCreationFormOpeningStatus',
+                    }),
 
-                        actions: assignOpeningStatusToContext,
+                    initial: 'public',
+
+                    states: {
+                        public: {
+                            tags: 'isRoomPublic',
+
+                            entry: resetOnlyInvitedUsersCanVote,
+
+                            on: {
+                                SET_INVITED_USERS_VOTE_RESTRICTION: {
+                                    actions:
+                                        assignOnlyInvitedUsersCanVoteToContext,
+                                },
+                            },
+                        },
+
+                        private: {
+                            tags: 'isRoomPrivate',
+                        },
                     },
 
-                    GO_BACK: {
-                        target: 'roomName',
+                    on: {
+                        SET_OPENING_STATUS: [
+                            {
+                                cond: (_context, { isOpen }) => isOpen === true,
+
+                                target: '.public',
+
+                                actions: assignOpeningStatusToContext,
+                            },
+
+                            {
+                                target: '.private',
+
+                                actions: assignOpeningStatusToContext,
+                            },
+                        ],
+
+                        NEXT: {
+                            target: 'confirmation',
+                        },
+
+                        GO_BACK: {
+                            target: 'roomName',
+                        },
                     },
                 },
-            },
 
-            confirmation: {
-                on: {
-                    GO_BACK: {
-                        target: 'openingStatus',
-                    },
+                confirmation: {
+                    entry: creationMpeRoomFormModel.actions.redirectToScreen({
+                        screen: 'MusicPlaylistEditorCreationFormConfirmation',
+                    }),
 
-                    CONFIRM: {
-                        target: 'confirmed',
+                    on: {
+                        GO_BACK: {
+                            target: 'openingStatus',
+                        },
+
+                        NEXT: {
+                            target: 'confirmed',
+                        },
                     },
                 },
-            },
 
-            confirmed: {
-                type: 'final',
+                confirmed: {
+                    type: 'final',
 
-                data: (context) => context,
+                    data: (context) => context,
+                },
             },
         },
-    });
+        {
+            actions: {
+                redirectToScreen: (_context, _event, meta) => {
+                    navigateFromRef(meta.action.screen);
+                },
+            },
+        },
+    );

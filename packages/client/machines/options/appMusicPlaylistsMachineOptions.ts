@@ -48,6 +48,18 @@ export function getAppMusicPlaylistsMachineOptions(): Partial<AppMusicPlaylistsO
                     screen: 'MusicTrackVoteCreationFormName',
                 });
             },
+
+            closeCreationMpeFormModal: () => {
+                navigateFromRef('Main', {
+                    screen: 'Root',
+                    params: {
+                        screen: 'Library',
+                        params: {
+                            screen: 'MpeRooms',
+                        },
+                    },
+                });
+            },
         },
     };
 }

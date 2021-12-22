@@ -19,7 +19,8 @@ export type NavigateFromRefParams = {
 } & RootStackParamList &
     MusicTrackVoteCreationFormParamList &
     MainStackParamList &
-    LibraryParamsList;
+    LibraryParamsList &
+    MusicPlaylistEditorCreationFormParamList;
 
 export type NavigateFromRefRoutes = keyof NavigateFromRefParams;
 

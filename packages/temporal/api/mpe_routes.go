@@ -43,7 +43,7 @@ func getStateQueryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("received body from server is = %+v\n", body)
+	fmt.Printf("mpe get context = %+v\n", body)
 
 	if err := validate.Struct(body); err != nil {
 		log.Println("create room validation error", err)
@@ -62,10 +62,11 @@ func getStateQueryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := MpeCreateRoomResponse{
+	res := MpeGetStateQueryResponse{
 		State:      mpeRoomExposedState,
 		WorkflowID: mpeRoomExposedState.RoomID,
 	}
+	fmt.Printf("mpe get context response = %+v\n", res.State)
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(res)

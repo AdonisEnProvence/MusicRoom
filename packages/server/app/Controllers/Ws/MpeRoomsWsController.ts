@@ -233,6 +233,7 @@ export default class MpeRoomsWsController {
                 userIsNotInRoom,
             };
         } catch (e) {
+            console.log(e);
             socket.emit('MPE_GET_CONTEXT_FAIL_CALLBACK', {
                 roomID,
             });

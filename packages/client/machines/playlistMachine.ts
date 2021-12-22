@@ -196,7 +196,7 @@ export function createPlaylistMachine({
             },
 
             retrievingContext: {
-                entry: sendParent(({ state: { roomID } }) => {
+                entry: sendParent(() => {
                     return appMusicPlaylistsModel.events.MPE_GET_CONTEXT({
                         roomID,
                     });

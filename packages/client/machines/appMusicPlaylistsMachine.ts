@@ -31,8 +31,8 @@ export interface MusicPlaylist {
     ref: PlaylistActorRef;
 }
 
-type MusicPlaylistsContext = ContextFrom<typeof appMusicPlaylistsModel>;
-type MusicPlaylistsEvents = EventFrom<typeof appMusicPlaylistsModel>;
+export type MusicPlaylistsContext = ContextFrom<typeof appMusicPlaylistsModel>;
+export type MusicPlaylistsEvents = EventFrom<typeof appMusicPlaylistsModel>;
 
 export const appMusicPlaylistsModel = createModel(
     {
@@ -46,10 +46,6 @@ export const appMusicPlaylistsModel = createModel(
             SPAWN_NEW_PLAYLIST_ACTOR_FROM_STATE: (args: {
                 state: MpeWorkflowState;
             }) => args,
-            SPAWN_NEW_PLAYLIST_ACTOR_FROM_ROOM_ID: (args: {
-                roomID: string;
-                roomName: string;
-            }) => args,
             FORWARD_ASSIGN_MERGE_NEW_STATE_TO_INVOLVED_PLAYLIST: (
                 state: MpeWorkflowState,
             ) => ({
@@ -58,6 +54,10 @@ export const appMusicPlaylistsModel = createModel(
             MPE_TRACKS_LIST_UPDATE: (args: {
                 state: MpeWorkflowState;
                 roomID: string;
+            }) => args,
+            DISPLAY_MPE_ROOM_VIEW: (args: {
+                roomID: string;
+                roomName: string;
             }) => args,
 
             //Get context
@@ -97,7 +97,6 @@ export const appMusicPlaylistsModel = createModel(
             RECEIVED_CHANGE_TRACK_ORDER_FAIL_CALLBACK: (
                 args: MpeRoomServerToClientChangeTrackFailCallbackArgs,
             ) => args,
-
             ///
 
             DELETE_TRACK: (args: { roomID: string; trackID: string }) => args,
@@ -162,7 +161,7 @@ const spawnPlaylistActorFromRoomID = appMusicPlaylistsModel.assign(
             return [...playlistsActorsRefs, playlist];
         },
     },
-    'SPAWN_NEW_PLAYLIST_ACTOR_FROM_ROOM_ID',
+    'DISPLAY_MPE_ROOM_VIEW', //how could I add several sources ? without inside actions checking event type ?
 );
 
 type AppMusicPlaylistsMachine = ReturnType<
@@ -556,13 +555,30 @@ export function createAppMusicPlaylistsMachine({
                 ),
             },
 
+            //SHOULD BE REMOVED ??
             SPAWN_NEW_PLAYLIST_ACTOR_FROM_STATE: {
                 actions: spawnPlaylistActor,
             },
 
-            SPAWN_NEW_PLAYLIST_ACTOR_FROM_ROOM_ID: {
-                actions: spawnPlaylistActorFromRoomID,
-            },
+            DISPLAY_MPE_ROOM_VIEW: [
+                {
+                    cond: ({ playlistsActorsRefs }, { roomID }) => {
+                        const actorHasAlreadyBeenSpawned =
+                            playlistsActorsRefs.some(
+                                (actor) => actor.id === roomID,
+                            );
+                        return actorHasAlreadyBeenSpawned;
+                    },
+
+                    actions: 'redirectToMpeRoomView',
+                },
+                {
+                    actions: [
+                        spawnPlaylistActorFromRoomID,
+                        'redirectToMpeRoomView',
+                    ],
+                },
+            ],
         },
     });
 }

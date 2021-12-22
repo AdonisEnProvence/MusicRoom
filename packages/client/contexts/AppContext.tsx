@@ -22,6 +22,7 @@ import { getMusicPlayerMachineOptions } from '../machines/options/appMusicPlayer
 import { getUserMachineOptions } from '../machines/options/appUserMachineOptions';
 import { ApplicationState } from '../types';
 import { AppMusicPlaylistsActorRef } from '../machines/appMusicPlaylistsMachine';
+import { getAppMusicPlaylistsMachineOptions } from '../machines/options/appMusicPlaylistsMachineOptions';
 import { useSocketContext } from './SocketContext';
 
 export interface UserContextValue {
@@ -95,6 +96,11 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
         [setDisplayModal, setIsFullScreen],
     );
     const userMachineOptions = useMemo(() => getUserMachineOptions(), []);
+    const appMusicPlaylistsMachineOptions = useMemo(
+        () => getAppMusicPlaylistsMachineOptions(),
+        [],
+    );
+
     const appMusicPlayerMachine = useMemo(
         () =>
             createAppMachine({
@@ -102,12 +108,14 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
                 locationPollingTickDelay,
                 musicPlayerMachineOptions,
                 userMachineOptions,
+                appMusicPlaylistsMachineOptions,
             }),
         [
             locationPollingTickDelay,
             musicPlayerMachineOptions,
             socket,
             userMachineOptions,
+            appMusicPlaylistsMachineOptions,
         ],
     );
     const appService = useInterpret(appMusicPlayerMachine);

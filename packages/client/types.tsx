@@ -17,7 +17,9 @@ export type NavigateFromRefParams = {
     Alert: AlertParams;
     HomeScreen: undefined;
 } & RootStackParamList &
-    MusicTrackVoteCreationFormParamList;
+    MusicTrackVoteCreationFormParamList &
+    MainStackParamList &
+    LibraryParamsList;
 
 export type NavigateFromRefRoutes = keyof NavigateFromRefParams;
 

@@ -5,6 +5,7 @@ import { createAppMusicPlayerMachine } from './appMusicPlayerMachine';
 import { createAppMusicPlaylistsMachine } from './appMusicPlaylistsMachine';
 import { createUserMachine } from './appUserMachine';
 import { AppMusicPlayerMachineOptions } from './options/appMusicPlayerMachineOptions';
+import { AppMusicPlaylistsOptions } from './options/appMusicPlaylistsMachineOptions';
 import { AppUserMachineOptions } from './options/appUserMachineOptions';
 
 const appMachineModel = createModel(
@@ -24,6 +25,7 @@ interface CreateAppMachineArgs {
     socket: SocketClient;
     musicPlayerMachineOptions: AppMusicPlayerMachineOptions;
     userMachineOptions: AppUserMachineOptions;
+    appMusicPlaylistsMachineOptions: AppMusicPlaylistsOptions;
 }
 
 export const createAppMachine = ({
@@ -31,6 +33,7 @@ export const createAppMachine = ({
     locationPollingTickDelay,
     musicPlayerMachineOptions,
     userMachineOptions,
+    appMusicPlaylistsMachineOptions,
 }: CreateAppMachineArgs): StateMachine<
     ContextFrom<typeof appMachineModel>,
     any,
@@ -109,7 +112,7 @@ export const createAppMachine = ({
 
                         src: createAppMusicPlaylistsMachine({
                             socket,
-                        }),
+                        }).withConfig(appMusicPlaylistsMachineOptions),
                     },
                 ],
 

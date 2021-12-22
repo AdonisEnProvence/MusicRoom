@@ -60,16 +60,9 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> = ({
     const { appMusicPlaylistsActorRef } = useMusicPlaylistsActor();
     function handleRoomPress({ roomID, roomName }: MpeRoomSummary) {
         appMusicPlaylistsActorRef.send({
-            type: 'SPAWN_NEW_PLAYLIST_ACTOR_FROM_ROOM_ID',
+            type: 'DISPLAY_MPE_ROOM_VIEW',
             roomID,
             roomName,
-        });
-
-        navigation.navigate('MpeRoom', {
-            screen: 'Room',
-            params: {
-                id: roomID,
-            },
         });
     }
 

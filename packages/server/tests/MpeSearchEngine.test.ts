@@ -55,7 +55,7 @@ test.group('MPE Delete Tracks', (group) => {
         });
 
         const { body } = await supertest(BASE_URL)
-            .post('/mpe/search/rooms')
+            .post('/mpe/search/user-rooms')
             .send({
                 userID,
             } as MpeRoomSearchRequestBody)
@@ -101,5 +101,46 @@ test.group('MPE Delete Tracks', (group) => {
                 userID: datatype.uuid(),
             } as MpeRoomSearchRequestBody)
             .expect(404);
+    });
+
+    test('It should list all mpe rooms', async (assert) => {
+        const userID = datatype.uuid();
+        const mpeRooms = generateArray({
+            fill: () => ({
+                roomName: random.words(3),
+                roomID: datatype.uuid(),
+            }),
+            minLength: 3,
+            maxLength: 10,
+        });
+        const otherMpeRooms = generateArray({
+            fill: () => ({
+                roomName: random.words(3),
+                roomID: datatype.uuid(),
+            }),
+            minLength: 3,
+            maxLength: 10,
+        });
+
+        await createUserAndGetSocket({
+            userID: datatype.uuid(),
+            mpeRoomIDToAssociate: otherMpeRooms,
+        });
+
+        await createUserAndGetSocket({
+            userID,
+            mpeRoomIDToAssociate: mpeRooms,
+        });
+
+        const { body } = await supertest(BASE_URL)
+            .post('/mpe/search/all-rooms')
+            .send({
+                userID,
+            } as MpeRoomSearchRequestBody)
+            .expect('Content-Type', /json/)
+            .expect(200);
+        const parsedBody = LibraryMpeRoomSearchResponseBody.parse(body);
+
+        assert.equal(parsedBody.length, mpeRooms.length + otherMpeRooms.length);
     });
 });

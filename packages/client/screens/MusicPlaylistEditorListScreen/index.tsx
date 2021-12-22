@@ -2,23 +2,17 @@ import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, View } from 'dripsy';
 import { FlatList, TouchableOpacity } from 'react-native';
-import { useActor, useMachine, useSelector } from '@xstate/react';
+import { useActor, useMachine } from '@xstate/react';
 import { ActorRef } from 'xstate';
 import { MpeRoomSummary } from '@musicroom/types';
-import {
-    AppScreen,
-    AppScreenContainer,
-    AppScreenHeader,
-    AppScreenWithSearchBar,
-} from '../../components/kit';
+import { AppScreenWithSearchBar } from '../../components/kit';
 import { MpeTabMpeRoomsScreenProps } from '../../types';
 import { useMusicPlaylistsActor } from '../../hooks/useMusicPlaylistsActor';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
 } from '../../machines/appScreenHeaderWithSearchBarMachine';
-import { useMusicPlayerContext } from '../../hooks/musicPlayerHooks';
-import { libraryMpeRoomsSearchMachine } from './MpeRoomLibrarySearchMachine';
+import { createLibraryMpeRoomSearchMachine } from '../../machines/mpeRoomUniversalSearchMachine';
 
 interface PlaylistListItemProps {
     roomSummary: MpeRoomSummary;
@@ -52,7 +46,7 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> = ({
 
     //Library Search machine
     const [libraryRoomState, libraryRoomsSend] = useMachine(
-        libraryMpeRoomsSearchMachine,
+        createLibraryMpeRoomSearchMachine(),
     );
     const hasMoreRoomsToFetch = false;
     const searchBarActor: ActorRef<

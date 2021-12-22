@@ -11,7 +11,24 @@ export async function fetchLibraryMpeRooms({
 }: {
     userID: string;
 }): Promise<LibraryMpeRoomSearchResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/mpe/search/rooms');
+    const url = urlcat(SERVER_ENDPOINT, '/mpe/search/user-rooms');
+
+    const rawResponse = await redaxios.post(url, {
+        userID,
+    });
+    const parsedResponse = LibraryMpeRoomSearchResponseBody.parse(
+        rawResponse.data,
+    );
+
+    return parsedResponse;
+}
+
+export async function fetchAllMpeRooms({
+    userID,
+}: {
+    userID: string;
+}): Promise<LibraryMpeRoomSearchResponseBody> {
+    const url = urlcat(SERVER_ENDPOINT, '/mpe/search/all-rooms');
 
     const rawResponse = await redaxios.post(url, {
         userID,

@@ -65,6 +65,7 @@ export const appMusicPlaylistsModel = createModel(
             RECEIVED_MPE_GET_CONTEXT_SUCCESS_CALLBACK: (args: {
                 state: MpeWorkflowState;
                 roomID: string;
+                userIsNotInRoom: boolean;
             }) => args,
             RECEIVED_MPE_GET_CONTEXT_FAIL_CALLBACK: (args: {
                 roomID: string;
@@ -266,11 +267,13 @@ export function createAppMusicPlaylistsMachine({
 
                     socket.on(
                         'MPE_GET_CONTEXT_SUCCESS_CALLBACK',
-                        ({ state, roomID }) => {
+                        ({ state, roomID, userIsNotInRoom }) => {
+                            console.log({ userIsNotInRoom });
                             sendBack({
                                 type: 'RECEIVED_MPE_GET_CONTEXT_SUCCESS_CALLBACK',
                                 roomID,
                                 state,
+                                userIsNotInRoom,
                             });
                         },
                     );
@@ -386,9 +389,9 @@ export function createAppMusicPlaylistsMachine({
                     MPE_TRACKS_LIST_UPDATE: {
                         actions: send(
                             (_, { state }) =>
-                                playlistModel.events.ASSIGN_MERGE_NEW_STATE(
+                                playlistModel.events.ASSIGN_MERGE_NEW_STATE({
                                     state,
-                                ),
+                                }),
                             {
                                 to: (_, { roomID }) =>
                                     getPlaylistMachineActorName(roomID),
@@ -494,10 +497,11 @@ export function createAppMusicPlaylistsMachine({
 
                     RECEIVED_MPE_GET_CONTEXT_SUCCESS_CALLBACK: {
                         actions: send(
-                            (_, { state }) =>
-                                playlistModel.events.ASSIGN_MERGE_NEW_STATE(
+                            (_, { state, userIsNotInRoom }) =>
+                                playlistModel.events.ASSIGN_MERGE_NEW_STATE({
                                     state,
-                                ),
+                                    userIsNotInRoom,
+                                }),
                             {
                                 to: (_, { roomID }) =>
                                     getPlaylistMachineActorName(roomID),

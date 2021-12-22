@@ -31,6 +31,8 @@ export const playlistModel = createModel(
             usersLength: 0,
         } as MpeWorkflowState,
 
+        //Can be set to false via get_context response and set to true via join_mpe response
+        userIsNotInRoom: undefined as boolean | undefined,
         trackIDToAdd: undefined as string | undefined,
         trackIDToDelete: undefined as string | undefined,
 
@@ -63,7 +65,10 @@ export const playlistModel = createModel(
                 state: MpeWorkflowState;
             }) => args,
 
-            ASSIGN_MERGE_NEW_STATE: (state: MpeWorkflowState) => ({ state }),
+            ASSIGN_MERGE_NEW_STATE: (args: {
+                state: MpeWorkflowState;
+                userIsNotInRoom?: boolean;
+            }) => args,
 
             GET_CONTEXT: () => ({}),
         },
@@ -145,11 +150,14 @@ const assignTrackToMoveDown = playlistModel.assign(
 
 const assignMergeNewState = playlistModel.assign(
     {
-        state: (context, event) => {
+        state: (context, { state }) => {
             return {
                 ...context.state,
-                ...event.state,
+                ...state,
             };
+        },
+        userIsNotInRoom: (context, { userIsNotInRoom }) => {
+            return userIsNotInRoom ?? context.userIsNotInRoom;
         },
     },
     'ASSIGN_MERGE_NEW_STATE',

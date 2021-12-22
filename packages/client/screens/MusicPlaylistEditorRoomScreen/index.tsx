@@ -16,6 +16,7 @@ import { usePlaylist } from '../../hooks/useMusicPlaylistsActor';
 import { MusicPlaylist } from '../../machines/appMusicPlaylistsMachine';
 import TrackListItem from '../../components/Track/TrackListItem';
 import { PlaylistActorRef } from '../../machines/playlistMachine';
+import BottomRightAbsoluteButton from '../../components/kit/BottomRightAbsoluteButton';
 
 interface MusicPlaylistEditorRoomScreenProps extends MpeTabMpeRoomScreenProps {
     playlist: MusicPlaylist;
@@ -171,9 +172,9 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
     ({ navigation, playlist, playlist: { id: playlistID } }) => {
         const insets = useSafeAreaInsets();
         const playlistRef = playlist.ref;
-        const roomName = useSelector(
+        const userIsNotInRoom = useSelector(
             playlistRef,
-            (state) => state.context.state.name,
+            (state) => state.context.userIsNotInRoom,
         );
         const playlistTotalDuration = useSelector(
             playlistRef,
@@ -225,6 +226,10 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                 <AppScreenHeader
                     title={`Playlist ${playlist.roomName}`}
                     insetTop={insets.top}
+                    canGoBack
+                    goBack={() => {
+                        navigation.goBack();
+                    }}
                 />
 
                 <AppScreenContainer>
@@ -236,6 +241,16 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                     >
                         <Typo>{playlistTotalDuration} NOT FORMATED</Typo>
                         <Typo>{tracks.length} Tracks</Typo>
+
+                        {userIsNotInRoom && (
+                            <BottomRightAbsoluteButton
+                                //TODO refactor after join_room has been implem
+                                onPress={() =>
+                                    console.log('JOIN BUTTON HAS BEEN PRESSED')
+                                }
+                                Icon={() => <Typo>JOIN</Typo>}
+                            />
+                        )}
 
                         <FlatList
                             data={tracks}

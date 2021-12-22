@@ -68,7 +68,6 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> = ({
 
     return (
         <AppScreenWithSearchBar
-            canGoBack
             title="Your library"
             searchInputPlaceholder="Search a room..."
             showHeader={showHeader}
@@ -76,9 +75,6 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> = ({
             setScreenOffsetY={setScreenOffsetY}
             searchQuery={searchState.context.searchQuery}
             sendToSearch={sendToSearch}
-            goBack={() => {
-                navigation.goBack();
-            }}
         >
             <FlatList
                 testID="library-mpe-room-search-flat-list"

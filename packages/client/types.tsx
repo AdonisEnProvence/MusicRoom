@@ -61,6 +61,8 @@ export type RootStackParamList = {
 
     MusicTrackVoteUsersSearch: NavigatorScreenParams<MusicTrackVoteUsersSearchStackParamList>;
 
+    MusicPlaylistEditorRoomsSearch: NavigatorScreenParams<MusicPlaylistEditorRoomsSearchParamList>;
+
     UserProfile: NavigatorScreenParams<UserProfileStackParamsList>;
 };
 
@@ -95,6 +97,10 @@ export type UserProfileStackParamsList = {
 
 export type MusicTrackVoteUsersSearchStackParamList = {
     MusicTrackVoteUsersSearchModal: undefined;
+};
+
+export type MusicPlaylistEditorRoomsSearchParamList = {
+    MusicPlaylistEditorRoomsSearchModal: undefined;
 };
 
 export type MainStackParamList = {
@@ -274,6 +280,23 @@ export type MusicTrackVoteUsersSearchModalProps = {
     route: RouteProp<
         MusicTrackVoteUsersSearchStackParamList,
         'MusicTrackVoteUsersSearchModal'
+    >;
+};
+
+export type MusicPlaylistEditorRoomsSearchModalProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<
+            RootStackParamList,
+            'MusicPlaylistEditorRoomsSearch'
+        >,
+        StackNavigationProp<
+            MusicPlaylistEditorRoomsSearchParamList,
+            'MusicPlaylistEditorRoomsSearchModal'
+        >
+    >;
+    route: RouteProp<
+        MusicPlaylistEditorRoomsSearchParamList,
+        'MusicPlaylistEditorRoomsSearchModal'
     >;
 };
 

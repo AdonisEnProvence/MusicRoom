@@ -1,5 +1,4 @@
 import {
-    send,
     ActorRefFrom,
     ContextFrom,
     createMachine,

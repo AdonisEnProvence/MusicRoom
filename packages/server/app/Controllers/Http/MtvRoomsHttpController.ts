@@ -22,11 +22,6 @@ type FetchMtvRoomsRawPaginationEntry = z.infer<
 >;
 
 export default class MtvRoomsHttpController {
-    public async listAllRooms(): Promise<string[]> {
-        const rooms = await MtvRoom.all();
-        return rooms.map<string>((room) => room.uuid);
-    }
-
     public async fetchMtvRooms({
         request,
     }: HttpContextContract): Promise<MtvRoomSearchResponse> {
@@ -36,6 +31,7 @@ export default class MtvRoomsHttpController {
         const { searchQuery, page, userID } =
             MtvRoomSearchRequestBody.parse(rawBody);
 
+        //TODO we should verify that user is existing don't we ?
         const roomsPagination =
             await Database.query<FetchMtvRoomsRawPaginationEntry>()
                 .select('*')

@@ -481,8 +481,9 @@ export function createAppMusicPlaylistsMachine({
 
                     RECEIVED_MPE_GET_CONTEXT_FAIL_CALLBACK: {
                         actions: [
-                            (_, event) =>
-                                stop(getPlaylistMachineActorName(event.roomID)),
+                            stop((_, event) =>
+                                getPlaylistMachineActorName(event.roomID),
+                            ),
                             removePlaylistActor,
                         ],
                     },

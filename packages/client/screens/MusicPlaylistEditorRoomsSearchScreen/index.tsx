@@ -12,7 +12,7 @@ import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
 } from '../../machines/appScreenHeaderWithSearchBarMachine';
-import { createLibraryMpeRoomSearchMachine } from '../../machines/mpeRoomUniversalSearchMachine';
+import { mpeRoomSearchMachine } from '../../machines/mpeRoomUniversalSearchMachine';
 
 interface PlaylistListItemProps {
     roomSummary: MpeRoomSummary;
@@ -44,9 +44,8 @@ const MusicPlaylistEditorRoomsSearchScreen: React.FC<MpeTabMpeRoomsScreenProps> 
         const [screenOffsetY, setScreenOffsetY] = useState(0);
 
         //Library Search machine
-        const [libraryRoomState, libraryRoomsSend] = useMachine(
-            createLibraryMpeRoomSearchMachine(),
-        );
+        const [libraryRoomState, libraryRoomsSend] =
+            useMachine(mpeRoomSearchMachine);
         const hasMoreRoomsToFetch = false;
         const searchBarActor: ActorRef<
             AppScreenHeaderWithSearchBarMachineEvent,
@@ -68,7 +67,7 @@ const MusicPlaylistEditorRoomsSearchScreen: React.FC<MpeTabMpeRoomsScreenProps> 
         return (
             <AppScreenWithSearchBar
                 canGoBack
-                title="Track Vote"
+                title="Playlist Editor"
                 searchInputPlaceholder="Search a room..."
                 showHeader={showHeader}
                 screenOffsetY={showHeader === true ? 0 : screenOffsetY}
@@ -94,7 +93,7 @@ const MusicPlaylistEditorRoomsSearchScreen: React.FC<MpeTabMpeRoomsScreenProps> 
                     ListEmptyComponent={() => {
                         return (
                             <Text sx={{ color: 'white' }}>
-                                You have not joined any MPE rooms
+                                Couldn't find any mpe rooms
                             </Text>
                         );
                     }}

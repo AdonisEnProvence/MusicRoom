@@ -157,14 +157,10 @@ function createMpeRoomUniversalSearchMachine({
     );
 }
 
-export function createLibraryMpeRoomSearchMachine(): MpeRoomsUniversalSearchMachine {
-    return createMpeRoomUniversalSearchMachine({
-        fetchMpeRooms: fetchLibraryMpeRooms,
-    });
-}
+export const libraryMpeRoomSearchMachine = createMpeRoomUniversalSearchMachine({
+    fetchMpeRooms: fetchLibraryMpeRooms,
+});
 
-export function createMpeRoomSearchMachine(): MpeRoomsUniversalSearchMachine {
-    return createMpeRoomUniversalSearchMachine({
-        fetchMpeRooms: fetchAllMpeRooms,
-    });
-}
+export const mpeRoomSearchMachine = createMpeRoomUniversalSearchMachine({
+    fetchMpeRooms: fetchAllMpeRooms,
+});

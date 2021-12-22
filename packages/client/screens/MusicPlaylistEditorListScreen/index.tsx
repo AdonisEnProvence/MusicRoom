@@ -12,7 +12,7 @@ import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
 } from '../../machines/appScreenHeaderWithSearchBarMachine';
-import { createLibraryMpeRoomSearchMachine } from '../../machines/mpeRoomUniversalSearchMachine';
+import { libraryMpeRoomSearchMachine } from '../../machines/mpeRoomUniversalSearchMachine';
 
 interface PlaylistListItemProps {
     roomSummary: MpeRoomSummary;
@@ -46,7 +46,7 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> = ({
 
     //Library Search machine
     const [libraryRoomState, libraryRoomsSend] = useMachine(
-        createLibraryMpeRoomSearchMachine(),
+        libraryMpeRoomSearchMachine,
     );
     const hasMoreRoomsToFetch = false;
     const searchBarActor: ActorRef<
@@ -69,7 +69,7 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> = ({
     return (
         <AppScreenWithSearchBar
             canGoBack
-            title="Track Vote"
+            title="Your library"
             searchInputPlaceholder="Search a room..."
             showHeader={showHeader}
             screenOffsetY={showHeader === true ? 0 : screenOffsetY}

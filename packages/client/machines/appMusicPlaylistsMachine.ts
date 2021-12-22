@@ -8,6 +8,7 @@ import {
     send,
     forwardTo,
 } from 'xstate';
+import { stop } from 'xstate/lib/actions';
 import { createModel } from 'xstate/lib/model';
 import {
     MpeWorkflowState,
@@ -107,24 +108,9 @@ export const appMusicPlaylistsModel = createModel(
     },
 );
 
-const stopPlaylistActor = appMusicPlaylistsModel.assign(
+const removePlaylistActor = appMusicPlaylistsModel.assign(
     {
         playlistsActorsRefs: ({ playlistsActorsRefs }, { roomID }) => {
-            const actor = playlistsActorsRefs.find(
-                (actor) => actor.id === roomID,
-            );
-
-            if (actor === undefined) {
-                console.error(
-                    'encountered unkown roomID in stop playlist actor',
-                );
-                return playlistsActorsRefs;
-            }
-
-            if (actor.ref.stop) {
-                actor.ref.stop();
-            }
-
             return playlistsActorsRefs.filter((actor) => actor.id !== roomID);
         },
     },
@@ -494,7 +480,11 @@ export function createAppMusicPlaylistsMachine({
                     },
 
                     RECEIVED_MPE_GET_CONTEXT_FAIL_CALLBACK: {
-                        actions: stopPlaylistActor,
+                        actions: [
+                            (_, event) =>
+                                stop(getPlaylistMachineActorName(event.roomID)),
+                            removePlaylistActor,
+                        ],
                     },
 
                     RECEIVED_MPE_GET_CONTEXT_SUCCESS_CALLBACK: {

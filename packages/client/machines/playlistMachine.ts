@@ -181,24 +181,19 @@ export function createPlaylistMachine({
 
         states: {
             init: {
-                entry: send(playlistModel.events.GET_CONTEXT()),
-
-                on: {
-                    GET_CONTEXT: [
-                        {
-                            cond: () => {
-                                const playlistHasBeenSpawnedWithoutInitialContext =
-                                    initialState === undefined;
-                                return playlistHasBeenSpawnedWithoutInitialContext;
-                            },
-
-                            target: 'retrievingContext',
+                always: [
+                    {
+                        cond: () => {
+                            const playlistHasBeenSpawnedWithoutInitialContext =
+                                initialState === undefined;
+                            return playlistHasBeenSpawnedWithoutInitialContext;
                         },
-                        {
-                            target: 'idle',
-                        },
-                    ],
-                },
+                        target: 'retrievingContext',
+                    },
+                    {
+                        target: 'idle',
+                    },
+                ],
             },
 
             retrievingContext: {

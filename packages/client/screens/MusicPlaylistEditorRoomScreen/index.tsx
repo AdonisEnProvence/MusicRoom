@@ -5,6 +5,7 @@ import { FlatList, TouchableOpacity } from 'react-native';
 import { useSx, Text, View } from 'dripsy';
 import { View as MotiView } from 'moti';
 import { Ionicons } from '@expo/vector-icons';
+import { Skeleton } from '@motify/skeleton';
 import {
     AppScreen,
     AppScreenContainer,
@@ -187,6 +188,10 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
         const shouldFreezeUi = useSelector(playlistRef, (state) =>
             state.hasTag('freezeUi'),
         );
+        const roomIsNotReady = useSelector(
+            playlistRef,
+            (state) => !state.hasTag('roomIsReady'),
+        );
 
         function handleAddTrack() {
             navigation.navigate('SearchTracks', {
@@ -239,8 +244,21 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                         }}
                         style={{ flex: 1 }}
                     >
-                        <Typo>{playlistTotalDuration} NOT FORMATED</Typo>
-                        <Typo>{tracks.length} Tracks</Typo>
+                        <Skeleton
+                            show={roomIsNotReady}
+                            colorMode="dark"
+                            width="100%"
+                        >
+                            <Typo>{playlistTotalDuration} NOT FORMATED</Typo>
+                        </Skeleton>
+
+                        <Skeleton
+                            show={roomIsNotReady}
+                            colorMode="dark"
+                            width="100%"
+                        >
+                            <Typo>{tracks.length} Tracks</Typo>
+                        </Skeleton>
 
                         {userIsNotInRoom && (
                             <BottomRightAbsoluteButton
@@ -268,40 +286,46 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                                 index,
                             }) => {
                                 return (
-                                    <View
-                                        sx={{
-                                            marginBottom: 'm',
-                                        }}
+                                    <Skeleton
+                                        show={roomIsNotReady}
+                                        colorMode="dark"
+                                        width="100%"
                                     >
-                                        <TrackListItem
-                                            index={index + 1}
-                                            title={title}
-                                            trackID={id}
-                                            artistName={artistName}
-                                            Actions={() => {
-                                                return (
-                                                    <TrackListItemWrapper
-                                                        playlistRef={
-                                                            playlistRef
-                                                        }
-                                                        shouldFreezeUi={
-                                                            shouldFreezeUi
-                                                        }
-                                                        id={id}
-                                                        onUpPress={handleUpPress(
-                                                            id,
-                                                        )}
-                                                        onDownPress={handleDownPress(
-                                                            id,
-                                                        )}
-                                                        onDeletePress={handleDeletePress(
-                                                            id,
-                                                        )}
-                                                    />
-                                                );
+                                        <View
+                                            sx={{
+                                                marginBottom: 'm',
                                             }}
-                                        />
-                                    </View>
+                                        >
+                                            <TrackListItem
+                                                index={index + 1}
+                                                title={title}
+                                                trackID={id}
+                                                artistName={artistName}
+                                                Actions={() => {
+                                                    return (
+                                                        <TrackListItemWrapper
+                                                            playlistRef={
+                                                                playlistRef
+                                                            }
+                                                            shouldFreezeUi={
+                                                                shouldFreezeUi
+                                                            }
+                                                            id={id}
+                                                            onUpPress={handleUpPress(
+                                                                id,
+                                                            )}
+                                                            onDownPress={handleDownPress(
+                                                                id,
+                                                            )}
+                                                            onDeletePress={handleDeletePress(
+                                                                id,
+                                                            )}
+                                                        />
+                                                    );
+                                                }}
+                                            />
+                                        </View>
+                                    </Skeleton>
                                 );
                             }}
                         />

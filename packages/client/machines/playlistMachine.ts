@@ -219,6 +219,8 @@ export function createPlaylistMachine({
             },
 
             idle: {
+                tags: 'roomIsReady',
+
                 on: {
                     ASSIGN_MERGE_NEW_STATE: {
                         actions: assignMergeNewState,

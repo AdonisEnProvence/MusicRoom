@@ -1,4 +1,7 @@
-import { MpeRoomSummary } from '@musicroom/types';
+import {
+    MpeRoomSummary,
+    LibraryMpeRoomSearchResponseBody,
+} from '@musicroom/types';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import * as z from 'zod';
 import User from 'App/Models/User';
@@ -8,15 +11,10 @@ const MpeRoomSearchRequestBody = z.object({
 });
 export type MpeRoomSearchRequestBody = z.infer<typeof MpeRoomSearchRequestBody>;
 
-export const MpeRoomSearchResponseBody = MpeRoomSummary.array();
-export type MpeRoomSearchResponseBody = z.infer<
-    typeof MpeRoomSearchResponseBody
->;
-
 export default class MpeRoomsHttpController {
     public async listAllUserRooms({
         request,
-    }: HttpContextContract): Promise<MpeRoomSearchResponseBody> {
+    }: HttpContextContract): Promise<LibraryMpeRoomSearchResponseBody> {
         const rawBody = request.body();
         //TODO The userID raw in the request body is temporary
         //Later it will be a session cookie to avoid any security issues

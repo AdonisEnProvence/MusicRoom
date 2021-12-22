@@ -4,7 +4,7 @@ import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
-import { MpeRoomSearchResponseBody } from '../app/Controllers/Http/MpeRoomsHttpController';
+import { LibraryMpeRoomSearchResponseBody } from '@musicroom/types';
 import { BASE_URL, initTestUtils, generateArray } from './utils/TestUtils';
 
 test.group('MPE Delete Tracks', (group) => {
@@ -61,7 +61,7 @@ test.group('MPE Delete Tracks', (group) => {
             } as MpeRoomSearchRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
-        const parsedBody = MpeRoomSearchResponseBody.parse(body);
+        const parsedBody = LibraryMpeRoomSearchResponseBody.parse(body);
 
         assert.equal(parsedBody.length, mpeRooms.length);
     });

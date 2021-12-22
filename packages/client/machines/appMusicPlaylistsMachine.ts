@@ -46,8 +46,10 @@ export const appMusicPlaylistsModel = createModel(
             SPAWN_NEW_PLAYLIST_ACTOR_FROM_STATE: (args: {
                 state: MpeWorkflowState;
             }) => args,
-            SPAWN_NEW_PLAYLIST_ACTOR_FROM_ROOM_ID: (args: { roomID: string }) =>
-                args,
+            SPAWN_NEW_PLAYLIST_ACTOR_FROM_ROOM_ID: (args: {
+                roomID: string;
+                roomName: string;
+            }) => args,
             FORWARD_ASSIGN_MERGE_NEW_STATE_TO_INVOLVED_PLAYLIST: (
                 state: MpeWorkflowState,
             ) => ({
@@ -140,7 +142,10 @@ const spawnPlaylistActor = appMusicPlaylistsModel.assign(
 
 const spawnPlaylistActorFromRoomID = appMusicPlaylistsModel.assign(
     {
-        playlistsActorsRefs: ({ playlistsActorsRefs }, { roomID }) => {
+        playlistsActorsRefs: (
+            { playlistsActorsRefs },
+            { roomID, roomName },
+        ) => {
             const playlistMachine = createPlaylistMachine({
                 initialState: undefined,
                 roomID,
@@ -148,7 +153,7 @@ const spawnPlaylistActorFromRoomID = appMusicPlaylistsModel.assign(
 
             const playlist: MusicPlaylist = {
                 id: roomID,
-                roomName: roomID,
+                roomName: roomName,
                 ref: spawn(playlistMachine, {
                     name: getPlaylistMachineActorName(roomID),
                 }),

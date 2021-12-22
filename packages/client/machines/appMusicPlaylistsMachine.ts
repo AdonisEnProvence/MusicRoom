@@ -25,7 +25,10 @@ import {
     playlistModel,
 } from './playlistMachine';
 import { getPlaylistMachineOptions } from './options/playlistMachineOptions';
-import { createCreationMpeRoomFormMachine } from './creationMpeRoomForm';
+import {
+    createCreationMpeRoomFormMachine,
+    CreationMpeRoomFormDoneInvokeEvent,
+} from './creationMpeRoomForm';
 
 export interface MusicPlaylist {
     id: string;
@@ -468,6 +471,38 @@ export function createAppMusicPlaylistsMachine({
                                         roomToCreateInitialTracksIDs,
                                 });
                             },
+
+                            onDone: {
+                                actions: send(
+                                    (
+                                        { roomToCreateInitialTracksIDs },
+                                        {
+                                            data: {
+                                                roomName,
+                                                isOpen,
+                                                onlyInvitedUsersCanVote,
+                                            },
+                                        }: CreationMpeRoomFormDoneInvokeEvent,
+                                    ) => {
+                                        invariant(
+                                            roomToCreateInitialTracksIDs !==
+                                                undefined,
+                                            'Tracks must have been selected before trying to open MPE Room Creation Form',
+                                        );
+
+                                        return appMusicPlaylistsModel.events.CREATE_ROOM(
+                                            {
+                                                initialTrackID:
+                                                    roomToCreateInitialTracksIDs[0],
+                                                name: roomName,
+                                                isOpen,
+                                                isOpenOnlyInvitedUsersCanEdit:
+                                                    onlyInvitedUsersCanVote,
+                                            },
+                                        );
+                                    },
+                                ),
+                            },
                         },
                     },
                 },
@@ -475,14 +510,6 @@ export function createAppMusicPlaylistsMachine({
 
             createdRoom: {
                 on: {
-                    CREATE_ROOM: {
-                        actions: forwardTo('socketConnection'),
-                    },
-
-                    JOIN_ROOM: {
-                        actions: forwardTo('socketConnection'),
-                    },
-
                     MPE_TRACKS_LIST_UPDATE: {
                         actions: send(
                             (_, { state }) =>
@@ -647,6 +674,10 @@ export function createAppMusicPlaylistsMachine({
 
         on: {
             CREATE_ROOM: {
+                actions: forwardTo('socketConnection'),
+            },
+
+            JOIN_ROOM: {
                 actions: forwardTo('socketConnection'),
             },
 

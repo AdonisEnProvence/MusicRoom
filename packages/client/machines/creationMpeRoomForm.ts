@@ -1,6 +1,12 @@
 import { TrackMetadata } from '@musicroom/types';
 import invariant from 'tiny-invariant';
-import { ActorRefFrom, ContextFrom, EventFrom, StateMachine } from 'xstate';
+import {
+    ActorRefFrom,
+    ContextFrom,
+    DoneInvokeEvent,
+    EventFrom,
+    StateMachine,
+} from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { navigateFromRef } from '../navigation/RootNavigation';
 import { fetchTracksByID } from '../services/search-tracks';
@@ -64,13 +70,19 @@ const assignInitialTracksMetadataToContext = creationMpeRoomFormModel.assign(
     'RECEIVED_INITIAL_TRACKS_METADATA',
 );
 
+export type CreationMpeRoomFormMachineContext = ContextFrom<
+    typeof creationMpeRoomFormModel
+>;
 export type CreationMpeRoomFormMachine = StateMachine<
-    ContextFrom<typeof creationMpeRoomFormModel>,
+    CreationMpeRoomFormMachineContext,
     any,
     EventFrom<typeof creationMpeRoomFormModel>
 >;
 export type CreationMpeRoomFormActorRef = ActorRefFrom<
     typeof createCreationMpeRoomFormMachine
+>;
+export type CreationMpeRoomFormDoneInvokeEvent = DoneInvokeEvent<
+    Omit<CreationMpeRoomFormMachineContext, 'initialTracksMetadata'>
 >;
 
 interface CreateCreationMpeRoomFormMachineArgs {
@@ -213,7 +225,11 @@ export function createCreationMpeRoomFormMachine({
                 confirmed: {
                     type: 'final',
 
-                    data: (context) => context,
+                    data: ({ roomName, isOpen, onlyInvitedUsersCanVote }) => ({
+                        roomName,
+                        isOpen,
+                        onlyInvitedUsersCanVote,
+                    }),
                 },
             },
         },

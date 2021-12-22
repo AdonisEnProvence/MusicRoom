@@ -17,6 +17,7 @@ import {
 } from '../machines/searchTrackMachine';
 import { SearchTabSearchTracksScreenProps } from '../types';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
+import { useMusicPlaylistsActor } from '../hooks/useMusicPlaylistsActor';
 
 const searchTracksScreenModel = createModel(
     {
@@ -119,6 +120,7 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
     const sx = useSx();
     const [screenOffsetY, setScreenOffsetY] = useState(0);
     const { sendToMusicPlayerMachine } = useMusicPlayerContext();
+    const { appMusicPlaylistsActorRef } = useMusicPlaylistsActor();
     const searchTracksScreenService = useInterpret(
         searchTrackScreenMachine.withConfig({
             actions: {
@@ -141,7 +143,10 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
                         'Creating a MPE requires a selected track',
                     );
 
-                    console.log('create mpe room with ', selectedTrackID);
+                    appMusicPlaylistsActorRef.send({
+                        type: 'OPEN_CREATION_FORM',
+                        initialTracksIDs: [selectedTrackID],
+                    });
                 },
             },
         }),

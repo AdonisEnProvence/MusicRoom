@@ -17,6 +17,7 @@ import {
     MpeRoomServerToClientChangeTrackFailCallbackArgs,
     MpeRoomServerToClientChangeTrackSuccessCallbackARgs,
 } from '@musicroom/types';
+import invariant from 'tiny-invariant';
 import { SocketClient } from '../contexts/SocketContext';
 import {
     createPlaylistMachine,
@@ -38,10 +39,12 @@ export type MusicPlaylistsEvents = EventFrom<typeof appMusicPlaylistsModel>;
 export const appMusicPlaylistsModel = createModel(
     {
         playlistsActorsRefs: [] as MusicPlaylist[],
+
+        roomToCreateInitialTracksIDs: undefined as string[] | undefined,
     },
     {
         events: {
-            OPEN_CREATION_FORM: () => ({}),
+            OPEN_CREATION_FORM: (args: { initialTracksIDs: string[] }) => args,
 
             CREATE_ROOM: (params: MpeRoomClientToServerCreateArgs) => ({
                 params,
@@ -172,6 +175,22 @@ const spawnPlaylistActorFromRoomID = appMusicPlaylistsModel.assign(
         },
     },
     'DISPLAY_MPE_ROOM_VIEW', //how could I add several sources ? without inside actions checking event type ?
+);
+
+const assignRoomToCreateInitialTracksIDsToContext =
+    appMusicPlaylistsModel.assign(
+        {
+            roomToCreateInitialTracksIDs: (_context, { initialTracksIDs }) =>
+                initialTracksIDs,
+        },
+        'OPEN_CREATION_FORM',
+    );
+
+const resetRoomToCreateInitialTracksIDs = appMusicPlaylistsModel.assign(
+    {
+        roomToCreateInitialTracksIDs: undefined,
+    },
+    undefined,
 );
 
 type AppMusicPlaylistsMachine = ReturnType<
@@ -423,6 +442,9 @@ export function createAppMusicPlaylistsMachine({
                         on: {
                             OPEN_CREATION_FORM: {
                                 target: 'creatingRoom',
+
+                                actions:
+                                    assignRoomToCreateInitialTracksIDsToContext,
                             },
                         },
                     },
@@ -430,14 +452,22 @@ export function createAppMusicPlaylistsMachine({
                     creatingRoom: {
                         entry: 'openCreationMpeFormModal',
 
+                        exit: resetRoomToCreateInitialTracksIDs,
+
                         invoke: {
                             id: 'creationMpeRoomForm',
 
-                            src: () =>
-                                // TODO: use tracksIDs picked by the user
-                                createCreationMpeRoomFormMachine({
-                                    initialTracksIDs: ['Q7HhEhxAtt8'],
-                                }),
+                            src: ({ roomToCreateInitialTracksIDs }) => {
+                                invariant(
+                                    roomToCreateInitialTracksIDs !== undefined,
+                                    'Tracks must have been selected before trying to open MPE Room Creation Form',
+                                );
+
+                                return createCreationMpeRoomFormMachine({
+                                    initialTracksIDs:
+                                        roomToCreateInitialTracksIDs,
+                                });
+                            },
                         },
                     },
                 },

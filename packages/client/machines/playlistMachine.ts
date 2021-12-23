@@ -31,6 +31,8 @@ export const playlistModel = createModel(
             usersLength: 0,
         } as MpeWorkflowState,
 
+        //Can be set to false via get_context response and set to true via join_mpe response
+        userIsNotInRoom: undefined as boolean | undefined,
         trackIDToAdd: undefined as string | undefined,
         trackIDToDelete: undefined as string | undefined,
 
@@ -63,7 +65,12 @@ export const playlistModel = createModel(
                 state: MpeWorkflowState;
             }) => args,
 
-            ASSIGN_MERGE_NEW_STATE: (state: MpeWorkflowState) => ({ state }),
+            ASSIGN_MERGE_NEW_STATE: (args: {
+                state: MpeWorkflowState;
+                userIsNotInRoom?: boolean;
+            }) => args,
+
+            GET_CONTEXT: () => ({}),
         },
     },
 );
@@ -143,11 +150,14 @@ const assignTrackToMoveDown = playlistModel.assign(
 
 const assignMergeNewState = playlistModel.assign(
     {
-        state: (context, event) => {
+        state: (context, { state }) => {
             return {
                 ...context.state,
-                ...event.state,
+                ...state,
             };
+        },
+        userIsNotInRoom: (context, { userIsNotInRoom }) => {
+            return userIsNotInRoom ?? context.userIsNotInRoom;
         },
     },
     'ASSIGN_MERGE_NEW_STATE',
@@ -160,24 +170,57 @@ export type PlaylistMachineEvents = EventFrom<typeof playlistModel>;
 export type PlaylistActorRef = ActorRefFrom<PlaylistMachine>;
 
 interface CreatePlaylistMachineArgs {
-    initialState: MpeWorkflowState;
+    initialState: MpeWorkflowState | undefined;
+    roomID: string;
 }
 
 export function createPlaylistMachine({
     initialState,
+    roomID,
 }: CreatePlaylistMachineArgs): PlaylistMachine {
-    const roomID = initialState.roomID;
-
     return createMachine({
-        initial: 'idle',
+        initial: 'init',
 
         context: {
             ...playlistModel.initialContext,
-            state: initialState,
+            state: initialState || playlistModel.initialContext.state,
         },
 
         states: {
+            init: {
+                always: [
+                    {
+                        cond: () => {
+                            const playlistHasBeenSpawnedWithoutInitialContext =
+                                initialState === undefined;
+                            return playlistHasBeenSpawnedWithoutInitialContext;
+                        },
+                        target: 'retrievingContext',
+                    },
+                    {
+                        target: 'idle',
+                    },
+                ],
+            },
+
+            retrievingContext: {
+                entry: sendParent(() => {
+                    return appMusicPlaylistsModel.events.MPE_GET_CONTEXT({
+                        roomID,
+                    });
+                }),
+
+                on: {
+                    ASSIGN_MERGE_NEW_STATE: {
+                        actions: assignMergeNewState,
+                        target: 'idle',
+                    },
+                },
+            },
+
             idle: {
+                tags: 'roomIsReady',
+
                 on: {
                     ASSIGN_MERGE_NEW_STATE: {
                         actions: assignMergeNewState,

@@ -30,6 +30,10 @@ Route.get('/ping', () => console.log('pong'));
 
 Route.get('/proxy-places-api/*', 'PlacesApisController.proxyPlacesAPIRequest');
 
+Route.post('/mpe/search/user-rooms', 'MpeRoomsHttpController.listAllUserRooms');
+
+Route.post('/mpe/search/all-rooms', 'MpeRoomsHttpController.listAllRooms');
+
 /// Temporal MTV Routes ///
 
 const MTV_TEMPORAL_LISTENER = `/temporal/mtv`;

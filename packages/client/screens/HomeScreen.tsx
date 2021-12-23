@@ -32,6 +32,15 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                 />
 
                 <Button
+                    title="Go to Music Playlist Editor"
+                    onPress={() => {
+                        navigation.navigate('MusicPlaylistEditorRoomsSearch', {
+                            screen: 'MusicPlaylistEditorRoomsSearchModal',
+                        });
+                    }}
+                />
+
+                <Button
                     title="Go settings"
                     onPress={() => {
                         navigation.navigate('Settings');

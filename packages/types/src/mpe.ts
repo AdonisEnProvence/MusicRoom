@@ -14,3 +14,12 @@ export const MpeWorkflowState = z.object({
     playlistTotalDuration: z.number(), //ms
 });
 export type MpeWorkflowState = z.infer<typeof MpeWorkflowState>;
+
+export const MpeRoomSummary = z.object({
+    roomID: z.string(),
+    roomName: z.string(),
+    creatorName: z.string(),
+    isInvited: z.boolean(),
+    isOpen: z.boolean(),
+});
+export type MpeRoomSummary = z.infer<typeof MpeRoomSummary>;

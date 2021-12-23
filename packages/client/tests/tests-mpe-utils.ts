@@ -1,12 +1,8 @@
 import { MpeWorkflowState } from '@musicroom/types';
 import { datatype } from 'faker';
 import { serverSocket } from '../services/websockets';
-import { generateTrackMetadata } from './data';
+import { db, generateMpeWorkflowState, generateTrackMetadata } from './data';
 import { fireEvent, render, renderApp, waitFor } from './tests-utils';
-
-interface StateRef {
-    value: MpeWorkflowState | undefined;
-}
 
 export interface DefinedStateRef {
     value: MpeWorkflowState;
@@ -21,28 +17,27 @@ export async function createMpeRoom(): Promise<{
 }> {
     const track = generateTrackMetadata();
 
-    const state: StateRef = {
-        value: undefined,
-    };
-    serverSocket.on('MPE_CREATE_ROOM', (params) => {
-        state.value = {
-            isOpen: params.isOpen,
-            isOpenOnlyInvitedUsersCanEdit: params.isOpenOnlyInvitedUsersCanEdit,
-            name: params.name,
-            playlistTotalDuration: 42000,
-            roomCreatorUserID: datatype.uuid(),
-            roomID: datatype.uuid(),
-            tracks: [track],
-            usersLength: 1,
-        };
+    const roomID = datatype.uuid();
+    const state = generateMpeWorkflowState({
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanEdit: false,
+        playlistTotalDuration: 42000,
+        roomCreatorUserID: datatype.uuid(),
+        roomID,
+        tracks: [track],
+        usersLength: 1,
+    });
+    db.searchableMpeRooms.create({
+        roomName: state.name,
+        isInvited: false,
+        roomID,
+    });
 
-        serverSocket.emit('MPE_CREATE_ROOM_SYNCED_CALLBACK', state.value);
+    serverSocket.on('MPE_CREATE_ROOM', () => {
+        serverSocket.emit('MPE_CREATE_ROOM_SYNCED_CALLBACK', state);
 
         setTimeout(() => {
-            if (state.value === undefined) {
-                throw new Error('state is undefined');
-            }
-            serverSocket.emit('MPE_CREATE_ROOM_CALLBACK', state.value);
+            serverSocket.emit('MPE_CREATE_ROOM_CALLBACK', state);
         }, 10);
     });
 
@@ -62,26 +57,19 @@ export async function createMpeRoom(): Promise<{
 
     fireEvent.press(goToLibraryButton);
 
-    await waitFor(() => {
+    const mpeRoomListElement = await waitFor(() => {
         const [, libraryScreenTitle] = screen.getAllByText(/library/i);
         expect(libraryScreenTitle).toBeTruthy();
-        expect(state).not.toBeUndefined();
+        const mpeRoomListElement = screen.getByText(new RegExp(state.name));
+        expect(mpeRoomListElement).toBeTruthy();
+        return mpeRoomListElement;
     });
 
-    if (state.value === undefined) {
-        throw new Error('state is undefined');
-    }
-
-    const mpeRoomListItem = await screen.findByText(
-        new RegExp(state.value.name),
-    );
-    expect(mpeRoomListItem).toBeTruthy();
-
-    fireEvent.press(mpeRoomListItem);
+    fireEvent.press(mpeRoomListElement);
 
     await waitFor(() => {
         const playlistTitle = screen.getByText(
-            new RegExp(`Playlist.*${state.value!.name}`),
+            new RegExp(`Playlist.*${state.name}`),
         );
         expect(playlistTitle).toBeTruthy();
     });
@@ -89,7 +77,7 @@ export async function createMpeRoom(): Promise<{
     return {
         screen,
         state: {
-            value: state.value,
+            value: state,
         },
     };
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Skeleton } from '@motify/skeleton';
 import { MpeTabMpeSearchTracksScreenProps } from '../../types';
 import { usePlaylist } from '../../hooks/useMusicPlaylistsActor';
 import AppSuggestTrackScreen from '../../components/AppSuggestTrackScreen';
@@ -11,6 +12,10 @@ const MusicPlaylistEditorSearchTracksScreen: React.FC<MpeTabMpeSearchTracksScree
         },
     }) => {
         const playlist = usePlaylist(playlistID);
+
+        if (playlist === undefined) {
+            return <Skeleton backgroundColor="dark" show={true} />;
+        }
         const playlistActorRef = playlist.ref;
 
         function handleTracksSelected([trackID]: string[]) {

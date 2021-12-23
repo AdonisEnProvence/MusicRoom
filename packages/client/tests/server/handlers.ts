@@ -1,4 +1,7 @@
 import {
+    ListAllMpeRoomsResponseBody,
+    MpeRoomSearchRequestBody,
+    MpeRoomSummary,
     MtvRoomSearchRequestBody,
     MtvRoomSearchResponse,
     PlaceAutocompleteResponse,
@@ -114,6 +117,26 @@ export const handlers = [
                     page,
                 }),
             );
+        },
+    ),
+
+    rest.post<MpeRoomSearchRequestBody, ListAllMpeRoomsResponseBody>(
+        `${SERVER_ENDPOINT}/mpe/search/all-rooms`,
+        (req, res, ctx) => {
+            const allRooms: MpeRoomSummary[] = db.searchableMpeRooms.getAll();
+
+            return res(ctx.json(allRooms));
+        },
+    ),
+
+    //Normally we should be filtering on mpe room user has joined
+    //Atm we don't maintain or have any kind of users list in the client db mock
+    rest.post<MpeRoomSearchRequestBody, ListAllMpeRoomsResponseBody>(
+        `${SERVER_ENDPOINT}/mpe/search/user-rooms`,
+        (req, res, ctx) => {
+            const allRooms: MpeRoomSummary[] = db.searchableMpeRooms.getAll();
+
+            return res(ctx.json(allRooms));
         },
     ),
 ];

@@ -26,6 +26,7 @@ import SuggestTrackModal from '../screens/SuggestTrackModal';
 import UserProfileScreen from '../screens/UserProfile';
 import {
     MainStackParamList,
+    MusicPlaylistEditorRoomsSearchParamList,
     MusicTrackVoteChatStackParamList,
     MusicTrackVoteConstraintsDetailsParamList,
     MusicTrackVoteCreationFormParamList,
@@ -37,6 +38,7 @@ import {
 } from '../types';
 import { SplashScreen } from '../screens/SplashScreen';
 import MusicTrackVoteConstraintsDetailsModal from '../screens/MusicTrackVoteConstraintsDetailsModal';
+import MusicPlaylistEditorRoomsSearchScreen from '../screens/MusicPlaylistEditorRoomsSearchScreen';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
@@ -94,6 +96,8 @@ const MusicTrackVoteConstraintsDetailsStack =
     createStackNavigator<MusicTrackVoteConstraintsDetailsParamList>();
 const MusicTrackVoteUsersSearchStack =
     createStackNavigator<MusicTrackVoteUsersSearchStackParamList>();
+const MusicPlaylistEditorRoomsSearchStack =
+    createStackNavigator<MusicPlaylistEditorRoomsSearchParamList>();
 const UserProfileStack = createStackNavigator<UserProfileStackParamsList>();
 
 export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
@@ -152,6 +156,12 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
             <RootStack.Screen
                 name="MusicTrackVoteUsersSearch"
                 component={MusicTrackVoteUsersSearchNavigator}
+                options={{ headerShown: false, detachPreviousScreen: false }}
+            />
+
+            <RootStack.Screen
+                name="MusicPlaylistEditorRoomsSearch"
+                component={MusicPlaylistEditorRoomsSearchNavigator}
                 options={{ headerShown: false, detachPreviousScreen: false }}
             />
 
@@ -318,6 +328,27 @@ export const MusicTrackVoteUsersSearchNavigator: React.FC<ColorModeProps> = ({
         </MusicTrackVoteUsersSearchStack.Navigator>
     );
 };
+
+export const MusicPlaylistEditorRoomsSearchNavigator: React.FC<ColorModeProps> =
+    ({ colorScheme }) => {
+        const style = navigationStyle(colorScheme);
+
+        return (
+            <MusicPlaylistEditorRoomsSearchStack.Navigator
+                initialRouteName="MusicPlaylistEditorRoomsSearchModal"
+                screenOptions={{
+                    ...style,
+                    headerShown: false,
+                    detachPreviousScreen: false,
+                }}
+            >
+                <MusicPlaylistEditorRoomsSearchStack.Screen
+                    name="MusicPlaylistEditorRoomsSearchModal"
+                    component={MusicPlaylistEditorRoomsSearchScreen}
+                />
+            </MusicPlaylistEditorRoomsSearchStack.Navigator>
+        );
+    };
 
 export const MusicTrackVoteUsersListNavigator: React.FC<ColorModeProps> = ({
     colorScheme,

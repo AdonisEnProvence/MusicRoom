@@ -14,23 +14,21 @@ test('Delete track and trigger sucess toast', async () => {
     const trackAlreadyInPlaylist = state.value.tracks[0];
 
     serverSocket.on('MPE_DELETE_TRACKS', ({ tracksIDs }) => {
-        setImmediate(() => {
-            state.value = {
-                ...state.value,
-                tracks: state.value.tracks.filter((track) => {
-                    const shouldDeleteTrack = tracksIDs.some(
-                        (id) => id === track.id,
-                    );
-                    const shouldKeepEntry = shouldDeleteTrack === false;
+        state.value = {
+            ...state.value,
+            tracks: state.value.tracks.filter((track) => {
+                const shouldDeleteTrack = tracksIDs.some(
+                    (id) => id === track.id,
+                );
+                const shouldKeepEntry = shouldDeleteTrack === false;
 
-                    return shouldKeepEntry;
-                }),
-            };
+                return shouldKeepEntry;
+            }),
+        };
 
-            serverSocket.emit('MPE_DELETE_TRACKS_SUCCESS_CALLBACK', {
-                roomID: state.value.roomID,
-                state: state.value,
-            });
+        serverSocket.emit('MPE_DELETE_TRACKS_SUCCESS_CALLBACK', {
+            roomID: state.value.roomID,
+            state: state.value,
         });
     });
 

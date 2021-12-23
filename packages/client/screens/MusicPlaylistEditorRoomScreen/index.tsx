@@ -5,6 +5,7 @@ import { FlatList, TouchableOpacity } from 'react-native';
 import { useSx, Text, View } from 'dripsy';
 import { View as MotiView } from 'moti';
 import { Ionicons } from '@expo/vector-icons';
+import { Skeleton } from '@motify/skeleton';
 import {
     AppScreen,
     AppScreenContainer,
@@ -16,6 +17,7 @@ import { usePlaylist } from '../../hooks/useMusicPlaylistsActor';
 import { MusicPlaylist } from '../../machines/appMusicPlaylistsMachine';
 import TrackListItem from '../../components/Track/TrackListItem';
 import { PlaylistActorRef } from '../../machines/playlistMachine';
+import BottomRightAbsoluteButton from '../../components/kit/BottomRightAbsoluteButton';
 
 interface MusicPlaylistEditorRoomScreenProps extends MpeTabMpeRoomScreenProps {
     playlist: MusicPlaylist;
@@ -127,7 +129,7 @@ const TrackListItemActions = ({
 
 interface TrackListItemWrapperProps {
     playlistRef: PlaylistActorRef;
-    shouldFreezeUi: boolean;
+    disabled: boolean;
     id: string;
     onUpPress: () => void;
     onDownPress: () => void;
@@ -136,7 +138,7 @@ interface TrackListItemWrapperProps {
 
 const TrackListItemWrapper: React.FC<TrackListItemWrapperProps> = ({
     playlistRef,
-    shouldFreezeUi,
+    disabled,
     id,
     onUpPress,
     onDownPress,
@@ -157,7 +159,7 @@ const TrackListItemWrapper: React.FC<TrackListItemWrapperProps> = ({
 
     return (
         <TrackListItemActions
-            disabled={shouldFreezeUi}
+            disabled={disabled}
             disabledMoveUp={canMoveUp === false}
             disabledMoveDown={canMoveDown === false}
             onUpPress={onUpPress}
@@ -171,9 +173,9 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
     ({ navigation, playlist, playlist: { id: playlistID } }) => {
         const insets = useSafeAreaInsets();
         const playlistRef = playlist.ref;
-        const roomName = useSelector(
+        const userIsNotInRoom = useSelector(
             playlistRef,
-            (state) => state.context.state.name,
+            (state) => state.context.userIsNotInRoom,
         );
         const playlistTotalDuration = useSelector(
             playlistRef,
@@ -186,6 +188,15 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
         const shouldFreezeUi = useSelector(playlistRef, (state) =>
             state.hasTag('freezeUi'),
         );
+        const roomID = useSelector(
+            playlistRef,
+            (state) => state.context.state.roomID,
+        );
+        const roomIsNotReady = useSelector(
+            playlistRef,
+            (state) => !state.hasTag('roomIsReady'),
+        );
+        const disableEveryCta = userIsNotInRoom || shouldFreezeUi;
 
         function handleAddTrack() {
             navigation.navigate('SearchTracks', {
@@ -225,6 +236,10 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                 <AppScreenHeader
                     title={`Playlist ${playlist.roomName}`}
                     insetTop={insets.top}
+                    canGoBack
+                    goBack={() => {
+                        navigation.goBack();
+                    }}
                 />
 
                 <AppScreenContainer>
@@ -234,15 +249,39 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                         }}
                         style={{ flex: 1 }}
                     >
-                        <Typo>{playlistTotalDuration} NOT FORMATED</Typo>
-                        <Typo>{tracks.length} Tracks</Typo>
+                        <Skeleton
+                            show={roomIsNotReady}
+                            colorMode="dark"
+                            width="100%"
+                        >
+                            <Typo>{playlistTotalDuration} NOT FORMATED</Typo>
+                        </Skeleton>
+
+                        <Skeleton
+                            show={roomIsNotReady}
+                            colorMode="dark"
+                            width="100%"
+                        >
+                            <Typo>{tracks.length} Tracks</Typo>
+                        </Skeleton>
+
+                        {userIsNotInRoom && (
+                            <BottomRightAbsoluteButton
+                                testID={`mpe-join-${roomID}`}
+                                //TODO refactor after join_room has been implem
+                                onPress={() =>
+                                    console.log('JOIN BUTTON HAS BEEN PRESSED')
+                                }
+                                Icon={() => <Typo>JOIN</Typo>}
+                            />
+                        )}
 
                         <FlatList
                             data={tracks}
                             ListHeaderComponent={() => {
                                 return (
                                     <AddTrackButton
-                                        disabled={shouldFreezeUi}
+                                        disabled={disableEveryCta}
                                         onPress={handleAddTrack}
                                     />
                                 );
@@ -253,40 +292,46 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                                 index,
                             }) => {
                                 return (
-                                    <View
-                                        sx={{
-                                            marginBottom: 'm',
-                                        }}
+                                    <Skeleton
+                                        show={roomIsNotReady}
+                                        colorMode="dark"
+                                        width="100%"
                                     >
-                                        <TrackListItem
-                                            index={index + 1}
-                                            title={title}
-                                            trackID={id}
-                                            artistName={artistName}
-                                            Actions={() => {
-                                                return (
-                                                    <TrackListItemWrapper
-                                                        playlistRef={
-                                                            playlistRef
-                                                        }
-                                                        shouldFreezeUi={
-                                                            shouldFreezeUi
-                                                        }
-                                                        id={id}
-                                                        onUpPress={handleUpPress(
-                                                            id,
-                                                        )}
-                                                        onDownPress={handleDownPress(
-                                                            id,
-                                                        )}
-                                                        onDeletePress={handleDeletePress(
-                                                            id,
-                                                        )}
-                                                    />
-                                                );
+                                        <View
+                                            sx={{
+                                                marginBottom: 'm',
                                             }}
-                                        />
-                                    </View>
+                                        >
+                                            <TrackListItem
+                                                index={index + 1}
+                                                title={title}
+                                                trackID={id}
+                                                artistName={artistName}
+                                                Actions={() => {
+                                                    return (
+                                                        <TrackListItemWrapper
+                                                            playlistRef={
+                                                                playlistRef
+                                                            }
+                                                            disabled={
+                                                                disableEveryCta
+                                                            }
+                                                            id={id}
+                                                            onUpPress={handleUpPress(
+                                                                id,
+                                                            )}
+                                                            onDownPress={handleDownPress(
+                                                                id,
+                                                            )}
+                                                            onDeletePress={handleDeletePress(
+                                                                id,
+                                                            )}
+                                                        />
+                                                    );
+                                                }}
+                                            />
+                                        </View>
+                                    </Skeleton>
                                 );
                             }}
                         />
@@ -301,6 +346,35 @@ const MusicPlaylistEditorRoomWrapper: React.FC<MpeTabMpeRoomScreenProps> = (
 ) => {
     const playlistID = props.route.params.id;
     const playlist = usePlaylist(playlistID);
+    const insets = useSafeAreaInsets();
+
+    if (playlist === undefined) {
+        return (
+            <AppScreen>
+                <AppScreenHeader
+                    title={`Playlist is loading`}
+                    insetTop={insets.top}
+                    canGoBack
+                    goBack={() => {
+                        props.navigation.goBack();
+                    }}
+                />
+
+                <AppScreenContainer>
+                    <MotiView
+                        animate={{
+                            opacity: 0.4,
+                        }}
+                        style={{ flex: 1 }}
+                    >
+                        <Skeleton show={true} colorMode="dark" width="100%" />
+
+                        <Skeleton show={true} colorMode="dark" width="100%" />
+                    </MotiView>
+                </AppScreenContainer>
+            </AppScreen>
+        );
+    }
 
     return <MusicPlaylistEditorRoomScreen {...props} playlist={playlist} />;
 };

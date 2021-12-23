@@ -2,14 +2,12 @@ import { MtvWorkflowState } from '@musicroom/types';
 import { Button } from 'dripsy';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { random } from 'faker';
 import {
     AppScreen,
     AppScreenContainer,
     AppScreenHeader,
 } from '../components/kit';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
-import { useMusicPlaylistsActor } from '../hooks/useMusicPlaylistsActor';
 import { useUserContext } from '../hooks/userHooks';
 import { HomeTabHomeScreenScreenProps } from '../types';
 
@@ -17,7 +15,6 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const { sendToMusicPlayerMachine } = useMusicPlayerContext();
     const { sendToUserMachine } = useUserContext();
-    const { appMusicPlaylistsActorRef } = useMusicPlaylistsActor();
 
     return (
         <AppScreen>
@@ -113,30 +110,6 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                         sendToMusicPlayerMachine({
                             type: 'RETRIEVE_CONTEXT',
                             state: fakeState,
-                        });
-                    }}
-                />
-
-                <Button
-                    title="Create MPE room"
-                    onPress={() => {
-                        appMusicPlaylistsActorRef.send({
-                            type: 'CREATE_ROOM',
-                            params: {
-                                initialTrackID: 'dQw4w9WgXcQ',
-                                isOpen: true,
-                                isOpenOnlyInvitedUsersCanEdit: false,
-                                name: random.words(3),
-                            },
-                        });
-                    }}
-                />
-
-                <Button
-                    title="MPE Creation Form"
-                    onPress={() => {
-                        appMusicPlaylistsActorRef.send({
-                            type: 'OPEN_CREATION_FORM',
                         });
                     }}
                 />

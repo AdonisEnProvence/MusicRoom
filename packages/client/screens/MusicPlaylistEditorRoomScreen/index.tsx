@@ -129,7 +129,7 @@ const TrackListItemActions = ({
 
 interface TrackListItemWrapperProps {
     playlistRef: PlaylistActorRef;
-    shouldFreezeUi: boolean;
+    disabled: boolean;
     id: string;
     onUpPress: () => void;
     onDownPress: () => void;
@@ -138,7 +138,7 @@ interface TrackListItemWrapperProps {
 
 const TrackListItemWrapper: React.FC<TrackListItemWrapperProps> = ({
     playlistRef,
-    shouldFreezeUi,
+    disabled,
     id,
     onUpPress,
     onDownPress,
@@ -159,7 +159,7 @@ const TrackListItemWrapper: React.FC<TrackListItemWrapperProps> = ({
 
     return (
         <TrackListItemActions
-            disabled={shouldFreezeUi}
+            disabled={disabled}
             disabledMoveUp={canMoveUp === false}
             disabledMoveDown={canMoveDown === false}
             onUpPress={onUpPress}
@@ -192,6 +192,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             playlistRef,
             (state) => !state.hasTag('roomIsReady'),
         );
+        const disableEveryCta = userIsNotInRoom || shouldFreezeUi;
 
         function handleAddTrack() {
             navigation.navigate('SearchTracks', {
@@ -275,7 +276,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                             ListHeaderComponent={() => {
                                 return (
                                     <AddTrackButton
-                                        disabled={shouldFreezeUi}
+                                        disabled={disableEveryCta}
                                         onPress={handleAddTrack}
                                     />
                                 );
@@ -307,8 +308,8 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                                                             playlistRef={
                                                                 playlistRef
                                                             }
-                                                            shouldFreezeUi={
-                                                                shouldFreezeUi
+                                                            disabled={
+                                                                disableEveryCta
                                                             }
                                                             id={id}
                                                             onUpPress={handleUpPress(

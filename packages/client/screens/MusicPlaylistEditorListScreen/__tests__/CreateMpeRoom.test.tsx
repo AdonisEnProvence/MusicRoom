@@ -1,12 +1,28 @@
-import { MpeWorkflowState } from '@musicroom/types';
 import { datatype } from 'faker';
 import { serverSocket } from '../../../services/websockets';
-import { generateTrackMetadata } from '../../../tests/data';
+import {
+    db,
+    generateMpeWorkflowState,
+    generateTrackMetadata,
+} from '../../../tests/data';
 import { renderApp, fireEvent, waitFor } from '../../../tests/tests-utils';
 
 test('Create static MPE room and have it listed in MPE Rooms List', async () => {
     const screen = await renderApp();
     const track = generateTrackMetadata();
+    const roomID = datatype.uuid();
+    const state = generateMpeWorkflowState({
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanEdit: false,
+        roomID,
+        tracks: [track],
+        usersLength: 1,
+    });
+    db.searchableMpeRooms.create({
+        isInvited: false,
+        roomID,
+        roomName: state.name,
+    });
 
     expect((await screen.findAllByText(/home/i)).length).toBeGreaterThanOrEqual(
         1,
@@ -15,25 +31,10 @@ test('Create static MPE room and have it listed in MPE Rooms List', async () => 
     const createMpeRoomButton = screen.getByText(/create.*mpe/i);
     expect(createMpeRoomButton).toBeTruthy();
 
-    let state: MpeWorkflowState | undefined;
-    serverSocket.on('MPE_CREATE_ROOM', (params) => {
-        state = {
-            isOpen: params.isOpen,
-            isOpenOnlyInvitedUsersCanEdit: params.isOpenOnlyInvitedUsersCanEdit,
-            name: params.name,
-            playlistTotalDuration: 42000,
-            roomCreatorUserID: datatype.uuid(),
-            roomID: datatype.uuid(),
-            tracks: [track],
-            usersLength: 1,
-        };
-
+    serverSocket.on('MPE_CREATE_ROOM', () => {
         serverSocket.emit('MPE_CREATE_ROOM_SYNCED_CALLBACK', state);
 
         setTimeout(() => {
-            if (state === undefined) {
-                throw new Error('state is undefined');
-            }
             serverSocket.emit('MPE_CREATE_ROOM_CALLBACK', state);
         }, 10);
     });
@@ -45,31 +46,24 @@ test('Create static MPE room and have it listed in MPE Rooms List', async () => 
 
     fireEvent.press(goToLibraryButton);
 
-    await waitFor(() => {
+    const roomListElement = await waitFor(() => {
         const [, libraryScreenTitle] = screen.getAllByText(/library/i);
         expect(libraryScreenTitle).toBeTruthy();
-        expect(state).not.toBeUndefined();
+        const roomListElement = screen.getByTestId(
+            `mpe-room-card-${state.roomID}`,
+        );
+        expect(roomListElement).toBeTruthy();
+        return roomListElement;
     });
 
-    if (state === undefined) {
-        throw new Error('state is undefined');
-    }
-
-    const stateCpy = state;
-
-    const roomListElement = screen.getByTestId(`mpe-room-card-${state.roomID}`);
     fireEvent.press(roomListElement);
 
     await waitFor(() => {
         const playlistTitle = screen.getByText(
-            new RegExp(`Playlist ${stateCpy.name}`),
+            new RegExp(`Playlist ${state.name}`),
         );
         expect(playlistTitle).toBeTruthy();
-        expect(
-            screen.getByText(new RegExp(`${stateCpy.playlistTotalDuration}`)),
-        );
-        expect(
-            screen.getByText(new RegExp(`${stateCpy.tracks?.length}.*Tracks`)),
-        );
+        expect(screen.getByText(new RegExp(`${state.playlistTotalDuration}`)));
+        expect(screen.getByText(new RegExp(`${state.tracks?.length}.*Tracks`)));
     });
 });

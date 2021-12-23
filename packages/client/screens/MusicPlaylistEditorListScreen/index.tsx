@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, View } from 'dripsy';
 import { FlatList, TouchableOpacity } from 'react-native';
@@ -65,6 +65,12 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> = ({
             roomName,
         });
     }
+
+    useEffect(() => {
+        libraryRoomsSend({
+            type: 'FETCH_ROOMS',
+        });
+    }, [libraryRoomsSend]);
 
     return (
         <AppScreenWithSearchBar

@@ -1,4 +1,7 @@
 import {
+    ListAllMpeRoomsResponseBody,
+    MpeRoomSearchRequestBody,
+    MpeRoomSummary,
     MtvRoomSearchRequestBody,
     MtvRoomSearchResponse,
     PlaceAutocompleteResponse,
@@ -114,6 +117,15 @@ export const handlers = [
                     page,
                 }),
             );
+        },
+    ),
+
+    rest.post<MpeRoomSearchRequestBody, ListAllMpeRoomsResponseBody>(
+        `${SERVER_ENDPOINT}/mpe/search/all-rooms`,
+        (req, res, ctx) => {
+            const allRooms: MpeRoomSummary[] = db.searchableMpeRooms.getAll();
+
+            return res(ctx.json(allRooms));
         },
     ),
 ];

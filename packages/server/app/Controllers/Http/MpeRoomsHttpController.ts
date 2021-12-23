@@ -2,16 +2,11 @@ import {
     MpeRoomSummary,
     LibraryMpeRoomSearchResponseBody,
     ListAllMpeRoomsResponseBody,
+    MpeRoomSearchRequestBody,
 } from '@musicroom/types';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
-import * as z from 'zod';
 import User from 'App/Models/User';
 import MpeRoom from 'App/Models/MpeRoom';
-
-const MpeRoomSearchRequestBody = z.object({
-    userID: z.string().uuid(),
-});
-export type MpeRoomSearchRequestBody = z.infer<typeof MpeRoomSearchRequestBody>;
 
 /**
  * @param mpeRooms Should have preloaded creator relationship

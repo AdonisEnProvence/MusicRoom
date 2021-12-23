@@ -1,10 +1,12 @@
 import Database from '@ioc:Adonis/Lucid/Database';
-import { MpeRoomSearchRequestBody } from 'App/Controllers/Http/MpeRoomsHttpController';
 import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
-import { LibraryMpeRoomSearchResponseBody } from '@musicroom/types';
+import {
+    LibraryMpeRoomSearchResponseBody,
+    MpeRoomSearchRequestBody,
+} from '@musicroom/types';
 import { BASE_URL, initTestUtils, generateArray } from './utils/TestUtils';
 
 test.group('MPE Delete Tracks', (group) => {

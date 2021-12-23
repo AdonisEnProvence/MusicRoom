@@ -188,6 +188,10 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
         const shouldFreezeUi = useSelector(playlistRef, (state) =>
             state.hasTag('freezeUi'),
         );
+        const roomID = useSelector(
+            playlistRef,
+            (state) => state.context.state.roomID,
+        );
         const roomIsNotReady = useSelector(
             playlistRef,
             (state) => !state.hasTag('roomIsReady'),
@@ -263,6 +267,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
 
                         {userIsNotInRoom && (
                             <BottomRightAbsoluteButton
+                                testID={`mpe-join-${roomID}`}
                                 //TODO refactor after join_room has been implem
                                 onPress={() =>
                                     console.log('JOIN BUTTON HAS BEEN PRESSED')

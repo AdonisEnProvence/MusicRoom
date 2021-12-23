@@ -1,5 +1,7 @@
 import { drop, factory, primaryKey } from '@mswjs/data';
 import {
+    MpeRoomSummary,
+    MpeWorkflowState,
     MtvRoomSummary,
     MtvWorkflowState,
     TrackMetadataWithScore,
@@ -18,6 +20,14 @@ export const db = factory({
     },
 
     searchableRooms: {
+        roomID: primaryKey(() => datatype.uuid()),
+        roomName: () => random.words(datatype.number({ min: 1, max: 5 })),
+        creatorName: () => name.title(),
+        isOpen: () => datatype.boolean(),
+        isInvited: () => datatype.boolean(),
+    },
+
+    searchableMpeRooms: {
         roomID: primaryKey(() => datatype.uuid()),
         roomName: () => random.words(datatype.number({ min: 1, max: 5 })),
         creatorName: () => name.title(),
@@ -58,6 +68,19 @@ export function generateMtvRoomSummary(
     };
 }
 
+export function generateMpeRoomSummary(
+    overrides?: Partial<MpeRoomSummary>,
+): MpeRoomSummary {
+    return {
+        creatorName: random.word(),
+        isOpen: datatype.boolean(),
+        roomID: datatype.uuid(),
+        roomName: random.words(3),
+        isInvited: datatype.boolean(),
+        ...overrides,
+    };
+}
+
 export function generateUserSummary(
     overrides?: Partial<UserSummary>,
 ): UserSummary {
@@ -81,6 +104,30 @@ export function generateUserDevice(
     return {
         deviceID: datatype.uuid(),
         name: random.words(),
+
+        ...overrides,
+    };
+}
+
+export function generateMpeWorkflowState(
+    overrides?: Partial<MpeWorkflowState>,
+): MpeWorkflowState {
+    const tracksList = generateArray({
+        minLength: 2,
+        maxLength: 6,
+        fill: generateTrackMetadata,
+    });
+    const roomCreatorUserID = datatype.uuid();
+
+    return {
+        name: random.words(),
+        roomID: datatype.uuid(),
+        roomCreatorUserID,
+        usersLength: 1,
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanEdit: false,
+        tracks: tracksList.slice(1),
+        playlistTotalDuration: 42000, //TODO
 
         ...overrides,
     };

@@ -9,7 +9,7 @@ import {
 } from '@musicroom/types';
 import { BASE_URL, initTestUtils, generateArray } from './utils/TestUtils';
 
-test.group('MPE Delete Tracks', (group) => {
+test.group('MPE search engine tests group', (group) => {
     const {
         createUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
@@ -27,7 +27,7 @@ test.group('MPE Delete Tracks', (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
-    test('Sends updated tracks list to all other users if deleting tracks succeeded', async (assert) => {
+    test('It should send back mpe room user has joined only', async (assert) => {
         const userID = datatype.uuid();
         const mpeRooms = generateArray({
             fill: () => ({

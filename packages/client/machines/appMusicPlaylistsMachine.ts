@@ -494,16 +494,12 @@ export function createAppMusicPlaylistsMachine({
                             stop((_, event) =>
                                 getPlaylistMachineActorName(event.roomID),
                             ),
-                            send(
-                                (_, { roomID }) =>
-                                    appMusicPlaylistsModel.events.REMOVE_ACTOR_FROM_PLAYLIST_LIST(
-                                        {
-                                            roomID,
-                                        },
-                                    ),
-                                {
-                                    delay: 100,
-                                },
+                            send((_, { roomID }) =>
+                                appMusicPlaylistsModel.events.REMOVE_ACTOR_FROM_PLAYLIST_LIST(
+                                    {
+                                        roomID,
+                                    },
+                                ),
                             ),
                         ],
                     },

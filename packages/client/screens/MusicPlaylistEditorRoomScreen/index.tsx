@@ -346,6 +346,35 @@ const MusicPlaylistEditorRoomWrapper: React.FC<MpeTabMpeRoomScreenProps> = (
 ) => {
     const playlistID = props.route.params.id;
     const playlist = usePlaylist(playlistID);
+    const insets = useSafeAreaInsets();
+
+    if (playlist === undefined) {
+        return (
+            <AppScreen>
+                <AppScreenHeader
+                    title={`Playlist is loading`}
+                    insetTop={insets.top}
+                    canGoBack
+                    goBack={() => {
+                        props.navigation.goBack();
+                    }}
+                />
+
+                <AppScreenContainer>
+                    <MotiView
+                        animate={{
+                            opacity: 0.4,
+                        }}
+                        style={{ flex: 1 }}
+                    >
+                        <Skeleton show={true} colorMode="dark" width="100%" />
+
+                        <Skeleton show={true} colorMode="dark" width="100%" />
+                    </MotiView>
+                </AppScreenContainer>
+            </AppScreen>
+        );
+    }
 
     return <MusicPlaylistEditorRoomScreen {...props} playlist={playlist} />;
 };

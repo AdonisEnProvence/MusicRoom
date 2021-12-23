@@ -5,7 +5,6 @@ import {
     generateArray,
     generateMpeWorkflowState,
 } from '../../../tests/data';
-import { server } from '../../../tests/server/test-server';
 import {
     fireEvent,
     renderApp,

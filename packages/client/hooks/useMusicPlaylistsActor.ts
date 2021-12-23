@@ -20,13 +20,13 @@ export function useMusicPlaylistsActor(): {
     };
 }
 
-export function usePlaylist(roomID: string): MusicPlaylist {
+export function usePlaylist(roomID: string): MusicPlaylist | undefined {
     const { appMusicPlaylistsActorRef } = useMusicPlaylistsActor();
     const playlist = useSelector(appMusicPlaylistsActorRef, (state) =>
         state.context.playlistsActorsRefs.find(({ id }) => id === roomID),
     );
     if (playlist === undefined) {
-        throw new Error(`Could not find any playlist for roomID: ${roomID}`);
+        return undefined;
     }
 
     return playlist;

@@ -48,6 +48,7 @@ export const appMusicPlaylistsModel = createModel(
     {
         events: {
             OPEN_CREATION_FORM: (args: { initialTracksIDs: string[] }) => args,
+            CLOSE_CREATION_FORM: () => ({}),
 
             CREATE_ROOM: (params: MpeRoomClientToServerCreateArgs) => ({
                 params,
@@ -124,7 +125,8 @@ export const appMusicPlaylistsModel = createModel(
 
         actions: {
             openCreationMpeFormModal: () => ({}),
-            closeCreationMpeFormModal: () => ({}),
+            redirectToMpeLibrary: () => ({}),
+            goBackToLastScreen: () => ({}),
         },
     },
 );
@@ -451,8 +453,6 @@ export function createAppMusicPlaylistsMachine({
                     creatingRoom: {
                         entry: 'openCreationMpeFormModal',
 
-                        exit: 'closeCreationMpeFormModal',
-
                         invoke: {
                             id: 'creationMpeRoomForm',
 
@@ -471,38 +471,51 @@ export function createAppMusicPlaylistsMachine({
                             onDone: {
                                 target: 'waitingForRoomCreationAcknowledgement',
 
-                                actions: send(
-                                    (
-                                        { roomToCreateInitialTracksIDs },
-                                        {
-                                            data: {
-                                                roomName,
-                                                isOpen,
-                                                onlyInvitedUsersCanVote,
-                                            },
-                                        }: CreationMpeRoomFormDoneInvokeEvent,
-                                    ) => {
-                                        invariant(
-                                            roomToCreateInitialTracksIDs !==
-                                                undefined,
-                                            'Tracks must have been selected before trying to open MPE Room Creation Form',
-                                        );
-
-                                        return appMusicPlaylistsModel.events.CREATE_ROOM(
+                                actions: [
+                                    send(
+                                        (
+                                            { roomToCreateInitialTracksIDs },
                                             {
-                                                initialTrackID:
-                                                    roomToCreateInitialTracksIDs[0],
-                                                name: roomName,
-                                                isOpen,
-                                                isOpenOnlyInvitedUsersCanEdit:
+                                                data: {
+                                                    roomName,
+                                                    isOpen,
                                                     onlyInvitedUsersCanVote,
-                                            },
-                                        );
-                                    },
-                                    {
-                                        to: 'socketConnection',
-                                    },
-                                ),
+                                                },
+                                            }: CreationMpeRoomFormDoneInvokeEvent,
+                                        ) => {
+                                            invariant(
+                                                roomToCreateInitialTracksIDs !==
+                                                    undefined,
+                                                'Tracks must have been selected before trying to open MPE Room Creation Form',
+                                            );
+
+                                            return appMusicPlaylistsModel.events.CREATE_ROOM(
+                                                {
+                                                    initialTrackID:
+                                                        roomToCreateInitialTracksIDs[0],
+                                                    name: roomName,
+                                                    isOpen,
+                                                    isOpenOnlyInvitedUsersCanEdit:
+                                                        onlyInvitedUsersCanVote,
+                                                },
+                                            );
+                                        },
+                                        {
+                                            to: 'socketConnection',
+                                        },
+                                    ),
+
+                                    appMusicPlaylistsModel.actions.redirectToMpeLibrary(),
+                                ],
+                            },
+                        },
+
+                        on: {
+                            CLOSE_CREATION_FORM: {
+                                target: 'waitingForRoomCreation',
+
+                                actions:
+                                    appMusicPlaylistsModel.actions.goBackToLastScreen(),
                             },
                         },
                     },

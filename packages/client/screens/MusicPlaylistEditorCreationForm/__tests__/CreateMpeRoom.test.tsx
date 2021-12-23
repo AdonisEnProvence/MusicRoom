@@ -104,11 +104,11 @@ const createMpeRoomWithSettingsMachine =
             searchTracks: {
                 meta: {
                     test: async ({ screen }: TestingContext) => {
-                        await waitFor(() =>
+                        await waitFor(() => {
                             expect(
                                 screen.getByText(/search.*track/i),
-                            ).toBeTruthy(),
-                        );
+                            ).toBeTruthy();
+                        });
                     },
                 },
 
@@ -148,7 +148,7 @@ const createMpeRoomWithSettingsMachine =
 
                 on: {
                     GO_BACK: {
-                        target: 'home',
+                        target: 'searchTracksResultsAfterHavingGoneBackFromRoomNameStep',
                     },
 
                     SET_ROOM_NAME_AND_GO_NEXT: {
@@ -458,6 +458,25 @@ const createMpeRoomWithSettingsMachine =
                             ).getByText(fakeTrack.title);
                             expect(trackInMpeRoomScreen).toBeTruthy();
                         });
+                    },
+                },
+            },
+
+            searchTracksResultsAfterHavingGoneBackFromRoomNameStep: {
+                type: 'final',
+
+                meta: {
+                    test: async ({ screen, fakeTrack }: TestingContext) => {
+                        await waitFor(() => {
+                            const roomNameScreenTitle =
+                                screen.queryByText(/what.*is.*name.*room/i);
+                            expect(roomNameScreenTitle).toBeNull();
+                        });
+
+                        const trackResultListItem = await screen.findByText(
+                            fakeTrack.title,
+                        );
+                        expect(trackResultListItem).toBeTruthy();
                     },
                 },
             },

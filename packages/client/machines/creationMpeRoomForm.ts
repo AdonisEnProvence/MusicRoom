@@ -5,12 +5,14 @@ import {
     ContextFrom,
     DoneInvokeEvent,
     EventFrom,
+    sendParent,
     StateMachine,
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { navigateFromRef } from '../navigation/RootNavigation';
 import { fetchTracksByID } from '../services/search-tracks';
 import { MusicPlaylistEditorCreationFormParamList } from '../types';
+import { appMusicPlaylistsModel } from './appMusicPlaylistsMachine';
 
 const creationMpeRoomFormModel = createModel(
     {
@@ -109,6 +111,12 @@ export function createCreationMpeRoomFormMachine({
                             target: 'openingStatus',
 
                             actions: assignRoomNameToContext,
+                        },
+
+                        GO_BACK: {
+                            actions: sendParent(
+                                appMusicPlaylistsModel.events.CLOSE_CREATION_FORM(),
+                            ),
                         },
                     },
                 },

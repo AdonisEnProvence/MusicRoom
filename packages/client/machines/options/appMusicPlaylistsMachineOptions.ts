@@ -1,6 +1,9 @@
 import Toast from 'react-native-toast-message';
 import { MachineOptions } from 'xstate';
-import { navigateFromRef } from '../../navigation/RootNavigation';
+import {
+    navigateFromRef,
+    navigationRef,
+} from '../../navigation/RootNavigation';
 import {
     MusicPlaylistsContext,
     MusicPlaylistsEvents,
@@ -49,7 +52,7 @@ export function getAppMusicPlaylistsMachineOptions(): Partial<AppMusicPlaylistsO
                 });
             },
 
-            closeCreationMpeFormModal: () => {
+            redirectToMpeLibrary: () => {
                 navigateFromRef('Main', {
                     screen: 'Root',
                     params: {
@@ -59,6 +62,10 @@ export function getAppMusicPlaylistsMachineOptions(): Partial<AppMusicPlaylistsO
                         },
                     },
                 });
+            },
+
+            redirectToLastScreen: () => {
+                navigationRef.current?.goBack();
             },
         },
     };

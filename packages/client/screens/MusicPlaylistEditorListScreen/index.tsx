@@ -45,9 +45,7 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> = ({
     const [screenOffsetY, setScreenOffsetY] = useState(0);
 
     //Library Search machine
-    const [libraryRoomState, libraryRoomsSend] = useMachine(
-        libraryMpeRoomSearchMachine,
-    );
+    const [libraryRoomState] = useMachine(libraryMpeRoomSearchMachine);
     const hasMoreRoomsToFetch = false;
     const searchBarActor: ActorRef<
         AppScreenHeaderWithSearchBarMachineEvent,
@@ -65,12 +63,6 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> = ({
             roomName,
         });
     }
-
-    useEffect(() => {
-        libraryRoomsSend({
-            type: 'FETCH_ROOMS',
-        });
-    }, [libraryRoomsSend]);
 
     return (
         <AppScreenWithSearchBar

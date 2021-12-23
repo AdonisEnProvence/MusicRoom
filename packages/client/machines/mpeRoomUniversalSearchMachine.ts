@@ -20,8 +20,6 @@ const mpeRoomUniversalSearchModel = createModel(
                 rooms,
             }),
 
-            FETCH_ROOMS: () => ({}),
-
             LOAD_MORE_ITEMS: () => ({}),
 
             FAILED_FETCHING_ROOMS: () => ({}),
@@ -63,13 +61,7 @@ function createMpeRoomUniversalSearchMachine({
                     initial: 'fetchingRooms',
 
                     states: {
-                        idle: {
-                            on: {
-                                FETCH_ROOMS: {
-                                    target: 'fetchingRooms',
-                                },
-                            },
-                        },
+                        idle: {},
 
                         fetchingRooms: {
                             invoke: {

@@ -100,6 +100,7 @@ export const appMusicPlaylistsModel = createModel(
             ) => args,
             ///
 
+            REMOVE_ACTOR_FROM_PLAYLIST_LIST: (args: { roomID: string }) => args,
             DELETE_TRACK: (args: { roomID: string; trackID: string }) => args,
             SENT_TRACK_TO_DELETE_TO_SERVER: (args: { roomID: string }) => args,
             RECEIVED_DELETE_TRACKS_SUCCESS_CALLBACK: (args: {
@@ -116,7 +117,7 @@ const removePlaylistActor = appMusicPlaylistsModel.assign(
             return playlistsActorsRefs.filter((actor) => actor.id !== roomID);
         },
     },
-    'RECEIVED_MPE_GET_CONTEXT_FAIL_CALLBACK',
+    'REMOVE_ACTOR_FROM_PLAYLIST_LIST',
 );
 
 const spawnPlaylistActor = appMusicPlaylistsModel.assign(
@@ -488,10 +489,22 @@ export function createAppMusicPlaylistsMachine({
 
                     RECEIVED_MPE_GET_CONTEXT_FAIL_CALLBACK: {
                         actions: [
+                            'displayGetContextFailureToast',
+                            'navigateToMpeRoomsSearchScreen',
                             stop((_, event) =>
                                 getPlaylistMachineActorName(event.roomID),
                             ),
-                            removePlaylistActor,
+                            send(
+                                (_, { roomID }) =>
+                                    appMusicPlaylistsModel.events.REMOVE_ACTOR_FROM_PLAYLIST_LIST(
+                                        {
+                                            roomID,
+                                        },
+                                    ),
+                                {
+                                    delay: 100,
+                                },
+                            ),
                         ],
                     },
 
@@ -564,6 +577,10 @@ export function createAppMusicPlaylistsMachine({
                 actions: spawnPlaylistActor,
             },
 
+            REMOVE_ACTOR_FROM_PLAYLIST_LIST: {
+                actions: removePlaylistActor,
+            },
+
             DISPLAY_MPE_ROOM_VIEW: [
                 {
                     cond: ({ playlistsActorsRefs }, { roomID }) => {
@@ -574,12 +591,12 @@ export function createAppMusicPlaylistsMachine({
                         return actorHasAlreadyBeenSpawned;
                     },
 
-                    actions: 'redirectToMpeRoomView',
+                    actions: 'navigateToMpeRoomView',
                 },
                 {
                     actions: [
                         spawnPlaylistActorFromRoomID,
-                        'redirectToMpeRoomView',
+                        'navigateToMpeRoomView',
                     ],
                 },
             ],

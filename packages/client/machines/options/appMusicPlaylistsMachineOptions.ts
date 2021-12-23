@@ -1,3 +1,4 @@
+import Toast from 'react-native-toast-message';
 import { MachineOptions } from 'xstate';
 import { navigateFromRef } from '../../navigation/RootNavigation';
 import {
@@ -12,7 +13,19 @@ export type AppMusicPlaylistsOptions = Partial<
 export function getAppMusicPlaylistsMachineOptions(): Partial<AppMusicPlaylistsOptions> {
     return {
         actions: {
-            redirectToMpeRoomView: (context, event) => {
+            displayGetContextFailureToast: () => {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: "Could't not load mpe room",
+                });
+            },
+            navigateToMpeRoomsSearchScreen: () => {
+                navigateFromRef('MusicPlaylistEditorRoomsSearch', {
+                    screen: 'MusicPlaylistEditorRoomsSearchModal',
+                });
+            },
+            navigateToMpeRoomView: (context, event) => {
                 if (event.type !== 'DISPLAY_MPE_ROOM_VIEW') {
                     return context;
                 }

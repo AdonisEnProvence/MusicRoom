@@ -29,6 +29,8 @@ const createMpeRoomWithSettingsModel = createModel(
             GO_TO_SEARCH_TRACKS: () => ({}),
             TYPE_SEARCH_TRACK_QUERY_AND_SUBMIT: () => ({}),
             PRESS_SEARCH_TRACK_QUERY_RESULT: () => ({}),
+            PRESS_CREATE_MPE_ROOM_BUTTON_ON_MODAL: () => ({}),
+            CLOSE_CREATE_MPE_MODAL: () => ({}),
             SET_ROOM_NAME_AND_GO_NEXT: (args: { roomName: string }) => args,
             SET_ONLY_INVITED_USERS_CAN_EDIT: (args: {
                 onlyInvitedUsersCanEdit: boolean;
@@ -131,7 +133,28 @@ const createMpeRoomWithSettingsMachine =
 
                 on: {
                     PRESS_SEARCH_TRACK_QUERY_RESULT: {
+                        target: 'createMtvOrMpeModalOpen',
+                    },
+                },
+            },
+
+            createMtvOrMpeModalOpen: {
+                meta: {
+                    test: async ({ screen }: TestingContext) => {
+                        const creationModal = await screen.findByText(
+                            /what.*to.*do.*track/i,
+                        );
+                        expect(creationModal).toBeTruthy();
+                    },
+                },
+
+                on: {
+                    PRESS_CREATE_MPE_ROOM_BUTTON_ON_MODAL: {
                         target: 'roomName',
+                    },
+
+                    CLOSE_CREATE_MPE_MODAL: {
+                        target: 'searchTracksResultsAfterHavingGoneBackFromRoomNameStep',
                     },
                 },
             },
@@ -513,14 +536,22 @@ const createMpeRoomWithSettingsTestModel = createTestModel<
         const trackResultListItem = await screen.findByText(fakeTrack.title);
 
         fireEvent.press(trackResultListItem);
+    },
 
-        const creationModal = await screen.findByText(/what.*to.*do.*track/i);
-        expect(creationModal).toBeTruthy();
-
-        const createMpeRoomButton = screen.getByText(/create.*mpe/i);
+    PRESS_CREATE_MPE_ROOM_BUTTON_ON_MODAL: async ({ screen }) => {
+        const createMpeRoomButton = await screen.findByText(/create.*mpe/i);
         expect(createMpeRoomButton).toBeTruthy();
 
         fireEvent.press(createMpeRoomButton);
+    },
+
+    CLOSE_CREATE_MPE_MODAL: async ({ screen }) => {
+        const closeCreateMpeModalButton = await screen.findByLabelText(
+            /close.*modal/i,
+        );
+        expect(closeCreateMpeModalButton).toBeTruthy();
+
+        fireEvent.press(closeCreateMpeModalButton);
     },
 
     SET_ROOM_NAME_AND_GO_NEXT: {

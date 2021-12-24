@@ -5,6 +5,7 @@ import { Text, useSx, View } from 'dripsy';
 import { ActorRef } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import invariant from 'tiny-invariant';
+import { Ionicons } from '@expo/vector-icons';
 import { AppScreenWithSearchBar } from '../components/kit';
 import TrackListItem from '../components/Track/TrackListItem';
 import {
@@ -185,6 +186,24 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
         };
     }
 
+    function handleCreateMtvButtonPress() {
+        searchTracksScreenService.send({
+            type: 'CREATE_MTV',
+        });
+    }
+
+    function handleCreateMpeButtonPress() {
+        searchTracksScreenService.send({
+            type: 'CREATE_MPE',
+        });
+    }
+
+    function handleCloseModalButtonPress() {
+        searchTracksScreenService.send({
+            type: 'CLOSE_MODAL',
+        });
+    }
+
     return (
         <AppScreenWithSearchBar
             title="Search a track"
@@ -252,6 +271,8 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
                         <Text
                             sx={{
                                 color: 'white',
+                                fontSize: 's',
+                                marginTop: 'l',
                                 marginBottom: 'l',
                                 textAlign: 'center',
                             }}
@@ -269,11 +290,7 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
                             }}
                         >
                             <TouchableOpacity
-                                onPress={() => {
-                                    searchTracksScreenService.send({
-                                        type: 'CREATE_MTV',
-                                    });
-                                }}
+                                onPress={handleCreateMtvButtonPress}
                                 style={sx({
                                     borderRadius: 'full',
                                     borderWidth: 2,
@@ -294,11 +311,7 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
                             </TouchableOpacity>
 
                             <TouchableOpacity
-                                onPress={() => {
-                                    searchTracksScreenService.send({
-                                        type: 'CREATE_MPE',
-                                    });
-                                }}
+                                onPress={handleCreateMpeButtonPress}
                                 style={sx({
                                     borderRadius: 'full',
                                     borderWidth: 2,
@@ -318,6 +331,24 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
                                 </Text>
                             </TouchableOpacity>
                         </View>
+
+                        <TouchableOpacity
+                            style={sx({
+                                position: 'absolute',
+                                top: 0,
+                                right: 0,
+                                margin: 's',
+                                padding: 's',
+                            })}
+                            onPress={handleCloseModalButtonPress}
+                        >
+                            <Ionicons
+                                name="close"
+                                color="white"
+                                size={24}
+                                accessibilityLabel="Close modal"
+                            />
+                        </TouchableOpacity>
                     </View>
                 </View>
             </Modal>

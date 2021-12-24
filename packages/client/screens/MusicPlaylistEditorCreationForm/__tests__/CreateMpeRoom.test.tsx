@@ -162,6 +162,14 @@ const createMpeRoomWithSettingsMachine =
             roomName: {
                 meta: {
                     test: async ({ screen }: TestingContext) => {
+                        await waitFor(() => {
+                            const roomNameEmptyScreenContainer =
+                                screen.queryByTestId(
+                                    'music-playlist-editor-creation-form-name-screen-default',
+                                );
+                            expect(roomNameEmptyScreenContainer).toBeNull();
+                        });
+
                         const roomNameScreenTitle = await screen.findByText(
                             /what.*is.*name.*room/i,
                         );
@@ -495,6 +503,12 @@ const createMpeRoomWithSettingsMachine =
                                 screen.queryByText(/what.*is.*name.*room/i);
                             expect(roomNameScreenTitle).toBeNull();
                         });
+
+                        const roomNameEmptyScreenContainer =
+                            screen.queryByTestId(
+                                'music-playlist-editor-creation-form-name-screen-default',
+                            );
+                        expect(roomNameEmptyScreenContainer).toBeNull();
 
                         const trackResultListItem = await screen.findByText(
                             fakeTrack.title,

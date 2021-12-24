@@ -2,7 +2,7 @@ import { useSelector } from '@xstate/react';
 import { Text, View } from 'dripsy';
 import React from 'react';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
-import { TextField } from '../../../components/kit';
+import { AppScreen, TextField } from '../../../components/kit';
 import MtvRoomCreationFormScreen from '../../../components/MtvRoomCreationForm/MtvRoomCreationFormScreen';
 import { useMpeRoomCreationFormActor } from '../../../hooks/useMusicPlaylistsActor';
 import { CreationMpeRoomFormActorRef } from '../../../machines/creationMpeRoomForm';
@@ -118,7 +118,9 @@ const MusicPlaylistEditorCreationFormNameWrapper: React.FC = () => {
     const creationFormActor = useMpeRoomCreationFormActor();
 
     if (creationFormActor === undefined) {
-        return null;
+        return (
+            <AppScreen testID="music-playlist-editor-creation-form-name-screen-default" />
+        );
     }
 
     return (

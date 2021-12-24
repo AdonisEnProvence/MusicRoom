@@ -1,5 +1,5 @@
 import { useActor, useInterpret, useSelector } from '@xstate/react';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { FlatList, Modal, TouchableOpacity } from 'react-native';
 import { Text, useSx, View } from 'dripsy';
 import { ActorRef } from 'xstate';
@@ -121,8 +121,8 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
     const [screenOffsetY, setScreenOffsetY] = useState(0);
     const { sendToMusicPlayerMachine } = useMusicPlayerContext();
     const { appMusicPlaylistsActorRef } = useMusicPlaylistsActor();
-    const searchTracksScreenService = useInterpret(
-        searchTrackScreenMachine.withConfig({
+    const searchTrackScreenMachineConfigured = useMemo(() => {
+        return searchTrackScreenMachine.withConfig({
             actions: {
                 forwardMtvCreation: ({ selectedTrackID }) => {
                     invariant(
@@ -149,7 +149,10 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
                     });
                 },
             },
-        }),
+        });
+    }, [appMusicPlaylistsActorRef, sendToMusicPlayerMachine]);
+    const searchTracksScreenService = useInterpret(
+        searchTrackScreenMachineConfigured,
     );
     const showModal = useSelector(searchTracksScreenService, (state) =>
         state.hasTag('showModal'),

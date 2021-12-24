@@ -541,15 +541,8 @@ export function createAppMusicPlaylistsMachine({
                                         state,
                                     }),
                                     {
-                                        to: (_, { state, type }) => {
-                                            //Add on error create mpe bool ?
-                                            console.log(
-                                                `About to merge new state from ${type} in MPE=${state.roomID}`,
-                                            );
-                                            return getPlaylistMachineActorName(
-                                                state.roomID,
-                                            );
-                                        },
+                                        to: (_, { state: { roomID } }) =>
+                                            getPlaylistMachineActorName(roomID),
                                     },
                                 ),
                             },
@@ -561,6 +554,36 @@ export function createAppMusicPlaylistsMachine({
                             target: 'waitingForRoomCreation',
                         },
                     },
+                },
+
+                on: {
+                    /**
+                     * Listen to creation acknowledgement events here so that rooms created
+                     * by other user's devices will be handled correctly
+                     * but will not take part in the creation process.
+                     *
+                     * This probably not the best solution, but for now it will allow us to create rooms in tests
+                     * by receiving these events.
+                     */
+                    ROOM_CREATION_ACKNOWLEDGEMENT: {
+                        actions: spawnPlaylistActor,
+                    },
+
+                    ROOM_IS_READY: {
+                        actions: send(
+                            (_, { state }) => ({
+                                type: 'ASSIGN_MERGE_NEW_STATE',
+                                state,
+                            }),
+                            {
+                                to: (_, { state: { roomID } }) =>
+                                    getPlaylistMachineActorName(roomID),
+                            },
+                        ),
+                    },
+                    /**
+                     *
+                     */
                 },
             },
 

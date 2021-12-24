@@ -64,7 +64,7 @@ export function getAppMusicPlaylistsMachineOptions(): Partial<AppMusicPlaylistsO
                 });
             },
 
-            redirectToLastScreen: () => {
+            goBackToLastScreen: () => {
                 navigationRef.current?.goBack();
             },
         },

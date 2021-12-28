@@ -138,6 +138,11 @@ Route.group(() => {
         `/acknowledge-deleting-tracks`,
         'Temporal/MpeTemporalToServerController.deleteTracksAcknowledgement',
     );
+
+    Route.post(
+        `/acknowledge-join`,
+        `Temporal/MpeTemporalToServerController.mpeJoinAcknowledgement`,
+    );
 }).prefix(MPE_TEMPORAL_LISTENER);
 
 /// //////// ////// ///

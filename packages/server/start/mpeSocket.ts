@@ -5,6 +5,7 @@ import {
     MpeRoomClientToServerCreateArgs,
     MpeRoomClientToServerDeleteTracksArgs,
     MpeRoomClientToServerGetContextArgs,
+    MpeRoomClientToServerJoinRoomArgs,
 } from '@musicroom/types';
 import MpeRoomsWsController from 'App/Controllers/Ws/MpeRoomsWsController';
 import MpeRoom from 'App/Models/MpeRoom';
@@ -53,6 +54,22 @@ export default function initMpeSocketEventListeners(socket: TypedSocket): void {
         } catch (e) {
             console.error(e);
             socket.emit('MPE_CREATE_ROOM_FAIL');
+        }
+    });
+
+    socket.on('MPE_JOIN_ROOM', async (rawArgs) => {
+        try {
+            const { roomID } = MpeRoomClientToServerJoinRoomArgs.parse(rawArgs);
+
+            const { user } =
+                await SocketLifecycle.getSocketConnectionCredentials(socket);
+
+            await MpeRoomsWsController.onJoin({
+                roomID,
+                user,
+            });
+        } catch (e) {
+            console.error(e);
         }
     });
 

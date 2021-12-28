@@ -18,6 +18,11 @@ interface MpeOnCreateArgs extends MpeRoomClientToServerCreateArgs {
     roomCreator: User;
 }
 
+interface MpeOnJoinArgs {
+    roomID: string;
+    user: User;
+}
+
 interface MpeOnAddTracksArgs {
     roomID: string;
     tracksIDs: string[];
@@ -137,6 +142,22 @@ export default class MpeRoomsWsController {
 
             throw new Error('Temporal operation failed');
         }
+    }
+
+    public static async onJoin({ roomID, user }: MpeOnJoinArgs): Promise<void> {
+        await MpeRoom.findOrFail(roomID);
+        const { uuid: userID } = user;
+        console.log(`USER ${userID} JOINS ${roomID}`);
+
+        //TODO MpeRoomInvitations verifications as for as MTV
+
+        const userHasBeenInvited = false;
+
+        await MpeServerToTemporalController.joinWorkflow({
+            workflowID: roomID,
+            userID,
+            userHasBeenInvited,
+        });
     }
 
     public static async onAddTracks({

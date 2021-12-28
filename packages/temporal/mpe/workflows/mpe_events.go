@@ -130,3 +130,26 @@ func NewMpeRoomDeleteTracksEvent(args NewMpeRoomDeleteTracksEventArgs) MpeRoomDe
 		DeviceID:  args.DeviceID,
 	}
 }
+
+type MpeRoomAddUserEvent struct {
+	brainy.EventWithType
+
+	UserHasBeenInvited bool
+	UserID             string `validate:"required,uuid"`
+}
+
+type NewMpeRoomAddUserEventArgs struct {
+	UserID             string
+	UserHasBeenInvited bool
+}
+
+func NewMpeRoomAddUserEvent(args NewMpeRoomAddUserEventArgs) MpeRoomAddUserEvent {
+	return MpeRoomAddUserEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MpeRoomAddUserEventType,
+		},
+
+		UserHasBeenInvited: args.UserHasBeenInvited,
+		UserID:             args.UserID,
+	}
+}

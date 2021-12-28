@@ -85,6 +85,7 @@ const (
 	MpeRoomAddedTracksInformationFetchedEventType brainy.EventType = "ADDED_TRACKS_INFORMATION_FETCHED"
 	MpeRoomChangeTrackOrderEventType              brainy.EventType = "CHANGE_TRACK_ORDER"
 	MpeRoomDeleteTracksEventType                  brainy.EventType = "DELETE_TRACKS"
+	MpeRoomAddUserEventType                       brainy.EventType = "ADD_USER"
 )
 
 func getNowFromSideEffect(ctx workflow.Context) time.Time {
@@ -299,6 +300,30 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 						},
 					},
 
+					MpeRoomAddUserEventType: brainy.Transition{
+						Cond: userIsNotAlreadyInRoom(&internalState),
+
+						Actions: brainy.Actions{
+							brainy.ActionFn(
+								func(c brainy.Context, e brainy.Event) error {
+									event := e.(MpeRoomAddUserEvent)
+
+									user := shared_mpe.InternalStateUser{
+										UserHasBeenInvited: event.UserHasBeenInvited,
+										UserID:             event.UserID,
+									}
+									internalState.AddUser(user)
+
+									sendAcknowledgeJoinActivity(ctx, activities_mpe.AcknowledgeJoinActivityArgs{
+										State:         internalState.Export(),
+										JoiningUserID: event.UserID,
+									})
+									return nil
+								},
+							),
+						},
+					},
+
 					MpeRoomDeleteTracksEventType: brainy.Transitions{
 						{
 							Cond: userCanPerformDeleteTracksOperation(&internalState),
@@ -420,6 +445,24 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 					}),
 				)
 
+			case shared_mpe.SignalAddUser:
+				var message shared_mpe.AddUserSignal
+
+				if err := mapstructure.Decode(signal, &message); err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
+				if err := Validate.Struct(message); err != nil {
+					logger.Error("Validation error: %v", err)
+					return
+				}
+
+				internalState.Machine.Send(
+					NewMpeRoomAddUserEvent(NewMpeRoomAddUserEventArgs{
+						UserID:             message.UserID,
+						UserHasBeenInvited: message.UserHasBeenInvited,
+					}),
+				)
 			default:
 				panic(ErrUnknownWorflowSignal)
 			}

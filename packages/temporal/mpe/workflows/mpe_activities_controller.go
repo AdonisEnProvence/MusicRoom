@@ -113,3 +113,18 @@ func sendAcknowledgeDeletingTracksActivity(ctx workflow.Context, args activities
 		args,
 	)
 }
+
+func sendAcknowledgeJoinActivity(ctx workflow.Context, args activities_mpe.AcknowledgeJoinActivityArgs) {
+	options := workflow.ActivityOptions{
+		ScheduleToStartTimeout: time.Minute,
+		StartToCloseTimeout:    time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, options)
+
+	var a *activities_mpe.Activities
+	workflow.ExecuteActivity(
+		ctx,
+		a.AcknowledgeJoinActivity,
+		args,
+	)
+}

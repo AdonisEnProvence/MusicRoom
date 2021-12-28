@@ -86,6 +86,11 @@ type AcknowledgeDeletingTracksActivityArgs struct {
 	UserID   string                         `json:"userID"`
 }
 
+type AcknowledgeJoinActivityArgs struct {
+	State         shared_mpe.MpeRoomExposedState `json:"state"`
+	JoiningUserID string                         `json:"joiningUserID"`
+}
+
 func (a *Activities) AcknowledgeChangeTrackOrderActivity(ctx context.Context, args AcknowledgeChangeTrackOrderActivityArgs) error {
 	requestBody := args
 
@@ -123,6 +128,20 @@ func (a *Activities) AcknowledgeDeletingTracksActivity(ctx context.Context, args
 	}
 
 	url := ADONIS_MPE_ENDPOINT + "/acknowledge-deleting-tracks"
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+
+	return err
+}
+
+func (a *Activities) AcknowledgeJoinActivity(ctx context.Context, args AcknowledgeJoinActivityArgs) error {
+	requestBody := args
+
+	marshaledBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	url := ADONIS_MPE_ENDPOINT + "/acknowledge-join"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err

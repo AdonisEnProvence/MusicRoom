@@ -88,3 +88,16 @@ func userCanPerformDeleteTracksOperation(internalState *MpeRoomInternalState) br
 		return true
 	}
 }
+
+func userIsNotAlreadyInRoom(internalState *MpeRoomInternalState) brainy.Cond {
+	return func(c brainy.Context, e brainy.Event) bool {
+		event := e.(MpeRoomAddUserEvent)
+
+		if user := internalState.GetUserRelatedInformation(event.UserID); user != nil {
+			fmt.Println("userCanPerformDeleteTracksOperation user doesnot exist or cannot edit the playlist")
+			return false
+		}
+
+		return true
+	}
+}

@@ -8,27 +8,9 @@ import {
     MpeRoomClientToServerJoinRoomArgs,
 } from '@musicroom/types';
 import MpeRoomsWsController from 'App/Controllers/Ws/MpeRoomsWsController';
-import MpeRoom from 'App/Models/MpeRoom';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import Ws from 'App/Services/Ws';
 import { TypedSocket } from './socket';
-
-interface IsUserInMpeRoomArgs {
-    userID: string;
-    roomID: string;
-}
-
-export async function throwErrorIfUserIsNotInGivenMpeRoom({
-    userID,
-    roomID,
-}: IsUserInMpeRoomArgs): Promise<void> {
-    await MpeRoom.query()
-        .where('uuid', roomID)
-        .andWhereHas('members', (queryUser) => {
-            return queryUser.where('uuid', userID);
-        })
-        .firstOrFail();
-}
 
 export default function initMpeSocketEventListeners(socket: TypedSocket): void {
     socket.on('MPE_CREATE_ROOM', async (args) => {
@@ -81,15 +63,10 @@ export default function initMpeSocketEventListeners(socket: TypedSocket): void {
             const { user, deviceID } =
                 await SocketLifecycle.getSocketConnectionCredentials(socket);
 
-            await throwErrorIfUserIsNotInGivenMpeRoom({
-                userID: user.uuid,
-                roomID,
-            });
-
             await MpeRoomsWsController.onAddTracks({
                 roomID,
                 tracksIDs,
-                userID: user.uuid,
+                user,
                 deviceID,
             });
         } catch (e) {

@@ -335,9 +335,153 @@ func (s *DeleteTracksTestSuite) Test_InRoomWithConstraintsCreatorCanDeleteTracks
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
-// TODO: to implement when joining room is implemented
 func (s *DeleteTracksTestSuite) Test_InRoomWithConstraintsOnlyInvitedUsersCanDeleteTracks() {
+	initialTracksIDs := []string{
+		faker.UUIDHyphenated(),
+		faker.UUIDHyphenated(),
+		faker.UUIDHyphenated(),
+		faker.UUIDHyphenated(),
+	}
+	var (
+		invitedUserID       = faker.UUIDHyphenated()
+		invitedUserDeviceID = faker.UUIDHyphenated()
+		joiningUserID       = faker.UUIDHyphenated()
+		joiningUserDeviceID = faker.UUIDHyphenated()
+	)
+	params, _ := s.getWorkflowInitParams(initialTracksIDs)
+	params.IsOpenOnlyInvitedUsersCanEdit = true
+	var a *activities_mpe.Activities
 
+	initialTracksMetadata := []shared.TrackMetadata{
+		{
+			ID:         initialTracksIDs[0],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+		{
+			ID:         initialTracksIDs[1],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+		{
+			ID:         initialTracksIDs[2],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+		{
+			ID:         initialTracksIDs[3],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+	}
+
+	tick := 1 * time.Millisecond
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	// Common activities calls
+	s.env.OnActivity(
+		a.MpeCreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		initialTracksIDs,
+	).Return(initialTracksMetadata, nil).Once()
+
+	// Specific activities calls
+	s.env.OnActivity(
+		a.AcknowledgeDeletingTracksActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		a.AcknowledgeJoinActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Twice()
+
+	initialTracksFetched := tick * 200
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		s.Equal(initialTracksMetadata, mpeState.Tracks)
+	}, initialTracksFetched)
+
+	addInvitedUser := tick * 200
+	registerDelayedCallbackWrapper(func() {
+		s.emitAddUserSignal(shared_mpe.NewAddUserSignalArgs{
+			UserID:             invitedUserID,
+			UserHasBeenInvited: true,
+		})
+	}, addInvitedUser)
+
+	checkAddInvitedUserWorked := tick
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		s.Equal(2, mpeState.UsersLength)
+	}, checkAddInvitedUserWorked)
+
+	addJoiningUser := tick
+	registerDelayedCallbackWrapper(func() {
+		s.emitAddUserSignal(shared_mpe.NewAddUserSignalArgs{
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		})
+	}, addJoiningUser)
+
+	checkJoinWorked := tick
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		s.Equal(3, mpeState.UsersLength)
+	}, checkJoinWorked)
+
+	invitedUserDeletesTrack := tick
+	registerDelayedCallbackWrapper(func() {
+		s.emitDeleteTracksSignal(shared_mpe.NewDeleteTracksSignalArgs{
+			TracksIDs: []string{initialTracksIDs[0]},
+			UserID:    invitedUserID,
+			DeviceID:  invitedUserDeviceID,
+		})
+	}, invitedUserDeletesTrack)
+
+	checkDeletedTracks := tick
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		s.Equal(3, len(mpeState.Tracks))
+	}, checkDeletedTracks)
+
+	joiningUserDeletesTrack := tick
+	registerDelayedCallbackWrapper(func() {
+		s.emitDeleteTracksSignal(shared_mpe.NewDeleteTracksSignalArgs{
+			TracksIDs: []string{initialTracksIDs[1]},
+			UserID:    joiningUserID,
+			DeviceID:  joiningUserDeviceID,
+		})
+	}, joiningUserDeletesTrack)
+
+	checkJoiningUserDeleteTracksNotWorked := tick
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		s.Equal(3, len(mpeState.Tracks))
+	}, checkJoiningUserDeleteTracksNotWorked)
+
+	s.env.ExecuteWorkflow(MpeRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
 func TestDeleteTracksTestSuite(t *testing.T) {

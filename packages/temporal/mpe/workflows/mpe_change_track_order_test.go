@@ -1,6 +1,7 @@
 package mpe
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -553,7 +554,13 @@ func (s *ChangeTrackOrderPlaylistTestSuite) Test_ChangeTrackOrderTrackIndexOnlyI
 	}
 	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
 	params.IsOpenOnlyInvitedUsersCanEdit = true
-	var a *activities_mpe.Activities
+	var (
+		a                   *activities_mpe.Activities
+		joiningUserID       = faker.UUIDHyphenated()
+		joiningUserDeviceID = faker.UUIDHyphenated()
+		invitedUserID       = faker.UUIDHyphenated()
+		invitedUserDeviceID = faker.UUIDHyphenated()
+	)
 
 	initialTracksMetadata := []shared.TrackMetadata{
 		{
@@ -598,13 +605,20 @@ func (s *ChangeTrackOrderPlaylistTestSuite) Test_ChangeTrackOrderTrackIndexOnlyI
 		a.AcknowledgeChangeTrackOrderActivity,
 		mock.Anything,
 		mock.Anything,
-	).Return(nil).Once()
+	).Return(nil).Twice()
 
 	s.env.OnActivity(
 		a.RejectChangeTrackOrderActivity,
 		mock.Anything,
 		mock.Anything,
-	).Return(nil).Never()
+	).Return(nil).Once()
+
+	s.env.OnActivity(
+		a.AcknowledgeJoinActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Twice()
+	fmt.Printf("\n%+v\n", initialTracksMetadata)
 	///
 
 	initialTracksFetched := tick
@@ -614,12 +628,42 @@ func (s *ChangeTrackOrderPlaylistTestSuite) Test_ChangeTrackOrderTrackIndexOnlyI
 		s.Equal(initialTracksMetadata, mpeState.Tracks)
 	}, initialTracksFetched)
 
+	addInvitedUser := tick
+	registerDelayedCallbackWrapper(func() {
+		s.emitAddUserSignal(shared_mpe.NewAddUserSignalArgs{
+			UserID:             invitedUserID,
+			UserHasBeenInvited: true,
+		})
+	}, addInvitedUser)
+
+	checkAddInvitedUserWorked := tick
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		s.Equal(2, mpeState.UsersLength)
+	}, checkAddInvitedUserWorked)
+
+	addJoiningUser := tick
+	registerDelayedCallbackWrapper(func() {
+		s.emitAddUserSignal(shared_mpe.NewAddUserSignalArgs{
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		})
+	}, addJoiningUser)
+
+	checkJoinWorked := tick
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		s.Equal(3, mpeState.UsersLength)
+	}, checkJoinWorked)
+
+	//Creator change track order
 	trackToChangeOrderDown := initialTracksMetadata[0]
 	creatorChangeTrackOrderDown := tick
 	registerDelayedCallbackWrapper(func() {
 		args := shared_mpe.NewChangeTrackOrderSignalArgs{
-			DeviceID: roomCreatorDeviceID,
-			//Index should be 0 to be a valid signal
+			DeviceID:         roomCreatorDeviceID,
 			FromIndex:        0,
 			TrackID:          trackToChangeOrderDown.ID,
 			UserID:           params.RoomCreatorUserID,
@@ -632,13 +676,54 @@ func (s *ChangeTrackOrderPlaylistTestSuite) Test_ChangeTrackOrderTrackIndexOnlyI
 	registerDelayedCallbackWrapper(func() {
 		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
 
-		expectedTracks := initialTracksMetadata
-		expectedTracks[0], expectedTracks[1] = expectedTracks[1], expectedTracks[0]
+		initialTracksMetadata[0], initialTracksMetadata[1] = initialTracksMetadata[1], initialTracksMetadata[0]
 
-		s.Equal(expectedTracks, mpeState.Tracks)
+		s.Equal(initialTracksMetadata, mpeState.Tracks)
 	}, checkCreatorChangeTrackOrderDown)
 
-	//TODO when addUser is implemented test that a not invited user cannot perform playlist editions operations
+	//InvitedUser change track order
+	invitedUsertrackToChangeOrderUp := initialTracksMetadata[0]
+	invitedUserChangeTrackOrderDown := tick
+	registerDelayedCallbackWrapper(func() {
+		args := shared_mpe.NewChangeTrackOrderSignalArgs{
+			DeviceID:         invitedUserDeviceID,
+			FromIndex:        1,
+			TrackID:          invitedUsertrackToChangeOrderUp.ID,
+			UserID:           invitedUserID,
+			OperationToApply: shared_mpe.MpeOperationToApplyUp,
+		}
+		s.emitChangeTrackOrder(args)
+	}, invitedUserChangeTrackOrderDown)
+
+	checkInvitedChangeTrackOrderUp := tick
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		initialTracksMetadata[1], initialTracksMetadata[0] = initialTracksMetadata[0], initialTracksMetadata[1]
+
+		s.Equal(initialTracksMetadata, mpeState.Tracks)
+	}, checkInvitedChangeTrackOrderUp)
+
+	//JoiningUser change track order
+	joiningUsertrackToChangeOrderDown := initialTracksMetadata[0]
+	joiningUserChangeTrackOrderDown := tick
+	registerDelayedCallbackWrapper(func() {
+		args := shared_mpe.NewChangeTrackOrderSignalArgs{
+			DeviceID:         joiningUserDeviceID,
+			FromIndex:        0,
+			TrackID:          joiningUsertrackToChangeOrderDown.ID,
+			UserID:           joiningUserID,
+			OperationToApply: shared_mpe.MpeOperationToApplyDown,
+		}
+		s.emitChangeTrackOrder(args)
+	}, joiningUserChangeTrackOrderDown)
+
+	checkjoiningUserChangeTrackOrderUpNotWorked := tick
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		s.Equal(initialTracksMetadata, mpeState.Tracks)
+	}, checkjoiningUserChangeTrackOrderUpNotWorked)
 
 	s.env.ExecuteWorkflow(MpeRoomWorkflow, params)
 

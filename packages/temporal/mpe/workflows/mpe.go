@@ -186,47 +186,66 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 
 			MpeRoomReady: &brainy.StateNode{
 				On: brainy.Events{
-					MpeRoomAddTracksEventType: brainy.Transition{
-						//Add cond here ( user exists and user has been invited nor is creator )
 
-						Actions: brainy.Actions{
-							brainy.ActionFn(
-								func(c brainy.Context, e brainy.Event) error {
-									event := e.(MpeRoomAddTracksEvent)
+					MpeRoomAddTracksEventType: brainy.Transitions{
+						{
+							Cond: userCanPerformAddTrackOperation(&internalState),
 
-									acceptedTracksIDsToAdd := make([]string, 0, len(event.TracksIDs))
+							Actions: brainy.Actions{
+								brainy.ActionFn(
+									func(c brainy.Context, e brainy.Event) error {
+										event := e.(MpeRoomAddTracksEvent)
 
-									for _, trackToAdd := range event.TracksIDs {
-										isDuplicate := internalState.Tracks.Has(trackToAdd)
-										if isDuplicate {
-											continue
+										acceptedTracksIDsToAdd := make([]string, 0, len(event.TracksIDs))
+
+										for _, trackToAdd := range event.TracksIDs {
+											isDuplicate := internalState.Tracks.Has(trackToAdd)
+											if isDuplicate {
+												continue
+											}
+
+											acceptedTracksIDsToAdd = append(acceptedTracksIDsToAdd, trackToAdd)
 										}
 
-										acceptedTracksIDsToAdd = append(acceptedTracksIDsToAdd, trackToAdd)
-									}
+										noTracksHaveBeenAccepted := len(acceptedTracksIDsToAdd) == 0
+										if noTracksHaveBeenAccepted {
+											sendRejectAddingTracksActivity(ctx, activities_mpe.RejectAddingTracksActivityArgs{
+												RoomID:   params.RoomID,
+												UserID:   event.UserID,
+												DeviceID: event.DeviceID,
+											})
 
-									noTracksHaveBeenAccepted := len(acceptedTracksIDsToAdd) == 0
-									if noTracksHaveBeenAccepted {
+											return nil
+										}
+
+										fetchingFuture := sendFetchTracksInformationActivityAndForwardInitiator(
+											ctx,
+											acceptedTracksIDsToAdd,
+											event.UserID,
+											event.DeviceID,
+										)
+										fetchedAddedTracksInformationFutures = append(fetchedAddedTracksInformationFutures, fetchingFuture)
+
+										return nil
+									},
+								),
+							},
+						},
+						{
+							Actions: brainy.Actions{
+								brainy.ActionFn(
+									func(c brainy.Context, e brainy.Event) error {
+										fmt.Println("userCanPerformAddTrackOperation is false")
+										event := e.(MpeRoomAddTracksEvent)
+
 										sendRejectAddingTracksActivity(ctx, activities_mpe.RejectAddingTracksActivityArgs{
 											RoomID:   params.RoomID,
 											UserID:   event.UserID,
 											DeviceID: event.DeviceID,
 										})
-
 										return nil
-									}
-
-									fetchingFuture := sendFetchTracksInformationActivityAndForwardInitiator(
-										ctx,
-										acceptedTracksIDsToAdd,
-										event.UserID,
-										event.DeviceID,
-									)
-									fetchedAddedTracksInformationFutures = append(fetchedAddedTracksInformationFutures, fetchingFuture)
-
-									return nil
-								},
-							),
+									}),
+							},
 						},
 					},
 
@@ -274,7 +293,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 
 					MpeRoomChangeTrackOrderEventType: brainy.Transitions{
 						{
-							Cond: userCanPerformChangeTrackPlaylistEditionOperation(&internalState),
+							Cond: userCanPerformChangeTrackOrderPlaylistEditionOperation(&internalState),
 
 							Actions: brainy.Actions{
 								brainy.ActionFn(

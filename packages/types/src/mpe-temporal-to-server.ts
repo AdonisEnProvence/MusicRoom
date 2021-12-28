@@ -45,3 +45,11 @@ export const MpeAcknowledgeDeletingTracksRequestBody = z.object({
 export type MpeAcknowledgeDeletingTracksRequestBody = z.infer<
     typeof MpeAcknowledgeDeletingTracksRequestBody
 >;
+
+export const MpeAcknowledgeJoinRequestBody = z.object({
+    state: MpeWorkflowState,
+    joiningUserID: z.string().uuid(),
+});
+export type MpeAcknowledgeJoinRequestBody = z.infer<
+    typeof MpeAcknowledgeJoinRequestBody
+>;

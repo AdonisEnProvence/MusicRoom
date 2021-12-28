@@ -47,6 +47,18 @@ export type MpeChangeTrackOrderResponseBody = z.infer<
     typeof MpeChangeTrackOrderResponseBody
 >;
 
+export const MpeJoinRequestBody = z.object({
+    workflowID: z.string(),
+    userID: z.string(),
+    userHasBeenInvited: z.boolean(),
+});
+export type MpeJoinRequestBody = z.infer<typeof MpeJoinRequestBody>;
+
+export const MpeJoinResponseBody = z.object({
+    ok: z.literal(1),
+});
+export type MpeJoinResponseBody = z.infer<typeof MpeJoinResponseBody>;
+
 export const MpeDeleteTracksRequestBody = z.object({
     workflowID: z.string(),
     tracksIDs: z.array(z.string()).min(1),

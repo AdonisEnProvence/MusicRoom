@@ -146,3 +146,22 @@ func (a *Activities) AcknowledgeJoinActivity(ctx context.Context, args Acknowled
 
 	return err
 }
+
+type AcknowledgeLeaveActivityArgs struct {
+	State         shared_mpe.MpeRoomExposedState `json:"state"`
+	LeavingUserID string                         `json:"joiningUserID"`
+}
+
+func (a *Activities) AcknowledgeLeaveActivity(ctx context.Context, args AcknowledgeLeaveActivityArgs) error {
+	requestBody := args
+
+	marshaledBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	url := ADONIS_MPE_ENDPOINT + "/acknowledge-leave"
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+
+	return err
+}

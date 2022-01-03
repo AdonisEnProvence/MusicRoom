@@ -118,6 +118,11 @@ func (s *UnitTestSuite) emitAddUserSignal(args shared_mpe.NewAddUserSignalArgs) 
 	s.env.SignalWorkflow(shared_mpe.SignalChannelName, addUserSignal)
 }
 
+func (s *UnitTestSuite) emitRemoveUserSignal(args shared_mpe.NewRemoveUserSignalArgs) {
+	removeUserSignal := shared_mpe.NewRemoveUserSignal(args)
+	s.env.SignalWorkflow(shared_mpe.SignalChannelName, removeUserSignal)
+}
+
 func (s *UnitTestSuite) emitUnkownSignal() {
 	fmt.Println("-----EMIT UNKOWN SIGNAL CALLED IN TEST-----")
 	unkownSignal := struct {
@@ -127,6 +132,12 @@ func (s *UnitTestSuite) emitUnkownSignal() {
 	}
 
 	s.env.SignalWorkflow(shared_mpe.SignalChannelName, unkownSignal)
+}
+
+func (s *UnitTestSuite) emitTerminateSignal() {
+	fmt.Println("-----EMIT TERMINATE SIGNAL CALLED IN TEST-----")
+	terminateSignal := shared_mpe.NewTerminateWorkflowSignal()
+	s.env.SignalWorkflow(shared_mpe.SignalChannelName, terminateSignal)
 }
 
 func IndexOfTrackMedata(array []shared.TrackMetadata, trackToFind shared.TrackMetadata) int {

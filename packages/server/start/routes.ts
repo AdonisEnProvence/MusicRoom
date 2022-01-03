@@ -143,6 +143,11 @@ Route.group(() => {
         `/acknowledge-join`,
         `Temporal/MpeTemporalToServerController.mpeJoinAcknowledgement`,
     );
+
+    Route.post(
+        `/acknowledge-leave`,
+        `Temporal/MpeTemporalToServerController.mpeLeaveAcknowledgement`,
+    );
 }).prefix(MPE_TEMPORAL_LISTENER);
 
 /// //////// ////// ///

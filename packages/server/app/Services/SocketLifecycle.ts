@@ -1,5 +1,8 @@
+import { MpeRoomSummary } from '@musicroom/types';
+import MpeServerToTemporalController from 'App/Controllers/Http/Temporal/MpeServerToTemporalController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
+import MpeRoom from 'App/Models/MpeRoom';
 import User from 'App/Models/User';
 import { TypedSocket } from 'start/socket';
 import UserAgentParser from 'ua-parser-js';
@@ -372,7 +375,7 @@ export default class SocketLifecycle {
         };
     }
 
-    public static async ownerLeavesRoom(ownedRoom: MtvRoom): Promise<void> {
+    public static async ownerLeavesMtvRoom(ownedRoom: MtvRoom): Promise<void> {
         await ownedRoom.delete();
 
         Ws.io.in(ownedRoom.uuid).emit('MTV_FORCED_DISCONNECTION');
@@ -385,6 +388,45 @@ export default class SocketLifecycle {
             await MtvRoomsWsController.onTerminate({
                 roomID: ownedRoom.uuid,
                 runID: ownedRoom.runID,
+            });
+        } catch (e) {
+            console.error(
+                `Couldnt terminate workflow on owner disconnection ${ownedRoom.creator.uuid} room: ${ownedRoom.uuid} workflow is still alive in temporal but removed from database and socket io instance`,
+                e,
+            );
+        }
+    }
+
+    public static async ownerLeavesMpeRoom({
+        creator,
+        ownedRoom,
+    }: {
+        creator: User;
+        ownedRoom: MpeRoom;
+    }): Promise<void> {
+        const { isOpen, name: roomName, uuid: roomID } = ownedRoom;
+
+        await ownedRoom.delete();
+
+        const roomSummary: MpeRoomSummary = {
+            creatorName: creator.nickname,
+            isInvited: false, //TODO compute this data
+            isOpen,
+            roomID,
+            roomName,
+        };
+        Ws.io.in(ownedRoom.uuid).emit('MPE_FORCED_DISCONNECTION', {
+            roomSummary,
+        });
+
+        await this.deleteSocketIoRoom(ownedRoom.uuid);
+
+        try {
+            console.log(
+                `Sending terminate signal to temporal for room ${ownedRoom.uuid}`,
+            );
+            await MpeServerToTemporalController.terminateWorkflow({
+                workflowID: roomID,
             });
         } catch (e) {
             console.error(

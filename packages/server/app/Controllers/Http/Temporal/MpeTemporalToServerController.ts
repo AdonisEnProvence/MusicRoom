@@ -7,6 +7,7 @@ import {
     MpeAcknowledgeChangeTrackOrderRequestBody,
     MpeAcknowledgeDeletingTracksRequestBody,
     MpeAcknowledgeJoinRequestBody,
+    MpeAcknowledgeLeaveRequestBody,
 } from '@musicroom/types';
 import Device from 'App/Models/Device';
 import MpeRoom from 'App/Models/MpeRoom';
@@ -52,6 +53,20 @@ export default class MpeTemporalToServerController {
                 },
             ],
         );
+
+        Ws.io.to(roomID).emit('MPE_USERS_LENGTH_UPDATE', {
+            state,
+            roomID,
+        });
+    }
+
+    public async mpeLeaveAcknowledgement({
+        request,
+    }: HttpContextContract): Promise<void> {
+        console.log('RECEIVED MPE LEAVE ROOM ACK');
+
+        const { state } = MpeAcknowledgeLeaveRequestBody.parse(request.body());
+        const { roomID } = state;
 
         Ws.io.to(roomID).emit('MPE_USERS_LENGTH_UPDATE', {
             state,

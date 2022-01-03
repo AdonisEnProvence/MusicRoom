@@ -303,7 +303,7 @@ export default class MtvRoomsWsController {
          * We need to disconnect every of his device from the room socket io instance
          * And to dissociate his relationship with the mtvRoom
          */
-        await UserService.leaveEveryUserDevicesFromRoom(user, leavingRoomID);
+        await UserService.leaveEveryUserDevicesFromMtvRoom(user, leavingRoomID);
         await user.related('mtvRoom').dissociate();
 
         /**
@@ -314,7 +314,7 @@ export default class MtvRoomsWsController {
         const leavingUserIsTheCreator = userID === creatorID;
         console.log('LEAVING USER IS THE CREATOR ', leavingUserIsTheCreator);
         if (leavingUserIsTheCreator) {
-            await SocketLifecycle.ownerLeavesRoom(leavingRoom);
+            await SocketLifecycle.ownerLeavesMtvRoom(leavingRoom);
         } else {
             await MtvServerToTemporalController.leaveWorkflow({
                 workflowID: leavingRoomID,

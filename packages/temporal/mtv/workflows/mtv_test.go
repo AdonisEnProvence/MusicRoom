@@ -141,6 +141,13 @@ func (s *UnitTestSuite) emitLeaveSignal(userID string) {
 	s.env.SignalWorkflow(shared_mtv.SignalChannelName, signal)
 }
 
+func (s *UnitTestSuite) emitTerminateWorkflowSignal() {
+	fmt.Println("-----EMIT TERMINATE CALLED IN TEST-----")
+	signal := shared_mtv.NewTerminateSignal(shared_mtv.NewTerminateSignalArgs{})
+
+	s.env.SignalWorkflow(shared_mtv.SignalChannelName, signal)
+}
+
 func (s *UnitTestSuite) emitChangeUserEmittingDevice(userID string, deviceID string) {
 	fmt.Println("-----EMIT CHANGE USER EMITTING DEVICE CALLED IN TEST-----")
 	signal := shared_mtv.NewChangeUserEmittingDeviceSignal(shared_mtv.ChangeUserEmittingDeviceSignalArgs{
@@ -5255,6 +5262,48 @@ func (s *UnitTestSuite) Test_MtvRoomPanicAfterUnkownWorkflowSignal() {
 	var panicError *temporal.PanicError
 	s.True(errors.As(err, &panicError))
 	s.Contains(panicError.Error(), ErrUnknownWorflowSignal.Error())
+}
+
+func (s *UnitTestSuite) Test_MtvRoomExitsAfterTerminateSignal() {
+	var a *activities_mtv.Activities
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         faker.UUIDHyphenated(),
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   random.GenerateRandomDuration(),
+		},
+	}
+	initialTracksIDs := []string{tracks[0].ID}
+
+	params, _ := getWorkflowInitParams(initialTracksIDs, 1)
+	defaultDuration := 200 * time.Millisecond
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		initialTracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		a.CreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
+	init := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		s.emitTerminateWorkflowSignal()
+	}, init)
+
+	s.env.ExecuteWorkflow(MtvRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.Nil(err)
 }
 
 func TestUnitTestSuite(t *testing.T) {

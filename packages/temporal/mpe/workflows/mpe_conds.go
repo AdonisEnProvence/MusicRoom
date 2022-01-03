@@ -9,7 +9,6 @@ import (
 
 func userExistsAndUserCanEditTheTracksList(internalState *MpeRoomInternalState, UserID string) bool {
 	user := internalState.GetUserRelatedInformation(UserID)
-	fmt.Println("CECI EST LE USER", user)
 	if user == nil {
 		fmt.Println("userCanPerformEditionOperationOnTheTracksList user not found")
 		return false
@@ -30,7 +29,7 @@ func userExistsAndUserCanEditTheTracksList(internalState *MpeRoomInternalState, 
 }
 
 //The event listener will send back a reject activity if this condition is false
-func userCanPerformChangeTrackPlaylistEditionOperation(internalState *MpeRoomInternalState) brainy.Cond {
+func userCanPerformChangeTrackOrderPlaylistEditionOperation(internalState *MpeRoomInternalState) brainy.Cond {
 	return func(c brainy.Context, e brainy.Event) bool {
 		event := e.(MpeRoomChangeTrackOrderEvent)
 
@@ -81,6 +80,33 @@ func userCanPerformDeleteTracksOperation(internalState *MpeRoomInternalState) br
 
 		userDoesnotExistsOrUserCannotEditTheTracksList := !userExistsAndUserCanEditTheTracksList(internalState, event.UserID)
 		if userDoesnotExistsOrUserCannotEditTheTracksList {
+			fmt.Println("userCanPerformDeleteTracksOperation user doesnot exist or cannot edit the playlist")
+			return false
+		}
+
+		return true
+	}
+}
+
+func userCanPerformAddTrackOperation(internalState *MpeRoomInternalState) brainy.Cond {
+	return func(c brainy.Context, e brainy.Event) bool {
+		event := e.(MpeRoomAddTracksEvent)
+
+		userDoesnotExistsOrUserCannotEditTheTracksList := !userExistsAndUserCanEditTheTracksList(internalState, event.UserID)
+		if userDoesnotExistsOrUserCannotEditTheTracksList {
+			fmt.Println("userCanPerformAddTrackOperation user doesnot exist or cannot edit the playlist")
+			return false
+		}
+
+		return true
+	}
+}
+
+func userIsNotAlreadyInRoom(internalState *MpeRoomInternalState) brainy.Cond {
+	return func(c brainy.Context, e brainy.Event) bool {
+		event := e.(MpeRoomAddUserEvent)
+
+		if user := internalState.GetUserRelatedInformation(event.UserID); user != nil {
 			fmt.Println("userCanPerformDeleteTracksOperation user doesnot exist or cannot edit the playlist")
 			return false
 		}

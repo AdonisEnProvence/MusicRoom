@@ -493,6 +493,248 @@ func (s *AddTracksTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchingInfor
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
+func (s *AddTracksTestSuite) Test_IsOpenAndIsOpenOnlyInvitedUsersCanEditAndCreatorIsTrueAddTrack() {
+	initialTracksIDs := []string{
+		faker.UUIDHyphenated(),
+	}
+	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+	params.IsOpenOnlyInvitedUsersCanEdit = true
+	var (
+		a                   *activities_mpe.Activities
+		invitedUserID       = faker.UUIDHyphenated()
+		invitedUserDeviceID = faker.UUIDHyphenated()
+		joiningUserID       = faker.UUIDHyphenated()
+		joiningUserDeviceID = faker.UUIDHyphenated()
+	)
+
+	initialTracksMetadata := []shared.TrackMetadata{
+		{
+			ID:         initialTracksIDs[0],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+	}
+
+	creatorTrackToAddMetadata := shared.TrackMetadata{
+		ID:         faker.UUIDHyphenated(),
+		Title:      faker.Word(),
+		ArtistName: faker.Name(),
+		Duration:   42000,
+	}
+	invitedUserTrackToAddMetadata := shared.TrackMetadata{
+		ID:         faker.UUIDHyphenated(),
+		Title:      faker.Word(),
+		ArtistName: faker.Name(),
+		Duration:   42000,
+	}
+	joiningUserTrackToAddMetadata := shared.TrackMetadata{
+		ID:         faker.UUIDHyphenated(),
+		Title:      faker.Word(),
+		ArtistName: faker.Name(),
+		Duration:   42000,
+	}
+
+	tick := 200 * time.Millisecond
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	// Common activities calls
+	s.env.OnActivity(
+		a.MpeCreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		initialTracksIDs,
+	).Return(initialTracksMetadata, nil).Once()
+	s.env.OnActivity(
+		a.AcknowledgeJoinActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Twice()
+
+	initialTracksFetched := tick
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		s.Equal(initialTracksMetadata, mpeState.Tracks)
+	}, initialTracksFetched)
+
+	addInvitedUser := tick
+	registerDelayedCallbackWrapper(func() {
+		s.emitAddUserSignal(shared_mpe.NewAddUserSignalArgs{
+			UserID:             invitedUserID,
+			UserHasBeenInvited: true,
+		})
+	}, addInvitedUser)
+
+	checkAddInvitedUserWorked := tick
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		s.Equal(2, mpeState.UsersLength)
+	}, checkAddInvitedUserWorked)
+
+	addJoiningUser := tick
+	registerDelayedCallbackWrapper(func() {
+		s.emitAddUserSignal(shared_mpe.NewAddUserSignalArgs{
+			UserID:             joiningUserID,
+			UserHasBeenInvited: false,
+		})
+	}, addJoiningUser)
+
+	checkJoinWorked := tick
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		s.Equal(3, mpeState.UsersLength)
+	}, checkJoinWorked)
+
+	//Creator add track activity
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivityAndForwardInitiator,
+		mock.Anything,
+		[]string{creatorTrackToAddMetadata.ID},
+		params.RoomCreatorUserID,
+		roomCreatorDeviceID,
+	).Return(activities.FetchedTracksInformationWithInitiator{
+		Metadata: []shared.TrackMetadata{creatorTrackToAddMetadata},
+		UserID:   params.RoomCreatorUserID,
+		DeviceID: roomCreatorDeviceID,
+	}, nil).Once()
+
+	s.env.OnActivity(
+		a.AcknowledgeAddingTracksActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	///
+
+	creatorAddsTrack := tick
+	registerDelayedCallbackWrapper(func() {
+		s.emitAddTrackSignal(shared_mpe.NewAddTracksSignalArgs{
+			TracksIDs: []string{creatorTrackToAddMetadata.ID},
+			UserID:    params.RoomCreatorUserID,
+			DeviceID:  roomCreatorDeviceID,
+		})
+	}, creatorAddsTrack)
+
+	checkCreatorAddsTracksWorked := tick
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		expectedTracks := append(initialTracksMetadata, creatorTrackToAddMetadata)
+
+		s.Equal(
+			expectedTracks,
+			mpeState.Tracks,
+		)
+	}, checkCreatorAddsTracksWorked)
+
+	//InvitedUser adds track activity
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivityAndForwardInitiator,
+		mock.Anything,
+		[]string{invitedUserTrackToAddMetadata.ID},
+		invitedUserID,
+		invitedUserDeviceID,
+	).Return(activities.FetchedTracksInformationWithInitiator{
+		Metadata: []shared.TrackMetadata{invitedUserTrackToAddMetadata},
+		UserID:   invitedUserID,
+		DeviceID: invitedUserDeviceID,
+	}, nil).Once()
+
+	s.env.OnActivity(
+		a.AcknowledgeAddingTracksActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+	///
+
+	invitedUserAddsTrack := tick
+	registerDelayedCallbackWrapper(func() {
+		s.emitAddTrackSignal(shared_mpe.NewAddTracksSignalArgs{
+			TracksIDs: []string{invitedUserTrackToAddMetadata.ID},
+			UserID:    invitedUserID,
+			DeviceID:  invitedUserDeviceID,
+		})
+	}, invitedUserAddsTrack)
+
+	checkinvitedUserAddsTracksWorked := tick
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		expectedTracks := append(initialTracksMetadata, creatorTrackToAddMetadata, invitedUserTrackToAddMetadata)
+
+		s.Equal(
+			expectedTracks,
+			mpeState.Tracks,
+		)
+	}, checkinvitedUserAddsTracksWorked)
+
+	//JoiningUser adds track activity
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivityAndForwardInitiator,
+		mock.Anything,
+		[]string{joiningUserTrackToAddMetadata.ID},
+		joiningUserID,
+		joiningUserDeviceID,
+	).Return(activities.FetchedTracksInformationWithInitiator{
+		Metadata: []shared.TrackMetadata{joiningUserTrackToAddMetadata},
+		UserID:   joiningUserID,
+		DeviceID: joiningUserDeviceID,
+	}, nil).Never()
+
+	s.env.OnActivity(
+		a.AcknowledgeAddingTracksActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Never()
+
+	s.env.OnActivity(
+		a.RejectAddingTracksActivity,
+		mock.Anything,
+		activities_mpe.RejectAddingTracksActivityArgs{
+			RoomID:   params.RoomID,
+			UserID:   joiningUserID,
+			DeviceID: joiningUserDeviceID,
+		},
+	).Return(nil).Once()
+
+	///
+
+	JoiningUserAddsTrack := tick
+	registerDelayedCallbackWrapper(func() {
+		s.emitAddTrackSignal(shared_mpe.NewAddTracksSignalArgs{
+			TracksIDs: []string{joiningUserTrackToAddMetadata.ID},
+			UserID:    joiningUserID,
+			DeviceID:  joiningUserDeviceID,
+		})
+	}, JoiningUserAddsTrack)
+
+	checkJoiningUserAddsTracksNotWorked := tick
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		expectedTracks := append(initialTracksMetadata, creatorTrackToAddMetadata, invitedUserTrackToAddMetadata)
+
+		s.Equal(
+			expectedTracks,
+			mpeState.Tracks,
+		)
+	}, checkJoiningUserAddsTracksNotWorked)
+
+	s.env.ExecuteWorkflow(MpeRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
 func TestAddTracksTestSuite(t *testing.T) {
 	suite.Run(t, new(AddTracksTestSuite))
 }

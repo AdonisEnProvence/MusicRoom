@@ -246,7 +246,7 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflowFetchInitialTrackFaile
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
-func (s *UnitTestSuite) Test_MtvRoomPanicAfterUnkownWorkflowSignal() {
+func (s *CreateMpeWorkflowTestUnit) Test_MtvRoomPanicAfterUnkownWorkflowSignal() {
 	var a *activities_mpe.Activities
 
 	tracks := []shared.TrackMetadata{
@@ -290,6 +290,6 @@ func (s *UnitTestSuite) Test_MtvRoomPanicAfterUnkownWorkflowSignal() {
 	s.True(errors.As(err, &panicError))
 	s.Contains(panicError.Error(), ErrUnknownWorflowSignal.Error())
 }
-func TestUnitTestSuite(t *testing.T) {
+func TestCreateMpeWorkflowTestSuite(t *testing.T) {
 	suite.Run(t, new(CreateMpeWorkflowTestUnit))
 }

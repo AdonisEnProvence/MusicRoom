@@ -33,6 +33,9 @@ async function createRoom({ creatorPage }: { creatorPage: Page }) {
 
     await firstMatchingSong.click();
 
+    const createMtvRoomModalButton = creatorPage.locator('text="Create MTV"');
+    await createMtvRoomModalButton.click();
+
     await expect(
         creatorPage.locator('text="What is the name of the room?"'),
     ).toBeVisible();

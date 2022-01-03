@@ -53,6 +53,9 @@ async function createDirectRoomAndGoFullscreen({
 
     await firstMatchingSong.click();
 
+    const createMtvRoomModalButton = creatorPage.locator('text="Create MTV"');
+    await createMtvRoomModalButton.click();
+
     /** Entering the mtv room creation form **/
     //RoomName
     await expect(

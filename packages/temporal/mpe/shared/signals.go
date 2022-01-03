@@ -7,6 +7,7 @@ const (
 	SignalChangeTrackOrder shared.SignalRoute = "change-track-order"
 	SignalDeleteTracks     shared.SignalRoute = "delete-tracks"
 	SignalAddUser          shared.SignalRoute = "add-user"
+	SignalRemoveUser       shared.SignalRoute = "remove-user"
 )
 
 type AddTracksSignal struct {
@@ -102,5 +103,23 @@ func NewAddUserSignal(args NewAddUserSignalArgs) AddUserSignal {
 
 		UserID:             args.UserID,
 		UserHasBeenInvited: args.UserHasBeenInvited,
+	}
+}
+
+type RemoveUserSignal struct {
+	Route shared.SignalRoute `validate:"required"`
+
+	UserID string `validate:"required"`
+}
+
+type NewRemoveUserSignalArgs struct {
+	UserID string
+}
+
+func NewRemoveUserSignal(args NewRemoveUserSignalArgs) RemoveUserSignal {
+	return RemoveUserSignal{
+		Route: SignalRemoveUser,
+
+		UserID: args.UserID,
 	}
 }

@@ -153,3 +153,23 @@ func NewMpeRoomAddUserEvent(args NewMpeRoomAddUserEventArgs) MpeRoomAddUserEvent
 		UserID:             args.UserID,
 	}
 }
+
+type MpeRoomRemoveUserEvent struct {
+	brainy.EventWithType
+
+	UserID string `validate:"required,uuid"`
+}
+
+type NewMpeRoomRemoveUserEventArgs struct {
+	UserID string
+}
+
+func NewMpeRoomRemoveUserEvent(args NewMpeRoomRemoveUserEventArgs) MpeRoomRemoveUserEvent {
+	return MpeRoomRemoveUserEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MpeRoomRemoveUserEventType,
+		},
+
+		UserID: args.UserID,
+	}
+}

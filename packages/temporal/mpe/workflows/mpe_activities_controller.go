@@ -128,3 +128,18 @@ func sendAcknowledgeJoinActivity(ctx workflow.Context, args activities_mpe.Ackno
 		args,
 	)
 }
+
+func sendAcknowledgeLeaveActivity(ctx workflow.Context, args activities_mpe.AcknowledgeLeaveActivityArgs) {
+	options := workflow.ActivityOptions{
+		ScheduleToStartTimeout: time.Minute,
+		StartToCloseTimeout:    time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, options)
+
+	var a *activities_mpe.Activities
+	workflow.ExecuteActivity(
+		ctx,
+		a.AcknowledgeLeaveActivity,
+		args,
+	)
+}

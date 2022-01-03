@@ -22,6 +22,7 @@ func AddMpeHandler(r *mux.Router) {
 	r.Handle("/mpe/delete-tracks", http.HandlerFunc(MpeDeleteTracksHandler)).Methods(http.MethodPut)
 	r.Handle("/mpe/get-state", http.HandlerFunc(getStateQueryHandler)).Methods(http.MethodPut)
 	r.Handle("/mpe/join", http.HandlerFunc(MpeJoinHandler)).Methods(http.MethodPut)
+	r.Handle("/mpe/leave", http.HandlerFunc(MpeLeaveHandler)).Methods(http.MethodPut)
 }
 
 type MpeGetStateQueryRequestBody struct {
@@ -341,6 +342,46 @@ func MpeJoinHandler(w http.ResponseWriter, r *http.Request) {
 	signal := shared_mpe.NewAddUserSignal(shared_mpe.NewAddUserSignalArgs{
 		UserID:             body.UserID,
 		UserHasBeenInvited: body.UserHasBeenInvited,
+	})
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		shared.NoWorkflowRunID,
+		shared_mpe.SignalChannelName,
+		signal,
+	); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	res := make(map[string]interface{})
+	res["ok"] = 1
+	json.NewEncoder(w).Encode(res)
+}
+
+type MpeLeaveRequestBody struct {
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+
+	UserID string `json:"userID" validate:"required,uuid"`
+}
+
+func MpeLeaveHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var body MpeLeaveRequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	signal := shared_mpe.NewRemoveUserSignal(shared_mpe.NewRemoveUserSignalArgs{
+		UserID: body.UserID,
 	})
 	if err := temporal.SignalWorkflow(
 		context.Background(),

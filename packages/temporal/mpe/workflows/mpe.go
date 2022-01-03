@@ -38,6 +38,15 @@ func (s *MpeRoomInternalState) AddUser(user shared_mpe.InternalStateUser) {
 	}
 }
 
+func (s *MpeRoomInternalState) RemoveUser(userID string) bool {
+	if _, ok := s.Users[userID]; ok {
+		delete(s.Users, userID)
+		return true
+	}
+	fmt.Printf("\n Couldnt find User %s \n", userID)
+	return false
+}
+
 func (s *MpeRoomInternalState) GetUserRelatedInformation(userID string) *shared_mpe.InternalStateUser {
 	if userInformation, ok := s.Users[userID]; userID != shared_mpe.NoRelatedUserID && ok {
 		return userInformation
@@ -86,6 +95,7 @@ const (
 	MpeRoomChangeTrackOrderEventType              brainy.EventType = "CHANGE_TRACK_ORDER"
 	MpeRoomDeleteTracksEventType                  brainy.EventType = "DELETE_TRACKS"
 	MpeRoomAddUserEventType                       brainy.EventType = "ADD_USER"
+	MpeRoomRemoveUserEventType                    brainy.EventType = "REMOVE_USER"
 )
 
 func getNowFromSideEffect(ctx workflow.Context) time.Time {
@@ -343,6 +353,25 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 						},
 					},
 
+					MpeRoomRemoveUserEventType: brainy.Transition{
+						Actions: brainy.Actions{
+							brainy.ActionFn(
+								func(c brainy.Context, e brainy.Event) error {
+									event := e.(MpeRoomRemoveUserEvent)
+
+									if success := internalState.RemoveUser(event.UserID); success {
+										sendAcknowledgeLeaveActivity(ctx, activities_mpe.AcknowledgeLeaveActivityArgs{
+											State:         internalState.Export(),
+											LeavingUserID: event.UserID,
+										})
+									}
+
+									return nil
+								},
+							),
+						},
+					},
+
 					MpeRoomDeleteTracksEventType: brainy.Transitions{
 						{
 							Cond: userCanPerformDeleteTracksOperation(&internalState),
@@ -482,6 +511,25 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 						UserHasBeenInvited: message.UserHasBeenInvited,
 					}),
 				)
+
+			case shared_mpe.SignalRemoveUser:
+				var message shared_mpe.RemoveUserSignal
+
+				if err := mapstructure.Decode(signal, &message); err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
+				if err := Validate.Struct(message); err != nil {
+					logger.Error("Validation error: %v", err)
+					return
+				}
+
+				internalState.Machine.Send(
+					NewMpeRoomRemoveUserEvent(NewMpeRoomRemoveUserEventArgs{
+						UserID: message.UserID,
+					}),
+				)
+
 			default:
 				panic(ErrUnknownWorflowSignal)
 			}

@@ -60,6 +60,14 @@ export type MpeRoomClientToServerChangeTrackOrderUpDownArgs = z.infer<
     typeof MpeRoomClientToServerChangeTrackOrderUpDownArgs
 >;
 
+export const MpeRoomClientToServerJoinRoomArgs = z.object({
+    roomID: z.string().uuid(),
+});
+export type MpeRoomClientToServerJoinRoomArgs = z.infer<
+    typeof MpeRoomClientToServerJoinRoomArgs
+>;
+
+//Server to client
 export const MpeRoomServerToClientChangeTrackFailCallbackArgs = z.object({
     roomID: z.string().uuid(),
 });
@@ -106,6 +114,25 @@ export type MpeRoomServerToClientGetContextSuccessCallbackArgs = z.infer<
     typeof MpeRoomServerToClientGetContextSuccessCallbackArgs
 >;
 
+export const MpeRoomServerToClientJoinRoomCallbackArgs = z.object({
+    state: MpeWorkflowState,
+    roomID: z.string().uuid(),
+    userIsNotInRoom: z.boolean(),
+});
+export type MpeRoomServerToClientJoinRoomCallbackArgs = z.infer<
+    typeof MpeRoomServerToClientJoinRoomCallbackArgs
+>;
+
+export const MpeRoomServerToClientUsersLengthUpdateArgs = z.object({
+    state: MpeWorkflowState,
+    roomID: z.string().uuid(),
+});
+export type MpeRoomServerToClientUsersLengthUpdateArgs = z.infer<
+    typeof MpeRoomServerToClientUsersLengthUpdateArgs
+>;
+
+///
+
 export interface MpeRoomClientToServerEvents {
     MPE_CREATE_ROOM: (args: MpeRoomClientToServerCreateArgs) => void;
     MPE_ADD_TRACKS: (args: MpeRoomClientToServerAddTracksArgs) => void;
@@ -117,6 +144,7 @@ export interface MpeRoomClientToServerEvents {
     ) => void;
     MPE_DELETE_TRACKS: (args: MpeRoomClientToServerDeleteTracksArgs) => void;
     MPE_GET_CONTEXT: (args: MpeRoomClientToServerGetContextArgs) => void;
+    MPE_JOIN_ROOM: (args: MpeRoomClientToServerJoinRoomArgs) => void;
 }
 
 export interface MpeRoomServerToClientEvents {
@@ -146,5 +174,11 @@ export interface MpeRoomServerToClientEvents {
     ) => void;
     MPE_GET_CONTEXT_FAIL_CALLBACK: (
         args: MpeRoomServerToClientGetContextFailCallbackArgs,
+    ) => void;
+    MPE_JOIN_ROOM_CALLBACK: (
+        args: MpeRoomServerToClientJoinRoomCallbackArgs,
+    ) => void;
+    MPE_USERS_LENGTH_UPDATE: (
+        args: MpeRoomServerToClientUsersLengthUpdateArgs,
     ) => void;
 }

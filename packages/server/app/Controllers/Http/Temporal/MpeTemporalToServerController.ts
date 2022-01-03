@@ -6,8 +6,12 @@ import {
     MpeRejectChangeTrackOrderRequestBody,
     MpeAcknowledgeChangeTrackOrderRequestBody,
     MpeAcknowledgeDeletingTracksRequestBody,
+    MpeAcknowledgeJoinRequestBody,
 } from '@musicroom/types';
 import Device from 'App/Models/Device';
+import MpeRoom from 'App/Models/MpeRoom';
+import User from 'App/Models/User';
+import UserService from 'App/Services/UserService';
 import Ws from 'App/Services/Ws';
 
 export default class MpeTemporalToServerController {
@@ -18,6 +22,41 @@ export default class MpeTemporalToServerController {
         const state = MpeWorkflowState.parse(request.body());
 
         Ws.io.to(state.roomID).emit('MPE_CREATE_ROOM_CALLBACK', state);
+    }
+
+    public async mpeJoinAcknowledgement({
+        request,
+    }: HttpContextContract): Promise<void> {
+        console.log('RECEIVED MPE JOIN ROOM ACK');
+
+        const { state, joiningUserID } = MpeAcknowledgeJoinRequestBody.parse(
+            request.body(),
+        );
+        const { roomID } = state;
+
+        const joiningUser = await User.findOrFail(joiningUserID);
+        const mpeRoom = await MpeRoom.findOrFail(roomID);
+
+        await UserService.joinEveryUserDevicesToRoom(joiningUser, roomID);
+
+        await joiningUser.related('mpeRooms').save(mpeRoom);
+
+        await UserService.emitEventInEveryDeviceUser(
+            joiningUserID,
+            'MPE_JOIN_ROOM_CALLBACK',
+            [
+                {
+                    roomID,
+                    state,
+                    userIsNotInRoom: false,
+                },
+            ],
+        );
+
+        Ws.io.to(roomID).emit('MPE_USERS_LENGTH_UPDATE', {
+            state,
+            roomID,
+        });
     }
 
     public async addingTracksRejection({

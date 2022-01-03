@@ -12,16 +12,50 @@ import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
 import { TypedSocket } from 'start/socket';
 import MpeServerToTemporalController from '../Http/Temporal/MpeServerToTemporalController';
-import { throwErrorIfUserIsNotInGivenMpeRoom } from '../../../start/mpeSocket';
+
+interface IsUserInMpeRoomArgs {
+    userID: string;
+    roomID: string;
+}
+
+export async function IsUserInMpeRoom({
+    userID,
+    roomID,
+}: IsUserInMpeRoomArgs): Promise<boolean> {
+    const room = await MpeRoom.query()
+        .where('uuid', roomID)
+        .andWhereHas('members', (queryUser) => {
+            return queryUser.where('uuid', userID);
+        });
+
+    return room.length !== 0;
+}
+
+export async function throwErrorIfUserIsNotInGivenMpeRoom({
+    userID,
+    roomID,
+}: IsUserInMpeRoomArgs): Promise<void> {
+    await MpeRoom.query()
+        .where('uuid', roomID)
+        .andWhereHas('members', (queryUser) => {
+            return queryUser.where('uuid', userID);
+        })
+        .firstOrFail();
+}
 
 interface MpeOnCreateArgs extends MpeRoomClientToServerCreateArgs {
     roomCreator: User;
 }
 
+interface MpeOnJoinArgs {
+    roomID: string;
+    user: User;
+}
+
 interface MpeOnAddTracksArgs {
     roomID: string;
     tracksIDs: string[];
-    userID: string;
+    user: User;
     deviceID: string;
 }
 
@@ -139,12 +173,43 @@ export default class MpeRoomsWsController {
         }
     }
 
+    public static async onJoin({ roomID, user }: MpeOnJoinArgs): Promise<void> {
+        await MpeRoom.findOrFail(roomID);
+        const { uuid: userID } = user;
+        console.log(`USER ${userID} JOINS ${roomID}`);
+
+        const userIsAlreadyInTheRoom = await IsUserInMpeRoom({
+            roomID,
+            userID,
+        });
+        if (userIsAlreadyInTheRoom) {
+            throw new Error('Join mpe room user is already in room');
+        }
+
+        //TODO MpeRoomInvitations verifications as for as MTV
+
+        const userHasBeenInvited = false;
+
+        await MpeServerToTemporalController.joinWorkflow({
+            workflowID: roomID,
+            userID,
+            userHasBeenInvited,
+        });
+    }
+
     public static async onAddTracks({
         roomID,
         tracksIDs,
-        userID,
+        user,
         deviceID,
     }: MpeOnAddTracksArgs): Promise<void> {
+        const { uuid: userID } = user;
+
+        await throwErrorIfUserIsNotInGivenMpeRoom({
+            userID,
+            roomID,
+        });
+
         await MpeServerToTemporalController.addTracks({
             workflowID: roomID,
             tracksIDs,

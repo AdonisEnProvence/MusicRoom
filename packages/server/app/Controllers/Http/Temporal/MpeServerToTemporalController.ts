@@ -10,6 +10,8 @@ import {
     MpeDeleteTracksResponseBody,
     MpeGetStateQueryRequestBody,
     MpeGetStateQueryResponseBody,
+    MpeJoinResponseBody,
+    MpeJoinRequestBody,
 } from '@musicroom/types';
 import got from 'got';
 import urlcat from 'urlcat';
@@ -29,6 +31,20 @@ export default class MpeServerToTemporalController {
         const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/create');
 
         return MpeCreateWorkflowResponse.parse(
+            await got
+                .put(url, {
+                    json: body,
+                })
+                .json(),
+        );
+    }
+
+    public static async joinWorkflow(
+        body: MpeJoinRequestBody,
+    ): Promise<MpeJoinResponseBody> {
+        const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/join');
+
+        return MpeJoinResponseBody.parse(
             await got
                 .put(url, {
                     json: body,

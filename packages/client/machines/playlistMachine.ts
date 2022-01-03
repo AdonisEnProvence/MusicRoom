@@ -71,6 +71,8 @@ export const playlistModel = createModel(
             }) => args,
 
             GET_CONTEXT: () => ({}),
+
+            JOIN_ROOM: () => ({}),
         },
     },
 );
@@ -151,12 +153,17 @@ const assignTrackToMoveDown = playlistModel.assign(
 const assignMergeNewState = playlistModel.assign(
     {
         state: (context, { state }) => {
+            console.log('assignMergeNewState userIsNotInRoom: ', state);
             return {
                 ...context.state,
                 ...state,
             };
         },
         userIsNotInRoom: (context, { userIsNotInRoom }) => {
+            console.log(
+                'assignMergeNewState userIsNotInRoom: ',
+                userIsNotInRoom,
+            );
             return userIsNotInRoom ?? context.userIsNotInRoom;
         },
     },
@@ -223,7 +230,12 @@ export function createPlaylistMachine({
 
                 on: {
                     ASSIGN_MERGE_NEW_STATE: {
-                        actions: assignMergeNewState,
+                        actions: [
+                            () => {
+                                console.log('ASSIGN MERGE NEW STATE PLAYLIST');
+                            },
+                            assignMergeNewState,
+                        ],
                     },
 
                     ADD_TRACK: {
@@ -291,6 +303,12 @@ export function createPlaylistMachine({
                         target: 'deletingTrack',
 
                         actions: assignTrackIDToDelete,
+                    },
+
+                    JOIN_ROOM: {
+                        cond: ({ userIsNotInRoom }) => userIsNotInRoom === true,
+
+                        target: 'joiningRoom',
                     },
                 },
             },
@@ -476,6 +494,52 @@ export function createPlaylistMachine({
                                     assignStateAfterDeletingTracksSuccess,
                                     'triggerSuccessfulDeletingTrackToast',
                                 ],
+                            },
+                        },
+                    },
+
+                    debouncing: {
+                        after: {
+                            200: {
+                                target: 'end',
+                            },
+                        },
+                    },
+
+                    end: {
+                        type: 'final',
+                    },
+                },
+
+                onDone: {
+                    target: 'idle',
+                },
+            },
+
+            joiningRoom: {
+                tags: 'freezeUi',
+
+                initial: 'sendingToServer',
+
+                states: {
+                    sendingToServer: {
+                        always: {
+                            actions: sendParent(() => {
+                                console.log('SENDING TO PARENT ');
+                                return appMusicPlaylistsModel.events.JOIN_ROOM({
+                                    roomID,
+                                });
+                            }),
+                            target: 'waitingForServerAcknowledgement',
+                        },
+                    },
+
+                    waitingForServerAcknowledgement: {
+                        on: {
+                            ASSIGN_MERGE_NEW_STATE: {
+                                target: 'debouncing',
+
+                                actions: assignMergeNewState,
                             },
                         },
                     },

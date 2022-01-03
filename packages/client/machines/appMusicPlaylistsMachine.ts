@@ -43,14 +43,15 @@ export const appMusicPlaylistsModel = createModel(
             CREATE_ROOM: (params: MpeRoomClientToServerCreateArgs) => ({
                 params,
             }),
+            JOIN_ROOM: (args: { roomID: string }) => args,
             SPAWN_NEW_PLAYLIST_ACTOR_FROM_STATE: (args: {
                 state: MpeWorkflowState;
             }) => args,
-            FORWARD_ASSIGN_MERGE_NEW_STATE_TO_INVOLVED_PLAYLIST: (
-                state: MpeWorkflowState,
-            ) => ({
-                state,
-            }),
+            FORWARD_ASSIGN_MERGE_NEW_STATE_TO_INVOLVED_PLAYLIST: (args: {
+                state: MpeWorkflowState;
+                roomID: string;
+                userIsNotInRoom?: boolean;
+            }) => args,
             MPE_TRACKS_LIST_UPDATE: (args: {
                 state: MpeWorkflowState;
                 roomID: string;
@@ -204,6 +205,7 @@ export function createAppMusicPlaylistsMachine({
                     socket.on('MPE_CREATE_ROOM_CALLBACK', (state) => {
                         sendBack({
                             type: 'FORWARD_ASSIGN_MERGE_NEW_STATE_TO_INVOLVED_PLAYLIST',
+                            roomID: state.roomID,
                             state,
                         });
                     });
@@ -285,6 +287,21 @@ export function createAppMusicPlaylistsMachine({
                             roomID,
                         });
                     });
+
+                    socket.on(
+                        'MPE_JOIN_ROOM_CALLBACK',
+                        ({ roomID, state, userIsNotInRoom }) => {
+                            console.log('MPEJOINROOMCALLBACK', {
+                                userIsNotInRoom,
+                            });
+                            sendBack({
+                                type: 'FORWARD_ASSIGN_MERGE_NEW_STATE_TO_INVOLVED_PLAYLIST',
+                                state,
+                                roomID,
+                                userIsNotInRoom,
+                            });
+                        },
+                    );
 
                     onReceive((event) => {
                         switch (event.type) {
@@ -368,6 +385,16 @@ export function createAppMusicPlaylistsMachine({
                                 break;
                             }
 
+                            case 'JOIN_ROOM': {
+                                const { roomID } = event;
+                                console.log('SEND JOIN ROOM', { roomID });
+                                socket.emit('MPE_JOIN_ROOM', {
+                                    roomID,
+                                });
+
+                                break;
+                            }
+
                             default: {
                                 throw new Error(
                                     `Received unknown event: ${event.type}`,
@@ -384,6 +411,10 @@ export function createAppMusicPlaylistsMachine({
             idle: {
                 on: {
                     CREATE_ROOM: {
+                        actions: forwardTo('socketConnection'),
+                    },
+
+                    JOIN_ROOM: {
                         actions: forwardTo('socketConnection'),
                     },
 
@@ -552,18 +583,14 @@ export function createAppMusicPlaylistsMachine({
         on: {
             FORWARD_ASSIGN_MERGE_NEW_STATE_TO_INVOLVED_PLAYLIST: {
                 actions: send(
-                    (_, { state }) => ({
-                        type: 'ASSIGN_MERGE_NEW_STATE',
-                        state,
-                    }),
+                    (_, { state, userIsNotInRoom }) =>
+                        playlistModel.events.ASSIGN_MERGE_NEW_STATE({
+                            state,
+                            userIsNotInRoom,
+                        }),
                     {
-                        to: (_, { state, type }) => {
-                            //Add on error create mpe bool ?
-                            console.log(
-                                `About to merge new state from ${type} in MPE=${state.roomID}`,
-                            );
-                            return getPlaylistMachineActorName(state.roomID);
-                        },
+                        to: (_, { roomID }) =>
+                            getPlaylistMachineActorName(roomID),
                     },
                 ),
             },

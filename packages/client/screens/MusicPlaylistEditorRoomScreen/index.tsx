@@ -231,6 +231,12 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             };
         }
 
+        function handleJoinPress() {
+            playlistRef.send({
+                type: 'JOIN_ROOM',
+            });
+        }
+
         return (
             <AppScreen>
                 <AppScreenHeader
@@ -265,13 +271,10 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                             <Typo>{tracks.length} Tracks</Typo>
                         </Skeleton>
 
-                        {userIsNotInRoom && (
+                        {userIsNotInRoom === true && (
                             <BottomRightAbsoluteButton
                                 testID={`mpe-join-${roomID}`}
-                                //TODO refactor after join_room has been implem
-                                onPress={() =>
-                                    console.log('JOIN BUTTON HAS BEEN PRESSED')
-                                }
+                                onPress={handleJoinPress}
                                 Icon={() => <Typo>JOIN</Typo>}
                             />
                         )}

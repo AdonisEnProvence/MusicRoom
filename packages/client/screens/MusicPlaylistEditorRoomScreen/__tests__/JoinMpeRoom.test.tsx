@@ -10,6 +10,7 @@ import {
     renderApp,
     waitFor,
     within,
+    waitForElementToBeRemoved,
 } from '../../../tests/tests-utils';
 
 test("It should display join mpe room button as user is previewing a mpe room he hasn't joined, cta should be disabled", async () => {
@@ -32,6 +33,14 @@ test("It should display join mpe room button as user is previewing a mpe room he
             roomID,
             state: firstRoomState,
             userIsNotInRoom: true,
+        });
+    });
+
+    serverSocket.on('MPE_JOIN_ROOM', ({ roomID }) => {
+        serverSocket.emit('MPE_JOIN_ROOM_CALLBACK', {
+            roomID,
+            state: firstRoomState,
+            userIsNotInRoom: false,
         });
     });
 
@@ -100,6 +109,33 @@ test("It should display join mpe room button as user is previewing a mpe room he
         const deleteTrackButton = within(listItem).getByLabelText(/delete/i);
         expect(deleteTrackButton).toBeTruthy();
         expect(deleteTrackButton).toBeDisabled();
+    }
+
+    fireEvent.press(joinRoomButton);
+
+    await waitForElementToBeRemoved(() =>
+        screen.getByTestId(`mpe-join-${firstRoomState.roomID}-absolute-button`),
+    );
+
+    for (const { id: trackID } of firstRoomState.tracks) {
+        //Should also look for specific room settings icon such as isOpen and why creatorName
+        const listItem = await screen.findByTestId(
+            `${trackID}-track-card-container`,
+        );
+        expect(listItem).toBeTruthy();
+
+        const moveDownTrackButton =
+            within(listItem).getByLabelText(/move.*down/i);
+        expect(moveDownTrackButton).toBeTruthy();
+        expect(moveDownTrackButton).toBeEnabled();
+
+        const moveUpTrackButton = within(listItem).getByLabelText(/move.*up/i);
+        expect(moveUpTrackButton).toBeTruthy();
+        expect(moveUpTrackButton).toBeEnabled();
+
+        const deleteTrackButton = within(listItem).getByLabelText(/delete/i);
+        expect(deleteTrackButton).toBeTruthy();
+        expect(deleteTrackButton).toBeEnabled();
     }
 });
 

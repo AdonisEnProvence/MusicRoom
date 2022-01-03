@@ -134,6 +134,12 @@ func (s *UnitTestSuite) emitUnkownSignal() {
 	s.env.SignalWorkflow(shared_mpe.SignalChannelName, unkownSignal)
 }
 
+func (s *UnitTestSuite) emitTerminateSignal() {
+	fmt.Println("-----EMIT TERMINATE SIGNAL CALLED IN TEST-----")
+	terminateSignal := shared_mpe.NewTerminateWorkflowSignal()
+	s.env.SignalWorkflow(shared_mpe.SignalChannelName, terminateSignal)
+}
+
 func IndexOfTrackMedata(array []shared.TrackMetadata, trackToFind shared.TrackMetadata) int {
 	for index, track := range array {
 		if track.ID == trackToFind.ID {

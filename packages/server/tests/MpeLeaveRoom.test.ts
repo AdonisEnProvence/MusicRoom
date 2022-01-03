@@ -144,7 +144,7 @@ test.group('MPE leave room tests group', (group) => {
 
         const joiningUserSocketMpeForcedDisconnectionSpy =
             createSpyOnClientSocketEvent(
-                creatorSocketB,
+                joiningUserSocket,
                 'MPE_FORCED_DISCONNECTION',
             );
 
@@ -162,7 +162,7 @@ test.group('MPE leave room tests group', (group) => {
 
         const joiningUserSocketBMpeForcedDisconnectionSpy =
             createSpyOnClientSocketEvent(
-                creatorSocketB,
+                joiningUserSocketB,
                 'MPE_FORCED_DISCONNECTION',
             );
 
@@ -207,5 +207,154 @@ test.group('MPE leave room tests group', (group) => {
         });
     });
 
-    //Creator leaves room
+    test('Creator should leave his mpe room', async (assert) => {
+        const creatorUserID = datatype.uuid();
+        const joiningUserID = datatype.uuid();
+        const mpeRoomToAssociate = {
+            roomID: datatype.uuid(),
+            roomName: random.words(3),
+        };
+        const roomID = mpeRoomToAssociate.roomID;
+        const creatorSocket = await createUserAndGetSocket({
+            userID: creatorUserID,
+            mpeRoomIDToAssociate: [mpeRoomToAssociate],
+        });
+        const creatorSocketB = await createSocketConnection({
+            userID: creatorUserID,
+        });
+
+        const joiningUserSocket = await createUserAndGetSocket({
+            userID: joiningUserID,
+            mpeRoomIDToAssociate: [mpeRoomToAssociate],
+        });
+        const joiningUserSocketB = await createSocketConnection({
+            userID: joiningUserID,
+        });
+
+        sinon
+            .stub(MpeServerToTemporalController, 'terminateWorkflow')
+            .callsFake(async ({ workflowID }) => {
+                assert.equal(roomID, workflowID);
+
+                return {
+                    ok: 1,
+                };
+            });
+
+        //Creator
+        const creatorSocketMpeLeaveRoomCallbackSpy =
+            createSpyOnClientSocketEvent(
+                creatorSocket,
+                'MPE_LEAVE_ROOM_CALLBACK',
+            );
+
+        const creatorSocketMpeUsersLengthUpdateCallbackSpy =
+            createSpyOnClientSocketEvent(
+                creatorSocket,
+                'MPE_USERS_LENGTH_UPDATE',
+            );
+
+        const creatorSocketMpeForcedDisconnectionSpy =
+            createSpyOnClientSocketEvent(
+                creatorSocket,
+                'MPE_FORCED_DISCONNECTION',
+            );
+
+        const creatorSocketBMpeLeaveRoomCallbackSpy =
+            createSpyOnClientSocketEvent(
+                creatorSocketB,
+                'MPE_LEAVE_ROOM_CALLBACK',
+            );
+
+        const creatorSocketBMpeUsersLengthUpdateCallbackSpy =
+            createSpyOnClientSocketEvent(
+                creatorSocketB,
+                'MPE_USERS_LENGTH_UPDATE',
+            );
+
+        const creatorSocketBMpeForcedDisconnectionSpy =
+            createSpyOnClientSocketEvent(
+                creatorSocketB,
+                'MPE_FORCED_DISCONNECTION',
+            );
+
+        // Joining user
+        const joiningUserSocketMpeLeaveRoomCallbackSpy =
+            createSpyOnClientSocketEvent(
+                joiningUserSocket,
+                'MPE_LEAVE_ROOM_CALLBACK',
+            );
+
+        const joiningUserSocketMpeUsersLengthUpdateCallbackSpy =
+            createSpyOnClientSocketEvent(
+                joiningUserSocket,
+                'MPE_USERS_LENGTH_UPDATE',
+            );
+
+        const joiningUserSocketMpeForcedDisconnectionSpy =
+            createSpyOnClientSocketEvent(
+                joiningUserSocket,
+                'MPE_FORCED_DISCONNECTION',
+            );
+
+        const joiningUserSocketBMpeLeaveRoomCallbackSpy =
+            createSpyOnClientSocketEvent(
+                joiningUserSocketB,
+                'MPE_LEAVE_ROOM_CALLBACK',
+            );
+
+        const joiningUserSocketBMpeUsersLengthUpdateCallbackSpy =
+            createSpyOnClientSocketEvent(
+                joiningUserSocketB,
+                'MPE_USERS_LENGTH_UPDATE',
+            );
+
+        const joiningUserSocketBMpeForcedDisconnectionSpy =
+            createSpyOnClientSocketEvent(
+                joiningUserSocketB,
+                'MPE_FORCED_DISCONNECTION',
+            );
+
+        creatorSocket.emit('MPE_LEAVE_ROOM', {
+            roomID,
+        });
+
+        await waitFor(async () => {
+            //Creator
+            assert.isTrue(creatorSocketMpeLeaveRoomCallbackSpy.calledOnce);
+            assert.isTrue(
+                creatorSocketMpeUsersLengthUpdateCallbackSpy.notCalled,
+            );
+            assert.isTrue(creatorSocketMpeForcedDisconnectionSpy.notCalled);
+            assert.isTrue(creatorSocketBMpeLeaveRoomCallbackSpy.calledOnce);
+            assert.isTrue(
+                creatorSocketBMpeUsersLengthUpdateCallbackSpy.notCalled,
+            );
+            assert.isTrue(creatorSocketBMpeForcedDisconnectionSpy.notCalled);
+
+            //Joining user
+            assert.isTrue(joiningUserSocketMpeLeaveRoomCallbackSpy.notCalled);
+            assert.isTrue(
+                joiningUserSocketMpeUsersLengthUpdateCallbackSpy.notCalled,
+            );
+            assert.isTrue(
+                joiningUserSocketMpeForcedDisconnectionSpy.calledOnce,
+            );
+            assert.isTrue(joiningUserSocketBMpeLeaveRoomCallbackSpy.notCalled);
+            assert.isTrue(
+                joiningUserSocketBMpeUsersLengthUpdateCallbackSpy.notCalled,
+            );
+            assert.isTrue(
+                joiningUserSocketBMpeForcedDisconnectionSpy.calledOnce,
+            );
+
+            const connectedSocket =
+                await SocketLifecycle.getConnectedSocketToRoom(roomID);
+            assert.isFalse(connectedSocket.has(creatorSocket.id));
+            assert.isFalse(connectedSocket.has(creatorSocketB.id));
+
+            assert.isFalse(connectedSocket.has(joiningUserSocket.id));
+            assert.isFalse(connectedSocket.has(joiningUserSocketB.id));
+        });
+    });
 });

@@ -53,3 +53,11 @@ export const MpeAcknowledgeJoinRequestBody = z.object({
 export type MpeAcknowledgeJoinRequestBody = z.infer<
     typeof MpeAcknowledgeJoinRequestBody
 >;
+
+export const MpeAcknowledgeLeaveRequestBody = z.object({
+    state: MpeWorkflowState,
+    leavingUserID: z.string().uuid(),
+});
+export type MpeAcknowledgeLeaveRequestBody = z.infer<
+    typeof MpeAcknowledgeLeaveRequestBody
+>;

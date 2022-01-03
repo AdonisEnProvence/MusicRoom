@@ -1,6 +1,7 @@
 import * as z from 'zod';
-import { MpeWorkflowState } from './mpe';
+import { MpeWorkflowState, MpeRoomSummary } from './mpe';
 
+//Client to server
 export const MpeRoomClientToServerCreateArgs = z.object({
     name: z.string(),
     initialTrackID: z.string(),
@@ -67,6 +68,14 @@ export type MpeRoomClientToServerJoinRoomArgs = z.infer<
     typeof MpeRoomClientToServerJoinRoomArgs
 >;
 
+export const MpeRoomClientToServerLeaveRoomArgs = z.object({
+    roomID: z.string().uuid(),
+});
+export type MpeRoomClientToServerLeaveRoomArgs = z.infer<
+    typeof MpeRoomClientToServerLeaveRoomArgs
+>;
+///
+
 //Server to client
 export const MpeRoomServerToClientChangeTrackFailCallbackArgs = z.object({
     roomID: z.string().uuid(),
@@ -131,6 +140,19 @@ export type MpeRoomServerToClientUsersLengthUpdateArgs = z.infer<
     typeof MpeRoomServerToClientUsersLengthUpdateArgs
 >;
 
+export const MpeRoomServerToClientForcedDisconnectionArgs = z.object({
+    roomSummary: MpeRoomSummary,
+});
+export type MpeRoomServerToClientForcedDisconnectionArgs = z.infer<
+    typeof MpeRoomServerToClientForcedDisconnectionArgs
+>;
+
+export const MpeRoomServerToClientLeaveRoomCallbackArgs = z.object({
+    roomSummary: MpeRoomSummary,
+});
+export type MpeRoomServerToClientLeaveRoomCallbackArgs = z.infer<
+    typeof MpeRoomServerToClientLeaveRoomCallbackArgs
+>;
 ///
 
 export interface MpeRoomClientToServerEvents {
@@ -145,6 +167,7 @@ export interface MpeRoomClientToServerEvents {
     MPE_DELETE_TRACKS: (args: MpeRoomClientToServerDeleteTracksArgs) => void;
     MPE_GET_CONTEXT: (args: MpeRoomClientToServerGetContextArgs) => void;
     MPE_JOIN_ROOM: (args: MpeRoomClientToServerJoinRoomArgs) => void;
+    MPE_LEAVE_ROOM: (args: MpeRoomClientToServerLeaveRoomArgs) => void;
 }
 
 export interface MpeRoomServerToClientEvents {
@@ -180,5 +203,11 @@ export interface MpeRoomServerToClientEvents {
     ) => void;
     MPE_USERS_LENGTH_UPDATE: (
         args: MpeRoomServerToClientUsersLengthUpdateArgs,
+    ) => void;
+    MPE_FORCED_DISCONNECTION: (
+        args: MpeRoomServerToClientForcedDisconnectionArgs,
+    ) => void;
+    MPE_LEAVE_ROOM_CALLBACK: (
+        args: MpeRoomServerToClientLeaveRoomCallbackArgs,
     ) => void;
 }

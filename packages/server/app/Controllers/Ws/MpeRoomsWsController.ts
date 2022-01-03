@@ -34,8 +34,8 @@ export async function IsUserInMpeRoom({
 export async function throwErrorIfUserIsNotInGivenMpeRoom({
     userID,
     roomID,
-}: IsUserInMpeRoomArgs): Promise<void> {
-    await MpeRoom.query()
+}: IsUserInMpeRoomArgs): Promise<MpeRoom> {
+    return await MpeRoom.query()
         .where('uuid', roomID)
         .andWhereHas('members', (queryUser) => {
             return queryUser.where('uuid', userID);
@@ -80,6 +80,16 @@ interface MpeOnDeleteTracksArgs {
 interface MpeOnGetContextArgs {
     user: User;
     socket: TypedSocket;
+    roomID: string;
+}
+
+interface MpeOnLeaveRoomArgs {
+    user: User;
+    roomID: string;
+}
+
+interface MpeOnTerminateArgs {
+    user: User;
     roomID: string;
 }
 
@@ -258,6 +268,65 @@ export default class MpeRoomsWsController {
             userID,
             deviceID,
         });
+    }
+
+    public static async onLeaveRoom({
+        roomID,
+        user,
+    }: MpeOnLeaveRoomArgs): Promise<void> {
+        try {
+            const { uuid: userID } = user;
+            const leavingRoom = await throwErrorIfUserIsNotInGivenMpeRoom({
+                userID,
+                roomID,
+            });
+
+            /**
+             * No matter if the leaving user was creator or not
+             * We need to disconnect every of his device from the room socket io instance
+             * And to dissociate his relationship with the mtvRoom
+             */
+            await UserService.leaveEveryUserDevicesFromMpeRoom(user, roomID);
+            await user.related('mpeRooms').detach([roomID]);
+
+            /**
+             * If the leaving user is the room creator we need
+             * to terminate the workflow and forced disconnect
+             * every remaining users
+             */
+            const leavingUserIsTheCreator = userID === leavingRoom.creatorID;
+            console.log(
+                'LEAVING USER IS THE CREATOR ',
+                leavingUserIsTheCreator,
+            );
+            if (leavingUserIsTheCreator) {
+                await SocketLifecycle.ownerLeavesMpeRoom({
+                    creator: user,
+                    ownedRoom: leavingRoom,
+                });
+            } else {
+                await MpeServerToTemporalController.leaveWorkflow({
+                    workflowID: roomID,
+                    userID,
+                });
+            }
+        } catch (err) {
+            console.error(err);
+            throw new Error('onLeaveRoom error');
+        }
+    }
+
+    public static async onTerminate({
+        roomID,
+    }: MpeOnTerminateArgs): Promise<void> {
+        try {
+            await MpeServerToTemporalController.terminateWorkflow({
+                workflowID: roomID,
+            });
+        } catch (err) {
+            console.error(err);
+            throw new Error('mpe terminate workflow error');
+        }
     }
 
     public static async onGetContext({

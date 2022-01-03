@@ -1,5 +1,10 @@
-import { AllServerToClientEvents, UserDevice } from '@musicroom/types';
+import {
+    AllServerToClientEvents,
+    MpeRoomSummary,
+    UserDevice,
+} from '@musicroom/types';
 import Device from 'App/Models/Device';
+import MpeRoom from 'App/Models/MpeRoom';
 import User from 'App/Models/User';
 import SocketLifecycle from './SocketLifecycle';
 import Ws from './Ws';
@@ -35,11 +40,11 @@ export default class UserService {
 
     /**
      * This function will disconnect user's found devices from
-     * the given roomID socket io room instance
+     * the given mtv roomID socket io room instance
      * @param user User's devices to disconnect
      * @param roomID roomID to leave
      */
-    public static async leaveEveryUserDevicesFromRoom(
+    public static async leaveEveryUserDevicesFromMtvRoom(
         user: User,
         roomID: string,
     ): Promise<void> {
@@ -56,6 +61,50 @@ export default class UserService {
                         Ws.io
                             .to(device.socketID)
                             .emit('MTV_LEAVE_ROOM_CALLBACK');
+
+                        await Ws.adapter().remoteLeave(device.socketID, roomID);
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            }),
+        );
+    }
+
+    /**
+     * This function will disconnect user's found devices from
+     * the given mpe roomID socket io room instance
+     * @param user User's devices to disconnect
+     * @param roomID roomID to leave
+     */
+    public static async leaveEveryUserDevicesFromMpeRoom(
+        user: User,
+        roomID: string,
+    ): Promise<void> {
+        const connectedSocketsToRoom =
+            await SocketLifecycle.getConnectedSocketToRoom(roomID);
+
+        const room = await MpeRoom.findOrFail(roomID);
+        await room.load('creator');
+
+        const roomSummary: MpeRoomSummary = {
+            creatorName: room.creator.nickname,
+            isInvited: false, //Does not matters here but should be compute anw
+            isOpen: room.isOpen,
+            roomID: room.uuid,
+            roomName: room.name,
+        };
+
+        await user.load('devices');
+        await Promise.all(
+            user.devices.map(async (device) => {
+                try {
+                    if (connectedSocketsToRoom.has(device.socketID)) {
+                        console.log('remote leave device ', device.socketID);
+
+                        Ws.io
+                            .to(device.socketID)
+                            .emit('MPE_LEAVE_ROOM_CALLBACK', { roomSummary });
 
                         await Ws.adapter().remoteLeave(device.socketID, roomID);
                     }

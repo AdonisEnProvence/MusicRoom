@@ -12,6 +12,10 @@ import {
     MpeGetStateQueryResponseBody,
     MpeJoinResponseBody,
     MpeJoinRequestBody,
+    MpeLeaveWorkflowRequestBody,
+    MpeLeaveWorkflowResponseBody,
+    MpeTerminateWorkflowRequestBody,
+    MpeTerminateWorkflowResponseBody,
 } from '@musicroom/types';
 import got from 'got';
 import urlcat from 'urlcat';
@@ -101,6 +105,34 @@ export default class MpeServerToTemporalController {
         const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/get-state');
 
         return MpeGetStateQueryResponseBody.parse(
+            await got
+                .put(url, {
+                    json: body,
+                })
+                .json(),
+        );
+    }
+
+    public static async leaveWorkflow(
+        body: MpeLeaveWorkflowRequestBody,
+    ): Promise<MpeLeaveWorkflowResponseBody> {
+        const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/leave');
+
+        return MpeLeaveWorkflowResponseBody.parse(
+            await got
+                .put(url, {
+                    json: body,
+                })
+                .json(),
+        );
+    }
+
+    public static async terminateWorkflow(
+        body: MpeTerminateWorkflowRequestBody,
+    ): Promise<MpeTerminateWorkflowResponseBody> {
+        const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/terminate');
+
+        return MpeTerminateWorkflowResponseBody.parse(
             await got
                 .put(url, {
                     json: body,

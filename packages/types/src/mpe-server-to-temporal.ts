@@ -90,3 +90,32 @@ export const MpeGetStateQueryRequestBody = z.object({
 export type MpeGetStateQueryRequestBody = z.infer<
     typeof MpeGetStateQueryRequestBody
 >;
+
+export const MpeLeaveWorkflowRequestBody = z.object({
+    workflowID: z.string().uuid(),
+    userID: z.string().uuid(),
+});
+export type MpeLeaveWorkflowRequestBody = z.infer<
+    typeof MpeLeaveWorkflowRequestBody
+>;
+
+export const MpeLeaveWorkflowResponseBody = z.object({
+    ok: z.literal(1),
+});
+export type MpeLeaveWorkflowResponseBody = z.infer<
+    typeof MpeLeaveWorkflowResponseBody
+>;
+
+export const MpeTerminateWorkflowRequestBody = z.object({
+    workflowID: z.string().uuid(),
+});
+export type MpeTerminateWorkflowRequestBody = z.infer<
+    typeof MpeTerminateWorkflowRequestBody
+>;
+
+export const MpeTerminateWorkflowResponseBody = z.object({
+    ok: z.literal(1),
+});
+export type MpeTerminateWorkflowResponseBody = z.infer<
+    typeof MpeTerminateWorkflowResponseBody
+>;

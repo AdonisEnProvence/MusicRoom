@@ -66,6 +66,7 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> = ({
 
     return (
         <AppScreenWithSearchBar
+            testID="mpe-rooms-list"
             title="Your library"
             searchInputPlaceholder="Search a room..."
             showHeader={showHeader}

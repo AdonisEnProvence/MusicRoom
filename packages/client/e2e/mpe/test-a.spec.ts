@@ -84,13 +84,9 @@ const knownSearches: KnownSearchesRecord = {
 
 async function createMpeRoom({
     page,
-    openCreatedRoom,
-    deviceToOpenRoomOn,
 }: {
     page: Page;
-    openCreatedRoom?: boolean;
-    deviceToOpenRoomOn: Page[];
-}) {
+}): Promise<{ roomName: string }> {
     await expect(page.locator('text="Home"').first()).toBeVisible();
 
     const goToTracksSearch = page.locator('text="Search"');
@@ -151,26 +147,53 @@ async function createMpeRoom({
         page,
     });
 
-    if (openCreatedRoom) {
-        await Promise.all(
-            [page, ...deviceToOpenRoomOn].map(async (page) => {
-                const goToLibraryButton = page.locator(
-                    'text="Library" >> nth=0',
-                );
-                await goToLibraryButton.click();
+    await goToLibraryAndSearchMpeRoomToOpenIt({
+        page,
+        roomName,
+    });
 
-                const libraryScreenTitle = page.locator(
-                    withinMpeRoomsListScreen('text="Library"'),
-                );
-                await expect(libraryScreenTitle).toBeVisible();
+    return {
+        roomName,
+    };
+}
 
-                const mpeRoomCard = page.locator(
-                    withinMpeRoomsListScreen(`text="${roomName}"`),
-                );
-                await mpeRoomCard.click();
-            }),
+async function goToLibraryAndSearchMpeRoomToOpenIt({
+    page,
+    roomName,
+}: {
+    page: Page;
+    roomName: string;
+}) {
+    const goToLibraryButton = page.locator('text="Library" >> nth=0');
+    await goToLibraryButton.click();
+
+    const libraryScreenTitle = page.locator(
+        withinMpeRoomsListScreen('text="Your library"'),
+    );
+    await expect(libraryScreenTitle).toBeVisible();
+
+    const mpeRoomCard = page.locator(
+        withinMpeRoomsListScreen(`text="${roomName}"`),
+    );
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        const roomHasBeenFound = await mpeRoomCard.isVisible();
+        if (roomHasBeenFound === true) {
+            break;
+        }
+
+        const searchRoomInput = page.locator(
+            withinMpeRoomsListScreen('css=[placeholder^="Search a room"]'),
         );
+        await searchRoomInput.click();
+
+        const cancelSearchRoomButton = page.locator(
+            withinMpeRoomsListScreen('text="Cancel"'),
+        );
+        await cancelSearchRoomButton.click();
     }
+
+    await mpeRoomCard.click();
 }
 
 async function addTrack({
@@ -275,23 +298,23 @@ async function changeTrackOrder({
     await expect(trackToMoveChangeOrderButton).toBeVisible();
     await expect(trackToMoveChangeOrderButton).toBeEnabled();
 
-    await trackToMoveChangeOrderButton.click();
+    const successfulToast = page.locator('text=Track moved successfully');
+    await Promise.all([
+        expect(successfulToast).toBeVisible(),
 
-    {
-        const successfulToast = page.locator('text=Track moved successfully');
-        await expect(successfulToast).toBeVisible();
+        trackToMoveChangeOrderButton.click(),
+    ]);
 
-        await Promise.all(
-            [page, ...deviceToApplyAssertionOn].map(async (page) => {
-                const firstTracksListElement = page.locator(
-                    withinMpeRoomScreen(
-                        'css=[data-testid$="track-card-container"] >> nth=0',
-                    ),
-                );
-                await expect(firstTracksListElement).toContainText(trackTitle);
-            }),
-        );
-    }
+    await Promise.all(
+        [page, ...deviceToApplyAssertionOn].map(async (page) => {
+            const firstTracksListElement = page.locator(
+                withinMpeRoomScreen(
+                    'css=[data-testid$="track-card-container"] >> nth=0',
+                ),
+            );
+            await expect(firstTracksListElement).toContainText(trackTitle);
+        }),
+    );
 }
 
 async function deleteTrack({
@@ -362,10 +385,13 @@ test('Create MPE room', async ({ browser }) => {
         userIndex: 0,
     });
 
-    await createMpeRoom({
+    const { roomName } = await createMpeRoom({
         page,
-        openCreatedRoom: true,
-        deviceToOpenRoomOn: [pageB],
+    });
+
+    await goToLibraryAndSearchMpeRoomToOpenIt({
+        page: pageB,
+        roomName,
     });
 
     const addedTrack = await addTrack({

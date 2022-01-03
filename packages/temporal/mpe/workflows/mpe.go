@@ -530,6 +530,9 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 					}),
 				)
 
+			case shared_mpe.SignalTerminateWorkflow:
+				terminated = true
+
 			default:
 				panic(ErrUnknownWorflowSignal)
 			}

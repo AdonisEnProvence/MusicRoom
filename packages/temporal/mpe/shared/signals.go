@@ -3,11 +3,12 @@ package shared_mpe
 import "github.com/AdonisEnProvence/MusicRoom/shared"
 
 const (
-	SignalAddTracks        shared.SignalRoute = "add-tracks"
-	SignalChangeTrackOrder shared.SignalRoute = "change-track-order"
-	SignalDeleteTracks     shared.SignalRoute = "delete-tracks"
-	SignalAddUser          shared.SignalRoute = "add-user"
-	SignalRemoveUser       shared.SignalRoute = "remove-user"
+	SignalAddTracks         shared.SignalRoute = "add-tracks"
+	SignalChangeTrackOrder  shared.SignalRoute = "change-track-order"
+	SignalDeleteTracks      shared.SignalRoute = "delete-tracks"
+	SignalAddUser           shared.SignalRoute = "add-user"
+	SignalRemoveUser        shared.SignalRoute = "remove-user"
+	SignalTerminateWorkflow shared.SignalRoute = "terminate-workflow"
 )
 
 type AddTracksSignal struct {
@@ -121,5 +122,15 @@ func NewRemoveUserSignal(args NewRemoveUserSignalArgs) RemoveUserSignal {
 		Route: SignalRemoveUser,
 
 		UserID: args.UserID,
+	}
+}
+
+type TerminateWorkflowSignal struct {
+	Route shared.SignalRoute `validate:"required"`
+}
+
+func NewTerminateWorkflowSignal() TerminateWorkflowSignal {
+	return TerminateWorkflowSignal{
+		Route: SignalTerminateWorkflow,
 	}
 }

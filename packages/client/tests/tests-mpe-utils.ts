@@ -9,6 +9,7 @@ import {
 } from '@testing-library/react-native';
 import { datatype } from 'faker';
 import Toast from 'react-native-toast-message';
+import { stateValuesEqual } from 'xstate/lib/State';
 import { serverSocket } from '../services/websockets';
 import { db, generateMpeWorkflowState, generateTrackMetadata } from './data';
 import {
@@ -222,7 +223,7 @@ export async function changeTrackOrder({
         expect(moveUpTrackButton).toBeDisabled();
         expect(moveDownTrackButton).not.toBeDisabled();
     } else if (trackToMoveIsLastTrack) {
-        expect(moveUpTrackButton).toBeEnabled();
+        expect(moveUpTrackButton).not.toBeDisabled();
         expect(moveDownTrackButton).toBeDisabled();
     } else {
         expect(moveUpTrackButton).not.toBeDisabled();
@@ -255,5 +256,86 @@ export async function changeTrackOrder({
         });
 
         await playlistUIHasUnfreezed(screen);
+    }
+}
+
+export async function hitJoinMpeRoomButton({
+    screen,
+    state,
+}: {
+    state: DefinedStateRef;
+    screen: ReturnType<typeof render>;
+}): Promise<void> {
+    const joinRoomButton = screen.getByTestId(
+        `mpe-join-${state.value.roomID}-absolute-button`,
+    );
+    expect(joinRoomButton).not.toBeDisabled();
+    expect(joinRoomButton).toBeTruthy();
+
+    for (const { id: trackID } of state.value.tracks) {
+        //Should also look for specific room settings icon such as isOpen and why creatorName
+        const listItem = await screen.findByTestId(
+            `${trackID}-track-card-container`,
+        );
+        expect(listItem).toBeTruthy();
+
+        const moveDownTrackButton =
+            within(listItem).getByLabelText(/move.*down/i);
+        expect(moveDownTrackButton).toBeTruthy();
+        expect(moveDownTrackButton).toBeDisabled();
+
+        const moveUpTrackButton = within(listItem).getByLabelText(/move.*up/i);
+        expect(moveUpTrackButton).toBeTruthy();
+        expect(moveUpTrackButton).toBeDisabled();
+
+        const deleteTrackButton = within(listItem).getByLabelText(/delete/i);
+        expect(deleteTrackButton).toBeTruthy();
+        expect(deleteTrackButton).toBeDisabled();
+    }
+
+    fireEvent.press(joinRoomButton);
+
+    await waitForElementToBeRemoved(() =>
+        screen.getByTestId(`mpe-join-${state.value.roomID}-absolute-button`),
+    );
+
+    for (const [index, { id: trackID }] of state.value.tracks.entries()) {
+        const isFirstElement = index === 0;
+        const isLastTrack = index === state.value.tracks.length - 1;
+
+        //Should also look for specific room settings icon such as isOpen and why creatorName
+        const listItem = await screen.findByTestId(
+            `${trackID}-track-card-container`,
+        );
+        expect(listItem).toBeTruthy();
+
+        console.log(
+            'SALUUUUUUUUUUUUUUUUUUUT',
+            {
+                isLastTrack,
+                isFirstElement,
+            },
+            state.value.tracks.length,
+        );
+        const moveDownTrackButton =
+            within(listItem).getByLabelText(/move.*down/i);
+        expect(moveDownTrackButton).toBeTruthy();
+        if (isLastTrack) {
+            expect(moveDownTrackButton).toBeDisabled();
+        } else {
+            expect(moveDownTrackButton).not.toBeDisabled();
+        }
+
+        const moveUpTrackButton = within(listItem).getByLabelText(/move.*up/i);
+        expect(moveUpTrackButton).toBeTruthy();
+        if (isFirstElement) {
+            expect(moveUpTrackButton).toBeDisabled();
+        } else {
+            expect(moveUpTrackButton).not.toBeDisabled();
+        }
+
+        const deleteTrackButton = within(listItem).getByLabelText(/delete/i);
+        expect(deleteTrackButton).toBeTruthy();
+        expect(deleteTrackButton).not.toBeDisabled();
     }
 }

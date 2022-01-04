@@ -1,7 +1,7 @@
 import { MpeWorkflowState } from '@musicroom/types';
 import { datatype } from 'faker';
 import { serverSocket } from '../services/websockets';
-import { generateMpeWorkflowState, generateTrackMetadata } from './data';
+import { db, generateMpeWorkflowState, generateTrackMetadata } from './data';
 import { fireEvent, render, renderApp, waitFor } from './tests-utils';
 
 export interface DefinedStateRef {
@@ -26,6 +26,11 @@ export async function createMpeRoom(): Promise<{
         tracks: [track],
         usersLength: 1,
     });
+    db.searchableMpeRooms.create({
+        roomID: mpeRoomState.roomID,
+        isOpen: mpeRoomState.isOpen,
+        roomName: mpeRoomState.name,
+    });
 
     const screen = await renderApp();
 
@@ -36,10 +41,10 @@ export async function createMpeRoom(): Promise<{
     const goToLibraryButton = screen.getByText(/library/i);
     expect(goToLibraryButton).toBeTruthy();
 
-    fireEvent.press(goToLibraryButton);
-
     serverSocket.emit('MPE_CREATE_ROOM_SYNCED_CALLBACK', mpeRoomState);
     serverSocket.emit('MPE_CREATE_ROOM_CALLBACK', mpeRoomState);
+
+    fireEvent.press(goToLibraryButton);
 
     await waitFor(() => {
         const [, libraryScreenTitle] = screen.getAllByText(/library/i);

@@ -242,15 +242,18 @@ func getWorkflowInitParams(tracksIDs []string, minimumScoreToBePlayed int) (shar
 	return shared_mtv.MtvRoomParameters{
 		RoomID:                        workflowID,
 		RoomCreatorUserID:             roomCreatorUserID,
-		RoomName:                      faker.Word(),
 		CreatorUserRelatedInformation: creatorUserRelatedInformation,
-		InitialTracksIDsList:          tracksIDs,
-		MinimumScoreToBePlayed:        minimumScoreToBePlayed,
-		HasPhysicalAndTimeConstraints: false,
-		PhysicalAndTimeConstraints:    nil,
-		IsOpen:                        true,
-		IsOpenOnlyInvitedUsersCanVote: false,
-		PlayingMode:                   shared_mtv.MtvPlayingModeBroadcast,
+
+		MtvRoomCreationOptions: shared_mtv.MtvRoomCreationOptions{
+			RoomName:                      faker.Word(),
+			InitialTracksIDsList:          tracksIDs,
+			MinimumScoreToBePlayed:        minimumScoreToBePlayed,
+			HasPhysicalAndTimeConstraints: false,
+			PhysicalAndTimeConstraints:    nil,
+			IsOpen:                        true,
+			IsOpenOnlyInvitedUsersCanVote: false,
+			PlayingMode:                   shared_mtv.MtvPlayingModeBroadcast,
+		},
 	}, roomCreatorDeviceID
 }
 

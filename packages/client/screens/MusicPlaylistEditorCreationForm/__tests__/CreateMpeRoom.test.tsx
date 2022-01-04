@@ -2,15 +2,15 @@ import { createModel } from 'xstate/lib/model';
 import { createModel as createTestModel } from '@xstate/test';
 import { ContextFrom, EventFrom, State } from 'xstate';
 import { datatype } from 'faker';
-import { MpeWorkflowState } from '@musicroom/types';
 import {
     render,
     renderApp,
     waitFor,
     fireEvent,
     within,
+    waitForTimeout,
 } from '../../../tests/tests-utils';
-import { db } from '../../../tests/data';
+import { db, generateMpeWorkflowState } from '../../../tests/data';
 import { serverSocket } from '../../../services/websockets';
 
 interface TestingContext {
@@ -460,14 +460,31 @@ const createMpeRoomWithSettingsMachine =
                         );
                         expect(confirmationStepScreenTitle).toBeNull();
 
-                        const roomCardElement = await waitFor(() => {
-                            const roomCard = screen.getByText(roomName);
-                            expect(roomCard).toBeTruthy();
+                        // eslint-disable-next-line no-constant-condition
+                        while (true) {
+                            const roomCard = screen.queryByText(roomName);
+                            if (roomCard !== null) {
+                                expect(roomCard).toBeTruthy();
 
-                            return roomCard;
-                        });
+                                fireEvent.press(roomCard);
 
-                        fireEvent.press(roomCardElement);
+                                break;
+                            }
+
+                            const searchRoomInput =
+                                screen.getByPlaceholderText(/search.*room/i);
+                            expect(searchRoomInput).toBeTruthy();
+
+                            fireEvent(searchRoomInput, 'focus');
+
+                            const [, cancelSearchRoomButton] =
+                                screen.getAllByText(/cancel/i);
+                            expect(cancelSearchRoomButton).toBeTruthy();
+
+                            fireEvent.press(cancelSearchRoomButton);
+
+                            await waitForTimeout(100);
+                        }
 
                         const roomScreen = await screen.findByTestId(
                             /^mpe-room-screen-(.*)/i,
@@ -729,16 +746,20 @@ describe('Create MPE room with custom settings', () => {
                         }) => {
                             expect(initialTrackID).toBe(fakeTrack.id);
 
-                            const roomState: MpeWorkflowState = {
+                            const roomState = generateMpeWorkflowState({
                                 name,
                                 isOpen,
                                 isOpenOnlyInvitedUsersCanEdit,
                                 tracks: [fakeTrack],
                                 playlistTotalDuration: 42000,
                                 roomCreatorUserID: userID,
-                                roomID: datatype.uuid(),
                                 usersLength: 1,
-                            };
+                            });
+                            db.searchableMpeRooms.create({
+                                roomName: roomState.name,
+                                roomID: roomState.roomID,
+                                isOpen: roomState.isOpen,
+                            });
 
                             serverSocket.emit(
                                 'MPE_CREATE_ROOM_SYNCED_CALLBACK',

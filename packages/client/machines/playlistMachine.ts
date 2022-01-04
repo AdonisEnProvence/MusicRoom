@@ -73,6 +73,8 @@ export const playlistModel = createModel(
             GET_CONTEXT: () => ({}),
 
             JOIN_ROOM: () => ({}),
+
+            LEAVE_ROOM: () => ({}),
         },
     },
 );
@@ -309,6 +311,12 @@ export function createPlaylistMachine({
                         cond: ({ userIsNotInRoom }) => userIsNotInRoom === true,
 
                         target: 'joiningRoom',
+                    },
+
+                    LEAVE_ROOM: {
+                        cond: ({ userIsNotInRoom }) => userIsNotInRoom !== true,
+
+                        target: `leavingRoom`,
                     },
                 },
             },
@@ -555,6 +563,35 @@ export function createPlaylistMachine({
                     end: {
                         type: 'final',
                     },
+                },
+
+                onDone: {
+                    target: 'idle',
+                },
+            },
+
+            leavingRoom: {
+                tags: 'freezeUi',
+
+                initial: 'sendingToServer',
+
+                states: {
+                    sendingToServer: {
+                        always: {
+                            actions: sendParent(() => {
+                                console.log('SENDING TO PARENT ');
+                                return appMusicPlaylistsModel.events.LEAVE_ROOM(
+                                    {
+                                        roomID,
+                                    },
+                                );
+                            }),
+                            target: 'waitingForServerAcknowledgement',
+                        },
+                    },
+
+                    //From there the parent will kill the actor
+                    waitingForServerAcknowledgement: {},
                 },
 
                 onDone: {

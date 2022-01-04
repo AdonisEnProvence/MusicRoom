@@ -171,6 +171,7 @@ const TrackListItemWrapper: React.FC<TrackListItemWrapperProps> = ({
 
 const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps> =
     ({ navigation, playlist, playlist: { id: playlistID } }) => {
+        const sx = useSx();
         const insets = useSafeAreaInsets();
         const playlistRef = playlist.ref;
         const userIsNotInRoom = useSelector(
@@ -237,6 +238,12 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             });
         }
 
+        function handleLeavePress() {
+            playlistRef.send({
+                type: 'LEAVE_ROOM',
+            });
+        }
+
         return (
             <AppScreen testID={`mpe-room-screen-${playlistID}`}>
                 <AppScreenHeader
@@ -262,6 +269,29 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                         >
                             <Typo>{playlistTotalDuration} NOT FORMATED</Typo>
                         </Skeleton>
+
+                        <TouchableOpacity
+                            disabled={disableEveryCta}
+                            style={sx({
+                                flexShrink: 0,
+                                backgroundColor: 'greyLight',
+                                padding: 'm',
+                                flexDirection: 'row',
+                                justifyContent: 'center',
+                                marginBottom: 'l',
+                            })}
+                            onPress={handleLeavePress}
+                        >
+                            <Text
+                                sx={{
+                                    color: 'white',
+                                    textAlign: 'center',
+                                    fontSize: 'm',
+                                }}
+                            >
+                                Leave room
+                            </Text>
+                        </TouchableOpacity>
 
                         <Skeleton
                             show={roomIsNotReady}

@@ -992,6 +992,14 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
         const trackResultListItem = await screen.findByText(fakeTrack.title);
 
         fireEvent.press(trackResultListItem);
+
+        const creationModal = await screen.findByText(/what.*to.*do.*track/i);
+        expect(creationModal).toBeTruthy();
+
+        const createMtvRoomButton = screen.getByText(/create.*mtv/i);
+        expect(createMtvRoomButton).toBeTruthy();
+
+        fireEvent.press(createMtvRoomButton);
     },
 
     SET_ROOM_NAME_AND_GO_NEXT: {

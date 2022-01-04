@@ -16,9 +16,8 @@ export async function createMpeRoom(): Promise<{
     state: DefinedStateRef;
 }> {
     const track = generateTrackMetadata();
-
     const roomID = datatype.uuid();
-    const state = generateMpeWorkflowState({
+    const mpeRoomState = generateMpeWorkflowState({
         isOpen: true,
         isOpenOnlyInvitedUsersCanEdit: false,
         playlistTotalDuration: 42000,
@@ -28,17 +27,9 @@ export async function createMpeRoom(): Promise<{
         usersLength: 1,
     });
     db.searchableMpeRooms.create({
-        roomName: state.name,
-        isInvited: false,
-        roomID,
-    });
-
-    serverSocket.on('MPE_CREATE_ROOM', () => {
-        serverSocket.emit('MPE_CREATE_ROOM_SYNCED_CALLBACK', state);
-
-        setTimeout(() => {
-            serverSocket.emit('MPE_CREATE_ROOM_CALLBACK', state);
-        }, 10);
+        roomID: mpeRoomState.roomID,
+        isOpen: mpeRoomState.isOpen,
+        roomName: mpeRoomState.name,
     });
 
     const screen = await renderApp();
@@ -47,29 +38,29 @@ export async function createMpeRoom(): Promise<{
         1,
     );
 
-    const createMpeRoomButton = screen.getByText(/create.*mpe/i);
-    expect(createMpeRoomButton).toBeTruthy();
-
-    fireEvent.press(createMpeRoomButton);
-
     const goToLibraryButton = screen.getByText(/library/i);
     expect(goToLibraryButton).toBeTruthy();
 
+    serverSocket.emit('MPE_CREATE_ROOM_SYNCED_CALLBACK', mpeRoomState);
+    serverSocket.emit('MPE_CREATE_ROOM_CALLBACK', mpeRoomState);
+
     fireEvent.press(goToLibraryButton);
 
-    const mpeRoomListElement = await waitFor(() => {
+    await waitFor(() => {
         const [, libraryScreenTitle] = screen.getAllByText(/library/i);
         expect(libraryScreenTitle).toBeTruthy();
-        const mpeRoomListElement = screen.getByText(new RegExp(state.name));
-        expect(mpeRoomListElement).toBeTruthy();
-        return mpeRoomListElement;
     });
 
-    fireEvent.press(mpeRoomListElement);
+    const mpeRoomListItem = await screen.findByText(
+        new RegExp(mpeRoomState.name),
+    );
+    expect(mpeRoomListItem).toBeTruthy();
+
+    fireEvent.press(mpeRoomListItem);
 
     await waitFor(() => {
         const playlistTitle = screen.getByText(
-            new RegExp(`Playlist.*${state.name}`),
+            new RegExp(`Playlist.*${mpeRoomState.name}`),
         );
         expect(playlistTitle).toBeTruthy();
     });
@@ -77,7 +68,7 @@ export async function createMpeRoom(): Promise<{
     return {
         screen,
         state: {
-            value: state,
+            value: mpeRoomState,
         },
     };
 }

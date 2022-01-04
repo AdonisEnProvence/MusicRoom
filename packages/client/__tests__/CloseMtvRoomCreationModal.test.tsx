@@ -36,6 +36,14 @@ test('MtvRoom creation form modal can be closed', async () => {
 
     fireEvent.press(trackResultListItem);
 
+    const creationModal = await screen.findByText(/what.*to.*do.*track/i);
+    expect(creationModal).toBeTruthy();
+
+    const createMtvRoomButton = screen.getByText(/create.*mtv/i);
+    expect(createMtvRoomButton).toBeTruthy();
+
+    fireEvent.press(createMtvRoomButton);
+
     await waitFor(() => {
         const roomCreationFormFirstStepTitle =
             screen.getByText(/what.*is.*name.*room/i);

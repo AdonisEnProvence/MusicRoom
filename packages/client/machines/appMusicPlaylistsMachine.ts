@@ -17,6 +17,7 @@ import {
     MpeRoomServerToClientChangeTrackFailCallbackArgs,
     MpeRoomServerToClientChangeTrackSuccessCallbackARgs,
 } from '@musicroom/types';
+import invariant from 'tiny-invariant';
 import { SocketClient } from '../contexts/SocketContext';
 import {
     createPlaylistMachine,
@@ -24,6 +25,10 @@ import {
     playlistModel,
 } from './playlistMachine';
 import { getPlaylistMachineOptions } from './options/playlistMachineOptions';
+import {
+    createCreationMpeRoomFormMachine,
+    CreationMpeRoomFormDoneInvokeEvent,
+} from './creationMpeRoomForm';
 
 export interface MusicPlaylist {
     id: string;
@@ -37,20 +42,28 @@ export type MusicPlaylistsEvents = EventFrom<typeof appMusicPlaylistsModel>;
 export const appMusicPlaylistsModel = createModel(
     {
         playlistsActorsRefs: [] as MusicPlaylist[],
+
+        roomToCreateInitialTracksIDs: undefined as string[] | undefined,
     },
     {
         events: {
+            OPEN_CREATION_FORM: (args: { initialTracksIDs: string[] }) => args,
+            CLOSE_CREATION_FORM: () => ({}),
+
             CREATE_ROOM: (params: MpeRoomClientToServerCreateArgs) => ({
                 params,
             }),
+            ROOM_CREATION_ACKNOWLEDGEMENT: (state: MpeWorkflowState) => ({
+                state,
+            }),
+            ROOM_IS_READY: (state: MpeWorkflowState) => ({
+                state,
+            }),
             JOIN_ROOM: (args: { roomID: string }) => args,
-            SPAWN_NEW_PLAYLIST_ACTOR_FROM_STATE: (args: {
-                state: MpeWorkflowState;
-            }) => args,
-            FORWARD_ASSIGN_MERGE_NEW_STATE_TO_INVOLVED_PLAYLIST: (args: {
-                state: MpeWorkflowState;
+            JOIN_ROOM_ACKNOWLEDGEMENT: (args: {
                 roomID: string;
-                userIsNotInRoom?: boolean;
+                state: MpeWorkflowState;
+                userIsNotInRoom: boolean;
             }) => args,
             MPE_TRACKS_LIST_UPDATE: (args: {
                 state: MpeWorkflowState;
@@ -109,6 +122,12 @@ export const appMusicPlaylistsModel = createModel(
                 state: MpeWorkflowState;
             }) => args,
         },
+
+        actions: {
+            openCreationMpeFormModal: () => ({}),
+            redirectToMpeLibrary: () => ({}),
+            goBackToLastScreen: () => ({}),
+        },
     },
 );
 
@@ -139,7 +158,7 @@ const spawnPlaylistActor = appMusicPlaylistsModel.assign(
             return [...playlistsActorsRefs, playlist];
         },
     },
-    'SPAWN_NEW_PLAYLIST_ACTOR_FROM_STATE',
+    'ROOM_CREATION_ACKNOWLEDGEMENT',
 );
 
 const spawnPlaylistActorFromRoomID = appMusicPlaylistsModel.assign(
@@ -166,6 +185,15 @@ const spawnPlaylistActorFromRoomID = appMusicPlaylistsModel.assign(
     },
     'DISPLAY_MPE_ROOM_VIEW', //how could I add several sources ? without inside actions checking event type ?
 );
+
+const assignRoomToCreateInitialTracksIDsToContext =
+    appMusicPlaylistsModel.assign(
+        {
+            roomToCreateInitialTracksIDs: (_context, { initialTracksIDs }) =>
+                initialTracksIDs,
+        },
+        'OPEN_CREATION_FORM',
+    );
 
 type AppMusicPlaylistsMachine = ReturnType<
     typeof appMusicPlaylistsModel['createMachine']
@@ -197,15 +225,14 @@ export function createAppMusicPlaylistsMachine({
                 ) => {
                     socket.on('MPE_CREATE_ROOM_SYNCED_CALLBACK', (state) => {
                         sendBack({
-                            type: 'SPAWN_NEW_PLAYLIST_ACTOR_FROM_STATE',
+                            type: 'ROOM_CREATION_ACKNOWLEDGEMENT',
                             state,
                         });
                     });
 
                     socket.on('MPE_CREATE_ROOM_CALLBACK', (state) => {
                         sendBack({
-                            type: 'FORWARD_ASSIGN_MERGE_NEW_STATE_TO_INVOLVED_PLAYLIST',
-                            roomID: state.roomID,
+                            type: 'ROOM_IS_READY',
                             state,
                         });
                     });
@@ -295,7 +322,7 @@ export function createAppMusicPlaylistsMachine({
                                 userIsNotInRoom,
                             });
                             sendBack({
-                                type: 'FORWARD_ASSIGN_MERGE_NEW_STATE_TO_INVOLVED_PLAYLIST',
+                                type: 'JOIN_ROOM_ACKNOWLEDGEMENT',
                                 state,
                                 roomID,
                                 userIsNotInRoom,
@@ -405,24 +432,186 @@ export function createAppMusicPlaylistsMachine({
                 },
         },
 
-        initial: 'idle',
+        type: 'parallel',
 
         states: {
-            idle: {
+            roomCreation: {
+                initial: 'waitingForRoomCreation',
+
+                states: {
+                    waitingForRoomCreation: {
+                        on: {
+                            OPEN_CREATION_FORM: {
+                                target: 'creatingRoom',
+
+                                actions:
+                                    assignRoomToCreateInitialTracksIDsToContext,
+                            },
+                        },
+                    },
+
+                    creatingRoom: {
+                        entry: 'openCreationMpeFormModal',
+
+                        invoke: {
+                            id: 'creationMpeRoomForm',
+
+                            src: ({ roomToCreateInitialTracksIDs }) => {
+                                invariant(
+                                    roomToCreateInitialTracksIDs !== undefined,
+                                    'Tracks must have been selected before trying to open MPE Room Creation Form',
+                                );
+
+                                return createCreationMpeRoomFormMachine({
+                                    initialTracksIDs:
+                                        roomToCreateInitialTracksIDs,
+                                });
+                            },
+
+                            onDone: {
+                                target: 'waitingForRoomCreationAcknowledgement',
+
+                                actions: [
+                                    send(
+                                        (
+                                            { roomToCreateInitialTracksIDs },
+                                            {
+                                                data: {
+                                                    roomName,
+                                                    isOpen,
+                                                    onlyInvitedUsersCanVote,
+                                                },
+                                            }: CreationMpeRoomFormDoneInvokeEvent,
+                                        ) => {
+                                            invariant(
+                                                roomToCreateInitialTracksIDs !==
+                                                    undefined,
+                                                'Tracks must have been selected before trying to open MPE Room Creation Form',
+                                            );
+
+                                            return appMusicPlaylistsModel.events.CREATE_ROOM(
+                                                {
+                                                    initialTrackID:
+                                                        roomToCreateInitialTracksIDs[0],
+                                                    name: roomName,
+                                                    isOpen,
+                                                    isOpenOnlyInvitedUsersCanEdit:
+                                                        onlyInvitedUsersCanVote,
+                                                },
+                                            );
+                                        },
+                                        {
+                                            to: 'socketConnection',
+                                        },
+                                    ),
+
+                                    appMusicPlaylistsModel.actions.redirectToMpeLibrary(),
+                                ],
+                            },
+                        },
+
+                        on: {
+                            CLOSE_CREATION_FORM: {
+                                target: 'waitingForRoomCreation',
+
+                                actions:
+                                    appMusicPlaylistsModel.actions.goBackToLastScreen(),
+                            },
+                        },
+                    },
+
+                    waitingForRoomCreationAcknowledgement: {
+                        on: {
+                            ROOM_CREATION_ACKNOWLEDGEMENT: {
+                                target: 'waitingForRoomReadiness',
+
+                                actions: spawnPlaylistActor,
+                            },
+                        },
+                    },
+
+                    waitingForRoomReadiness: {
+                        on: {
+                            ROOM_IS_READY: {
+                                target: 'createdRoom',
+
+                                actions: send(
+                                    (_, { state }) => ({
+                                        type: 'ASSIGN_MERGE_NEW_STATE',
+                                        state,
+                                    }),
+                                    {
+                                        to: (_, { state: { roomID } }) =>
+                                            getPlaylistMachineActorName(roomID),
+                                    },
+                                ),
+                            },
+                        },
+                    },
+
+                    createdRoom: {
+                        always: {
+                            target: 'waitingForRoomCreation',
+                        },
+                    },
+                },
+
                 on: {
-                    CREATE_ROOM: {
-                        actions: forwardTo('socketConnection'),
+                    /**
+                     * Listen to creation acknowledgement events here so that rooms created
+                     * by other user's devices will be handled correctly
+                     * but will not take part in the creation process.
+                     *
+                     * This probably not the best solution, but for now it will allow us to create rooms in tests
+                     * by receiving these events.
+                     */
+                    ROOM_CREATION_ACKNOWLEDGEMENT: {
+                        actions: spawnPlaylistActor,
+                    },
+
+                    ROOM_IS_READY: {
+                        actions: send(
+                            (_, { state }) => ({
+                                type: 'ASSIGN_MERGE_NEW_STATE',
+                                state,
+                            }),
+                            {
+                                to: (_, { state: { roomID } }) =>
+                                    getPlaylistMachineActorName(roomID),
+                            },
+                        ),
+                    },
+                    /**
+                     *
+                     */
+                },
+            },
+
+            roomsManagement: {
+                on: {
+                    MPE_TRACKS_LIST_UPDATE: {
+                        actions: send(
+                            (_, { state }) =>
+                                playlistModel.events.ASSIGN_MERGE_NEW_STATE({
+                                    state,
+                                }),
+                            {
+                                to: (_, { roomID }) =>
+                                    getPlaylistMachineActorName(roomID),
+                            },
+                        ),
                     },
 
                     JOIN_ROOM: {
                         actions: forwardTo('socketConnection'),
                     },
 
-                    MPE_TRACKS_LIST_UPDATE: {
+                    JOIN_ROOM_ACKNOWLEDGEMENT: {
                         actions: send(
-                            (_, { state }) =>
+                            (_, { state, userIsNotInRoom }) =>
                                 playlistModel.events.ASSIGN_MERGE_NEW_STATE({
                                     state,
+                                    userIsNotInRoom,
                                 }),
                             {
                                 to: (_, { roomID }) =>
@@ -576,53 +765,32 @@ export function createAppMusicPlaylistsMachine({
                             },
                         ),
                     },
-                },
-            },
-        },
 
-        on: {
-            FORWARD_ASSIGN_MERGE_NEW_STATE_TO_INVOLVED_PLAYLIST: {
-                actions: send(
-                    (_, { state, userIsNotInRoom }) =>
-                        playlistModel.events.ASSIGN_MERGE_NEW_STATE({
-                            state,
-                            userIsNotInRoom,
-                        }),
-                    {
-                        to: (_, { roomID }) =>
-                            getPlaylistMachineActorName(roomID),
-                    },
-                ),
-            },
-
-            //SHOULD BE REMOVED ??
-            SPAWN_NEW_PLAYLIST_ACTOR_FROM_STATE: {
-                actions: spawnPlaylistActor,
-            },
-
-            REMOVE_ACTOR_FROM_PLAYLIST_LIST: {
-                actions: removePlaylistActor,
-            },
-
-            DISPLAY_MPE_ROOM_VIEW: [
-                {
-                    cond: ({ playlistsActorsRefs }, { roomID }) => {
-                        const actorHasAlreadyBeenSpawned =
-                            playlistsActorsRefs.some(
-                                (actor) => actor.id === roomID,
-                            );
-                        return actorHasAlreadyBeenSpawned;
+                    REMOVE_ACTOR_FROM_PLAYLIST_LIST: {
+                        actions: removePlaylistActor,
                     },
 
-                    actions: 'navigateToMpeRoomView',
-                },
-                {
-                    actions: [
-                        spawnPlaylistActorFromRoomID,
-                        'navigateToMpeRoomView',
+                    DISPLAY_MPE_ROOM_VIEW: [
+                        {
+                            cond: ({ playlistsActorsRefs }, { roomID }) => {
+                                const actorHasAlreadyBeenSpawned =
+                                    playlistsActorsRefs.some(
+                                        (actor) => actor.id === roomID,
+                                    );
+                                return actorHasAlreadyBeenSpawned;
+                            },
+
+                            actions: 'navigateToMpeRoomView',
+                        },
+                        {
+                            actions: [
+                                spawnPlaylistActorFromRoomID,
+                                'navigateToMpeRoomView',
+                            ],
+                        },
                     ],
                 },
-            ],
+            },
         },
     });
 }

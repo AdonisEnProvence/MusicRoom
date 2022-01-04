@@ -238,7 +238,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
         }
 
         return (
-            <AppScreen>
+            <AppScreen testID={`mpe-room-screen-${playlistID}`}>
                 <AppScreenHeader
                     title={`Playlist ${playlist.roomName}`}
                     insetTop={insets.top}

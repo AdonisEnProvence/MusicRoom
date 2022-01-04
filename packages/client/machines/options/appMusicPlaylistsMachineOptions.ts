@@ -1,6 +1,9 @@
 import Toast from 'react-native-toast-message';
 import { MachineOptions } from 'xstate';
-import { navigateFromRef } from '../../navigation/RootNavigation';
+import {
+    navigateFromRef,
+    navigationRef,
+} from '../../navigation/RootNavigation';
 import {
     MusicPlaylistsContext,
     MusicPlaylistsEvents,
@@ -42,6 +45,27 @@ export function getAppMusicPlaylistsMachineOptions(): Partial<AppMusicPlaylistsO
                         },
                     },
                 });
+            },
+            openCreationMpeFormModal: () => {
+                navigateFromRef('MusicPlaylistEditorCreationForm', {
+                    screen: 'MusicTrackVoteCreationFormName',
+                });
+            },
+
+            redirectToMpeLibrary: () => {
+                navigateFromRef('Main', {
+                    screen: 'Root',
+                    params: {
+                        screen: 'Library',
+                        params: {
+                            screen: 'MpeRooms',
+                        },
+                    },
+                });
+            },
+
+            goBackToLastScreen: () => {
+                navigationRef.current?.goBack();
             },
         },
     };

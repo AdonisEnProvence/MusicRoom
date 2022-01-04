@@ -1,8 +1,18 @@
 import { MpeChangeTrackOrderOperationToApply } from '@musicroom/types';
 import { test, expect, Page, Locator } from '@playwright/test';
-import { promise } from 'zod';
+import { random } from 'faker';
+import { assertIsNotNull } from '../_utils/assert';
+import { hitGoNextButton } from '../_utils/global';
 import { KnownSearchesElement, KnownSearchesRecord } from '../_utils/mock-http';
 import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
+
+function withinMpeRoomsListScreen(selector: string): string {
+    return `css=[data-testid="mpe-rooms-list"] >> ${selector}`;
+}
+
+function withinMpeRoomScreen(selector: string): string {
+    return `css=[data-testid^="mpe-room-screen-"] >> ${selector}`;
+}
 
 const knownSearches: KnownSearchesRecord = {
     'Biolay - Vendredi 12': [
@@ -37,57 +47,166 @@ const knownSearches: KnownSearchesRecord = {
             duration: 0,
         },
     ],
+
+    'BB Brunes': [
+        {
+            id: 'X3VNRVo7irM',
+            title: 'BB BRUNES - Dis-Moi [Clip Officiel]',
+            artistName: 'BBBrunesMusic',
+            duration: 0,
+        },
+        {
+            id: 'mF5etHMRMMM',
+            title: 'BB BRUNES - Coups et Blessures [Clip Officiel]',
+            artistName: 'BBBrunesMusic',
+            duration: 0,
+        },
+        {
+            id: '1d3etBBSSfw',
+            title: 'BB BRUNES - Lalalove You [Clip Officiel]',
+            artistName: 'BBBrunesMusic',
+            duration: 0,
+        },
+        {
+            id: 'DyRDeEWhW6M',
+            title: 'BB BRUNES - Aficionado [Clip Officiel]',
+            artistName: 'BBBrunesMusic',
+            duration: 0,
+        },
+        {
+            id: 'Qs-ucIS2B-0',
+            title: 'BB BRUNES - Stéréo [Clip Officiel]',
+            artistName: 'BBBrunesMusic',
+            duration: 0,
+        },
+    ],
 };
 
 async function createMpeRoom({
     page,
-    openCreatedRoom,
-    deviceToOpenRoomOn,
 }: {
     page: Page;
-    openCreatedRoom?: boolean;
-    deviceToOpenRoomOn: Page[];
-}) {
+}): Promise<{ roomName: string }> {
     await expect(page.locator('text="Home"').first()).toBeVisible();
 
-    const createMpeRoomButton = page.locator('text="Create MPE room"');
-    await expect(createMpeRoomButton).toBeVisible();
+    const goToTracksSearch = page.locator('text="Search"');
+    await goToTracksSearch.click();
 
-    await createMpeRoomButton.click();
+    const trackQuery = 'Biolay - Vendredi 12';
+    await page.fill(
+        'css=[placeholder*="Search a track"] >> visible=true',
+        trackQuery,
+    );
+    await page.keyboard.press('Enter');
 
-    if (openCreatedRoom) {
-        await Promise.all(
-            [page, ...deviceToOpenRoomOn].map(async (page) => {
-                const goToLibraryButton = page.locator('text="Library"');
-                await goToLibraryButton.click();
+    const firstMatchingSong = page
+        .locator(`text=${knownSearches[trackQuery][0].title}`)
+        .first();
+    await expect(firstMatchingSong).toBeVisible();
 
-                const libraryScreenTitle = page.locator(
-                    'text="Library" >> nth=1',
-                );
-                await expect(libraryScreenTitle).toBeVisible();
+    const selectedSongTitle = await firstMatchingSong.textContent();
+    assertIsNotNull(
+        selectedSongTitle,
+        'The selected song must exist and have a text content',
+    );
 
-                const mpeRoomCard = page.locator(
-                    'css=[data-testid^="mpe-room-card"]',
-                );
-                await mpeRoomCard.click();
-            }),
+    await firstMatchingSong.click();
+
+    const createMpeRoomModalButton = page.locator('text="Create MPE"');
+    await createMpeRoomModalButton.click();
+
+    await expect(
+        page.locator('text="What is the name of the room?"'),
+    ).toBeVisible();
+
+    const roomName = random.words();
+    await page.fill('css=[placeholder="Francis Cabrel OnlyFans"]', roomName);
+
+    await hitGoNextButton({
+        page,
+    });
+
+    await expect(
+        page.locator('text="What is the opening status of the room?"'),
+    ).toBeVisible();
+
+    const publicMode = page.locator(
+        'css=[aria-selected="true"] >> text="Public"',
+    );
+    await expect(publicMode).toBeVisible();
+    await hitGoNextButton({
+        page,
+    });
+
+    await expect(page.locator('text="Confirm room creation"')).toBeVisible();
+    const elementWithSelectedSongTitle = page.locator(
+        `text=${selectedSongTitle}`,
+    );
+    await expect(elementWithSelectedSongTitle).toBeVisible();
+    await hitGoNextButton({
+        page,
+    });
+
+    await goToLibraryAndSearchMpeRoomToOpenIt({
+        page,
+        roomName,
+    });
+
+    return {
+        roomName,
+    };
+}
+
+async function goToLibraryAndSearchMpeRoomToOpenIt({
+    page,
+    roomName,
+}: {
+    page: Page;
+    roomName: string;
+}) {
+    const goToLibraryButton = page.locator('text="Library" >> nth=0');
+    await goToLibraryButton.click();
+
+    const libraryScreenTitle = page.locator(
+        withinMpeRoomsListScreen('text="Your library"'),
+    );
+    await expect(libraryScreenTitle).toBeVisible();
+
+    const mpeRoomCard = page.locator(
+        withinMpeRoomsListScreen(`text="${roomName}"`),
+    );
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        const roomHasBeenFound = await mpeRoomCard.isVisible();
+        if (roomHasBeenFound === true) {
+            break;
+        }
+
+        const searchRoomInput = page.locator(
+            withinMpeRoomsListScreen('css=[placeholder^="Search a room"]'),
         );
+        await searchRoomInput.click();
+
+        const cancelSearchRoomButton = page.locator(
+            withinMpeRoomsListScreen('text="Cancel"'),
+        );
+        await cancelSearchRoomButton.click();
     }
+
+    await mpeRoomCard.click();
 }
 
 async function addTrack({
     page,
-    deviceToApplyAssertionOn,
 }: {
     page: Page;
-    deviceToApplyAssertionOn: Page[];
 }): Promise<KnownSearchesElement> {
     const addTrackButton = page.locator('text="Add Track"');
     await expect(addTrackButton).toBeVisible();
 
     await addTrackButton.click();
 
-    const searchQuery = 'Biolay - Vendredi 12';
+    const searchQuery = 'BB Brunes';
 
     const searchTrackInput = page.locator(
         'css=[placeholder*="Search a track"] >> visible=true',
@@ -95,24 +214,29 @@ async function addTrack({
     await searchTrackInput.fill(searchQuery);
     await page.keyboard.press('Enter');
 
-    const trackToAdd = page.locator(
-        `text=${knownSearches[searchQuery][0].title}`,
-    );
-    await trackToAdd.click();
+    const trackToAdd = knownSearches[searchQuery][0];
+    const trackToAddTitle = trackToAdd.title;
+    const trackToAddCard = page.locator(`text=${trackToAddTitle}`);
+    await trackToAddCard.click();
 
-    const addedTracks = await Promise.all(
-        [page, ...deviceToApplyAssertionOn].map(async (page) => {
-            const addedTrackCard = page.locator(
-                'css=[data-testid$="track-card-container"] >> nth=1',
-            );
-            const addedTrack = knownSearches[searchQuery][0];
-            await expect(addedTrackCard).toBeVisible();
-            await expect(addedTrackCard).toContainText(addedTrack.title);
-            return addedTrack;
-        }),
+    const addedTrackCardOnRoomScreen = page.locator(
+        withinMpeRoomScreen(`text=${trackToAddTitle}`),
     );
+    await expect(addedTrackCardOnRoomScreen).toBeVisible();
 
-    return addedTracks[0];
+    return trackToAdd;
+}
+
+async function waitForTrackToBeAddedOnRoomScreen({
+    page,
+    addedTrackTitle,
+}: {
+    page: Page;
+    addedTrackTitle: string;
+}) {
+    await expect(
+        page.locator(withinMpeRoomScreen(`text=${addedTrackTitle}`)),
+    ).toBeVisible();
 }
 
 function getTrackChangeOrderButton({
@@ -125,11 +249,11 @@ function getTrackChangeOrderButton({
     operationToApply: MpeChangeTrackOrderOperationToApply;
 }): Locator {
     return page.locator(
-        `css=[data-testid="${trackIDToMove}-track-card-container"] [aria-label="Move ${
-            operationToApply === MpeChangeTrackOrderOperationToApply.Values.DOWN
-                ? 'down'
-                : 'up'
-        }"]`,
+        withinMpeRoomScreen(
+            `css=[data-testid="${trackIDToMove}-track-card-container"] [aria-label="Move ${
+                operationToApply === 'DOWN' ? 'down' : 'up'
+            }"]`,
+        ),
     );
 }
 
@@ -141,12 +265,16 @@ function getTrackDeleteButton({
     trackID: string;
 }): Locator {
     return page.locator(
-        `css=[data-testid="${trackID}-track-card-container"] [aria-label="Delete"]`,
+        withinMpeRoomScreen(
+            `css=[data-testid="${trackID}-track-card-container"] [aria-label="Delete"]`,
+        ),
     );
 }
 
 function getAllTracksListCardElements({ page }: { page: Page }): Locator {
-    return page.locator(`css=[data-testid$="track-card-container"]`);
+    return page.locator(
+        withinMpeRoomScreen(`css=[data-testid$="track-card-container"]`),
+    );
 }
 
 async function changeTrackOrder({
@@ -170,21 +298,23 @@ async function changeTrackOrder({
     await expect(trackToMoveChangeOrderButton).toBeVisible();
     await expect(trackToMoveChangeOrderButton).toBeEnabled();
 
-    await trackToMoveChangeOrderButton.click();
+    const successfulToast = page.locator('text=Track moved successfully');
+    await Promise.all([
+        expect(successfulToast).toBeVisible(),
 
-    {
-        const successfulToast = page.locator('text=Track moved successfully');
-        await expect(successfulToast).toBeVisible();
+        trackToMoveChangeOrderButton.click(),
+    ]);
 
-        await Promise.all(
-            [page, ...deviceToApplyAssertionOn].map(async (page) => {
-                const firstTracksListElement = page.locator(
+    await Promise.all(
+        [page, ...deviceToApplyAssertionOn].map(async (page) => {
+            const firstTracksListElement = page.locator(
+                withinMpeRoomScreen(
                     'css=[data-testid$="track-card-container"] >> nth=0',
-                );
-                await expect(firstTracksListElement).toContainText(trackTitle);
-            }),
-        );
-    }
+                ),
+            );
+            await expect(firstTracksListElement).toContainText(trackTitle);
+        }),
+    );
 }
 
 async function deleteTrack({
@@ -255,20 +385,27 @@ test('Create MPE room', async ({ browser }) => {
         userIndex: 0,
     });
 
-    await createMpeRoom({
+    const { roomName } = await createMpeRoom({
         page,
-        openCreatedRoom: true,
-        deviceToOpenRoomOn: [pageB],
+    });
+
+    await goToLibraryAndSearchMpeRoomToOpenIt({
+        page: pageB,
+        roomName,
     });
 
     const addedTrack = await addTrack({
         page,
-        deviceToApplyAssertionOn: [pageB],
+    });
+
+    await waitForTrackToBeAddedOnRoomScreen({
+        page: pageB,
+        addedTrackTitle: addedTrack.title,
     });
 
     await changeTrackOrder({
         page,
-        operationToApply: MpeChangeTrackOrderOperationToApply.Values.UP,
+        operationToApply: 'UP',
         trackIDToMove: addedTrack.id,
         trackTitle: addedTrack.title,
         deviceToApplyAssertionOn: [pageB],

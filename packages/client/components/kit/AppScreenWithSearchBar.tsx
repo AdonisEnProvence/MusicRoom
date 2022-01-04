@@ -8,6 +8,7 @@ import AppScreenContainer from './AppScreenContainer';
 import AppScreenHeaderWithSearchBar from './AppScreenHeaderWithSearchBar';
 
 type AppScreenWithSearchBarProps = {
+    testID?: string;
     title: string;
     searchInputPlaceholder: string;
     showHeader: boolean;
@@ -25,6 +26,7 @@ type AppScreenWithSearchBarProps = {
 );
 
 const AppScreenWithSearchBar: React.FC<AppScreenWithSearchBarProps> = ({
+    testID,
     title,
     searchInputPlaceholder,
     showHeader,
@@ -39,7 +41,10 @@ const AppScreenWithSearchBar: React.FC<AppScreenWithSearchBarProps> = ({
     const insets = useSafeAreaInsets();
 
     return (
-        <AppScreen screenOffsetY={showHeader === true ? 0 : screenOffsetY}>
+        <AppScreen
+            testID={testID}
+            screenOffsetY={showHeader === true ? 0 : screenOffsetY}
+        >
             <AppScreenHeaderWithSearchBar
                 title={title}
                 searchInputPlaceholder={searchInputPlaceholder}

@@ -1,6 +1,9 @@
 package shared_mpe
 
-import "github.com/AdonisEnProvence/MusicRoom/shared"
+import (
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
+	"github.com/AdonisEnProvence/MusicRoom/shared"
+)
 
 const (
 	SignalAddTracks         shared.SignalRoute = "add-tracks"
@@ -8,6 +11,7 @@ const (
 	SignalDeleteTracks      shared.SignalRoute = "delete-tracks"
 	SignalAddUser           shared.SignalRoute = "add-user"
 	SignalRemoveUser        shared.SignalRoute = "remove-user"
+	SignalExportToMtvRoom   shared.SignalRoute = "export-to-mtv-room"
 	SignalTerminateWorkflow shared.SignalRoute = "terminate-workflow"
 )
 
@@ -122,6 +126,30 @@ func NewRemoveUserSignal(args NewRemoveUserSignalArgs) RemoveUserSignal {
 		Route: SignalRemoveUser,
 
 		UserID: args.UserID,
+	}
+}
+
+type ExportToMtvRoomSignal struct {
+	Route shared.SignalRoute `validate:"required"`
+
+	UserID         string                            `validate:"required,uuid"`
+	DeviceID       string                            `validate:"required,uuid"`
+	MtvRoomOptions shared_mtv.MtvRoomCreationOptions `validate:"required"`
+}
+
+type ExportToMtvRoomSignalArgs struct {
+	UserID         string
+	DeviceID       string
+	MtvRoomOptions shared_mtv.MtvRoomCreationOptions
+}
+
+func NewExportToMtvRoomSignal(args ExportToMtvRoomSignalArgs) ExportToMtvRoomSignal {
+	return ExportToMtvRoomSignal{
+		Route: SignalExportToMtvRoom,
+
+		UserID:         args.UserID,
+		DeviceID:       args.DeviceID,
+		MtvRoomOptions: args.MtvRoomOptions,
 	}
 }
 

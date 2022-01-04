@@ -388,11 +388,11 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		RoomID:                        body.WorkflowID,
 		RoomCreatorUserID:             body.UserID,
 		CreatorUserRelatedInformation: creatorUserRelatedInformation,
+		InitialTracksIDsList:          initialTracksIDsList,
 
 		MtvRoomCreationOptions: shared_mtv.MtvRoomCreationOptions{
 			RoomName:                      body.Name,
 			MinimumScoreToBePlayed:        body.MinimumScoreToBePlayed,
-			InitialTracksIDsList:          initialTracksIDsList,
 			IsOpen:                        body.IsOpen,
 			IsOpenOnlyInvitedUsersCanVote: body.IsOpenOnlyInvitedUsersCanVote,
 			HasPhysicalAndTimeConstraints: body.HasPhysicalAndTimeConstraints,

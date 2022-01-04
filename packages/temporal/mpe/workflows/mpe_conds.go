@@ -114,3 +114,14 @@ func userIsNotAlreadyInRoom(internalState *MpeRoomInternalState) brainy.Cond {
 		return true
 	}
 }
+
+func userCanExportToMtv(internalState *MpeRoomInternalState) brainy.Cond {
+	return func(c brainy.Context, e brainy.Event) bool {
+		event := e.(MpeExportToMtvRoomEvent)
+
+		user := internalState.GetUserRelatedInformation(event.UserID)
+		userIsMemberOfTheRoom := user != nil
+
+		return userIsMemberOfTheRoom
+	}
+}

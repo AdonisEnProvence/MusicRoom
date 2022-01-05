@@ -9,6 +9,7 @@ import Device from 'App/Models/Device';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import Ws from 'App/Services/Ws';
 import MtvRoomsChatController from 'App/Controllers/Ws/MtvRoomsChatController';
+import MtvRoomService from 'App/Services/MtvRoomService';
 import { TypedSocket } from './socket';
 
 export default function initMtvSocketEventListeners(socket: TypedSocket): void {
@@ -27,38 +28,17 @@ export default function initMtvSocketEventListeners(socket: TypedSocket): void {
     /// //// ///
 
     /// ROOM ///
-    socket.on('MTV_CREATE_ROOM', async (payload) => {
+    socket.on('MTV_CREATE_ROOM', async (rawPayload) => {
         try {
-            MtvRoomClientToServerCreateArgs.parse(payload);
+            const payload = MtvRoomClientToServerCreateArgs.parse(rawPayload);
 
-            if (!payload.isOpen && payload.isOpenOnlyInvitedUsersCanVote) {
-                throw new Error(
-                    'MTV_CREATE_ROOM failed corrupted payload, isOpen false isOpenOnlyInvitedUsersCanVote true',
-                );
-            }
-
-            if (
-                (payload.hasPhysicalAndTimeConstraints &&
-                    !payload.physicalAndTimeConstraints) ||
-                (!payload.hasPhysicalAndTimeConstraints &&
-                    payload.physicalAndTimeConstraints)
-            ) {
-                throw new Error(
-                    'MTV_CREATE_ROOM failed corrupted geoloc and time constraints',
-                );
-            }
+            MtvRoomService.validateMtvRoomOptions(payload);
 
             const {
                 user,
                 deviceID,
                 mtvRoomID: currMtvRoomID,
             } = await SocketLifecycle.getSocketConnectionCredentials(socket);
-
-            if (payload.name === '') {
-                throw new Error(
-                    'MTV_CREATE_ROOM failed name must not be empty',
-                );
-            }
 
             /**
              * Checking if user needs to leave previous

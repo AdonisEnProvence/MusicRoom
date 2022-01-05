@@ -5,6 +5,7 @@ import {
     MpeCreateWorkflowResponse,
     MpeRoomClientToServerCreateArgs,
     MpeRoomServerToClientGetContextSuccessCallbackArgs,
+    MtvRoomCreationOptionsWithoutInitialTracksIDs,
 } from '@musicroom/types';
 import MpeRoom from 'App/Models/MpeRoom';
 import User from 'App/Models/User';
@@ -91,6 +92,13 @@ interface MpeOnLeaveRoomArgs {
 interface MpeOnTerminateArgs {
     user: User;
     roomID: string;
+}
+
+interface OnExportToMtvArgs {
+    userID: string;
+    deviceID: string;
+    roomID: string;
+    mtvRoomOptions: MtvRoomCreationOptionsWithoutInitialTracksIDs;
 }
 
 export default class MpeRoomsWsController {
@@ -372,6 +380,26 @@ export default class MpeRoomsWsController {
                 roomID,
             });
             throw new Error('onGetContext error');
+        }
+    }
+
+    public static async onExportToMtv({
+        roomID,
+        userID,
+        deviceID,
+        mtvRoomOptions,
+    }: OnExportToMtvArgs): Promise<void> {
+        try {
+            await MpeServerToTemporalController.exportToMtv({
+                workflowID: roomID,
+                userID,
+                deviceID,
+                mtvRoomOptions,
+            });
+        } catch (err) {
+            console.error(err);
+
+            throw new Error('onExportToMtv error');
         }
     }
 }

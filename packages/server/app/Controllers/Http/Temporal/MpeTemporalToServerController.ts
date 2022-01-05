@@ -8,10 +8,13 @@ import {
     MpeAcknowledgeDeletingTracksRequestBody,
     MpeAcknowledgeJoinRequestBody,
     MpeAcknowledgeLeaveRequestBody,
+    MpeRequestMtvRoomCreationRequestBody,
 } from '@musicroom/types';
+import invariant from 'tiny-invariant';
 import Device from 'App/Models/Device';
 import MpeRoom from 'App/Models/MpeRoom';
 import User from 'App/Models/User';
+import MtvRoomService from 'App/Services/MtvRoomService';
 import UserService from 'App/Services/UserService';
 import Ws from 'App/Services/Ws';
 
@@ -163,5 +166,35 @@ export default class MpeTemporalToServerController {
             .to(state.roomID)
             .except(device.socketID)
             .emit('MPE_TRACKS_LIST_UPDATE', { roomID: state.roomID, state });
+    }
+
+    public async requestMtvRoomCreation({
+        request,
+    }: HttpContextContract): Promise<void> {
+        const { userID, deviceID, tracksIDs, mtvRoomOptions } =
+            MpeRequestMtvRoomCreationRequestBody.parse(request.body());
+
+        MtvRoomService.validateMtvRoomOptions(mtvRoomOptions);
+
+        const user = await User.findOrFail(userID);
+        const currentMtvRoomID = user.mtvRoomID ?? undefined;
+
+        const device = await user
+            .related('devices')
+            .query()
+            .where('uuid', deviceID)
+            .first();
+        const isUserDevice = device !== null;
+        invariant(isUserDevice === true, 'Device does not belong to user');
+
+        await MtvRoomService.createMtvRoom({
+            user,
+            deviceID,
+            options: {
+                ...mtvRoomOptions,
+                initialTracksIDs: tracksIDs,
+            },
+            currentMtvRoomID,
+        });
     }
 }

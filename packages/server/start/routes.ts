@@ -145,6 +145,11 @@ Route.group(() => {
     );
 
     Route.post(
+        `/request-mtv-room-creation`,
+        'Temporal/MpeTemporalToServerController.requestMtvRoomCreation',
+    );
+
+    Route.post(
         `/acknowledge-leave`,
         `Temporal/MpeTemporalToServerController.mpeLeaveAcknowledgement`,
     );

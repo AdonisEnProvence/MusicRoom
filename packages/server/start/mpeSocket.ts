@@ -10,6 +10,7 @@ import {
     MpeRoomClientToServerLeaveRoomArgs,
 } from '@musicroom/types';
 import MpeRoomsWsController from 'App/Controllers/Ws/MpeRoomsWsController';
+import MtvRoomService from 'App/Services/MtvRoomService';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import Ws from 'App/Services/Ws';
 import { TypedSocket } from './socket';
@@ -175,6 +176,8 @@ export default function initMpeSocketEventListeners(socket: TypedSocket): void {
         try {
             const { roomID, mtvRoomOptions } =
                 MpeRoomClientToServerExportToMtvArgs.parse(rawArgs);
+
+            MtvRoomService.validateMtvRoomOptions(mtvRoomOptions);
 
             const { user, deviceID } =
                 await SocketLifecycle.getSocketConnectionCredentials(socket);

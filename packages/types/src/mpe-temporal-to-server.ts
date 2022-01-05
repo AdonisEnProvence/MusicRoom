@@ -1,6 +1,6 @@
 import * as z from 'zod';
 import { MpeWorkflowState } from './mpe';
-import { MtvRoomCreationOptionsWithoutInitialTracksIDs } from '.';
+import { MtvRoomCreationOptionsWithoutInitialTracksIDs } from './mpe-room-websockets';
 
 export const MpeRejectAddingTracksRequestBody = z.object({
     roomID: z.string().uuid(),

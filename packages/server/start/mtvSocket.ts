@@ -7,7 +7,6 @@ import {
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
-import Ws from 'App/Services/Ws';
 import MtvRoomsChatController from 'App/Controllers/Ws/MtvRoomsChatController';
 import MtvRoomService from 'App/Services/MtvRoomService';
 import { TypedSocket } from './socket';

@@ -6,6 +6,7 @@ import { useSx, Text, View } from 'dripsy';
 import { View as MotiView } from 'moti';
 import { Ionicons } from '@expo/vector-icons';
 import { Skeleton } from '@motify/skeleton';
+import { useFocusEffect } from '@react-navigation/native';
 import {
     AppScreen,
     AppScreenContainer,
@@ -243,6 +244,23 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                 type: 'LEAVE_ROOM',
             });
         }
+
+        useFocusEffect(
+            React.useCallback(() => {
+                // Do something when the screen is focused
+                playlistRef.send({
+                    type: 'MPE_ROOM_VIEW_FOCUS',
+                });
+
+                return () => {
+                    // Do something when the screen is unfocused
+                    // Useful for cleanup functions
+                    playlistRef.send({
+                        type: 'MPE_ROOM_VIEW_BLUR',
+                    });
+                };
+            }, [playlistRef]),
+        );
 
         return (
             <AppScreen testID={`mpe-room-screen-${playlistID}`}>

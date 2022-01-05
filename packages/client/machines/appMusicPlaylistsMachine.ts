@@ -45,6 +45,7 @@ export const appMusicPlaylistsModel = createModel(
         playlistsActorsRefs: [] as MusicPlaylist[],
 
         roomToCreateInitialTracksIDs: undefined as string[] | undefined,
+        currentlyDisplayedMpeRoomView: undefined as string | undefined, //MusicPlaylist ??
     },
     {
         events: {
@@ -68,9 +69,10 @@ export const appMusicPlaylistsModel = createModel(
             RECEIVED_MPE_LEAVE_ROOM_CALLBACK: (args: {
                 roomSummary: MpeRoomSummary;
             }) => args,
-            SPAWN_NEW_PLAYLIST_ACTOR_FROM_STATE: (args: {
-                state: MpeWorkflowState;
-            }) => args,
+
+            SET_CURRENTLY_DISPLAYED_MPE_ROOM_VIEW: (args: { roomID: string }) =>
+                args,
+            RESET_CURRENTLY_DISPLAYED_MPE_ROOM_VIEW: () => ({}),
 
             JOIN_ROOM_ACKNOWLEDGEMENT: (args: {
                 roomID: string;
@@ -156,6 +158,13 @@ function actorExists(context: MusicPlaylistsContext, roomID: string): boolean {
     return context.playlistsActorsRefs.some((ref) => ref.id === roomID);
 }
 
+function givenRoomIDCurrentlyDisplayed(
+    context: MusicPlaylistsContext,
+    roomID: string,
+): boolean {
+    return context.currentlyDisplayedMpeRoomView === roomID;
+}
+
 const removePlaylistActor = appMusicPlaylistsModel.assign(
     {
         playlistsActorsRefs: ({ playlistsActorsRefs }, { roomID }) => {
@@ -163,6 +172,20 @@ const removePlaylistActor = appMusicPlaylistsModel.assign(
         },
     },
     'STOP_AND_REMOVE_ACTOR_FROM_PLAYLIST_LIST',
+);
+
+const resetCurrentlyDisplayedMpeRoomView = appMusicPlaylistsModel.assign(
+    {
+        currentlyDisplayedMpeRoomView: () => undefined,
+    },
+    'RESET_CURRENTLY_DISPLAYED_MPE_ROOM_VIEW',
+);
+
+const setCurrentlyDisplayedMpeRoomView = appMusicPlaylistsModel.assign(
+    {
+        currentlyDisplayedMpeRoomView: (_context, event) => event.roomID,
+    },
+    'SET_CURRENTLY_DISPLAYED_MPE_ROOM_VIEW',
 );
 
 const spawnPlaylistActor = appMusicPlaylistsModel.assign(
@@ -658,40 +681,85 @@ export function createAppMusicPlaylistsMachine({
                         actions: forwardTo('socketConnection'),
                     },
 
-                    RECEIVED_FORCED_DISCONNECTION: {
-                        cond: (context, { roomSummary: { roomID } }) =>
-                            actorExists(context, roomID),
-                        //REDIRECT IF ROOM IS IN VIEW ?
-                        actions: [
-                            'displayMpeForcedDisconnectionToast',
-                            `redirectToMpeLibrary`,
-                            send((_, { roomSummary: { roomID } }) =>
-                                appMusicPlaylistsModel.events.STOP_AND_REMOVE_ACTOR_FROM_PLAYLIST_LIST(
-                                    {
+                    RECEIVED_FORCED_DISCONNECTION: [
+                        {
+                            cond: (context, { roomSummary: { roomID } }) => {
+                                return (
+                                    actorExists(context, roomID) &&
+                                    givenRoomIDCurrentlyDisplayed(
+                                        context,
                                         roomID,
-                                    },
+                                    )
+                                );
+                            },
+                            actions: [
+                                'displayMpeForcedDisconnectionToast',
+                                `redirectToMpeLibrary`,
+                                send((_, { roomSummary: { roomID } }) =>
+                                    appMusicPlaylistsModel.events.STOP_AND_REMOVE_ACTOR_FROM_PLAYLIST_LIST(
+                                        {
+                                            roomID,
+                                        },
+                                    ),
                                 ),
-                            ),
-                        ],
-                    },
+                            ],
+                        },
+                        {
+                            cond: (context, { roomSummary: { roomID } }) =>
+                                actorExists(context, roomID),
+                            actions: [
+                                'displayMpeForcedDisconnectionToast',
+                                send((_, { roomSummary: { roomID } }) =>
+                                    appMusicPlaylistsModel.events.STOP_AND_REMOVE_ACTOR_FROM_PLAYLIST_LIST(
+                                        {
+                                            roomID,
+                                        },
+                                    ),
+                                ),
+                            ],
+                        },
+                    ],
 
-                    RECEIVED_MPE_LEAVE_ROOM_CALLBACK: {
-                        cond: (context, { roomSummary: { roomID } }) =>
-                            actorExists(context, roomID),
-
-                        actions: [
-                            //REDIRECT IF MPE ROOM IS IN VIEW ?
-                            `displayLeaveSuccessToast`,
-                            `redirectToMpeLibrary`,
-                            send((_, { roomSummary: { roomID } }) =>
-                                appMusicPlaylistsModel.events.STOP_AND_REMOVE_ACTOR_FROM_PLAYLIST_LIST(
-                                    {
+                    RECEIVED_MPE_LEAVE_ROOM_CALLBACK: [
+                        {
+                            cond: (context, { roomSummary: { roomID } }) => {
+                                return (
+                                    actorExists(context, roomID) &&
+                                    givenRoomIDCurrentlyDisplayed(
+                                        context,
                                         roomID,
-                                    },
+                                    )
+                                );
+                            },
+
+                            actions: [
+                                `displayLeaveSuccessToast`,
+                                `redirectToMpeLibrary`,
+                                send((_, { roomSummary: { roomID } }) =>
+                                    appMusicPlaylistsModel.events.STOP_AND_REMOVE_ACTOR_FROM_PLAYLIST_LIST(
+                                        {
+                                            roomID,
+                                        },
+                                    ),
                                 ),
-                            ),
-                        ],
-                    },
+                            ],
+                        },
+                        {
+                            cond: (context, { roomSummary: { roomID } }) =>
+                                actorExists(context, roomID),
+
+                            actions: [
+                                `displayLeaveSuccessToast`,
+                                send((_, { roomSummary: { roomID } }) =>
+                                    appMusicPlaylistsModel.events.STOP_AND_REMOVE_ACTOR_FROM_PLAYLIST_LIST(
+                                        {
+                                            roomID,
+                                        },
+                                    ),
+                                ),
+                            ],
+                        },
+                    ],
 
                     MPE_TRACKS_LIST_UPDATE: {
                         actions: send(
@@ -908,6 +976,14 @@ export function createAppMusicPlaylistsMachine({
                             ],
                         },
                     ],
+
+                    RESET_CURRENTLY_DISPLAYED_MPE_ROOM_VIEW: {
+                        actions: resetCurrentlyDisplayedMpeRoomView,
+                    },
+
+                    SET_CURRENTLY_DISPLAYED_MPE_ROOM_VIEW: {
+                        actions: setCurrentlyDisplayedMpeRoomView,
+                    },
                 },
             },
         },

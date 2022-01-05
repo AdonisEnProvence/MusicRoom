@@ -49,6 +49,9 @@ export const playlistModel = createModel(
             RECEIVED_TRACK_TO_ADD_FAIL_CALLBACK: () => ({}),
             ///
 
+            MPE_ROOM_VIEW_FOCUS: () => ({}),
+            MPE_ROOM_VIEW_BLUR: () => ({}),
+
             //Change track order
             CHANGE_TRACK_ORDER_DOWN: (args: { trackID: string }) => args,
             CHANGE_TRACK_ORDER_UP: (args: { trackID: string }) => args,
@@ -597,6 +600,25 @@ export function createPlaylistMachine({
                 onDone: {
                     target: 'idle',
                 },
+            },
+        },
+
+        //global listeners
+        on: {
+            MPE_ROOM_VIEW_FOCUS: {
+                actions: sendParent(() =>
+                    appMusicPlaylistsModel.events.SET_CURRENTLY_DISPLAYED_MPE_ROOM_VIEW(
+                        {
+                            roomID,
+                        },
+                    ),
+                ),
+            },
+
+            MPE_ROOM_VIEW_BLUR: {
+                actions: sendParent(() =>
+                    appMusicPlaylistsModel.events.RESET_CURRENTLY_DISPLAYED_MPE_ROOM_VIEW(),
+                ),
             },
         },
     });

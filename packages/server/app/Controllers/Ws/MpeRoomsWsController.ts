@@ -7,6 +7,7 @@ import {
     MpeRoomServerToClientGetContextSuccessCallbackArgs,
     MtvRoomCreationOptionsWithoutInitialTracksIDs,
 } from '@musicroom/types';
+import invariant from 'tiny-invariant';
 import MpeRoom from 'App/Models/MpeRoom';
 import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
@@ -95,7 +96,7 @@ interface MpeOnTerminateArgs {
 }
 
 interface OnExportToMtvArgs {
-    userID: string;
+    user: User;
     deviceID: string;
     roomID: string;
     mtvRoomOptions: MtvRoomCreationOptionsWithoutInitialTracksIDs;
@@ -384,15 +385,25 @@ export default class MpeRoomsWsController {
     }
 
     public static async onExportToMtv({
+        user,
         roomID,
-        userID,
         deviceID,
         mtvRoomOptions,
     }: OnExportToMtvArgs): Promise<void> {
         try {
+            const mpeRoom = await user
+                .related('mpeRooms')
+                .query()
+                .where('uuid', roomID)
+                .first();
+            invariant(
+                mpeRoom !== null,
+                'User must has joined room to export it into a MPE room',
+            );
+
             await MpeServerToTemporalController.exportToMtv({
                 workflowID: roomID,
-                userID,
+                userID: user.uuid,
                 deviceID,
                 mtvRoomOptions,
             });

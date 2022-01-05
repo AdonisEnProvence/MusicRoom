@@ -183,8 +183,8 @@ export default function initMpeSocketEventListeners(socket: TypedSocket): void {
                 await SocketLifecycle.getSocketConnectionCredentials(socket);
 
             await MpeRoomsWsController.onExportToMtv({
+                user,
                 roomID,
-                userID: user.uuid,
                 deviceID,
                 mtvRoomOptions,
             });

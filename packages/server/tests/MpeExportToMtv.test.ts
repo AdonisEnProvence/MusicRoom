@@ -17,6 +17,7 @@ import {
     BASE_URL,
     initTestUtils,
     createSpyOnClientSocketEvent,
+    waitForTimeout,
 } from './utils/TestUtils';
 
 test.group('MPE Export to MTV', (group) => {
@@ -172,5 +173,57 @@ test.group('MPE Export to MTV', (group) => {
                 );
             }),
         ]);
+    });
+
+    test('Only users that have joined a MPE room can export it into a MTV room', async (assert) => {
+        const roomID = datatype.uuid();
+        await createUserAndGetSocket({
+            userID: datatype.uuid(),
+            mpeRoomIDToAssociate: [
+                {
+                    roomID,
+                },
+            ],
+        });
+        const userBSocket1 = await createUserAndGetSocket({
+            userID: datatype.uuid(),
+            mpeRoomIDToAssociate: [],
+        });
+        const mtvRoomOptions: MtvRoomCreationOptionsWithoutInitialTracksIDs = {
+            name: random.words(),
+            isOpen: true,
+            isOpenOnlyInvitedUsersCanVote: false,
+            hasPhysicalAndTimeConstraints: false,
+            minimumScoreToBePlayed: 1,
+            playingMode: 'BROADCAST',
+        };
+
+        const exportToMtvSpy = sinon.stub(
+            MpeServerToTemporalController,
+            'exportToMtv',
+        );
+
+        const userBSocket1CreateRoomCallbackSpy = createSpyOnClientSocketEvent(
+            userBSocket1,
+            'MTV_CREATE_ROOM_CALLBACK',
+        );
+        const userBSocket1CreateRoomSynchedCallbackSpy =
+            createSpyOnClientSocketEvent(
+                userBSocket1,
+                'MTV_CREATE_ROOM_SYNCHED_CALLBACK',
+            );
+
+        userBSocket1.emit('MPE_EXPORT_TO_MTV', {
+            roomID,
+            mtvRoomOptions,
+        });
+
+        // I don't like to do such a thing, but I did not find
+        // a better way to wait for the event to be processed.
+        await waitForTimeout(100);
+
+        assert.isTrue(exportToMtvSpy.notCalled);
+        assert.isTrue(userBSocket1CreateRoomCallbackSpy.notCalled);
+        assert.isTrue(userBSocket1CreateRoomSynchedCallbackSpy.notCalled);
     });
 });

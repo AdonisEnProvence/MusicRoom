@@ -1,4 +1,10 @@
-import { MtvRoomCreationOptionsWithoutInitialTracksIDs } from '@musicroom/types';
+import {
+    MtvRoomClientToServerCreateArgs,
+    MtvRoomCreationOptionsWithoutInitialTracksIDs,
+} from '@musicroom/types';
+import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
+import User from 'App/Models/User';
+import Ws from './Ws';
 
 export class MtvRoomOptionsValidationError extends Error {
     constructor(message: string) {
@@ -27,6 +33,13 @@ export class MtvRoomOptionsValidationInvalidNameOptionError extends MtvRoomOptio
         super(message);
         this.name = 'MtvRoomOptionsValidationInvalidNameOptionError';
     }
+}
+
+interface MtvRoomServiceCreateMtvRoomArgs {
+    options: MtvRoomClientToServerCreateArgs;
+    user: User;
+    deviceID: string;
+    currentMtvRoomID?: string;
 }
 
 export default class MtvRoomService {
@@ -68,5 +81,40 @@ export default class MtvRoomService {
                 'name must not be empty',
             );
         }
+    }
+
+    /**
+     * Creates a new mtv room from validated options.
+     * If the user is already in a room, the user is removed from the old room.
+     */
+    public static async createMtvRoom({
+        user,
+        deviceID,
+        options,
+        currentMtvRoomID,
+    }: MtvRoomServiceCreateMtvRoomArgs): Promise<void> {
+        /**
+         * Checking if user needs to leave previous
+         * mtv room before creating new one
+         */
+        if (currentMtvRoomID !== undefined) {
+            console.log(
+                `User needs to leave current room before joining new one`,
+            );
+            await MtvRoomsWsController.onLeave({
+                user,
+                leavingRoomID: currentMtvRoomID,
+            });
+        }
+
+        const mtvRoomState = await MtvRoomsWsController.onCreate({
+            params: options,
+            user,
+            deviceID,
+        });
+
+        Ws.io
+            .to(mtvRoomState.workflowID)
+            .emit('MTV_CREATE_ROOM_SYNCHED_CALLBACK', mtvRoomState.state);
     }
 }

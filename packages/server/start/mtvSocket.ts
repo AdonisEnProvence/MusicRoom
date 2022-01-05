@@ -37,31 +37,15 @@ export default function initMtvSocketEventListeners(socket: TypedSocket): void {
             const {
                 user,
                 deviceID,
-                mtvRoomID: currMtvRoomID,
+                mtvRoomID: currentMtvRoomID,
             } = await SocketLifecycle.getSocketConnectionCredentials(socket);
 
-            /**
-             * Checking if user needs to leave previous
-             * mtv room before creating new one
-             */
-            if (currMtvRoomID !== undefined) {
-                console.log(
-                    `User needs to leave current room before joining new one`,
-                );
-                await MtvRoomsWsController.onLeave({
-                    user,
-                    leavingRoomID: currMtvRoomID,
-                });
-            }
-
-            const raw = await MtvRoomsWsController.onCreate({
-                params: payload,
+            await MtvRoomService.createMtvRoom({
                 user,
                 deviceID,
+                options: payload,
+                currentMtvRoomID,
             });
-            Ws.io
-                .to(raw.workflowID)
-                .emit('MTV_CREATE_ROOM_SYNCHED_CALLBACK', raw.state);
         } catch (e) {
             console.error(e);
         }

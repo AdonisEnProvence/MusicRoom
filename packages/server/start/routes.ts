@@ -36,7 +36,7 @@ Route.post('/mpe/search/all-rooms', 'MpeRoomsHttpController.listAllRooms');
 
 /// Temporal MTV Routes ///
 
-const MTV_TEMPORAL_LISTENER = `/temporal/mtv`;
+export const MTV_TEMPORAL_LISTENER = `/temporal/mtv`;
 
 Route.group(() => {
     Route.post(

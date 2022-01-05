@@ -96,6 +96,7 @@ const (
 	MpeRoomDeleteTracksEventType                  brainy.EventType = "DELETE_TRACKS"
 	MpeRoomAddUserEventType                       brainy.EventType = "ADD_USER"
 	MpeRoomRemoveUserEventType                    brainy.EventType = "REMOVE_USER"
+	MpeExportToMtvRoomEventType                   brainy.EventType = "EXPORT_TO_MTV_ROOM"
 )
 
 func getNowFromSideEffect(ctx workflow.Context) time.Time {
@@ -397,6 +398,34 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 							},
 						},
 					},
+
+					MpeExportToMtvRoomEventType: brainy.Transition{
+						Cond: userCanExportToMtv(&internalState),
+
+						Actions: brainy.Actions{
+							brainy.ActionFn(
+								func(c brainy.Context, e brainy.Event) error {
+									event := e.(MpeExportToMtvRoomEvent)
+
+									tracksMetadata := internalState.Tracks.Values()
+									tracksIDs := make([]string, 0, len(tracksMetadata))
+
+									for _, trackMetadata := range tracksMetadata {
+										tracksIDs = append(tracksIDs, trackMetadata.ID)
+									}
+
+									sendMtvRoomCreationRequestToServerActivity(ctx, activities_mpe.SendMtvRoomCreationRequestToServerActivityArgs{
+										UserID:         event.UserID,
+										DeviceID:       event.DeviceID,
+										TracksIDs:      tracksIDs,
+										MtvRoomOptions: event.MtvRoomOptions,
+									})
+
+									return nil
+								},
+							),
+						},
+					},
 				},
 			},
 		},
@@ -527,6 +556,26 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 				internalState.Machine.Send(
 					NewMpeRoomRemoveUserEvent(NewMpeRoomRemoveUserEventArgs{
 						UserID: message.UserID,
+					}),
+				)
+
+			case shared_mpe.SignalExportToMtvRoom:
+				var message shared_mpe.ExportToMtvRoomSignal
+
+				if err := mapstructure.Decode(signal, &message); err != nil {
+					logger.Error("Invalid signal type %v", err)
+					return
+				}
+				if err := Validate.Struct(message); err != nil {
+					logger.Error("Validation error: %v", err)
+					return
+				}
+
+				internalState.Machine.Send(
+					NewMpeExportToMtvRoomEvent(NewMpeExportToMtvRoomEventArgs{
+						UserID:         message.UserID,
+						DeviceID:       message.DeviceID,
+						MtvRoomOptions: message.MtvRoomOptions,
 					}),
 				)
 

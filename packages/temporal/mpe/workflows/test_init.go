@@ -134,6 +134,12 @@ func (s *UnitTestSuite) emitUnkownSignal() {
 	s.env.SignalWorkflow(shared_mpe.SignalChannelName, unkownSignal)
 }
 
+func (s *UnitTestSuite) emitExportToMtvRoomSignal(args shared_mpe.ExportToMtvRoomSignalArgs) {
+	fmt.Println("-----EMIT EXPORT TO MTV ROOM SIGNAL CALLED IN TEST-----")
+	exportToMtvRoomSignal := shared_mpe.NewExportToMtvRoomSignal(args)
+	s.env.SignalWorkflow(shared_mpe.SignalChannelName, exportToMtvRoomSignal)
+}
+
 func (s *UnitTestSuite) emitTerminateSignal() {
 	fmt.Println("-----EMIT TERMINATE SIGNAL CALLED IN TEST-----")
 	terminateSignal := shared_mpe.NewTerminateWorkflowSignal()

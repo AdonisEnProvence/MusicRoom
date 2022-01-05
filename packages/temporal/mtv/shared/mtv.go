@@ -291,21 +291,25 @@ const (
 
 var MtvPlayingModesAllValues = [...]MtvPlayingModes{MtvPlayingModeDirect, MtvPlayingModeBroadcast}
 
+type MtvRoomCreationOptions struct {
+	RoomName               string `json:"roomName" validate:"required"`
+	MinimumScoreToBePlayed int    `json:"minimumScoreToBePlayed" validate:"min=0"`
+	// Same as for PhysicalConstraintPosition IsOpen won't be useful
+	// for temporal itself but for the adonis mtv room search engine
+	IsOpen                        bool                               `json:"isOpen"`
+	IsOpenOnlyInvitedUsersCanVote bool                               `json:"isOpenOnlyInvitedUsersCanVote"`
+	HasPhysicalAndTimeConstraints bool                               `json:"hasPhysicalAndTimeConstraints"`
+	PhysicalAndTimeConstraints    *MtvRoomPhysicalAndTimeConstraints `json:"physicalAndTimeConstraints"`
+	PlayingMode                   MtvPlayingModes                    `json:"playingMode" validate:"required,oneof=DIRECT BROADCAST"`
+}
+
 type MtvRoomParameters struct {
+	MtvRoomCreationOptions
+
 	RoomID                        string
 	RoomCreatorUserID             string
-	RoomName                      string
-	MinimumScoreToBePlayed        int
 	CreatorUserRelatedInformation *InternalStateUser
 	InitialTracksIDsList          []string
-
-	//Same as for PhysicalConstraintPosition IsOpen won't be usefull
-	//for temporal itself but for the adonis mtv room search engine
-	IsOpen                        bool
-	IsOpenOnlyInvitedUsersCanVote bool
-	HasPhysicalAndTimeConstraints bool
-	PhysicalAndTimeConstraints    *MtvRoomPhysicalAndTimeConstraints
-	PlayingMode                   MtvPlayingModes
 }
 
 //This method will return an error if it determines that params are corrupted

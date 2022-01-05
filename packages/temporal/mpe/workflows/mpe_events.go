@@ -2,6 +2,7 @@ package mpe
 
 import (
 	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/Devessier/brainy"
 )
@@ -171,5 +172,31 @@ func NewMpeRoomRemoveUserEvent(args NewMpeRoomRemoveUserEventArgs) MpeRoomRemove
 		},
 
 		UserID: args.UserID,
+	}
+}
+
+type MpeExportToMtvRoomEvent struct {
+	brainy.EventWithType
+
+	UserID         string                            `validate:"required,uuid"`
+	DeviceID       string                            `validate:"required,uuid"`
+	MtvRoomOptions shared_mtv.MtvRoomCreationOptions `validate:"required"`
+}
+
+type NewMpeExportToMtvRoomEventArgs struct {
+	UserID         string
+	DeviceID       string
+	MtvRoomOptions shared_mtv.MtvRoomCreationOptions
+}
+
+func NewMpeExportToMtvRoomEvent(args NewMpeExportToMtvRoomEventArgs) MpeExportToMtvRoomEvent {
+	return MpeExportToMtvRoomEvent{
+		EventWithType: brainy.EventWithType{
+			Event: MpeExportToMtvRoomEventType,
+		},
+
+		UserID:         args.UserID,
+		DeviceID:       args.DeviceID,
+		MtvRoomOptions: args.MtvRoomOptions,
 	}
 }

@@ -10,6 +10,7 @@ import (
 
 	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
 	mpe "github.com/AdonisEnProvence/MusicRoom/mpe/workflows"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/gorilla/mux"
 	"go.temporal.io/sdk/client"
@@ -23,6 +24,7 @@ func AddMpeHandler(r *mux.Router) {
 	r.Handle("/mpe/get-state", http.HandlerFunc(getStateQueryHandler)).Methods(http.MethodPut)
 	r.Handle("/mpe/join", http.HandlerFunc(MpeJoinHandler)).Methods(http.MethodPut)
 	r.Handle("/mpe/leave", http.HandlerFunc(MpeLeaveHandler)).Methods(http.MethodPut)
+	r.Handle("/mpe/export-to-mtv", http.HandlerFunc(MpeExportToMtvRoomHandler)).Methods(http.MethodPut)
 	r.Handle("/mpe/terminate", http.HandlerFunc(MpeTerminateHandler)).Methods(http.MethodPut)
 }
 
@@ -383,6 +385,50 @@ func MpeLeaveHandler(w http.ResponseWriter, r *http.Request) {
 
 	signal := shared_mpe.NewRemoveUserSignal(shared_mpe.NewRemoveUserSignalArgs{
 		UserID: body.UserID,
+	})
+	if err := temporal.SignalWorkflow(
+		context.Background(),
+		body.WorkflowID,
+		shared.NoWorkflowRunID,
+		shared_mpe.SignalChannelName,
+		signal,
+	); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	res := make(map[string]interface{})
+	res["ok"] = 1
+	json.NewEncoder(w).Encode(res)
+}
+
+type MpeExportToMtvRoomRequestBody struct {
+	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+
+	UserID         string                            `json:"userID" validate:"required,uuid"`
+	DeviceID       string                            `json:"deviceID" validate:"required,uuid"`
+	MtvRoomOptions shared_mtv.MtvRoomCreationOptions `json:"mtvRoomOptions" validate:"required"`
+}
+
+func MpeExportToMtvRoomHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var body MpeExportToMtvRoomRequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		WriteError(w, err)
+		return
+	}
+	if err := validate.Struct(body); err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	signal := shared_mpe.NewExportToMtvRoomSignal(shared_mpe.ExportToMtvRoomSignalArgs{
+		UserID:         body.UserID,
+		DeviceID:       body.DeviceID,
+		MtvRoomOptions: body.MtvRoomOptions,
 	})
 	if err := temporal.SignalWorkflow(
 		context.Background(),

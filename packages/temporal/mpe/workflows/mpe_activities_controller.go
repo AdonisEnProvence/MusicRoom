@@ -143,3 +143,18 @@ func sendAcknowledgeLeaveActivity(ctx workflow.Context, args activities_mpe.Ackn
 		args,
 	)
 }
+
+func sendMtvRoomCreationRequestToServerActivity(ctx workflow.Context, args activities_mpe.SendMtvRoomCreationRequestToServerActivityArgs) {
+	options := workflow.ActivityOptions{
+		ScheduleToStartTimeout: time.Minute,
+		StartToCloseTimeout:    time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, options)
+
+	var a *activities_mpe.Activities
+	workflow.ExecuteActivity(
+		ctx,
+		a.SendMtvRoomCreationRequestToServerActivity,
+		args,
+	)
+}

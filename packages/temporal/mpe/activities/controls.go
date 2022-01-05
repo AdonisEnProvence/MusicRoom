@@ -8,6 +8,7 @@ import (
 	"os"
 
 	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
+	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 )
 
 var (
@@ -161,6 +162,27 @@ func (a *Activities) AcknowledgeLeaveActivity(ctx context.Context, args Acknowle
 	}
 
 	url := ADONIS_MPE_ENDPOINT + "/acknowledge-leave"
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+
+	return err
+}
+
+type SendMtvRoomCreationRequestToServerActivityArgs struct {
+	TracksIDs      []string                          `json:"tracksIDs"`
+	UserID         string                            `json:"userID"`
+	DeviceID       string                            `json:"deviceID"`
+	MtvRoomOptions shared_mtv.MtvRoomCreationOptions `json:"mtvRoomOptions"`
+}
+
+func (a *Activities) SendMtvRoomCreationRequestToServerActivity(ctx context.Context, args SendMtvRoomCreationRequestToServerActivityArgs) error {
+	requestBody := args
+
+	marshaledBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+
+	url := ADONIS_MPE_ENDPOINT + "/request-mtv-room-creation"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
 
 	return err

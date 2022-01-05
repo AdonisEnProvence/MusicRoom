@@ -387,15 +387,18 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	params := shared_mtv.MtvRoomParameters{
 		RoomID:                        body.WorkflowID,
 		RoomCreatorUserID:             body.UserID,
-		RoomName:                      body.Name,
-		MinimumScoreToBePlayed:        body.MinimumScoreToBePlayed,
 		CreatorUserRelatedInformation: creatorUserRelatedInformation,
 		InitialTracksIDsList:          initialTracksIDsList,
-		IsOpen:                        body.IsOpen,
-		IsOpenOnlyInvitedUsersCanVote: body.IsOpenOnlyInvitedUsersCanVote,
-		HasPhysicalAndTimeConstraints: body.HasPhysicalAndTimeConstraints,
-		PhysicalAndTimeConstraints:    nil,
-		PlayingMode:                   body.PlayingMode,
+
+		MtvRoomCreationOptions: shared_mtv.MtvRoomCreationOptions{
+			RoomName:                      body.Name,
+			MinimumScoreToBePlayed:        body.MinimumScoreToBePlayed,
+			IsOpen:                        body.IsOpen,
+			IsOpenOnlyInvitedUsersCanVote: body.IsOpenOnlyInvitedUsersCanVote,
+			HasPhysicalAndTimeConstraints: body.HasPhysicalAndTimeConstraints,
+			PhysicalAndTimeConstraints:    nil,
+			PlayingMode:                   body.PlayingMode,
+		},
 	}
 
 	if body.PhysicalAndTimeConstraints != nil {

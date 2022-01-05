@@ -9,9 +9,13 @@ import {
 } from '@testing-library/react-native';
 import { datatype } from 'faker';
 import Toast from 'react-native-toast-message';
-import { stateValuesEqual } from 'xstate/lib/State';
 import { serverSocket } from '../services/websockets';
-import { db, generateMpeWorkflowState, generateTrackMetadata } from './data';
+import {
+    db,
+    generateArray,
+    generateMpeWorkflowState,
+    generateTrackMetadata,
+} from './data';
 import {
     extractTrackIDFromCardContainerTestID,
     fireEvent,
@@ -259,20 +263,95 @@ export async function changeTrackOrder({
     }
 }
 
-export async function hitJoinMpeRoomButton({
-    screen,
-    state,
-}: {
-    state: DefinedStateRef;
+/**
+ * This method will make the user join the first mocked room he will find
+ * After this method the user will be on the mpe room view
+ */
+export async function joinMpeRoom(): Promise<{
     screen: ReturnType<typeof render>;
-}): Promise<void> {
+    state: DefinedStateRef;
+}> {
+    const rooms = generateArray({
+        minLength: 11,
+        maxLength: 15,
+        fill: () => db.searchableMpeRooms.create(),
+    }).slice(0, 10);
+    const firstRoomState = generateMpeWorkflowState({
+        ...rooms[0],
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanEdit: false,
+    });
+
+    const screen = await renderApp();
+
+    let tmp = false;
+    serverSocket.on('MPE_GET_CONTEXT', ({ roomID }) => {
+        expect(roomID).toBe(firstRoomState.roomID);
+        serverSocket.emit('MPE_GET_CONTEXT_SUCCESS_CALLBACK', {
+            roomID,
+            state: firstRoomState,
+            userIsNotInRoom: true,
+        });
+    });
+
+    serverSocket.on('MPE_JOIN_ROOM', ({ roomID }) => {
+        console.log('JOIN_ROOM_IS_CALLED');
+        serverSocket.emit('MPE_JOIN_ROOM_CALLBACK', {
+            roomID,
+            state: firstRoomState,
+            userIsNotInRoom: false,
+        });
+
+        tmp = true;
+    });
+
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+    const goToMtvSearchScreenButton = screen.getByText(
+        /go.*to.*music.*playlist.*editor/i,
+    );
+    expect(goToMtvSearchScreenButton).toBeTruthy();
+
+    fireEvent.press(goToMtvSearchScreenButton);
+
+    const searchInput = await screen.findByPlaceholderText(/search.*room/i);
+    expect(searchInput).toBeTruthy();
+
+    for (const { roomID, roomName } of rooms) {
+        //Should also look for specific room settings icon such as isOpen and why creatorName
+        const listItem = await screen.findByTestId(`mpe-room-card-${roomID}`);
+        expect(listItem).toBeTruthy();
+
+        const roomNameElement = within(listItem).getByText(
+            new RegExp(roomName),
+        );
+        expect(roomNameElement).toBeTruthy();
+    }
+
+    const firstListItem = await screen.findByTestId(
+        `mpe-room-card-${firstRoomState.roomID}`,
+    );
+    expect(firstListItem).toBeTruthy();
+
+    fireEvent.press(firstListItem);
+
+    await waitFor(() => {
+        const [libraryScreenTitle] = screen.getAllByText(/library/i);
+        expect(
+            screen.getAllByText(
+                new RegExp(`${firstRoomState.tracks.length} Tracks`),
+            ),
+        ).toBeTruthy();
+        expect(libraryScreenTitle).toBeTruthy();
+    });
+
     const joinRoomButton = screen.getByTestId(
-        `mpe-join-${state.value.roomID}-absolute-button`,
+        `mpe-join-${firstRoomState.roomID}-absolute-button`,
     );
     expect(joinRoomButton).not.toBeDisabled();
     expect(joinRoomButton).toBeTruthy();
 
-    for (const { id: trackID } of state.value.tracks) {
+    for (const { id: trackID } of firstRoomState.tracks) {
         //Should also look for specific room settings icon such as isOpen and why creatorName
         const listItem = await screen.findByTestId(
             `${trackID}-track-card-container`,
@@ -296,27 +375,27 @@ export async function hitJoinMpeRoomButton({
     fireEvent.press(joinRoomButton);
 
     await waitForElementToBeRemoved(() =>
-        screen.getByTestId(`mpe-join-${state.value.roomID}-absolute-button`),
+        screen.queryByTestId(
+            `mpe-join-${firstRoomState.roomID}-absolute-button`,
+        ),
     );
 
-    for (const [index, { id: trackID }] of state.value.tracks.entries()) {
-        const isFirstElement = index === 0;
-        const isLastTrack = index === state.value.tracks.length - 1;
+    await playlistUIHasUnfreezed(screen);
 
+    for (const [index, { id: trackID }] of firstRoomState.tracks.entries()) {
+        const isFirstElement = index === 0;
+        const isLastTrack = index === firstRoomState.tracks.length - 1;
+
+        await waitFor(() => {
+            expect(tmp).toBeTruthy();
+        });
+        console.log({ index });
         //Should also look for specific room settings icon such as isOpen and why creatorName
         const listItem = await screen.findByTestId(
             `${trackID}-track-card-container`,
         );
         expect(listItem).toBeTruthy();
 
-        console.log(
-            'SALUUUUUUUUUUUUUUUUUUUT',
-            {
-                isLastTrack,
-                isFirstElement,
-            },
-            state.value.tracks.length,
-        );
         const moveDownTrackButton =
             within(listItem).getByLabelText(/move.*down/i);
         expect(moveDownTrackButton).toBeTruthy();
@@ -338,4 +417,11 @@ export async function hitJoinMpeRoomButton({
         expect(deleteTrackButton).toBeTruthy();
         expect(deleteTrackButton).not.toBeDisabled();
     }
+
+    return {
+        screen,
+        state: {
+            value: firstRoomState,
+        },
+    };
 }

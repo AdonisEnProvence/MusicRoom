@@ -6,6 +6,7 @@ import {
     MusicPlaylist,
 } from '../machines/appMusicPlaylistsMachine';
 import { CreationMpeRoomFormActorRef } from '../machines/creationMpeRoomForm';
+import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 
 export function useMusicPlaylistsActor(): {
     appMusicPlaylistsActorRef: AppMusicPlaylistsActorRef;
@@ -46,4 +47,20 @@ export function usePlaylist(roomID: string): MusicPlaylist | undefined {
     }
 
     return playlist;
+}
+
+export function useExportToMtvRoomCreationFormMachine():
+    | CreationMtvRoomFormActorRef
+    | undefined {
+    const { appMusicPlaylistsActorRef } = useMusicPlaylistsActor();
+    const creationMtvRoomFormActor = useSelector(
+        appMusicPlaylistsActorRef,
+        (state) => {
+            return state.children.creationMtvRoomForm as
+                | CreationMtvRoomFormActorRef
+                | undefined;
+        },
+    );
+
+    return creationMtvRoomFormActor;
 }

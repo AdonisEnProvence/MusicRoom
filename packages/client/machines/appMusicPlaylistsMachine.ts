@@ -22,6 +22,7 @@ import {
 } from '@musicroom/types';
 import invariant from 'tiny-invariant';
 import { SocketClient } from '../contexts/SocketContext';
+import { navigateFromRef } from '../navigation/RootNavigation';
 import {
     createPlaylistMachine,
     PlaylistActorRef,
@@ -32,6 +33,7 @@ import {
     createCreationMpeRoomFormMachine,
     CreationMpeRoomFormDoneInvokeEvent,
 } from './creationMpeRoomForm';
+import { createCreationMtvRoomFormMachine } from './creationMtvRoomForm';
 
 export interface MusicPlaylist {
     id: string;
@@ -154,6 +156,8 @@ export const appMusicPlaylistsModel = createModel(
                 roomID: string;
                 state: MpeWorkflowStateWithUserRelatedInformation;
             }) => args,
+
+            EXPORT_TO_MTV_ROOM: (args: { roomID: string }) => args,
         },
 
         actions: {
@@ -271,6 +275,34 @@ function getPlaylistMachineActorName(roomID: string): string {
 export function createAppMusicPlaylistsMachine({
     socket,
 }: CreateAppMusicPlaylistsMachineArgs): AppMusicPlaylistsMachine {
+    const creationMtvRoomForm = createCreationMtvRoomFormMachine({
+        redirectToRoomNameScreen: () => {
+            navigateFromRef('MusicPlaylistEditorExportToMtvCreationForm', {
+                screen: 'MusicTrackVoteCreationFormName',
+            });
+        },
+
+        redirectToOpeningStatusScreen: () => {
+            // navigateFromRef('MusicTrackVoteCreationFormOpeningStatus');
+        },
+
+        redirectToPhysicalConstraintsScreen: () => {
+            // navigateFromRef('MusicTrackVoteCreationFormPhysicalConstraints');
+        },
+
+        redirectToPlayingModeScreen: () => {
+            // navigateFromRef('MusicTrackVoteCreationFormPlayingMode');
+        },
+
+        redirectToVotesConstraintsScreen: () => {
+            // navigateFromRef('MusicTrackVoteCreationFormVotesConstraints');
+        },
+
+        redirectToConfirmationScreen: () => {
+            // navigateFromRef('MusicTrackVoteCreationFormConfirmation');
+        },
+    });
+
     return appMusicPlaylistsModel.createMachine({
         id: 'appMusicPlaylists',
 
@@ -697,6 +729,37 @@ export function createAppMusicPlaylistsMachine({
                     /**
                      *
                      */
+                },
+            },
+
+            exportToMtvRoom: {
+                initial: 'idle',
+
+                states: {
+                    idle: {
+                        on: {
+                            EXPORT_TO_MTV_ROOM: {
+                                target: 'configuringMtvRoom',
+                            },
+                        },
+                    },
+
+                    configuringMtvRoom: {
+                        entry: () => {
+                            navigateFromRef(
+                                'MusicPlaylistEditorExportToMtvCreationForm',
+                                {
+                                    screen: 'MusicTrackVoteCreationFormName',
+                                },
+                            );
+                        },
+
+                        invoke: {
+                            id: 'creationMtvRoomForm',
+
+                            src: creationMtvRoomForm,
+                        },
+                    },
                 },
             },
 

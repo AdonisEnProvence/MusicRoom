@@ -43,6 +43,7 @@ import MusicPlaylistEditorRoomsSearchScreen from '../screens/MusicPlaylistEditor
 import MusicPlaylistEditorCreationFormName from '../screens/MusicPlaylistEditorCreationForm/MusicPlaylistEditorCreationFormName';
 import MusicPlaylistEditorCreationFormOpeningStatus from '../screens/MusicPlaylistEditorCreationForm/MusicPlaylistEditorCreationFormOpeningStatus';
 import MusicPlaylistEditorCreationFormConfirmation from '../screens/MusicPlaylistEditorCreationForm/MusicPlaylistEditorCreationFormConfirmation';
+import MusicPlaylistEditorExportToMtvCreationFormName from '../screens/MusicPlaylistEditorMusicTrackVoteCreationForm/MusicTrackVoteCreationFormName';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
@@ -93,6 +94,8 @@ const SuggestTrackStack = createStackNavigator<SuggestTrackStackParamList>();
 const MusicTrackVoteUsersListStack =
     createStackNavigator<MusicTrackVoteUsersListStackParamList>();
 const MusicTrackVoteCreationStack =
+    createStackNavigator<MusicTrackVoteCreationFormParamList>();
+const MusicPlaylistEditorExportToMtvCreationFormStack =
     createStackNavigator<MusicTrackVoteCreationFormParamList>();
 const MusicPlaylistEditorCreationFormStack =
     createStackNavigator<MusicPlaylistEditorCreationFormParamList>();
@@ -185,6 +188,12 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
                 component={MusicPlaylistEditorCreationFormNavigator}
                 options={{ headerShown: false, detachPreviousScreen: false }}
             />
+
+            <RootStack.Screen
+                name="MusicPlaylistEditorExportToMtvCreationForm"
+                component={MusicPlaylistEditorExportToMtvCreationFormNavigator}
+                options={{ headerShown: false, detachPreviousScreen: false }}
+            />
         </RootStack.Navigator>
     );
 };
@@ -230,6 +239,26 @@ export const MusicTrackVoteCreationFormNavigator: React.FC<ColorModeProps> = ({
         </MusicTrackVoteCreationStack.Navigator>
     );
 };
+export const MusicPlaylistEditorExportToMtvCreationFormNavigator: React.FC<ColorModeProps> =
+    ({ colorScheme }) => {
+        const style = navigationStyle(colorScheme);
+
+        return (
+            <MusicPlaylistEditorExportToMtvCreationFormStack.Navigator
+                initialRouteName="MusicTrackVoteCreationFormName"
+                screenOptions={{
+                    ...style,
+                    headerShown: false,
+                    detachPreviousScreen: false,
+                }}
+            >
+                <MusicPlaylistEditorExportToMtvCreationFormStack.Screen
+                    name="MusicTrackVoteCreationFormName"
+                    component={MusicPlaylistEditorExportToMtvCreationFormName}
+                />
+            </MusicPlaylistEditorExportToMtvCreationFormStack.Navigator>
+        );
+    };
 
 export const MusicPlaylistEditorCreationFormNavigator: React.FC<ColorModeProps> =
     ({ colorScheme }) => {

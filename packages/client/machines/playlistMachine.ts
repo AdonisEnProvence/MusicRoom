@@ -81,6 +81,8 @@ export const playlistModel = createModel(
             JOIN_ROOM: () => ({}),
 
             LEAVE_ROOM: () => ({}),
+
+            EXPORT_TO_MTV: () => ({}),
         },
     },
 );
@@ -311,6 +313,16 @@ export function createPlaylistMachine({
                         cond: ({ userIsNotInRoom }) => userIsNotInRoom !== true,
 
                         target: `leavingRoom`,
+                    },
+
+                    EXPORT_TO_MTV: {
+                        actions: sendParent(() => {
+                            return appMusicPlaylistsModel.events.EXPORT_TO_MTV_ROOM(
+                                {
+                                    roomID,
+                                },
+                            );
+                        }),
                     },
                 },
             },

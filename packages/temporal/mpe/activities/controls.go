@@ -150,7 +150,7 @@ func (a *Activities) AcknowledgeJoinActivity(ctx context.Context, args Acknowled
 
 type AcknowledgeLeaveActivityArgs struct {
 	State         shared_mpe.MpeRoomExposedState `json:"state"`
-	LeavingUserID string                         `json:"joiningUserID"`
+	LeavingUserID string                         `json:"leavingUserID"`
 }
 
 func (a *Activities) AcknowledgeLeaveActivity(ctx context.Context, args AcknowledgeLeaveActivityArgs) error {

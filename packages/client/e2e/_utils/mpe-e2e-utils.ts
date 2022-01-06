@@ -85,6 +85,10 @@ export function withinMpeRoomsSearchEngineScreen(selector: string): string {
     return `css=[data-testid="mpe-room-search-engine"] >> ${selector}`;
 }
 
+export function withinSearchTrackTabScreen(selector: string): string {
+    return `css=[data-testid="search-track-screen"] >> ${selector}`;
+}
+
 export async function createMpeRoom({
     page,
 }: {
@@ -160,6 +164,21 @@ export async function createMpeRoom({
     };
 }
 
+export async function checkUsersLength({
+    page,
+    expectedUsersLength,
+}: {
+    page: Page;
+    expectedUsersLength: number;
+}): Promise<void> {
+    const userCounter = page.locator(
+        `text="${expectedUsersLength} member${
+            expectedUsersLength > 1 ? 's' : ''
+        }"`,
+    );
+    await expect(userCounter).toBeVisible();
+}
+
 export async function goToLibraryAndSearchMpeRoomAndOpenIt({
     page,
     roomName,
@@ -171,12 +190,12 @@ export async function goToLibraryAndSearchMpeRoomAndOpenIt({
     await goToLibraryButton.click();
 
     const libraryScreenTitle = page.locator(
-        withinMpeRoomsListScreen('text="Your library"'),
+        withinMpeRoomsLibraryScreen('text="Your library"'),
     );
     await expect(libraryScreenTitle).toBeVisible();
 
     const mpeRoomCard = page.locator(
-        withinMpeRoomsListScreen(`text="${roomName}"`),
+        withinMpeRoomsLibraryScreen(`text="${roomName}"`),
     );
     // eslint-disable-next-line no-constant-condition
     while (true) {
@@ -187,21 +206,212 @@ export async function goToLibraryAndSearchMpeRoomAndOpenIt({
 
         //This is tmp as the mpe room search machine is broken and only refresh on cancel
         const searchRoomInput = page.locator(
-            withinMpeRoomsListScreen('css=[placeholder^="Search a room"]'),
+            withinMpeRoomsLibraryScreen('css=[placeholder^="Search a room"]'),
         );
         await searchRoomInput.click();
 
         const cancelSearchRoomButton = page.locator(
-            withinMpeRoomsListScreen('text="Cancel"'),
+            withinMpeRoomsLibraryScreen('text="Cancel"'),
         );
         await cancelSearchRoomButton.click();
     }
 
     await mpeRoomCard.click();
 
-    const addTrackButton = page.locator('text="Add Track"');
+    const addTrackButton = getAddTrackButton({
+        page,
+    });
     await expect(addTrackButton).toBeVisible();
     await expect(addTrackButton).toBeEnabled();
+}
+
+/**
+ * every given page should on home either page or otherUserDevicesToApplyAssertionOn
+ */
+export async function searchAndJoinMpeRoomFromMpeRoomsSearchEngine({
+    page,
+    roomName,
+    otherUserDevicesToApplyAssertionOn,
+}: {
+    page: Page;
+    roomName: string;
+    otherUserDevicesToApplyAssertionOn?: Page[];
+}): Promise<void> {
+    const goToMusicPlaylistEditorButton = page.locator(
+        `text="Go to Music Playlist Editor"`,
+    );
+    await expect(goToMusicPlaylistEditorButton).toBeVisible();
+    await expect(goToMusicPlaylistEditorButton).toBeEnabled();
+    await goToMusicPlaylistEditorButton.click();
+
+    const mpeRoomCard = page.locator(
+        withinMpeRoomsSearchEngineScreen(`text="${roomName}"`),
+    );
+    // eslint-disable-next-line no-constant-condition
+    await expect(mpeRoomCard).toBeVisible();
+    await expect(mpeRoomCard).toBeEnabled();
+    await mpeRoomCard.click();
+
+    const joinRoomButton = page.locator(`text="JOIN"`);
+    await expect(joinRoomButton).toBeVisible();
+    await expect(joinRoomButton).toBeEnabled();
+
+    await joinRoomButton.click();
+
+    await expect(
+        getAddTrackButton({
+            page,
+        }),
+    ).toBeEnabled();
+
+    if (otherUserDevicesToApplyAssertionOn) {
+        await Promise.all(
+            otherUserDevicesToApplyAssertionOn.map(async (otherUserPage) => {
+                const goToLibraryButton = otherUserPage.locator(
+                    'text="Library" >> nth=0',
+                );
+                await goToLibraryButton.click();
+
+                const libraryScreenTitle = otherUserPage.locator(
+                    withinMpeRoomsLibraryScreen('text="Your library"'),
+                );
+                await expect(libraryScreenTitle).toBeVisible();
+
+                const mpeRoomCard = otherUserPage.locator(
+                    withinMpeRoomsLibraryScreen(`text="${roomName}"`),
+                );
+                // eslint-disable-next-line no-constant-condition
+                while (true) {
+                    const roomHasBeenFound = await mpeRoomCard.isVisible();
+                    if (roomHasBeenFound === true) {
+                        break;
+                    }
+
+                    //This is tmp as the mpe room search machine is broken and only refresh on cancel
+                    const searchRoomInput = otherUserPage.locator(
+                        withinMpeRoomsLibraryScreen(
+                            'css=[placeholder^="Search a room"]',
+                        ),
+                    );
+                    await searchRoomInput.click();
+
+                    const cancelSearchRoomButton = otherUserPage.locator(
+                        withinMpeRoomsLibraryScreen('text="Cancel"'),
+                    );
+                    await cancelSearchRoomButton.click();
+                }
+            }),
+        );
+    }
+}
+
+/**
+ * Should be called from related mpe room view
+ * It then involves a redirection
+ */
+export async function leaveMpeRoom({
+    page,
+    roomName,
+    otherRedirectedUserDevices,
+    otherUserDeviceWithCustomAssertionToApply,
+}: {
+    page: Page;
+    roomName: string;
+    otherRedirectedUserDevices?: Page[];
+    otherUserDeviceWithCustomAssertionToApply?: (() => Promise<void>)[];
+}): Promise<void> {
+    const leaveButton = page.locator(`text="Leave room"`);
+    await expect(leaveButton).toBeVisible();
+    await expect(leaveButton).toBeEnabled();
+
+    //Race condition here ?
+
+    await Promise.all([
+        expect(
+            page.locator(`text="Leaving ${roomName} is a success"`),
+        ).toBeVisible(),
+        await leaveButton.click(),
+        //Expect redirection
+        expect(
+            page.locator(withinMpeRoomsLibraryScreen('text="Your library"')),
+        ).toBeVisible(),
+    ]);
+
+    if (otherRedirectedUserDevices !== undefined) {
+        await Promise.all(
+            otherRedirectedUserDevices.map(async (page) => {
+                await expect(
+                    page.locator(
+                        withinMpeRoomsLibraryScreen('text="Your library"'),
+                    ),
+                ).toBeVisible();
+            }),
+        );
+    }
+
+    if (otherUserDeviceWithCustomAssertionToApply !== undefined) {
+        await Promise.all(
+            otherUserDeviceWithCustomAssertionToApply.map(
+                async (assertion) => await assertion(),
+            ),
+        );
+    }
+}
+
+export async function pageIsOnHomeScreen({
+    page,
+}: {
+    page: Page;
+}): Promise<void> {
+    const goToMusicPlaylistEditorButton = page.locator(
+        `text="Go to Music Playlist Editor"`,
+    );
+    await expect(goToMusicPlaylistEditorButton).toBeVisible();
+    await expect(goToMusicPlaylistEditorButton).toBeEnabled();
+}
+
+export async function pageIsOnSearchTrackScreen({
+    page,
+}: {
+    page: Page;
+}): Promise<void> {
+    const searchTrackScreenTitle = page.locator(
+        withinSearchTrackTabScreen('text="Search a track"'),
+    );
+    await expect(searchTrackScreenTitle).toBeVisible();
+}
+
+export async function goToHomeTabScreen({
+    page,
+}: {
+    page: Page;
+}): Promise<void> {
+    const homeBottomBar = page.locator(`css=[data-testid="home-tab"]`);
+    await expect(homeBottomBar).toBeVisible();
+
+    await homeBottomBar.click();
+
+    await pageIsOnHomeScreen({
+        page,
+    });
+}
+
+export async function hitGoBack({
+    page,
+    afterGoBackAssertion,
+}: {
+    page: Page;
+    afterGoBackAssertion: () => Promise<void>;
+}): Promise<void> {
+    const goBackButton = page
+        .locator('css=[aria-label="Go back"] >> visible=true')
+        .last();
+    await expect(goBackButton).toBeVisible();
+    await expect(goBackButton).toBeEnabled();
+
+    await goBackButton.click();
+
+    await afterGoBackAssertion();
 }
 
 export async function addTrack({
@@ -209,7 +419,9 @@ export async function addTrack({
 }: {
     page: Page;
 }): Promise<KnownSearchesElement> {
-    const addTrackButton = page.locator('text="Add Track"');
+    const addTrackButton = getAddTrackButton({
+        page,
+    });
     await expect(addTrackButton).toBeVisible();
 
     await addTrackButton.click();
@@ -277,6 +489,10 @@ export function getTrackDeleteButton({
             `css=[data-testid="${trackID}-track-card-container"] [aria-label="Delete"]`,
         ),
     );
+}
+
+export function getAddTrackButton({ page }: { page: Page }): Locator {
+    return page.locator(`css=[data-testid="mpe-add-track-button"]`).last();
 }
 
 export function getAllTracksListCardElements({

@@ -28,6 +28,16 @@ export function getAppMusicPlaylistsMachineOptions(): Partial<AppMusicPlaylistsO
                     screen: 'MusicPlaylistEditorRoomsSearchModal',
                 });
             },
+            displayLeaveSuccessToast: (context, event) => {
+                if (event.type !== 'RECEIVED_MPE_LEAVE_ROOM_CALLBACK') {
+                    return context;
+                }
+
+                Toast.show({
+                    type: 'success',
+                    text1: `Leaving ${event.roomSummary.roomName} is a success`,
+                });
+            },
             navigateToMpeRoomView: (context, event) => {
                 if (event.type !== 'DISPLAY_MPE_ROOM_VIEW') {
                     return context;
@@ -63,7 +73,17 @@ export function getAppMusicPlaylistsMachineOptions(): Partial<AppMusicPlaylistsO
                     },
                 });
             },
+            displayMpeForcedDisconnectionToast: (context, event) => {
+                if (event.type !== 'RECEIVED_FORCED_DISCONNECTION') {
+                    return context;
+                }
 
+                Toast.show({
+                    type: 'error',
+                    text1: `${event.roomSummary.roomName} quit`,
+                    text2: `forced disconnection`,
+                });
+            },
             goBackToLastScreen: () => {
                 navigationRef.current?.goBack();
             },

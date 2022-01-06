@@ -6,6 +6,7 @@ import { useSx, Text, View } from 'dripsy';
 import { View as MotiView } from 'moti';
 import { Ionicons } from '@expo/vector-icons';
 import { Skeleton } from '@motify/skeleton';
+import { useFocusEffect } from '@react-navigation/native';
 import {
     AppScreen,
     AppScreenContainer,
@@ -171,6 +172,7 @@ const TrackListItemWrapper: React.FC<TrackListItemWrapperProps> = ({
 
 const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps> =
     ({ navigation, playlist, playlist: { id: playlistID } }) => {
+        const sx = useSx();
         const insets = useSafeAreaInsets();
         const playlistRef = playlist.ref;
         const userIsNotInRoom = useSelector(
@@ -237,6 +239,29 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             });
         }
 
+        function handleLeavePress() {
+            playlistRef.send({
+                type: 'LEAVE_ROOM',
+            });
+        }
+
+        useFocusEffect(
+            React.useCallback(() => {
+                // Do something when the screen is focused
+                playlistRef.send({
+                    type: 'MPE_ROOM_VIEW_FOCUS',
+                });
+
+                return () => {
+                    // Do something when the screen is unfocused
+                    // Useful for cleanup functions
+                    playlistRef.send({
+                        type: 'MPE_ROOM_VIEW_BLUR',
+                    });
+                };
+            }, [playlistRef]),
+        );
+
         return (
             <AppScreen testID={`mpe-room-screen-${playlistID}`}>
                 <AppScreenHeader
@@ -262,6 +287,29 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                         >
                             <Typo>{playlistTotalDuration} NOT FORMATED</Typo>
                         </Skeleton>
+
+                        <TouchableOpacity
+                            disabled={disableEveryCta}
+                            style={sx({
+                                flexShrink: 0,
+                                backgroundColor: 'greyLight',
+                                padding: 'm',
+                                flexDirection: 'row',
+                                justifyContent: 'center',
+                                marginBottom: 'l',
+                            })}
+                            onPress={handleLeavePress}
+                        >
+                            <Text
+                                sx={{
+                                    color: 'white',
+                                    textAlign: 'center',
+                                    fontSize: 'm',
+                                }}
+                            >
+                                Leave room
+                            </Text>
+                        </TouchableOpacity>
 
                         <Skeleton
                             show={roomIsNotReady}

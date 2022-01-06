@@ -49,6 +49,9 @@ export const playlistModel = createModel(
             RECEIVED_TRACK_TO_ADD_FAIL_CALLBACK: () => ({}),
             ///
 
+            MPE_ROOM_VIEW_FOCUS: () => ({}),
+            MPE_ROOM_VIEW_BLUR: () => ({}),
+
             //Change track order
             CHANGE_TRACK_ORDER_DOWN: (args: { trackID: string }) => args,
             CHANGE_TRACK_ORDER_UP: (args: { trackID: string }) => args,
@@ -73,6 +76,8 @@ export const playlistModel = createModel(
             GET_CONTEXT: () => ({}),
 
             JOIN_ROOM: () => ({}),
+
+            LEAVE_ROOM: () => ({}),
         },
     },
 );
@@ -309,6 +314,12 @@ export function createPlaylistMachine({
                         cond: ({ userIsNotInRoom }) => userIsNotInRoom === true,
 
                         target: 'joiningRoom',
+                    },
+
+                    LEAVE_ROOM: {
+                        cond: ({ userIsNotInRoom }) => userIsNotInRoom !== true,
+
+                        target: `leavingRoom`,
                     },
                 },
             },
@@ -560,6 +571,54 @@ export function createPlaylistMachine({
                 onDone: {
                     target: 'idle',
                 },
+            },
+
+            leavingRoom: {
+                tags: 'freezeUi',
+
+                initial: 'sendingToServer',
+
+                states: {
+                    sendingToServer: {
+                        always: {
+                            actions: sendParent(() => {
+                                console.log('SENDING TO PARENT ');
+                                return appMusicPlaylistsModel.events.LEAVE_ROOM(
+                                    {
+                                        roomID,
+                                    },
+                                );
+                            }),
+                            target: 'waitingForServerAcknowledgement',
+                        },
+                    },
+
+                    //From there the parent will kill the actor
+                    waitingForServerAcknowledgement: {},
+                },
+
+                onDone: {
+                    target: 'idle',
+                },
+            },
+        },
+
+        //global listeners
+        on: {
+            MPE_ROOM_VIEW_FOCUS: {
+                actions: sendParent(() =>
+                    appMusicPlaylistsModel.events.SET_CURRENTLY_DISPLAYED_MPE_ROOM_VIEW(
+                        {
+                            roomID,
+                        },
+                    ),
+                ),
+            },
+
+            MPE_ROOM_VIEW_BLUR: {
+                actions: sendParent(() =>
+                    appMusicPlaylistsModel.events.RESET_CURRENTLY_DISPLAYED_MPE_ROOM_VIEW(),
+                ),
             },
         },
     });

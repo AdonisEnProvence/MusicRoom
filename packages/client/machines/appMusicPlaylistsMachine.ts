@@ -16,6 +16,7 @@ import {
     MpeRoomClientToServerChangeTrackOrderUpDownArgs,
     MpeRoomServerToClientChangeTrackFailCallbackArgs,
     MpeRoomServerToClientChangeTrackSuccessCallbackARgs,
+    MpeRoomSummary,
 } from '@musicroom/types';
 import invariant from 'tiny-invariant';
 import { SocketClient } from '../contexts/SocketContext';
@@ -44,6 +45,7 @@ export const appMusicPlaylistsModel = createModel(
         playlistsActorsRefs: [] as MusicPlaylist[],
 
         roomToCreateInitialTracksIDs: undefined as string[] | undefined,
+        currentlyDisplayedMpeRoomView: undefined as string | undefined, //MusicPlaylist ??
     },
     {
         events: {
@@ -60,11 +62,29 @@ export const appMusicPlaylistsModel = createModel(
                 state,
             }),
             JOIN_ROOM: (args: { roomID: string }) => args,
+            LEAVE_ROOM: (args: { roomID: string }) => args,
+            RECEIVED_FORCED_DISCONNECTION: (args: {
+                roomSummary: MpeRoomSummary;
+            }) => args,
+            RECEIVED_MPE_LEAVE_ROOM_CALLBACK: (args: {
+                roomSummary: MpeRoomSummary;
+            }) => args,
+
+            SET_CURRENTLY_DISPLAYED_MPE_ROOM_VIEW: (args: { roomID: string }) =>
+                args,
+            RESET_CURRENTLY_DISPLAYED_MPE_ROOM_VIEW: () => ({}),
+
             JOIN_ROOM_ACKNOWLEDGEMENT: (args: {
                 roomID: string;
                 state: MpeWorkflowState;
                 userIsNotInRoom: boolean;
             }) => args,
+
+            USERS_LENGTH_UPDATE: (args: {
+                roomID: string;
+                state: MpeWorkflowState;
+            }) => args,
+
             MPE_TRACKS_LIST_UPDATE: (args: {
                 state: MpeWorkflowState;
                 roomID: string;
@@ -114,7 +134,9 @@ export const appMusicPlaylistsModel = createModel(
             ) => args,
             ///
 
-            REMOVE_ACTOR_FROM_PLAYLIST_LIST: (args: { roomID: string }) => args,
+            STOP_AND_REMOVE_ACTOR_FROM_PLAYLIST_LIST: (args: {
+                roomID: string;
+            }) => args,
             DELETE_TRACK: (args: { roomID: string; trackID: string }) => args,
             SENT_TRACK_TO_DELETE_TO_SERVER: (args: { roomID: string }) => args,
             RECEIVED_DELETE_TRACKS_SUCCESS_CALLBACK: (args: {
@@ -127,9 +149,21 @@ export const appMusicPlaylistsModel = createModel(
             openCreationMpeFormModal: () => ({}),
             redirectToMpeLibrary: () => ({}),
             goBackToLastScreen: () => ({}),
+            displayMpeForcedDisconnectionToast: () => ({}),
         },
     },
 );
+
+function actorExists(context: MusicPlaylistsContext, roomID: string): boolean {
+    return context.playlistsActorsRefs.some((ref) => ref.id === roomID);
+}
+
+function givenRoomIDCurrentlyDisplayed(
+    context: MusicPlaylistsContext,
+    roomID: string,
+): boolean {
+    return context.currentlyDisplayedMpeRoomView === roomID;
+}
 
 const removePlaylistActor = appMusicPlaylistsModel.assign(
     {
@@ -137,7 +171,21 @@ const removePlaylistActor = appMusicPlaylistsModel.assign(
             return playlistsActorsRefs.filter((actor) => actor.id !== roomID);
         },
     },
-    'REMOVE_ACTOR_FROM_PLAYLIST_LIST',
+    'STOP_AND_REMOVE_ACTOR_FROM_PLAYLIST_LIST',
+);
+
+const resetCurrentlyDisplayedMpeRoomView = appMusicPlaylistsModel.assign(
+    {
+        currentlyDisplayedMpeRoomView: () => undefined,
+    },
+    'RESET_CURRENTLY_DISPLAYED_MPE_ROOM_VIEW',
+);
+
+const setCurrentlyDisplayedMpeRoomView = appMusicPlaylistsModel.assign(
+    {
+        currentlyDisplayedMpeRoomView: (_context, event) => event.roomID,
+    },
+    'SET_CURRENTLY_DISPLAYED_MPE_ROOM_VIEW',
 );
 
 const spawnPlaylistActor = appMusicPlaylistsModel.assign(
@@ -330,6 +378,36 @@ export function createAppMusicPlaylistsMachine({
                         },
                     );
 
+                    socket.on('MPE_LEAVE_ROOM_CALLBACK', ({ roomSummary }) => {
+                        console.log('MPE_LEAVE_ROOM_CALLBACK', {
+                            roomSummary,
+                        });
+
+                        sendBack({
+                            type: 'RECEIVED_MPE_LEAVE_ROOM_CALLBACK',
+                            roomSummary,
+                        });
+                    });
+
+                    socket.on(
+                        'MPE_USERS_LENGTH_UPDATE',
+                        ({ roomID, state }) => {
+                            sendBack({
+                                type: 'USERS_LENGTH_UPDATE',
+                                roomID,
+                                state,
+                            });
+                        },
+                    );
+
+                    socket.on('MPE_FORCED_DISCONNECTION', ({ roomSummary }) => {
+                        console.log(`RECEIVED MPE_FORCED_DISCONNECTION`);
+                        sendBack({
+                            type: 'RECEIVED_FORCED_DISCONNECTION',
+                            roomSummary,
+                        });
+                    });
+
                     onReceive((event) => {
                         switch (event.type) {
                             case 'CREATE_ROOM': {
@@ -416,6 +494,16 @@ export function createAppMusicPlaylistsMachine({
                                 const { roomID } = event;
                                 console.log('SEND JOIN ROOM', { roomID });
                                 socket.emit('MPE_JOIN_ROOM', {
+                                    roomID,
+                                });
+
+                                break;
+                            }
+
+                            case 'LEAVE_ROOM': {
+                                const { roomID } = event;
+                                console.log('SEND Leave ROOM', { roomID });
+                                socket.emit('MPE_LEAVE_ROOM', {
                                     roomID,
                                 });
 
@@ -589,6 +677,90 @@ export function createAppMusicPlaylistsMachine({
 
             roomsManagement: {
                 on: {
+                    LEAVE_ROOM: {
+                        actions: forwardTo('socketConnection'),
+                    },
+
+                    RECEIVED_FORCED_DISCONNECTION: [
+                        {
+                            cond: (context, { roomSummary: { roomID } }) => {
+                                return (
+                                    actorExists(context, roomID) &&
+                                    givenRoomIDCurrentlyDisplayed(
+                                        context,
+                                        roomID,
+                                    )
+                                );
+                            },
+                            actions: [
+                                'displayMpeForcedDisconnectionToast',
+                                `redirectToMpeLibrary`,
+                                send((_, { roomSummary: { roomID } }) =>
+                                    appMusicPlaylistsModel.events.STOP_AND_REMOVE_ACTOR_FROM_PLAYLIST_LIST(
+                                        {
+                                            roomID,
+                                        },
+                                    ),
+                                ),
+                            ],
+                        },
+                        {
+                            cond: (context, { roomSummary: { roomID } }) =>
+                                actorExists(context, roomID),
+                            actions: [
+                                'displayMpeForcedDisconnectionToast',
+                                send((_, { roomSummary: { roomID } }) =>
+                                    appMusicPlaylistsModel.events.STOP_AND_REMOVE_ACTOR_FROM_PLAYLIST_LIST(
+                                        {
+                                            roomID,
+                                        },
+                                    ),
+                                ),
+                            ],
+                        },
+                    ],
+
+                    RECEIVED_MPE_LEAVE_ROOM_CALLBACK: [
+                        {
+                            cond: (context, { roomSummary: { roomID } }) => {
+                                return (
+                                    actorExists(context, roomID) &&
+                                    givenRoomIDCurrentlyDisplayed(
+                                        context,
+                                        roomID,
+                                    )
+                                );
+                            },
+
+                            actions: [
+                                `displayLeaveSuccessToast`,
+                                `redirectToMpeLibrary`,
+                                send((_, { roomSummary: { roomID } }) =>
+                                    appMusicPlaylistsModel.events.STOP_AND_REMOVE_ACTOR_FROM_PLAYLIST_LIST(
+                                        {
+                                            roomID,
+                                        },
+                                    ),
+                                ),
+                            ],
+                        },
+                        {
+                            cond: (context, { roomSummary: { roomID } }) =>
+                                actorExists(context, roomID),
+
+                            actions: [
+                                `displayLeaveSuccessToast`,
+                                send((_, { roomSummary: { roomID } }) =>
+                                    appMusicPlaylistsModel.events.STOP_AND_REMOVE_ACTOR_FROM_PLAYLIST_LIST(
+                                        {
+                                            roomID,
+                                        },
+                                    ),
+                                ),
+                            ],
+                        },
+                    ],
+
                     MPE_TRACKS_LIST_UPDATE: {
                         actions: send(
                             (_, { state }) =>
@@ -711,11 +883,8 @@ export function createAppMusicPlaylistsMachine({
                         actions: [
                             'displayGetContextFailureToast',
                             'navigateToMpeRoomsSearchScreen',
-                            stop((_, event) =>
-                                getPlaylistMachineActorName(event.roomID),
-                            ),
                             send((_, { roomID }) =>
-                                appMusicPlaylistsModel.events.REMOVE_ACTOR_FROM_PLAYLIST_LIST(
+                                appMusicPlaylistsModel.events.STOP_AND_REMOVE_ACTOR_FROM_PLAYLIST_LIST(
                                     {
                                         roomID,
                                     },
@@ -766,8 +935,26 @@ export function createAppMusicPlaylistsMachine({
                         ),
                     },
 
-                    REMOVE_ACTOR_FROM_PLAYLIST_LIST: {
-                        actions: removePlaylistActor,
+                    STOP_AND_REMOVE_ACTOR_FROM_PLAYLIST_LIST: {
+                        actions: [
+                            stop((_, event) =>
+                                getPlaylistMachineActorName(event.roomID),
+                            ),
+                            removePlaylistActor,
+                        ],
+                    },
+
+                    USERS_LENGTH_UPDATE: {
+                        actions: send(
+                            (_, { state }) =>
+                                playlistModel.events.ASSIGN_MERGE_NEW_STATE({
+                                    state,
+                                }),
+                            {
+                                to: (_, { roomID }) =>
+                                    getPlaylistMachineActorName(roomID),
+                            },
+                        ),
                     },
 
                     DISPLAY_MPE_ROOM_VIEW: [
@@ -789,6 +976,14 @@ export function createAppMusicPlaylistsMachine({
                             ],
                         },
                     ],
+
+                    RESET_CURRENTLY_DISPLAYED_MPE_ROOM_VIEW: {
+                        actions: resetCurrentlyDisplayedMpeRoomView,
+                    },
+
+                    SET_CURRENTLY_DISPLAYED_MPE_ROOM_VIEW: {
+                        actions: setCurrentlyDisplayedMpeRoomView,
+                    },
                 },
             },
         },

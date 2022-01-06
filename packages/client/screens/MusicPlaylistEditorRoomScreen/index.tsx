@@ -37,6 +37,7 @@ const AddTrackButton: React.FC<AddTrackButtonProps> = ({
 
     return (
         <TouchableOpacity
+            testID="mpe-add-track-button"
             disabled={disabled}
             style={sx({
                 flexShrink: 0,
@@ -183,6 +184,10 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             playlistRef,
             (state) => state.context.state.playlistTotalDuration,
         );
+        const usersLength = useSelector(
+            playlistRef,
+            (state) => state.context.state.usersLength,
+        );
         const tracks = useSelector(
             playlistRef,
             (state) => state.context.state.tracks,
@@ -287,6 +292,10 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                         >
                             <Typo>{playlistTotalDuration} NOT FORMATED</Typo>
                         </Skeleton>
+
+                        <Typo>{`${usersLength} member${
+                            usersLength > 1 ? 's' : ''
+                        }`}</Typo>
 
                         <TouchableOpacity
                             disabled={disableEveryCta}

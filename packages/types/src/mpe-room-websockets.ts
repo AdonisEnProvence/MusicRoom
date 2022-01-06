@@ -1,4 +1,5 @@
 import * as z from 'zod';
+import { MtvRoomClientToServerCreateArgs } from './mtv-room-websockets';
 import { MpeWorkflowState, MpeRoomSummary } from './mpe';
 
 //Client to server
@@ -73,6 +74,22 @@ export const MpeRoomClientToServerLeaveRoomArgs = z.object({
 });
 export type MpeRoomClientToServerLeaveRoomArgs = z.infer<
     typeof MpeRoomClientToServerLeaveRoomArgs
+>;
+
+export const MtvRoomCreationOptionsWithoutInitialTracksIDs =
+    MtvRoomClientToServerCreateArgs.omit({
+        initialTracksIDs: true,
+    });
+export type MtvRoomCreationOptionsWithoutInitialTracksIDs = z.infer<
+    typeof MtvRoomCreationOptionsWithoutInitialTracksIDs
+>;
+
+export const MpeRoomClientToServerExportToMtvArgs = z.object({
+    roomID: z.string().uuid(),
+    mtvRoomOptions: MtvRoomCreationOptionsWithoutInitialTracksIDs,
+});
+export type MpeRoomClientToServerExportToMtvArgs = z.infer<
+    typeof MpeRoomClientToServerExportToMtvArgs
 >;
 ///
 
@@ -168,6 +185,7 @@ export interface MpeRoomClientToServerEvents {
     MPE_GET_CONTEXT: (args: MpeRoomClientToServerGetContextArgs) => void;
     MPE_JOIN_ROOM: (args: MpeRoomClientToServerJoinRoomArgs) => void;
     MPE_LEAVE_ROOM: (args: MpeRoomClientToServerLeaveRoomArgs) => void;
+    MPE_EXPORT_TO_MTV: (args: MpeRoomClientToServerExportToMtvArgs) => void;
 }
 
 export interface MpeRoomServerToClientEvents {

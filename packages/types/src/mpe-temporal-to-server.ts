@@ -1,5 +1,6 @@
 import * as z from 'zod';
 import { MpeWorkflowState } from './mpe';
+import { MtvRoomCreationOptionsWithoutInitialTracksIDs } from './mpe-room-websockets';
 
 export const MpeRejectAddingTracksRequestBody = z.object({
     roomID: z.string().uuid(),
@@ -52,6 +53,16 @@ export const MpeAcknowledgeJoinRequestBody = z.object({
 });
 export type MpeAcknowledgeJoinRequestBody = z.infer<
     typeof MpeAcknowledgeJoinRequestBody
+>;
+
+export const MpeRequestMtvRoomCreationRequestBody = z.object({
+    tracksIDs: z.array(z.string()),
+    userID: z.string().uuid(),
+    deviceID: z.string().uuid(),
+    mtvRoomOptions: MtvRoomCreationOptionsWithoutInitialTracksIDs,
+});
+export type MpeRequestMtvRoomCreationRequestBody = z.infer<
+    typeof MpeRequestMtvRoomCreationRequestBody
 >;
 
 export const MpeAcknowledgeLeaveRequestBody = z.object({

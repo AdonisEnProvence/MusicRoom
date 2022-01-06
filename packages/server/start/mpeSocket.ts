@@ -4,11 +4,13 @@ import {
     MpeRoomClientToServerChangeTrackOrderUpDownArgs,
     MpeRoomClientToServerCreateArgs,
     MpeRoomClientToServerDeleteTracksArgs,
+    MpeRoomClientToServerExportToMtvArgs,
     MpeRoomClientToServerGetContextArgs,
     MpeRoomClientToServerJoinRoomArgs,
     MpeRoomClientToServerLeaveRoomArgs,
 } from '@musicroom/types';
 import MpeRoomsWsController from 'App/Controllers/Ws/MpeRoomsWsController';
+import MtvRoomService from 'App/Services/MtvRoomService';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import Ws from 'App/Services/Ws';
 import { TypedSocket } from './socket';
@@ -165,6 +167,27 @@ export default function initMpeSocketEventListeners(socket: TypedSocket): void {
             });
 
             socket.emit('MPE_GET_CONTEXT_SUCCESS_CALLBACK', response);
+        } catch (err) {
+            console.error(err);
+        }
+    });
+
+    socket.on('MPE_EXPORT_TO_MTV', async (rawArgs) => {
+        try {
+            const { roomID, mtvRoomOptions } =
+                MpeRoomClientToServerExportToMtvArgs.parse(rawArgs);
+
+            MtvRoomService.validateMtvRoomOptions(mtvRoomOptions);
+
+            const { user, deviceID } =
+                await SocketLifecycle.getSocketConnectionCredentials(socket);
+
+            await MpeRoomsWsController.onExportToMtv({
+                userID: user.uuid,
+                roomID,
+                deviceID,
+                mtvRoomOptions,
+            });
         } catch (err) {
             console.error(err);
         }

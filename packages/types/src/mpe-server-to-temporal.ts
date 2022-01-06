@@ -1,4 +1,5 @@
 import * as z from 'zod';
+import { MtvRoomCreationOptionsWithoutInitialTracksIDs } from './mpe-room-websockets';
 import { MpeWorkflowState } from './mpe';
 
 export const MpeCreateWorkflowResponse = z.object({
@@ -89,6 +90,23 @@ export const MpeGetStateQueryRequestBody = z.object({
 });
 export type MpeGetStateQueryRequestBody = z.infer<
     typeof MpeGetStateQueryRequestBody
+>;
+
+export const MpeExportToMtvRequestBody = z.object({
+    workflowID: z.string().uuid(),
+    userID: z.string(),
+    deviceID: z.string(),
+    mtvRoomOptions: MtvRoomCreationOptionsWithoutInitialTracksIDs,
+});
+export type MpeExportToMtvRequestBody = z.infer<
+    typeof MpeExportToMtvRequestBody
+>;
+
+export const MpeExportToMtvResponseBody = z.object({
+    ok: z.literal(1),
+});
+export type MpeExportToMtvResponseBody = z.infer<
+    typeof MpeExportToMtvResponseBody
 >;
 
 export const MpeLeaveWorkflowRequestBody = z.object({

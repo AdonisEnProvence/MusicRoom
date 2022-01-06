@@ -16,6 +16,8 @@ import {
     MpeLeaveWorkflowResponseBody,
     MpeTerminateWorkflowRequestBody,
     MpeTerminateWorkflowResponseBody,
+    MpeExportToMtvResponseBody,
+    MpeExportToMtvRequestBody,
 } from '@musicroom/types';
 import got from 'got';
 import urlcat from 'urlcat';
@@ -105,6 +107,20 @@ export default class MpeServerToTemporalController {
         const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/get-state');
 
         return MpeGetStateQueryResponseBody.parse(
+            await got
+                .put(url, {
+                    json: body,
+                })
+                .json(),
+        );
+    }
+
+    public static async exportToMtv(
+        body: MpeExportToMtvRequestBody,
+    ): Promise<MpeExportToMtvResponseBody> {
+        const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/export-to-mtv');
+
+        return MpeExportToMtvResponseBody.parse(
             await got
                 .put(url, {
                     json: body,

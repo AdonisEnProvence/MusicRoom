@@ -19,6 +19,7 @@ import {
     StateMachine,
 } from 'xstate';
 import { SocketClient } from '../contexts/SocketContext';
+import { navigateFromRef } from '../navigation/RootNavigation';
 import {
     createCreationMtvRoomFormMachine,
     CreationMtvRoomFormDoneInvokeEvent,
@@ -168,7 +169,40 @@ export const createAppMusicPlayerMachine = ({
     any,
     AppMusicPlayerMachineEvent
 > => {
-    const creationMtvRoomForm = createCreationMtvRoomFormMachine();
+    const creationMtvRoomForm = createCreationMtvRoomFormMachine({
+        redirectToRoomNameScreen: () => {
+            try {
+                navigateFromRef('MusicTrackVoteCreationFormName');
+            } catch {
+                // An error is thrown when the modal is open.
+                // We are not yet in MusicTrackVoteCreationForm and
+                // we can there is no screen called MusicTrackVoteCreationFormName.
+                // This is not a problem that the first call does not succeed
+                // as we already perform the redirection in openCreationMtvRoomFormModal action.
+                // It is particularly useful to handle redirection to Name step.
+            }
+        },
+
+        redirectToOpeningStatusScreen: () => {
+            navigateFromRef('MusicTrackVoteCreationFormOpeningStatus');
+        },
+
+        redirectToPhysicalConstraintsScreen: () => {
+            navigateFromRef('MusicTrackVoteCreationFormPhysicalConstraints');
+        },
+
+        redirectToPlayingModeScreen: () => {
+            navigateFromRef('MusicTrackVoteCreationFormPlayingMode');
+        },
+
+        redirectToVotesConstraintsScreen: () => {
+            navigateFromRef('MusicTrackVoteCreationFormVotesConstraints');
+        },
+
+        redirectToConfirmationScreen: () => {
+            navigateFromRef('MusicTrackVoteCreationFormConfirmation');
+        },
+    });
 
     return createMachine<
         AppMusicPlayerMachineContext,

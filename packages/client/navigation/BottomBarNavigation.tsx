@@ -17,7 +17,7 @@ import TheMusicPlayer from '../components/TheMusicPlayer';
 import { tabStyle } from '../constants/Colors';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import HomeScreen from '../screens/HomeScreen';
-import MusicPlaylistEditorListScreen from '../screens/MusicPlaylistEditorListScreen';
+import MusicPlaylistEditorListScreen from '../screens/MusicPlaylistEditorLibraryScreen';
 import MusicPlaylistEditorRoomScreen from '../screens/MusicPlaylistEditorRoomScreen';
 import MusicPlaylistEditorSearchTracksScreen from '../screens/MusicPlaylistEditorSearchTracksScreen';
 import SearchTrackScreen from '../screens/SearchTrackScreen';

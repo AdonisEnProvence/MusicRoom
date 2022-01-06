@@ -73,12 +73,16 @@ export const knownSearches: KnownSearchesRecord = {
     ],
 };
 
-export function withinMpeRoomsListScreen(selector: string): string {
-    return `css=[data-testid="mpe-rooms-list"] >> ${selector}`;
+export function withinMpeRoomsLibraryScreen(selector: string): string {
+    return `css=[data-testid="library-mpe-rooms-list"] >> ${selector}`;
 }
 
 export function withinMpeRoomScreen(selector: string): string {
     return `css=[data-testid^="mpe-room-screen-"] >> ${selector}`;
+}
+
+export function withinMpeRoomsSearchEngineScreen(selector: string): string {
+    return `css=[data-testid="mpe-room-search-engine"] >> ${selector}`;
 }
 
 export async function createMpeRoom({
@@ -306,10 +310,9 @@ export async function changeTrackOrder({
     await expect(trackToMoveChangeOrderButton).toBeVisible();
     await expect(trackToMoveChangeOrderButton).toBeEnabled();
 
-    const successfulToast = page.locator('text=Track moved successfully');
+    //Race condition here ?
     await Promise.all([
-        expect(successfulToast).toBeVisible(),
-
+        expect(page.locator('text=Track moved successfully')).toBeVisible(),
         trackToMoveChangeOrderButton.click(),
     ]);
 

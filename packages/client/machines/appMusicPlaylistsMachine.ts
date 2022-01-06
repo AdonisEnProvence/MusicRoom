@@ -283,23 +283,33 @@ export function createAppMusicPlaylistsMachine({
         },
 
         redirectToOpeningStatusScreen: () => {
-            // navigateFromRef('MusicTrackVoteCreationFormOpeningStatus');
+            navigateFromRef('MusicPlaylistEditorExportToMtvCreationForm', {
+                screen: 'MusicTrackVoteCreationFormOpeningStatus',
+            });
         },
 
         redirectToPhysicalConstraintsScreen: () => {
-            // navigateFromRef('MusicTrackVoteCreationFormPhysicalConstraints');
+            navigateFromRef('MusicPlaylistEditorExportToMtvCreationForm', {
+                screen: 'MusicTrackVoteCreationFormPhysicalConstraints',
+            });
         },
 
         redirectToPlayingModeScreen: () => {
-            // navigateFromRef('MusicTrackVoteCreationFormPlayingMode');
+            navigateFromRef('MusicPlaylistEditorExportToMtvCreationForm', {
+                screen: 'MusicTrackVoteCreationFormPlayingMode',
+            });
         },
 
         redirectToVotesConstraintsScreen: () => {
-            // navigateFromRef('MusicTrackVoteCreationFormVotesConstraints');
+            navigateFromRef('MusicPlaylistEditorExportToMtvCreationForm', {
+                screen: 'MusicTrackVoteCreationFormVotesConstraints',
+            });
         },
 
         redirectToConfirmationScreen: () => {
-            // navigateFromRef('MusicTrackVoteCreationFormConfirmation');
+            navigateFromRef('MusicPlaylistEditorExportToMtvCreationForm', {
+                screen: 'MusicTrackVoteCreationFormConfirmation',
+            });
         },
     });
 

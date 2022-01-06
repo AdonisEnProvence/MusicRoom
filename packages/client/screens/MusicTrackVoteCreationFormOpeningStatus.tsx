@@ -8,7 +8,7 @@ import { useCreationMtvRoomFormMachine } from '../hooks/musicPlayerHooks';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 import { MusicTrackVoteCreationFormOpeningStatusScreenProps } from '../types';
 
-const MusicTrackVoteCreationFormOpeningStatus: React.FC<
+export const MusicTrackVoteCreationFormOpeningStatus: React.FC<
     MusicTrackVoteCreationFormOpeningStatusScreenProps & {
         mtvRoomCreationActor: CreationMtvRoomFormActorRef;
     }

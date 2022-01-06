@@ -69,13 +69,16 @@ test('Basic user leaves mpe room', async ({ browser }) => {
     });
 
     await leaveMpeRoom({
-        page: joiningUserPage1,
+        leavingPage: joiningUserPage1,
         roomName,
-        otherUserDeviceWithCustomAssertionToApply: [
-            async () => {
-                await pageIsOnHomeScreen({
-                    page: joiningUserPage2,
-                });
+        notRedirectedLeavingUserPages: [
+            {
+                assertion: async () => {
+                    await pageIsOnHomeScreen({
+                        page: joiningUserPage2,
+                    });
+                },
+                page: joiningUserPage2,
             },
         ],
     });

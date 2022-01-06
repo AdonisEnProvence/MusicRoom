@@ -308,54 +308,94 @@ export async function searchAndJoinMpeRoomFromMpeRoomsSearchEngine({
 /**
  * Should be called from related mpe room view
  * It then involves a redirection
+ * forcedDisconnectedPages should never contains a leaving user page
  */
-export async function leaveMpeRoom({
-    page,
-    roomName,
-    otherRedirectedUserDevices,
-    otherUserDeviceWithCustomAssertionToApply,
-}: {
+
+interface NotRedirectedPage {
     page: Page;
+    //Should assertion takes a page ? it could avoid future dev errors
+    assertion: () => Promise<void>;
+}
+export async function leaveMpeRoom({
+    leavingPage,
+    roomName,
+    forcedDisconnectedRedirectedOtherUsersPages = [],
+    forcedDisconnectedNotRedirectedOtherUsersPages = [],
+    redirectedLeavingUserPages = [],
+    notRedirectedLeavingUserPages = [],
+}: {
+    leavingPage: Page;
     roomName: string;
-    otherRedirectedUserDevices?: Page[];
-    otherUserDeviceWithCustomAssertionToApply?: (() => Promise<void>)[];
+    forcedDisconnectedRedirectedOtherUsersPages?: Page[];
+    forcedDisconnectedNotRedirectedOtherUsersPages?: NotRedirectedPage[];
+    redirectedLeavingUserPages?: Page[];
+    notRedirectedLeavingUserPages?: NotRedirectedPage[];
 }): Promise<void> {
-    const leaveButton = page.locator(`text="Leave room"`);
+    //In our testing leave method, leaving page is always redirected
+    const redirectedLeavingUserPagesWithLeavingPage = [
+        leavingPage,
+        ...redirectedLeavingUserPages,
+    ];
+
+    //Expecting leave toast on every leaving user pages
+    const allLeavingUserPages: Page[] = [
+        ...redirectedLeavingUserPagesWithLeavingPage,
+        ...notRedirectedLeavingUserPages.map((el) => el.page),
+    ];
+
+    const allForcedDisconnectedPages: Page[] = [
+        ...forcedDisconnectedRedirectedOtherUsersPages,
+        ...forcedDisconnectedNotRedirectedOtherUsersPages.map((el) => el.page),
+    ];
+
+    const leaveButton = leavingPage.locator(`text="Leave room"`);
     await expect(leaveButton).toBeVisible();
     await expect(leaveButton).toBeEnabled();
 
-    //Race condition here ?
-
     await Promise.all([
-        expect(
-            page.locator(`text="Leaving ${roomName} is a success"`),
-        ).toBeVisible(),
-        await leaveButton.click(),
-        //Expect redirection
-        expect(
-            page.locator(withinMpeRoomsLibraryScreen('text="Your library"')),
-        ).toBeVisible(),
+        Promise.all(
+            allLeavingUserPages.map<Promise<Locator>>(async (userPage) =>
+                expect(
+                    userPage.locator(`text="Leaving ${roomName} is a success"`),
+                ).toBeVisible(),
+            ),
+        ),
+        Promise.all(
+            allForcedDisconnectedPages.map<Promise<Locator>>(
+                async (forcedDisconnectedPage) =>
+                    expect(
+                        forcedDisconnectedPage.locator(
+                            `text="${roomName} creator has quit"`,
+                        ),
+                    ).toBeVisible(),
+            ),
+        ),
+        leaveButton.click(),
     ]);
 
-    if (otherRedirectedUserDevices !== undefined) {
-        await Promise.all(
-            otherRedirectedUserDevices.map(async (page) => {
-                await expect(
-                    page.locator(
-                        withinMpeRoomsLibraryScreen('text="Your library"'),
-                    ),
-                ).toBeVisible();
-            }),
-        );
-    }
+    //After a leaving every page currently looking to the leaved mpe room will be redirected to the library
+    const allredirectedPages: Page[] = [
+        ...redirectedLeavingUserPagesWithLeavingPage,
+        ...forcedDisconnectedRedirectedOtherUsersPages,
+    ];
+    await Promise.all(
+        allredirectedPages.map(async (redirectedPage) =>
+            expect(
+                redirectedPage.locator(
+                    withinMpeRoomsLibraryScreen('text="Your library"'),
+                ),
+            ).toBeVisible(),
+        ),
+    );
 
-    if (otherUserDeviceWithCustomAssertionToApply !== undefined) {
-        await Promise.all(
-            otherUserDeviceWithCustomAssertionToApply.map(
-                async (assertion) => await assertion(),
-            ),
-        );
-    }
+    //Custom assertions for others leaving user pages that are everywhere but in the leaved mpe room view
+    const allNotRedirectedPages: NotRedirectedPage[] = [
+        ...notRedirectedLeavingUserPages,
+        ...forcedDisconnectedNotRedirectedOtherUsersPages,
+    ];
+    await Promise.all(
+        allNotRedirectedPages.map(async ({ assertion }) => await assertion()),
+    );
 }
 
 export async function pageIsOnHomeScreen({

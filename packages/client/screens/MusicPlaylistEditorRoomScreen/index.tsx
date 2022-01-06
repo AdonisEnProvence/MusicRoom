@@ -250,6 +250,12 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             });
         }
 
+        function handleExportToMtvPress() {
+            playlistRef.send({
+                type: 'EXPORT_TO_MTV',
+            });
+        }
+
         useFocusEffect(
             React.useCallback(() => {
                 // Do something when the screen is focused
@@ -317,6 +323,29 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                                 }}
                             >
                                 Leave room
+                            </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            disabled={disableEveryCta}
+                            style={sx({
+                                flexShrink: 0,
+                                backgroundColor: 'greyLight',
+                                padding: 'm',
+                                flexDirection: 'row',
+                                justifyContent: 'center',
+                                marginBottom: 'l',
+                            })}
+                            onPress={handleExportToMtvPress}
+                        >
+                            <Text
+                                sx={{
+                                    color: 'white',
+                                    textAlign: 'center',
+                                    fontSize: 'm',
+                                }}
+                            >
+                                Export to MTV
                             </Text>
                         </TouchableOpacity>
 

@@ -9,8 +9,8 @@ import {
     StateMachine,
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { ModelActionsFrom } from 'xstate/lib/model.types';
 import * as z from 'zod';
-import { navigateFromRef } from '../navigation/RootNavigation';
 import { fetchTracksByID } from '../services/search-tracks';
 import { CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents } from './appMusicPlayerMachine';
 
@@ -83,16 +83,24 @@ const creationMtvRoomFormModel = createModel(
                 tracksMetadata: TrackMetadata[],
             ) => ({ tracksMetadata }),
         },
+
+        actions: {
+            redirectToRoomNameScreen: () => ({}),
+            redirectToOpeningStatusScreen: () => ({}),
+            redirectToPhysicalConstraintsScreen: () => ({}),
+            redirectToPlayingModeScreen: () => ({}),
+            redirectToVotesConstraintsScreen: () => ({}),
+            redirectToConfirmationScreen: () => ({}),
+        },
     },
 );
 
 export const creationMtvRoomFormInitialContext =
     creationMtvRoomFormModel.initialContext;
 
-type CreationMtvRoomFormModelEventsCreators =
-    typeof creationMtvRoomFormModel.events;
-type ForwardModalCloserEvent = ReturnType<
-    CreationMtvRoomFormModelEventsCreators['FORWARD_MODAL_CLOSER']
+type ForwardModalCloserEvent = EventFrom<
+    typeof creationMtvRoomFormModel,
+    'FORWARD_MODAL_CLOSER'
 >;
 
 export type CreationMtvRoomFormMachineContext = ContextFrom<
@@ -121,7 +129,19 @@ export type CreationMtvRoomFormDoneInvokeEvent = DoneInvokeEvent<
     Omit<CreationMtvRoomFormMachineContext, 'physicalConstraintPlace'>
 >;
 
-export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
+type CreateCreationMtvRoomFormMachineArgs = Record<
+    ModelActionsFrom<typeof creationMtvRoomFormModel>['type'],
+    () => void
+>;
+
+export function createCreationMtvRoomFormMachine({
+    redirectToRoomNameScreen,
+    redirectToOpeningStatusScreen,
+    redirectToPhysicalConstraintsScreen,
+    redirectToPlayingModeScreen,
+    redirectToVotesConstraintsScreen,
+    redirectToConfirmationScreen,
+}: CreateCreationMtvRoomFormMachineArgs): CreationMtvRoomFormMachine {
     return creationMtvRoomFormModel.createMachine(
         {
             context: creationMtvRoomFormModel.initialContext,
@@ -130,18 +150,7 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
 
             states: {
                 roomName: {
-                    entry: () => {
-                        try {
-                            navigateFromRef('MusicTrackVoteCreationFormName');
-                        } catch {
-                            // An error is thrown when the modal is open.
-                            // We are not yet in MusicTrackVoteCreationForm and
-                            // we can there is no screen called MusicTrackVoteCreationFormName.
-                            // This is not a problem that the first call does not succeed
-                            // as we already perform the redirection in openCreationMtvRoomFormModal action.
-                            // It is particularly useful to handle redirection to Name step.
-                        }
-                    },
+                    entry: 'redirectToRoomNameScreen',
 
                     on: {
                         SET_ROOM_NAME_AND_GO_NEXT: {
@@ -174,11 +183,7 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                 },
 
                 openingStatus: {
-                    entry: () => {
-                        navigateFromRef(
-                            'MusicTrackVoteCreationFormOpeningStatus',
-                        );
-                    },
+                    entry: 'redirectToOpeningStatusScreen',
 
                     initial: 'public',
 
@@ -233,11 +238,7 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                 },
 
                 physicalConstraints: {
-                    entry: () => {
-                        navigateFromRef(
-                            'MusicTrackVoteCreationFormPhysicalConstraints',
-                        );
-                    },
+                    entry: 'redirectToPhysicalConstraintsScreen',
 
                     initial: 'isNotRestricted',
 
@@ -291,11 +292,7 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                 },
 
                 playingMode: {
-                    entry: () => {
-                        navigateFromRef(
-                            'MusicTrackVoteCreationFormPlayingMode',
-                        );
-                    },
+                    entry: 'redirectToPlayingModeScreen',
 
                     on: {
                         SET_PLAYING_MODE: {
@@ -313,11 +310,7 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                 },
 
                 votesConstraints: {
-                    entry: () => {
-                        navigateFromRef(
-                            'MusicTrackVoteCreationFormVotesConstraints',
-                        );
-                    },
+                    entry: 'redirectToVotesConstraintsScreen',
 
                     on: {
                         SET_MINIMUM_VOTES_FOR_A_TRACK_TO_BE_PLAYED: {
@@ -335,11 +328,7 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
                 },
 
                 waitingForConfirmation: {
-                    entry: () => {
-                        navigateFromRef(
-                            'MusicTrackVoteCreationFormConfirmation',
-                        );
-                    },
+                    entry: 'redirectToConfirmationScreen',
 
                     initial: 'fetchingInitialTracksInformation',
 
@@ -397,6 +386,15 @@ export function createCreationMtvRoomFormMachine(): CreationMtvRoomFormMachine {
         },
 
         {
+            actions: {
+                redirectToRoomNameScreen,
+                redirectToOpeningStatusScreen,
+                redirectToPhysicalConstraintsScreen,
+                redirectToPlayingModeScreen,
+                redirectToVotesConstraintsScreen,
+                redirectToConfirmationScreen,
+            },
+
             services: {
                 fetchTracksInformation: (context) => async (sendBack) => {
                     try {

@@ -10,7 +10,7 @@ import {
 } from '../machines/creationMtvRoomForm';
 import { MusicTrackVoteCreationFormVotesConstraintsScreenProps } from '../types';
 
-const MusicTrackVoteCreationFormVotesConstraints: React.FC<
+export const MusicTrackVoteCreationFormVotesConstraints: React.FC<
     MusicTrackVoteCreationFormVotesConstraintsScreenProps & {
         mtvRoomCreationActor: CreationMtvRoomFormActorRef;
     }

@@ -462,7 +462,7 @@ export const MusicTrackVoteCreationFormPhysicalConstraintsContent: React.FC<Musi
         );
     };
 
-const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
+export const MusicTrackVoteCreationFormPhysicalConstraints: React.FC<
     MusicTrackVoteCreationFormPhysicalConstraintsScreenProps & {
         mtvRoomCreationActor: CreationMtvRoomFormActorRef;
     }

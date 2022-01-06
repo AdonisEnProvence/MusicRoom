@@ -24,7 +24,7 @@ function formatRadius(radius: number): string {
     return radiusLabel;
 }
 
-const MusicTrackVoteCreationFormConfirmation: React.FC<
+export const MusicTrackVoteCreationFormConfirmation: React.FC<
     MusicTrackVoteCreationFormConfirmationScreenProps & {
         mtvRoomCreationActor: CreationMtvRoomFormActorRef;
     }

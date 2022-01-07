@@ -877,6 +877,9 @@ export function createAppMusicPlaylistsMachine({
                                                 },
                                             );
                                         },
+                                        {
+                                            to: 'socketConnection',
+                                        },
                                     ),
 
                                     assign({

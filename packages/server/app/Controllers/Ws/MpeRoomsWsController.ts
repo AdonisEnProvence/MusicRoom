@@ -14,11 +14,59 @@ import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
 import { TypedSocket } from 'start/socket';
 import MpeRoomInvitation from 'App/Models/MpeRoomInvitation';
+import invariant from 'tiny-invariant';
 import MpeServerToTemporalController from '../Http/Temporal/MpeServerToTemporalController';
 
 interface IsUserInMpeRoomArgs {
     userID: string;
     roomID: string;
+}
+
+export async function fromMpeRoomToMpeRoomSummary({
+    room,
+    userID,
+}: {
+    room: MpeRoom;
+    userID: string;
+}): Promise<MpeRoomSummary> {
+    await room.load('creator');
+    invariant(
+        room.creator !== null,
+        'should never occurs room.creator is null',
+    );
+
+    const relatedInvitationArray = await MpeRoomInvitation.query()
+        .where('invited_user_id', userID)
+        .andWhere('mpe_room_id', room.uuid)
+        .andWhere('inviting_user_id', room.creator.uuid);
+    const isInvited = relatedInvitationArray.length > 0;
+
+    const { isOpen, uuid: roomID, name: roomName } = room;
+    const roomSummary: MpeRoomSummary = {
+        creatorName: room.creator.nickname,
+        isInvited,
+        isOpen,
+        roomID,
+        roomName,
+    };
+    return roomSummary;
+}
+
+export async function fromMpeRoomsToMpeRoomSummaries({
+    mpeRooms,
+    userID,
+}: {
+    mpeRooms: MpeRoom[];
+    userID: string;
+}): Promise<MpeRoomSummary[]> {
+    return await Promise.all(
+        mpeRooms.map(async (room) =>
+            fromMpeRoomToMpeRoomSummary({
+                room,
+                userID,
+            }),
+        ),
+    );
 }
 
 export async function IsUserInMpeRoom({

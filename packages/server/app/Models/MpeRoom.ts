@@ -55,8 +55,6 @@ export default class MpeRoom extends BaseModel {
     public invitations: HasMany<typeof MpeRoomInvitation>;
     ///
 
-    //todo invitations
-
     @column()
     public isOpen: boolean;
 

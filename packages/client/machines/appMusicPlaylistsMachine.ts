@@ -56,6 +56,7 @@ export const appMusicPlaylistsModel = createModel(
         roomToCreateInitialTracksIDs: undefined as string[] | undefined,
         currentlyDisplayedMpeRoomView: undefined as string | undefined, //MusicPlaylist ??
         currentlyExportedToMtvMpeRoomID: undefined as string | undefined,
+        closeMtvRoomCreationModal: undefined as (() => void) | undefined,
     },
     {
         events: {
@@ -164,6 +165,9 @@ export const appMusicPlaylistsModel = createModel(
             }) => args,
 
             EXPORT_TO_MTV_ROOM: (args: { roomID: string }) => args,
+            SAVE_MTV_ROOM_CREATION_MODAL_CLOSER: (args: {
+                closeModal: () => void;
+            }) => args,
             SEND_EXPORT_TO_MTV_ROOM_TO_SERVER: (args: {
                 roomID: string;
                 mtvRoomOptions: MtvRoomCreationOptionsWithoutInitialTracksIDs;
@@ -220,6 +224,20 @@ const assignCurrentlyExportedToMtvMpeRoomIDToContext =
         },
         'EXPORT_TO_MTV_ROOM',
     );
+
+const assignCloseMtvRoomCreationModalToContext = appMusicPlaylistsModel.assign(
+    {
+        closeMtvRoomCreationModal: (_context, event) => event.closeModal,
+    },
+    'SAVE_MTV_ROOM_CREATION_MODAL_CLOSER',
+);
+
+const resetCloseMtvRoomCreationModal = appMusicPlaylistsModel.assign(
+    {
+        closeMtvRoomCreationModal: undefined,
+    },
+    undefined,
+);
 
 const spawnPlaylistActor = appMusicPlaylistsModel.assign(
     {
@@ -796,6 +814,13 @@ export function createAppMusicPlaylistsMachine({
                             );
                         },
 
+                        exit: [
+                            ({ closeMtvRoomCreationModal }) => {
+                                closeMtvRoomCreationModal?.();
+                            },
+                            resetCloseMtvRoomCreationModal,
+                        ],
+
                         invoke: {
                             id: 'creationMtvRoomForm',
 
@@ -888,6 +913,13 @@ export function createAppMusicPlaylistsMachine({
                                         ) => undefined,
                                     }),
                                 ],
+                            },
+                        },
+
+                        on: {
+                            SAVE_MTV_ROOM_CREATION_MODAL_CLOSER: {
+                                actions:
+                                    assignCloseMtvRoomCreationModalToContext,
                             },
                         },
                     },

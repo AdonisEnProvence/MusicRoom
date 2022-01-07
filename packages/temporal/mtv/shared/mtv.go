@@ -299,7 +299,7 @@ type MtvRoomCreationOptions struct {
 	IsOpen                        bool                               `json:"isOpen"`
 	IsOpenOnlyInvitedUsersCanVote bool                               `json:"isOpenOnlyInvitedUsersCanVote"`
 	HasPhysicalAndTimeConstraints bool                               `json:"hasPhysicalAndTimeConstraints"`
-	PhysicalAndTimeConstraints    *MtvRoomPhysicalAndTimeConstraints `json:"physicalAndTimeConstraints"`
+	PhysicalAndTimeConstraints    *MtvRoomPhysicalAndTimeConstraints `json:"physicalAndTimeConstraints,omitempty"`
 	PlayingMode                   MtvPlayingModes                    `json:"playingMode" validate:"required,oneof=DIRECT BROADCAST"`
 }
 

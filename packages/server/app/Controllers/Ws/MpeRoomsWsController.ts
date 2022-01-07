@@ -5,6 +5,7 @@ import {
     MpeCreateWorkflowResponse,
     MpeRoomClientToServerCreateArgs,
     MpeRoomServerToClientGetContextSuccessCallbackArgs,
+    MpeRoomSummary,
     MtvRoomCreationOptionsWithoutInitialTracksIDs,
 } from '@musicroom/types';
 import MpeRoom from 'App/Models/MpeRoom';
@@ -12,6 +13,7 @@ import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
 import { TypedSocket } from 'start/socket';
+import MpeRoomInvitation from 'App/Models/MpeRoomInvitation';
 import MpeServerToTemporalController from '../Http/Temporal/MpeServerToTemporalController';
 
 interface IsUserInMpeRoomArgs {
@@ -99,6 +101,12 @@ interface OnExportToMtvArgs {
     deviceID: string;
     roomID: string;
     mtvRoomOptions: MtvRoomCreationOptionsWithoutInitialTracksIDs;
+}
+
+interface OnCreatorInviteUserArgs {
+    invitingUserID: string;
+    invitedUserID: string;
+    roomID: string;
 }
 
 export default class MpeRoomsWsController {
@@ -406,5 +414,70 @@ export default class MpeRoomsWsController {
 
             throw new Error('onExportToMtv error');
         }
+    }
+
+    public static async onCreatorInviteUser({
+        invitedUserID,
+        invitingUserID,
+        roomID,
+    }: OnCreatorInviteUserArgs): Promise<void> {
+        const room = await MpeRoom.findOrFail(roomID);
+        const invitedUser = await User.findOrFail(invitedUserID);
+
+        const userIsNotRoomCreator = invitingUserID !== room.creatorID;
+
+        if (userIsNotRoomCreator) {
+            throw new Error(
+                `Emitter user does not appear to be the mpe room creator`,
+            );
+        }
+
+        const creatorIsInvitingHimself = invitedUser.uuid === invitingUserID;
+        if (creatorIsInvitingHimself) {
+            throw new Error('Creator cannot invite himself in his mpe room');
+        }
+
+        await invitedUser.load('mpeRooms', (mpeRoomQuery) => {
+            return mpeRoomQuery.where('uuid', roomID);
+        });
+        const invitedUserIsAlreadyInTheRoom =
+            invitedUser.mpeRooms !== null && invitedUser.mpeRooms.length === 1;
+        if (invitedUserIsAlreadyInTheRoom) {
+            throw new Error('Invited user is already in the mpe room');
+        }
+
+        await room.load('creator');
+        if (room.creator === null) {
+            throw new Error(
+                'Should never occurs, creator relationship led to null',
+            );
+        }
+
+        const createdInvitation = await MpeRoomInvitation.firstOrCreate({
+            mpeRoomID: roomID,
+            invitedUserID,
+            invitingUserID,
+        });
+
+        //Isn'it a pb if first or create return first ? duplicating relationship ?
+        await room.related('invitations').save(createdInvitation);
+
+        const roomSummary: MpeRoomSummary = {
+            creatorName: room.creator.nickname,
+            isOpen: room.isOpen,
+            roomID: room.uuid,
+            roomName: room.name,
+            isInvited: true,
+        };
+
+        await UserService.emitEventInEveryDeviceUser(
+            invitedUserID,
+            'MPE_RECEIVED_ROOM_INVITATION',
+            [
+                {
+                    roomSummary,
+                },
+            ],
+        );
     }
 }

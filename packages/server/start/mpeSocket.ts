@@ -3,6 +3,7 @@ import {
     MpeRoomClientToServerAddTracksArgs,
     MpeRoomClientToServerChangeTrackOrderUpDownArgs,
     MpeRoomClientToServerCreateArgs,
+    MpeRoomClientToServerCreatorInviteUserArgs,
     MpeRoomClientToServerDeleteTracksArgs,
     MpeRoomClientToServerExportToMtvArgs,
     MpeRoomClientToServerGetContextArgs,
@@ -187,6 +188,25 @@ export default function initMpeSocketEventListeners(socket: TypedSocket): void {
                 roomID,
                 deviceID,
                 mtvRoomOptions,
+            });
+        } catch (err) {
+            console.error(err);
+        }
+    });
+
+    socket.on('MPE_CREATOR_INVITE_USER', async (rawArgs) => {
+        try {
+            const { invitedUserID, roomID } =
+                MpeRoomClientToServerCreatorInviteUserArgs.parse(rawArgs);
+
+            const {
+                user: { uuid: invitingUserID },
+            } = await SocketLifecycle.getSocketConnectionCredentials(socket);
+
+            await MpeRoomsWsController.onCreatorInviteUser({
+                invitedUserID,
+                invitingUserID,
+                roomID,
             });
         } catch (err) {
             console.error(err);

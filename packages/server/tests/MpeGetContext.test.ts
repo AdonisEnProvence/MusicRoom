@@ -273,78 +273,90 @@ test.group('MPE get context', (group) => {
         });
     });
 
-    test.failing(
-        'It should retrieve context from a not joined but invited in private room',
-        async (assert) => {
-            const roomID = datatype.uuid();
-            const room = {
-                roomID,
-                roomName: random.words(3),
-                isOpen: false,
-            };
-            const creatorUserID = datatype.uuid();
+    test('It should retrieve context from a not joined but invited in private room', async (assert) => {
+        const roomID = datatype.uuid();
+        const room = {
+            roomID,
+            roomName: random.words(3),
+            isOpen: false,
+        };
+        const creatorUserID = datatype.uuid();
 
-            await createUserAndGetSocket({
-                userID: creatorUserID,
-                mpeRoomIDToAssociate: [room],
+        const creatorSocket = await createUserAndGetSocket({
+            userID: creatorUserID,
+            mpeRoomIDToAssociate: [room],
+        });
+
+        //User retrieving room context
+        const roomsIDs = Array.from({
+            length: datatype.number({ min: 3, max: 7 }),
+        }).map(() => ({
+            roomID: datatype.uuid(),
+            roomName: random.words(3),
+        }));
+        const invitedUserID = datatype.uuid();
+        const invitedUserSocket = await createUserAndGetSocket({
+            userID: invitedUserID,
+            mpeRoomIDToAssociate: roomsIDs,
+        });
+        ///
+
+        const state = generateMpeWorkflowState({
+            roomID,
+            roomCreatorUserID: creatorUserID,
+        });
+
+        sinon
+            .stub(MpeServerToTemporalController, 'getStateQuery')
+            .callsFake(async ({ workflowID }) => {
+                assert.equal(roomID, workflowID);
+
+                return {
+                    state,
+                    workflowID: state.roomID,
+                };
             });
 
-            //User retrieving room context
-            const roomsIDs = Array.from({
-                length: datatype.number({ min: 3, max: 7 }),
-            }).map(() => ({
-                roomID: datatype.uuid(),
-                roomName: random.words(3),
-            }));
-            const userID = datatype.uuid();
-            const socket = await createUserAndGetSocket({
-                userID,
-                mpeRoomIDToAssociate: roomsIDs,
-            });
-            ///
+        const getMpeContextSuccessSpy = createSpyOnClientSocketEvent(
+            invitedUserSocket,
+            'MPE_GET_CONTEXT_SUCCESS_CALLBACK',
+        );
 
-            const state = generateMpeWorkflowState({
-                roomID,
-                roomCreatorUserID: creatorUserID,
-            });
+        const getMpeContextFailSpy = createSpyOnClientSocketEvent(
+            invitedUserSocket,
+            'MPE_GET_CONTEXT_FAIL_CALLBACK',
+        );
 
-            sinon
-                .stub(MpeServerToTemporalController, 'getStateQuery')
-                .callsFake(async ({ workflowID }) => {
-                    assert.equal(roomID, workflowID);
-
-                    return {
-                        state,
-                        workflowID: state.roomID,
-                    };
-                });
-
-            const getMpeContextSuccessSpy = createSpyOnClientSocketEvent(
-                socket,
-                'MPE_GET_CONTEXT_SUCCESS_CALLBACK',
+        const invitedUserReceivedMpeRoomInvitationSpy =
+            createSpyOnClientSocketEvent(
+                invitedUserSocket,
+                'MPE_RECEIVED_ROOM_INVITATION',
             );
 
-            const getMpeContextFailSpy = createSpyOnClientSocketEvent(
-                socket,
-                'MPE_GET_CONTEXT_FAIL_CALLBACK',
+        creatorSocket.emit('MPE_CREATOR_INVITE_USER', {
+            invitedUserID,
+            roomID,
+        });
+
+        await waitFor(() => {
+            assert.isTrue(invitedUserReceivedMpeRoomInvitationSpy.calledOnce);
+        });
+
+        invitedUserSocket.emit('MPE_GET_CONTEXT', {
+            roomID,
+        });
+
+        await waitFor(() => {
+            assert.isTrue(getMpeContextFailSpy.notCalled);
+            assert.isTrue(
+                getMpeContextSuccessSpy.calledWithExactly({
+                    roomID,
+                    state,
+                    userIsNotInRoom: true,
+                }),
             );
-
-            socket.emit('MPE_GET_CONTEXT', {
-                roomID,
-            });
-
-            await waitFor(() => {
-                assert.isTrue(getMpeContextFailSpy.notCalled);
-                assert.isTrue(
-                    getMpeContextSuccessSpy.calledWithExactly({
-                        roomID,
-                        state,
-                        userIsNotInRoom: true,
-                    }),
-                );
-            });
-        },
-    );
+        });
+    });
 
     test('It should retrieve context from a joined private room', async (assert) => {
         const roomID = datatype.uuid();
@@ -415,7 +427,4 @@ test.group('MPE get context', (group) => {
             );
         });
     });
-
-    //TODO FAILING TEST
-    //TODO INVITATION PRIVATE ROOM REGRESSION TEST
 });

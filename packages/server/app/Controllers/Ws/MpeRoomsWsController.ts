@@ -22,6 +22,22 @@ interface IsUserInMpeRoomArgs {
     roomID: string;
 }
 
+export async function isUserInvitedInMpeRoom({
+    roomID,
+    userID,
+    creatorID,
+}: {
+    roomID: string;
+    userID: string;
+    creatorID: string;
+}): Promise<boolean> {
+    const relatedInvitationArray = await MpeRoomInvitation.query()
+        .where('invited_user_id', userID)
+        .andWhere('mpe_room_id', roomID)
+        .andWhere('inviting_user_id', creatorID);
+    return relatedInvitationArray.length > 0;
+}
+
 export async function fromMpeRoomToMpeRoomSummary({
     room,
     userID,
@@ -35,11 +51,11 @@ export async function fromMpeRoomToMpeRoomSummary({
         'should never occurs room.creator is null',
     );
 
-    const relatedInvitationArray = await MpeRoomInvitation.query()
-        .where('invited_user_id', userID)
-        .andWhere('mpe_room_id', room.uuid)
-        .andWhere('inviting_user_id', room.creator.uuid);
-    const isInvited = relatedInvitationArray.length > 0;
+    const isInvited = await isUserInvitedInMpeRoom({
+        creatorID: room.creatorID,
+        roomID: room.uuid,
+        userID,
+    });
 
     const { isOpen, uuid: roomID, name: roomName } = room;
     const roomSummary: MpeRoomSummary = {
@@ -260,7 +276,7 @@ export default class MpeRoomsWsController {
             throw new Error('Join mpe room user is already in room');
         }
 
-        //TODO MpeRoomInvitations verifications as for as MTV
+        //TODO MpeRomInvitations verifications as for as MTV during user receives invitation feature implem
 
         const userHasBeenInvited = false;
 
@@ -414,8 +430,17 @@ export default class MpeRoomsWsController {
             const userIsNotInRoomAndRoomIsPrivate =
                 userIsNotInRoom && roomIsPrivate;
             if (userIsNotInRoomAndRoomIsPrivate) {
-                throw new Error(
-                    'to refactor after implem the mpe room invitations', //TODO
+                const userIsInvitedInPrivateRoom = await isUserInvitedInMpeRoom(
+                    {
+                        creatorID: room.creatorID,
+                        roomID,
+                        userID: user.uuid,
+                    },
+                );
+
+                invariant(
+                    userIsInvitedInPrivateRoom,
+                    'uninvited user cannot get context from a private room',
                 );
             }
 
@@ -507,7 +532,6 @@ export default class MpeRoomsWsController {
             invitingUserID,
         });
 
-        //Isn'it a pb if first or create return first ? duplicating relationship ?
         await room.related('invitations').save(createdInvitation);
 
         const roomSummary: MpeRoomSummary = {

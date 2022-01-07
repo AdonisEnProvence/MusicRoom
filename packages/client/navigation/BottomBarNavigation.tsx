@@ -17,7 +17,7 @@ import TheMusicPlayer from '../components/TheMusicPlayer';
 import { tabStyle } from '../constants/Colors';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import HomeScreen from '../screens/HomeScreen';
-import MusicPlaylistEditorListScreen from '../screens/MusicPlaylistEditorListScreen';
+import MusicPlaylistEditorListScreen from '../screens/MusicPlaylistEditorLibraryScreen';
 import MusicPlaylistEditorRoomScreen from '../screens/MusicPlaylistEditorRoomScreen';
 import MusicPlaylistEditorSearchTracksScreen from '../screens/MusicPlaylistEditorSearchTracksScreen';
 import SearchTrackScreen from '../screens/SearchTrackScreen';
@@ -174,7 +174,7 @@ const BottomTab: React.FC = () => {
                 component={TabHomeNavigator}
                 options={{
                     tabBarIcon: (props) => (
-                        <TabBarIcon name="home" {...props} />
+                        <TabBarIcon testID="home-tab" name="home" {...props} />
                     ),
                 }}
             />
@@ -184,7 +184,11 @@ const BottomTab: React.FC = () => {
                 component={TabSearchNavigator}
                 options={{
                     tabBarIcon: (props) => (
-                        <TabBarIcon name="search" {...props} />
+                        <TabBarIcon
+                            testID="search-tab"
+                            name="search"
+                            {...props}
+                        />
                     ),
                 }}
             />
@@ -194,7 +198,11 @@ const BottomTab: React.FC = () => {
                 component={TabLibraryNavigator}
                 options={{
                     tabBarIcon: (props) => (
-                        <TabBarIcon name="library" {...props} />
+                        <TabBarIcon
+                            testID="library-tab"
+                            name="library"
+                            {...props}
+                        />
                     ),
                 }}
             />
@@ -207,6 +215,7 @@ const BottomTab: React.FC = () => {
 function TabBarIcon(props: {
     name: React.ComponentProps<typeof Ionicons>['name'];
     color: string;
+    testID: string;
     size: number;
 }) {
     return <Ionicons style={{ marginBottom: -3 }} {...props} />;

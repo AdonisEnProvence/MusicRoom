@@ -98,7 +98,7 @@ test('It should join then forced leave the mpe room user should be redirected', 
     await waitFor(() => {
         expect(Toast.show).toHaveBeenNthCalledWith(1, {
             type: 'error',
-            text1: `${state.value.name} quit`,
+            text1: `${state.value.name} creator has quit`,
             text2: `forced disconnection`,
         });
 
@@ -139,7 +139,7 @@ test('It should join then forced leave the mpe room user should not be redirecte
     await waitFor(() => {
         expect(Toast.show).toHaveBeenNthCalledWith(1, {
             type: 'error',
-            text1: `${state.value.name} quit`,
+            text1: `${state.value.name} creator has quit`,
             text2: `forced disconnection`,
         });
 

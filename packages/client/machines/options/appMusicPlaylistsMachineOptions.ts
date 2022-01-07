@@ -80,7 +80,7 @@ export function getAppMusicPlaylistsMachineOptions(): Partial<AppMusicPlaylistsO
 
                 Toast.show({
                     type: 'error',
-                    text1: `${event.roomSummary.roomName} quit`,
+                    text1: `${event.roomSummary.roomName} creator has quit`,
                     text2: `forced disconnection`,
                 });
             },

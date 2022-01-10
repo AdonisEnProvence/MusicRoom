@@ -264,7 +264,7 @@ export default class MpeRoomsWsController {
     }
 
     public static async onJoin({ roomID, user }: MpeOnJoinArgs): Promise<void> {
-        await MpeRoom.findOrFail(roomID);
+        const joinedRoom = await MpeRoom.findOrFail(roomID);
         const { uuid: userID } = user;
         console.log(`USER ${userID} JOINS ${roomID}`);
 
@@ -276,9 +276,11 @@ export default class MpeRoomsWsController {
             throw new Error('Join mpe room user is already in room');
         }
 
-        //TODO MpeRomInvitations verifications as for as MTV during user receives invitation feature implem
-
-        const userHasBeenInvited = false;
+        const userHasBeenInvited = await isUserInvitedInMpeRoom({
+            creatorID: joinedRoom.creatorID,
+            roomID,
+            userID,
+        });
 
         await MpeServerToTemporalController.joinWorkflow({
             workflowID: roomID,

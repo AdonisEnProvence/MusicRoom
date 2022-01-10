@@ -97,8 +97,11 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
     );
     const userMachineOptions = useMemo(() => getUserMachineOptions(), []);
     const appMusicPlaylistsMachineOptions = useMemo(
-        () => getAppMusicPlaylistsMachineOptions(),
-        [],
+        () =>
+            getAppMusicPlaylistsMachineOptions({
+                setIsFullScreen,
+            }),
+        [setIsFullScreen],
     );
 
     const appMusicPlayerMachine = useMemo(

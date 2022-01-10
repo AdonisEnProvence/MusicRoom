@@ -13,7 +13,13 @@ export type AppMusicPlaylistsOptions = Partial<
     MachineOptions<MusicPlaylistsContext, MusicPlaylistsEvents>
 >;
 
-export function getAppMusicPlaylistsMachineOptions(): Partial<AppMusicPlaylistsOptions> {
+interface GetAppMusicPlaylistsMachineOptionsArgs {
+    setIsFullScreen: (isFullscreen: boolean) => void;
+}
+
+export function getAppMusicPlaylistsMachineOptions({
+    setIsFullScreen,
+}: GetAppMusicPlaylistsMachineOptionsArgs): Partial<AppMusicPlaylistsOptions> {
     return {
         actions: {
             displayGetContextFailureToast: () => {
@@ -86,6 +92,9 @@ export function getAppMusicPlaylistsMachineOptions(): Partial<AppMusicPlaylistsO
             },
             goBackToLastScreen: () => {
                 navigationRef.current?.goBack();
+            },
+            openMusicPlayerFullScreen: () => {
+                setIsFullScreen(true);
             },
         },
     };

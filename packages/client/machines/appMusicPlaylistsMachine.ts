@@ -179,6 +179,7 @@ export const appMusicPlaylistsModel = createModel(
             redirectToMpeLibrary: () => ({}),
             goBackToLastScreen: () => ({}),
             displayMpeForcedDisconnectionToast: () => ({}),
+            openMusicPlayerFullScreen: () => ({}),
         },
     },
 );
@@ -819,6 +820,7 @@ export function createAppMusicPlaylistsMachine({
                                 closeMtvRoomCreationModal?.();
                             },
                             resetCloseMtvRoomCreationModal,
+                            'openMusicPlayerFullScreen',
                         ],
 
                         invoke: {
@@ -827,7 +829,7 @@ export function createAppMusicPlaylistsMachine({
                             src: creationMtvRoomForm,
 
                             onDone: {
-                                target: 'waitingForMtvRoomCreationAcknowledgement',
+                                target: 'idle',
 
                                 actions: [
                                     send(
@@ -923,8 +925,6 @@ export function createAppMusicPlaylistsMachine({
                             },
                         },
                     },
-
-                    waitingForMtvRoomCreationAcknowledgement: {},
                 },
             },
 

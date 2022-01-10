@@ -1,8 +1,5 @@
-import {
-    AllServerToClientEvents,
-    MpeRoomSummary,
-    UserDevice,
-} from '@musicroom/types';
+import { AllServerToClientEvents, UserDevice } from '@musicroom/types';
+import { fromMpeRoomToMpeRoomSummary } from 'App/Controllers/Ws/MpeRoomsWsController';
 import Device from 'App/Models/Device';
 import MpeRoom from 'App/Models/MpeRoom';
 import User from 'App/Models/User';
@@ -87,13 +84,10 @@ export default class UserService {
         const room = await MpeRoom.findOrFail(roomID);
         await room.load('creator');
 
-        const roomSummary: MpeRoomSummary = {
-            creatorName: room.creator.nickname,
-            isInvited: false, //Does not matters here but should be compute anw
-            isOpen: room.isOpen,
-            roomID: room.uuid,
-            roomName: room.name,
-        };
+        const roomSummary = await fromMpeRoomToMpeRoomSummary({
+            room,
+            userID: user.uuid,
+        });
 
         await user.load('devices');
         await Promise.all(

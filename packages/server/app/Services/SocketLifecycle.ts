@@ -1,5 +1,5 @@
-import { MpeRoomSummary } from '@musicroom/types';
 import MpeServerToTemporalController from 'App/Controllers/Http/Temporal/MpeServerToTemporalController';
+import { fromMpeRoomToMpeRoomSummary } from 'App/Controllers/Ws/MpeRoomsWsController';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
 import MpeRoom from 'App/Models/MpeRoom';
@@ -404,17 +404,15 @@ export default class SocketLifecycle {
         creator: User;
         ownedRoom: MpeRoom;
     }): Promise<void> {
-        const { isOpen, name: roomName, uuid: roomID } = ownedRoom;
+        const { uuid: roomID } = ownedRoom;
+
+        const roomSummary = await fromMpeRoomToMpeRoomSummary({
+            room: ownedRoom,
+            userID: creator.uuid,
+        });
 
         await ownedRoom.delete();
 
-        const roomSummary: MpeRoomSummary = {
-            creatorName: creator.nickname,
-            isInvited: false, //TODO compute this data
-            isOpen,
-            roomID,
-            roomName,
-        };
         Ws.io.in(ownedRoom.uuid).emit('MPE_FORCED_DISCONNECTION', {
             roomSummary,
         });

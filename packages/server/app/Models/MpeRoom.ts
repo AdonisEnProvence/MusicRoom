@@ -2,12 +2,15 @@ import { DateTime } from 'luxon';
 import {
     BaseModel,
     column,
+    HasMany,
+    hasMany,
     HasOne,
     hasOne,
     ManyToMany,
     manyToMany,
 } from '@ioc:Adonis/Lucid/Orm';
 import User from './User';
+import MpeRoomInvitation from './MpeRoomInvitation';
 
 export default class MpeRoom extends BaseModel {
     @column({ isPrimary: true })
@@ -45,7 +48,12 @@ export default class MpeRoom extends BaseModel {
     public members: ManyToMany<typeof User>;
     ///
 
-    //todo invitations
+    //Invitations
+    @hasMany(() => MpeRoomInvitation, {
+        foreignKey: 'mpeRoomID',
+    })
+    public invitations: HasMany<typeof MpeRoomInvitation>;
+    ///
 
     @column()
     public isOpen: boolean;

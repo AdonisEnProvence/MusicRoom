@@ -91,6 +91,15 @@ export const MpeRoomClientToServerExportToMtvArgs = z.object({
 export type MpeRoomClientToServerExportToMtvArgs = z.infer<
     typeof MpeRoomClientToServerExportToMtvArgs
 >;
+
+export const MpeRoomClientToServerCreatorInviteUserArgs = z.object({
+    invitedUserID: z.string().uuid(),
+    roomID: z.string().uuid(),
+});
+export type MpeRoomClientToServerCreatorInviteUserArgs = z.infer<
+    typeof MpeRoomClientToServerCreatorInviteUserArgs
+>;
+
 ///
 
 //Server to client
@@ -170,6 +179,13 @@ export const MpeRoomServerToClientLeaveRoomCallbackArgs = z.object({
 export type MpeRoomServerToClientLeaveRoomCallbackArgs = z.infer<
     typeof MpeRoomServerToClientLeaveRoomCallbackArgs
 >;
+
+export const MpeRoomServerToClientMpeReceivedRoomInvitationArgs = z.object({
+    roomSummary: MpeRoomSummary,
+});
+export type MpeRoomServerToClientMpeReceivedRoomInvitationArgs = z.infer<
+    typeof MpeRoomServerToClientMpeReceivedRoomInvitationArgs
+>;
 ///
 
 export interface MpeRoomClientToServerEvents {
@@ -186,6 +202,9 @@ export interface MpeRoomClientToServerEvents {
     MPE_JOIN_ROOM: (args: MpeRoomClientToServerJoinRoomArgs) => void;
     MPE_LEAVE_ROOM: (args: MpeRoomClientToServerLeaveRoomArgs) => void;
     MPE_EXPORT_TO_MTV: (args: MpeRoomClientToServerExportToMtvArgs) => void;
+    MPE_CREATOR_INVITE_USER: (
+        args: MpeRoomClientToServerCreatorInviteUserArgs,
+    ) => void;
 }
 
 export interface MpeRoomServerToClientEvents {
@@ -227,5 +246,8 @@ export interface MpeRoomServerToClientEvents {
     ) => void;
     MPE_LEAVE_ROOM_CALLBACK: (
         args: MpeRoomServerToClientLeaveRoomCallbackArgs,
+    ) => void;
+    MPE_RECEIVED_ROOM_INVITATION: (
+        args: MpeRoomServerToClientMpeReceivedRoomInvitationArgs,
     ) => void;
 }

@@ -3,6 +3,7 @@ import BaseSchema from '@ioc:Adonis/Lucid/Schema';
 export default class UsersMpeRooms extends BaseSchema {
     protected tableName = 'users_mpe_rooms';
 
+    //pivot table
     public up(): void {
         this.schema.createTable(this.tableName, (table) => {
             table.increments('id');

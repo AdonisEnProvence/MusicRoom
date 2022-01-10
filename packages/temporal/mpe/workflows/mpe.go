@@ -69,7 +69,7 @@ func (s *MpeRoomInternalState) FillWith(params shared_mpe.MpeRoomParameters) {
 // In the internalState.Export method we do not use workflow.sideEffect for at least two reasons:
 // 1- we cannot use workflow.sideEffect in the getState queryHandler
 // 2- we never update our internalState depending on internalState.Export() results this data aims to be sent to adonis.
-func (s *MpeRoomInternalState) Export() shared_mpe.MpeRoomExposedState {
+func (s *MpeRoomInternalState) Export(userID string) shared_mpe.MpeRoomExposedState {
 
 	exposedState := shared_mpe.MpeRoomExposedState{
 		UsersLength:                   len(s.Users),
@@ -78,6 +78,7 @@ func (s *MpeRoomInternalState) Export() shared_mpe.MpeRoomExposedState {
 		RoomCreatorUserID:             s.initialParams.RoomCreatorUserID,
 		IsOpen:                        s.initialParams.IsOpen,
 		IsOpenOnlyInvitedUsersCanEdit: s.initialParams.IsOpenOnlyInvitedUsersCanEdit,
+		UserRelatedInformation:        s.GetUserRelatedInformation(userID),
 		Tracks:                        s.Tracks.Values(),
 		PlaylistTotalDuration:         42000, //TODO or not depend where we want to compute this data
 	}
@@ -136,7 +137,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 		shared_mpe.MpeGetStateQuery,
 		func(userID string) (shared_mpe.MpeRoomExposedState, error) {
 
-			exposedState := internalState.Export()
+			exposedState := internalState.Export(userID)
 
 			return exposedState, nil
 		},
@@ -184,7 +185,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 								func(c brainy.Context, e brainy.Event) error {
 									acknowledgeRoomCreation(
 										ctx,
-										internalState.Export(),
+										internalState.Export(internalState.initialParams.RoomCreatorUserID),
 									)
 
 									return nil
@@ -291,7 +292,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 									}
 
 									sendAcknowledgeAddingTracksActivity(ctx, activities_mpe.AcknowledgeAddingTracksActivityArgs{
-										State:    internalState.Export(),
+										State:    internalState.Export(shared_mpe.NoRelatedUserID),
 										UserID:   event.UserID,
 										DeviceID: event.DeviceID,
 									})
@@ -345,7 +346,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 									internalState.AddUser(user)
 
 									sendAcknowledgeJoinActivity(ctx, activities_mpe.AcknowledgeJoinActivityArgs{
-										State:         internalState.Export(),
+										State:         internalState.Export(event.UserID),
 										JoiningUserID: event.UserID,
 									})
 									return nil
@@ -362,7 +363,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 
 									if success := internalState.RemoveUser(event.UserID); success {
 										sendAcknowledgeLeaveActivity(ctx, activities_mpe.AcknowledgeLeaveActivityArgs{
-											State:         internalState.Export(),
+											State:         internalState.Export(shared_mpe.NoRelatedUserID),
 											LeavingUserID: event.UserID,
 										})
 									}
@@ -387,7 +388,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 										}
 
 										sendAcknowledgeDeletingTracksActivity(ctx, activities_mpe.AcknowledgeDeletingTracksActivityArgs{
-											State:    internalState.Export(),
+											State:    internalState.Export(shared_mpe.NoRelatedUserID),
 											UserID:   event.UserID,
 											DeviceID: event.DeviceID,
 										})

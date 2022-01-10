@@ -172,6 +172,7 @@ export const appMusicPlaylistsModel = createModel(
                 roomID: string;
                 mtvRoomOptions: MtvRoomCreationOptionsWithoutInitialTracksIDs;
             }) => args,
+            EXIT_MTV_ROOM_CREATION: () => ({}),
         },
 
         actions: {
@@ -819,8 +820,8 @@ export function createAppMusicPlaylistsMachine({
                             ({ closeMtvRoomCreationModal }) => {
                                 closeMtvRoomCreationModal?.();
                             },
+
                             resetCloseMtvRoomCreationModal,
-                            'openMusicPlayerFullScreen',
                         ],
 
                         invoke: {
@@ -914,6 +915,8 @@ export function createAppMusicPlaylistsMachine({
                                             _context,
                                         ) => undefined,
                                     }),
+
+                                    'openMusicPlayerFullScreen',
                                 ],
                             },
                         },
@@ -922,6 +925,16 @@ export function createAppMusicPlaylistsMachine({
                             SAVE_MTV_ROOM_CREATION_MODAL_CLOSER: {
                                 actions:
                                     assignCloseMtvRoomCreationModalToContext,
+                            },
+
+                            EXIT_MTV_ROOM_CREATION: {
+                                target: 'idle',
+
+                                actions: assign({
+                                    currentlyExportedToMtvMpeRoomID: (
+                                        _context,
+                                    ) => undefined,
+                                }),
                             },
                         },
                     },

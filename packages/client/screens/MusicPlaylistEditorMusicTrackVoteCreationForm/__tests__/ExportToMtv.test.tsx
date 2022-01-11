@@ -24,10 +24,14 @@ interface TestingContext {
 
 const exportToMtvModel = createModel(
     {
+        loadedMtvRoomName: undefined as string | undefined,
+
         roomName: undefined as string | undefined,
     },
     {
         events: {
+            LOAD_MTV_ROOM: (roomName: string) => ({ roomName }),
+
             GO_TO_LIBRARY: () => ({}),
             GO_TO_MPE_ROOM: () => ({}),
             EXPORT_TO_MTV: () => ({}),
@@ -40,9 +44,16 @@ const exportToMtvModel = createModel(
 
 const assignRoomNameToContext = exportToMtvModel.assign(
     {
-        roomName: (ctx, e) => e.roomName,
+        roomName: (_, event) => event.roomName,
     },
     'SET_ROOM_NAME_AND_GO_NEXT',
+);
+
+const assignLoadedMtvRoomNameToContext = exportToMtvModel.assign(
+    {
+        loadedMtvRoomName: (_, event) => event.roomName,
+    },
+    'LOAD_MTV_ROOM',
 );
 
 type ExportToMtvMachineContext = ContextFrom<typeof exportToMtvModel>;
@@ -66,6 +77,44 @@ const exportToMtvMachine = exportToMtvModel.createMachine({
                         expect(
                             screen.getAllByText(/home/i).length,
                         ).toBeGreaterThanOrEqual(1);
+                    });
+                },
+            },
+
+            on: {
+                GO_TO_LIBRARY: {
+                    target: 'library',
+                },
+
+                LOAD_MTV_ROOM: {
+                    target: 'mtvRoomLoadedInThePlayer',
+
+                    actions: assignLoadedMtvRoomNameToContext,
+                },
+            },
+        },
+
+        mtvRoomLoadedInThePlayer: {
+            meta: {
+                test: async (
+                    { screen }: TestingContext,
+                    { context: { loadedMtvRoomName } }: ExportToMtvMachineState,
+                ) => {
+                    invariant(
+                        typeof loadedMtvRoomName === 'string',
+                        'A MTV room must have been loaded',
+                    );
+
+                    const musicPlayerMini =
+                        screen.getByTestId('music-player-mini');
+                    expect(musicPlayerMini).toBeTruthy();
+
+                    await waitFor(() => {
+                        expect(
+                            within(musicPlayerMini).getByText(
+                                loadedMtvRoomName,
+                            ),
+                        ).toBeTruthy();
                     });
                 },
             },
@@ -265,9 +314,22 @@ const exportToMtvMachine = exportToMtvModel.createMachine({
             },
 
             on: {
-                GO_NEXT: {
-                    target: 'fullScreenPlayerLoadedWithExportedRoom',
-                },
+                GO_NEXT: [
+                    {
+                        cond: (context) => {
+                            const playerAlreadyHasARoomLoaded =
+                                context.loadedMtvRoomName !== undefined;
+
+                            return playerAlreadyHasARoomLoaded === true;
+                        },
+
+                        target: 'onlyMiniPlayerLoadedWithExportedRoom',
+                    },
+
+                    {
+                        target: 'fullScreenPlayerLoadedWithExportedRoom',
+                    },
+                ],
             },
         },
 
@@ -291,6 +353,16 @@ const exportToMtvMachine = exportToMtvModel.createMachine({
                         expect(confirmationScreen).toBeNull();
                     });
 
+                    const musicPlayerMini =
+                        screen.getByTestId('music-player-mini');
+                    expect(musicPlayerMini).toBeTruthy();
+
+                    await waitFor(() => {
+                        expect(
+                            within(musicPlayerMini).getByText(roomName),
+                        ).toBeTruthy();
+                    });
+
                     const musicPlayerFullScreen = await screen.findByA11yState({
                         expanded: true,
                     });
@@ -298,6 +370,53 @@ const exportToMtvMachine = exportToMtvModel.createMachine({
                     expect(
                         within(musicPlayerFullScreen).getByText(roomName),
                     ).toBeTruthy();
+                },
+            },
+        },
+
+        onlyMiniPlayerLoadedWithExportedRoom: {
+            type: 'final',
+
+            // FIXME: Open full-screen player even when a room was already loaded.
+            description: `
+                The mini player is loaded with the exported room, but the full-screen player is hidden
+                because a room was loaded before we exported the mpe room.
+                As a consequence, the first loaded room is leaved and closes the full-screen player.
+            `,
+
+            meta: {
+                test: async (
+                    { screen }: TestingContext,
+                    { context: { roomName } }: ExportToMtvMachineState,
+                ) => {
+                    invariant(
+                        typeof roomName === 'string',
+                        'roomName must have been set before confirming exporting',
+                    );
+
+                    await waitFor(() => {
+                        const confirmationScreen = screen.queryByTestId(
+                            'mtv-room-creation-confirmation-step',
+                        );
+                        expect(confirmationScreen).toBeNull();
+                    });
+
+                    const musicPlayerMini =
+                        screen.getByTestId('music-player-mini');
+                    expect(musicPlayerMini).toBeTruthy();
+
+                    await waitFor(() => {
+                        expect(
+                            within(musicPlayerMini).getByText(roomName),
+                        ).toBeTruthy();
+                    });
+
+                    await waitFor(() => {
+                        const musicPlayerFullScreen = screen.queryByA11yState({
+                            expanded: true,
+                        });
+                        expect(musicPlayerFullScreen).toBeNull();
+                    });
                 },
             },
         },
@@ -335,6 +454,32 @@ const exportToMtvTestModel = createTestModel<
     TestingContext,
     ContextFrom<typeof exportToMtvMachine>
 >(exportToMtvMachine).withEvents({
+    LOAD_MTV_ROOM: {
+        exec: (_, _event) => {
+            const { roomName } = _event as EventFrom<
+                typeof exportToMtvMachine,
+                'LOAD_MTV_ROOM'
+            >;
+
+            const mtvRoomState = generateMtvWorklowState({
+                userType: 'CREATOR',
+                overrides: {
+                    name: roomName,
+                },
+            });
+            serverSocket.emit('MTV_RETRIEVE_CONTEXT', mtvRoomState);
+        },
+
+        cases: [
+            {
+                roomName: random.words(),
+            } as Omit<
+                EventFrom<typeof exportToMtvMachine, 'LOAD_MTV_ROOM'>,
+                'type'
+            >,
+        ],
+    },
+
     GO_TO_LIBRARY: async ({ screen }) => {
         const libraryScreenLink = await screen.findByText(/^library$/i);
 
@@ -434,17 +579,21 @@ describe('Export MPE room to MTV room', () => {
                             overrides: args.mtvRoomOptions,
                         });
 
-                        serverSocket.emit(
-                            'MTV_CREATE_ROOM_SYNCHED_CALLBACK',
-                            createdMtvRoomState,
-                        );
+                        serverSocket.emit('MTV_LEAVE_ROOM_CALLBACK');
+
+                        setTimeout(() => {
+                            serverSocket.emit(
+                                'MTV_CREATE_ROOM_SYNCHED_CALLBACK',
+                                createdMtvRoomState,
+                            );
+                        }, 10);
 
                         setTimeout(() => {
                             serverSocket.emit(
                                 'MTV_CREATE_ROOM_CALLBACK',
                                 createdMtvRoomState,
                             );
-                        }, 10);
+                        }, 20);
                     });
 
                     const screen = await renderApp();

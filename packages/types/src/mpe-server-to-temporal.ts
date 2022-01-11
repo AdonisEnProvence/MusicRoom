@@ -1,6 +1,7 @@
 import * as z from 'zod';
 import { MtvRoomCreationOptionsWithoutInitialTracksIDs } from './mpe-room-websockets';
 import { MpeWorkflowStateWithUserRelatedInformation } from './mpe';
+import { PlaylistModelMpeWorkflowState } from '.';
 
 export const MpeCreateWorkflowResponse = z.object({
     state: MpeWorkflowStateWithUserRelatedInformation,
@@ -79,7 +80,7 @@ export type MpeDeleteTracksResponseBody = z.infer<
 
 export const MpeGetStateQueryResponseBody = z.object({
     workflowID: z.string().uuid(),
-    state: MpeWorkflowStateWithUserRelatedInformation,
+    state: PlaylistModelMpeWorkflowState,
 });
 export type MpeGetStateQueryResponseBody = z.infer<
     typeof MpeGetStateQueryResponseBody

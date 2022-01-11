@@ -24,6 +24,13 @@ export const MpeWorkflowState = z.object({
 });
 export type MpeWorkflowState = z.infer<typeof MpeWorkflowState>;
 
+export const PlaylistModelMpeWorkflowState = MpeWorkflowState.extend({
+    userRelatedInformation: MpeUserRelatedInformation.nullable(),
+});
+export type PlaylistModelMpeWorkflowState = z.infer<
+    typeof PlaylistModelMpeWorkflowState
+>;
+
 export const MpeWorkflowStateWithUserRelatedInformation =
     MpeWorkflowState.extend({
         userRelatedInformation: MpeUserRelatedInformation,

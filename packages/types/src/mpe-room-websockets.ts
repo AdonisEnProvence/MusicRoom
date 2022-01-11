@@ -5,6 +5,7 @@ import {
     MpeRoomSummary,
     MpeWorkflowStateWithUserRelatedInformation,
 } from './mpe';
+import { PlaylistModelMpeWorkflowState } from '.';
 
 //Client to server
 export const MpeRoomClientToServerCreateArgs = z.object({
@@ -145,7 +146,7 @@ export type MpeRoomServerToClientGetContextFailCallbackArgs = z.infer<
 >;
 
 export const MpeRoomServerToClientGetContextSuccessCallbackArgs = z.object({
-    state: MpeWorkflowStateWithUserRelatedInformation,
+    state: PlaylistModelMpeWorkflowState,
     roomID: z.string().uuid(),
     userIsNotInRoom: z.boolean(),
 });

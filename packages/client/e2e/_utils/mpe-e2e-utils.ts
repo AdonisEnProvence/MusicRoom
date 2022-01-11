@@ -564,9 +564,11 @@ export async function changeTrackOrder({
         operationToApply,
     });
     await expect(trackToMoveChangeOrderButton).toBeVisible();
-    await expect(trackToMoveChangeOrderButton).toBeEnabled();
+    await expect(trackToMoveChangeOrderButton).not.toHaveAttribute(
+        'aria-disabled',
+        'true',
+    );
 
-    //Race condition here ?
     await Promise.all([
         expect(page.locator('text=Track moved successfully')).toBeVisible(),
         trackToMoveChangeOrderButton.click(),

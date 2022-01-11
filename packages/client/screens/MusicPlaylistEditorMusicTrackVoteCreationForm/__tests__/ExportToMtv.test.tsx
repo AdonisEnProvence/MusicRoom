@@ -33,6 +33,7 @@ const exportToMtvModel = createModel(
             EXPORT_TO_MTV: () => ({}),
             SET_ROOM_NAME_AND_GO_NEXT: (roomName: string) => ({ roomName }),
             GO_NEXT: () => ({}),
+            GO_BACK: () => ({}),
         },
     },
 );
@@ -130,6 +131,10 @@ const exportToMtvMachine = exportToMtvModel.createMachine({
                     target: 'openingStatus',
 
                     actions: assignRoomNameToContext,
+                },
+
+                GO_BACK: {
+                    target: 'wentBackFromRoomNameScreen',
                 },
             },
         },
@@ -296,6 +301,33 @@ const exportToMtvMachine = exportToMtvModel.createMachine({
                 },
             },
         },
+
+        wentBackFromRoomNameScreen: {
+            type: 'final',
+
+            meta: {
+                test: async ({ screen }: TestingContext) => {
+                    await waitFor(() => {
+                        const roomNameScreenTitle =
+                            screen.queryByText(/what.*is.*name.*room/i);
+                        expect(roomNameScreenTitle).toBeNull();
+                    });
+
+                    // FIXME: In the future we would like to be redirected to the exported room screen.
+                    await waitFor(() => {
+                        expect(
+                            screen.getAllByText(/home/i).length,
+                        ).toBeGreaterThanOrEqual(1);
+                    });
+
+                    // FIXME: In the future we would like the full-screen player to be open.
+                    const musicPlayerFullScreen = screen.queryByA11yState({
+                        expanded: true,
+                    });
+                    expect(musicPlayerFullScreen).toBeNull();
+                },
+            },
+        },
     },
 });
 
@@ -361,6 +393,12 @@ const exportToMtvTestModel = createTestModel<
         const goNextButton = goNextButtons[goNextButtons.length - 1];
 
         fireEvent.press(goNextButton);
+    },
+
+    GO_BACK: ({ screen }) => {
+        const goBackButton = screen.getByText(/back/i);
+
+        fireEvent.press(goBackButton);
     },
 });
 

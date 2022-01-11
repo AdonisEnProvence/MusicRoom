@@ -1,3 +1,7 @@
+import {
+    MpeWorkflowState,
+    PlaylistModelMpeWorkflowState,
+} from '@musicroom/types';
 import Toast from 'react-native-toast-message';
 import { serverSocket } from '../../../services/websockets';
 import { createMpeRoom } from '../../../tests/tests-mpe-utils';
@@ -24,11 +28,13 @@ test('Delete track and trigger sucess toast', async () => {
 
                 return shouldKeepEntry;
             }),
+            userRelatedInformation: null,
         };
 
+        console.log('emitting', state.value);
         serverSocket.emit('MPE_DELETE_TRACKS_SUCCESS_CALLBACK', {
             roomID: state.value.roomID,
-            state: state.value,
+            state: state.value as MpeWorkflowState,
         });
     });
 

@@ -1,22 +1,11 @@
-import {
-    AllClientToServerEvents,
-    MpeChangeTrackOrderOperationToApply,
-} from '@musicroom/types';
+import { MpeChangeTrackOrderOperationToApply } from '@musicroom/types';
 import Toast from 'react-native-toast-message';
 import { db } from '../../../tests/data';
-import {
-    fireEvent,
-    waitFor,
-    within,
-    waitForElementToBeRemoved,
-    render,
-    toTrackCardContainerTestID,
-} from '../../../tests/tests-utils';
+import { waitFor } from '../../../tests/tests-utils';
 import {
     addTrack,
     changeTrackOrder,
     createMpeRoom,
-    DefinedStateRef,
 } from '../../../tests/tests-mpe-utils';
 import { serverSocket } from '../../../services/websockets';
 
@@ -42,12 +31,18 @@ test('Move track', async () => {
 
         serverSocket.emit('MPE_CHANGE_TRACK_ORDER_SUCCESS_CALLBACK', {
             roomID: state.value.roomID,
-            state: state.value,
+            state: {
+                ...state.value,
+                userRelatedInformation: null,
+            },
         });
 
         serverSocket.emit('MPE_TRACKS_LIST_UPDATE', {
             roomID: state.value.roomID,
-            state: state.value,
+            state: {
+                ...state.value,
+                userRelatedInformation: null,
+            },
         });
     };
 

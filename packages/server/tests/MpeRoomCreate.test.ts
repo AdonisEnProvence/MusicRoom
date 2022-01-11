@@ -132,6 +132,10 @@ test.group(`mpe rooms relationship tests`, (group) => {
                             name,
                             isOpen,
 
+                            userRelatedInformation: {
+                                userHasBeenInvited: false,
+                                userID,
+                            },
                             roomID: workflowID,
                             roomCreatorUserID: userID,
                             isOpenOnlyInvitedUsersCanEdit,
@@ -317,6 +321,10 @@ test.group(`mpe rooms relationship tests`, (group) => {
                             name,
                             isOpen,
 
+                            userRelatedInformation: {
+                                userHasBeenInvited: false,
+                                userID,
+                            },
                             roomID: workflowID,
                             roomCreatorUserID: userID,
                             isOpenOnlyInvitedUsersCanEdit,

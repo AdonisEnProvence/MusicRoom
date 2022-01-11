@@ -1,6 +1,10 @@
 import * as z from 'zod';
 import { MtvRoomClientToServerCreateArgs } from './mtv-room-websockets';
-import { MpeWorkflowState, MpeRoomSummary } from './mpe';
+import {
+    MpeWorkflowState,
+    MpeRoomSummary,
+    MpeWorkflowStateWithUserRelatedInformation,
+} from './mpe';
 
 //Client to server
 export const MpeRoomClientToServerCreateArgs = z.object({
@@ -141,7 +145,7 @@ export type MpeRoomServerToClientGetContextFailCallbackArgs = z.infer<
 >;
 
 export const MpeRoomServerToClientGetContextSuccessCallbackArgs = z.object({
-    state: MpeWorkflowState,
+    state: MpeWorkflowStateWithUserRelatedInformation,
     roomID: z.string().uuid(),
     userIsNotInRoom: z.boolean(),
 });
@@ -150,7 +154,7 @@ export type MpeRoomServerToClientGetContextSuccessCallbackArgs = z.infer<
 >;
 
 export const MpeRoomServerToClientJoinRoomCallbackArgs = z.object({
-    state: MpeWorkflowState,
+    state: MpeWorkflowStateWithUserRelatedInformation,
     roomID: z.string().uuid(),
     userIsNotInRoom: z.boolean(),
 });
@@ -208,9 +212,13 @@ export interface MpeRoomClientToServerEvents {
 }
 
 export interface MpeRoomServerToClientEvents {
-    MPE_CREATE_ROOM_SYNCED_CALLBACK: (args: MpeWorkflowState) => void;
+    MPE_CREATE_ROOM_SYNCED_CALLBACK: (
+        args: MpeWorkflowStateWithUserRelatedInformation,
+    ) => void;
     MPE_CREATE_ROOM_FAIL: () => void;
-    MPE_CREATE_ROOM_CALLBACK: (state: MpeWorkflowState) => void;
+    MPE_CREATE_ROOM_CALLBACK: (
+        state: MpeWorkflowStateWithUserRelatedInformation,
+    ) => void;
     MPE_ADD_TRACKS_FAIL_CALLBACK: (
         args: MpeRoomServerToClientAddTracksFailCallbackArgs,
     ) => void;

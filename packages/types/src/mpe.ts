@@ -1,6 +1,14 @@
 import * as z from 'zod';
 import { TrackMetadata } from './mtv';
 
+export const MpeUserRelatedInformation = z.object({
+    userID: z.string().uuid(),
+    userHasBeenInvited: z.boolean(),
+});
+export type MpeUserRelatedInformation = z.infer<
+    typeof MpeUserRelatedInformation
+>;
+
 export const MpeWorkflowState = z.object({
     roomID: z.string().uuid(),
     roomCreatorUserID: z.string().uuid(),
@@ -12,8 +20,17 @@ export const MpeWorkflowState = z.object({
     usersLength: z.number(),
     //Could calculate that in client every time ?
     playlistTotalDuration: z.number(), //ms
+    userRelatedInformation: z.null(),
 });
 export type MpeWorkflowState = z.infer<typeof MpeWorkflowState>;
+
+export const MpeWorkflowStateWithUserRelatedInformation =
+    MpeWorkflowState.extend({
+        userRelatedInformation: MpeUserRelatedInformation,
+    });
+export type MpeWorkflowStateWithUserRelatedInformation = z.infer<
+    typeof MpeWorkflowStateWithUserRelatedInformation
+>;
 
 export const MpeRoomSummary = z.object({
     roomID: z.string(),

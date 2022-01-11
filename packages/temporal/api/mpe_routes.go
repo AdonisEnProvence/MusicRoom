@@ -30,6 +30,7 @@ func AddMpeHandler(r *mux.Router) {
 
 type MpeGetStateQueryRequestBody struct {
 	WorkflowID string `json:"workflowID" validate:"required,uuid"`
+	UserID     string `json:"userID" validate:"required,uuid"`
 }
 
 type MpeGetStateQueryResponse struct {
@@ -59,6 +60,7 @@ func getStateQueryHandler(w http.ResponseWriter, r *http.Request) {
 	args := PerformMpeGetStateQueryArgs{
 		WorkflowID: body.WorkflowID,
 		RunID:      shared.NoWorkflowRunID,
+		UserID:     body.UserID,
 	}
 
 	mpeRoomExposedState, err := PerformMpeGetStateQuery(args)

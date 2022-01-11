@@ -1,7 +1,7 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import {
     MpeRejectAddingTracksRequestBody,
-    MpeWorkflowState,
+    MpeWorkflowStateWithUserRelatedInformation,
     MpeAcknowledgeAddingTracksRequestBody,
     MpeRejectChangeTrackOrderRequestBody,
     MpeAcknowledgeChangeTrackOrderRequestBody,
@@ -23,7 +23,9 @@ export default class MpeTemporalToServerController {
         request,
     }: HttpContextContract): Promise<void> {
         console.log('RECEIVED MPE ROOM CREATION ACKNOWLEDGEMENT');
-        const state = MpeWorkflowState.parse(request.body());
+        const state = MpeWorkflowStateWithUserRelatedInformation.parse(
+            request.body(),
+        );
 
         Ws.io.to(state.roomID).emit('MPE_CREATE_ROOM_CALLBACK', state);
     }
@@ -33,10 +35,9 @@ export default class MpeTemporalToServerController {
     }: HttpContextContract): Promise<void> {
         console.log('RECEIVED MPE JOIN ROOM ACK');
 
-        const { state, joiningUserID } = MpeAcknowledgeJoinRequestBody.parse(
-            request.body(),
-        );
-        const { roomID } = state;
+        const { state: stateWithUserRelatedInformation, joiningUserID } =
+            MpeAcknowledgeJoinRequestBody.parse(request.body());
+        const { roomID } = stateWithUserRelatedInformation;
 
         const joiningUser = await User.findOrFail(joiningUserID);
         const mpeRoom = await MpeRoom.findOrFail(roomID);
@@ -51,14 +52,17 @@ export default class MpeTemporalToServerController {
             [
                 {
                     roomID,
-                    state,
+                    state: stateWithUserRelatedInformation,
                     userIsNotInRoom: false,
                 },
             ],
         );
 
         Ws.io.to(roomID).emit('MPE_USERS_LENGTH_UPDATE', {
-            state,
+            state: {
+                ...stateWithUserRelatedInformation,
+                userRelatedInformation: null,
+            },
             roomID,
         });
     }

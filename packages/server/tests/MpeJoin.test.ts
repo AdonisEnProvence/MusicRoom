@@ -111,7 +111,13 @@ test.group(`join mpe room group test`, (group) => {
             .callsFake(async ({ userID, workflowID, userHasBeenInvited }) => {
                 const response: MpeAcknowledgeJoinRequestBody = {
                     joiningUserID: userID,
-                    state,
+                    state: {
+                        ...state,
+                        userRelatedInformation: {
+                            userHasBeenInvited: false,
+                            userID: joiningUserID,
+                        },
+                    },
                 };
 
                 assert.equal(userID, joiningUserID);

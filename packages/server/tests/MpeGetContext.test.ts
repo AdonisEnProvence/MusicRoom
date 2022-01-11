@@ -5,9 +5,9 @@ import test from 'japa';
 import sinon from 'sinon';
 import {
     initTestUtils,
-    generateMpeWorkflowState,
     createSpyOnClientSocketEvent,
     generateArray,
+    generateMpeWorkflowStateWithUserRelatedInformation,
 } from './utils/TestUtils';
 
 test.group('MPE get context', (group) => {
@@ -47,9 +47,12 @@ test.group('MPE get context', (group) => {
             mpeRoomIDToAssociate: roomsIDs,
         });
 
-        const state = generateMpeWorkflowState({
-            roomID,
-            roomCreatorUserID: creatorUserID,
+        const state = generateMpeWorkflowStateWithUserRelatedInformation({
+            overrides: {
+                roomID,
+                roomCreatorUserID: creatorUserID,
+            },
+            userID: creatorUserID,
         });
 
         sinon
@@ -122,9 +125,12 @@ test.group('MPE get context', (group) => {
         });
         ///
 
-        const state = generateMpeWorkflowState({
-            roomID,
-            roomCreatorUserID: creatorUserID,
+        const state = generateMpeWorkflowStateWithUserRelatedInformation({
+            overrides: {
+                roomID,
+                roomCreatorUserID: creatorUserID,
+            },
+            userID,
         });
 
         sinon
@@ -301,9 +307,12 @@ test.group('MPE get context', (group) => {
         });
         ///
 
-        const state = generateMpeWorkflowState({
-            roomID,
-            roomCreatorUserID: creatorUserID,
+        const state = generateMpeWorkflowStateWithUserRelatedInformation({
+            overrides: {
+                roomID,
+                roomCreatorUserID: creatorUserID,
+            },
+            userID: invitedUserID,
         });
 
         sinon
@@ -386,9 +395,12 @@ test.group('MPE get context', (group) => {
         });
         ///
 
-        const state = generateMpeWorkflowState({
-            roomID,
-            roomCreatorUserID: creatorUserID,
+        const state = generateMpeWorkflowStateWithUserRelatedInformation({
+            overrides: {
+                roomID,
+                roomCreatorUserID: creatorUserID,
+            },
+            userID,
         });
 
         sinon

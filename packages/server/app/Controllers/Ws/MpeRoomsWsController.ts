@@ -448,6 +448,7 @@ export default class MpeRoomsWsController {
 
             const { state } = await MpeServerToTemporalController.getStateQuery(
                 {
+                    userID: user.uuid,
                     workflowID: roomID,
                 },
             );

@@ -603,4 +603,8 @@ describe('Export MPE room to MTV room', () => {
             });
         });
     });
+
+    it('should have full coverage', () => {
+        exportToMtvTestModel.testCoverage();
+    });
 });

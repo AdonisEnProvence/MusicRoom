@@ -11,7 +11,7 @@ import {
 } from '@musicroom/types';
 import { BASE_URL, initTestUtils, generateArray } from './utils/TestUtils';
 
-test.group('MPE search engine tests group', (group) => {
+test.group('My MPE Rooms Search', (group) => {
     const {
         createUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
@@ -109,6 +109,25 @@ test.group('MPE search engine tests group', (group) => {
                 searchQuery: '',
             } as MpeSearchMyRoomsRequestBody)
             .expect(404);
+    });
+});
+
+test.group('All MPE Rooms Search', (group) => {
+    const {
+        createUserAndGetSocket,
+        disconnectEveryRemainingSocketConnection,
+        initSocketConnection,
+    } = initTestUtils();
+
+    group.beforeEach(async () => {
+        initSocketConnection();
+        await Database.beginGlobalTransaction();
+    });
+
+    group.afterEach(async () => {
+        await disconnectEveryRemainingSocketConnection();
+        sinon.restore();
+        await Database.rollbackGlobalTransaction();
     });
 
     test('It should list all mpe rooms', async (assert) => {

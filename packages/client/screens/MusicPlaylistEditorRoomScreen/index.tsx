@@ -267,6 +267,8 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             playlistRef.send({
                 type: 'EXPORT_TO_MTV',
             });
+        }
+
         function handleInviteUserButtonPressed() {
             console.log('invitation pressed');
             navigation.navigate('MusicPlaylistEditorUsersSearch', {

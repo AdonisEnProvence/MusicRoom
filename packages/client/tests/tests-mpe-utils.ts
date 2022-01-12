@@ -1,7 +1,7 @@
 import {
     AllClientToServerEvents,
     MpeChangeTrackOrderOperationToApply,
-    MpeWorkflowState,
+    PlaylistModelMpeWorkflowState,
 } from '@musicroom/types';
 import {
     waitForElementToBeRemoved,
@@ -13,7 +13,7 @@ import { serverSocket } from '../services/websockets';
 import {
     db,
     generateArray,
-    generateMpeWorkflowState,
+    generateMpeWorkflowStateWithUserRelatedInformation,
     generateTrackMetadata,
 } from './data';
 import {
@@ -26,7 +26,7 @@ import {
 } from './tests-utils';
 
 export interface DefinedStateRef {
-    value: MpeWorkflowState;
+    value: PlaylistModelMpeWorkflowState;
 }
 
 /**
@@ -38,14 +38,18 @@ export async function createMpeRoom(): Promise<{
 }> {
     const track = generateTrackMetadata();
     const roomID = datatype.uuid();
-    const mpeRoomState = generateMpeWorkflowState({
-        isOpen: true,
-        isOpenOnlyInvitedUsersCanEdit: false,
-        playlistTotalDuration: 42000,
-        roomCreatorUserID: datatype.uuid(),
-        roomID,
-        tracks: [track],
-        usersLength: 1,
+    const creatorUserID = datatype.uuid();
+    const mpeRoomState = generateMpeWorkflowStateWithUserRelatedInformation({
+        overrides: {
+            isOpen: true,
+            isOpenOnlyInvitedUsersCanEdit: false,
+            playlistTotalDuration: 42000,
+            roomCreatorUserID: creatorUserID,
+            roomID,
+            tracks: [track],
+            usersLength: 1,
+        },
+        userID: creatorUserID,
     });
     db.searchableMpeRooms.create({
         roomID: mpeRoomState.roomID,
@@ -115,7 +119,10 @@ export async function addTrack({
 
             serverSocket.emit('MPE_ADD_TRACKS_SUCCESS_CALLBACK', {
                 roomID,
-                state: state.value,
+                state: {
+                    ...state.value,
+                    userRelatedInformation: null,
+                },
             });
         }, 10);
     });
@@ -276,10 +283,14 @@ export async function joinMpeRoom(): Promise<{
         maxLength: 15,
         fill: () => db.searchableMpeRooms.create(),
     }).slice(0, 10);
-    const firstRoomState = generateMpeWorkflowState({
-        ...rooms[0],
-        isOpen: true,
-        isOpenOnlyInvitedUsersCanEdit: false,
+    const firstRoomState = generateMpeWorkflowStateWithUserRelatedInformation({
+        overrides: {
+            ...rooms[0],
+            isOpen: true,
+            isOpenOnlyInvitedUsersCanEdit: false,
+        },
+        //Is this a real game changer ?
+        userID: datatype.uuid(),
     });
 
     const screen = await renderApp();

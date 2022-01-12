@@ -2,6 +2,7 @@ import { drop, factory, primaryKey } from '@mswjs/data';
 import {
     MpeRoomSummary,
     MpeWorkflowState,
+    MpeWorkflowStateWithUserRelatedInformation,
     MtvRoomSummary,
     MtvWorkflowState,
     TrackMetadataWithScore,
@@ -128,7 +129,37 @@ export function generateMpeWorkflowState(
         isOpenOnlyInvitedUsersCanEdit: false,
         tracks: tracksList.slice(1),
         playlistTotalDuration: 42000, //TODO
+        userRelatedInformation: null,
+        ...overrides,
+    };
+}
 
+export function generateMpeWorkflowStateWithUserRelatedInformation({
+    overrides,
+    userID,
+}: {
+    overrides?: Partial<MpeWorkflowStateWithUserRelatedInformation>;
+    userID: string;
+}): MpeWorkflowStateWithUserRelatedInformation {
+    const tracksList = generateArray({
+        minLength: 2,
+        maxLength: 6,
+        fill: generateTrackMetadata,
+    });
+
+    return {
+        roomID: datatype.uuid(),
+        roomCreatorUserID: datatype.uuid(),
+        name: random.words(),
+        tracks: tracksList,
+        isOpen: datatype.boolean(),
+        isOpenOnlyInvitedUsersCanEdit: datatype.boolean(),
+        usersLength: datatype.number(),
+        playlistTotalDuration: datatype.number(),
+        userRelatedInformation: {
+            userHasBeenInvited: false,
+            userID,
+        },
         ...overrides,
     };
 }

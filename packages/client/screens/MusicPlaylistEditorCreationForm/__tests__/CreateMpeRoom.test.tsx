@@ -10,7 +10,11 @@ import {
     within,
     waitForTimeout,
 } from '../../../tests/tests-utils';
-import { db, generateMpeWorkflowState } from '../../../tests/data';
+import {
+    db,
+    generateMpeWorkflowState,
+    generateMpeWorkflowStateWithUserRelatedInformation,
+} from '../../../tests/data';
 import { serverSocket } from '../../../services/websockets';
 
 interface TestingContext {
@@ -746,15 +750,21 @@ describe('Create MPE room with custom settings', () => {
                         }) => {
                             expect(initialTrackID).toBe(fakeTrack.id);
 
-                            const roomState = generateMpeWorkflowState({
-                                name,
-                                isOpen,
-                                isOpenOnlyInvitedUsersCanEdit,
-                                tracks: [fakeTrack],
-                                playlistTotalDuration: 42000,
-                                roomCreatorUserID: userID,
-                                usersLength: 1,
-                            });
+                            const roomState =
+                                generateMpeWorkflowStateWithUserRelatedInformation(
+                                    {
+                                        overrides: {
+                                            name,
+                                            isOpen,
+                                            isOpenOnlyInvitedUsersCanEdit,
+                                            tracks: [fakeTrack],
+                                            playlistTotalDuration: 42000,
+                                            roomCreatorUserID: userID,
+                                            usersLength: 1,
+                                        },
+                                        userID,
+                                    },
+                                );
                             db.searchableMpeRooms.create({
                                 roomName: roomState.name,
                                 roomID: roomState.roomID,

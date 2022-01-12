@@ -71,6 +71,7 @@ type MpeRoomExposedState struct {
 	IsOpen                        bool                   `json:"isOpen"`
 	IsOpenOnlyInvitedUsersCanEdit bool                   `json:"isOpenOnlyInvitedUsersCanEdit"`
 	PlaylistTotalDuration         int                    `json:"playlistTotalDuration"`
+	UserRelatedInformation        *InternalStateUser     `json:"userRelatedInformation"`
 }
 
 type TrackMetadataSet struct {

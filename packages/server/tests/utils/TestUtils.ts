@@ -5,6 +5,7 @@ import {
     MpeRoomClientToServerCreateArgs,
     MpeWorkflowState,
     TrackMetadata,
+    MpeWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
 import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import MpeRoom from 'App/Models/MpeRoom';
@@ -667,7 +668,37 @@ export function generateMpeWorkflowState(
         isOpenOnlyInvitedUsersCanEdit: datatype.boolean(),
         usersLength: datatype.number(),
         playlistTotalDuration: datatype.number(),
+        userRelatedInformation: null,
+        ...overrides,
+    };
+}
 
+export function generateMpeWorkflowStateWithUserRelatedInformation({
+    overrides,
+    userID,
+}: {
+    overrides?: Partial<MpeWorkflowStateWithUserRelatedInformation>;
+    userID: string;
+}): MpeWorkflowStateWithUserRelatedInformation {
+    const tracksList = generateArray({
+        minLength: 2,
+        maxLength: 6,
+        fill: generateTrackMetadata,
+    });
+
+    return {
+        roomID: datatype.uuid(),
+        roomCreatorUserID: datatype.uuid(),
+        name: random.words(),
+        tracks: tracksList,
+        isOpen: datatype.boolean(),
+        isOpenOnlyInvitedUsersCanEdit: datatype.boolean(),
+        usersLength: datatype.number(),
+        playlistTotalDuration: datatype.number(),
+        userRelatedInformation: {
+            userHasBeenInvited: false,
+            userID,
+        },
         ...overrides,
     };
 }

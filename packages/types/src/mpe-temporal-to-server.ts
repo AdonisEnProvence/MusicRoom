@@ -1,5 +1,8 @@
 import * as z from 'zod';
-import { MpeWorkflowState } from './mpe';
+import {
+    MpeWorkflowState,
+    MpeWorkflowStateWithUserRelatedInformation,
+} from './mpe';
 import { MtvRoomCreationOptionsWithoutInitialTracksIDs } from './mpe-room-websockets';
 
 export const MpeRejectAddingTracksRequestBody = z.object({
@@ -48,7 +51,7 @@ export type MpeAcknowledgeDeletingTracksRequestBody = z.infer<
 >;
 
 export const MpeAcknowledgeJoinRequestBody = z.object({
-    state: MpeWorkflowState,
+    state: MpeWorkflowStateWithUserRelatedInformation,
     joiningUserID: z.string().uuid(),
 });
 export type MpeAcknowledgeJoinRequestBody = z.infer<

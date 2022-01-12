@@ -17,6 +17,8 @@ import {
     MpeRoomServerToClientChangeTrackFailCallbackArgs,
     MpeRoomServerToClientChangeTrackSuccessCallbackARgs,
     MpeRoomSummary,
+    MpeWorkflowStateWithUserRelatedInformation,
+    PlaylistModelMpeWorkflowState,
 } from '@musicroom/types';
 import invariant from 'tiny-invariant';
 import { SocketClient } from '../contexts/SocketContext';
@@ -55,10 +57,14 @@ export const appMusicPlaylistsModel = createModel(
             CREATE_ROOM: (params: MpeRoomClientToServerCreateArgs) => ({
                 params,
             }),
-            ROOM_CREATION_ACKNOWLEDGEMENT: (state: MpeWorkflowState) => ({
+            ROOM_CREATION_ACKNOWLEDGEMENT: (
+                state: MpeWorkflowStateWithUserRelatedInformation,
+            ) => ({
                 state,
             }),
-            ROOM_IS_READY: (state: MpeWorkflowState) => ({
+            ROOM_IS_READY: (
+                state: MpeWorkflowStateWithUserRelatedInformation,
+            ) => ({
                 state,
             }),
             JOIN_ROOM: (args: { roomID: string }) => args,
@@ -76,7 +82,7 @@ export const appMusicPlaylistsModel = createModel(
 
             JOIN_ROOM_ACKNOWLEDGEMENT: (args: {
                 roomID: string;
-                state: MpeWorkflowState;
+                state: MpeWorkflowStateWithUserRelatedInformation;
                 userIsNotInRoom: boolean;
             }) => args,
 
@@ -97,7 +103,7 @@ export const appMusicPlaylistsModel = createModel(
             //Get context
             MPE_GET_CONTEXT: (args: { roomID: string }) => args,
             RECEIVED_MPE_GET_CONTEXT_SUCCESS_CALLBACK: (args: {
-                state: MpeWorkflowState;
+                state: PlaylistModelMpeWorkflowState;
                 roomID: string;
                 userIsNotInRoom: boolean;
             }) => args,
@@ -142,6 +148,11 @@ export const appMusicPlaylistsModel = createModel(
             RECEIVED_DELETE_TRACKS_SUCCESS_CALLBACK: (args: {
                 roomID: string;
                 state: MpeWorkflowState;
+            }) => args,
+
+            SPAWN_PLAYLIST_ACTOR_FROM_STATE: (args: {
+                roomID: string;
+                state: MpeWorkflowStateWithUserRelatedInformation;
             }) => args,
         },
 
@@ -206,7 +217,7 @@ const spawnPlaylistActor = appMusicPlaylistsModel.assign(
             return [...playlistsActorsRefs, playlist];
         },
     },
-    'ROOM_CREATION_ACKNOWLEDGEMENT',
+    'SPAWN_PLAYLIST_ACTOR_FROM_STATE',
 );
 
 const spawnPlaylistActorFromRoomID = appMusicPlaylistsModel.assign(
@@ -613,7 +624,14 @@ export function createAppMusicPlaylistsMachine({
                             ROOM_CREATION_ACKNOWLEDGEMENT: {
                                 target: 'waitingForRoomReadiness',
 
-                                actions: spawnPlaylistActor,
+                                actions: send((_, { state }) =>
+                                    appMusicPlaylistsModel.events.SPAWN_PLAYLIST_ACTOR_FROM_STATE(
+                                        {
+                                            roomID: state.roomID,
+                                            state,
+                                        },
+                                    ),
+                                ),
                             },
                         },
                     },
@@ -654,7 +672,14 @@ export function createAppMusicPlaylistsMachine({
                      * by receiving these events.
                      */
                     ROOM_CREATION_ACKNOWLEDGEMENT: {
-                        actions: spawnPlaylistActor,
+                        actions: send((_, { state }) =>
+                            appMusicPlaylistsModel.events.SPAWN_PLAYLIST_ACTOR_FROM_STATE(
+                                {
+                                    roomID: state.roomID,
+                                    state,
+                                },
+                            ),
+                        ),
                     },
 
                     ROOM_IS_READY: {
@@ -778,18 +803,38 @@ export function createAppMusicPlaylistsMachine({
                         actions: forwardTo('socketConnection'),
                     },
 
-                    JOIN_ROOM_ACKNOWLEDGEMENT: {
-                        actions: send(
-                            (_, { state, userIsNotInRoom }) =>
-                                playlistModel.events.ASSIGN_MERGE_NEW_STATE({
-                                    state,
-                                    userIsNotInRoom,
-                                }),
-                            {
-                                to: (_, { roomID }) =>
-                                    getPlaylistMachineActorName(roomID),
-                            },
-                        ),
+                    JOIN_ROOM_ACKNOWLEDGEMENT: [
+                        {
+                            cond: (context, { state: { roomID } }) =>
+                                actorExists(context, roomID),
+                            actions: send(
+                                (_, { state, userIsNotInRoom }) =>
+                                    playlistModel.events.ASSIGN_MERGE_NEW_STATE(
+                                        {
+                                            state,
+                                            userIsNotInRoom,
+                                        },
+                                    ),
+                                {
+                                    to: (_, { roomID }) =>
+                                        getPlaylistMachineActorName(roomID),
+                                },
+                            ),
+                        },
+                        {
+                            actions: send((_, { state }) =>
+                                appMusicPlaylistsModel.events.SPAWN_PLAYLIST_ACTOR_FROM_STATE(
+                                    {
+                                        roomID: state.roomID,
+                                        state,
+                                    },
+                                ),
+                            ),
+                        },
+                    ],
+
+                    SPAWN_PLAYLIST_ACTOR_FROM_STATE: {
+                        actions: spawnPlaylistActor,
                     },
 
                     //Add track

@@ -65,7 +65,7 @@ func changeTrackOrder(ctx workflow.Context, internalState *MpeRoomInternalState)
 		sendAcknowledgeChangeTrackOrderActivity(ctx, activities_mpe.AcknowledgeChangeTrackOrderActivityArgs{
 			DeviceID: event.DeviceID,
 			UserID:   event.UserID,
-			State:    internalState.Export(),
+			State:    internalState.Export(shared_mpe.NoRelatedUserID),
 		})
 
 		return nil

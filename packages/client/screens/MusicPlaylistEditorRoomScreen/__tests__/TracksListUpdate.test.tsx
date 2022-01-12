@@ -6,7 +6,6 @@ import { createMpeRoom } from '../../../tests/tests-mpe-utils';
 
 test('It should merge given state into the involved playlist', async () => {
     const tracks = [generateTrackMetadata(), generateTrackMetadata()];
-
     const { screen, state } = await createMpeRoom();
 
     await waitFor(() => {
@@ -18,6 +17,7 @@ test('It should merge given state into the involved playlist', async () => {
     const newState: MpeWorkflowState = {
         ...state.value,
         tracks: [...state.value.tracks, ...tracks],
+        userRelatedInformation: null,
     };
     serverSocket.emit('MPE_TRACKS_LIST_UPDATE', {
         roomID: newState.roomID,

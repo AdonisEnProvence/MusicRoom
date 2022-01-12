@@ -4,11 +4,13 @@ import {
     createMachine,
     EventFrom,
     sendParent,
+    send,
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import {
     MpeChangeTrackOrderOperationToApply,
     MpeWorkflowState,
+    PlaylistModelMpeWorkflowState,
 } from '@musicroom/types';
 import { appMusicPlaylistsModel } from './appMusicPlaylistsMachine';
 
@@ -29,7 +31,8 @@ export const playlistModel = createModel(
             roomID: '',
             tracks: [],
             usersLength: 0,
-        } as MpeWorkflowState,
+            userRelatedInformation: null,
+        } as PlaylistModelMpeWorkflowState,
 
         //Can be set to false via get_context response and set to true via join_mpe response
         userIsNotInRoom: undefined as boolean | undefined,
@@ -69,7 +72,7 @@ export const playlistModel = createModel(
             }) => args,
 
             ASSIGN_MERGE_NEW_STATE: (args: {
-                state: MpeWorkflowState;
+                state: PlaylistModelMpeWorkflowState;
                 userIsNotInRoom?: boolean;
             }) => args,
 
@@ -89,16 +92,8 @@ const assignTrackIDToAdd = playlistModel.assign(
     'ADD_TRACK',
 );
 
-const assignStateAfterAddingTracksSuccess = playlistModel.assign(
+const assignTrackToMoveAfterChangeTrackOrderSuccess = playlistModel.assign(
     {
-        state: (_, { state }) => state,
-    },
-    'RECEIVED_TRACK_TO_ADD_SUCCESS_CALLBACK',
-);
-
-const assignStateAfterChangeTrackOrderSuccess = playlistModel.assign(
-    {
-        state: (_, { state }) => state,
         trackToMove: (_) => undefined,
     },
     'RECEIVED_CHANGE_TRACK_ORDER_SUCCESS_CALLBACK',
@@ -109,13 +104,6 @@ const assignTrackIDToDelete = playlistModel.assign(
         trackIDToDelete: (_, { trackID }) => trackID,
     },
     'DELETE_TRACK',
-);
-
-const assignStateAfterDeletingTracksSuccess = playlistModel.assign(
-    {
-        state: (_, { state }) => state,
-    },
-    'RECEIVED_TRACK_TO_DELETE_SUCCESS_CALLBACK',
 );
 
 const assignTrackToMoveUp = playlistModel.assign(
@@ -157,18 +145,26 @@ const assignTrackToMoveDown = playlistModel.assign(
 
 const assignMergeNewState = playlistModel.assign(
     {
-        state: (context, { state }) => {
-            console.log('assignMergeNewState userIsNotInRoom: ', state);
+        state: (context, event) => {
+            const { state } = event;
+
+            let userRelatedInformationUpdate =
+                context.state.userRelatedInformation;
+            if (state.userRelatedInformation !== null) {
+                userRelatedInformationUpdate = state.userRelatedInformation;
+            }
+
+            console.log('assignMergeNewState', event.state);
+
             return {
                 ...context.state,
                 ...state,
+                userRelatedInformation: userRelatedInformationUpdate,
             };
         },
-        userIsNotInRoom: (context, { userIsNotInRoom }) => {
-            console.log(
-                'assignMergeNewState userIsNotInRoom: ',
-                userIsNotInRoom,
-            );
+        userIsNotInRoom: (context, event) => {
+            const { userIsNotInRoom } = event;
+
             return userIsNotInRoom ?? context.userIsNotInRoom;
         },
     },
@@ -182,7 +178,7 @@ export type PlaylistMachineEvents = EventFrom<typeof playlistModel>;
 export type PlaylistActorRef = ActorRefFrom<PlaylistMachine>;
 
 interface CreatePlaylistMachineArgs {
-    initialState: MpeWorkflowState | undefined;
+    initialState: PlaylistModelMpeWorkflowState | undefined;
     roomID: string;
 }
 
@@ -235,12 +231,7 @@ export function createPlaylistMachine({
 
                 on: {
                     ASSIGN_MERGE_NEW_STATE: {
-                        actions: [
-                            () => {
-                                console.log('ASSIGN MERGE NEW STATE PLAYLIST');
-                            },
-                            assignMergeNewState,
-                        ],
+                        actions: assignMergeNewState,
                     },
 
                     ADD_TRACK: {
@@ -357,7 +348,13 @@ export function createPlaylistMachine({
                                 target: 'debouncing',
 
                                 actions: [
-                                    assignStateAfterAddingTracksSuccess,
+                                    send((_, { state }) =>
+                                        playlistModel.events.ASSIGN_MERGE_NEW_STATE(
+                                            {
+                                                state,
+                                            },
+                                        ),
+                                    ),
                                     'triggerSuccessfulAddingTrackToast',
                                 ],
                             },
@@ -436,7 +433,14 @@ export function createPlaylistMachine({
                                 target: 'debouncing',
 
                                 actions: [
-                                    assignStateAfterChangeTrackOrderSuccess,
+                                    send((_, { state }) =>
+                                        playlistModel.events.ASSIGN_MERGE_NEW_STATE(
+                                            {
+                                                state,
+                                            },
+                                        ),
+                                    ),
+                                    assignTrackToMoveAfterChangeTrackOrderSuccess,
                                     'triggerSuccessfulChangeTrackOrderToast',
                                 ],
                             },
@@ -502,7 +506,13 @@ export function createPlaylistMachine({
                                 target: 'debouncing',
 
                                 actions: [
-                                    assignStateAfterDeletingTracksSuccess,
+                                    send((_, { state }) =>
+                                        playlistModel.events.ASSIGN_MERGE_NEW_STATE(
+                                            {
+                                                state,
+                                            },
+                                        ),
+                                    ),
                                     'triggerSuccessfulDeletingTrackToast',
                                 ],
                             },
@@ -605,6 +615,10 @@ export function createPlaylistMachine({
 
         //global listeners
         on: {
+            ASSIGN_MERGE_NEW_STATE: {
+                actions: assignMergeNewState,
+            },
+
             MPE_ROOM_VIEW_FOCUS: {
                 actions: sendParent(() =>
                     appMusicPlaylistsModel.events.SET_CURRENTLY_DISPLAYED_MPE_ROOM_VIEW(

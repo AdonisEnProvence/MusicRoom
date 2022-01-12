@@ -157,6 +157,84 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflowWithSeveralInitialTrac
 	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
 }
 
+func (s *CreateMpeWorkflowTestUnit) Test_GetStateProvidesUserRelatedInformation() {
+	initialTracksIDs := []string{
+		faker.UUIDHyphenated(),
+		faker.UUIDHyphenated(),
+		faker.UUIDHyphenated(),
+		faker.UUIDHyphenated(),
+	}
+	params, _ := s.getWorkflowInitParams(initialTracksIDs)
+	var a *activities_mpe.Activities
+
+	tracks := []shared.TrackMetadata{
+		{
+			ID:         initialTracksIDs[0],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+		{
+			ID:         initialTracksIDs[1],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+		{
+			ID:         initialTracksIDs[2],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+		{
+			ID:         initialTracksIDs[3],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   42000,
+		},
+	}
+
+	defaultDuration := 200 * time.Millisecond
+	resetMock, registerDelayedCallbackWrapper := s.initTestEnv()
+
+	defer resetMock()
+
+	s.env.OnActivity(
+		activities.FetchTracksInformationActivity,
+		mock.Anything,
+		initialTracksIDs,
+	).Return(tracks, nil).Once()
+	s.env.OnActivity(
+		a.MpeCreationAcknowledgementActivity,
+		mock.Anything,
+		mock.Anything,
+	).Return(nil).Once()
+
+	checkCreatorUserRelatedInformation := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(params.RoomCreatorUserID)
+		expectedUserRelatedInformation := shared_mpe.InternalStateUser{
+			UserHasBeenInvited: false,
+			UserID:             params.RoomCreatorUserID,
+		}
+
+		s.Equal(&expectedUserRelatedInformation, mpeState.UserRelatedInformation)
+	}, checkCreatorUserRelatedInformation)
+
+	checkNoUserRelatedInformationProvided := defaultDuration
+	registerDelayedCallbackWrapper(func() {
+		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+
+		s.Nil(mpeState.UserRelatedInformation)
+	}, checkNoUserRelatedInformationProvided)
+
+	s.env.ExecuteWorkflow(MpeRoomWorkflow, params)
+
+	s.True(s.env.IsWorkflowCompleted())
+	err := s.env.GetWorkflowError()
+	s.ErrorIs(err, workflow.ErrDeadlineExceeded, "The workflow ran on an infinite loop")
+}
+
 func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflowFailIsOpenOnlyInvitedUsersCanEditTrueButIsOpenFalse() {
 
 	initialTracksIDs := []string{

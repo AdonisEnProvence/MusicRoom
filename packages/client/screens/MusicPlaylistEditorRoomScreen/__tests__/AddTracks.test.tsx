@@ -23,6 +23,7 @@ test('Add track and trigger sucess toast', async () => {
                 roomID,
                 state: {
                     ...state.value,
+                    userRelatedInformation: null,
                     tracks: [...state.value.tracks, fakeTrack],
                 },
             });

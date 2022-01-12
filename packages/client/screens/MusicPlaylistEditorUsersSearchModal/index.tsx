@@ -1,12 +1,10 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useActor, useMachine } from '@xstate/react';
 import { useSx, View } from 'dripsy';
-import React, { useState } from 'react';
+import React from 'react';
 import { TouchableOpacity } from 'react-native';
-import { Typo } from '../components/kit';
-import { usePlaylist } from '../hooks/useMusicPlaylistsActor';
-import { MusicPlaylistEditorUsersSearchModalProps } from '../types';
-import UsersSearchEngineScreen from './UsersSearchEngineScreen';
+import { Typo } from '../../components/kit';
+import { usePlaylist } from '../../hooks/useMusicPlaylistsActor';
+import { MusicPlaylistEditorUsersSearchModalProps } from '../../types';
+import UsersSearchEngineScreen from '../UsersSearchEngineScreen';
 
 const MusicPlaylistEditorUsersSearchModal: React.FC<MusicPlaylistEditorUsersSearchModalProps> =
     ({ navigation, route }) => {

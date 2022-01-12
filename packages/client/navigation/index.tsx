@@ -178,6 +178,12 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
             />
 
             <RootStack.Screen
+                name="MusicPlaylistEditorUsersSearch"
+                component={MusicPlaylistEditorUsersSearchNavigator}
+                options={{ headerShown: false, detachPreviousScreen: false }}
+            />
+
+            <RootStack.Screen
                 name="MusicPlaylistEditorRoomsSearch"
                 component={MusicPlaylistEditorRoomsSearchNavigator}
                 options={{ headerShown: false, detachPreviousScreen: false }}

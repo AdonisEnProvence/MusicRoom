@@ -204,7 +204,19 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             playlistRef,
             (state) => !state.hasTag('roomIsReady'),
         );
+        const userRelatedInformation = useSelector(
+            playlistRef,
+            (state) => state.context.state.userRelatedInformation,
+        );
+        const roomCreatorUserID = useSelector(
+            playlistRef,
+            (state) => state.context.state.roomCreatorUserID,
+        );
         const disableEveryCta = userIsNotInRoom || shouldFreezeUi;
+
+        const userIsMpeRoomCreator =
+            userRelatedInformation !== null &&
+            userRelatedInformation.userID === roomCreatorUserID;
 
         function handleAddTrack() {
             navigation.navigate('SearchTracks', {
@@ -257,9 +269,12 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             });
         function handleInviteUserButtonPressed() {
             console.log('invitation pressed');
-            // navigation.navigate('MusicTrackVoteUsersSearch', {
-            //     screen: 'MusicTrackVoteUsersSearchModal',
-            // });
+            navigation.navigate('MusicPlaylistEditorUsersSearch', {
+                screen: 'MusicPlaylistEditorUsersSearchModal',
+                params: {
+                    roomID,
+                },
+            });
         }
 
         useFocusEffect(
@@ -288,11 +303,18 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                     goBack={() => {
                         navigation.goBack();
                     }}
-                    HeaderRight={() => (
-                        <InviteUserButton
-                            onInviteUser={handleInviteUserButtonPressed}
-                        />
-                    )}
+                    HeaderRight={
+                        userIsMpeRoomCreator
+                            ? () => (
+                                  <InviteUserButton
+                                      testID={'mtv-invite-user-button'}
+                                      onInviteUser={
+                                          handleInviteUserButtonPressed
+                                      }
+                                  />
+                              )
+                            : undefined
+                    }
                 />
 
                 <AppScreenContainer>

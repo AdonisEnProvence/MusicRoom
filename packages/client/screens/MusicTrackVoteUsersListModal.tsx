@@ -22,16 +22,19 @@ import { assertEventType } from '../machines/utils';
 import { MusicTrackVoteUsersListModalProps } from '../types';
 
 interface InviteUserButtonProps {
+    testID: string;
     onInviteUser: () => void;
 }
 
 export const InviteUserButton: React.FC<InviteUserButtonProps> = ({
+    testID,
     onInviteUser,
 }) => {
     return (
         <AppScreenHeaderActionButton>
             <TouchableOpacity onPress={onInviteUser}>
                 <AntDesign
+                    testID={testID}
                     name="adduser"
                     size={24}
                     color="white"
@@ -150,6 +153,7 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                 HeaderActionRight={
                     deviceOwnerIsRoomCreator === true ? (
                         <InviteUserButton
+                            testID="mtv-invite-user-button"
                             onInviteUser={handleInviteUserButtonPressed}
                         />
                     ) : undefined

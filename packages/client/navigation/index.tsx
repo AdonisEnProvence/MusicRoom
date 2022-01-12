@@ -43,6 +43,12 @@ import MusicPlaylistEditorRoomsSearchScreen from '../screens/MusicPlaylistEditor
 import MusicPlaylistEditorCreationFormName from '../screens/MusicPlaylistEditorCreationForm/MusicPlaylistEditorCreationFormName';
 import MusicPlaylistEditorCreationFormOpeningStatus from '../screens/MusicPlaylistEditorCreationForm/MusicPlaylistEditorCreationFormOpeningStatus';
 import MusicPlaylistEditorCreationFormConfirmation from '../screens/MusicPlaylistEditorCreationForm/MusicPlaylistEditorCreationFormConfirmation';
+import MusicPlaylistEditorExportToMtvCreationFormConfirmation from '../screens/MusicPlaylistEditorMusicTrackVoteCreationForm/MusicTrackVoteCreationFormConfirmation';
+import MusicPlaylistEditorExportToMtvCreationFormName from '../screens/MusicPlaylistEditorMusicTrackVoteCreationForm/MusicTrackVoteCreationFormName';
+import MusicPlaylistEditorExportToMtvCreationFormOpeningStatus from '../screens/MusicPlaylistEditorMusicTrackVoteCreationForm/MusicTrackVoteCreationFormOpeningStatus';
+import MusicPlaylistEditorExportToMtvCreationFormPhysicalConstraints from '../screens/MusicPlaylistEditorMusicTrackVoteCreationForm/MusicTrackVoteCreationFormPhysicalConstraints';
+import MusicPlaylistEditorExportToMtvCreationFormPlayingMode from '../screens/MusicPlaylistEditorMusicTrackVoteCreationForm/MusicTrackVoteCreationFormPlayingMode';
+import MusicPlaylistEditorExportToMtvCreationFormVotesConstraints from '../screens/MusicPlaylistEditorMusicTrackVoteCreationForm/MusicTrackVoteCreationFormVotesConstraints';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
@@ -93,6 +99,8 @@ const SuggestTrackStack = createStackNavigator<SuggestTrackStackParamList>();
 const MusicTrackVoteUsersListStack =
     createStackNavigator<MusicTrackVoteUsersListStackParamList>();
 const MusicTrackVoteCreationStack =
+    createStackNavigator<MusicTrackVoteCreationFormParamList>();
+const MusicPlaylistEditorExportToMtvCreationFormStack =
     createStackNavigator<MusicTrackVoteCreationFormParamList>();
 const MusicPlaylistEditorCreationFormStack =
     createStackNavigator<MusicPlaylistEditorCreationFormParamList>();
@@ -185,6 +193,12 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
                 component={MusicPlaylistEditorCreationFormNavigator}
                 options={{ headerShown: false, detachPreviousScreen: false }}
             />
+
+            <RootStack.Screen
+                name="MusicPlaylistEditorExportToMtvCreationForm"
+                component={MusicPlaylistEditorExportToMtvCreationFormNavigator}
+                options={{ headerShown: false, detachPreviousScreen: false }}
+            />
         </RootStack.Navigator>
     );
 };
@@ -230,6 +244,61 @@ export const MusicTrackVoteCreationFormNavigator: React.FC<ColorModeProps> = ({
         </MusicTrackVoteCreationStack.Navigator>
     );
 };
+export const MusicPlaylistEditorExportToMtvCreationFormNavigator: React.FC<ColorModeProps> =
+    ({ colorScheme }) => {
+        const style = navigationStyle(colorScheme);
+
+        return (
+            <MusicPlaylistEditorExportToMtvCreationFormStack.Navigator
+                initialRouteName="MusicTrackVoteCreationFormName"
+                screenOptions={{
+                    ...style,
+                    headerShown: false,
+                    detachPreviousScreen: false,
+                }}
+            >
+                <MusicPlaylistEditorExportToMtvCreationFormStack.Screen
+                    name="MusicTrackVoteCreationFormName"
+                    component={MusicPlaylistEditorExportToMtvCreationFormName}
+                />
+
+                <MusicPlaylistEditorExportToMtvCreationFormStack.Screen
+                    name="MusicTrackVoteCreationFormConfirmation"
+                    component={
+                        MusicPlaylistEditorExportToMtvCreationFormConfirmation
+                    }
+                />
+
+                <MusicPlaylistEditorExportToMtvCreationFormStack.Screen
+                    name="MusicTrackVoteCreationFormOpeningStatus"
+                    component={
+                        MusicPlaylistEditorExportToMtvCreationFormOpeningStatus
+                    }
+                />
+
+                <MusicPlaylistEditorExportToMtvCreationFormStack.Screen
+                    name="MusicTrackVoteCreationFormPhysicalConstraints"
+                    component={
+                        MusicPlaylistEditorExportToMtvCreationFormPhysicalConstraints
+                    }
+                />
+
+                <MusicPlaylistEditorExportToMtvCreationFormStack.Screen
+                    name="MusicTrackVoteCreationFormPlayingMode"
+                    component={
+                        MusicPlaylistEditorExportToMtvCreationFormPlayingMode
+                    }
+                />
+
+                <MusicPlaylistEditorExportToMtvCreationFormStack.Screen
+                    name="MusicTrackVoteCreationFormVotesConstraints"
+                    component={
+                        MusicPlaylistEditorExportToMtvCreationFormVotesConstraints
+                    }
+                />
+            </MusicPlaylistEditorExportToMtvCreationFormStack.Navigator>
+        );
+    };
 
 export const MusicPlaylistEditorCreationFormNavigator: React.FC<ColorModeProps> =
     ({ colorScheme }) => {

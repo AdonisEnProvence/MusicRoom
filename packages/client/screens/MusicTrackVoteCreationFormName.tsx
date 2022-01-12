@@ -80,7 +80,7 @@ export const MusicTrackVoteCreationFormNameContent: React.FC<MusicTrackVoteCreat
         );
     };
 
-const MusicTrackVoteCreationFormName: React.FC<
+export const MusicTrackVoteCreationFormName: React.FC<
     MusicTrackVoteCreationFormNameScreenProps & {
         mtvRoomCreationActor: CreationMtvRoomFormActorRef;
     }

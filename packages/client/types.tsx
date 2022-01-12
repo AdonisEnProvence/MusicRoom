@@ -69,6 +69,7 @@ export type RootStackParamList = {
     UserProfile: NavigatorScreenParams<UserProfileStackParamsList>;
 
     MusicPlaylistEditorCreationForm: NavigatorScreenParams<MusicPlaylistEditorCreationFormParamList>;
+    MusicPlaylistEditorExportToMtvCreationForm: NavigatorScreenParams<MusicTrackVoteCreationFormParamList>;
 };
 
 export type SuggestTrackStackParamList = {
@@ -76,6 +77,15 @@ export type SuggestTrackStackParamList = {
 };
 
 export type MusicTrackVoteCreationFormParamList = {
+    MusicTrackVoteCreationFormName: undefined;
+    MusicTrackVoteCreationFormOpeningStatus: undefined;
+    MusicTrackVoteCreationFormPhysicalConstraints: undefined;
+    MusicTrackVoteCreationFormPlayingMode: undefined;
+    MusicTrackVoteCreationFormVotesConstraints: undefined;
+    MusicTrackVoteCreationFormConfirmation: undefined;
+};
+
+export type MusicPlaylistEditorExportToMtvCreationFormParamList = {
     MusicTrackVoteCreationFormName: undefined;
     MusicTrackVoteCreationFormOpeningStatus: undefined;
     MusicTrackVoteCreationFormPhysicalConstraints: undefined;

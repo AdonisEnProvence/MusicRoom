@@ -292,14 +292,14 @@ const (
 var MtvPlayingModesAllValues = [...]MtvPlayingModes{MtvPlayingModeDirect, MtvPlayingModeBroadcast}
 
 type MtvRoomCreationOptions struct {
-	RoomName               string `json:"roomName" validate:"required"`
+	RoomName               string `json:"name" validate:"required" mapstructure:"name"`
 	MinimumScoreToBePlayed int    `json:"minimumScoreToBePlayed" validate:"min=0"`
 	// Same as for PhysicalConstraintPosition IsOpen won't be useful
 	// for temporal itself but for the adonis mtv room search engine
 	IsOpen                        bool                               `json:"isOpen"`
 	IsOpenOnlyInvitedUsersCanVote bool                               `json:"isOpenOnlyInvitedUsersCanVote"`
 	HasPhysicalAndTimeConstraints bool                               `json:"hasPhysicalAndTimeConstraints"`
-	PhysicalAndTimeConstraints    *MtvRoomPhysicalAndTimeConstraints `json:"physicalAndTimeConstraints"`
+	PhysicalAndTimeConstraints    *MtvRoomPhysicalAndTimeConstraints `json:"physicalAndTimeConstraints,omitempty"`
 	PlayingMode                   MtvPlayingModes                    `json:"playingMode" validate:"required,oneof=DIRECT BROADCAST"`
 }
 

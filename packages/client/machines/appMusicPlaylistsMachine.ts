@@ -7,6 +7,7 @@ import {
     spawn,
     send,
     forwardTo,
+    assign,
 } from 'xstate';
 import { stop } from 'xstate/lib/actions';
 import { createModel } from 'xstate/lib/model';
@@ -19,9 +20,11 @@ import {
     MpeRoomSummary,
     MpeWorkflowStateWithUserRelatedInformation,
     PlaylistModelMpeWorkflowState,
+    MtvRoomCreationOptionsWithoutInitialTracksIDs,
 } from '@musicroom/types';
 import invariant from 'tiny-invariant';
 import { SocketClient } from '../contexts/SocketContext';
+import { navigateFromRef } from '../navigation/RootNavigation';
 import {
     createPlaylistMachine,
     PlaylistActorRef,
@@ -32,6 +35,10 @@ import {
     createCreationMpeRoomFormMachine,
     CreationMpeRoomFormDoneInvokeEvent,
 } from './creationMpeRoomForm';
+import {
+    createCreationMtvRoomFormMachine,
+    CreationMtvRoomFormDoneInvokeEvent,
+} from './creationMtvRoomForm';
 
 export interface MusicPlaylist {
     id: string;
@@ -48,6 +55,8 @@ export const appMusicPlaylistsModel = createModel(
 
         roomToCreateInitialTracksIDs: undefined as string[] | undefined,
         currentlyDisplayedMpeRoomView: undefined as string | undefined, //MusicPlaylist ??
+        currentlyExportedToMtvMpeRoomID: undefined as string | undefined,
+        closeMtvRoomCreationModal: undefined as (() => void) | undefined,
     },
     {
         events: {
@@ -154,6 +163,16 @@ export const appMusicPlaylistsModel = createModel(
                 roomID: string;
                 state: MpeWorkflowStateWithUserRelatedInformation;
             }) => args,
+
+            EXPORT_TO_MTV_ROOM: (args: { roomID: string }) => args,
+            SAVE_MTV_ROOM_CREATION_MODAL_CLOSER: (args: {
+                closeModal: () => void;
+            }) => args,
+            SEND_EXPORT_TO_MTV_ROOM_TO_SERVER: (args: {
+                roomID: string;
+                mtvRoomOptions: MtvRoomCreationOptionsWithoutInitialTracksIDs;
+            }) => args,
+            EXIT_MTV_ROOM_CREATION: () => ({}),
         },
 
         actions: {
@@ -161,6 +180,7 @@ export const appMusicPlaylistsModel = createModel(
             redirectToMpeLibrary: () => ({}),
             goBackToLastScreen: () => ({}),
             displayMpeForcedDisconnectionToast: () => ({}),
+            openMusicPlayerFullScreen: () => ({}),
         },
     },
 );
@@ -197,6 +217,28 @@ const setCurrentlyDisplayedMpeRoomView = appMusicPlaylistsModel.assign(
         currentlyDisplayedMpeRoomView: (_context, event) => event.roomID,
     },
     'SET_CURRENTLY_DISPLAYED_MPE_ROOM_VIEW',
+);
+
+const assignCurrentlyExportedToMtvMpeRoomIDToContext =
+    appMusicPlaylistsModel.assign(
+        {
+            currentlyExportedToMtvMpeRoomID: (_context, event) => event.roomID,
+        },
+        'EXPORT_TO_MTV_ROOM',
+    );
+
+const assignCloseMtvRoomCreationModalToContext = appMusicPlaylistsModel.assign(
+    {
+        closeMtvRoomCreationModal: (_context, event) => event.closeModal,
+    },
+    'SAVE_MTV_ROOM_CREATION_MODAL_CLOSER',
+);
+
+const resetCloseMtvRoomCreationModal = appMusicPlaylistsModel.assign(
+    {
+        closeMtvRoomCreationModal: undefined,
+    },
+    undefined,
 );
 
 const spawnPlaylistActor = appMusicPlaylistsModel.assign(
@@ -271,6 +313,44 @@ function getPlaylistMachineActorName(roomID: string): string {
 export function createAppMusicPlaylistsMachine({
     socket,
 }: CreateAppMusicPlaylistsMachineArgs): AppMusicPlaylistsMachine {
+    const creationMtvRoomForm = createCreationMtvRoomFormMachine({
+        redirectToRoomNameScreen: () => {
+            navigateFromRef('MusicPlaylistEditorExportToMtvCreationForm', {
+                screen: 'MusicTrackVoteCreationFormName',
+            });
+        },
+
+        redirectToOpeningStatusScreen: () => {
+            navigateFromRef('MusicPlaylistEditorExportToMtvCreationForm', {
+                screen: 'MusicTrackVoteCreationFormOpeningStatus',
+            });
+        },
+
+        redirectToPhysicalConstraintsScreen: () => {
+            navigateFromRef('MusicPlaylistEditorExportToMtvCreationForm', {
+                screen: 'MusicTrackVoteCreationFormPhysicalConstraints',
+            });
+        },
+
+        redirectToPlayingModeScreen: () => {
+            navigateFromRef('MusicPlaylistEditorExportToMtvCreationForm', {
+                screen: 'MusicTrackVoteCreationFormPlayingMode',
+            });
+        },
+
+        redirectToVotesConstraintsScreen: () => {
+            navigateFromRef('MusicPlaylistEditorExportToMtvCreationForm', {
+                screen: 'MusicTrackVoteCreationFormVotesConstraints',
+            });
+        },
+
+        redirectToConfirmationScreen: () => {
+            navigateFromRef('MusicPlaylistEditorExportToMtvCreationForm', {
+                screen: 'MusicTrackVoteCreationFormConfirmation',
+            });
+        },
+    });
+
     return appMusicPlaylistsModel.createMachine({
         id: 'appMusicPlaylists',
 
@@ -521,6 +601,17 @@ export function createAppMusicPlaylistsMachine({
                                 break;
                             }
 
+                            case 'SEND_EXPORT_TO_MTV_ROOM_TO_SERVER': {
+                                const { roomID, mtvRoomOptions } = event;
+
+                                socket.emit('MPE_EXPORT_TO_MTV', {
+                                    roomID,
+                                    mtvRoomOptions,
+                                });
+
+                                break;
+                            }
+
                             default: {
                                 throw new Error(
                                     `Received unknown event: ${event.type}`,
@@ -697,6 +788,156 @@ export function createAppMusicPlaylistsMachine({
                     /**
                      *
                      */
+                },
+            },
+
+            exportToMtvRoom: {
+                initial: 'idle',
+
+                states: {
+                    idle: {
+                        on: {
+                            EXPORT_TO_MTV_ROOM: {
+                                target: 'configuringMtvRoom',
+
+                                actions:
+                                    assignCurrentlyExportedToMtvMpeRoomIDToContext,
+                            },
+                        },
+                    },
+
+                    configuringMtvRoom: {
+                        entry: () => {
+                            navigateFromRef(
+                                'MusicPlaylistEditorExportToMtvCreationForm',
+                                {
+                                    screen: 'MusicTrackVoteCreationFormName',
+                                },
+                            );
+                        },
+
+                        exit: [
+                            ({ closeMtvRoomCreationModal }) => {
+                                closeMtvRoomCreationModal?.();
+                            },
+
+                            resetCloseMtvRoomCreationModal,
+                        ],
+
+                        invoke: {
+                            id: 'creationMtvRoomForm',
+
+                            src: creationMtvRoomForm,
+
+                            onDone: {
+                                target: 'idle',
+
+                                actions: [
+                                    send(
+                                        (
+                                            { currentlyExportedToMtvMpeRoomID },
+                                            {
+                                                data: {
+                                                    roomName,
+                                                    isOpen,
+                                                    onlyInvitedUsersCanVote,
+                                                    hasPhysicalConstraints,
+                                                    physicalConstraintPlaceID,
+                                                    physicalConstraintRadius,
+                                                    physicalConstraintStartsAt,
+                                                    physicalConstraintEndsAt,
+                                                    playingMode,
+                                                    minimumVotesForATrackToBePlayed,
+                                                },
+                                            }: CreationMtvRoomFormDoneInvokeEvent,
+                                        ) => {
+                                            invariant(
+                                                typeof currentlyExportedToMtvMpeRoomID ===
+                                                    'string',
+                                                'Room to export must have been selected before trying to open creation form',
+                                            );
+
+                                            let physicalConstraintEndsAtFormatted =
+                                                '';
+                                            if (
+                                                hasPhysicalConstraints === true
+                                            ) {
+                                                invariant(
+                                                    physicalConstraintEndsAt !==
+                                                        undefined,
+                                                    'physicalConstraintEndsAt must be defined when hasPhysicalConstraints is true',
+                                                );
+
+                                                physicalConstraintEndsAtFormatted =
+                                                    physicalConstraintEndsAt.toISOString();
+                                            }
+
+                                            const mtvRoomOptions: MtvRoomCreationOptionsWithoutInitialTracksIDs =
+                                                {
+                                                    name: roomName,
+                                                    hasPhysicalAndTimeConstraints:
+                                                        hasPhysicalConstraints,
+                                                    isOpen,
+
+                                                    playingMode: playingMode,
+                                                    isOpenOnlyInvitedUsersCanVote:
+                                                        onlyInvitedUsersCanVote,
+                                                    minimumScoreToBePlayed:
+                                                        minimumVotesForATrackToBePlayed,
+                                                    physicalAndTimeConstraints:
+                                                        hasPhysicalConstraints ===
+                                                        true
+                                                            ? {
+                                                                  physicalConstraintPlaceID,
+                                                                  physicalConstraintRadius,
+                                                                  physicalConstraintStartsAt:
+                                                                      physicalConstraintStartsAt.toISOString(),
+                                                                  physicalConstraintEndsAt:
+                                                                      physicalConstraintEndsAtFormatted,
+                                                              }
+                                                            : undefined,
+                                                };
+
+                                            return appMusicPlaylistsModel.events.SEND_EXPORT_TO_MTV_ROOM_TO_SERVER(
+                                                {
+                                                    roomID: currentlyExportedToMtvMpeRoomID,
+                                                    mtvRoomOptions,
+                                                },
+                                            );
+                                        },
+                                        {
+                                            to: 'socketConnection',
+                                        },
+                                    ),
+
+                                    assign({
+                                        currentlyExportedToMtvMpeRoomID: (
+                                            _context,
+                                        ) => undefined,
+                                    }),
+
+                                    'openMusicPlayerFullScreen',
+                                ],
+                            },
+                        },
+
+                        on: {
+                            SAVE_MTV_ROOM_CREATION_MODAL_CLOSER: {
+                                actions:
+                                    assignCloseMtvRoomCreationModalToContext,
+                            },
+
+                            EXIT_MTV_ROOM_CREATION: {
+                                target: 'idle',
+
+                                actions: assign({
+                                    currentlyExportedToMtvMpeRoomID: (
+                                        _context,
+                                    ) => undefined,
+                                }),
+                            },
+                        },
+                    },
                 },
             },
 
@@ -1032,5 +1273,7 @@ export function createAppMusicPlaylistsMachine({
                 },
             },
         },
+
+        preserveActionOrder: true,
     });
 }

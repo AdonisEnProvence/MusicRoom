@@ -2,6 +2,7 @@ import {
     MpeSearchMyRoomsRequestBody,
     MpeSearchMyRoomsResponseBody,
     ListAllMpeRoomsResponseBody,
+    ListAllMpeRoomsRequestBody,
 } from '@musicroom/types';
 import urlcat from 'urlcat';
 import redaxios from 'redaxios';
@@ -20,6 +21,7 @@ export async function fetchLibraryMpeRooms({
     const body: MpeSearchMyRoomsRequestBody = {
         userID,
         searchQuery,
+        page: 1,
     };
 
     const rawResponse = await redaxios.post(url, body);
@@ -38,10 +40,12 @@ export async function fetchAllMpeRooms({
     searchQuery,
 }: FetchAllMpeRoomsArgs): Promise<ListAllMpeRoomsResponseBody> {
     const url = urlcat(SERVER_ENDPOINT, '/mpe/search/all-rooms');
+    const body: ListAllMpeRoomsRequestBody = {
+        searchQuery,
+        page: 1,
+    };
 
-    const rawResponse = await redaxios.post(url, {
-        userID,
-    });
+    const rawResponse = await redaxios.post(url, body);
     const parsedResponse = ListAllMpeRoomsResponseBody.parse(rawResponse.data);
 
     return parsedResponse;

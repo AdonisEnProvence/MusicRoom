@@ -47,10 +47,12 @@ type MpeRoomsUniversalSearchMachine = ReturnType<
 >;
 
 export interface CreateMpeRoomUniversalSearchMachine {
-    fetchMpeRooms: (args: {
-        userID: string;
-        searchQuery: string;
-    }) => Promise<MpeRoomSummary[]>;
+    fetchMpeRooms: (args: { userID: string; searchQuery: string }) => Promise<{
+        page: number;
+        totalEntries: number;
+        hasMore: boolean;
+        data: MpeRoomSummary[];
+    }>;
 }
 
 function createMpeRoomUniversalSearchMachine({
@@ -146,14 +148,14 @@ function createMpeRoomUniversalSearchMachine({
                             //This is temporary
                             //Later we will use the session cookie as auth
                             const userID = getFakeUserID();
-                            const fetchedRoomResponse = await fetchMpeRooms({
+                            const { data } = await fetchMpeRooms({
                                 userID,
                                 searchQuery,
                             });
 
                             sendBack({
                                 type: 'FETCHED_ROOMS',
-                                rooms: fetchedRoomResponse,
+                                rooms: data,
                             });
                         } catch (err) {
                             console.error(err);

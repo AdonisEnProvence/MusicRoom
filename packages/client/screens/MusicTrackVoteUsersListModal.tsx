@@ -25,7 +25,7 @@ interface InviteUserButtonProps {
     onInviteUser: () => void;
 }
 
-const InviteUserButton: React.FC<InviteUserButtonProps> = ({
+export const InviteUserButton: React.FC<InviteUserButtonProps> = ({
     onInviteUser,
 }) => {
     return (

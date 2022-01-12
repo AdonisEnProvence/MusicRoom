@@ -1,7 +1,9 @@
 import {
+    ListAllMpeRoomsRequestBody,
     ListAllMpeRoomsResponseBody,
-    MpeRoomSearchRequestBody,
     MpeRoomSummary,
+    MpeSearchMyRoomsRequestBody,
+    MpeSearchMyRoomsResponseBody,
     MtvRoomSearchRequestBody,
     MtvRoomSearchResponse,
     PlaceAutocompleteResponse,
@@ -120,7 +122,7 @@ export const handlers = [
         },
     ),
 
-    rest.post<MpeRoomSearchRequestBody, ListAllMpeRoomsResponseBody>(
+    rest.post<ListAllMpeRoomsRequestBody, ListAllMpeRoomsResponseBody>(
         `${SERVER_ENDPOINT}/mpe/search/all-rooms`,
         (req, res, ctx) => {
             const allRooms: MpeRoomSummary[] = db.searchableMpeRooms.getAll();
@@ -131,8 +133,8 @@ export const handlers = [
 
     //Normally we should be filtering on mpe room user has joined
     //Atm we don't maintain or have any kind of users list in the client db mock
-    rest.post<MpeRoomSearchRequestBody, ListAllMpeRoomsResponseBody>(
-        `${SERVER_ENDPOINT}/mpe/search/user-rooms`,
+    rest.post<MpeSearchMyRoomsRequestBody, MpeSearchMyRoomsResponseBody>(
+        `${SERVER_ENDPOINT}/mpe/search/my-rooms`,
         (req, res, ctx) => {
             const allRooms: MpeRoomSummary[] = db.searchableMpeRooms.getAll();
 

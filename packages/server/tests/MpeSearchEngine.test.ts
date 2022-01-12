@@ -4,8 +4,10 @@ import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
 import {
-    LibraryMpeRoomSearchResponseBody,
-    MpeRoomSearchRequestBody,
+    ListAllMpeRoomsRequestBody,
+    ListAllMpeRoomsResponseBody,
+    MpeSearchMyRoomsRequestBody,
+    MpeSearchMyRoomsResponseBody,
 } from '@musicroom/types';
 import { BASE_URL, initTestUtils, generateArray } from './utils/TestUtils';
 
@@ -57,13 +59,14 @@ test.group('MPE search engine tests group', (group) => {
         });
 
         const { body } = await supertest(BASE_URL)
-            .post('/mpe/search/user-rooms')
+            .post('/mpe/search/my-rooms')
             .send({
                 userID,
-            } as MpeRoomSearchRequestBody)
+                searchQuery: '',
+            } as MpeSearchMyRoomsRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
-        const parsedBody = LibraryMpeRoomSearchResponseBody.parse(body);
+        const parsedBody = MpeSearchMyRoomsResponseBody.parse(body);
 
         assert.equal(parsedBody.length, mpeRooms.length);
     });
@@ -97,11 +100,14 @@ test.group('MPE search engine tests group', (group) => {
             mpeRoomIDToAssociate: mpeRooms,
         });
 
+        const unknownUserID = datatype.uuid();
+
         await supertest(BASE_URL)
-            .post('/mpe/search/rooms')
+            .post('/mpe/search/my-rooms')
             .send({
-                userID: datatype.uuid(),
-            } as MpeRoomSearchRequestBody)
+                userID: unknownUserID,
+                searchQuery: '',
+            } as MpeSearchMyRoomsRequestBody)
             .expect(404);
     });
 
@@ -137,11 +143,11 @@ test.group('MPE search engine tests group', (group) => {
         const { body } = await supertest(BASE_URL)
             .post('/mpe/search/all-rooms')
             .send({
-                userID,
-            } as MpeRoomSearchRequestBody)
+                searchQuery: '',
+            } as ListAllMpeRoomsRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
-        const parsedBody = LibraryMpeRoomSearchResponseBody.parse(body);
+        const parsedBody = ListAllMpeRoomsResponseBody.parse(body);
 
         assert.equal(parsedBody.length, mpeRooms.length + otherMpeRooms.length);
     });

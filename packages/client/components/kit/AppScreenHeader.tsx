@@ -61,9 +61,15 @@ const AppScreenHeader: React.FC<AppScreenHeaderProps> = ({
                     </TouchableOpacity>
                 )}
 
-                {HeaderRight && <HeaderRight />}
-
                 <AppScreenHeaderTitle>{title}</AppScreenHeaderTitle>
+
+                {HeaderRight && (
+                    <HeaderRight
+                        sx={{
+                            alignSelf: 'flex-end',
+                        }}
+                    />
+                )}
             </View>
         </View>
     );

@@ -7,6 +7,7 @@ import AppScreenHeaderTitle from './AppScreenHeaderTitle';
 type AppScreenHeaderPropsBase = {
     insetTop: number;
     title: string;
+    HeaderRight?: () => React.ReactElement;
 };
 
 type AppScreenHeaderProps = AppScreenHeaderPropsBase &
@@ -21,6 +22,7 @@ type AppScreenHeaderProps = AppScreenHeaderPropsBase &
 const AppScreenHeader: React.FC<AppScreenHeaderProps> = ({
     insetTop,
     title,
+    HeaderRight,
     ...props
 }) => {
     const sx = useSx();
@@ -58,6 +60,8 @@ const AppScreenHeader: React.FC<AppScreenHeaderProps> = ({
                         />
                     </TouchableOpacity>
                 )}
+
+                {HeaderRight && <HeaderRight />}
 
                 <AppScreenHeaderTitle>{title}</AppScreenHeaderTitle>
             </View>

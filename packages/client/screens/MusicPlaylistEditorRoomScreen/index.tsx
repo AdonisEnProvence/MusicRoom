@@ -19,6 +19,7 @@ import { MusicPlaylist } from '../../machines/appMusicPlaylistsMachine';
 import TrackListItem from '../../components/Track/TrackListItem';
 import { PlaylistActorRef } from '../../machines/playlistMachine';
 import BottomRightAbsoluteButton from '../../components/kit/BottomRightAbsoluteButton';
+import { InviteUserButton } from '../MusicTrackVoteUsersListModal';
 
 interface MusicPlaylistEditorRoomScreenProps extends MpeTabMpeRoomScreenProps {
     playlist: MusicPlaylist;
@@ -203,7 +204,19 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             playlistRef,
             (state) => !state.hasTag('roomIsReady'),
         );
+        const userRelatedInformation = useSelector(
+            playlistRef,
+            (state) => state.context.state.userRelatedInformation,
+        );
+        const roomCreatorUserID = useSelector(
+            playlistRef,
+            (state) => state.context.state.roomCreatorUserID,
+        );
         const disableEveryCta = userIsNotInRoom || shouldFreezeUi;
+
+        const userIsMpeRoomCreator =
+            userRelatedInformation !== null &&
+            userRelatedInformation.userID === roomCreatorUserID;
 
         function handleAddTrack() {
             navigation.navigate('SearchTracks', {
@@ -256,6 +269,16 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             });
         }
 
+        function handleInviteUserButtonPressed() {
+            console.log('invitation pressed');
+            navigation.navigate('MusicPlaylistEditorUsersSearch', {
+                screen: 'MusicPlaylistEditorUsersSearchModal',
+                params: {
+                    roomID,
+                },
+            });
+        }
+
         useFocusEffect(
             React.useCallback(() => {
                 // Do something when the screen is focused
@@ -282,6 +305,18 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                     goBack={() => {
                         navigation.goBack();
                     }}
+                    HeaderRight={
+                        userIsMpeRoomCreator
+                            ? () => (
+                                  <InviteUserButton
+                                      testID={'mpe-invite-user-button'}
+                                      onInviteUser={
+                                          handleInviteUserButtonPressed
+                                      }
+                                  />
+                              )
+                            : undefined
+                    }
                 />
 
                 <AppScreenContainer>

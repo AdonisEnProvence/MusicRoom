@@ -7,6 +7,7 @@ import AppScreenHeaderTitle from './AppScreenHeaderTitle';
 type AppScreenHeaderPropsBase = {
     insetTop: number;
     title: string;
+    HeaderRight?: () => React.ReactElement;
 };
 
 type AppScreenHeaderProps = AppScreenHeaderPropsBase &
@@ -21,6 +22,7 @@ type AppScreenHeaderProps = AppScreenHeaderPropsBase &
 const AppScreenHeader: React.FC<AppScreenHeaderProps> = ({
     insetTop,
     title,
+    HeaderRight,
     ...props
 }) => {
     const sx = useSx();
@@ -60,6 +62,14 @@ const AppScreenHeader: React.FC<AppScreenHeaderProps> = ({
                 )}
 
                 <AppScreenHeaderTitle>{title}</AppScreenHeaderTitle>
+
+                {HeaderRight && (
+                    <HeaderRight
+                        sx={{
+                            alignSelf: 'flex-end',
+                        }}
+                    />
+                )}
             </View>
         </View>
     );

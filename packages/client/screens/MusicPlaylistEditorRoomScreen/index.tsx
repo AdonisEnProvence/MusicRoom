@@ -307,7 +307,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                         userIsMpeRoomCreator
                             ? () => (
                                   <InviteUserButton
-                                      testID={'mtv-invite-user-button'}
+                                      testID={'mpe-invite-user-button'}
                                       onInviteUser={
                                           handleInviteUserButtonPressed
                                       }

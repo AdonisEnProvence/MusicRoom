@@ -19,6 +19,7 @@ import { MusicPlaylist } from '../../machines/appMusicPlaylistsMachine';
 import TrackListItem from '../../components/Track/TrackListItem';
 import { PlaylistActorRef } from '../../machines/playlistMachine';
 import BottomRightAbsoluteButton from '../../components/kit/BottomRightAbsoluteButton';
+import { InviteUserButton } from '../MusicTrackVoteUsersListModal';
 
 interface MusicPlaylistEditorRoomScreenProps extends MpeTabMpeRoomScreenProps {
     playlist: MusicPlaylist;
@@ -254,6 +255,11 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             playlistRef.send({
                 type: 'EXPORT_TO_MTV',
             });
+        function handleInviteUserButtonPressed() {
+            console.log('invitation pressed');
+            // navigation.navigate('MusicTrackVoteUsersSearch', {
+            //     screen: 'MusicTrackVoteUsersSearchModal',
+            // });
         }
 
         useFocusEffect(
@@ -282,6 +288,11 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                     goBack={() => {
                         navigation.goBack();
                     }}
+                    HeaderRight={() => (
+                        <InviteUserButton
+                            onInviteUser={handleInviteUserButtonPressed}
+                        />
+                    )}
                 />
 
                 <AppScreenContainer>

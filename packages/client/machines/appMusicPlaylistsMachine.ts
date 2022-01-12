@@ -165,14 +165,22 @@ export const appMusicPlaylistsModel = createModel(
             }) => args,
 
             EXPORT_TO_MTV_ROOM: (args: { roomID: string }) => args,
+
             SAVE_MTV_ROOM_CREATION_MODAL_CLOSER: (args: {
                 closeModal: () => void;
             }) => args,
+
             SEND_EXPORT_TO_MTV_ROOM_TO_SERVER: (args: {
                 roomID: string;
                 mtvRoomOptions: MtvRoomCreationOptionsWithoutInitialTracksIDs;
             }) => args,
+
             EXIT_MTV_ROOM_CREATION: () => ({}),
+
+            CREATOR_INVITE_USER_IN_ROOM: (args: {
+                roomID: string;
+                userID: string;
+            }) => args,
         },
 
         actions: {
@@ -609,6 +617,19 @@ export function createAppMusicPlaylistsMachine({
                                     mtvRoomOptions,
                                 });
 
+                                break;
+                            }
+
+                            case 'CREATOR_INVITE_USER_IN_ROOM': {
+                                const { roomID, userID } = event;
+                                console.log(
+                                    'send creator invite user in mpe room',
+                                    { event },
+                                );
+                                socket.emit('MPE_CREATOR_INVITE_USER', {
+                                    invitedUserID: userID,
+                                    roomID,
+                                });
                                 break;
                             }
 
@@ -1241,6 +1262,10 @@ export function createAppMusicPlaylistsMachine({
                                     getPlaylistMachineActorName(roomID),
                             },
                         ),
+                    },
+
+                    CREATOR_INVITE_USER_IN_ROOM: {
+                        actions: forwardTo('socketConnection'),
                     },
 
                     DISPLAY_MPE_ROOM_VIEW: [

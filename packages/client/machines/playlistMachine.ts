@@ -83,6 +83,7 @@ export const playlistModel = createModel(
             LEAVE_ROOM: () => ({}),
 
             EXPORT_TO_MTV: () => ({}),
+            CREATOR_INVITE_USER: (args: { userID: string }) => args,
         },
     },
 );
@@ -629,6 +630,18 @@ export function createPlaylistMachine({
         on: {
             ASSIGN_MERGE_NEW_STATE: {
                 actions: assignMergeNewState,
+            },
+
+            CREATOR_INVITE_USER: {
+                actions: sendParent((_context, { userID }) => {
+                    console.log('SENDING TO PARENT ');
+                    return appMusicPlaylistsModel.events.CREATOR_INVITE_USER_IN_ROOM(
+                        {
+                            roomID,
+                            userID,
+                        },
+                    );
+                }),
             },
 
             MPE_ROOM_VIEW_FOCUS: {

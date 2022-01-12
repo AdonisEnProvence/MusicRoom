@@ -15,7 +15,6 @@ import {
 } from '../machines/appScreenHeaderWithSearchBarMachine';
 import { roomUsersSearchMachine } from '../machines/roomUsersSearchMachine';
 import { assertEventType } from '../machines/utils';
-import { MusicPlaylistEditorUsersSearchModalProps } from '../types';
 
 const UsersListPlaceholder: React.FC = () => {
     const fakeUsers = Array.from({ length: 3 });
@@ -54,7 +53,6 @@ interface UsersSearchEngineProps {
 /**
  * From now this "screen" is only used inside other wrapping other screen
  * Calling it screen and leaving the file here because it's returning an AppScreenHeader
- * Should this change ?
  */
 const UsersSearchEngineScreen: React.FC<UsersSearchEngineProps> = ({
     onUserCardPress,

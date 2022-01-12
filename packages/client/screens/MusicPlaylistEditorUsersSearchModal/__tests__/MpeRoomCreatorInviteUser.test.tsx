@@ -56,7 +56,7 @@ test('It should emit a creator invite user in mpe room event', async () => {
     });
 });
 
-test('It should emit a creator invite user in mpe room event', async () => {
+test('It should hide invite user button for not room creator', async () => {
     const { screen } = await joinMpeRoom();
 
     for (const fakeUser of fakeUsers) {

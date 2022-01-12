@@ -125,9 +125,26 @@ export const handlers = [
     rest.post<ListAllMpeRoomsRequestBody, ListAllMpeRoomsResponseBody>(
         `${SERVER_ENDPOINT}/mpe/search/all-rooms`,
         (req, res, ctx) => {
-            const allRooms: MpeRoomSummary[] = db.searchableMpeRooms.getAll();
+            const PAGE_SIZE = 10;
+            const { page, searchQuery } = req.body;
 
-            return res(ctx.json(allRooms));
+            const allRooms = db.searchableMpeRooms.getAll();
+            const roomsMatching = allRooms.filter(({ roomName }) =>
+                roomName.toLowerCase().startsWith(searchQuery.toLowerCase()),
+            );
+            const paginatedRooms = roomsMatching.slice(
+                (page - 1) * PAGE_SIZE,
+                page * PAGE_SIZE,
+            );
+
+            return res(
+                ctx.json({
+                    data: paginatedRooms,
+                    totalEntries: roomsMatching.length,
+                    hasMore: roomsMatching.length > page * PAGE_SIZE,
+                    page,
+                }),
+            );
         },
     ),
 
@@ -136,9 +153,26 @@ export const handlers = [
     rest.post<MpeSearchMyRoomsRequestBody, MpeSearchMyRoomsResponseBody>(
         `${SERVER_ENDPOINT}/mpe/search/my-rooms`,
         (req, res, ctx) => {
-            const allRooms: MpeRoomSummary[] = db.searchableMpeRooms.getAll();
+            const PAGE_SIZE = 10;
+            const { page, searchQuery } = req.body;
 
-            return res(ctx.json(allRooms));
+            const allRooms = db.searchableMpeRooms.getAll();
+            const roomsMatching = allRooms.filter(({ roomName }) =>
+                roomName.toLowerCase().startsWith(searchQuery.toLowerCase()),
+            );
+            const paginatedRooms = roomsMatching.slice(
+                (page - 1) * PAGE_SIZE,
+                page * PAGE_SIZE,
+            );
+
+            return res(
+                ctx.json({
+                    data: paginatedRooms,
+                    totalEntries: roomsMatching.length,
+                    hasMore: roomsMatching.length > page * PAGE_SIZE,
+                    page,
+                }),
+            );
         },
     ),
 ];

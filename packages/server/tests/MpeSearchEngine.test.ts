@@ -110,6 +110,88 @@ test.group('My MPE Rooms Search', (group) => {
             } as MpeSearchMyRoomsRequestBody)
             .expect(404);
     });
+
+    test('Returns only rooms matching partial search query', async (assert) => {
+        const userID = datatype.uuid();
+        const mpeRooms: {
+            roomName: string;
+            roomID: string;
+        }[] = [
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Biolay Playlist',
+            },
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Hubert-Félix Thiéfaine Playlist',
+            },
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Muse Playlist',
+            },
+        ];
+        const firstMpeRoom = mpeRooms[0];
+
+        await createUserAndGetSocket({
+            userID,
+            mpeRoomIDToAssociate: mpeRooms,
+        });
+
+        const searchQuery = firstMpeRoom.roomName.slice(0, 3);
+        const { body } = await supertest(BASE_URL)
+            .post('/mpe/search/my-rooms')
+            .send({
+                userID,
+                searchQuery,
+            } as MpeSearchMyRoomsRequestBody)
+            .expect('Content-Type', /json/)
+            .expect(200);
+        const parsedBody = MpeSearchMyRoomsResponseBody.parse(body);
+
+        assert.equal(parsedBody.length, 1);
+        assert.equal(parsedBody[0].roomName, firstMpeRoom.roomName);
+    });
+
+    test('Returns only rooms matching case insensitive search query', async (assert) => {
+        const userID = datatype.uuid();
+        const mpeRooms: {
+            roomName: string;
+            roomID: string;
+        }[] = [
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Biolay Playlist',
+            },
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Hubert-Félix Thiéfaine Playlist',
+            },
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Muse Playlist',
+            },
+        ];
+        const firstMpeRoom = mpeRooms[0];
+
+        await createUserAndGetSocket({
+            userID,
+            mpeRoomIDToAssociate: mpeRooms,
+        });
+
+        const searchQuery = firstMpeRoom.roomName.toLowerCase();
+        const { body } = await supertest(BASE_URL)
+            .post('/mpe/search/my-rooms')
+            .send({
+                userID,
+                searchQuery,
+            } as MpeSearchMyRoomsRequestBody)
+            .expect('Content-Type', /json/)
+            .expect(200);
+        const parsedBody = MpeSearchMyRoomsResponseBody.parse(body);
+
+        assert.equal(parsedBody.length, 1);
+        assert.equal(parsedBody[0].roomName, firstMpeRoom.roomName);
+    });
 });
 
 test.group('All MPE Rooms Search', (group) => {

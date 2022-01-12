@@ -34,11 +34,14 @@ export default class MpeRoomsHttpController {
         const rawBody = request.body();
         //TODO The userID raw in the request body is temporary
         //Later it will be a session cookie to avoid any security issues
-        const { userID } = MpeSearchMyRoomsRequestBody.parse(rawBody);
+        const { userID, searchQuery } =
+            MpeSearchMyRoomsRequestBody.parse(rawBody);
 
         const user = await User.findOrFail(userID);
         await user.load('mpeRooms', (mpeRoomQuery) => {
-            return mpeRoomQuery.preload('creator');
+            return mpeRoomQuery
+                .where('name', 'ilike', `${searchQuery}%`)
+                .preload('creator');
         });
 
         if (user.mpeRooms !== null) {

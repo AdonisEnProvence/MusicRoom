@@ -1,41 +1,48 @@
 import {
-    LibraryMpeRoomSearchResponseBody,
-    MtvRoomSearchRequestBody,
+    MpeSearchMyRoomsRequestBody,
+    MpeSearchMyRoomsResponseBody,
+    ListAllMpeRoomsResponseBody,
 } from '@musicroom/types';
 import urlcat from 'urlcat';
 import redaxios from 'redaxios';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
 
+interface FetchLibraryMpeRoomsArgs {
+    userID: string;
+    searchQuery: string;
+}
+
 export async function fetchLibraryMpeRooms({
     userID,
-}: {
-    userID: string;
-}): Promise<LibraryMpeRoomSearchResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/mpe/search/user-rooms');
-
-    const rawResponse = await redaxios.post(url, {
+    searchQuery,
+}: FetchLibraryMpeRoomsArgs): Promise<MpeSearchMyRoomsResponseBody> {
+    const url = urlcat(SERVER_ENDPOINT, '/mpe/search/my-rooms');
+    const body: MpeSearchMyRoomsRequestBody = {
         userID,
-    });
-    const parsedResponse = LibraryMpeRoomSearchResponseBody.parse(
-        rawResponse.data,
-    );
+        searchQuery,
+    };
+
+    const rawResponse = await redaxios.post(url, body);
+    const parsedResponse = MpeSearchMyRoomsResponseBody.parse(rawResponse.data);
 
     return parsedResponse;
 }
 
+interface FetchAllMpeRoomsArgs {
+    userID: string;
+    searchQuery: string;
+}
+
 export async function fetchAllMpeRooms({
     userID,
-}: {
-    userID: string;
-}): Promise<LibraryMpeRoomSearchResponseBody> {
+    searchQuery,
+}: FetchAllMpeRoomsArgs): Promise<ListAllMpeRoomsResponseBody> {
     const url = urlcat(SERVER_ENDPOINT, '/mpe/search/all-rooms');
 
     const rawResponse = await redaxios.post(url, {
         userID,
     });
-    const parsedResponse = LibraryMpeRoomSearchResponseBody.parse(
-        rawResponse.data,
-    );
+    const parsedResponse = ListAllMpeRoomsResponseBody.parse(rawResponse.data);
 
     return parsedResponse;
 }

@@ -1,7 +1,8 @@
 import {
-    LibraryMpeRoomSearchResponseBody,
+    ListAllMpeRoomsRequestBody,
     ListAllMpeRoomsResponseBody,
-    MpeRoomSearchRequestBody,
+    MpeSearchMyRoomsRequestBody,
+    MpeSearchMyRoomsResponseBody,
 } from '@musicroom/types';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import User from 'App/Models/User';
@@ -11,7 +12,14 @@ import { fromMpeRoomsToMpeRoomSummaries } from '../Ws/MpeRoomsWsController';
 
 export default class MpeRoomsHttpController {
     //TODO should list private with invitation etc etc and takes an userID
-    public async listAllRooms(): Promise<ListAllMpeRoomsResponseBody> {
+    public async listAllRooms({
+        request,
+    }: HttpContextContract): Promise<ListAllMpeRoomsResponseBody> {
+        // @ts-expect-error Fixed soon
+        const { searchQuery } = ListAllMpeRoomsRequestBody.parse(
+            request.body(),
+        );
+
         const allRooms = await MpeRoom.query().preload('creator');
 
         return await fromMpeRoomsToMpeRoomSummaries({
@@ -20,13 +28,13 @@ export default class MpeRoomsHttpController {
         });
     }
 
-    public async listAllUserRooms({
+    public async listMyRooms({
         request,
-    }: HttpContextContract): Promise<LibraryMpeRoomSearchResponseBody> {
+    }: HttpContextContract): Promise<MpeSearchMyRoomsResponseBody> {
         const rawBody = request.body();
         //TODO The userID raw in the request body is temporary
         //Later it will be a session cookie to avoid any security issues
-        const { userID } = MpeRoomSearchRequestBody.parse(rawBody);
+        const { userID } = MpeSearchMyRoomsRequestBody.parse(rawBody);
 
         const user = await User.findOrFail(userID);
         await user.load('mpeRooms', (mpeRoomQuery) => {

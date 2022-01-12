@@ -1,4 +1,5 @@
 import { MpeRoomSummary, MtvRoomSummary } from '@musicroom/types';
+import { EventFrom, Sender } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { getFakeUserID } from '../contexts/SocketContext';
 import { fetchAllMpeRooms, fetchLibraryMpeRooms } from '../services/MpeService';
@@ -46,7 +47,10 @@ type MpeRoomsUniversalSearchMachine = ReturnType<
 >;
 
 export interface CreateMpeRoomUniversalSearchMachine {
-    fetchMpeRooms: (args: { userID: string }) => Promise<MpeRoomSummary[]>;
+    fetchMpeRooms: (args: {
+        userID: string;
+        searchQuery: string;
+    }) => Promise<MpeRoomSummary[]>;
 }
 
 function createMpeRoomUniversalSearchMachine({
@@ -131,27 +135,34 @@ function createMpeRoomUniversalSearchMachine({
         },
         {
             services: {
-                fetchRooms: () => async (sendBack) => {
-                    try {
-                        //This is temporary
-                        //Later we will use the session cookie as auth
-                        const userID = getFakeUserID();
-                        const fetchedRoomResponse = await fetchMpeRooms({
-                            userID,
-                        });
+                fetchRooms:
+                    ({ searchQuery }) =>
+                    async (
+                        sendBack: Sender<
+                            EventFrom<typeof mpeRoomUniversalSearchModel>
+                        >,
+                    ) => {
+                        try {
+                            //This is temporary
+                            //Later we will use the session cookie as auth
+                            const userID = getFakeUserID();
+                            const fetchedRoomResponse = await fetchMpeRooms({
+                                userID,
+                                searchQuery,
+                            });
 
-                        sendBack({
-                            type: 'FETCHED_ROOMS',
-                            rooms: fetchedRoomResponse,
-                        });
-                    } catch (err) {
-                        console.error(err);
+                            sendBack({
+                                type: 'FETCHED_ROOMS',
+                                rooms: fetchedRoomResponse,
+                            });
+                        } catch (err) {
+                            console.error(err);
 
-                        sendBack({
-                            type: 'FAILED_FETCHING_ROOMS',
-                        });
-                    }
-                },
+                            sendBack({
+                                type: 'FAILED_FETCHING_ROOMS',
+                            });
+                        }
+                    },
             },
         },
     );

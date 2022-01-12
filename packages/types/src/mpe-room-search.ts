@@ -1,15 +1,24 @@
 import * as z from 'zod';
 import { MpeRoomSummary } from './mpe';
 
-export const MpeRoomSearchRequestBody = z.object({
-    userID: z.string().uuid(),
+export const MpeSearchMyRoomsRequestBody = z.object({
+    userID: z.string().uuid(), // FIXME: use authentication
+    searchQuery: z.string(),
 });
-export type MpeRoomSearchRequestBody = z.infer<typeof MpeRoomSearchRequestBody>;
+export type MpeSearchMyRoomsRequestBody = z.infer<
+    typeof MpeSearchMyRoomsRequestBody
+>;
 
-export const LibraryMpeRoomSearchResponseBody = MpeRoomSummary.array();
+export const MpeSearchMyRoomsResponseBody = MpeRoomSummary.array();
+export type MpeSearchMyRoomsResponseBody = z.infer<
+    typeof MpeSearchMyRoomsResponseBody
+>;
 
-export type LibraryMpeRoomSearchResponseBody = z.infer<
-    typeof LibraryMpeRoomSearchResponseBody
+export const ListAllMpeRoomsRequestBody = z.object({
+    searchQuery: z.string(),
+});
+export type ListAllMpeRoomsRequestBody = z.infer<
+    typeof ListAllMpeRoomsRequestBody
 >;
 
 export const ListAllMpeRoomsResponseBody = MpeRoomSummary.array();

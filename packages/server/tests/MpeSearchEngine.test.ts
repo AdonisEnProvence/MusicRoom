@@ -222,7 +222,7 @@ test.group('My MPE Rooms Search', (group) => {
                 roomID: datatype.uuid(),
             }),
             minLength: 11,
-            maxLength: 18,
+            maxLength: 22,
         });
         const totalRoomsCount = mpeRooms.length;
 
@@ -231,42 +231,52 @@ test.group('My MPE Rooms Search', (group) => {
             mpeRoomIDToAssociate: mpeRooms,
         });
 
-        const firstRequestBody: MpeSearchMyRoomsRequestBody = {
-            userID,
-            searchQuery: '',
-            page: 1,
-        };
-        const { body: firstPageBodyRaw } = await supertest(BASE_URL)
-            .post('/mpe/search/my-rooms')
-            .send(firstRequestBody)
-            .expect('Content-Type', /json/)
-            .expect(200);
-        const firstPageBodyParsed =
-            MpeSearchMyRoomsResponseBody.parse(firstPageBodyRaw);
-        assert.isTrue(firstPageBodyParsed.hasMore);
-        assert.equal(firstPageBodyParsed.page, 1);
-        assert.equal(firstPageBodyParsed.totalEntries, totalRoomsCount);
-        assert.equal(firstPageBodyParsed.data.length, PAGE_MAX_LENGTH);
+        let page = 1;
+        let hasMore = true;
+        let totalFetchedEntries = 0;
+        while (hasMore === true) {
+            const requestBody: MpeSearchMyRoomsRequestBody = {
+                userID,
+                searchQuery: '',
+                page,
+            };
 
-        const secondRequestBody: MpeSearchMyRoomsRequestBody = {
+            const { body: pageBodyRaw } = await supertest(BASE_URL)
+                .post('/mpe/search/my-rooms')
+                .send(requestBody)
+                .expect('Content-Type', /json/)
+                .expect(200);
+            const pageBodyParsed =
+                MpeSearchMyRoomsResponseBody.parse(pageBodyRaw);
+
+            assert.equal(pageBodyParsed.page, page);
+            assert.equal(pageBodyParsed.totalEntries, totalRoomsCount);
+            assert.isAtMost(pageBodyParsed.data.length, PAGE_MAX_LENGTH);
+
+            totalFetchedEntries += pageBodyParsed.data.length;
+            hasMore = pageBodyParsed.hasMore;
+            page++;
+        }
+
+        assert.equal(totalFetchedEntries, totalRoomsCount);
+
+        const extraRequestBody: MpeSearchMyRoomsRequestBody = {
             userID,
             searchQuery: '',
-            page: 2,
+            page,
         };
-        const { body: secondPageBodyRaw } = await supertest(BASE_URL)
+        const { body: extraPageBodyRaw } = await supertest(BASE_URL)
             .post('/mpe/search/my-rooms')
-            .send(secondRequestBody)
+            .send(extraRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
-        const secondPageBodyParsed =
-            MpeSearchMyRoomsResponseBody.parse(secondPageBodyRaw);
-        assert.isFalse(secondPageBodyParsed.hasMore);
-        assert.equal(secondPageBodyParsed.page, 2);
-        assert.equal(secondPageBodyParsed.totalEntries, totalRoomsCount);
-        assert.equal(
-            secondPageBodyParsed.data.length,
-            totalRoomsCount % PAGE_MAX_LENGTH,
-        );
+        const extraPageBodyParsed =
+            MpeSearchMyRoomsResponseBody.parse(extraPageBodyRaw);
+
+        assert.equal(extraPageBodyParsed.page, page);
+        assert.equal(extraPageBodyParsed.totalEntries, totalRoomsCount);
+        assert.equal(extraPageBodyParsed.data.length, 0);
+        assert.isFalse(extraPageBodyParsed.hasMore);
     });
 });
 
@@ -414,55 +424,48 @@ test.group('All MPE Rooms Search', (group) => {
             mpeRoomIDToAssociate: mpeRooms,
         });
 
-        const firstRequestBody: ListAllMpeRoomsRequestBody = {
-            searchQuery: '',
-            page: 1,
-        };
-        const { body: firstPageBodyRaw } = await supertest(BASE_URL)
-            .post('/mpe/search/all-rooms')
-            .send(firstRequestBody)
-            .expect('Content-Type', /json/)
-            .expect(200);
-        const firstPageBodyParsed =
-            ListAllMpeRoomsResponseBody.parse(firstPageBodyRaw);
-        assert.isTrue(firstPageBodyParsed.hasMore);
-        assert.equal(firstPageBodyParsed.page, 1);
-        assert.equal(firstPageBodyParsed.totalEntries, totalRoomsCount);
-        assert.equal(firstPageBodyParsed.data.length, PAGE_MAX_LENGTH);
+        let page = 1;
+        let hasMore = true;
+        let totalFetchedEntries = 0;
+        while (hasMore === true) {
+            const requestBody: ListAllMpeRoomsRequestBody = {
+                searchQuery: '',
+                page,
+            };
+            const { body: pageBodyRaw } = await supertest(BASE_URL)
+                .post('/mpe/search/all-rooms')
+                .send(requestBody)
+                .expect('Content-Type', /json/)
+                .expect(200);
+            const pageBodyParsed =
+                ListAllMpeRoomsResponseBody.parse(pageBodyRaw);
 
-        const secondRequestBody: ListAllMpeRoomsRequestBody = {
-            searchQuery: '',
-            page: 2,
-        };
-        const { body: secondPageBodyRaw } = await supertest(BASE_URL)
-            .post('/mpe/search/all-rooms')
-            .send(secondRequestBody)
-            .expect('Content-Type', /json/)
-            .expect(200);
-        const secondPageBodyParsed =
-            ListAllMpeRoomsResponseBody.parse(secondPageBodyRaw);
-        assert.isTrue(secondPageBodyParsed.hasMore);
-        assert.equal(secondPageBodyParsed.page, 2);
-        assert.equal(secondPageBodyParsed.totalEntries, totalRoomsCount);
-        assert.equal(secondPageBodyParsed.data.length, PAGE_MAX_LENGTH);
+            assert.equal(pageBodyParsed.page, page);
+            assert.equal(pageBodyParsed.totalEntries, totalRoomsCount);
+            assert.isAtMost(pageBodyParsed.data.length, PAGE_MAX_LENGTH);
 
-        const thirdRequestBody: ListAllMpeRoomsRequestBody = {
+            totalFetchedEntries += pageBodyParsed.data.length;
+            hasMore = pageBodyParsed.hasMore;
+            page++;
+        }
+
+        assert.equal(totalFetchedEntries, totalRoomsCount);
+
+        const extraRequestBody: ListAllMpeRoomsRequestBody = {
             searchQuery: '',
-            page: 3,
+            page,
         };
-        const { body: thirdPageBodyRaw } = await supertest(BASE_URL)
+        const { body: extraPageBodyRaw } = await supertest(BASE_URL)
             .post('/mpe/search/all-rooms')
-            .send(thirdRequestBody)
+            .send(extraRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
-        const thirdPageBodyParsed =
-            ListAllMpeRoomsResponseBody.parse(thirdPageBodyRaw);
-        assert.isFalse(thirdPageBodyParsed.hasMore);
-        assert.equal(thirdPageBodyParsed.page, 3);
-        assert.equal(thirdPageBodyParsed.totalEntries, totalRoomsCount);
-        assert.equal(
-            thirdPageBodyParsed.data.length,
-            totalRoomsCount % PAGE_MAX_LENGTH,
-        );
+        const extraPageBodyParsed =
+            ListAllMpeRoomsResponseBody.parse(extraPageBodyRaw);
+
+        assert.equal(extraPageBodyParsed.page, page);
+        assert.equal(extraPageBodyParsed.totalEntries, totalRoomsCount);
+        assert.equal(extraPageBodyParsed.data.length, 0);
+        assert.isFalse(extraPageBodyParsed.hasMore);
     });
 });

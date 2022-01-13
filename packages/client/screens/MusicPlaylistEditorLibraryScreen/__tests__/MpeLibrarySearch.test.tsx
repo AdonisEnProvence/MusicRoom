@@ -67,6 +67,7 @@ const mpeLibrarySearchModel = createModel(
     {
         events: {
             LOAD_MORE: () => ({}),
+            SEARCH_ROOM_BY_NAME: (roomName: string) => ({ roomName }),
         },
     },
 );
@@ -76,9 +77,20 @@ type MpeLibrarySearchMachineState = State<
     EventFrom<typeof mpeLibrarySearchModel>
 >;
 
-const incrementPage = mpeLibrarySearchModel.assign({
-    page: ({ page }) => page + 1,
-});
+const incrementPage = mpeLibrarySearchModel.assign(
+    {
+        page: ({ page }) => page + 1,
+    },
+    'LOAD_MORE',
+);
+
+const assignSearchQueryToContext = mpeLibrarySearchModel.assign(
+    {
+        searchQuery: (_, { roomName }) => roomName,
+        page: 1,
+    },
+    'SEARCH_ROOM_BY_NAME',
+);
 
 const mpeLibrarySearchMachine = mpeLibrarySearchModel.createMachine({
     initial: 'displayingRooms',
@@ -122,6 +134,10 @@ const mpeLibrarySearchMachine = mpeLibrarySearchModel.createMachine({
                 LOAD_MORE: {
                     actions: incrementPage,
                 },
+
+                SEARCH_ROOM_BY_NAME: {
+                    actions: assignSearchQueryToContext,
+                },
             },
         },
 
@@ -150,6 +166,36 @@ const mpeLibrarySearchTestModel = createTestModel<
         expect(loadMoreButton).toBeTruthy();
 
         fireEvent.press(loadMoreButton);
+    },
+
+    SEARCH_ROOM_BY_NAME: {
+        exec: async ({ screen }, _event) => {
+            const { roomName } = _event as EventFrom<
+                typeof mpeLibrarySearchMachine,
+                'SEARCH_ROOM_BY_NAME'
+            >;
+
+            const searchInput = await screen.findByPlaceholderText(
+                /search.*room/i,
+            );
+            expect(searchInput).toBeTruthy();
+
+            fireEvent(searchInput, 'focus');
+            fireEvent.changeText(searchInput, roomName);
+            fireEvent(searchInput, 'submitEditing');
+        },
+
+        cases: [
+            {
+                roomName: 'Biolay',
+            } as Omit<
+                EventFrom<
+                    typeof mpeLibrarySearchMachine,
+                    'SEARCH_ROOM_BY_NAME'
+                >,
+                'type'
+            >,
+        ],
     },
 });
 

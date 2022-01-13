@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text, View } from 'dripsy';
+import { Text, useSx, View } from 'dripsy';
 import { FlatList, TouchableOpacity } from 'react-native';
 import { useActor, useMachine } from '@xstate/react';
 import { ActorRef } from 'xstate';
@@ -13,6 +13,7 @@ import {
     AppScreenHeaderWithSearchBarMachineState,
 } from '../../machines/appScreenHeaderWithSearchBarMachine';
 import { libraryMpeRoomSearchMachine } from '../../machines/mpeRoomUniversalSearchMachine';
+import { IS_TEST } from '../../constants/Env';
 
 interface PlaylistListItemProps {
     roomSummary: MpeRoomSummary;
@@ -38,72 +39,116 @@ const PlaylistListItem: React.FC<PlaylistListItemProps> = ({
     );
 };
 
-const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> = ({
-    navigation,
-}) => {
-    const insets = useSafeAreaInsets();
-    const [screenOffsetY, setScreenOffsetY] = useState(0);
+const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> =
+    () => {
+        const insets = useSafeAreaInsets();
+        const [screenOffsetY, setScreenOffsetY] = useState(0);
+        const sx = useSx();
+        const initialNumberOfItemsToRender = IS_TEST ? Infinity : 10;
 
-    //Library Search machine
-    const [libraryRoomState] = useMachine(libraryMpeRoomSearchMachine);
-    const hasMoreRoomsToFetch = false;
-    const searchBarActor: ActorRef<
-        AppScreenHeaderWithSearchBarMachineEvent,
-        AppScreenHeaderWithSearchBarMachineState
-    > = libraryRoomState.children.searchBarMachine;
-    const [searchState, sendToSearch] = useActor(searchBarActor);
-    const showHeader = searchState.hasTag('showHeaderTitle');
-    ///
+        const [libraryRoomState, libraryRoomSend] = useMachine(
+            libraryMpeRoomSearchMachine,
+        );
+        const mpeRooms = libraryRoomState.context.rooms;
+        const hasMoreRoomsToFetch = libraryRoomState.context.hasMore;
+        const searchBarActor: ActorRef<
+            AppScreenHeaderWithSearchBarMachineEvent,
+            AppScreenHeaderWithSearchBarMachineState
+        > = libraryRoomState.children.searchBarMachine;
+        const [searchState, sendToSearch] = useActor(searchBarActor);
+        const showHeader = searchState.hasTag('showHeaderTitle');
 
-    const { appMusicPlaylistsActorRef } = useMusicPlaylistsActor();
-    function handleRoomPress({ roomID, roomName }: MpeRoomSummary) {
-        appMusicPlaylistsActorRef.send({
-            type: 'DISPLAY_MPE_ROOM_VIEW',
-            roomID,
-            roomName,
-        });
-    }
+        function handleLoadMore() {
+            libraryRoomSend({
+                type: 'LOAD_MORE_ITEMS',
+            });
+        }
 
-    return (
-        <AppScreenWithSearchBar
-            testID="library-mpe-rooms-list"
-            title="Your library"
-            searchInputPlaceholder="Search a room..."
-            showHeader={showHeader}
-            screenOffsetY={showHeader === true ? 0 : screenOffsetY}
-            setScreenOffsetY={setScreenOffsetY}
-            searchQuery={searchState.context.searchQuery}
-            sendToSearch={sendToSearch}
-        >
-            <FlatList
-                testID="library-mpe-room-search-flat-list"
-                data={libraryRoomState.context.rooms}
-                renderItem={({ item }) => {
-                    return (
-                        <PlaylistListItem
-                            roomSummary={item}
-                            onPress={handleRoomPress}
-                        />
-                    );
-                }}
-                keyExtractor={({ roomID }) => roomID}
-                ListEmptyComponent={() => {
-                    return (
-                        <Text sx={{ color: 'white' }}>
-                            You have not joined any MPE rooms
-                        </Text>
-                    );
-                }}
-                // This is here that we ensure the Flat List will not show items
-                // on an unsafe area.
-                contentContainerStyle={{
-                    paddingBottom: insets.bottom,
-                }}
-                onEndReachedThreshold={0.5}
-                initialNumToRender={10}
-            />
-        </AppScreenWithSearchBar>
-    );
-};
+        const { appMusicPlaylistsActorRef } = useMusicPlaylistsActor();
+
+        function handleRoomPress({ roomID, roomName }: MpeRoomSummary) {
+            appMusicPlaylistsActorRef.send({
+                type: 'DISPLAY_MPE_ROOM_VIEW',
+                roomID,
+                roomName,
+            });
+        }
+
+        return (
+            <AppScreenWithSearchBar
+                testID="library-mpe-rooms-list"
+                title="Your library"
+                searchInputPlaceholder="Search a room..."
+                showHeader={showHeader}
+                screenOffsetY={showHeader === true ? 0 : screenOffsetY}
+                setScreenOffsetY={setScreenOffsetY}
+                searchQuery={searchState.context.searchQuery}
+                sendToSearch={sendToSearch}
+            >
+                <FlatList
+                    testID="library-mpe-room-search-flat-list"
+                    data={mpeRooms}
+                    renderItem={({ item }) => {
+                        return (
+                            <PlaylistListItem
+                                roomSummary={item}
+                                onPress={handleRoomPress}
+                            />
+                        );
+                    }}
+                    keyExtractor={({ roomID }) => roomID}
+                    ListEmptyComponent={() => {
+                        return (
+                            <Text sx={{ color: 'white' }}>
+                                You have not joined any MPE rooms
+                            </Text>
+                        );
+                    }}
+                    ListFooterComponent={
+                        hasMoreRoomsToFetch === true
+                            ? () => {
+                                  return (
+                                      <View
+                                          sx={{
+                                              flexDirection: 'row',
+                                              justifyContent: 'center',
+                                              alignItems: 'center',
+                                          }}
+                                      >
+                                          <TouchableOpacity
+                                              onPress={handleLoadMore}
+                                              style={sx({
+                                                  borderRadius: 'full',
+                                                  borderWidth: 2,
+                                                  borderColor: 'secondary',
+                                                  paddingX: 'l',
+                                                  paddingY: 's',
+                                              })}
+                                          >
+                                              <Text
+                                                  sx={{
+                                                      color: 'secondary',
+                                                      fontWeight: 'bold',
+                                                  }}
+                                              >
+                                                  Load more
+                                              </Text>
+                                          </TouchableOpacity>
+                                      </View>
+                                  );
+                              }
+                            : undefined
+                    }
+                    // This is here that we ensure the Flat List will not show items
+                    // on an unsafe area.
+                    contentContainerStyle={{
+                        paddingBottom: insets.bottom,
+                    }}
+                    onEndReachedThreshold={0.5}
+                    initialNumToRender={initialNumberOfItemsToRender}
+                />
+            </AppScreenWithSearchBar>
+        );
+    };
 
 export default MusicPlaylistEditorListScreen;

@@ -11,17 +11,19 @@ import { SERVER_ENDPOINT } from '../constants/Endpoints';
 interface FetchLibraryMpeRoomsArgs {
     userID: string;
     searchQuery: string;
+    page: number;
 }
 
 export async function fetchLibraryMpeRooms({
     userID,
     searchQuery,
+    page,
 }: FetchLibraryMpeRoomsArgs): Promise<MpeSearchMyRoomsResponseBody> {
     const url = urlcat(SERVER_ENDPOINT, '/mpe/search/my-rooms');
     const body: MpeSearchMyRoomsRequestBody = {
         userID,
         searchQuery,
-        page: 1,
+        page,
     };
 
     const rawResponse = await redaxios.post(url, body);
@@ -31,18 +33,18 @@ export async function fetchLibraryMpeRooms({
 }
 
 interface FetchAllMpeRoomsArgs {
-    userID: string;
     searchQuery: string;
+    page: number;
 }
 
 export async function fetchAllMpeRooms({
-    userID,
     searchQuery,
+    page,
 }: FetchAllMpeRoomsArgs): Promise<ListAllMpeRoomsResponseBody> {
     const url = urlcat(SERVER_ENDPOINT, '/mpe/search/all-rooms');
     const body: ListAllMpeRoomsRequestBody = {
         searchQuery,
-        page: 1,
+        page,
     };
 
     const rawResponse = await redaxios.post(url, body);

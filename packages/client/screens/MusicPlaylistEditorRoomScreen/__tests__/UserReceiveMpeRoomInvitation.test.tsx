@@ -1,7 +1,9 @@
+import { datatype } from 'faker';
 import Toast from 'react-native-toast-message';
 import invariant from 'tiny-invariant';
 import { serverSocket } from '../../../services/websockets';
 import { generateMpeRoomSummary } from '../../../tests/data';
+import { joinMpeRoom } from '../../../tests/tests-mpe-utils';
 import { renderApp, waitFor } from '../../../tests/tests-utils';
 
 it(`It should display an invitation toast to the user
@@ -48,5 +50,27 @@ then press it and emit a MTV_JOIN_ROOM client socket event`, async () => {
             new RegExp(`Playlist.*${roomSummary.roomName}`),
         );
         expect(playlistTitle).toBeTruthy();
+    });
+});
+
+it(`It should enable room playlist edit operation cta for invited user in restrained room`, async () => {
+    await joinMpeRoom({
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanEdit: true,
+        userRelatedInformation: {
+            userHasBeenInvited: true,
+            userID: datatype.uuid(),
+        },
+    });
+});
+
+it(`It should disable room playlist edit operation cta for not invited user in restrained room`, async () => {
+    await joinMpeRoom({
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanEdit: true,
+        userRelatedInformation: {
+            userHasBeenInvited: false,
+            userID: datatype.uuid(),
+        },
     });
 });

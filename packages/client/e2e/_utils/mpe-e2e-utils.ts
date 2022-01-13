@@ -73,6 +73,25 @@ export const knownSearches: KnownSearchesRecord = {
     ],
 };
 
+export async function pressMpeRoomInvitationToast({
+    page,
+    invitingUserName,
+    roomName,
+}: {
+    page: Page;
+    invitingUserName: string;
+    roomName: string;
+}): Promise<void> {
+    const invitationToast = page.locator(
+        `text="${invitingUserName} sent you an invitation"`,
+    );
+    await expect(invitationToast).toBeVisible();
+
+    await invitationToast.click();
+
+    await expect(page.locator(`text="Playlist ${roomName}"`)).toBeVisible();
+}
+
 export function withinMpeRoomsLibraryScreen(selector: string): string {
     return `css=[data-testid="library-mpe-rooms-list"] >> ${selector}`;
 }
@@ -258,6 +277,7 @@ export async function searchAndJoinMpeRoomFromMpeRoomsSearchEngine({
 
     await joinRoomButton.click();
 
+    // This is useless
     await expect(
         getAddTrackButton({
             page,

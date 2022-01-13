@@ -212,11 +212,39 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             playlistRef,
             (state) => state.context.state.roomCreatorUserID,
         );
+        const isOpenOnlyInvitedUsersCanEdit = useSelector(
+            playlistRef,
+            (state) => state.context.state.isOpenOnlyInvitedUsersCanEdit,
+        );
+        const isOpen = useSelector(
+            playlistRef,
+            (state) => state.context.state.isOpen,
+        );
+
+        const userIsInvited =
+            userRelatedInformation !== null &&
+            userRelatedInformation.userHasBeenInvited;
+        const roomIsOpenAndOnlyInvitedUsersCanEdit =
+            isOpen && isOpenOnlyInvitedUsersCanEdit;
+        const userIsNotInvitedAndRoomIsInOpenOnlyInvitedUsersCanEdit =
+            roomIsOpenAndOnlyInvitedUsersCanEdit && !userIsInvited;
+
+        console.log(userIsNotInRoom, shouldFreezeUi);
+        //Interface disabling variables
         const disableEveryCta = userIsNotInRoom || shouldFreezeUi;
 
+        //Both leave and export mpe as mtv are not playlist edit operation
+        const disableEveryPlaylistEditOperationCta =
+            disableEveryCta ||
+            userIsNotInvitedAndRoomIsInOpenOnlyInvitedUsersCanEdit;
+
+        //Hide or not invite user button
         const userIsMpeRoomCreator =
             userRelatedInformation !== null &&
             userRelatedInformation.userID === roomCreatorUserID;
+        ///
+
+        console.log({ disableEveryPlaylistEditOperationCta, disableEveryCta });
 
         function handleAddTrack() {
             navigation.navigate('SearchTracks', {
@@ -405,7 +433,9 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                             ListHeaderComponent={() => {
                                 return (
                                     <AddTrackButton
-                                        disabled={disableEveryCta}
+                                        disabled={
+                                            disableEveryPlaylistEditOperationCta
+                                        }
                                         onPress={handleAddTrack}
                                     />
                                 );
@@ -438,7 +468,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                                                                 playlistRef
                                                             }
                                                             disabled={
-                                                                disableEveryCta
+                                                                disableEveryPlaylistEditOperationCta
                                                             }
                                                             id={id}
                                                             onUpPress={handleUpPress(

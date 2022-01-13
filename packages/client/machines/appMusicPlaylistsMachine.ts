@@ -177,10 +177,22 @@ export const appMusicPlaylistsModel = createModel(
 
             EXIT_MTV_ROOM_CREATION: () => ({}),
 
+            //Invitation
             CREATOR_INVITE_USER_IN_ROOM: (args: {
                 roomID: string;
                 userID: string;
             }) => args,
+
+            MPE_RECEIVED_ROOM_INVITATION: (args: {
+                roomSummary: MpeRoomSummary;
+            }) => args,
+
+            USER_ACCEPTED_MPE_ROOM_INVITATION: (args: {
+                roomSummary: MpeRoomSummary;
+            }) => args,
+
+            USER_IGNORED_MPE_ROOM_INVITATION: () => ({}),
+            ///
         },
 
         actions: {
@@ -506,6 +518,20 @@ export function createAppMusicPlaylistsMachine({
                             roomSummary,
                         });
                     });
+
+                    socket.on(
+                        'MPE_RECEIVED_ROOM_INVITATION',
+                        ({ roomSummary }) => {
+                            console.log(
+                                `MPE_RECEIVED_ROOM_INVITATION MPE_FORCED_DISCONNECTION`,
+                            );
+
+                            sendBack({
+                                type: 'MPE_RECEIVED_ROOM_INVITATION',
+                                roomSummary,
+                            });
+                        },
+                    );
 
                     onReceive((event) => {
                         switch (event.type) {
@@ -958,6 +984,50 @@ export function createAppMusicPlaylistsMachine({
                                 }),
                             },
                         },
+                    },
+                },
+            },
+
+            mpeRoomInvitationHandler: {
+                initial: 'idle',
+
+                states: {
+                    idle: {},
+
+                    displayInvitation: {
+                        invoke: {
+                            src: 'displayMpeRoomInvitationToast',
+                        },
+
+                        //Only redirecting user view to the related mpe room view
+                        //It's up to the user to join or not the related mpe room
+                        on: {
+                            USER_ACCEPTED_MPE_ROOM_INVITATION: {
+                                target: 'idle',
+                                actions: send(
+                                    (
+                                        _context,
+                                        { roomSummary: { roomID, roomName } },
+                                    ) =>
+                                        appMusicPlaylistsModel.events.DISPLAY_MPE_ROOM_VIEW(
+                                            {
+                                                roomID,
+                                                roomName,
+                                            },
+                                        ),
+                                ),
+                            },
+
+                            USER_IGNORED_MPE_ROOM_INVITATION: {
+                                target: 'idle',
+                            },
+                        },
+                    },
+                },
+
+                on: {
+                    MPE_RECEIVED_ROOM_INVITATION: {
+                        target: 'mpeRoomInvitationHandler.displayInvitation',
                     },
                 },
             },

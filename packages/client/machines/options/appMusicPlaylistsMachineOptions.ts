@@ -1,3 +1,4 @@
+import { MpeRoomSummary } from '@musicroom/types';
 import Toast from 'react-native-toast-message';
 import { MachineOptions } from 'xstate';
 import {
@@ -8,6 +9,7 @@ import {
     MusicPlaylistsContext,
     MusicPlaylistsEvents,
 } from '../appMusicPlaylistsMachine';
+import { assertEventType } from '../utils';
 
 export type AppMusicPlaylistsOptions = Partial<
     MachineOptions<MusicPlaylistsContext, MusicPlaylistsEvents>
@@ -21,6 +23,37 @@ export function getAppMusicPlaylistsMachineOptions({
     setIsFullScreen,
 }: GetAppMusicPlaylistsMachineOptionsArgs): Partial<AppMusicPlaylistsOptions> {
     return {
+        services: {
+            displayMpeRoomInvitationToast: (_context, event) => (sendBack) => {
+                assertEventType(event, 'MPE_RECEIVED_ROOM_INVITATION');
+
+                const { roomSummary } = event;
+                const { creatorName, roomName } = roomSummary;
+                Toast.hide();
+                Toast.show({
+                    type: 'info',
+                    visibilityTime: 10000,
+                    text1: `${creatorName} sent you an invitation`,
+                    text2: `Press here to see ${roomName} Playlist`,
+                    onPress: () => {
+                        sendBack({
+                            type: 'USER_ACCEPTED_MPE_ROOM_INVITATION',
+                            roomSummary,
+                        });
+                    },
+                    onHide: () => {
+                        sendBack({
+                            type: 'USER_IGNORED_MPE_ROOM_INVITATION',
+                        });
+                    },
+                });
+
+                return () => {
+                    Toast.hide();
+                };
+            },
+        },
+
         actions: {
             displayGetContextFailureToast: () => {
                 Toast.show({

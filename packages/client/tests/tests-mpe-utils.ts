@@ -1,6 +1,7 @@
 import {
     AllClientToServerEvents,
     MpeChangeTrackOrderOperationToApply,
+    MpeWorkflowStateWithUserRelatedInformation,
     PlaylistModelMpeWorkflowState,
 } from '@musicroom/types';
 import {
@@ -274,7 +275,9 @@ export async function changeTrackOrder({
  * This method will make the user join the first mocked room he will find
  * After this method the user will be on the mpe room view
  */
-export async function joinMpeRoom(): Promise<{
+export async function joinMpeRoom(
+    overrides?: Partial<MpeWorkflowStateWithUserRelatedInformation>,
+): Promise<{
     screen: ReturnType<typeof render>;
     state: DefinedStateRef;
 }> {
@@ -288,6 +291,7 @@ export async function joinMpeRoom(): Promise<{
             ...rooms[0],
             isOpen: true,
             isOpenOnlyInvitedUsersCanEdit: false,
+            ...overrides,
         },
         //Is this a real game changer ?
         userID: datatype.uuid(),
@@ -316,6 +320,10 @@ export async function joinMpeRoom(): Promise<{
         tmp = true;
     });
 
+    const onlyInvitedUsersCanEditAndUserIsNotInvited =
+        firstRoomState.isOpen &&
+        firstRoomState.isOpenOnlyInvitedUsersCanEdit &&
+        !firstRoomState.userRelatedInformation.userHasBeenInvited;
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
     const goToMtvSearchScreenButton = screen.getByText(
@@ -391,7 +399,9 @@ export async function joinMpeRoom(): Promise<{
         ),
     );
 
-    await playlistUIHasUnfreezed(screen);
+    if (!onlyInvitedUsersCanEditAndUserIsNotInvited) {
+        await playlistUIHasUnfreezed(screen);
+    }
 
     for (const [index, { id: trackID }] of firstRoomState.tracks.entries()) {
         const isFirstElement = index === 0;
@@ -400,33 +410,50 @@ export async function joinMpeRoom(): Promise<{
         await waitFor(() => {
             expect(tmp).toBeTruthy();
         });
-        console.log({ index });
-        //Should also look for specific room settings icon such as isOpen and why creatorName
+
         const listItem = await screen.findByTestId(
             `${trackID}-track-card-container`,
         );
         expect(listItem).toBeTruthy();
 
+        //Playlist edit operation cta
         const moveDownTrackButton =
             within(listItem).getByLabelText(/move.*down/i);
         expect(moveDownTrackButton).toBeTruthy();
-        if (isLastTrack) {
-            expect(moveDownTrackButton).toBeDisabled();
-        } else {
-            expect(moveDownTrackButton).not.toBeDisabled();
-        }
-
         const moveUpTrackButton = within(listItem).getByLabelText(/move.*up/i);
         expect(moveUpTrackButton).toBeTruthy();
-        if (isFirstElement) {
-            expect(moveUpTrackButton).toBeDisabled();
-        } else {
-            expect(moveUpTrackButton).not.toBeDisabled();
-        }
-
         const deleteTrackButton = within(listItem).getByLabelText(/delete/i);
         expect(deleteTrackButton).toBeTruthy();
-        expect(deleteTrackButton).not.toBeDisabled();
+
+        if (onlyInvitedUsersCanEditAndUserIsNotInvited) {
+            expect(moveDownTrackButton).toBeDisabled();
+            expect(moveUpTrackButton).toBeDisabled();
+            expect(deleteTrackButton).toBeDisabled();
+        } else {
+            if (isLastTrack) {
+                expect(moveDownTrackButton).toBeDisabled();
+            } else {
+                expect(moveDownTrackButton).not.toBeDisabled();
+            }
+
+            if (isFirstElement) {
+                expect(moveUpTrackButton).toBeDisabled();
+            } else {
+                expect(moveUpTrackButton).not.toBeDisabled();
+            }
+
+            expect(deleteTrackButton).not.toBeDisabled();
+        }
+
+        //Always enabled cta
+        await waitFor(() => {
+            const exportAsMtvButton = screen.getByText(/.*export.*/i);
+            expect(exportAsMtvButton).toBeTruthy();
+            expect(exportAsMtvButton).not.toBeDisabled();
+            const leaveRoomButton = screen.getByText(/.*leave.*/i);
+            expect(leaveRoomButton).toBeTruthy();
+            expect(leaveRoomButton).not.toBeDisabled();
+        });
     }
 
     return {

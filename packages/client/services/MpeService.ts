@@ -1,41 +1,54 @@
 import {
-    LibraryMpeRoomSearchResponseBody,
-    MtvRoomSearchRequestBody,
+    MpeSearchMyRoomsRequestBody,
+    MpeSearchMyRoomsResponseBody,
+    ListAllMpeRoomsResponseBody,
+    ListAllMpeRoomsRequestBody,
 } from '@musicroom/types';
 import urlcat from 'urlcat';
 import redaxios from 'redaxios';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
 
+interface FetchLibraryMpeRoomsArgs {
+    userID: string;
+    searchQuery: string;
+    page: number;
+}
+
 export async function fetchLibraryMpeRooms({
     userID,
-}: {
-    userID: string;
-}): Promise<LibraryMpeRoomSearchResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/mpe/search/user-rooms');
-
-    const rawResponse = await redaxios.post(url, {
+    searchQuery,
+    page,
+}: FetchLibraryMpeRoomsArgs): Promise<MpeSearchMyRoomsResponseBody> {
+    const url = urlcat(SERVER_ENDPOINT, '/mpe/search/my-rooms');
+    const body: MpeSearchMyRoomsRequestBody = {
         userID,
-    });
-    const parsedResponse = LibraryMpeRoomSearchResponseBody.parse(
-        rawResponse.data,
-    );
+        searchQuery,
+        page,
+    };
+
+    const rawResponse = await redaxios.post(url, body);
+    const parsedResponse = MpeSearchMyRoomsResponseBody.parse(rawResponse.data);
 
     return parsedResponse;
 }
 
-export async function fetchAllMpeRooms({
-    userID,
-}: {
-    userID: string;
-}): Promise<LibraryMpeRoomSearchResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/mpe/search/all-rooms');
+interface FetchAllMpeRoomsArgs {
+    searchQuery: string;
+    page: number;
+}
 
-    const rawResponse = await redaxios.post(url, {
-        userID,
-    });
-    const parsedResponse = LibraryMpeRoomSearchResponseBody.parse(
-        rawResponse.data,
-    );
+export async function fetchAllMpeRooms({
+    searchQuery,
+    page,
+}: FetchAllMpeRoomsArgs): Promise<ListAllMpeRoomsResponseBody> {
+    const url = urlcat(SERVER_ENDPOINT, '/mpe/search/all-rooms');
+    const body: ListAllMpeRoomsRequestBody = {
+        searchQuery,
+        page,
+    };
+
+    const rawResponse = await redaxios.post(url, body);
+    const parsedResponse = ListAllMpeRoomsResponseBody.parse(rawResponse.data);
 
     return parsedResponse;
 }

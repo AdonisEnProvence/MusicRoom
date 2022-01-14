@@ -1,4 +1,5 @@
 import { MpeRoomSummary, MtvRoomSummary } from '@musicroom/types';
+import { EventFrom, Sender } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { getFakeUserID } from '../contexts/SocketContext';
 import { fetchAllMpeRooms, fetchLibraryMpeRooms } from '../services/MpeService';
@@ -7,7 +8,9 @@ import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearch
 const mpeRoomUniversalSearchModel = createModel(
     {
         rooms: [] as MtvRoomSummary[],
+        hasMore: true,
 
+        nextPage: 1,
         searchQuery: '',
     },
     {
@@ -16,9 +19,11 @@ const mpeRoomUniversalSearchModel = createModel(
             CLEAR_QUERY: () => ({}),
             CANCEL: () => ({}),
 
-            FETCHED_ROOMS: (rooms: MtvRoomSummary[]) => ({
-                rooms,
-            }),
+            FETCHED_ROOMS: (args: {
+                rooms: MtvRoomSummary[];
+                hasMore: boolean;
+                page: number;
+            }) => args,
 
             LOAD_MORE_ITEMS: () => ({}),
 
@@ -30,13 +35,26 @@ const mpeRoomUniversalSearchModel = createModel(
 const assignSearchQueryToContext = mpeRoomUniversalSearchModel.assign(
     {
         searchQuery: (_, event) => event.searchQuery,
+        nextPage: 1,
     },
     'SUBMITTED',
 );
 
 const assignFetchedRoomsToContext = mpeRoomUniversalSearchModel.assign(
     {
-        rooms: (context, event) => event.rooms,
+        rooms: (
+            { rooms: currentRooms },
+            { rooms: fetchedRooms, page: fetchedPage },
+        ) => {
+            if (fetchedPage === 1) {
+                return fetchedRooms;
+            }
+
+            return [...currentRooms, ...fetchedRooms];
+        },
+        hasMore: (_, { hasMore }) => hasMore,
+        nextPage: ({ nextPage }, { hasMore }) =>
+            hasMore === true ? nextPage + 1 : nextPage,
     },
     'FETCHED_ROOMS',
 );
@@ -46,7 +64,16 @@ type MpeRoomsUniversalSearchMachine = ReturnType<
 >;
 
 export interface CreateMpeRoomUniversalSearchMachine {
-    fetchMpeRooms: (args: { userID: string }) => Promise<MpeRoomSummary[]>;
+    fetchMpeRooms: (args: {
+        userID: string;
+        searchQuery: string;
+        page: number;
+    }) => Promise<{
+        page: number;
+        totalEntries: number;
+        hasMore: boolean;
+        data: MpeRoomSummary[];
+    }>;
 }
 
 function createMpeRoomUniversalSearchMachine({
@@ -61,7 +88,15 @@ function createMpeRoomUniversalSearchMachine({
                     initial: 'fetchingRooms',
 
                     states: {
-                        idle: {},
+                        idle: {
+                            on: {
+                                LOAD_MORE_ITEMS: {
+                                    cond: 'hasMoreRoomsToFetch',
+
+                                    target: 'fetchingRooms',
+                                },
+                            },
+                        },
 
                         fetchingRooms: {
                             invoke: {
@@ -108,6 +143,7 @@ function createMpeRoomUniversalSearchMachine({
 
                             actions: mpeRoomUniversalSearchModel.assign({
                                 searchQuery: '',
+                                nextPage: 1,
                             }),
                         },
 
@@ -116,6 +152,7 @@ function createMpeRoomUniversalSearchMachine({
 
                             actions: mpeRoomUniversalSearchModel.assign({
                                 searchQuery: '',
+                                nextPage: 1,
                             }),
                         },
                     },
@@ -130,28 +167,44 @@ function createMpeRoomUniversalSearchMachine({
             },
         },
         {
+            guards: {
+                hasMoreRoomsToFetch: ({ hasMore }) => hasMore === true,
+            },
+
             services: {
-                fetchRooms: () => async (sendBack) => {
-                    try {
-                        //This is temporary
-                        //Later we will use the session cookie as auth
-                        const userID = getFakeUserID();
-                        const fetchedRoomResponse = await fetchMpeRooms({
-                            userID,
-                        });
+                fetchRooms:
+                    ({ searchQuery, nextPage }) =>
+                    async (
+                        sendBack: Sender<
+                            EventFrom<typeof mpeRoomUniversalSearchModel>
+                        >,
+                    ) => {
+                        try {
+                            //This is temporary
+                            //Later we will use the session cookie as auth
+                            const userID = getFakeUserID();
+                            const { data, page, hasMore } = await fetchMpeRooms(
+                                {
+                                    userID,
+                                    searchQuery,
+                                    page: nextPage,
+                                },
+                            );
 
-                        sendBack({
-                            type: 'FETCHED_ROOMS',
-                            rooms: fetchedRoomResponse,
-                        });
-                    } catch (err) {
-                        console.error(err);
+                            sendBack({
+                                type: 'FETCHED_ROOMS',
+                                rooms: data,
+                                page,
+                                hasMore,
+                            });
+                        } catch (err) {
+                            console.error(err);
 
-                        sendBack({
-                            type: 'FAILED_FETCHING_ROOMS',
-                        });
-                    }
-                },
+                            sendBack({
+                                type: 'FAILED_FETCHING_ROOMS',
+                            });
+                        }
+                    },
             },
         },
     );

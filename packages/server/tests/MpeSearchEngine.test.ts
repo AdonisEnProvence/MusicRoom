@@ -4,12 +4,14 @@ import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
 import {
-    LibraryMpeRoomSearchResponseBody,
-    MpeRoomSearchRequestBody,
+    ListAllMpeRoomsRequestBody,
+    ListAllMpeRoomsResponseBody,
+    MpeSearchMyRoomsRequestBody,
+    MpeSearchMyRoomsResponseBody,
 } from '@musicroom/types';
 import { BASE_URL, initTestUtils, generateArray } from './utils/TestUtils';
 
-test.group('MPE search engine tests group', (group) => {
+test.group('My MPE Rooms Search', (group) => {
     const {
         createUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
@@ -56,16 +58,19 @@ test.group('MPE search engine tests group', (group) => {
             mpeRoomIDToAssociate: mpeRooms,
         });
 
+        const requestBody: MpeSearchMyRoomsRequestBody = {
+            userID,
+            searchQuery: '',
+            page: 1,
+        };
         const { body } = await supertest(BASE_URL)
-            .post('/mpe/search/user-rooms')
-            .send({
-                userID,
-            } as MpeRoomSearchRequestBody)
+            .post('/mpe/search/my-rooms')
+            .send(requestBody)
             .expect('Content-Type', /json/)
             .expect(200);
-        const parsedBody = LibraryMpeRoomSearchResponseBody.parse(body);
+        const parsedBody = MpeSearchMyRoomsResponseBody.parse(body);
 
-        assert.equal(parsedBody.length, mpeRooms.length);
+        assert.equal(parsedBody.data.length, mpeRooms.length);
     });
 
     test('It should fail to search not existing user mpe rooms', async () => {
@@ -97,32 +102,317 @@ test.group('MPE search engine tests group', (group) => {
             mpeRoomIDToAssociate: mpeRooms,
         });
 
+        const unknownUserID = datatype.uuid();
+
+        const requestBody: MpeSearchMyRoomsRequestBody = {
+            userID: unknownUserID,
+            searchQuery: '',
+            page: 1,
+        };
         await supertest(BASE_URL)
-            .post('/mpe/search/rooms')
-            .send({
-                userID: datatype.uuid(),
-            } as MpeRoomSearchRequestBody)
+            .post('/mpe/search/my-rooms')
+            .send(requestBody)
             .expect(404);
     });
 
-    test('It should list all mpe rooms', async (assert) => {
+    test('Returns only rooms matching partial search query', async (assert) => {
+        const userID = datatype.uuid();
+        const mpeRooms: {
+            roomName: string;
+            roomID: string;
+        }[] = [
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Biolay Playlist',
+            },
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Hubert-Félix Thiéfaine Playlist',
+            },
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Muse Playlist',
+            },
+        ];
+        const firstMpeRoom = mpeRooms[0];
+
+        await createUserAndGetSocket({
+            userID,
+            mpeRoomIDToAssociate: mpeRooms,
+        });
+
+        const searchQuery = firstMpeRoom.roomName.slice(0, 3);
+        const requestBody: MpeSearchMyRoomsRequestBody = {
+            userID,
+            searchQuery,
+            page: 1,
+        };
+        const { body } = await supertest(BASE_URL)
+            .post('/mpe/search/my-rooms')
+            .send(requestBody)
+            .expect('Content-Type', /json/)
+            .expect(200);
+        const parsedBody = MpeSearchMyRoomsResponseBody.parse(body);
+
+        assert.equal(parsedBody.data.length, 1);
+        assert.equal(parsedBody.data[0].roomName, firstMpeRoom.roomName);
+    });
+
+    test('Returns only rooms matching case insensitive search query', async (assert) => {
+        const userID = datatype.uuid();
+        const mpeRooms: {
+            roomName: string;
+            roomID: string;
+        }[] = [
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Biolay Playlist',
+            },
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Hubert-Félix Thiéfaine Playlist',
+            },
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Muse Playlist',
+            },
+        ];
+        const firstMpeRoom = mpeRooms[0];
+
+        await createUserAndGetSocket({
+            userID,
+            mpeRoomIDToAssociate: mpeRooms,
+        });
+
+        const searchQuery = firstMpeRoom.roomName.toLowerCase();
+        const requestBody: MpeSearchMyRoomsRequestBody = {
+            userID,
+            searchQuery,
+            page: 1,
+        };
+        const { body } = await supertest(BASE_URL)
+            .post('/mpe/search/my-rooms')
+            .send(requestBody)
+            .expect('Content-Type', /json/)
+            .expect(200);
+        const parsedBody = MpeSearchMyRoomsResponseBody.parse(body);
+
+        assert.equal(parsedBody.data.length, 1);
+        assert.equal(parsedBody.data[0].roomName, firstMpeRoom.roomName);
+    });
+
+    test('Page must be strictly positive', async () => {
+        const requestBody: MpeSearchMyRoomsRequestBody = {
+            userID: datatype.uuid(),
+            searchQuery: '',
+            page: 0,
+        };
+        await supertest(BASE_URL)
+            .post('/mpe/search/my-rooms')
+            .send(requestBody)
+            .expect(500);
+    });
+
+    test('Rooms are paginated', async (assert) => {
+        const PAGE_MAX_LENGTH = 10;
         const userID = datatype.uuid();
         const mpeRooms = generateArray({
             fill: () => ({
                 roomName: random.words(3),
                 roomID: datatype.uuid(),
             }),
-            minLength: 3,
-            maxLength: 10,
+            minLength: 11,
+            maxLength: 22,
+        });
+        const totalRoomsCount = mpeRooms.length;
+
+        await createUserAndGetSocket({
+            userID: userID,
+            mpeRoomIDToAssociate: mpeRooms,
+        });
+
+        let page = 1;
+        let hasMore = true;
+        let totalFetchedEntries = 0;
+        while (hasMore === true) {
+            const requestBody: MpeSearchMyRoomsRequestBody = {
+                userID,
+                searchQuery: '',
+                page,
+            };
+
+            const { body: pageBodyRaw } = await supertest(BASE_URL)
+                .post('/mpe/search/my-rooms')
+                .send(requestBody)
+                .expect('Content-Type', /json/)
+                .expect(200);
+            const pageBodyParsed =
+                MpeSearchMyRoomsResponseBody.parse(pageBodyRaw);
+
+            assert.equal(pageBodyParsed.page, page);
+            assert.equal(pageBodyParsed.totalEntries, totalRoomsCount);
+            assert.isAtMost(pageBodyParsed.data.length, PAGE_MAX_LENGTH);
+
+            totalFetchedEntries += pageBodyParsed.data.length;
+            hasMore = pageBodyParsed.hasMore;
+            page++;
+        }
+
+        assert.equal(totalFetchedEntries, totalRoomsCount);
+
+        const extraRequestBody: MpeSearchMyRoomsRequestBody = {
+            userID,
+            searchQuery: '',
+            page,
+        };
+        const { body: extraPageBodyRaw } = await supertest(BASE_URL)
+            .post('/mpe/search/my-rooms')
+            .send(extraRequestBody)
+            .expect('Content-Type', /json/)
+            .expect(200);
+        const extraPageBodyParsed =
+            MpeSearchMyRoomsResponseBody.parse(extraPageBodyRaw);
+
+        assert.equal(extraPageBodyParsed.page, page);
+        assert.equal(extraPageBodyParsed.totalEntries, totalRoomsCount);
+        assert.equal(extraPageBodyParsed.data.length, 0);
+        assert.isFalse(extraPageBodyParsed.hasMore);
+    });
+});
+
+test.group('All MPE Rooms Search', (group) => {
+    const {
+        createUserAndGetSocket,
+        disconnectEveryRemainingSocketConnection,
+        initSocketConnection,
+    } = initTestUtils();
+
+    group.beforeEach(async () => {
+        initSocketConnection();
+        await Database.beginGlobalTransaction();
+    });
+
+    group.afterEach(async () => {
+        await disconnectEveryRemainingSocketConnection();
+        sinon.restore();
+        await Database.rollbackGlobalTransaction();
+    });
+
+    test('Returns only rooms matching partial search query', async (assert) => {
+        const userID = datatype.uuid();
+        const mpeRooms: {
+            roomName: string;
+            roomID: string;
+        }[] = [
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Biolay Playlist',
+            },
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Hubert-Félix Thiéfaine Playlist',
+            },
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Muse Playlist',
+            },
+        ];
+        const firstMpeRoom = mpeRooms[0];
+
+        await createUserAndGetSocket({
+            userID,
+            mpeRoomIDToAssociate: mpeRooms,
+        });
+
+        const searchQuery = firstMpeRoom.roomName.slice(0, 3);
+        const requestBody: ListAllMpeRoomsRequestBody = {
+            searchQuery,
+            page: 1,
+        };
+        const { body } = await supertest(BASE_URL)
+            .post('/mpe/search/all-rooms')
+            .send(requestBody)
+            .expect('Content-Type', /json/)
+            .expect(200);
+        const parsedBody = ListAllMpeRoomsResponseBody.parse(body);
+
+        assert.equal(parsedBody.data.length, 1);
+        assert.equal(parsedBody.data[0].roomName, firstMpeRoom.roomName);
+    });
+
+    test('Returns only rooms matching case insensitive search query', async (assert) => {
+        const userID = datatype.uuid();
+        const mpeRooms: {
+            roomName: string;
+            roomID: string;
+        }[] = [
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Biolay Playlist',
+            },
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Hubert-Félix Thiéfaine Playlist',
+            },
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Muse Playlist',
+            },
+        ];
+        const firstMpeRoom = mpeRooms[0];
+
+        await createUserAndGetSocket({
+            userID,
+            mpeRoomIDToAssociate: mpeRooms,
+        });
+
+        const searchQuery = firstMpeRoom.roomName.toLowerCase();
+        const requestBody: ListAllMpeRoomsRequestBody = {
+            searchQuery,
+            page: 1,
+        };
+        const { body } = await supertest(BASE_URL)
+            .post('/mpe/search/all-rooms')
+            .send(requestBody)
+            .expect('Content-Type', /json/)
+            .expect(200);
+        const parsedBody = ListAllMpeRoomsResponseBody.parse(body);
+
+        assert.equal(parsedBody.data.length, 1);
+        assert.equal(parsedBody.data[0].roomName, firstMpeRoom.roomName);
+    });
+
+    test('Page must be strictly positive', async () => {
+        const requestBody: ListAllMpeRoomsRequestBody = {
+            searchQuery: '',
+            page: 0,
+        };
+        await supertest(BASE_URL)
+            .post('/mpe/search/all-rooms')
+            .send(requestBody)
+            .expect(500);
+    });
+
+    test('All rooms are paginated', async (assert) => {
+        const PAGE_MAX_LENGTH = 10;
+        const userID = datatype.uuid();
+        const mpeRooms = generateArray({
+            fill: () => ({
+                roomName: random.words(3),
+                roomID: datatype.uuid(),
+            }),
+            minLength: 11,
+            maxLength: 18,
         });
         const otherMpeRooms = generateArray({
             fill: () => ({
                 roomName: random.words(3),
                 roomID: datatype.uuid(),
             }),
-            minLength: 3,
-            maxLength: 10,
+            minLength: 11,
+            maxLength: 18,
         });
+        const totalRoomsCount = mpeRooms.length + otherMpeRooms.length;
 
         await createUserAndGetSocket({
             userID: datatype.uuid(),
@@ -134,15 +424,48 @@ test.group('MPE search engine tests group', (group) => {
             mpeRoomIDToAssociate: mpeRooms,
         });
 
-        const { body } = await supertest(BASE_URL)
+        let page = 1;
+        let hasMore = true;
+        let totalFetchedEntries = 0;
+        while (hasMore === true) {
+            const requestBody: ListAllMpeRoomsRequestBody = {
+                searchQuery: '',
+                page,
+            };
+            const { body: pageBodyRaw } = await supertest(BASE_URL)
+                .post('/mpe/search/all-rooms')
+                .send(requestBody)
+                .expect('Content-Type', /json/)
+                .expect(200);
+            const pageBodyParsed =
+                ListAllMpeRoomsResponseBody.parse(pageBodyRaw);
+
+            assert.equal(pageBodyParsed.page, page);
+            assert.equal(pageBodyParsed.totalEntries, totalRoomsCount);
+            assert.isAtMost(pageBodyParsed.data.length, PAGE_MAX_LENGTH);
+
+            totalFetchedEntries += pageBodyParsed.data.length;
+            hasMore = pageBodyParsed.hasMore;
+            page++;
+        }
+
+        assert.equal(totalFetchedEntries, totalRoomsCount);
+
+        const extraRequestBody: ListAllMpeRoomsRequestBody = {
+            searchQuery: '',
+            page,
+        };
+        const { body: extraPageBodyRaw } = await supertest(BASE_URL)
             .post('/mpe/search/all-rooms')
-            .send({
-                userID,
-            } as MpeRoomSearchRequestBody)
+            .send(extraRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
-        const parsedBody = LibraryMpeRoomSearchResponseBody.parse(body);
+        const extraPageBodyParsed =
+            ListAllMpeRoomsResponseBody.parse(extraPageBodyRaw);
 
-        assert.equal(parsedBody.length, mpeRooms.length + otherMpeRooms.length);
+        assert.equal(extraPageBodyParsed.page, page);
+        assert.equal(extraPageBodyParsed.totalEntries, totalRoomsCount);
+        assert.equal(extraPageBodyParsed.data.length, 0);
+        assert.isFalse(extraPageBodyParsed.hasMore);
     });
 });

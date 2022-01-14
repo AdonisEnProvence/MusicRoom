@@ -243,3 +243,56 @@ describe('MPE Rooms Search', () => {
         mpeLibrarySearchTestModel.testCoverage();
     });
 });
+
+test('Pressing Cancel button refreshes the list', async () => {
+    for (const mpeRoomToCreate of fakeMpeRooms) {
+        db.searchableMpeRooms.create(mpeRoomToCreate);
+    }
+
+    const screen = await renderApp();
+
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+    const goToLibraryButton = screen.getByText(/^library$/i);
+    expect(goToLibraryButton).toBeTruthy();
+
+    fireEvent.press(goToLibraryButton);
+
+    const searchInput = await screen.findByPlaceholderText(/search.*room/i);
+    expect(searchInput).toBeTruthy();
+
+    const firstPageLastRoom = fakeMpeRooms[MPE_SEARCH_PAGE_LENGTH - 1];
+    await waitFor(() => {
+        const roomCard = screen.getByText(firstPageLastRoom.roomName);
+        expect(roomCard).toBeTruthy();
+    });
+
+    const loadMoreButton = await screen.findByText(/load.*more/i);
+    expect(loadMoreButton).toBeTruthy();
+
+    fireEvent.press(loadMoreButton);
+
+    const secondPageLastRoom = fakeMpeRooms[MPE_SEARCH_PAGE_LENGTH * 2 - 1];
+    await waitFor(() => {
+        const roomCard = screen.getByText(secondPageLastRoom.roomName);
+        expect(roomCard).toBeTruthy();
+    });
+
+    fireEvent(searchInput, 'focus');
+
+    const cancelButton = await screen.findByText(/cancel/i);
+    expect(cancelButton).toBeTruthy();
+
+    fireEvent.press(cancelButton);
+
+    /**
+     * When pressing cancel, the list should be refreshed.
+     * The second page goes out, while the first page is refreshed and displayed again.
+     */
+    await waitFor(() => {
+        const roomCard = screen.queryByText(secondPageLastRoom.roomName);
+        expect(roomCard).toBeNull();
+    });
+    const roomCard = screen.getByText(firstPageLastRoom.roomName);
+    expect(roomCard).toBeTruthy();
+});

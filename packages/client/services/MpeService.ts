@@ -35,16 +35,19 @@ export async function fetchLibraryMpeRooms({
 interface FetchAllMpeRoomsArgs {
     searchQuery: string;
     page: number;
+    userID: string;
 }
 
 export async function fetchAllMpeRooms({
     searchQuery,
     page,
+    userID,
 }: FetchAllMpeRoomsArgs): Promise<ListAllMpeRoomsResponseBody> {
     const url = urlcat(SERVER_ENDPOINT, '/mpe/search/all-rooms');
     const body: ListAllMpeRoomsRequestBody = {
         searchQuery,
         page,
+        userID,
     };
 
     const rawResponse = await redaxios.post(url, body);

@@ -17,7 +17,7 @@ export default class MpeRoomsHttpController {
     public async listAllRooms({
         request,
     }: HttpContextContract): Promise<ListAllMpeRoomsResponseBody> {
-        const { searchQuery, page } = ListAllMpeRoomsRequestBody.parse(
+        const { searchQuery, page, userID } = ListAllMpeRoomsRequestBody.parse(
             request.body(),
         );
 

@@ -22,6 +22,7 @@ export type MpeSearchMyRoomsResponseBody = z.infer<
 >;
 
 export const ListAllMpeRoomsRequestBody = z.object({
+    userID: z.string().uuid(), // FIXME: use authentication
     searchQuery: z.string(),
     page: StrictlyPositiveInteger,
 });

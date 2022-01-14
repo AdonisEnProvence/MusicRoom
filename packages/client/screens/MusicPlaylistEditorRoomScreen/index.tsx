@@ -200,9 +200,8 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             playlistRef,
             (state) => state.context.state.roomID,
         );
-        const roomIsNotReady = useSelector(
-            playlistRef,
-            (state) => !state.hasTag('roomIsReady'),
+        const roomIsNotReady = useSelector(playlistRef, (state) =>
+            state.hasTag('roomIsNotReady'),
         );
         const userRelatedInformation = useSelector(
             playlistRef,

@@ -199,6 +199,8 @@ export function createPlaylistMachine({
 
         states: {
             init: {
+                tags: 'roomIsNotReady',
+
                 always: [
                     {
                         cond: () => {
@@ -215,6 +217,8 @@ export function createPlaylistMachine({
             },
 
             retrievingContext: {
+                tags: 'roomIsNotReady',
+
                 entry: sendParent(() => {
                     return appMusicPlaylistsModel.events.MPE_GET_CONTEXT({
                         roomID,
@@ -230,8 +234,6 @@ export function createPlaylistMachine({
             },
 
             idle: {
-                tags: 'roomIsReady',
-
                 on: {
                     ASSIGN_MERGE_NEW_STATE: {
                         actions: assignMergeNewState,

@@ -30,7 +30,7 @@ export const db = factory({
 
     searchableMpeRooms: {
         roomID: primaryKey(() => datatype.uuid()),
-        roomName: () => random.words(datatype.number({ min: 1, max: 5 })),
+        roomName: () => random.words(),
         creatorName: () => name.title(),
         isOpen: () => datatype.boolean(),
         isInvited: () => datatype.boolean(),

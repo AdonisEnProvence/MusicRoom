@@ -9,6 +9,7 @@ import {
     fireEvent,
     renderApp,
     waitFor,
+    within,
 } from '../../../tests/tests-utils';
 
 interface TestingContext {
@@ -244,6 +245,10 @@ describe('MPE Rooms Search', () => {
     });
 });
 
+async function withinMpeLibraryScreen(screen: ReturnType<typeof render>) {
+    return within(await screen.findByTestId('library-mpe-rooms-list'));
+}
+
 test('Pressing Cancel button refreshes the list', async () => {
     for (const mpeRoomToCreate of fakeMpeRooms) {
         db.searchableMpeRooms.create(mpeRoomToCreate);
@@ -258,29 +263,50 @@ test('Pressing Cancel button refreshes the list', async () => {
 
     fireEvent.press(goToLibraryButton);
 
-    const searchInput = await screen.findByPlaceholderText(/search.*room/i);
+    const libraryScreen = await withinMpeLibraryScreen(screen);
+
+    const searchInput = await libraryScreen.findByPlaceholderText(
+        /search.*room/i,
+    );
     expect(searchInput).toBeTruthy();
 
     const firstPageLastRoom = fakeMpeRooms[MPE_SEARCH_PAGE_LENGTH - 1];
     await waitFor(() => {
-        const roomCard = screen.getByText(firstPageLastRoom.roomName);
+        const roomCard = libraryScreen.getByText(firstPageLastRoom.roomName);
         expect(roomCard).toBeTruthy();
     });
 
-    const loadMoreButton = await screen.findByText(/load.*more/i);
+    const loadMoreButton = await libraryScreen.findByText(/load.*more/i);
     expect(loadMoreButton).toBeTruthy();
 
     fireEvent.press(loadMoreButton);
 
     const secondPageLastRoom = fakeMpeRooms[MPE_SEARCH_PAGE_LENGTH * 2 - 1];
     await waitFor(() => {
-        const roomCard = screen.getByText(secondPageLastRoom.roomName);
+        const roomCard = libraryScreen.getByText(secondPageLastRoom.roomName);
         expect(roomCard).toBeTruthy();
     });
 
+    const searchQuery = 'Biolay';
     fireEvent(searchInput, 'focus');
+    fireEvent.changeText(searchInput, 'Biolay');
+    fireEvent(searchInput, 'submitEditing');
 
-    const cancelButton = await screen.findByText(/cancel/i);
+    const filteredRooms = getPage(
+        filterMpeRoomsByName(fakeMpeRooms, searchQuery),
+        1,
+        MPE_SEARCH_PAGE_LENGTH,
+    );
+    const firstFilteredPageLastRoom = filteredRooms[filteredRooms.length - 1];
+
+    await waitFor(() => {
+        const roomCard = libraryScreen.getByText(
+            firstFilteredPageLastRoom.roomName,
+        );
+        expect(roomCard).toBeTruthy();
+    });
+
+    const cancelButton = libraryScreen.getByText(/cancel/i);
     expect(cancelButton).toBeTruthy();
 
     fireEvent.press(cancelButton);
@@ -290,9 +316,77 @@ test('Pressing Cancel button refreshes the list', async () => {
      * The second page goes out, while the first page is refreshed and displayed again.
      */
     await waitFor(() => {
-        const roomCard = screen.queryByText(secondPageLastRoom.roomName);
-        expect(roomCard).toBeNull();
+        const roomCard = libraryScreen.getByText(firstPageLastRoom.roomName);
+        expect(roomCard).toBeTruthy();
     });
-    const roomCard = screen.getByText(firstPageLastRoom.roomName);
-    expect(roomCard).toBeTruthy();
+
+    const secondPageRoom = libraryScreen.queryByText(
+        secondPageLastRoom.roomName,
+    );
+    expect(secondPageRoom).toBeNull();
+
+    const filteredResultsRoom = libraryScreen.queryByText(
+        firstFilteredPageLastRoom.roomName,
+    );
+    expect(filteredResultsRoom).toBeNull();
+});
+
+test('Pressing Clear button refreshes the list and resets the search query', async () => {
+    for (const mpeRoomToCreate of fakeMpeRooms) {
+        db.searchableMpeRooms.create(mpeRoomToCreate);
+    }
+
+    const screen = await renderApp();
+
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+    const goToLibraryButton = screen.getByText(/^library$/i);
+    expect(goToLibraryButton).toBeTruthy();
+
+    fireEvent.press(goToLibraryButton);
+
+    const libraryScreen = await withinMpeLibraryScreen(screen);
+
+    const searchInput = await libraryScreen.findByPlaceholderText(
+        /search.*room/i,
+    );
+    expect(searchInput).toBeTruthy();
+
+    const roomName = 'Biolay';
+    fireEvent(searchInput, 'focus');
+    fireEvent.changeText(searchInput, roomName);
+    fireEvent(searchInput, 'submitEditing');
+
+    const filteredRooms = getPage(
+        filterMpeRoomsByName(fakeMpeRooms, roomName),
+        1,
+        MPE_SEARCH_PAGE_LENGTH,
+    );
+    const firstFilteredPageLastRoom = filteredRooms[filteredRooms.length - 1];
+
+    await waitFor(() => {
+        const roomCard = libraryScreen.getByText(
+            firstFilteredPageLastRoom.roomName,
+        );
+        expect(roomCard).toBeTruthy();
+    });
+
+    const clearButton = libraryScreen.getByLabelText(/clear.*input/i);
+    expect(clearButton).toBeTruthy();
+
+    fireEvent.press(clearButton);
+
+    /**
+     * We clear the search query, initial unfiltered results must be displayed.
+     */
+    const firstPageWithoutFilter = getPage(
+        fakeMpeRooms,
+        1,
+        MPE_SEARCH_PAGE_LENGTH,
+    );
+
+    for (const room of firstPageWithoutFilter) {
+        const roomCard = await libraryScreen.findByText(room.roomName);
+        expect(roomCard).toBeTruthy();
+    }
 });

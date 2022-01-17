@@ -1,7 +1,10 @@
 import { Platform } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { MachineOptions } from 'xstate';
-import { navigateFromRef } from '../../navigation/RootNavigation';
+import {
+    goBackFromRef,
+    navigateFromRef,
+} from '../../navigation/RootNavigation';
 import {
     AppMusicPlayerMachineContext,
     AppMusicPlayerMachineEvent,
@@ -78,6 +81,10 @@ export function getMusicPlayerMachineOptions({
                 navigateFromRef('Alert', {
                     reason: 'FORCED_DISCONNECTION',
                 });
+            },
+
+            goBackFromRef: () => {
+                goBackFromRef();
             },
 
             expandMusicPlayerFullScreen: () => {

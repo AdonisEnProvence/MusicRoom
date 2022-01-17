@@ -107,8 +107,6 @@ async function createRoom({ creatorPage }: { creatorPage: Page }) {
         .first();
     await expect(miniPlayerWithSelectedSong).toBeVisible();
 
-    await miniPlayerWithRoomName.click();
-
     return {
         roomName,
         initialTrack: selectedSongTitle,

@@ -226,8 +226,6 @@ async function createPublicRoomWithTimeAndPhysicalConstraints({
     );
     await expect(miniPlayerWithSelectedSong).toBeVisible();
 
-    await miniPlayerWithRoomName.click();
-
     return {
         roomName,
         initialTrack: selectedSongTitle,

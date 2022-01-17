@@ -120,11 +120,6 @@ async function createDirectRoomAndGoFullscreen({
 
     ///
 
-    await findMiniPlayerWithRoomNameAndGoFullscreen({
-        page: creatorPage,
-        roomName,
-    });
-
     return {
         roomName,
         selectedSongTitle,

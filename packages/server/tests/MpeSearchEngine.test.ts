@@ -326,6 +326,7 @@ test.group('All MPE Rooms Search', (group) => {
 
         const searchQuery = firstMpeRoom.roomName.slice(0, 3);
         const requestBody: ListAllMpeRoomsRequestBody = {
+            userID,
             searchQuery,
             page: 1,
         };
@@ -368,6 +369,7 @@ test.group('All MPE Rooms Search', (group) => {
 
         const searchQuery = firstMpeRoom.roomName.toLowerCase();
         const requestBody: ListAllMpeRoomsRequestBody = {
+            userID,
             searchQuery,
             page: 1,
         };
@@ -383,7 +385,9 @@ test.group('All MPE Rooms Search', (group) => {
     });
 
     test('Page must be strictly positive', async () => {
+        const userID = datatype.uuid();
         const requestBody: ListAllMpeRoomsRequestBody = {
+            userID,
             searchQuery: '',
             page: 0,
         };
@@ -429,6 +433,7 @@ test.group('All MPE Rooms Search', (group) => {
         let totalFetchedEntries = 0;
         while (hasMore === true) {
             const requestBody: ListAllMpeRoomsRequestBody = {
+                userID,
                 searchQuery: '',
                 page,
             };
@@ -452,6 +457,7 @@ test.group('All MPE Rooms Search', (group) => {
         assert.equal(totalFetchedEntries, totalRoomsCount);
 
         const extraRequestBody: ListAllMpeRoomsRequestBody = {
+            userID,
             searchQuery: '',
             page,
         };

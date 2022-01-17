@@ -35,7 +35,8 @@ export default class MpeRoomsHttpController {
                     .andWhereColumn(
                         'mpe_room_invitations.mpe_room_id',
                         'mpe_rooms.uuid',
-                    ),
+                    )
+                    .limit(1),
             ])
             .where('name', 'ilike', `${searchQuery}%`)
             .orderBy([
@@ -45,7 +46,7 @@ export default class MpeRoomsHttpController {
                 },
                 {
                     column: 'invitations_count',
-                    order: 'asc',
+                    order: 'desc',
                 },
                 {
                     column: 'mpe_rooms.uuid',

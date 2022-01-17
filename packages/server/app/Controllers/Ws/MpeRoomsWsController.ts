@@ -76,11 +76,12 @@ export async function fromMpeRoomsToMpeRoomSummaries({
     userID: string;
 }): Promise<MpeRoomSummary[]> {
     return await Promise.all(
-        mpeRooms.map(async (room) =>
-            fromMpeRoomToMpeRoomSummary({
-                room,
-                userID,
-            }),
+        mpeRooms.map(
+            async (room) =>
+                await fromMpeRoomToMpeRoomSummary({
+                    room,
+                    userID,
+                }),
         ),
     );
 }

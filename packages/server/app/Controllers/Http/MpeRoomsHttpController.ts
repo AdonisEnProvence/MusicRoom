@@ -60,7 +60,7 @@ export default class MpeRoomsHttpController {
         const hasMoreRoomsToLoad = allMpeRoomsPagination.hasMorePages;
         const formattedMpeRooms = await fromMpeRoomsToMpeRoomSummaries({
             mpeRooms: allMpeRoomsPagination.all(),
-            userID: datatype.uuid(), //TODO this is temporary we need to be refactor during mpe search engine implem
+            userID,
         });
 
         return {

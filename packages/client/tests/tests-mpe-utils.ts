@@ -10,6 +10,7 @@ import {
 } from '@testing-library/react-native';
 import { datatype } from 'faker';
 import Toast from 'react-native-toast-message';
+import { msToTime } from '../screens/MusicPlaylistEditorRoomScreen';
 import { serverSocket } from '../services/websockets';
 import {
     db,
@@ -44,7 +45,6 @@ export async function createMpeRoom(): Promise<{
         overrides: {
             isOpen: true,
             isOpenOnlyInvitedUsersCanEdit: false,
-            playlistTotalDuration: 42000,
             roomCreatorUserID: creatorUserID,
             roomID,
             tracks: [track],
@@ -89,6 +89,13 @@ export async function createMpeRoom(): Promise<{
             new RegExp(`Playlist.*${mpeRoomState.name}`),
         );
         expect(playlistTitle).toBeTruthy();
+    });
+
+    await waitFor(() => {
+        const expectedPlaylistTotalDuration = msToTime(
+            mpeRoomState.playlistTotalDuration,
+        );
+        expect(screen.getByText(expectedPlaylistTotalDuration)).toBeTruthy();
     });
 
     return {
@@ -362,6 +369,13 @@ export async function joinMpeRoom(
             ),
         ).toBeTruthy();
         expect(libraryScreenTitle).toBeTruthy();
+    });
+
+    await waitFor(() => {
+        const expectedPlaylistTotalDuration = msToTime(
+            firstRoomState.playlistTotalDuration,
+        );
+        expect(screen.getByText(expectedPlaylistTotalDuration)).toBeTruthy();
     });
 
     const joinRoomButton = screen.getByTestId(

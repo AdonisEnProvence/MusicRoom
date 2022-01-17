@@ -12,10 +12,10 @@ import {
 } from '../../../tests/tests-utils';
 import {
     db,
-    generateMpeWorkflowState,
     generateMpeWorkflowStateWithUserRelatedInformation,
 } from '../../../tests/data';
 import { serverSocket } from '../../../services/websockets';
+import { msToTime } from '../../MusicPlaylistEditorRoomScreen';
 
 interface TestingContext {
     screen: ReturnType<typeof render>;
@@ -510,6 +510,17 @@ const createMpeRoomWithSettingsMachine =
                             ).getByText(fakeTrack.title);
                             expect(trackInMpeRoomScreen).toBeTruthy();
                         });
+
+                        await waitFor(() => {
+                            const expectedPlaylistTotalDuration = msToTime(
+                                playlistTotalDuration,
+                            );
+                            expect(
+                                within(roomScreen).getByText(
+                                    expectedPlaylistTotalDuration,
+                                ),
+                            ).toBeTruthy();
+                        });
                     },
                 },
             },
@@ -724,6 +735,12 @@ const createMpeRoomWithSettingsTestModel = createTestModel<
     },
 });
 
+//Could this be improve ?
+const playlistTotalDuration = datatype.number({
+    min: 42000,
+    max: 4200000,
+});
+
 describe('Create MPE room with custom settings', () => {
     const testPlans = createMpeRoomWithSettingsTestModel.getSimplePathPlansTo(
         (state) => {
@@ -758,7 +775,7 @@ describe('Create MPE room with custom settings', () => {
                                             isOpen,
                                             isOpenOnlyInvitedUsersCanEdit,
                                             tracks: [fakeTrack],
-                                            playlistTotalDuration: 42000,
+                                            playlistTotalDuration,
                                             roomCreatorUserID: userID,
                                             usersLength: 1,
                                         },

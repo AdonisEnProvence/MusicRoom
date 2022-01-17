@@ -11,6 +11,7 @@ import {
 } from '@musicroom/types';
 import { LocationObject } from 'expo-location';
 import { datatype, name, random, internet } from 'faker';
+import { data } from 'msw/lib/types/context';
 
 export const db = factory({
     searchableTracks: {
@@ -119,6 +120,10 @@ export function generateMpeWorkflowState(
         fill: generateTrackMetadata,
     });
     const roomCreatorUserID = datatype.uuid();
+    const playlistTotalDuration = datatype.number({
+        min: 42000,
+        max: 4200000,
+    });
 
     return {
         name: random.words(),
@@ -128,7 +133,7 @@ export function generateMpeWorkflowState(
         isOpen: true,
         isOpenOnlyInvitedUsersCanEdit: false,
         tracks: tracksList.slice(1),
-        playlistTotalDuration: 42000, //TODO
+        playlistTotalDuration,
         userRelatedInformation: null,
         ...overrides,
     };
@@ -155,7 +160,10 @@ export function generateMpeWorkflowStateWithUserRelatedInformation({
         isOpen: datatype.boolean(),
         isOpenOnlyInvitedUsersCanEdit: datatype.boolean(),
         usersLength: datatype.number(),
-        playlistTotalDuration: datatype.number(),
+        playlistTotalDuration: datatype.number({
+            min: 42000,
+            max: 4200000,
+        }),
         userRelatedInformation: {
             userHasBeenInvited: false,
             userID,

@@ -30,6 +30,19 @@ interface AddTrackButtonProps {
     onPress: () => void;
 }
 
+//Should we be using date-fns ?
+//copy pasted from https://stackoverflow.com/questions/19700283/how-to-convert-time-in-milliseconds-to-hours-min-sec-format-in-javascript
+export function msToTime(ms: number): string {
+    const seconds = ms / 1000;
+    const minutes = ms / (1000 * 60);
+    const hours = ms / (1000 * 60 * 60);
+    const days = ms / (1000 * 60 * 60 * 24);
+    if (seconds < 60) return seconds.toFixed(1) + ' Sec';
+    else if (minutes < 60) return minutes.toFixed(1) + ' Min';
+    else if (hours < 24) return hours.toFixed(1) + ' Hrs';
+    else return days.toFixed(1) + ' Days';
+}
+
 const AddTrackButton: React.FC<AddTrackButtonProps> = ({
     disabled,
     onPress,
@@ -358,7 +371,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                             colorMode="dark"
                             width="100%"
                         >
-                            <Typo>{playlistTotalDuration} NOT FORMATED</Typo>
+                            <Typo>{msToTime(playlistTotalDuration)}</Typo>
                         </Skeleton>
 
                         <Typo>{`${usersLength} member${

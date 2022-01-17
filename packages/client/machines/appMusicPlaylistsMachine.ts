@@ -777,6 +777,9 @@ export function createAppMusicPlaylistsMachine({
                     waitingForRoomReadiness: {
                         on: {
                             ROOM_IS_READY: {
+                                cond: (context, { state: { roomID } }) =>
+                                    actorExists(context, roomID),
+
                                 target: 'createdRoom',
 
                                 actions: send(
@@ -1119,6 +1122,9 @@ export function createAppMusicPlaylistsMachine({
                     ],
 
                     MPE_TRACKS_LIST_UPDATE: {
+                        cond: (context, { roomID }) =>
+                            actorExists(context, roomID),
+
                         actions: send(
                             (_, { state }) =>
                                 playlistModel.events.ASSIGN_MERGE_NEW_STATE({
@@ -1185,6 +1191,9 @@ export function createAppMusicPlaylistsMachine({
                     },
 
                     RECEIVED_ADD_TRACKS_SUCCESS_CALLBACK: {
+                        cond: (context, { roomID }) =>
+                            actorExists(context, roomID),
+
                         actions: send(
                             (_, { state }) =>
                                 playlistModel.events.RECEIVED_TRACK_TO_ADD_SUCCESS_CALLBACK(
@@ -1198,6 +1207,9 @@ export function createAppMusicPlaylistsMachine({
                     },
 
                     RECEIVED_ADD_TRACKS_FAIL_CALLBACK: {
+                        cond: (context, { roomID }) =>
+                            actorExists(context, roomID),
+
                         actions: send(
                             playlistModel.events.RECEIVED_TRACK_TO_ADD_FAIL_CALLBACK(),
                             {
@@ -1218,6 +1230,9 @@ export function createAppMusicPlaylistsMachine({
                     },
 
                     RECEIVED_CHANGE_TRACK_ORDER_SUCCESS_CALLBACK: {
+                        cond: (context, { roomID }) =>
+                            actorExists(context, roomID),
+
                         actions: send(
                             (_, { state }) =>
                                 playlistModel.events.RECEIVED_CHANGE_TRACK_ORDER_SUCCESS_CALLBACK(
@@ -1231,6 +1246,9 @@ export function createAppMusicPlaylistsMachine({
                     },
 
                     RECEIVED_CHANGE_TRACK_ORDER_FAIL_CALLBACK: {
+                        cond: (context, { roomID }) =>
+                            actorExists(context, roomID),
+
                         actions: send(
                             playlistModel.events.RECEIVED_CHANGE_TRACK_ORDER_FAIL_CALLBACK(),
                             {
@@ -1271,6 +1289,9 @@ export function createAppMusicPlaylistsMachine({
                     },
 
                     RECEIVED_MPE_GET_CONTEXT_SUCCESS_CALLBACK: {
+                        cond: (context, { roomID }) =>
+                            actorExists(context, roomID),
+
                         actions: send(
                             (_, { state, userIsNotInRoom }) =>
                                 playlistModel.events.ASSIGN_MERGE_NEW_STATE({
@@ -1300,6 +1321,9 @@ export function createAppMusicPlaylistsMachine({
                     },
 
                     RECEIVED_DELETE_TRACKS_SUCCESS_CALLBACK: {
+                        cond: (context, { roomID }) =>
+                            actorExists(context, roomID),
+
                         actions: send(
                             (_, { state }) =>
                                 playlistModel.events.RECEIVED_TRACK_TO_DELETE_SUCCESS_CALLBACK(
@@ -1322,6 +1346,9 @@ export function createAppMusicPlaylistsMachine({
                     },
 
                     USERS_LENGTH_UPDATE: {
+                        cond: (context, { roomID }) =>
+                            actorExists(context, roomID),
+
                         actions: send(
                             (_, { state }) =>
                                 playlistModel.events.ASSIGN_MERGE_NEW_STATE({
@@ -1340,14 +1367,8 @@ export function createAppMusicPlaylistsMachine({
 
                     DISPLAY_MPE_ROOM_VIEW: [
                         {
-                            cond: ({ playlistsActorsRefs }, { roomID }) => {
-                                const actorHasAlreadyBeenSpawned =
-                                    playlistsActorsRefs.some(
-                                        (actor) => actor.id === roomID,
-                                    );
-                                return actorHasAlreadyBeenSpawned;
-                            },
-
+                            cond: (context, { roomID }) =>
+                                actorExists(context, roomID),
                             actions: 'navigateToMpeRoomView',
                         },
                         {

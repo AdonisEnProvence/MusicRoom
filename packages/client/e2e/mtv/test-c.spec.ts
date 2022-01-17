@@ -107,7 +107,15 @@ async function createPublicRoomWithInvitation(page: Page) {
     };
 }
 
-async function joinRoom({ page, roomName }: { page: Page; roomName: string }) {
+async function joinRoom({
+    page,
+    roomName,
+    expectedListenersCounter,
+}: {
+    page: Page;
+    roomName: string;
+    expectedListenersCounter: number;
+}) {
     await page.click('text="Go to Music Track Vote"');
 
     // Code to use infinite scroll
@@ -134,14 +142,12 @@ async function joinRoom({ page, roomName }: { page: Page; roomName: string }) {
 
     await matchingRoom.click();
 
-    // Close MTV Search
-    await page.click('css=[aria-label="Go back"] >> visible=true');
-
-    // Open player full screen
-    const miniPlayerWithRoomName = page.locator(`text="${roomName}"`).first();
-    await expect(miniPlayerWithRoomName).toBeVisible();
-
-    await miniPlayerWithRoomName.click();
+    const expectedListenersCounterAriaLabel = `${expectedListenersCounter} Listeners`;
+    await expect(
+        page.locator(
+            `text="${expectedListenersCounterAriaLabel}" >> visible=true`,
+        ),
+    ).toBeVisible();
 }
 
 async function voteForTrackInMusicPlayerFullScreen({
@@ -230,8 +236,6 @@ async function pressRoomInvitationToast({
 
     const miniPlayerWithRoomName = page.locator(`text="${roomName}"`).first();
     await expect(miniPlayerWithRoomName).toBeVisible();
-
-    await miniPlayerWithRoomName.click();
 }
 
 test.afterEach(async ({ browser }) => {
@@ -286,7 +290,7 @@ test('Test C', async ({ browser }) => {
     const { roomName, initialTrackTitle } =
         await createPublicRoomWithInvitation(userAPage);
 
-    await joinRoom({ page: userBPage, roomName });
+    await joinRoom({ page: userBPage, roomName, expectedListenersCounter: 2 });
 
     await voteForTrackInMusicPlayerFullScreen({
         page: userBPage,

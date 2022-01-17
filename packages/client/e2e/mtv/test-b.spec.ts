@@ -172,13 +172,6 @@ async function userJoinsGivenRoomAndGoFullscreen({
 
     await matchingRoom.click();
 
-    await joiningUserPage.click('css=[aria-label="Go back"] >> visible=true');
-
-    await findMiniPlayerWithRoomNameAndGoFullscreen({
-        page: joiningUserPage,
-        roomName,
-    });
-
     const expectedListenersCounterAriaLabel = `${expectedListenersCounterValue} Listeners`;
     await expect(
         joiningUserPage.locator(

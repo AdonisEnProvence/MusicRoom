@@ -101,8 +101,6 @@ async function createPublicRoomWithInvitation(page: Page) {
         .first();
     await expect(miniPlayerWithSelectedSong).toBeVisible();
 
-    await miniPlayerWithRoomName.click();
-
     return {
         roomName,
         initialTrackTitle: selectedSongTitle,

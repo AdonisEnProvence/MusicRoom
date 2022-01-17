@@ -96,8 +96,6 @@ async function createPrivateRoom(page: Page) {
         .first();
     await expect(miniPlayerWithSelectedSong).toBeVisible();
 
-    await miniPlayerWithRoomName.click();
-
     return {
         roomName,
         initialTrack: selectedSongTitle,

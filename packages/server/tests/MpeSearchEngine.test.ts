@@ -9,6 +9,7 @@ import {
     MpeSearchMyRoomsRequestBody,
     MpeSearchMyRoomsResponseBody,
 } from '@musicroom/types';
+import MpeRoom from 'App/Models/MpeRoom';
 import { BASE_URL, initTestUtils, generateArray } from './utils/TestUtils';
 
 test.group('My MPE Rooms Search', (group) => {
@@ -455,6 +456,132 @@ test.group('All MPE Rooms Search', (group) => {
         }
 
         assert.equal(totalFetchedEntries, totalRoomsCount);
+
+        const extraRequestBody: ListAllMpeRoomsRequestBody = {
+            userID,
+            searchQuery: '',
+            page,
+        };
+        const { body: extraPageBodyRaw } = await supertest(BASE_URL)
+            .post('/mpe/search/all-rooms')
+            .send(extraRequestBody)
+            .expect('Content-Type', /json/)
+            .expect(200);
+        const extraPageBodyParsed =
+            ListAllMpeRoomsResponseBody.parse(extraPageBodyRaw);
+
+        assert.equal(extraPageBodyParsed.page, page);
+        assert.equal(extraPageBodyParsed.totalEntries, totalRoomsCount);
+        assert.equal(extraPageBodyParsed.data.length, 0);
+        assert.isFalse(extraPageBodyParsed.hasMore);
+    });
+
+    test('Rooms should be ordered by private room first, public but invited room in second and then some public rooms', async (assert) => {
+        const PAGE_MAX_LENGTH = 10;
+        const userID = datatype.uuid();
+        const inviterUserID = datatype.uuid();
+
+        await createUserAndGetSocket({
+            userID: inviterUserID,
+        });
+
+        await createUserAndGetSocket({
+            userID,
+        });
+
+        const privateMpeRoomsWithInvitation = await MpeRoom.createMany(
+            generateArray({
+                fill: () => ({
+                    uuid: datatype.uuid(),
+                    runID: datatype.uuid(),
+                    name: random.words(),
+                    creatorID: inviterUserID,
+                    isOpen: false,
+                }),
+                minLength: 5,
+                maxLength: 5,
+            }),
+        );
+        for (const room of privateMpeRoomsWithInvitation) {
+            await room.related('invitations').create({
+                invitingUserID: inviterUserID,
+                invitedUserID: userID,
+            });
+        }
+
+        const openMpeRoomsWithInvitation = await MpeRoom.createMany(
+            generateArray({
+                fill: () => ({
+                    uuid: datatype.uuid(),
+                    runID: datatype.uuid(),
+                    name: random.words(),
+                    creatorID: inviterUserID,
+                    isOpen: true,
+                }),
+                minLength: 5,
+                maxLength: 5,
+            }),
+        );
+        for (const room of openMpeRoomsWithInvitation) {
+            await room.related('invitations').create({
+                invitingUserID: inviterUserID,
+                invitedUserID: userID,
+            });
+        }
+
+        const openMpeRoomsWithoutInvitation = await MpeRoom.createMany(
+            generateArray({
+                fill: () => ({
+                    uuid: datatype.uuid(),
+                    runID: datatype.uuid(),
+                    name: random.words(),
+                    creatorID: inviterUserID,
+                    isOpen: true,
+                }),
+                minLength: 5,
+                maxLength: 5,
+            }),
+        );
+
+        const expectedMpeRoomsIDToBeReturnedInOrder = [
+            ...privateMpeRoomsWithInvitation.map((room) => room.uuid).sort(),
+            ...openMpeRoomsWithInvitation.map((room) => room.uuid).sort(),
+            ...openMpeRoomsWithoutInvitation.map((room) => room.uuid).sort(),
+        ];
+        const totalRoomsCount = expectedMpeRoomsIDToBeReturnedInOrder.length;
+
+        let page = 1;
+        let hasMore = true;
+        const fetchedRoomsIDs: string[] = [];
+        while (hasMore === true) {
+            const requestBody: ListAllMpeRoomsRequestBody = {
+                userID,
+                searchQuery: '',
+                page,
+            };
+            const { body: pageBodyRaw } = await supertest(BASE_URL)
+                .post('/mpe/search/all-rooms')
+                .send(requestBody)
+                .expect('Content-Type', /json/)
+                .expect(200);
+            const pageBodyParsed =
+                ListAllMpeRoomsResponseBody.parse(pageBodyRaw);
+
+            assert.equal(pageBodyParsed.page, page);
+            assert.equal(pageBodyParsed.totalEntries, totalRoomsCount);
+            assert.isAtMost(pageBodyParsed.data.length, PAGE_MAX_LENGTH);
+
+            fetchedRoomsIDs.push(
+                ...pageBodyParsed.data.map((room) => room.roomID),
+            );
+            hasMore = pageBodyParsed.hasMore;
+            page++;
+        }
+
+        assert.deepEqual(
+            fetchedRoomsIDs,
+            expectedMpeRoomsIDToBeReturnedInOrder,
+        );
 
         const extraRequestBody: ListAllMpeRoomsRequestBody = {
             userID,

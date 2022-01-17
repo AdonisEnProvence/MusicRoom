@@ -15,7 +15,7 @@ import {
     generateMpeWorkflowStateWithUserRelatedInformation,
 } from '../../../tests/data';
 import { serverSocket } from '../../../services/websockets';
-import { msToTime } from '../../MusicPlaylistEditorRoomScreen';
+import { testUtilsMsToTime } from '../../../tests/tests-mpe-utils';
 
 interface TestingContext {
     screen: ReturnType<typeof render>;
@@ -512,9 +512,8 @@ const createMpeRoomWithSettingsMachine =
                         });
 
                         await waitFor(() => {
-                            const expectedPlaylistTotalDuration = msToTime(
-                                playlistTotalDuration,
-                            );
+                            const expectedPlaylistTotalDuration =
+                                testUtilsMsToTime(playlistTotalDuration);
                             expect(
                                 within(roomScreen).getByText(
                                     expectedPlaylistTotalDuration,

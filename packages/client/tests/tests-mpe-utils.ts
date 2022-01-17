@@ -10,7 +10,6 @@ import {
 } from '@testing-library/react-native';
 import { datatype } from 'faker';
 import Toast from 'react-native-toast-message';
-import { msToTime } from '../screens/MusicPlaylistEditorRoomScreen';
 import { serverSocket } from '../services/websockets';
 import {
     db,
@@ -29,6 +28,18 @@ import {
 
 export interface DefinedStateRef {
     value: PlaylistModelMpeWorkflowState;
+}
+
+//copy pasted from https://stackoverflow.com/questions/19700283/how-to-convert-time-in-milliseconds-to-hours-min-sec-format-in-javascript
+export function testUtilsMsToTime(ms: number): string {
+    const seconds = ms / 1000;
+    const minutes = ms / (1000 * 60);
+    const hours = ms / (1000 * 60 * 60);
+    const days = ms / (1000 * 60 * 60 * 24);
+    if (seconds < 60) return seconds.toFixed(1) + ' Sec';
+    else if (minutes < 60) return minutes.toFixed(1) + ' Min';
+    else if (hours < 24) return hours.toFixed(1) + ' Hrs';
+    else return days.toFixed(1) + ' Days';
 }
 
 /**
@@ -92,7 +103,7 @@ export async function createMpeRoom(): Promise<{
     });
 
     await waitFor(() => {
-        const expectedPlaylistTotalDuration = msToTime(
+        const expectedPlaylistTotalDuration = testUtilsMsToTime(
             mpeRoomState.playlistTotalDuration,
         );
         expect(screen.getByText(expectedPlaylistTotalDuration)).toBeTruthy();
@@ -372,7 +383,7 @@ export async function joinMpeRoom(
     });
 
     await waitFor(() => {
-        const expectedPlaylistTotalDuration = msToTime(
+        const expectedPlaylistTotalDuration = testUtilsMsToTime(
             firstRoomState.playlistTotalDuration,
         );
         expect(screen.getByText(expectedPlaylistTotalDuration)).toBeTruthy();

@@ -14,6 +14,17 @@ export const isReadyRef: React.MutableRefObject<boolean | null> =
 
 export const navigationRef = React.createRef<NavigationContainerRef>();
 
+export function goBackFromRef(): void {
+    if (isReadyRef.current && navigationRef.current) {
+        // Perform navigation if the app has mounted
+        navigationRef.current.goBack();
+    } else {
+        console.error('go back from ref NavigationContainer not mounted');
+        // You can decide what to do if the app hasn't mounted
+        // You can ignore this, or add these actions to a queue you can call later
+    }
+}
+
 export function navigateFromRef<Route extends NavigateFromRefRoutes>(
     name: NavigateFromRefRoutes,
     params?: NavigateFromRefParams[Route],

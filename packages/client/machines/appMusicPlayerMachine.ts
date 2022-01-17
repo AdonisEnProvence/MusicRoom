@@ -660,7 +660,11 @@ export const createAppMusicPlayerMachine = ({
                                     on: {
                                         JOINED_CREATED_ROOM: {
                                             target: 'roomIsNotReady',
-                                            actions: ['assignMergeNewState'],
+                                            //redirect here
+                                            actions: [
+                                                'assignMergeNewState',
+                                                `expandMusicPlayerFullScreen`,
+                                            ],
                                         },
                                     },
                                 },

@@ -20,6 +20,7 @@ import { testUtilsMsToTime } from '../../../tests/tests-mpe-utils';
 interface TestingContext {
     screen: ReturnType<typeof render>;
     fakeTrack: ReturnType<typeof db.searchableTracks.create>;
+    playlistTotalDuration: number;
 }
 
 const createMpeRoomWithSettingsModel = createModel(
@@ -454,7 +455,11 @@ const createMpeRoomWithSettingsMachine =
 
                 meta: {
                     test: async (
-                        { screen, fakeTrack }: TestingContext,
+                        {
+                            screen,
+                            fakeTrack,
+                            playlistTotalDuration,
+                        }: TestingContext,
                         state: CreateMpeRoomWithSettingsMachineState,
                     ) => {
                         const { roomName } = state.context;
@@ -735,10 +740,6 @@ const createMpeRoomWithSettingsTestModel = createTestModel<
 });
 
 //Could this be improve ?
-const playlistTotalDuration = datatype.number({
-    min: 42000,
-    max: 4200000,
-});
 
 describe('Create MPE room with custom settings', () => {
     const testPlans = createMpeRoomWithSettingsTestModel.getSimplePathPlansTo(
@@ -754,6 +755,10 @@ describe('Create MPE room with custom settings', () => {
             plan.paths.forEach((path) => {
                 it(path.description, async () => {
                     const fakeTrack = db.searchableTracks.create();
+                    const playlistTotalDuration = datatype.number({
+                        min: 42000,
+                        max: 4200000,
+                    });
                     const userID = datatype.uuid();
 
                     serverSocket.on(
@@ -806,6 +811,7 @@ describe('Create MPE room with custom settings', () => {
                     await path.test({
                         fakeTrack,
                         screen,
+                        playlistTotalDuration,
                     });
                 });
             });

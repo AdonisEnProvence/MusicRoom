@@ -8,7 +8,7 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import User from 'App/Models/User';
 import MpeRoom from 'App/Models/MpeRoom';
 import { datatype } from 'faker';
-import Database from '@ioc:Adonis/Lucid/Database';
+import MpeRoomInvitation from 'App/Models/MpeRoomInvitation';
 import { fromMpeRoomsToMpeRoomSummaries } from '../Ws/MpeRoomsWsController';
 
 const MPE_ROOMS_SEARCH_LIMIT = 10;
@@ -22,13 +22,10 @@ export default class MpeRoomsHttpController {
             request.body(),
         );
 
-        console.log('userID', userID);
-
         const allMpeRoomsPagination = await MpeRoom.query()
-            .debug(true)
             .select([
                 '*',
-                Database.from('mpe_room_invitations')
+                MpeRoomInvitation.query()
                     .count('*')
                     .as('invitations_count')
                     .where('mpe_room_invitations.invited_user_id', userID)
@@ -39,6 +36,9 @@ export default class MpeRoomsHttpController {
                     .limit(1),
             ])
             .where('name', 'ilike', `${searchQuery}%`)
+            .andWhereDoesntHave('members', (membersQuery) => {
+                return membersQuery.where('user_uuid', userID);
+            })
             .orderBy([
                 {
                     column: 'mpe_rooms.is_open',

@@ -1,5 +1,5 @@
 import Database from '@ioc:Adonis/Lucid/Database';
-import { datatype, random } from 'faker';
+import { datatype, lorem } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
@@ -34,7 +34,7 @@ test.group('My MPE Rooms Search', (group) => {
         const userID = datatype.uuid();
         const mpeRooms = generateArray({
             fill: () => ({
-                roomName: random.words(3),
+                roomName: lorem.sentence(),
                 roomID: datatype.uuid(),
             }),
             minLength: 3,
@@ -42,7 +42,7 @@ test.group('My MPE Rooms Search', (group) => {
         });
         const otherMpeRooms = generateArray({
             fill: () => ({
-                roomName: random.words(3),
+                roomName: lorem.sentence(),
                 roomID: datatype.uuid(),
             }),
             minLength: 3,
@@ -78,7 +78,7 @@ test.group('My MPE Rooms Search', (group) => {
         const userID = datatype.uuid();
         const mpeRooms = generateArray({
             fill: () => ({
-                roomName: random.words(3),
+                roomName: lorem.sentence(),
                 roomID: datatype.uuid(),
             }),
             minLength: 3,
@@ -86,7 +86,7 @@ test.group('My MPE Rooms Search', (group) => {
         });
         const otherMpeRooms = generateArray({
             fill: () => ({
-                roomName: random.words(3),
+                roomName: lorem.sentence(),
                 roomID: datatype.uuid(),
             }),
             minLength: 3,
@@ -219,7 +219,7 @@ test.group('My MPE Rooms Search', (group) => {
         const userID = datatype.uuid();
         const mpeRooms = generateArray({
             fill: () => ({
-                roomName: random.words(3),
+                roomName: lorem.sentence(),
                 roomID: datatype.uuid(),
             }),
             minLength: 11,
@@ -299,6 +299,40 @@ test.group('All MPE Rooms Search', (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
+    test('Does not return rooms user is member of', async (assert) => {
+        const userID = datatype.uuid();
+        const mpeRooms = generateArray({
+            fill: () => ({
+                roomName: lorem.sentence(),
+                roomID: datatype.uuid(),
+            }),
+            minLength: 3,
+            maxLength: 9,
+        });
+
+        await createUserAndGetSocket({
+            userID,
+            mpeRoomIDToAssociate: mpeRooms,
+        });
+
+        const requestBody: ListAllMpeRoomsRequestBody = {
+            userID,
+            searchQuery: '',
+            page: 1,
+        };
+        const { body } = await supertest(BASE_URL)
+            .post('/mpe/search/all-rooms')
+            .send(requestBody)
+            .expect('Content-Type', /json/)
+            .expect(200);
+        const parsedBody = ListAllMpeRoomsResponseBody.parse(body);
+
+        assert.isEmpty(parsedBody.data);
+        assert.isFalse(parsedBody.hasMore);
+        assert.equal(parsedBody.totalEntries, 0);
+        assert.equal(parsedBody.page, 1);
+    });
+
     test('Returns only rooms matching partial search query', async (assert) => {
         const userID = datatype.uuid();
         const mpeRooms: {
@@ -321,8 +355,12 @@ test.group('All MPE Rooms Search', (group) => {
         const firstMpeRoom = mpeRooms[0];
 
         await createUserAndGetSocket({
-            userID,
+            userID: datatype.uuid(),
             mpeRoomIDToAssociate: mpeRooms,
+        });
+
+        await createUserAndGetSocket({
+            userID,
         });
 
         const searchQuery = firstMpeRoom.roomName.slice(0, 3);
@@ -364,8 +402,12 @@ test.group('All MPE Rooms Search', (group) => {
         const firstMpeRoom = mpeRooms[0];
 
         await createUserAndGetSocket({
-            userID,
+            userID: datatype.uuid(),
             mpeRoomIDToAssociate: mpeRooms,
+        });
+
+        await createUserAndGetSocket({
+            userID,
         });
 
         const searchQuery = firstMpeRoom.roomName.toLowerCase();
@@ -401,32 +443,24 @@ test.group('All MPE Rooms Search', (group) => {
     test('All rooms are paginated', async (assert) => {
         const PAGE_MAX_LENGTH = 10;
         const userID = datatype.uuid();
+
         const mpeRooms = generateArray({
             fill: () => ({
-                roomName: random.words(3),
+                roomName: lorem.sentence(),
                 roomID: datatype.uuid(),
             }),
-            minLength: 11,
-            maxLength: 18,
+            minLength: 22,
+            maxLength: 36,
         });
-        const otherMpeRooms = generateArray({
-            fill: () => ({
-                roomName: random.words(3),
-                roomID: datatype.uuid(),
-            }),
-            minLength: 11,
-            maxLength: 18,
-        });
-        const totalRoomsCount = mpeRooms.length + otherMpeRooms.length;
+        const totalRoomsCount = mpeRooms.length;
 
         await createUserAndGetSocket({
             userID: datatype.uuid(),
-            mpeRoomIDToAssociate: otherMpeRooms,
+            mpeRoomIDToAssociate: mpeRooms,
         });
 
         await createUserAndGetSocket({
             userID,
-            mpeRoomIDToAssociate: mpeRooms,
         });
 
         let page = 1;
@@ -494,7 +528,7 @@ test.group('All MPE Rooms Search', (group) => {
                 fill: () => ({
                     uuid: datatype.uuid(),
                     runID: datatype.uuid(),
-                    name: random.words(),
+                    name: lorem.sentence(),
                     creatorID: inviterUserID,
                     isOpen: false,
                 }),
@@ -514,7 +548,7 @@ test.group('All MPE Rooms Search', (group) => {
                 fill: () => ({
                     uuid: datatype.uuid(),
                     runID: datatype.uuid(),
-                    name: random.words(),
+                    name: lorem.sentence(),
                     creatorID: inviterUserID,
                     isOpen: true,
                 }),
@@ -534,7 +568,7 @@ test.group('All MPE Rooms Search', (group) => {
                 fill: () => ({
                     uuid: datatype.uuid(),
                     runID: datatype.uuid(),
-                    name: random.words(),
+                    name: lorem.sentence(),
                     creatorID: inviterUserID,
                     isOpen: true,
                 }),

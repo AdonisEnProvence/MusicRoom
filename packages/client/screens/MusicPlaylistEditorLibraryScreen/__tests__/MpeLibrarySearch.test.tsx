@@ -200,7 +200,7 @@ const mpeLibrarySearchTestModel = createTestModel<
     },
 });
 
-describe('MPE Rooms Search', () => {
+describe('MPE Library Search', () => {
     const testPlans = mpeLibrarySearchTestModel.getSimplePathPlansTo(
         (state) => {
             const isFinalState = state.done;

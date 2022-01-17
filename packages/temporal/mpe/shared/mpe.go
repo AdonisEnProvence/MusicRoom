@@ -70,7 +70,7 @@ type MpeRoomExposedState struct {
 	UsersLength                   int                    `json:"usersLength"`
 	IsOpen                        bool                   `json:"isOpen"`
 	IsOpenOnlyInvitedUsersCanEdit bool                   `json:"isOpenOnlyInvitedUsersCanEdit"`
-	PlaylistTotalDuration         int                    `json:"playlistTotalDuration"`
+	PlaylistTotalDuration         int64                  `json:"playlistTotalDuration"`
 	UserRelatedInformation        *InternalStateUser     `json:"userRelatedInformation"`
 }
 
@@ -80,6 +80,16 @@ type TrackMetadataSet struct {
 
 func (s *TrackMetadataSet) Clear() {
 	s.tracks = []shared.TrackMetadata{}
+}
+
+func (s *TrackMetadataSet) GetTotalTracksDuration() int64 {
+	var totalDuration int64 = 0
+
+	for _, track := range s.tracks {
+		totalDuration += track.Duration.Milliseconds()
+	}
+
+	return totalDuration
 }
 
 func (s *TrackMetadataSet) Has(trackID string) bool {

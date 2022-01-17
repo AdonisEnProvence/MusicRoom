@@ -70,7 +70,6 @@ export function getMusicPlayerMachineOptions({
         actions: {
             leaveRoomFromLeaveRoomButton: () => {
                 setIsFullScreen(false);
-                navigateFromRef('HomeScreen');
             },
 
             displayAlertForcedDisconnection: () => {
@@ -79,6 +78,10 @@ export function getMusicPlayerMachineOptions({
                 navigateFromRef('Alert', {
                     reason: 'FORCED_DISCONNECTION',
                 });
+            },
+
+            expandMusicPlayerFullScreen: () => {
+                setIsFullScreen(true);
             },
 
             showTracksSuggestionAcknowledgementToast: () => {

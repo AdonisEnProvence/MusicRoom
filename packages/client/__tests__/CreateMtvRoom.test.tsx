@@ -822,8 +822,6 @@ const createMtvRoomWithSettingsMachine =
                         expect(miniPlayerPlayButton).toBeTruthy();
                         expect(miniPlayerPlayButton).toBeDisabled();
 
-                        fireEvent.press(miniPlayerRoomName);
-
                         const musicPlayerFullScreen =
                             await screen.findByA11yState({
                                 expanded: true,

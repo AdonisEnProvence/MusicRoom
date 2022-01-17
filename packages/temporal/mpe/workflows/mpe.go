@@ -80,7 +80,7 @@ func (s *MpeRoomInternalState) Export(userID string) shared_mpe.MpeRoomExposedSt
 		IsOpenOnlyInvitedUsersCanEdit: s.initialParams.IsOpenOnlyInvitedUsersCanEdit,
 		UserRelatedInformation:        s.GetUserRelatedInformation(userID),
 		Tracks:                        s.Tracks.Values(),
-		PlaylistTotalDuration:         42000, //TODO or not depend where we want to compute this data
+		PlaylistTotalDuration:         s.Tracks.GetTotalTracksDuration(),
 	}
 
 	return exposedState

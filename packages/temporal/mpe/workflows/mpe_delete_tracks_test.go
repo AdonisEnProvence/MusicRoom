@@ -7,6 +7,7 @@ import (
 	"github.com/AdonisEnProvence/MusicRoom/activities"
 	activities_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/activities"
 	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
+	"github.com/AdonisEnProvence/MusicRoom/random"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/mock"
@@ -24,6 +25,8 @@ func (s *DeleteTracksTestSuite) Test_DeleteTracksAndSendAcknowledgement() {
 		faker.UUIDHyphenated(),
 	}
 	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+	firstTrackDuration := random.GenerateRandomDuration()
+	secondTrackDuration := random.GenerateRandomDuration()
 	var a *activities_mpe.Activities
 
 	initialTracksMetadata := []shared.TrackMetadata{
@@ -31,14 +34,19 @@ func (s *DeleteTracksTestSuite) Test_DeleteTracksAndSendAcknowledgement() {
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   secondTrackDuration,
 		},
+	}
+
+	var totalDuration int64 = 0
+	for _, track := range initialTracksMetadata {
+		totalDuration += track.Duration.Milliseconds()
 	}
 
 	tick := 1 * time.Millisecond
@@ -70,6 +78,8 @@ func (s *DeleteTracksTestSuite) Test_DeleteTracksAndSendAcknowledgement() {
 		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
 
 		s.Equal(initialTracksMetadata, mpeState.Tracks)
+		s.Equal(totalDuration, mpeState.PlaylistTotalDuration)
+
 	}, initialTracksFetched)
 
 	deleteTracks := tick * 200
@@ -84,8 +94,10 @@ func (s *DeleteTracksTestSuite) Test_DeleteTracksAndSendAcknowledgement() {
 	checkDeletedTracks := tick * 200
 	registerDelayedCallbackWrapper(func() {
 		mpeState := s.getMpeState(shared_mpe.NoRelatedUserID)
+		var expectedPlaylistDuration int64 = 0
 
 		s.Empty(mpeState.Tracks)
+		s.Equal(expectedPlaylistDuration, mpeState.PlaylistTotalDuration)
 	}, checkDeletedTracks)
 
 	s.env.ExecuteWorkflow(MpeRoomWorkflow, params)
@@ -101,6 +113,8 @@ func (s *DeleteTracksTestSuite) Test_PreventUnknownUserFromDeletingTracks() {
 		faker.UUIDHyphenated(),
 	}
 	params, _ := s.getWorkflowInitParams(initialTracksIDs)
+	firstTrackDuration := random.GenerateRandomDuration()
+	secondTrackDuration := random.GenerateRandomDuration()
 	var a *activities_mpe.Activities
 
 	initialTracksMetadata := []shared.TrackMetadata{
@@ -108,13 +122,13 @@ func (s *DeleteTracksTestSuite) Test_PreventUnknownUserFromDeletingTracks() {
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   secondTrackDuration,
 		},
 	}
 
@@ -181,6 +195,8 @@ func (s *DeleteTracksTestSuite) Test_AcknowledgeDeletionEvenWhenNoTracksWereDele
 		faker.UUIDHyphenated(),
 	}
 	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+	firstTrackDuration := random.GenerateRandomDuration()
+	secondTrackDuration := random.GenerateRandomDuration()
 	var a *activities_mpe.Activities
 
 	initialTracksMetadata := []shared.TrackMetadata{
@@ -188,13 +204,13 @@ func (s *DeleteTracksTestSuite) Test_AcknowledgeDeletionEvenWhenNoTracksWereDele
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   secondTrackDuration,
 		},
 	}
 
@@ -264,6 +280,8 @@ func (s *DeleteTracksTestSuite) Test_InRoomWithConstraintsCreatorCanDeleteTracks
 	}
 	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
 	params.IsOpenOnlyInvitedUsersCanEdit = true
+	firstTrackDuration := random.GenerateRandomDuration()
+	secondTrackDuration := random.GenerateRandomDuration()
 	var a *activities_mpe.Activities
 
 	initialTracksMetadata := []shared.TrackMetadata{
@@ -271,13 +289,13 @@ func (s *DeleteTracksTestSuite) Test_InRoomWithConstraintsCreatorCanDeleteTracks
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   secondTrackDuration,
 		},
 	}
 
@@ -347,6 +365,10 @@ func (s *DeleteTracksTestSuite) Test_InRoomWithConstraintsOnlyInvitedUsersCanDel
 		invitedUserDeviceID = faker.UUIDHyphenated()
 		joiningUserID       = faker.UUIDHyphenated()
 		joiningUserDeviceID = faker.UUIDHyphenated()
+		firstTrackDuration  = random.GenerateRandomDuration()
+		secondTrackDuration = random.GenerateRandomDuration()
+		thirdTrackDuration  = random.GenerateRandomDuration()
+		fourthTrackDuration = random.GenerateRandomDuration()
 	)
 	params, _ := s.getWorkflowInitParams(initialTracksIDs)
 	params.IsOpenOnlyInvitedUsersCanEdit = true
@@ -357,25 +379,25 @@ func (s *DeleteTracksTestSuite) Test_InRoomWithConstraintsOnlyInvitedUsersCanDel
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   secondTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[2],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   thirdTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[3],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   fourthTrackDuration,
 		},
 	}
 

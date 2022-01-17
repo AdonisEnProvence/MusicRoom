@@ -7,6 +7,7 @@ import (
 	"github.com/AdonisEnProvence/MusicRoom/activities"
 	activities_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/activities"
 	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
+	"github.com/AdonisEnProvence/MusicRoom/random"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/mock"
@@ -23,6 +24,10 @@ func (s *AddTracksTestSuite) Test_AddTracks() {
 		faker.UUIDHyphenated(),
 	}
 	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+	firstTrackDuration := random.GenerateRandomDuration()
+	secondTrackDuration := random.GenerateRandomDuration()
+	thirdTrackDuration := random.GenerateRandomDuration()
+
 	var a *activities_mpe.Activities
 
 	initialTracksMetadata := []shared.TrackMetadata{
@@ -30,7 +35,7 @@ func (s *AddTracksTestSuite) Test_AddTracks() {
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 	}
 	tracksIDsToAdd := []string{
@@ -42,13 +47,13 @@ func (s *AddTracksTestSuite) Test_AddTracks() {
 			ID:         tracksIDsToAdd[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   secondTrackDuration,
 		},
 		{
 			ID:         tracksIDsToAdd[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   thirdTrackDuration,
 		},
 	}
 
@@ -128,6 +133,8 @@ func (s *AddTracksTestSuite) Test_AddingTrackAlreadyInPlaylistBeforeFetchingInfo
 		faker.UUIDHyphenated(),
 	}
 	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+	firstTrackDuration := random.GenerateRandomDuration()
+
 	var a *activities_mpe.Activities
 
 	initialTracksMetadata := []shared.TrackMetadata{
@@ -135,7 +142,7 @@ func (s *AddTracksTestSuite) Test_AddingTrackAlreadyInPlaylistBeforeFetchingInfo
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 	}
 	tracksIDsToAdd := []string{
@@ -208,6 +215,12 @@ func (s *AddTracksTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchingInfor
 		faker.UUIDHyphenated(),
 	}
 	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+	firstTrackDuration := random.GenerateRandomDuration()
+	secondTrackDuration := random.GenerateRandomDuration()
+	thirdTrackDuration := random.GenerateRandomDuration()
+	fourthTrackDuration := random.GenerateRandomDuration()
+	totalDuration := fourthTrackDuration.Milliseconds() + thirdTrackDuration.Milliseconds() + secondTrackDuration.Milliseconds() + firstTrackDuration.Milliseconds()
+
 	var a *activities_mpe.Activities
 
 	initialTracksMetadata := []shared.TrackMetadata{
@@ -215,7 +228,7 @@ func (s *AddTracksTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchingInfor
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 	}
 	tracksIDsToAddFirstBatch := []string{
@@ -227,13 +240,13 @@ func (s *AddTracksTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchingInfor
 			ID:         tracksIDsToAddFirstBatch[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   secondTrackDuration,
 		},
 		{
 			ID:         tracksIDsToAddFirstBatch[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   thirdTrackDuration,
 		},
 	}
 	tracksIDsToAddSecondBatch := []string{
@@ -246,7 +259,7 @@ func (s *AddTracksTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchingInfor
 			ID:         tracksIDsToAddSecondBatch[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   fourthTrackDuration,
 		},
 	}
 
@@ -337,6 +350,7 @@ func (s *AddTracksTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchingInfor
 			initialTracksMetadataWithTracksToAddMetadataSecondBatchWithNonDuplicatedTracksMetadataFirstBatch,
 			mpeState.Tracks,
 		)
+		s.Equal(totalDuration, mpeState.PlaylistTotalDuration)
 	}, checkAddingTracks)
 
 	s.env.ExecuteWorkflow(MpeRoomWorkflow, params)
@@ -351,6 +365,10 @@ func (s *AddTracksTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchingInfor
 		faker.UUIDHyphenated(),
 	}
 	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+	firstTrackDuration := random.GenerateRandomDuration()
+	secondTrackDuration := random.GenerateRandomDuration()
+	thirdTrackDuration := random.GenerateRandomDuration()
+
 	var a *activities_mpe.Activities
 
 	initialTracksMetadata := []shared.TrackMetadata{
@@ -358,7 +376,7 @@ func (s *AddTracksTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchingInfor
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 	}
 	tracksIDsToAddFirstBatch := []string{
@@ -370,13 +388,13 @@ func (s *AddTracksTestSuite) Test_AddingTrackAlreadyInPlaylistAfterFetchingInfor
 			ID:         tracksIDsToAddFirstBatch[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   secondTrackDuration,
 		},
 		{
 			ID:         tracksIDsToAddFirstBatch[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   thirdTrackDuration,
 		},
 	}
 	tracksIDsToAddSecondBatch := []string{
@@ -505,6 +523,10 @@ func (s *AddTracksTestSuite) Test_IsOpenAndIsOpenOnlyInvitedUsersCanEditAndCreat
 		invitedUserDeviceID = faker.UUIDHyphenated()
 		joiningUserID       = faker.UUIDHyphenated()
 		joiningUserDeviceID = faker.UUIDHyphenated()
+		firstTrackDuration  = random.GenerateRandomDuration()
+		secondTrackDuration = random.GenerateRandomDuration()
+		thirdTrackDuration  = random.GenerateRandomDuration()
+		fourthTrackDuration = random.GenerateRandomDuration()
 	)
 
 	initialTracksMetadata := []shared.TrackMetadata{
@@ -512,7 +534,7 @@ func (s *AddTracksTestSuite) Test_IsOpenAndIsOpenOnlyInvitedUsersCanEditAndCreat
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 	}
 
@@ -520,19 +542,19 @@ func (s *AddTracksTestSuite) Test_IsOpenAndIsOpenOnlyInvitedUsersCanEditAndCreat
 		ID:         faker.UUIDHyphenated(),
 		Title:      faker.Word(),
 		ArtistName: faker.Name(),
-		Duration:   42000,
+		Duration:   secondTrackDuration,
 	}
 	invitedUserTrackToAddMetadata := shared.TrackMetadata{
 		ID:         faker.UUIDHyphenated(),
 		Title:      faker.Word(),
 		ArtistName: faker.Name(),
-		Duration:   42000,
+		Duration:   thirdTrackDuration,
 	}
 	joiningUserTrackToAddMetadata := shared.TrackMetadata{
 		ID:         faker.UUIDHyphenated(),
 		Title:      faker.Word(),
 		ArtistName: faker.Name(),
-		Duration:   42000,
+		Duration:   fourthTrackDuration,
 	}
 
 	tick := 200 * time.Millisecond

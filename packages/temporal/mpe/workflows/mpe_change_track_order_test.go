@@ -8,6 +8,7 @@ import (
 	"github.com/AdonisEnProvence/MusicRoom/activities"
 	activities_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/activities"
 	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
+	"github.com/AdonisEnProvence/MusicRoom/random"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/mock"
@@ -26,6 +27,9 @@ func (s *ChangeTrackOrderPlaylistTestSuite) Test_ChangeTrackOrderDownAndUp() {
 		faker.UUIDHyphenated(),
 	}
 	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+	firstTrackDuration := random.GenerateRandomDuration()
+	secondTrackDuration := random.GenerateRandomDuration()
+	thirdTrackDuration := random.GenerateRandomDuration()
 	var a *activities_mpe.Activities
 
 	initialTracksMetadata := []shared.TrackMetadata{
@@ -33,19 +37,19 @@ func (s *ChangeTrackOrderPlaylistTestSuite) Test_ChangeTrackOrderDownAndUp() {
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   secondTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[2],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   thirdTrackDuration,
 		},
 	}
 
@@ -152,6 +156,9 @@ func (s *ChangeTrackOrderPlaylistTestSuite) Test_ChangeTrackOrderDownFailWithInd
 		faker.UUIDHyphenated(),
 	}
 	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+	firstTrackDuration := random.GenerateRandomDuration()
+	secondTrackDuration := random.GenerateRandomDuration()
+	thirdTrackDuration := random.GenerateRandomDuration()
 	var a *activities_mpe.Activities
 
 	initialTracksMetadata := []shared.TrackMetadata{
@@ -159,19 +166,19 @@ func (s *ChangeTrackOrderPlaylistTestSuite) Test_ChangeTrackOrderDownFailWithInd
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   secondTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[2],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   thirdTrackDuration,
 		},
 	}
 
@@ -267,6 +274,9 @@ func (s *ChangeTrackOrderPlaylistTestSuite) Test_ChangeTrackOrderUnkownOperation
 		faker.UUIDHyphenated(),
 	}
 	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+	firstTrackDuration := random.GenerateRandomDuration()
+	secondTrackDuration := random.GenerateRandomDuration()
+	thirdTrackDuration := random.GenerateRandomDuration()
 	var a *activities_mpe.Activities
 
 	initialTracksMetadata := []shared.TrackMetadata{
@@ -274,19 +284,19 @@ func (s *ChangeTrackOrderPlaylistTestSuite) Test_ChangeTrackOrderUnkownOperation
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   secondTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[2],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   thirdTrackDuration,
 		},
 	}
 
@@ -363,6 +373,9 @@ func (s *ChangeTrackOrderPlaylistTestSuite) Test_ChangeTrackOrderUnkownTrack() {
 		faker.UUIDHyphenated(),
 	}
 	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+	firstTrackDuration := random.GenerateRandomDuration()
+	secondTrackDuration := random.GenerateRandomDuration()
+	thirdTrackDuration := random.GenerateRandomDuration()
 	var a *activities_mpe.Activities
 
 	initialTracksMetadata := []shared.TrackMetadata{
@@ -370,19 +383,19 @@ func (s *ChangeTrackOrderPlaylistTestSuite) Test_ChangeTrackOrderUnkownTrack() {
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   secondTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[2],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   thirdTrackDuration,
 		},
 	}
 
@@ -457,6 +470,9 @@ func (s *ChangeTrackOrderPlaylistTestSuite) Test_ChangeTrackOrderTrackIndexIsOut
 		faker.UUIDHyphenated(),
 	}
 	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+	firstTrackDuration := random.GenerateRandomDuration()
+	secondTrackDuration := random.GenerateRandomDuration()
+	thirdTrackDuration := random.GenerateRandomDuration()
 	var a *activities_mpe.Activities
 
 	initialTracksMetadata := []shared.TrackMetadata{
@@ -464,19 +480,19 @@ func (s *ChangeTrackOrderPlaylistTestSuite) Test_ChangeTrackOrderTrackIndexIsOut
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   secondTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[2],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   thirdTrackDuration,
 		},
 	}
 
@@ -560,6 +576,9 @@ func (s *ChangeTrackOrderPlaylistTestSuite) Test_ChangeTrackOrderTrackIndexOnlyI
 		joiningUserDeviceID = faker.UUIDHyphenated()
 		invitedUserID       = faker.UUIDHyphenated()
 		invitedUserDeviceID = faker.UUIDHyphenated()
+		firstTrackDuration  = random.GenerateRandomDuration()
+		secondTrackDuration = random.GenerateRandomDuration()
+		thirdTrackDuration  = random.GenerateRandomDuration()
 	)
 
 	initialTracksMetadata := []shared.TrackMetadata{
@@ -567,19 +586,19 @@ func (s *ChangeTrackOrderPlaylistTestSuite) Test_ChangeTrackOrderTrackIndexOnlyI
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   secondTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[2],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   thirdTrackDuration,
 		},
 	}
 
@@ -739,6 +758,9 @@ func (s *ChangeTrackOrderPlaylistTestSuite) Test_ChangeTrackOrderTrackUnknownUse
 		faker.UUIDHyphenated(),
 	}
 	params, creatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
+	firstTrackDuration := random.GenerateRandomDuration()
+	secondTrackDuration := random.GenerateRandomDuration()
+	thirdTrackDuration := random.GenerateRandomDuration()
 	var a *activities_mpe.Activities
 
 	initialTracksMetadata := []shared.TrackMetadata{
@@ -746,19 +768,19 @@ func (s *ChangeTrackOrderPlaylistTestSuite) Test_ChangeTrackOrderTrackUnknownUse
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   secondTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[2],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   thirdTrackDuration,
 		},
 	}
 

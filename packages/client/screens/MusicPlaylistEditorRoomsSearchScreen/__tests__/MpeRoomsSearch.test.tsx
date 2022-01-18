@@ -112,8 +112,60 @@ const mpeRoomsSearchMachine = mpeRoomsSearchModel.createMachine({
                     );
 
                     for (const room of expectedRooms) {
-                        const roomCard = await screen.findByText(room.roomName);
+                        const roomCard = await screen.findByTestId(
+                            `mpe-room-card-${room.roomID}`,
+                        );
                         expect(roomCard).toBeTruthy();
+                        expect(roomCard).toHaveTextContent(room.roomName);
+
+                        const roomCardScreen = within(roomCard);
+                        const invitedIcon =
+                            roomCardScreen.queryByLabelText(/you.*invited/i);
+                        const publicRoomIcon =
+                            roomCardScreen.queryByLabelText(/public.*room/i);
+                        const privateRoomIcon =
+                            roomCardScreen.queryByLabelText(/private.*room/i);
+
+                        switch (room.isOpen) {
+                            case true: {
+                                expect(publicRoomIcon).toBeTruthy();
+                                expect(privateRoomIcon).toBeNull();
+
+                                switch (room.isInvited) {
+                                    case true: {
+                                        expect(invitedIcon).toBeTruthy();
+
+                                        break;
+                                    }
+
+                                    case false: {
+                                        expect(invitedIcon).toBeNull();
+
+                                        break;
+                                    }
+
+                                    default: {
+                                        throw new Error(
+                                            'Reached unreachable state',
+                                        );
+                                    }
+                                }
+
+                                break;
+                            }
+
+                            case false: {
+                                expect(privateRoomIcon).toBeTruthy();
+                                expect(publicRoomIcon).toBeNull();
+                                expect(invitedIcon).toBeNull();
+
+                                break;
+                            }
+
+                            default: {
+                                throw new Error('Reached unreachable state');
+                            }
+                        }
                     }
                 },
             },

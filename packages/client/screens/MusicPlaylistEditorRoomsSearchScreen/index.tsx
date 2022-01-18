@@ -5,6 +5,7 @@ import { FlatList, TouchableOpacity } from 'react-native';
 import { useActor, useMachine } from '@xstate/react';
 import { ActorRef } from 'xstate';
 import { MpeRoomSummary } from '@musicroom/types';
+import { Entypo, FontAwesome } from '@expo/vector-icons';
 import { AppScreenWithSearchBar } from '../../components/kit';
 import { MpeTabMpeRoomsScreenProps } from '../../types';
 import { useMusicPlaylistsActor } from '../../hooks/useMusicPlaylistsActor';
@@ -24,7 +25,9 @@ const PlaylistListItem: React.FC<PlaylistListItemProps> = ({
     roomSummary,
     onPress,
 }) => {
-    const { roomID, roomName } = roomSummary;
+    const sx = useSx();
+    const { roomID, roomName, isOpen, isInvited } = roomSummary;
+
     return (
         <TouchableOpacity
             testID={`mpe-room-card-${roomID}`}
@@ -32,8 +35,56 @@ const PlaylistListItem: React.FC<PlaylistListItemProps> = ({
                 onPress(roomSummary);
             }}
         >
-            <View>
-                <Text sx={{ color: 'white' }}>{roomName}</Text>
+            <View sx={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text
+                    numberOfLines={1}
+                    sx={{ color: 'white', fontSize: 's', flexShrink: 1 }}
+                >
+                    {roomName}
+                </Text>
+
+                <View
+                    sx={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        flexShrink: 0,
+                    }}
+                >
+                    {isOpen === true ? (
+                        <>
+                            {isInvited && (
+                                <FontAwesome
+                                    name="envelope"
+                                    style={sx({
+                                        color: 'greyLighter',
+                                        fontSize: 'm',
+                                        paddingLeft: 'm',
+                                    })}
+                                    accessibilityLabel={`You're invited to ${roomName}`}
+                                />
+                            )}
+                            <Entypo
+                                name="globe"
+                                style={sx({
+                                    color: 'greyLighter',
+                                    fontSize: 'm',
+                                    paddingLeft: 'm',
+                                })}
+                                accessibilityLabel={`${roomName} is a public room`}
+                            />
+                        </>
+                    ) : (
+                        <Entypo
+                            name="lock"
+                            style={sx({
+                                color: 'greyLighter',
+                                fontSize: 'm',
+                                paddingLeft: 'm',
+                            })}
+                            accessibilityLabel={`${roomName} is a private room`}
+                        />
+                    )}
+                </View>
             </View>
         </TouchableOpacity>
     );

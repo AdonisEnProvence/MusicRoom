@@ -69,6 +69,7 @@
     "react-native-screens": "~3.0.0",
     "react-native-toast-message": "^1.4.9",
     "react-native-web": "~0.16.3",
+    "react-native-web-refresh-control": "^1.1.0",
     "react-native-web-webview": "^1.0.2",
     "react-native-webview": "11.2.3",
     "react-native-youtube-iframe": "^2.1.0",

@@ -390,3 +390,74 @@ test('Pressing Clear button refreshes the list and resets the search query', asy
         expect(roomCard).toBeTruthy();
     }
 });
+
+test('Pulling list refreshes it', async () => {
+    for (const mpeRoomToCreate of fakeMpeRooms) {
+        db.searchableMpeRooms.create(mpeRoomToCreate);
+    }
+
+    const screen = await renderApp();
+
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+    const goToLibraryButton = screen.getByText(/^library$/i);
+    expect(goToLibraryButton).toBeTruthy();
+
+    fireEvent.press(goToLibraryButton);
+
+    const libraryScreen = await withinMpeLibraryScreen(screen);
+
+    const searchInput = await libraryScreen.findByPlaceholderText(
+        /search.*room/i,
+    );
+    expect(searchInput).toBeTruthy();
+
+    const firstPageLastRoom = fakeMpeRooms[MPE_SEARCH_PAGE_LENGTH - 1];
+    await waitFor(() => {
+        const roomCard = libraryScreen.getByText(firstPageLastRoom.roomName);
+        expect(roomCard).toBeTruthy();
+    });
+
+    const loadMoreButton = await libraryScreen.findByText(/load.*more/i);
+    expect(loadMoreButton).toBeTruthy();
+
+    fireEvent.press(loadMoreButton);
+
+    const secondPageLastRoom = fakeMpeRooms[MPE_SEARCH_PAGE_LENGTH * 2 - 1];
+    await waitFor(() => {
+        const roomCard = libraryScreen.getByText(secondPageLastRoom.roomName);
+        expect(roomCard).toBeTruthy();
+    });
+
+    // Pull
+
+    const libraryScrollView = libraryScreen.getByTestId(
+        'library-mpe-room-search-flat-list',
+    );
+    expect(libraryScrollView).toBeTruthy();
+
+    /**
+     * The easiest way to trigger a refresh is to call the function
+     * that is usually called whe the user pulls the list.
+     *
+     * Suggested by https://github.com/callstack/react-native-testing-library/issues/809#issuecomment-984823700.
+     */
+    const pullToRefresh = libraryScrollView.props.refreshControl;
+    pullToRefresh.props.onRefresh();
+
+    /**
+     * When pulling the list view, the list should be refreshed.
+     * The second page goes out, while the first page is refreshed and displayed again.
+     */
+    await waitFor(() => {
+        const roomCard = libraryScreen.getByText(firstPageLastRoom.roomName);
+        expect(roomCard).toBeTruthy();
+    });
+
+    await waitFor(() => {
+        const secondPageRoom = libraryScreen.queryByText(
+            secondPageLastRoom.roomName,
+        );
+        expect(secondPageRoom).toBeNull();
+    });
+});

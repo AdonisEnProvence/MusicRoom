@@ -131,9 +131,9 @@ test(`A user can suggest tracks to play`, async () => {
 
     fireEvent.press(suggestATrackButton);
 
-    const searchTrackTextField = await screen.findByPlaceholderText(
-        /search.*track/i,
-    );
+    const searchTrackTextField = (
+        await screen.findAllByPlaceholderText(/search.*track/i)
+    ).slice(-1)[0];
     expect(searchTrackTextField).toBeTruthy();
 
     fireEvent(searchTrackTextField, 'focus');
@@ -143,20 +143,16 @@ test(`A user can suggest tracks to play`, async () => {
     const trackToSuggest = await screen.findByText(fakeTrack.title);
     expect(trackToSuggest).toBeTruthy();
 
-    const waitForSuggestTrackInputToDisappearPromise =
-        waitForElementToBeRemoved(() =>
-            screen.getByPlaceholderText(/search.*track/i),
-        );
-
     fireEvent.press(trackToSuggest);
 
-    await waitForSuggestTrackInputToDisappearPromise;
-
-    expect(toast.show).toHaveBeenNthCalledWith(1, {
-        type: 'success',
-        text1: 'Track suggestion',
-        text2: 'Your suggestion has been accepted',
+    await waitFor(() => {
+        expect(toast.show).toHaveBeenNthCalledWith(1, {
+            type: 'success',
+            text1: 'Track suggestion',
+            text2: 'Your suggestion has been accepted',
+        });
     });
+
     const suggestedTrack = await within(musicPlayerFullScreen).findByText(
         fakeTrack.title,
     );
@@ -244,9 +240,9 @@ test('Suggested tracks are reset when pressing clear button', async () => {
 
     fireEvent.press(suggestATrackButton);
 
-    const searchTrackTextField = await screen.findByPlaceholderText(
-        /search.*track/i,
-    );
+    const searchTrackTextField = (
+        await screen.findAllByPlaceholderText(/search.*track/i)
+    ).slice(-1)[0];
     expect(searchTrackTextField).toBeTruthy();
 
     // Suggest first track
@@ -353,9 +349,9 @@ test('Suggested tracks are reset when pressing cancel button', async () => {
 
     fireEvent.press(suggestATrackButton);
 
-    const searchTrackTextField = await screen.findByPlaceholderText(
-        /search.*track/i,
-    );
+    const searchTrackTextField = (
+        await screen.findAllByPlaceholderText(/search.*track/i)
+    ).slice(-1)[0];
     expect(searchTrackTextField).toBeTruthy();
 
     // Suggest first track
@@ -369,7 +365,7 @@ test('Suggested tracks are reset when pressing cancel button', async () => {
     const waitForTrackResultListItemToDisappearPromise =
         waitForElementToBeRemoved(() => screen.getByText(fakeTracks[0].title));
 
-    const cancelButton = screen.getByText(/cancel/i);
+    const cancelButton = screen.getAllByText(/cancel/i).slice(-1)[0];
     expect(cancelButton).toBeTruthy();
 
     fireEvent.press(cancelButton);
@@ -462,9 +458,9 @@ test('Search query can be changed and submitted after a first submission', async
 
     fireEvent.press(suggestATrackButton);
 
-    const searchTrackTextField = await screen.findByPlaceholderText(
-        /search.*track/i,
-    );
+    const searchTrackTextField = (
+        await screen.findAllByPlaceholderText(/search.*track/i)
+    ).slice(-1)[0];
     expect(searchTrackTextField).toBeTruthy();
 
     // Suggest first track
@@ -562,9 +558,9 @@ test('Display a failure toast when track could not be suggested', async () => {
 
     fireEvent.press(suggestATrackButton);
 
-    const searchTrackTextField = await screen.findByPlaceholderText(
-        /search.*track/i,
-    );
+    const searchTrackTextField = (
+        await screen.findAllByPlaceholderText(/search.*track/i)
+    ).slice(-1)[0];
     expect(searchTrackTextField).toBeTruthy();
 
     fireEvent(searchTrackTextField, 'focus');
@@ -574,19 +570,14 @@ test('Display a failure toast when track could not be suggested', async () => {
     const trackToSuggest = await screen.findByText(fakeTrack.title);
     expect(trackToSuggest).toBeTruthy();
 
-    const waitForSuggestTrackInputToDisappearPromise =
-        waitForElementToBeRemoved(() =>
-            screen.getByPlaceholderText(/search.*track/i),
-        );
-
     fireEvent.press(trackToSuggest);
 
-    await waitForSuggestTrackInputToDisappearPromise;
-
-    expect(toast.show).toHaveBeenNthCalledWith(1, {
-        type: 'error',
-        text1: 'Track suggestion',
-        text2: 'Your suggestion has been rejected',
+    await waitFor(() => {
+        expect(toast.show).toHaveBeenNthCalledWith(1, {
+            type: 'error',
+            text1: 'Track suggestion',
+            text2: 'Your suggestion has been rejected',
+        });
     });
 
     const undefinedFakeTrack = within(musicPlayerFullScreen).queryByText(

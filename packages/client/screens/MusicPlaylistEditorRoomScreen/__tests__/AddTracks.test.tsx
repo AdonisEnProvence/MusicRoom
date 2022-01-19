@@ -37,11 +37,12 @@ test('Add track and trigger sucess toast', async () => {
     fireEvent.press(addTrackButton);
 
     const searchTrackInput = await waitFor(() => {
-        const searchTrackInputElement =
-            screen.getByPlaceholderText(/search.*track/i);
-        expect(searchTrackInputElement).toBeTruthy();
+        const lastSearchTrackInputElement = screen
+            .getAllByPlaceholderText(/search.*track/i)
+            .slice(-1)[0];
+        expect(lastSearchTrackInputElement).toBeTruthy();
 
-        return searchTrackInputElement;
+        return lastSearchTrackInputElement;
     });
 
     fireEvent(searchTrackInput, 'focus');
@@ -55,13 +56,7 @@ test('Add track and trigger sucess toast', async () => {
         return searchedTrackCardElement;
     });
 
-    const waitForSearchTrackInputToDisappearPromise = waitForElementToBeRemoved(
-        () => screen.getByPlaceholderText(/search.*track/i),
-    );
-
     fireEvent.press(searchedTrackCard);
-
-    await waitForSearchTrackInputToDisappearPromise;
 
     // There operations should occur concurrently.
     await Promise.all([
@@ -101,17 +96,20 @@ test('Fail when adding track already in playlist', async () => {
     });
     serverSocket.on('MPE_ADD_TRACKS', addTracksSpy);
 
-    const addTrackButton = await screen.findByText(/add.*track/i);
+    const addTrackButton = (await screen.findAllByText(/add.*track/i)).slice(
+        -1,
+    )[0];
     expect(addTrackButton).toBeTruthy();
 
     fireEvent.press(addTrackButton);
 
     const searchTrackInput = await waitFor(() => {
-        const searchTrackInputElement =
-            screen.getByPlaceholderText(/search.*track/i);
-        expect(searchTrackInputElement).toBeTruthy();
+        const lastSearchTrackInputElement = screen
+            .getAllByPlaceholderText(/search.*track/i)
+            .slice(-1)[0];
+        expect(lastSearchTrackInputElement).toBeTruthy();
 
-        return searchTrackInputElement;
+        return lastSearchTrackInputElement;
     });
 
     fireEvent(searchTrackInput, 'focus');
@@ -130,13 +128,7 @@ test('Fail when adding track already in playlist', async () => {
         return searchedTrackCardElement;
     });
 
-    const waitForSearchTrackInputToDisappearPromise = waitForElementToBeRemoved(
-        () => screen.getByPlaceholderText(/search.*track/i),
-    );
-
     fireEvent.press(searchedTrackCard);
-
-    await waitForSearchTrackInputToDisappearPromise;
 
     await waitFor(() => {
         expect(Toast.show).toHaveBeenNthCalledWith(1, {

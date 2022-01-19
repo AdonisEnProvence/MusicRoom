@@ -29,7 +29,9 @@ test('Rooms are listed when coming to the screen and infinitely loaded', async (
 
     fireEvent.press(goToMtvSearchScreenButton);
 
-    const searchInput = await screen.findByPlaceholderText(/search.*room/i);
+    const searchInput = (
+        await screen.findAllByPlaceholderText(/search.*room/i)
+    ).slice(-1)[0];
     expect(searchInput).toBeTruthy();
 
     for (const { roomID, roomName, creatorName, isOpen } of firstPageRooms) {
@@ -151,7 +153,9 @@ test('Rooms are filtered and infinitely loaded', async () => {
     );
     expect(roomWithSpecialNameElement).toBeNull();
 
-    const searchInput = await screen.findByPlaceholderText(/search.*room/i);
+    const searchInput = (
+        await screen.findAllByPlaceholderText(/search.*room/i)
+    ).slice(-1)[0];
     expect(searchInput).toBeTruthy();
 
     fireEvent(searchInput, 'focus');
@@ -234,7 +238,9 @@ test('Clearing search input displays rooms without filter', async () => {
     );
     expect(roomWithSpecialNameElement).toBeNull();
 
-    const searchInput = await screen.findByPlaceholderText(/search.*room/i);
+    const searchInput = (
+        await screen.findAllByPlaceholderText(/search.*room/i)
+    ).slice(-1)[0];
     expect(searchInput).toBeTruthy();
 
     fireEvent(searchInput, 'focus');
@@ -298,7 +304,9 @@ test('Cancelling search input displays rooms without filter', async () => {
     );
     expect(roomWithSpecialNameElement).toBeNull();
 
-    const searchInput = await screen.findByPlaceholderText(/search.*room/i);
+    const searchInput = (
+        await screen.findAllByPlaceholderText(/search.*room/i)
+    ).slice(-1)[0];
     expect(searchInput).toBeTruthy();
 
     fireEvent(searchInput, 'focus');
@@ -310,7 +318,7 @@ test('Cancelling search input displays rooms without filter', async () => {
     );
     expect(roomToFindListElement).toBeTruthy();
 
-    const cancelButton = screen.getByText(/cancel/i);
+    const cancelButton = screen.getAllByText(/cancel/i).slice(-1)[0];
     expect(cancelButton).toBeTruthy();
 
     const waitForRoomWithSpecialNameElementToDisappearPromise =

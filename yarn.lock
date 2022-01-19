@@ -18211,6 +18211,11 @@ react-native-toast-message@^1.4.9:
   dependencies:
     prop-types "^15.7.2"
 
+react-native-web-refresh-control@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/react-native-web-refresh-control/-/react-native-web-refresh-control-1.1.0.tgz#1db8fa744e88a8f6a171166d6743ea3ef1ec0d82"
+  integrity sha512-cOO5WKM7gYXPv9yBc8XXDoRSj/a7GEt0dJ0sOlpwbZyfAiLXA5pS+4XEh10cHG3J+S6yth4Oe5srsebsQTpe+A==
+
 react-native-web-webview@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/react-native-web-webview/-/react-native-web-webview-1.0.2.tgz#c215efa70c17589f2c8d640b1f1dc669b18c6e02"

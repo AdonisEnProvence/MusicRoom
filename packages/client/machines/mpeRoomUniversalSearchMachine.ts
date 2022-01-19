@@ -26,6 +26,7 @@ const mpeRoomUniversalSearchModel = createModel(
             }) => args,
 
             LOAD_MORE_ITEMS: () => ({}),
+            REFRESH: () => ({}),
 
             FAILED_FETCHING_ROOMS: () => ({}),
         },
@@ -99,6 +100,8 @@ function createMpeRoomUniversalSearchMachine({
                         },
 
                         fetchingRooms: {
+                            tags: 'fetching',
+
                             invoke: {
                                 src: 'fetchRooms',
                             },
@@ -152,6 +155,14 @@ function createMpeRoomUniversalSearchMachine({
 
                             actions: mpeRoomUniversalSearchModel.assign({
                                 searchQuery: '',
+                                nextPage: 1,
+                            }),
+                        },
+
+                        REFRESH: {
+                            target: 'steps.fetchingRooms',
+
+                            actions: mpeRoomUniversalSearchModel.assign({
                                 nextPage: 1,
                             }),
                         },

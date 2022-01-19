@@ -5,6 +5,7 @@ import { FlatList, TouchableOpacity } from 'react-native';
 import { useActor, useMachine } from '@xstate/react';
 import { ActorRef } from 'xstate';
 import { MpeRoomSummary } from '@musicroom/types';
+import { RefreshControl } from 'react-native-web-refresh-control';
 import { AppScreenWithSearchBar } from '../../components/kit';
 import { MpeTabMpeRoomsScreenProps } from '../../types';
 import { useMusicPlaylistsActor } from '../../hooks/useMusicPlaylistsActor';
@@ -51,6 +52,7 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> =
         );
         const mpeRooms = libraryRoomState.context.rooms;
         const hasMoreRoomsToFetch = libraryRoomState.context.hasMore;
+        const isLoadingRooms = libraryRoomState.hasTag('fetching');
         const searchBarActor: ActorRef<
             AppScreenHeaderWithSearchBarMachineEvent,
             AppScreenHeaderWithSearchBarMachineState
@@ -61,6 +63,12 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> =
         function handleLoadMore() {
             libraryRoomSend({
                 type: 'LOAD_MORE_ITEMS',
+            });
+        }
+
+        function handleRefresh() {
+            libraryRoomSend({
+                type: 'REFRESH',
             });
         }
 
@@ -88,6 +96,12 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> =
                 <FlatList
                     testID="library-mpe-room-search-flat-list"
                     data={mpeRooms}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={isLoadingRooms}
+                            onRefresh={handleRefresh}
+                        />
+                    }
                     renderItem={({ item }) => {
                         return (
                             <PlaylistListItem

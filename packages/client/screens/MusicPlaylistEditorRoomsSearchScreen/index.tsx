@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text, View } from 'dripsy';
+import { Text, useSx, View } from 'dripsy';
 import { FlatList, TouchableOpacity } from 'react-native';
 import { useActor, useMachine } from '@xstate/react';
 import { ActorRef } from 'xstate';
 import { MpeRoomSummary } from '@musicroom/types';
+import { Entypo, FontAwesome } from '@expo/vector-icons';
 import { AppScreenWithSearchBar } from '../../components/kit';
 import { MpeTabMpeRoomsScreenProps } from '../../types';
 import { useMusicPlaylistsActor } from '../../hooks/useMusicPlaylistsActor';
@@ -13,6 +14,7 @@ import {
     AppScreenHeaderWithSearchBarMachineState,
 } from '../../machines/appScreenHeaderWithSearchBarMachine';
 import { mpeRoomSearchMachine } from '../../machines/mpeRoomUniversalSearchMachine';
+import { IS_TEST } from '../../constants/Env';
 
 interface PlaylistListItemProps {
     roomSummary: MpeRoomSummary;
@@ -23,7 +25,9 @@ const PlaylistListItem: React.FC<PlaylistListItemProps> = ({
     roomSummary,
     onPress,
 }) => {
-    const { roomID, roomName } = roomSummary;
+    const sx = useSx();
+    const { roomID, roomName, isOpen, isInvited } = roomSummary;
+
     return (
         <TouchableOpacity
             testID={`mpe-room-card-${roomID}`}
@@ -31,8 +35,56 @@ const PlaylistListItem: React.FC<PlaylistListItemProps> = ({
                 onPress(roomSummary);
             }}
         >
-            <View>
-                <Text sx={{ color: 'white' }}>{roomName}</Text>
+            <View sx={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text
+                    numberOfLines={1}
+                    sx={{ color: 'white', fontSize: 's', flexShrink: 1 }}
+                >
+                    {roomName}
+                </Text>
+
+                <View
+                    sx={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        flexShrink: 0,
+                    }}
+                >
+                    {isOpen === true ? (
+                        <>
+                            {isInvited && (
+                                <FontAwesome
+                                    name="envelope"
+                                    style={sx({
+                                        color: 'greyLighter',
+                                        fontSize: 'm',
+                                        paddingLeft: 'm',
+                                    })}
+                                    accessibilityLabel={`You're invited to ${roomName}`}
+                                />
+                            )}
+                            <Entypo
+                                name="globe"
+                                style={sx({
+                                    color: 'greyLighter',
+                                    fontSize: 'm',
+                                    paddingLeft: 'm',
+                                })}
+                                accessibilityLabel={`${roomName} is a public room`}
+                            />
+                        </>
+                    ) : (
+                        <Entypo
+                            name="lock"
+                            style={sx({
+                                color: 'greyLighter',
+                                fontSize: 'm',
+                                paddingLeft: 'm',
+                            })}
+                            accessibilityLabel={`${roomName} is a private room`}
+                        />
+                    )}
+                </View>
             </View>
         </TouchableOpacity>
     );
@@ -41,18 +93,26 @@ const PlaylistListItem: React.FC<PlaylistListItemProps> = ({
 const MusicPlaylistEditorRoomsSearchScreen: React.FC<MpeTabMpeRoomsScreenProps> =
     ({ navigation }) => {
         const insets = useSafeAreaInsets();
+        const sx = useSx();
         const [screenOffsetY, setScreenOffsetY] = useState(0);
+        const initialNumberOfItemsToRender = IS_TEST ? Infinity : 10;
 
-        //Library Search machine
-        const [libraryRoomState] = useMachine(mpeRoomSearchMachine);
-        const hasMoreRoomsToFetch = false;
+        const [mpeRoomSearchState, mpeRoomSearchSend] =
+            useMachine(mpeRoomSearchMachine);
+        const mpeRooms = mpeRoomSearchState.context.rooms;
+        const hasMoreRoomsToFetch = mpeRoomSearchState.context.hasMore;
         const searchBarActor: ActorRef<
             AppScreenHeaderWithSearchBarMachineEvent,
             AppScreenHeaderWithSearchBarMachineState
-        > = libraryRoomState.children.searchBarMachine;
+        > = mpeRoomSearchState.children.searchBarMachine;
         const [searchState, sendToSearch] = useActor(searchBarActor);
         const showHeader = searchState.hasTag('showHeaderTitle');
-        ///
+
+        function handleLoadMore() {
+            mpeRoomSearchSend({
+                type: 'LOAD_MORE_ITEMS',
+            });
+        }
 
         const { appMusicPlaylistsActorRef } = useMusicPlaylistsActor();
         function handleRoomPress({ roomID, roomName }: MpeRoomSummary) {
@@ -80,7 +140,7 @@ const MusicPlaylistEditorRoomsSearchScreen: React.FC<MpeTabMpeRoomsScreenProps> 
             >
                 <FlatList
                     testID="library-mpe-room-search-flat-list"
-                    data={libraryRoomState.context.rooms}
+                    data={mpeRooms}
                     renderItem={({ item }) => {
                         return (
                             <PlaylistListItem
@@ -97,13 +157,48 @@ const MusicPlaylistEditorRoomsSearchScreen: React.FC<MpeTabMpeRoomsScreenProps> 
                             </Text>
                         );
                     }}
+                    ListFooterComponent={
+                        hasMoreRoomsToFetch === true
+                            ? () => {
+                                  return (
+                                      <View
+                                          sx={{
+                                              flexDirection: 'row',
+                                              justifyContent: 'center',
+                                              alignItems: 'center',
+                                          }}
+                                      >
+                                          <TouchableOpacity
+                                              onPress={handleLoadMore}
+                                              style={sx({
+                                                  borderRadius: 'full',
+                                                  borderWidth: 2,
+                                                  borderColor: 'secondary',
+                                                  paddingX: 'l',
+                                                  paddingY: 's',
+                                              })}
+                                          >
+                                              <Text
+                                                  sx={{
+                                                      color: 'secondary',
+                                                      fontWeight: 'bold',
+                                                  }}
+                                              >
+                                                  Load more
+                                              </Text>
+                                          </TouchableOpacity>
+                                      </View>
+                                  );
+                              }
+                            : undefined
+                    }
                     // This is here that we ensure the Flat List will not show items
                     // on an unsafe area.
                     contentContainerStyle={{
                         paddingBottom: insets.bottom,
                     }}
                     onEndReachedThreshold={0.5}
-                    initialNumToRender={10}
+                    initialNumToRender={initialNumberOfItemsToRender}
                 />
             </AppScreenWithSearchBar>
         );

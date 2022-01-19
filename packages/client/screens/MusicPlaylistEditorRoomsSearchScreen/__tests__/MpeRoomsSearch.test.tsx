@@ -60,7 +60,7 @@ function getPagesCount<Item>(items: Item[], pageLength: number): number {
     return Math.ceil(itemsLength / pageLength);
 }
 
-const mpeLibrarySearchModel = createModel(
+const mpeRoomsSearchModel = createModel(
     {
         searchQuery: '',
         page: 1,
@@ -73,19 +73,19 @@ const mpeLibrarySearchModel = createModel(
     },
 );
 
-type MpeLibrarySearchMachineState = State<
-    ContextFrom<typeof mpeLibrarySearchModel>,
-    EventFrom<typeof mpeLibrarySearchModel>
+type MpeRoomsSearchMachineState = State<
+    ContextFrom<typeof mpeRoomsSearchModel>,
+    EventFrom<typeof mpeRoomsSearchModel>
 >;
 
-const incrementPage = mpeLibrarySearchModel.assign(
+const incrementPage = mpeRoomsSearchModel.assign(
     {
         page: ({ page }) => page + 1,
     },
     'LOAD_MORE',
 );
 
-const assignSearchQueryToContext = mpeLibrarySearchModel.assign(
+const assignSearchQueryToContext = mpeRoomsSearchModel.assign(
     {
         searchQuery: (_, { roomName }) => roomName,
         page: 1,
@@ -93,7 +93,7 @@ const assignSearchQueryToContext = mpeLibrarySearchModel.assign(
     'SEARCH_ROOM_BY_NAME',
 );
 
-const mpeLibrarySearchMachine = mpeLibrarySearchModel.createMachine({
+const mpeRoomsSearchMachine = mpeRoomsSearchModel.createMachine({
     initial: 'displayingRooms',
 
     states: {
@@ -103,7 +103,7 @@ const mpeLibrarySearchMachine = mpeLibrarySearchModel.createMachine({
                     { screen }: TestingContext,
                     {
                         context: { searchQuery, page },
-                    }: MpeLibrarySearchMachineState,
+                    }: MpeRoomsSearchMachineState,
                 ) => {
                     const expectedRooms = getPage(
                         filterMpeRoomsByName(fakeMpeRooms, searchQuery),
@@ -112,8 +112,60 @@ const mpeLibrarySearchMachine = mpeLibrarySearchModel.createMachine({
                     );
 
                     for (const room of expectedRooms) {
-                        const roomCard = await screen.findByText(room.roomName);
+                        const roomCard = await screen.findByTestId(
+                            `mpe-room-card-${room.roomID}`,
+                        );
                         expect(roomCard).toBeTruthy();
+                        expect(roomCard).toHaveTextContent(room.roomName);
+
+                        const roomCardScreen = within(roomCard);
+                        const invitedIcon =
+                            roomCardScreen.queryByLabelText(/you.*invited/i);
+                        const publicRoomIcon =
+                            roomCardScreen.queryByLabelText(/public.*room/i);
+                        const privateRoomIcon =
+                            roomCardScreen.queryByLabelText(/private.*room/i);
+
+                        switch (room.isOpen) {
+                            case true: {
+                                expect(publicRoomIcon).toBeTruthy();
+                                expect(privateRoomIcon).toBeNull();
+
+                                switch (room.isInvited) {
+                                    case true: {
+                                        expect(invitedIcon).toBeTruthy();
+
+                                        break;
+                                    }
+
+                                    case false: {
+                                        expect(invitedIcon).toBeNull();
+
+                                        break;
+                                    }
+
+                                    default: {
+                                        throw new Error(
+                                            'Reached unreachable state',
+                                        );
+                                    }
+                                }
+
+                                break;
+                            }
+
+                            case false: {
+                                expect(privateRoomIcon).toBeTruthy();
+                                expect(publicRoomIcon).toBeNull();
+                                expect(invitedIcon).toBeNull();
+
+                                break;
+                            }
+
+                            default: {
+                                throw new Error('Reached unreachable state');
+                            }
+                        }
                     }
                 },
             },
@@ -158,10 +210,10 @@ const mpeLibrarySearchMachine = mpeLibrarySearchModel.createMachine({
     },
 });
 
-const mpeLibrarySearchTestModel = createTestModel<
+const mpeRoomsSearchTestModel = createTestModel<
     TestingContext,
-    ContextFrom<typeof mpeLibrarySearchMachine>
->(mpeLibrarySearchMachine).withEvents({
+    ContextFrom<typeof mpeRoomsSearchMachine>
+>(mpeRoomsSearchMachine).withEvents({
     LOAD_MORE: async ({ screen }) => {
         const loadMoreButton = await screen.findByText(/load.*more/i);
         expect(loadMoreButton).toBeTruthy();
@@ -172,7 +224,7 @@ const mpeLibrarySearchTestModel = createTestModel<
     SEARCH_ROOM_BY_NAME: {
         exec: async ({ screen }, _event) => {
             const { roomName } = _event as EventFrom<
-                typeof mpeLibrarySearchMachine,
+                typeof mpeRoomsSearchMachine,
                 'SEARCH_ROOM_BY_NAME'
             >;
 
@@ -190,23 +242,18 @@ const mpeLibrarySearchTestModel = createTestModel<
             {
                 roomName: 'Biolay',
             } as Omit<
-                EventFrom<
-                    typeof mpeLibrarySearchMachine,
-                    'SEARCH_ROOM_BY_NAME'
-                >,
+                EventFrom<typeof mpeRoomsSearchMachine, 'SEARCH_ROOM_BY_NAME'>,
                 'type'
             >,
         ],
     },
 });
 
-describe('MPE Library Search', () => {
-    const testPlans = mpeLibrarySearchTestModel.getSimplePathPlansTo(
-        (state) => {
-            const isFinalState = state.done;
-            return isFinalState === true;
-        },
-    );
+describe('MPE Rooms Search', () => {
+    const testPlans = mpeRoomsSearchTestModel.getSimplePathPlansTo((state) => {
+        const isFinalState = state.done;
+        return isFinalState === true;
+    });
 
     testPlans.forEach((plan) => {
         describe(plan.description, () => {
@@ -222,10 +269,12 @@ describe('MPE Library Search', () => {
                         screen.getAllByText(/home/i).length,
                     ).toBeGreaterThanOrEqual(1);
 
-                    const goToLibraryButton = screen.getByText(/^library$/i);
-                    expect(goToLibraryButton).toBeTruthy();
+                    const goToMpeRoomsSearchButton = screen.getByText(
+                        /go.*to.*music.*playlist.*editor/i,
+                    );
+                    expect(goToMpeRoomsSearchButton).toBeTruthy();
 
-                    fireEvent.press(goToLibraryButton);
+                    fireEvent.press(goToMpeRoomsSearchButton);
 
                     const searchInput = await screen.findByPlaceholderText(
                         /search.*room/i,
@@ -241,12 +290,12 @@ describe('MPE Library Search', () => {
     });
 
     it('should have full coverage', () => {
-        mpeLibrarySearchTestModel.testCoverage();
+        mpeRoomsSearchTestModel.testCoverage();
     });
 });
 
-async function withinMpeLibraryScreen(screen: ReturnType<typeof render>) {
-    return within(await screen.findByTestId('library-mpe-rooms-list'));
+async function withinMpeRoomsSearchScreen(screen: ReturnType<typeof render>) {
+    return within(await screen.findByTestId('mpe-room-search-engine'));
 }
 
 test('Pressing Cancel button refreshes the list', async () => {
@@ -258,12 +307,14 @@ test('Pressing Cancel button refreshes the list', async () => {
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const goToLibraryButton = screen.getByText(/^library$/i);
-    expect(goToLibraryButton).toBeTruthy();
+    const goToMpeRoomsSearchButton = screen.getByText(
+        /go.*to.*music.*playlist.*editor/i,
+    );
+    expect(goToMpeRoomsSearchButton).toBeTruthy();
 
-    fireEvent.press(goToLibraryButton);
+    fireEvent.press(goToMpeRoomsSearchButton);
 
-    const libraryScreen = await withinMpeLibraryScreen(screen);
+    const libraryScreen = await withinMpeRoomsSearchScreen(screen);
 
     const searchInput = await libraryScreen.findByPlaceholderText(
         /search.*room/i,
@@ -340,12 +391,14 @@ test('Pressing Clear button refreshes the list and resets the search query', asy
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const goToLibraryButton = screen.getByText(/^library$/i);
-    expect(goToLibraryButton).toBeTruthy();
+    const goToMpeRoomsSearchButton = screen.getByText(
+        /go.*to.*music.*playlist.*editor/i,
+    );
+    expect(goToMpeRoomsSearchButton).toBeTruthy();
 
-    fireEvent.press(goToLibraryButton);
+    fireEvent.press(goToMpeRoomsSearchButton);
 
-    const libraryScreen = await withinMpeLibraryScreen(screen);
+    const libraryScreen = await withinMpeRoomsSearchScreen(screen);
 
     const searchInput = await libraryScreen.findByPlaceholderText(
         /search.*room/i,

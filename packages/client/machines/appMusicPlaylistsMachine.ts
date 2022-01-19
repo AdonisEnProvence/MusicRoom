@@ -552,8 +552,7 @@ export function createAppMusicPlaylistsMachine({
                                             to: 'socketConnection',
                                         },
                                     ),
-
-                                    appMusicPlaylistsModel.actions.redirectToMpeLibrary(),
+                                    `redirectToMpeLibrary`,
                                 ],
                             },
                         },
@@ -573,14 +572,33 @@ export function createAppMusicPlaylistsMachine({
                             ROOM_CREATION_ACKNOWLEDGEMENT: {
                                 target: 'waitingForRoomReadiness',
 
-                                actions: send((_, { state }) =>
-                                    appMusicPlaylistsModel.events.SPAWN_PLAYLIST_ACTOR_FROM_STATE(
-                                        {
-                                            roomID: state.roomID,
-                                            state,
-                                        },
+                                actions: [
+                                    send((_, { state }) =>
+                                        appMusicPlaylistsModel.events.SPAWN_PLAYLIST_ACTOR_FROM_STATE(
+                                            {
+                                                roomID: state.roomID,
+                                                state,
+                                            },
+                                        ),
                                     ),
-                                ),
+                                    send(
+                                        (
+                                            _context,
+                                            {
+                                                state: {
+                                                    roomID,
+                                                    name: roomName,
+                                                },
+                                            },
+                                        ) =>
+                                            appMusicPlaylistsModel.events.DISPLAY_MPE_ROOM_VIEW(
+                                                {
+                                                    roomID,
+                                                    roomName,
+                                                },
+                                            ),
+                                    ),
+                                ],
                             },
                         },
                     },

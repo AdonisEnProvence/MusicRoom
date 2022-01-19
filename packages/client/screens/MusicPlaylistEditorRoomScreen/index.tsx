@@ -15,7 +15,7 @@ import {
 } from '../../components/kit';
 import { MpeTabMpeRoomScreenProps } from '../../types';
 import { usePlaylist } from '../../hooks/useMusicPlaylistsActor';
-import { MusicPlaylist } from '../../machines/appMusicPlaylistsMachine';
+import { MusicPlaylist } from '../../machines/appMusicPlaylistsModel';
 import TrackListItem from '../../components/Track/TrackListItem';
 import { PlaylistActorRef } from '../../machines/playlistMachine';
 import BottomRightAbsoluteButton from '../../components/kit/BottomRightAbsoluteButton';

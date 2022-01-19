@@ -1,7 +1,9 @@
 import * as z from 'zod';
 import { MtvRoomCreationOptionsWithoutInitialTracksIDs } from './mpe-room-websockets';
-import { MpeWorkflowStateWithUserRelatedInformation } from './mpe';
-import { PlaylistModelMpeWorkflowState } from '.';
+import {
+    MpeWorkflowStateWithUserRelatedInformation,
+    PlaylistModelMpeWorkflowState,
+} from './mpe';
 
 export const MpeCreateWorkflowResponse = z.object({
     state: MpeWorkflowStateWithUserRelatedInformation,

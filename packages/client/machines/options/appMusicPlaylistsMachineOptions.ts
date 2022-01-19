@@ -1,4 +1,3 @@
-import { MpeRoomSummary } from '@musicroom/types';
 import Toast from 'react-native-toast-message';
 import { MachineOptions } from 'xstate';
 import {
@@ -8,7 +7,7 @@ import {
 import {
     MusicPlaylistsContext,
     MusicPlaylistsEvents,
-} from '../appMusicPlaylistsMachine';
+} from '../appMusicPlaylistsModel';
 import { assertEventType } from '../utils';
 
 export type AppMusicPlaylistsOptions = Partial<

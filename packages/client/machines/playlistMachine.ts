@@ -12,7 +12,7 @@ import {
     MpeWorkflowState,
     PlaylistModelMpeWorkflowState,
 } from '@musicroom/types';
-import { appMusicPlaylistsModel } from './appMusicPlaylistsMachine';
+import { appMusicPlaylistsModel } from './appMusicPlaylistsModel';
 
 interface TrackToMove {
     fromIndex: number;

@@ -21,7 +21,7 @@ import {
 import { getMusicPlayerMachineOptions } from '../machines/options/appMusicPlayerMachineOptions';
 import { getUserMachineOptions } from '../machines/options/appUserMachineOptions';
 import { ApplicationState } from '../types';
-import { AppMusicPlaylistsActorRef } from '../machines/appMusicPlaylistsMachine';
+import { AppMusicPlaylistsActorRef } from '../machines/appMusicPlaylistsModel';
 import { getAppMusicPlaylistsMachineOptions } from '../machines/options/appMusicPlaylistsMachineOptions';
 import { useSocketContext } from './SocketContext';
 

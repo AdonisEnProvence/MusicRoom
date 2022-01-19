@@ -12,7 +12,7 @@ import { createModel } from 'xstate/lib/model';
 import { navigateFromRef } from '../navigation/RootNavigation';
 import { fetchTracksByID } from '../services/search-tracks';
 import { MusicPlaylistEditorCreationFormParamList } from '../types';
-import { appMusicPlaylistsModel } from './appMusicPlaylistsMachine';
+import { appMusicPlaylistsModel } from './appMusicPlaylistsModel';
 
 const creationMpeRoomFormModel = createModel(
     {

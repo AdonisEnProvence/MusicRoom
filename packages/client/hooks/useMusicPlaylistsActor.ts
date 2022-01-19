@@ -4,7 +4,7 @@ import { useAppContext } from '../contexts/AppContext';
 import {
     AppMusicPlaylistsActorRef,
     MusicPlaylist,
-} from '../machines/appMusicPlaylistsMachine';
+} from '../machines/appMusicPlaylistsModel';
 import { CreationMpeRoomFormActorRef } from '../machines/creationMpeRoomForm';
 import { CreationMtvRoomFormActorRef } from '../machines/creationMtvRoomForm';
 

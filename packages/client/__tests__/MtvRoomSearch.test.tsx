@@ -325,6 +325,64 @@ test('Cancelling search input displays rooms without filter', async () => {
     expect(searchInput).toHaveProp('value', '');
 });
 
+test('Cancelling search input when all data have been loaded does nothing', async () => {
+    const rooms = generateArray({
+        minLength: 11,
+        maxLength: 19,
+        fill: () => db.searchableRooms.create(),
+    });
+
+    const screen = await renderApp();
+
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+    const goToMtvSearchScreenButton = screen.getByText(
+        /go.*to.*music.*track.*vote/i,
+    );
+    expect(goToMtvSearchScreenButton).toBeTruthy();
+
+    fireEvent.press(goToMtvSearchScreenButton);
+
+    // Wait for first element of the list to be displayed
+    await waitFor(() => {
+        const firstRoomBeforeFilteringElement = screen.getByTestId(
+            `mtv-room-search-${rooms[0].roomID}`,
+        );
+        expect(firstRoomBeforeFilteringElement).toBeTruthy();
+    });
+
+    const loadMoreButton = screen.getByText(/load.*more/i);
+    expect(loadMoreButton).toBeTruthy();
+
+    fireEvent.press(loadMoreButton);
+
+    // Wait for first element of the second page to be displayed
+    const secondPageFirstRoomID = rooms[10].roomID;
+    await waitFor(() => {
+        const firstRoomAfterLoadingElement = screen.getByTestId(
+            `mtv-room-search-${secondPageFirstRoomID}`,
+        );
+        expect(firstRoomAfterLoadingElement).toBeTruthy();
+    });
+
+    const searchInput = await screen.findByPlaceholderText(/search.*room/i);
+    expect(searchInput).toBeTruthy();
+
+    fireEvent(searchInput, 'focus');
+
+    const cancelButton = await screen.findByText(/cancel/i);
+    expect(cancelButton).toBeTruthy();
+
+    fireEvent.press(cancelButton);
+
+    await waitFor(() => {
+        const mtvRoomsWithSecondPageFirstRoomID = screen.queryAllByTestId(
+            `mtv-room-search-${secondPageFirstRoomID}`,
+        );
+        expect(mtvRoomsWithSecondPageFirstRoomID).toHaveLength(0);
+    });
+});
+
 test('Displays empty state when no rooms match the query', async () => {
     const screen = await renderApp();
 

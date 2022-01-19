@@ -122,6 +122,7 @@ export const searchMtvRoomsMachine = searchMtvRoomsModel.createMachine(
 
                         actions: searchMtvRoomsModel.assign({
                             searchQuery: '',
+                            nextPage: 1,
                         }),
                     },
 
@@ -130,6 +131,7 @@ export const searchMtvRoomsMachine = searchMtvRoomsModel.createMachine(
 
                         actions: searchMtvRoomsModel.assign({
                             searchQuery: '',
+                            nextPage: 1,
                         }),
                     },
                 },

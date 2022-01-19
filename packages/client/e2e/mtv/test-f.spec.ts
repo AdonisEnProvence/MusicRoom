@@ -226,8 +226,6 @@ async function createPublicRoomWithTimeAndPhysicalConstraints({
     );
     await expect(miniPlayerWithSelectedSong).toBeVisible();
 
-    await miniPlayerWithRoomName.click();
-
     return {
         roomName,
         initialTrack: selectedSongTitle,
@@ -262,13 +260,12 @@ async function joinRoom({ page, roomName }: { page: Page; roomName: string }) {
 
     await matchingRoom.click();
 
-    // Close MTV Search
-    await page.click('css=[aria-label="Go back"] >> visible=true');
-
-    return await openFullScreenPlayer({
-        page,
-        roomName,
-    });
+    const expectedListenersCounterAriaLabel = `2 Listeners`;
+    await expect(
+        page.locator(
+            `text="${expectedListenersCounterAriaLabel}" >> visible=true`,
+        ),
+    ).toBeVisible();
 }
 
 /**

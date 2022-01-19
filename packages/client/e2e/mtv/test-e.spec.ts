@@ -120,11 +120,6 @@ async function createDirectRoomAndGoFullscreen({
 
     ///
 
-    await findMiniPlayerWithRoomNameAndGoFullscreen({
-        page: creatorPage,
-        roomName,
-    });
-
     return {
         roomName,
         selectedSongTitle,
@@ -169,13 +164,6 @@ async function userJoinsGivenRoomAndGoFullscreen({
     await expect(matchingRoom).toBeVisible();
 
     await matchingRoom.click();
-
-    await joiningUserPage.click('css=[aria-label="Go back"] >> visible=true');
-
-    await findMiniPlayerWithRoomNameAndGoFullscreen({
-        page: joiningUserPage,
-        roomName,
-    });
 
     const expectedListenersCounterAriaLabel = `${expectedListenersCounterValue} Listeners`;
     await expect(

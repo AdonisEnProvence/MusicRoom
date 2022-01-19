@@ -107,8 +107,6 @@ async function createRoom({ creatorPage }: { creatorPage: Page }) {
         .first();
     await expect(miniPlayerWithSelectedSong).toBeVisible();
 
-    await miniPlayerWithRoomName.click();
-
     return {
         roomName,
         initialTrack: selectedSongTitle,
@@ -151,16 +149,12 @@ async function joinerJoinsRoom({
 
     await matchingRoom.click();
 
-    // Close MTV Search
-    await joinerPage.click('css=[aria-label="Go back"] >> visible=true');
-
-    // Open player full screen
-    const miniPlayerWithRoomName = joinerPage
-        .locator(`text="${roomName}"`)
-        .first();
-    await expect(miniPlayerWithRoomName).toBeVisible();
-
-    await miniPlayerWithRoomName.click();
+    const expectedListenersCounterAriaLabel = `2 Listeners`;
+    await expect(
+        joinerPage.locator(
+            `text="${expectedListenersCounterAriaLabel}" >> visible=true`,
+        ),
+    ).toBeVisible();
 }
 
 async function joinerSuggestsTrack({

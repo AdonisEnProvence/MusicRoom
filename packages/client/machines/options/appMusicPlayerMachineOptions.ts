@@ -77,9 +77,20 @@ export function getMusicPlayerMachineOptions({
 
             displayAlertForcedDisconnection: () => {
                 setIsFullScreen(false);
-                navigateFromRef('HomeScreen');
-                navigateFromRef('Alert', {
-                    reason: 'FORCED_DISCONNECTION',
+                navigateFromRef('Main', {
+                    screen: 'Root',
+                    params: {
+                        screen: 'Home',
+                        params: {
+                            screen: 'HomeScreen',
+                        },
+                    },
+                });
+                navigateFromRef('Main', {
+                    screen: 'Alert',
+                    params: {
+                        reason: 'FORCED_DISCONNECTION',
+                    },
                 });
             },
 

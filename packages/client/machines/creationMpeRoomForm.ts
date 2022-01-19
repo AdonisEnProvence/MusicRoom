@@ -244,7 +244,9 @@ export function createCreationMpeRoomFormMachine({
         {
             actions: {
                 redirectToScreen: (_context, _event, meta) => {
-                    navigateFromRef(meta.action.screen);
+                    navigateFromRef('MusicPlaylistEditorCreationForm', {
+                        screen: meta.action.screen,
+                    });
                 },
 
                 assignIsOpenToContext: creationMpeRoomFormModel.assign(

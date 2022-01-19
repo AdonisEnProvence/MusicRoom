@@ -172,7 +172,9 @@ export const createAppMusicPlayerMachine = ({
     const creationMtvRoomForm = createCreationMtvRoomFormMachine({
         redirectToRoomNameScreen: () => {
             try {
-                navigateFromRef('MusicTrackVoteCreationFormName');
+                navigateFromRef('MusicTrackVoteCreationForm', {
+                    screen: 'MusicTrackVoteCreationFormName',
+                });
             } catch {
                 // An error is thrown when the modal is open.
                 // We are not yet in MusicTrackVoteCreationForm and
@@ -184,23 +186,33 @@ export const createAppMusicPlayerMachine = ({
         },
 
         redirectToOpeningStatusScreen: () => {
-            navigateFromRef('MusicTrackVoteCreationFormOpeningStatus');
+            navigateFromRef('MusicTrackVoteCreationForm', {
+                screen: 'MusicTrackVoteCreationFormOpeningStatus',
+            });
         },
 
         redirectToPhysicalConstraintsScreen: () => {
-            navigateFromRef('MusicTrackVoteCreationFormPhysicalConstraints');
+            navigateFromRef('MusicTrackVoteCreationForm', {
+                screen: 'MusicTrackVoteCreationFormPhysicalConstraints',
+            });
         },
 
         redirectToPlayingModeScreen: () => {
-            navigateFromRef('MusicTrackVoteCreationFormPlayingMode');
+            navigateFromRef('MusicTrackVoteCreationForm', {
+                screen: 'MusicTrackVoteCreationFormPlayingMode',
+            });
         },
 
         redirectToVotesConstraintsScreen: () => {
-            navigateFromRef('MusicTrackVoteCreationFormVotesConstraints');
+            navigateFromRef('MusicTrackVoteCreationForm', {
+                screen: 'MusicTrackVoteCreationFormVotesConstraints',
+            });
         },
 
         redirectToConfirmationScreen: () => {
-            navigateFromRef('MusicTrackVoteCreationFormConfirmation');
+            navigateFromRef('MusicTrackVoteCreationForm', {
+                screen: 'MusicTrackVoteCreationFormConfirmation',
+            });
         },
     });
 

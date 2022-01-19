@@ -13,14 +13,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 
 export type ApplicationState = 'SHOW_APPLICATION_LOADER' | 'AUTHENTICATED';
 
-export type NavigateFromRefParams = {
-    Alert: AlertParams;
-    HomeScreen: undefined;
-} & RootStackParamList &
-    MusicTrackVoteCreationFormParamList &
-    MainStackParamList &
-    LibraryParamsList &
-    MusicPlaylistEditorCreationFormParamList;
+export type NavigateFromRefParams = RootStackParamList;
 
 export type NavigateFromRefRoutes = keyof NavigateFromRefParams;
 

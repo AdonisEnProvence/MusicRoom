@@ -81,14 +81,17 @@ export function getAppMusicPlaylistsMachineOptions({
                     return context;
                 }
 
-                navigateFromRef('Root', {
-                    screen: 'Library',
+                navigateFromRef('Main', {
+                    screen: 'Root',
                     params: {
-                        screen: 'MpeRoom',
+                        screen: 'Library',
                         params: {
-                            screen: 'Room',
+                            screen: 'MpeRoom',
                             params: {
-                                id: event.roomID,
+                                screen: 'Room',
+                                params: {
+                                    id: event.roomID,
+                                },
                             },
                         },
                     },

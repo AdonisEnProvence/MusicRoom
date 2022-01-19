@@ -90,6 +90,7 @@ const BottomTab: React.FC = () => {
             initialRouteName="Home"
             tabBarOptions={{ ...style }}
             tabBar={(props) => <TabBar {...props} />}
+            lazy={false}
         >
             <Tab.Screen
                 name="Home"

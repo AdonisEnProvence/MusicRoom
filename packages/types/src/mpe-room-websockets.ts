@@ -4,8 +4,8 @@ import {
     MpeWorkflowState,
     MpeRoomSummary,
     MpeWorkflowStateWithUserRelatedInformation,
+    PlaylistModelMpeWorkflowState,
 } from './mpe';
-import { PlaylistModelMpeWorkflowState } from '.';
 
 //Client to server
 export const MpeRoomClientToServerCreateArgs = z.object({

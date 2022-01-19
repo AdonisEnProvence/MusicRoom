@@ -180,7 +180,10 @@ const TabLibraryStack = createStackNavigator<LibraryParamsList>();
 
 const TabLibraryNavigator: React.FC = () => {
     return (
-        <TabLibraryStack.Navigator headerMode="none">
+        <TabLibraryStack.Navigator
+            initialRouteName="MpeRooms"
+            headerMode="none"
+        >
             <TabLibraryStack.Screen
                 name="MpeRooms"
                 component={MusicPlaylistEditorListScreen}

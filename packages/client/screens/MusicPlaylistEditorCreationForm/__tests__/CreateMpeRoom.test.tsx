@@ -12,14 +12,15 @@ import {
 } from '../../../tests/tests-utils';
 import {
     db,
-    generateMpeWorkflowState,
     generateMpeWorkflowStateWithUserRelatedInformation,
 } from '../../../tests/data';
 import { serverSocket } from '../../../services/websockets';
+import { testUtilsMsToTime } from '../../../tests/tests-mpe-utils';
 
 interface TestingContext {
     screen: ReturnType<typeof render>;
     fakeTrack: ReturnType<typeof db.searchableTracks.create>;
+    playlistTotalDuration: number;
 }
 
 const createMpeRoomWithSettingsModel = createModel(
@@ -454,7 +455,11 @@ const createMpeRoomWithSettingsMachine =
 
                 meta: {
                     test: async (
-                        { screen, fakeTrack }: TestingContext,
+                        {
+                            screen,
+                            fakeTrack,
+                            playlistTotalDuration,
+                        }: TestingContext,
                         state: CreateMpeRoomWithSettingsMachineState,
                     ) => {
                         const { roomName } = state.context;
@@ -509,6 +514,16 @@ const createMpeRoomWithSettingsMachine =
                                 roomScreen,
                             ).getByText(fakeTrack.title);
                             expect(trackInMpeRoomScreen).toBeTruthy();
+                        });
+
+                        await waitFor(() => {
+                            const expectedPlaylistTotalDuration =
+                                testUtilsMsToTime(playlistTotalDuration);
+                            expect(
+                                within(roomScreen).getByText(
+                                    expectedPlaylistTotalDuration,
+                                ),
+                            ).toBeTruthy();
                         });
                     },
                 },
@@ -724,6 +739,8 @@ const createMpeRoomWithSettingsTestModel = createTestModel<
     },
 });
 
+//Could this be improve ?
+
 describe('Create MPE room with custom settings', () => {
     const testPlans = createMpeRoomWithSettingsTestModel.getSimplePathPlansTo(
         (state) => {
@@ -738,6 +755,10 @@ describe('Create MPE room with custom settings', () => {
             plan.paths.forEach((path) => {
                 it(path.description, async () => {
                     const fakeTrack = db.searchableTracks.create();
+                    const playlistTotalDuration = datatype.number({
+                        min: 42000,
+                        max: 4200000,
+                    });
                     const userID = datatype.uuid();
 
                     serverSocket.on(
@@ -758,7 +779,7 @@ describe('Create MPE room with custom settings', () => {
                                             isOpen,
                                             isOpenOnlyInvitedUsersCanEdit,
                                             tracks: [fakeTrack],
-                                            playlistTotalDuration: 42000,
+                                            playlistTotalDuration,
                                             roomCreatorUserID: userID,
                                             usersLength: 1,
                                         },
@@ -790,6 +811,7 @@ describe('Create MPE room with custom settings', () => {
                     await path.test({
                         fakeTrack,
                         screen,
+                        playlistTotalDuration,
                     });
                 });
             });

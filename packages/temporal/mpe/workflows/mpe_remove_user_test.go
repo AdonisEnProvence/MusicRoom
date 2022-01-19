@@ -7,6 +7,7 @@ import (
 	"github.com/AdonisEnProvence/MusicRoom/activities"
 	activities_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/activities"
 	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
+	"github.com/AdonisEnProvence/MusicRoom/random"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/mock"
@@ -26,6 +27,7 @@ func (s *RemoveUserMpeWorkflowTestUnit) Test_RemoveUser() {
 	}
 	var joiningUserID = faker.UUIDHyphenated()
 	params, _ := s.getWorkflowInitParams(initialTracksIDs)
+	firstTrackDuration := random.GenerateRandomDuration()
 	var a *activities_mpe.Activities
 
 	tracks := []shared.TrackMetadata{
@@ -33,7 +35,7 @@ func (s *RemoveUserMpeWorkflowTestUnit) Test_RemoveUser() {
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 	}
 
@@ -80,7 +82,7 @@ func (s *RemoveUserMpeWorkflowTestUnit) Test_RemoveUser() {
 			RoomName:                      params.RoomName,
 			UsersLength:                   1,
 			Tracks:                        expectedTracks,
-			PlaylistTotalDuration:         42000, //tmp
+			PlaylistTotalDuration:         firstTrackDuration.Milliseconds(), //tmp
 		}
 
 		s.Equal(expectedExposedMpeState, mpeState)

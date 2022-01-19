@@ -559,8 +559,10 @@ describe('Export MPE room to MTV room', () => {
             plan.paths.forEach((path) => {
                 it(path.description, async () => {
                     const fakeMpeRoom = db.searchableMpeRooms.create();
+                    const { roomID, roomName } = fakeMpeRoom;
                     const fakeRoomState = generateMpeWorkflowState({
-                        ...fakeMpeRoom,
+                        roomID,
+                        name: roomName,
                         isOpen: true,
                         isOpenOnlyInvitedUsersCanEdit: false,
                     });

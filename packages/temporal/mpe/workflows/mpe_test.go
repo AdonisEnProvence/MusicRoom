@@ -24,16 +24,25 @@ type CreateMpeWorkflowTestUnit struct {
 func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflow() {
 	initialTracksIDs := []string{
 		faker.UUIDHyphenated(),
+		faker.UUIDHyphenated(),
 	}
 	params, _ := s.getWorkflowInitParams(initialTracksIDs)
 	var a *activities_mpe.Activities
+	firstTrackDuration := random.GenerateRandomDuration()
+	secondTrackDuration := random.GenerateRandomDuration()
 
 	tracks := []shared.TrackMetadata{
 		{
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
+		},
+		{
+			ID:         initialTracksIDs[1],
+			Title:      faker.Word(),
+			ArtistName: faker.Name(),
+			Duration:   secondTrackDuration,
 		},
 	}
 
@@ -66,7 +75,7 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflow() {
 			RoomName:                      params.RoomName,
 			UsersLength:                   1,
 			Tracks:                        expectedTracks,
-			PlaylistTotalDuration:         42000, //tmp
+			PlaylistTotalDuration:         firstTrackDuration.Milliseconds() + secondTrackDuration.Milliseconds(),
 		}
 
 		s.Equal(expectedExposedMpeState, mpeState)
@@ -89,31 +98,41 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflowWithSeveralInitialTrac
 	params, _ := s.getWorkflowInitParams(initialTracksIDs)
 	var a *activities_mpe.Activities
 
+	firstTrackDuration := random.GenerateRandomDuration()
+	secondTrackDuration := random.GenerateRandomDuration()
+	thirdTrackDuration := random.GenerateRandomDuration()
+	fourthTrackDuration := random.GenerateRandomDuration()
+
 	tracks := []shared.TrackMetadata{
 		{
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   secondTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[2],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   thirdTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[3],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   fourthTrackDuration,
 		},
+	}
+
+	var totalDuration int64 = 0
+	for _, track := range tracks {
+		totalDuration += track.Duration.Milliseconds()
 	}
 
 	defaultDuration := 200 * time.Millisecond
@@ -144,7 +163,7 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflowWithSeveralInitialTrac
 			RoomName:                      params.RoomName,
 			UsersLength:                   1,
 			Tracks:                        expectedTracks,
-			PlaylistTotalDuration:         42000, //tmp
+			PlaylistTotalDuration:         totalDuration,
 		}
 
 		s.Equal(expectedExposedMpeState, mpeState)
@@ -165,6 +184,11 @@ func (s *CreateMpeWorkflowTestUnit) Test_GetStateProvidesUserRelatedInformation(
 		faker.UUIDHyphenated(),
 	}
 	params, _ := s.getWorkflowInitParams(initialTracksIDs)
+	firstTrackDuration := random.GenerateRandomDuration()
+	secondTrackDuration := random.GenerateRandomDuration()
+	thirdTrackDuration := random.GenerateRandomDuration()
+	fourthTrackDuration := random.GenerateRandomDuration()
+
 	var a *activities_mpe.Activities
 
 	tracks := []shared.TrackMetadata{
@@ -172,26 +196,31 @@ func (s *CreateMpeWorkflowTestUnit) Test_GetStateProvidesUserRelatedInformation(
 			ID:         initialTracksIDs[0],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   firstTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[1],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   secondTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[2],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   thirdTrackDuration,
 		},
 		{
 			ID:         initialTracksIDs[3],
 			Title:      faker.Word(),
 			ArtistName: faker.Name(),
-			Duration:   42000,
+			Duration:   fourthTrackDuration,
 		},
+	}
+
+	var totalDuration int64 = 0
+	for _, track := range tracks {
+		totalDuration += track.Duration.Milliseconds()
 	}
 
 	defaultDuration := 200 * time.Millisecond
@@ -311,7 +340,7 @@ func (s *CreateMpeWorkflowTestUnit) Test_CreateMpeWorkflowFetchInitialTrackFaile
 			RoomName:                      params.RoomName,
 			UsersLength:                   1,
 			Tracks:                        expectedTracks,
-			PlaylistTotalDuration:         42000, //tmp
+			PlaylistTotalDuration:         0,
 		}
 
 		s.Equal(expectedExposedMpeState, mpeState)

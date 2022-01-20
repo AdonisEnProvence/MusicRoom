@@ -173,11 +173,6 @@ export async function createMpeRoom({
         page,
     });
 
-    await goToLibraryAndSearchMpeRoomAndOpenIt({
-        page,
-        roomName,
-    });
-
     return {
         roomName,
     };
@@ -446,7 +441,7 @@ export async function goToHomeTabScreen({
 }: {
     page: Page;
 }): Promise<void> {
-    const homeBottomBar = page.locator(`css=[data-testid="home-tab"]`);
+    const homeBottomBar = page.locator(`css=[data-testid="home-tab"]`).last();
     await expect(homeBottomBar).toBeVisible();
 
     await homeBottomBar.click();

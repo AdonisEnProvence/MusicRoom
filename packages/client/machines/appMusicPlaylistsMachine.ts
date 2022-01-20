@@ -1106,7 +1106,6 @@ export function createAppMusicPlaylistsMachine({
                     RECEIVED_MPE_GET_CONTEXT_FAIL_CALLBACK: {
                         actions: [
                             'displayGetContextFailureToast',
-                            'navigateToMpeRoomsSearchScreen',
                             send((_, { roomID }) =>
                                 appMusicPlaylistsModel.events.STOP_AND_REMOVE_ACTOR_FROM_PLAYLIST_LIST(
                                     {
@@ -1114,6 +1113,7 @@ export function createAppMusicPlaylistsMachine({
                                     },
                                 ),
                             ),
+                            'goBackToLastScreen',
                         ],
                     },
 

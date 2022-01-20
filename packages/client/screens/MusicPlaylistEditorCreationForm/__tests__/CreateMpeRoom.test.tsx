@@ -469,32 +469,6 @@ const createMpeRoomWithSettingsMachine =
                         );
                         expect(confirmationStepScreenTitle).toBeNull();
 
-                        // eslint-disable-next-line no-constant-condition
-                        while (true) {
-                            const roomCard = screen.queryByText(roomName);
-                            if (roomCard !== null) {
-                                expect(roomCard).toBeTruthy();
-
-                                fireEvent.press(roomCard);
-
-                                break;
-                            }
-
-                            const searchRoomInput =
-                                screen.getByPlaceholderText(/search.*room/i);
-                            expect(searchRoomInput).toBeTruthy();
-
-                            fireEvent(searchRoomInput, 'focus');
-
-                            const [, cancelSearchRoomButton] =
-                                screen.getAllByText(/cancel/i);
-                            expect(cancelSearchRoomButton).toBeTruthy();
-
-                            fireEvent.press(cancelSearchRoomButton);
-
-                            await waitForTimeout(100);
-                        }
-
                         const roomScreen = await screen.findByTestId(
                             /^mpe-room-screen-(.*)/i,
                         );

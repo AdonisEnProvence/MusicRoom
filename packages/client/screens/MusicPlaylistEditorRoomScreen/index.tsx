@@ -338,12 +338,16 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             playlistRef.send({
                 type: 'LEAVE_ROOM',
             });
+
+            bottomSheetModalRef.current?.close();
         }
 
         function handleExportToMtvPress() {
             playlistRef.send({
                 type: 'EXPORT_TO_MTV',
             });
+
+            bottomSheetModalRef.current?.close();
         }
 
         function handleInviteUserButtonPressed() {

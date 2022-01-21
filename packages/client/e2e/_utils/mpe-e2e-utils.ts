@@ -1,5 +1,6 @@
 import { MpeChangeTrackOrderOperationToApply } from '@musicroom/types';
 import { expect, Page, Locator } from '@playwright/test';
+import { waitFor } from '@testing-library/react-native';
 import { random } from 'faker';
 import { assertIsNotNull } from '../_utils/assert';
 import { hitGoNextButton } from '../_utils/global';
@@ -320,6 +321,31 @@ export async function searchAndJoinMpeRoomFromMpeRoomsSearchEngine({
     }
 }
 
+export async function openMpeSettingsModal({
+    page,
+}: {
+    page: Page;
+}): Promise<void> {
+    const openSettingsButton = page.locator(
+        `css=[data-testid="mpe-open-settings"]`,
+    );
+    expect(openSettingsButton).toBeTruthy();
+    await expect(openSettingsButton).not.toBeDisabled();
+
+    await openSettingsButton.click();
+
+    await waitFor(() => {
+        const exportButton = page.locator(
+            `css=[data-testid="export-mpe-to-mtv-button"]`,
+        );
+        expect(exportButton).toBeTruthy();
+        const leaveRoomButton = page.locator(
+            `css=[data-testid="leave-mpe-room-button"]`,
+        );
+        expect(leaveRoomButton).toBeTruthy();
+    });
+}
+
 /**
  * Should be called from related mpe room view
  * It then involves a redirection
@@ -362,6 +388,10 @@ export async function leaveMpeRoom({
         ...forcedDisconnectedRedirectedOtherUsersPages,
         ...forcedDisconnectedNotRedirectedOtherUsersPages.map((el) => el.page),
     ];
+
+    await openMpeSettingsModal({
+        page: leavingPage,
+    });
 
     const leaveButton = leavingPage.locator(`text="Leave room"`);
     await expect(leaveButton).toBeVisible();

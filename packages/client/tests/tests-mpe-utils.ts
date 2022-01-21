@@ -291,7 +291,6 @@ export async function openMpeSettingsBottomSheetModal({
 }: {
     screen: ReturnType<typeof render>;
 }): Promise<void> {
-    //normally no need to within
     const openSettingsButton = screen.getByTestId(`mpe-open-settings`);
     expect(openSettingsButton).toBeTruthy();
     expect(openSettingsButton).not.toBeDisabled();

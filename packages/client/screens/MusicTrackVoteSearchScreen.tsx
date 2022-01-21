@@ -236,6 +236,7 @@ const MusicTrackVoteSearchScreen: React.FC<MusicTrackVoteSearchScreenProps> = ({
     return (
         <AppScreenWithSearchBar
             canGoBack
+            testID="mtv-room-search-engine"
             title="Track Vote"
             searchInputPlaceholder="Search a room..."
             showHeader={showHeader}

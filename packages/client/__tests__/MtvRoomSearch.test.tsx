@@ -3,11 +3,16 @@ import { datatype, random } from 'faker';
 import { db, generateArray } from '../tests/data';
 import {
     fireEvent,
+    render,
     renderApp,
     waitFor,
     waitForElementToBeRemoved,
     within,
 } from '../tests/tests-utils';
+
+async function withinMtvRoomsSearchScreen(screen: ReturnType<typeof render>) {
+    return within(await screen.findByTestId('mtv-room-search-engine'));
+}
 
 test('Rooms are listed when coming to the screen and infinitely loaded', async () => {
     const rooms = generateArray({
@@ -331,6 +336,77 @@ test('Cancelling search input displays rooms without filter', async () => {
     await waitForRoomWithSpecialNameElementToDisappearPromise;
 
     expect(searchInput).toHaveProp('value', '');
+});
+
+test('Cancelling search input when all data have been loaded does nothing', async () => {
+    const rooms = generateArray({
+        minLength: 11,
+        maxLength: 18,
+        fill: () => db.searchableRooms.create(),
+    });
+
+    const screen = await renderApp();
+
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+    const goToMtvSearchScreenButton = screen.getByText(
+        /go.*to.*music.*track.*vote/i,
+    );
+    expect(goToMtvSearchScreenButton).toBeTruthy();
+
+    fireEvent.press(goToMtvSearchScreenButton);
+
+    // Wait for first element of the list to be displayed
+    await waitFor(() => {
+        const firstRoomBeforeFilteringElement = screen.getByTestId(
+            `mtv-room-search-${rooms[0].roomID}`,
+        );
+        expect(firstRoomBeforeFilteringElement).toBeTruthy();
+    });
+
+    const mtvRoomsSearchScreen = await withinMtvRoomsSearchScreen(screen);
+
+    const loadMoreButton = mtvRoomsSearchScreen.getByText(/load.*more/i);
+    expect(loadMoreButton).toBeTruthy();
+
+    fireEvent.press(loadMoreButton);
+
+    // Wait for first element of the second page to be displayed
+    const secondPageFirstRoomID = rooms[11].roomID;
+    await waitFor(() => {
+        const firstRoomAfterLoadingElement = mtvRoomsSearchScreen.getByTestId(
+            `mtv-room-search-${secondPageFirstRoomID}`,
+        );
+        expect(firstRoomAfterLoadingElement).toBeTruthy();
+    });
+
+    const searchInput = await mtvRoomsSearchScreen.findByPlaceholderText(
+        /search.*room/i,
+    );
+    expect(searchInput).toBeTruthy();
+
+    fireEvent(searchInput, 'focus');
+
+    const cancelButton = await mtvRoomsSearchScreen.findByText(/cancel/i);
+    expect(cancelButton).toBeTruthy();
+
+    fireEvent.press(cancelButton);
+
+    await waitFor(
+        () => {
+            const mtvRoomsWithSecondPageFirstRoomID =
+                mtvRoomsSearchScreen.queryAllByTestId(
+                    `mtv-room-search-${secondPageFirstRoomID}`,
+                );
+            expect(mtvRoomsWithSecondPageFirstRoomID).toHaveLength(0);
+        },
+        { timeout: 20_000 },
+    );
+
+    const firstRoomBeforeFilteringElement = screen.getByTestId(
+        `mtv-room-search-${rooms[0].roomID}`,
+    );
+    expect(firstRoomBeforeFilteringElement).toBeTruthy();
 });
 
 test('Displays empty state when no rooms match the query', async () => {

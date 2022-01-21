@@ -320,6 +320,29 @@ export async function searchAndJoinMpeRoomFromMpeRoomsSearchEngine({
     }
 }
 
+export async function openMpeSettingsModal({
+    page,
+}: {
+    page: Page;
+}): Promise<void> {
+    const openSettingsButton = page.locator(
+        `css=[data-testid="mpe-open-settings"]`,
+    );
+    expect(openSettingsButton).toBeTruthy();
+    await expect(openSettingsButton).not.toBeDisabled();
+
+    await openSettingsButton.click();
+
+    const exportButton = page.locator(
+        `css=[data-testid="export-mpe-to-mtv-button"]`,
+    );
+    await expect(exportButton).toBeVisible();
+    const leaveRoomButton = page.locator(
+        `css=[data-testid="leave-mpe-room-button"]`,
+    );
+    await expect(leaveRoomButton).toBeVisible();
+}
+
 /**
  * Should be called from related mpe room view
  * It then involves a redirection
@@ -362,6 +385,10 @@ export async function leaveMpeRoom({
         ...forcedDisconnectedRedirectedOtherUsersPages,
         ...forcedDisconnectedNotRedirectedOtherUsersPages.map((el) => el.page),
     ];
+
+    await openMpeSettingsModal({
+        page: leavingPage,
+    });
 
     const leaveButton = leavingPage.locator(`text="Leave room"`);
     await expect(leaveButton).toBeVisible();

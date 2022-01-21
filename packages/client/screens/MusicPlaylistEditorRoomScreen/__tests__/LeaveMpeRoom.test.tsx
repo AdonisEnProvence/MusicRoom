@@ -1,7 +1,10 @@
 import { MpeRoomSummary } from '@musicroom/types';
 import Toast from 'react-native-toast-message';
 import { serverSocket } from '../../../services/websockets';
-import { joinMpeRoom } from '../../../tests/tests-mpe-utils';
+import {
+    joinMpeRoom,
+    openMpeSettingsBottomSheetModal,
+} from '../../../tests/tests-mpe-utils';
 import { fireEvent, waitFor } from '../../../tests/tests-utils';
 
 test('It should join then leave the mpe room user should be redirected', async () => {
@@ -19,6 +22,10 @@ test('It should join then leave the mpe room user should be redirected', async (
         serverSocket.emit('MPE_LEAVE_ROOM_CALLBACK', {
             roomSummary,
         });
+    });
+
+    await openMpeSettingsBottomSheetModal({
+        screen,
     });
 
     const leaveRoomButton = screen.getByText(/Leave room/i);

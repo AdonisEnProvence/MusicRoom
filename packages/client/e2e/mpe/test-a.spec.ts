@@ -8,7 +8,7 @@ import {
     goToLibraryAndSearchMpeRoomAndOpenIt,
     waitForTrackToBeAddedOnRoomScreen,
     knownSearches,
-    withinMpeRoomScreen,
+    openMpeSettingsModal,
 } from '../_utils/mpe-e2e-utils';
 import { hitGoNextButton } from '../_utils/global';
 import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
@@ -31,9 +31,11 @@ async function exportMpeRoomToMtvRoom({
     page: Page;
     mtvRoomName: string;
 }): Promise<void> {
-    const exportToMtvButton = page.locator(
-        withinMpeRoomScreen('text="Export to MTV"'),
-    );
+    await openMpeSettingsModal({
+        page,
+    });
+
+    const exportToMtvButton = page.locator('text="Export to MTV"');
     await exportToMtvButton.click();
 
     await expect(

@@ -286,6 +286,25 @@ export async function changeTrackOrder({
     }
 }
 
+export async function openMpeSettingsBottomSheetModal({
+    screen,
+}: {
+    screen: ReturnType<typeof render>;
+}): Promise<void> {
+    const openSettingsButton = screen.getByTestId(`mpe-open-settings`);
+    expect(openSettingsButton).toBeTruthy();
+    expect(openSettingsButton).not.toBeDisabled();
+
+    fireEvent.press(openSettingsButton);
+
+    await waitFor(() => {
+        const exportButton = screen.getByTestId(`export-mpe-to-mtv-button`);
+        expect(exportButton).toBeTruthy();
+        const leaveRoomButton = screen.getByTestId(`leave-mpe-room-button`);
+        expect(leaveRoomButton).toBeTruthy();
+    });
+}
+
 /**
  * This method will make the user join the first mocked room he will find
  * After this method the user will be on the mpe room view
@@ -471,14 +490,11 @@ export async function joinMpeRoom(
             expect(deleteTrackButton).not.toBeDisabled();
         }
 
-        //Always enabled cta
+        //Always enabled cta now in bottom sheet modal
         await waitFor(() => {
-            const exportAsMtvButton = screen.getByText(/.*export.*/i);
-            expect(exportAsMtvButton).toBeTruthy();
-            expect(exportAsMtvButton).not.toBeDisabled();
-            const leaveRoomButton = screen.getByText(/.*leave.*/i);
-            expect(leaveRoomButton).toBeTruthy();
-            expect(leaveRoomButton).not.toBeDisabled();
+            const settingsIcon = screen.getByTestId('mpe-open-settings');
+            expect(settingsIcon).toBeTruthy();
+            expect(settingsIcon).not.toBeDisabled();
         });
     }
 

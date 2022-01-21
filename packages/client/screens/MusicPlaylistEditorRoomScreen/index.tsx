@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from '@xstate/react';
 import { FlatList, TouchableOpacity } from 'react-native';
@@ -7,6 +7,7 @@ import { View as MotiView } from 'moti';
 import { Ionicons } from '@expo/vector-icons';
 import { Skeleton } from '@motify/skeleton';
 import { useFocusEffect } from '@react-navigation/native';
+import { BottomSheetHandle, BottomSheetModal } from '@gorhom/bottom-sheet';
 import {
     AppScreen,
     AppScreenContainer,
@@ -55,17 +56,53 @@ const AddTrackButton: React.FC<AddTrackButtonProps> = ({
             disabled={disabled}
             style={sx({
                 flexShrink: 0,
-                backgroundColor: 'greyLight',
+                backgroundColor: 'secondary',
                 padding: 'm',
                 flexDirection: 'row',
                 justifyContent: 'center',
-                marginBottom: 'l',
+                marginLeft: 'm',
+                alignItems: 'center',
             })}
             onPress={onPress}
         >
-            <Text sx={{ color: 'white', textAlign: 'center', fontSize: 'm' }}>
-                Add Track
-            </Text>
+            <Typo>Add Track</Typo>
+        </TouchableOpacity>
+    );
+};
+
+interface SettingsIconButtonProps {
+    disabled: boolean;
+    onPress: () => void;
+}
+
+const SettingsIconButton: React.FC<SettingsIconButtonProps> = ({
+    disabled,
+    onPress,
+}) => {
+    const sx = useSx();
+
+    return (
+        <TouchableOpacity
+            testID="mpe-open-settings"
+            accessibilityLabel="open room settings"
+            disabled={disabled}
+            style={sx({
+                flexShrink: 0,
+                flexGrow: 1,
+                flexDirection: 'row',
+                justifyContent: 'center',
+                backgroundColor: 'greyLight',
+                padding: 'm',
+            })}
+            onPress={onPress}
+        >
+            <Ionicons
+                name="settings"
+                style={sx({
+                    fontSize: 'l',
+                    color: 'white',
+                })}
+            />
         </TouchableOpacity>
     );
 };
@@ -301,12 +338,16 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             playlistRef.send({
                 type: 'LEAVE_ROOM',
             });
+
+            bottomSheetModalRef.current?.close();
         }
 
         function handleExportToMtvPress() {
             playlistRef.send({
                 type: 'EXPORT_TO_MTV',
             });
+
+            bottomSheetModalRef.current?.close();
         }
 
         function handleInviteUserButtonPressed() {
@@ -336,6 +377,17 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             }, [playlistRef]),
         );
 
+        //Bottom sheet related
+        const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+        const snapPoints = [200];
+        const HANDLE_HEIGHT = 24; // From https://gorhom.github.io/react-native-bottom-sheet/props#handleheight
+        const contentHeightForFirstSnapPoint = snapPoints[0] - HANDLE_HEIGHT;
+
+        function handlePresentMpeRoomSettinsPress() {
+            bottomSheetModalRef.current?.present();
+        }
+        ///
+
         return (
             <AppScreen testID={`mpe-room-screen-${playlistID}`}>
                 <AppScreenHeader
@@ -364,73 +416,36 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                         animate={{
                             opacity: shouldFreezeUi === true ? 0.4 : 1,
                         }}
-                        style={{ flex: 1 }}
+                        style={sx({
+                            // Reduce player width on bigger devices
+                            width: ['auto', '70%'],
+                            marginX: [0, 'auto'],
+                            flex: 1,
+                        })}
                     >
-                        <Skeleton
-                            show={roomIsNotReady}
-                            colorMode="dark"
-                            width="100%"
-                        >
-                            <Typo>{msToTime(playlistTotalDuration)}</Typo>
-                        </Skeleton>
-
-                        <Typo>{`${usersLength} member${
-                            usersLength > 1 ? 's' : ''
-                        }`}</Typo>
-
-                        <TouchableOpacity
-                            disabled={disableEveryCta}
-                            style={sx({
-                                flexShrink: 0,
-                                backgroundColor: 'greyLight',
-                                padding: 'm',
+                        <View
+                            sx={{
+                                display: 'flex',
                                 flexDirection: 'row',
-                                justifyContent: 'center',
+                                justifyContent: 'space-evenly',
+                                flexWrap: 'wrap',
                                 marginBottom: 'l',
-                            })}
-                            onPress={handleLeavePress}
+                            }}
                         >
-                            <Text
-                                sx={{
-                                    color: 'white',
-                                    textAlign: 'center',
-                                    fontSize: 'm',
-                                }}
-                            >
-                                Leave room
-                            </Text>
-                        </TouchableOpacity>
+                            <Skeleton show={roomIsNotReady} colorMode="dark">
+                                <Typo>{`${usersLength} member${
+                                    usersLength > 1 ? 's' : ''
+                                }`}</Typo>
+                            </Skeleton>
 
-                        <TouchableOpacity
-                            disabled={disableEveryCta}
-                            style={sx({
-                                flexShrink: 0,
-                                backgroundColor: 'greyLight',
-                                padding: 'm',
-                                flexDirection: 'row',
-                                justifyContent: 'center',
-                                marginBottom: 'l',
-                            })}
-                            onPress={handleExportToMtvPress}
-                        >
-                            <Text
-                                sx={{
-                                    color: 'white',
-                                    textAlign: 'center',
-                                    fontSize: 'm',
-                                }}
-                            >
-                                Export to MTV
-                            </Text>
-                        </TouchableOpacity>
+                            <Skeleton show={roomIsNotReady} colorMode="dark">
+                                <Typo>{msToTime(playlistTotalDuration)}</Typo>
+                            </Skeleton>
 
-                        <Skeleton
-                            show={roomIsNotReady}
-                            colorMode="dark"
-                            width="100%"
-                        >
-                            <Typo>{tracks.length} Tracks</Typo>
-                        </Skeleton>
+                            <Skeleton show={roomIsNotReady} colorMode="dark">
+                                <Typo>{tracks.length} Tracks</Typo>
+                            </Skeleton>
+                        </View>
 
                         {userIsNotInRoom === true && (
                             <BottomRightAbsoluteButton
@@ -444,12 +459,34 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                             data={tracks}
                             ListHeaderComponent={() => {
                                 return (
-                                    <AddTrackButton
-                                        disabled={
-                                            disableEveryPlaylistEditOperationCta
-                                        }
-                                        onPress={handleAddTrack}
-                                    />
+                                    <View
+                                        sx={{
+                                            flexDirection: 'row',
+                                            width: '100%',
+                                            flexWrap: 'wrap',
+                                            justifyContent: 'center',
+                                            marginBottom: 'l',
+                                        }}
+                                    >
+                                        <Skeleton
+                                            show={roomIsNotReady}
+                                            colorMode="dark"
+                                        >
+                                            <SettingsIconButton
+                                                disabled={disableEveryCta}
+                                                onPress={
+                                                    handlePresentMpeRoomSettinsPress
+                                                }
+                                            />
+                                        </Skeleton>
+
+                                        <AddTrackButton
+                                            disabled={
+                                                disableEveryPlaylistEditOperationCta
+                                            }
+                                            onPress={handleAddTrack}
+                                        />
+                                    </View>
                                 );
                             }}
                             keyExtractor={({ id }) => id}
@@ -502,6 +539,65 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                             }}
                         />
                     </MotiView>
+
+                    <BottomSheetModal
+                        ref={bottomSheetModalRef}
+                        index={0}
+                        snapPoints={snapPoints}
+                        backgroundStyle={sx({
+                            backgroundColor: 'greyLight',
+                        })}
+                        handleComponent={(props) => (
+                            <BottomSheetHandle
+                                {...props}
+                                indicatorStyle={{ backgroundColor: 'white' }}
+                            />
+                        )}
+                    >
+                        <View
+                            sx={{
+                                height: contentHeightForFirstSnapPoint,
+                            }}
+                        >
+                            <TouchableOpacity
+                                disabled={disableEveryCta}
+                                testID="leave-mpe-room-button"
+                                style={sx({
+                                    flexShrink: 0,
+                                    backgroundColor: '#8B0000',
+                                    padding: 'm',
+                                    flexDirection: 'row',
+                                    justifyContent: 'center',
+                                    marginBottom: 'l',
+                                    borderRadius: 's',
+                                    marginLeft: 'auto',
+                                    marginRight: 'auto',
+                                })}
+                                onPress={handleLeavePress}
+                            >
+                                <Typo>Leave room</Typo>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                testID="export-mpe-to-mtv-button"
+                                disabled={disableEveryCta}
+                                style={sx({
+                                    flexShrink: 0,
+                                    backgroundColor: 'secondary',
+                                    padding: 'm',
+                                    flexDirection: 'row',
+                                    justifyContent: 'center',
+                                    marginBottom: 'l',
+                                    borderRadius: 's',
+                                    marginLeft: 'auto',
+                                    marginRight: 'auto',
+                                })}
+                                onPress={handleExportToMtvPress}
+                            >
+                                <Typo>Export to MTV</Typo>
+                            </TouchableOpacity>
+                        </View>
+                    </BottomSheetModal>
                 </AppScreenContainer>
             </AppScreen>
         );

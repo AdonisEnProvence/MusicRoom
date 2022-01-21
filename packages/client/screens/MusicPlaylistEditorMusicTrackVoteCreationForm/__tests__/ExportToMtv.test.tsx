@@ -16,6 +16,7 @@ import {
     within,
 } from '../../../tests/tests-utils';
 import { serverSocket } from '../../../services/websockets';
+import { openMpeSettingsBottomSheetModal } from '../../../tests/tests-mpe-utils';
 
 interface TestingContext {
     screen: ReturnType<typeof render>;
@@ -495,6 +496,10 @@ const exportToMtvTestModel = createTestModel<
     },
 
     EXPORT_TO_MTV: async ({ screen }) => {
+        await openMpeSettingsBottomSheetModal({
+            screen,
+        });
+
         const exportToMtvButton = await screen.findByText(/export.*mtv/i);
 
         fireEvent.press(exportToMtvButton);

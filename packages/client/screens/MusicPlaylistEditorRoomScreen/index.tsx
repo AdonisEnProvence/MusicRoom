@@ -56,13 +56,12 @@ const AddTrackButton: React.FC<AddTrackButtonProps> = ({
             disabled={disabled}
             style={sx({
                 flexShrink: 0,
-                backgroundColor: 'greyLight',
+                backgroundColor: 'secondary',
                 padding: 'm',
                 flexDirection: 'row',
                 justifyContent: 'center',
                 marginLeft: 'm',
                 alignItems: 'center',
-                backgroudColor: 'secondary',
             })}
             onPress={onPress}
         >
@@ -470,9 +469,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                                             colorMode="dark"
                                         >
                                             <SettingsIconButton
-                                                disabled={
-                                                    disableEveryPlaylistEditOperationCta
-                                                }
+                                                disabled={disableEveryCta}
                                                 onPress={
                                                     handlePresentMpeRoomSettinsPress
                                                 }

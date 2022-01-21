@@ -47,12 +47,16 @@ test('It should display get context fail toast and redirect the user to the mpe 
 
     fireEvent.press(goToMtvSearchScreenButton);
 
-    const searchInput = await screen.findByPlaceholderText(/search.*room/i);
+    const searchInput = (
+        await screen.findAllByPlaceholderText(/search.*room/i)
+    ).slice(-1)[0];
     expect(searchInput).toBeTruthy();
 
     for (const { roomID, roomName } of rooms) {
         //Should also look for specific room settings icon such as isOpen and why creatorName
-        const listItem = await screen.findByTestId(`mpe-room-card-${roomID}`);
+        const listItem = (
+            await screen.findAllByTestId(`mpe-room-card-${roomID}`)
+        ).slice(-1)[0];
         expect(listItem).toBeTruthy();
 
         const roomNameElement = within(listItem).getByText(
@@ -61,9 +65,9 @@ test('It should display get context fail toast and redirect the user to the mpe 
         expect(roomNameElement).toBeTruthy();
     }
 
-    const firstListItem = await screen.findByTestId(
-        `mpe-room-card-${firstRoomState.roomID}`,
-    );
+    const firstListItem = (
+        await screen.findAllByTestId(`mpe-room-card-${firstRoomState.roomID}`)
+    ).slice(-1)[0];
     expect(firstListItem).toBeTruthy();
 
     fireEvent.press(firstListItem);
@@ -74,13 +78,17 @@ test('It should display get context fail toast and redirect the user to the mpe 
             text1: 'Error',
             text2: "Could't not load mpe room",
         });
-        const searchInput = screen.getByPlaceholderText(/search.*room/i);
+        const searchInput = screen
+            .getAllByPlaceholderText(/search.*room/i)
+            .slice(-1)[0];
         expect(searchInput).toBeTruthy();
     });
 
     for (const { roomID, roomName } of rooms) {
         //Should also look for specific room settings icon such as isOpen and why creatorName
-        const listItem = await screen.findByTestId(`mpe-room-card-${roomID}`);
+        const listItem = (
+            await screen.findAllByTestId(`mpe-room-card-${roomID}`)
+        ).slice(-1)[0];
         expect(listItem).toBeTruthy();
 
         const roomNameElement = within(listItem).getByText(

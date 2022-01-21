@@ -112,9 +112,11 @@ const mpeRoomsSearchMachine = mpeRoomsSearchModel.createMachine({
                     );
 
                     for (const room of expectedRooms) {
-                        const roomCard = await screen.findByTestId(
-                            `mpe-room-card-${room.roomID}`,
-                        );
+                        const roomCard = (
+                            await screen.findAllByTestId(
+                                `mpe-room-card-${room.roomID}`,
+                            )
+                        ).slice(-1)[0];
                         expect(roomCard).toBeTruthy();
                         expect(roomCard).toHaveTextContent(room.roomName);
 
@@ -200,9 +202,9 @@ const mpeRoomsSearchMachine = mpeRoomsSearchModel.createMachine({
             meta: {
                 test: async ({ screen }: TestingContext) => {
                     await waitFor(() => {
-                        const loadMoreButton =
-                            screen.queryByText(/load.*more/i);
-                        expect(loadMoreButton).toBeNull();
+                        const loadMoreButtons =
+                            screen.queryAllByText(/load.*more/i);
+                        expect(loadMoreButtons.length).toBe(1);
                     });
                 },
             },
@@ -215,10 +217,12 @@ const mpeRoomsSearchTestModel = createTestModel<
     ContextFrom<typeof mpeRoomsSearchMachine>
 >(mpeRoomsSearchMachine).withEvents({
     LOAD_MORE: async ({ screen }) => {
-        const loadMoreButton = await screen.findByText(/load.*more/i);
-        expect(loadMoreButton).toBeTruthy();
+        const loadMoreButtons = await screen.findAllByText(/load.*more/i);
+        expect(loadMoreButtons.length).toBe(2);
+        const lastLoadMoreButton = loadMoreButtons.slice(-1)[0];
+        expect(lastLoadMoreButton).toBeTruthy();
 
-        fireEvent.press(loadMoreButton);
+        fireEvent.press(lastLoadMoreButton);
     },
 
     SEARCH_ROOM_BY_NAME: {
@@ -228,9 +232,9 @@ const mpeRoomsSearchTestModel = createTestModel<
                 'SEARCH_ROOM_BY_NAME'
             >;
 
-            const searchInput = await screen.findByPlaceholderText(
-                /search.*room/i,
-            );
+            const searchInput = (
+                await screen.findAllByPlaceholderText(/search.*room/i)
+            ).slice(-1)[0];
             expect(searchInput).toBeTruthy();
 
             fireEvent(searchInput, 'focus');
@@ -276,9 +280,9 @@ describe('MPE Rooms Search', () => {
 
                     fireEvent.press(goToMpeRoomsSearchButton);
 
-                    const searchInput = await screen.findByPlaceholderText(
-                        /search.*room/i,
-                    );
+                    const searchInput = (
+                        await screen.findAllByPlaceholderText(/search.*room/i)
+                    ).slice(-1)[0];
                     expect(searchInput).toBeTruthy();
 
                     await path.test({
@@ -316,9 +320,9 @@ test('Pressing Cancel button refreshes the list', async () => {
 
     const libraryScreen = await withinMpeRoomsSearchScreen(screen);
 
-    const searchInput = await libraryScreen.findByPlaceholderText(
-        /search.*room/i,
-    );
+    const searchInput = (
+        await libraryScreen.findAllByPlaceholderText(/search.*room/i)
+    ).slice(-1)[0];
     expect(searchInput).toBeTruthy();
 
     const firstPageLastRoom = fakeMpeRooms[MPE_SEARCH_PAGE_LENGTH - 1];
@@ -327,7 +331,9 @@ test('Pressing Cancel button refreshes the list', async () => {
         expect(roomCard).toBeTruthy();
     });
 
-    const loadMoreButton = await libraryScreen.findByText(/load.*more/i);
+    const loadMoreButton = (
+        await libraryScreen.findAllByText(/load.*more/i)
+    ).slice(-1)[0];
     expect(loadMoreButton).toBeTruthy();
 
     fireEvent.press(loadMoreButton);
@@ -400,9 +406,9 @@ test('Pressing Clear button refreshes the list and resets the search query', asy
 
     const libraryScreen = await withinMpeRoomsSearchScreen(screen);
 
-    const searchInput = await libraryScreen.findByPlaceholderText(
-        /search.*room/i,
-    );
+    const searchInput = (
+        await libraryScreen.findAllByPlaceholderText(/search.*room/i)
+    ).slice(-1)[0];
     expect(searchInput).toBeTruthy();
 
     const roomName = 'Biolay';

@@ -245,10 +245,10 @@ test('Cancelling search input displays users without filtering', async () => {
         expect(searchedUserCard).toBeTruthy();
     });
 
-    const cancelButton = screen.getByText(/cancel/i);
-    expect(cancelButton).toBeTruthy();
+    const lastCancelButton = screen.getAllByText(/cancel/i).slice(-1)[0];
+    expect(lastCancelButton).toBeTruthy();
 
-    fireEvent.press(cancelButton);
+    fireEvent.press(lastCancelButton);
 
     // Initially displayed user is displayed again.
     await waitFor(() => {

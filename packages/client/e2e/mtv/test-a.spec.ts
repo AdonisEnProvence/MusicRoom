@@ -180,9 +180,9 @@ async function joinerSuggestsTrack({
         joinerPage.locator('text="Suggest Track" >> visible=true'),
     ).toBeVisible();
 
-    const searchTrackInput = joinerPage.locator(
-        'css=[placeholder*="Search a track"]',
-    );
+    const searchTrackInput = joinerPage
+        .locator('css=[placeholder*="Search a track"]')
+        .last();
     await expect(searchTrackInput).toBeVisible();
 
     // const searchedTrackName = ;

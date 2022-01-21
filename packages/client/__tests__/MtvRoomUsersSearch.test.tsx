@@ -916,7 +916,7 @@ test('Cancelling search input displays users without filtering', async () => {
         screen.getByTestId(`${userNicknameToSearch}-user-card`),
     );
 
-    const [, cancelButton] = screen.getAllByText(/cancel/i);
+    const cancelButton = screen.getAllByText(/cancel/i).slice(-1)[0];
     expect(cancelButton).toBeTruthy();
 
     fireEvent.press(cancelButton);

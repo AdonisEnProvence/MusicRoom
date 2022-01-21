@@ -75,7 +75,9 @@ export async function createMpeRoom(): Promise<{
         1,
     );
 
-    const goToLibraryButton = screen.getByText(/library/i);
+    const goToLibraryButton = (
+        await screen.findAllByTestId(`library-tab`)
+    ).slice(-1)[0];
     expect(goToLibraryButton).toBeTruthy();
 
     serverSocket.emit('MPE_CREATE_ROOM_SYNCED_CALLBACK', mpeRoomState);
@@ -84,7 +86,7 @@ export async function createMpeRoom(): Promise<{
     fireEvent.press(goToLibraryButton);
 
     await waitFor(() => {
-        const [, libraryScreenTitle] = screen.getAllByText(/library/i);
+        const libraryScreenTitle = screen.getAllByText(/library/i).slice(-1)[0];
         expect(libraryScreenTitle).toBeTruthy();
     });
 
@@ -153,11 +155,12 @@ export async function addTrack({
     fireEvent.press(addTrackButton);
 
     const searchTrackInput = await waitFor(() => {
-        const searchTrackInputElement =
-            screen.getByPlaceholderText(/search.*track/i);
-        expect(searchTrackInputElement).toBeTruthy();
+        const lastSearchTrackInputElement = screen
+            .getAllByPlaceholderText(/search.*track/i)
+            .slice(-1)[0];
+        expect(lastSearchTrackInputElement).toBeTruthy();
 
-        return searchTrackInputElement;
+        return lastSearchTrackInputElement;
     });
 
     fireEvent(searchTrackInput, 'focus');
@@ -171,13 +174,7 @@ export async function addTrack({
         return searchedTrackCardElement;
     });
 
-    const waitForSearchTrackInputToDisappearPromise = waitForElementToBeRemoved(
-        () => screen.getByPlaceholderText(/search.*track/i),
-    );
-
     fireEvent.press(searchedTrackCard);
-
-    await waitForSearchTrackInputToDisappearPromise;
 
     await waitFor(() => {
         expect(Toast.show).toHaveBeenNthCalledWith(1, {
@@ -351,12 +348,16 @@ export async function joinMpeRoom(
 
     fireEvent.press(goToMtvSearchScreenButton);
 
-    const searchInput = await screen.findByPlaceholderText(/search.*room/i);
+    const searchInput = (
+        await screen.findAllByPlaceholderText(/search.*room/i)
+    ).slice(-1)[0];
     expect(searchInput).toBeTruthy();
 
     for (const { roomID, roomName } of rooms) {
         //Should also look for specific room settings icon such as isOpen and why creatorName
-        const listItem = await screen.findByTestId(`mpe-room-card-${roomID}`);
+        const listItem = (
+            await screen.findAllByTestId(`mpe-room-card-${roomID}`)
+        ).slice(-1)[0];
         expect(listItem).toBeTruthy();
 
         const roomNameElement = within(listItem).getByText(
@@ -365,9 +366,9 @@ export async function joinMpeRoom(
         expect(roomNameElement).toBeTruthy();
     }
 
-    const firstListItem = await screen.findByTestId(
-        `mpe-room-card-${firstRoomState.roomID}`,
-    );
+    const firstListItem = (
+        await screen.findAllByTestId(`mpe-room-card-${firstRoomState.roomID}`)
+    ).slice(-1)[0];
     expect(firstListItem).toBeTruthy();
 
     fireEvent.press(firstListItem);

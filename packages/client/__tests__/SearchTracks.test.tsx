@@ -247,10 +247,11 @@ test('SearchTracksScreen results are reset when pressing cancel button', async (
     const waitForTrackResultListItemToDisappearPromise =
         waitForElementToBeRemoved(() => screen.getByText(fakeTrack.title));
 
-    const cancelButton = screen.getByText(/cancel/i);
-    expect(cancelButton).toBeTruthy();
+    //Need to determine why this needs to be the first element ?
+    const firstCancelButton = screen.getAllByText(/cancel/i)[0];
+    expect(firstCancelButton).toBeTruthy();
 
-    fireEvent.press(cancelButton);
+    fireEvent.press(firstCancelButton);
 
     await waitForTrackResultListItemToDisappearPromise;
 

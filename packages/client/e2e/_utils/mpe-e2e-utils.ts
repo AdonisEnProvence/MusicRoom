@@ -1,6 +1,5 @@
 import { MpeChangeTrackOrderOperationToApply } from '@musicroom/types';
 import { expect, Page, Locator } from '@playwright/test';
-import { waitFor } from '@testing-library/react-native';
 import { random } from 'faker';
 import { assertIsNotNull } from '../_utils/assert';
 import { hitGoNextButton } from '../_utils/global';
@@ -334,16 +333,14 @@ export async function openMpeSettingsModal({
 
     await openSettingsButton.click();
 
-    await waitFor(() => {
-        const exportButton = page.locator(
-            `css=[data-testid="export-mpe-to-mtv-button"]`,
-        );
-        expect(exportButton).toBeTruthy();
-        const leaveRoomButton = page.locator(
-            `css=[data-testid="leave-mpe-room-button"]`,
-        );
-        expect(leaveRoomButton).toBeTruthy();
-    });
+    const exportButton = page.locator(
+        `css=[data-testid="export-mpe-to-mtv-button"]`,
+    );
+    await expect(exportButton).toBeVisible();
+    const leaveRoomButton = page.locator(
+        `css=[data-testid="leave-mpe-room-button"]`,
+    );
+    await expect(leaveRoomButton).toBeVisible();
 }
 
 /**

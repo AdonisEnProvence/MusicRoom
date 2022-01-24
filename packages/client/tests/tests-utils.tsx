@@ -143,9 +143,20 @@ export function getFakeUsersList({
 }
 
 export function extractTrackIDFromCardContainerTestID(testID: string): string {
-    return testID.replace('-track-card-container', '');
+    return testID
+        .replace('-track-card-container', '')
+        .replace('mpe-', '')
+        .replace('mtv-', '');
 }
 
-export function toTrackCardContainerTestID(id: string): string {
-    return `${id}-track-card-container`;
+export function toTrackCardContainerTestID({
+    trackID,
+    testIDPrefix,
+}: {
+    trackID: string;
+    testIDPrefix?: string;
+}): string {
+    return [testIDPrefix, trackID, 'track-card-container']
+        .filter((chunk) => chunk !== undefined)
+        .join('-');
 }

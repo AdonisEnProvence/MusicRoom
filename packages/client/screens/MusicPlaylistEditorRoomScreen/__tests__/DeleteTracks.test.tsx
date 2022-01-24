@@ -1,7 +1,4 @@
-import {
-    MpeWorkflowState,
-    PlaylistModelMpeWorkflowState,
-} from '@musicroom/types';
+import { MpeWorkflowState } from '@musicroom/types';
 import Toast from 'react-native-toast-message';
 import { serverSocket } from '../../../services/websockets';
 import { createMpeRoom } from '../../../tests/tests-mpe-utils';
@@ -40,7 +37,10 @@ test('Delete track and trigger sucess toast', async () => {
 
     const trackCard = await waitFor(() => {
         const trackCardElement = screen.getByTestId(
-            toTrackCardContainerTestID(trackAlreadyInPlaylist.id),
+            toTrackCardContainerTestID({
+                trackID: trackAlreadyInPlaylist.id,
+                testIDPrefix: 'mpe',
+            }),
         );
         expect(trackCardElement).toBeTruthy();
 

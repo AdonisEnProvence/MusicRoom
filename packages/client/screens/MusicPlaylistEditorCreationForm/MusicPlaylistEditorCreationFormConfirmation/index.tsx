@@ -116,6 +116,7 @@ const MusicPlaylistEditorCreationFormConfirmation: React.FC<MusicPlaylistEditorC
                                                     index,
                                                 ) => (
                                                     <TrackListItem
+                                                        testIDPrefix="mpe"
                                                         trackID={id}
                                                         index={index}
                                                         key={id}

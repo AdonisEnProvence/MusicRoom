@@ -506,6 +506,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                                             }}
                                         >
                                             <TrackListItem
+                                                testIDPrefix="mpe"
                                                 index={index + 1}
                                                 title={title}
                                                 trackID={id}

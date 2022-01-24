@@ -9,8 +9,21 @@ interface TrackListItemProps {
     artistName: string;
     disabled?: boolean;
     accessibilityLabel?: string;
+    testIDPrefix?: 'mtv' | 'mpe';
     onPress?: () => void;
     Actions?: () => React.ReactElement;
+}
+
+function formatTestIDForTrackCardContainer({
+    trackID,
+    testIDPrefix,
+}: {
+    trackID: string;
+    testIDPrefix?: string;
+}) {
+    return [testIDPrefix, trackID, 'track-card-container']
+        .filter((chunk) => chunk !== undefined)
+        .join('-');
 }
 
 const TrackListItem: React.FC<TrackListItemProps> = ({
@@ -18,13 +31,17 @@ const TrackListItem: React.FC<TrackListItemProps> = ({
     artistName,
     disabled,
     trackID,
+    testIDPrefix,
     accessibilityLabel,
     onPress,
     Actions,
 }) => {
     return (
         <View
-            testID={`${trackID}-track-card-container`}
+            testID={formatTestIDForTrackCardContainer({
+                trackID,
+                testIDPrefix,
+            })}
             sx={{
                 flexShrink: 0,
                 padding: 'm',

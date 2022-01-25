@@ -8,6 +8,7 @@ import {
     waitForElementToBeRemoved,
     within,
 } from '@testing-library/react-native';
+import { formatDuration, intervalToDuration } from 'date-fns';
 import { datatype } from 'faker';
 import Toast from 'react-native-toast-message';
 import { serverSocket } from '../services/websockets';
@@ -30,16 +31,9 @@ export interface DefinedStateRef {
     value: PlaylistModelMpeWorkflowState;
 }
 
-//copy pasted from https://stackoverflow.com/questions/19700283/how-to-convert-time-in-milliseconds-to-hours-min-sec-format-in-javascript
 export function testUtilsMsToTime(ms: number): string {
-    const seconds = ms / 1000;
-    const minutes = ms / (1000 * 60);
-    const hours = ms / (1000 * 60 * 60);
-    const days = ms / (1000 * 60 * 60 * 24);
-    if (seconds < 60) return seconds.toFixed(1) + ' Sec';
-    else if (minutes < 60) return minutes.toFixed(1) + ' Min';
-    else if (hours < 24) return hours.toFixed(1) + ' Hrs';
-    else return days.toFixed(1) + ' Days';
+    const durations = intervalToDuration({ start: 0, end: ms });
+    return formatDuration(durations);
 }
 
 /**

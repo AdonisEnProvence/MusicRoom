@@ -9,6 +9,7 @@ import {
     waitForTrackToBeAddedOnRoomScreen,
     knownSearches,
     openMpeSettingsModal,
+    withinMusicPlayerFullScreen,
 } from '../_utils/mpe-e2e-utils';
 import { hitGoNextButton } from '../_utils/global';
 import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
@@ -16,10 +17,6 @@ import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
 test.afterEach(async ({ browser }) => {
     await closeAllContexts(browser);
 });
-
-function withinMusicPlayerFullScreen(locator: string): string {
-    return `css=[data-testid="music-player-mini"] ~ [aria-expanded="true"] >> ${locator}`;
-}
 
 /**
  * We configure a MTV room with default options.
@@ -104,6 +101,7 @@ test('Create MPE room', async ({ browser }) => {
 
     const addedTrack = await addTrack({
         page,
+        searchQuery: 'BB Brunes',
     });
 
     await waitForTrackToBeAddedOnRoomScreen({

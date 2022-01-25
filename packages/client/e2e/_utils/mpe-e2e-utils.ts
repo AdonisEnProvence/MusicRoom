@@ -3,7 +3,11 @@ import { expect, Page, Locator } from '@playwright/test';
 import { random } from 'faker';
 import { assertIsNotNull } from '../_utils/assert';
 import { hitGoNextButton } from '../_utils/global';
-import { KnownSearchesElement, KnownSearchesRecord } from '../_utils/mock-http';
+import {
+    KnownSearchesElement,
+    KnownSearchesRecord,
+    knownSearchesRecordKey,
+} from '../_utils/mock-http';
 
 export const knownSearches: KnownSearchesRecord = {
     'Biolay - Vendredi 12': [
@@ -106,6 +110,10 @@ export function withinMpeRoomsSearchEngineScreen(selector: string): string {
 
 export function withinSearchTrackTabScreen(selector: string): string {
     return `css=[data-testid="search-track-screen"] >> ${selector}`;
+}
+
+export function withinMusicPlayerFullScreen(locator: string): string {
+    return `css=[data-testid="music-player-mini"] ~ [aria-expanded="true"] >> ${locator}`;
 }
 
 export async function createMpeRoom({
@@ -498,8 +506,10 @@ export async function hitGoBack({
 
 export async function addTrack({
     page,
+    searchQuery,
 }: {
     page: Page;
+    searchQuery: knownSearchesRecordKey;
 }): Promise<KnownSearchesElement> {
     const addTrackButton = getAddTrackButton({
         page,
@@ -507,8 +517,6 @@ export async function addTrack({
     await expect(addTrackButton).toBeVisible();
 
     await addTrackButton.click();
-
-    const searchQuery = 'BB Brunes';
 
     const searchTrackInput = page.locator(
         'css=[placeholder*="Search a track"] >> visible=true',
@@ -518,7 +526,9 @@ export async function addTrack({
 
     const trackToAdd = knownSearches[searchQuery][0];
     const trackToAddTitle = trackToAdd.title;
-    const trackToAddCard = page.locator(`text=${trackToAddTitle}`);
+    const trackToAddCard = page
+        .locator(`text=${trackToAddTitle} >> visible=true`)
+        .first();
     await trackToAddCard.click();
 
     const addedTrackCardOnRoomScreen = page.locator(

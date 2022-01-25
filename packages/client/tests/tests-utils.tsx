@@ -10,6 +10,7 @@ import { DripsyProvider } from 'dripsy';
 import { datatype } from 'faker';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import invariant from 'tiny-invariant';
 import { AppContextProvider } from '../contexts/AppContext';
 import { SocketContextProvider } from '../contexts/SocketContext';
 import { useTheme } from '../hooks/useTheme';
@@ -143,9 +144,32 @@ export function getFakeUsersList({
 }
 
 export function extractTrackIDFromCardContainerTestID(testID: string): string {
-    return testID.replace('-track-card-container', '');
+    const result = /(?:mpe-|mtv-|)(?<trackID>.+)-track-card-container/.exec(
+        testID,
+    );
+    invariant(result !== null, 'Pattern was not recognized');
+    invariant(
+        result.groups !== undefined,
+        'Could not retrieve any trackID from regex',
+    );
+
+    const trackID = result.groups.trackID;
+    invariant(
+        typeof trackID === 'string',
+        'TrackID named group has not been captured',
+    );
+
+    return trackID;
 }
 
-export function toTrackCardContainerTestID(id: string): string {
-    return `${id}-track-card-container`;
+export function toTrackCardContainerTestID({
+    trackID,
+    testIDPrefix,
+}: {
+    trackID: string;
+    testIDPrefix?: string;
+}): string {
+    return [testIDPrefix, trackID, 'track-card-container']
+        .filter((chunk) => chunk !== undefined)
+        .join('-');
 }

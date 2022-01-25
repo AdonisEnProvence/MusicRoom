@@ -53,6 +53,7 @@ const TrackListItemWithScore: React.FC<TrackListItemWithScoreProps> = ({
 
     return (
         <TrackListItem
+            testIDPrefix="mtv"
             title={title}
             artistName={artistName}
             trackID={id}

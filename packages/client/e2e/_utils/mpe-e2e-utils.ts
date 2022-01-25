@@ -552,7 +552,7 @@ export function getTrackChangeOrderButton({
 }): Locator {
     return page.locator(
         withinMpeRoomScreen(
-            `css=[data-testid="${trackIDToMove}-track-card-container"] [aria-label="Move ${
+            `css=[data-testid="mpe-${trackIDToMove}-track-card-container"] [aria-label="Move ${
                 operationToApply === 'DOWN' ? 'down' : 'up'
             }"]`,
         ),
@@ -568,7 +568,7 @@ export function getTrackDeleteButton({
 }): Locator {
     return page.locator(
         withinMpeRoomScreen(
-            `css=[data-testid="${trackID}-track-card-container"] [aria-label="Delete"]`,
+            `css=[data-testid="mpe-${trackID}-track-card-container"] [aria-label="Delete"]`,
         ),
     );
 }

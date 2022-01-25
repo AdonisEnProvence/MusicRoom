@@ -274,11 +274,17 @@ export async function changeTrackOrder({
              */
             expect(trackCardElements[fromIndex]).toHaveProp(
                 'testID',
-                toTrackCardContainerTestID(tracksIDs[destIndex]),
+                toTrackCardContainerTestID({
+                    trackID: tracksIDs[destIndex],
+                    testIDPrefix: 'mpe',
+                }),
             );
             expect(trackCardElements[destIndex]).toHaveProp(
                 'testID',
-                toTrackCardContainerTestID(tracksIDs[fromIndex]),
+                toTrackCardContainerTestID({
+                    trackID: tracksIDs[fromIndex],
+                    testIDPrefix: 'mpe',
+                }),
             );
         });
 
@@ -418,7 +424,7 @@ export async function joinMpeRoom(
     for (const { id: trackID } of firstRoomState.tracks) {
         //Should also look for specific room settings icon such as isOpen and why creatorName
         const listItem = await screen.findByTestId(
-            `${trackID}-track-card-container`,
+            `mpe-${trackID}-track-card-container`,
         );
         expect(listItem).toBeTruthy();
 
@@ -457,7 +463,7 @@ export async function joinMpeRoom(
         });
 
         const listItem = await screen.findByTestId(
-            `${trackID}-track-card-container`,
+            `mpe-${trackID}-track-card-container`,
         );
         expect(listItem).toBeTruthy();
 

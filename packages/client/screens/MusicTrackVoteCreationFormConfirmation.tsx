@@ -189,6 +189,7 @@ export const MusicTrackVoteCreationFormConfirmation: React.FC<
                                                 index,
                                             ) => (
                                                 <TrackListItem
+                                                    testIDPrefix="mtv"
                                                     trackID={id}
                                                     index={index}
                                                     key={id}

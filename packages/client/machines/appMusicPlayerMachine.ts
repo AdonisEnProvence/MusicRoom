@@ -1374,6 +1374,15 @@ export const createAppMusicPlayerMachine = ({
                                                 __EXIT_MPE_EXPORT_TO_MTV: {
                                                     target: 'waitingForExport',
                                                 },
+
+                                                // We let `creatingRoom` orthogonal region handle
+                                                // assigning received data to context.
+                                                ROOM_IS_READY: {
+                                                    target: 'waitingForExport',
+
+                                                    actions:
+                                                        'expandMusicPlayerFullScreen',
+                                                },
                                             },
                                         },
                                     },

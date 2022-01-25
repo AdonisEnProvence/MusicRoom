@@ -1255,11 +1255,12 @@ export const createAppMusicPlayerMachine = ({
 
                                         roomIsNotReady: {
                                             on: {
+                                                // When receiving ROOM_IS_READY event,
+                                                // connectionToRoom state will go to connected substate.
                                                 ROOM_IS_READY: {
                                                     target: 'waitingForRoomCreationRequest',
 
                                                     actions: [
-                                                        // TODO: go to connected state
                                                         'assignMergeNewState',
                                                     ],
                                                 },
@@ -1278,6 +1279,8 @@ export const createAppMusicPlayerMachine = ({
                                             actions: 'assignMergeNewState',
                                         },
 
+                                        // When receiving ROOM_IS_READY event,
+                                        // connectionToRoom state will go to connected substate.
                                         ROOM_IS_READY: {
                                             target: '.waitingForRoomCreationRequest',
 
@@ -1322,11 +1325,12 @@ export const createAppMusicPlayerMachine = ({
                                             },
 
                                             on: {
+                                                // When receiving JOINED_ROOM event,
+                                                // connectionToRoom state will go to connected substate.
                                                 JOINED_ROOM: {
                                                     target: 'waitingToJoinRoom',
 
                                                     actions: [
-                                                        // TODO: go to connected state
                                                         'assignMergeNewState',
                                                         'goBackFromRef',
                                                         'expandMusicPlayerFullScreen',
@@ -1337,13 +1341,12 @@ export const createAppMusicPlayerMachine = ({
                                     },
 
                                     on: {
+                                        // When receiving JOINED_ROOM event,
+                                        // connectionToRoom state will go to connected substate.
                                         JOINED_ROOM: {
                                             target: '.waitingToJoinRoom',
 
-                                            actions: [
-                                                // TODO: go to connected state
-                                                'assignMergeNewState',
-                                            ],
+                                            actions: 'assignMergeNewState',
                                         },
                                     },
                                 },

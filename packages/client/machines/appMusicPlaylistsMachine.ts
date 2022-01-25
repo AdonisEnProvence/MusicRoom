@@ -809,8 +809,6 @@ export function createAppMusicPlaylistsMachine({
                                             _context,
                                         ) => undefined,
                                     }),
-
-                                    'openMusicPlayerFullScreen',
                                 ],
                             },
                         },

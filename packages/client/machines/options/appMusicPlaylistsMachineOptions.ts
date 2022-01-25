@@ -14,13 +14,7 @@ export type AppMusicPlaylistsOptions = Partial<
     MachineOptions<MusicPlaylistsContext, MusicPlaylistsEvents>
 >;
 
-interface GetAppMusicPlaylistsMachineOptionsArgs {
-    setIsFullScreen: (isFullscreen: boolean) => void;
-}
-
-export function getAppMusicPlaylistsMachineOptions({
-    setIsFullScreen,
-}: GetAppMusicPlaylistsMachineOptionsArgs): Partial<AppMusicPlaylistsOptions> {
+export function getAppMusicPlaylistsMachineOptions(): Partial<AppMusicPlaylistsOptions> {
     return {
         services: {
             displayMpeRoomInvitationToast: (_context, event) => (sendBack) => {
@@ -127,9 +121,6 @@ export function getAppMusicPlaylistsMachineOptions({
             },
             goBackToLastScreen: () => {
                 navigationRef.current?.goBack();
-            },
-            openMusicPlayerFullScreen: () => {
-                setIsFullScreen(true);
             },
         },
     };

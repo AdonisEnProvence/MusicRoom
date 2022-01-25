@@ -170,7 +170,6 @@ export const appMusicPlaylistsModel = createModel(
             redirectToMpeLibrary: () => ({}),
             goBackToLastScreen: () => ({}),
             displayMpeForcedDisconnectionToast: () => ({}),
-            openMusicPlayerFullScreen: () => ({}),
         },
     },
 );

@@ -12,48 +12,13 @@ import {
     assertMusicPlayerStatusIs,
 } from '../_utils/assert';
 import { hitGoNextButton } from '../_utils/global';
-import { KnownSearchesRecord } from '../_utils/mock-http';
+import { knownSearches } from '../_utils/mpe-e2e-utils';
 import {
     closeAllContexts,
     GEOLOCATION_POSITIONS,
     setupAndGetUserPage,
 } from '../_utils/page';
 import { waitForYouTubeVideoToLoad } from '../_utils/wait-youtube';
-
-const knownSearches: KnownSearchesRecord = {
-    'BB Brunes': [
-        {
-            id: 'X3VNRVo7irM',
-            title: 'BB BRUNES - Dis-Moi [Clip Officiel]',
-            artistName: 'BBBrunesMusic',
-            duration: 0,
-        },
-        {
-            id: 'mF5etHMRMMM',
-            title: 'BB BRUNES - Coups et Blessures [Clip Officiel]',
-            artistName: 'BBBrunesMusic',
-            duration: 0,
-        },
-        {
-            id: '1d3etBBSSfw',
-            title: 'BB BRUNES - Lalalove You [Clip Officiel]',
-            artistName: 'BBBrunesMusic',
-            duration: 0,
-        },
-        {
-            id: 'DyRDeEWhW6M',
-            title: 'BB BRUNES - Aficionado [Clip Officiel]',
-            artistName: 'BBBrunesMusic',
-            duration: 0,
-        },
-        {
-            id: 'Qs-ucIS2B-0',
-            title: 'BB BRUNES - Stéréo [Clip Officiel]',
-            artistName: 'BBBrunesMusic',
-            duration: 0,
-        },
-    ],
-};
 
 async function createPublicRoomWithTimeAndPhysicalConstraints({
     page,

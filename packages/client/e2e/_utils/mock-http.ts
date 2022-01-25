@@ -8,7 +8,12 @@ export interface KnownSearchesElement {
     duration: number;
 }
 
-export type KnownSearchesRecord = Record<string, KnownSearchesElement[]>;
+export type knownSearchesRecordKey = 'Biolay - Vendredi 12' | 'BB Brunes';
+
+export type KnownSearchesRecord = Record<
+    knownSearchesRecordKey,
+    KnownSearchesElement[]
+>;
 
 export async function mockSearchTracks({
     context,

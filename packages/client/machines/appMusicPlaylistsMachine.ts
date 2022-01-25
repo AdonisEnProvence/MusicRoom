@@ -1,4 +1,12 @@
-import { Receiver, Sender, spawn, send, forwardTo, assign } from 'xstate';
+import {
+    Receiver,
+    Sender,
+    spawn,
+    send,
+    forwardTo,
+    assign,
+    sendParent,
+} from 'xstate';
 import { stop } from 'xstate/lib/actions';
 import { MtvRoomCreationOptionsWithoutInitialTracksIDs } from '@musicroom/types';
 import invariant from 'tiny-invariant';
@@ -21,6 +29,7 @@ import {
     MusicPlaylistsContext,
     MusicPlaylistsEvents,
 } from './appMusicPlaylistsModel';
+import { appModel } from './appModel';
 
 function actorExists(context: MusicPlaylistsContext, roomID: string): boolean {
     return context.playlistsActorsRefs.some((ref) => ref.id === roomID);
@@ -686,14 +695,20 @@ export function createAppMusicPlaylistsMachine({
                     },
 
                     configuringMtvRoom: {
-                        entry: () => {
-                            navigateFromRef(
-                                'MusicPlaylistEditorExportToMtvCreationForm',
-                                {
-                                    screen: 'MusicTrackVoteCreationFormName',
-                                },
-                            );
-                        },
+                        entry: [
+                            () => {
+                                navigateFromRef(
+                                    'MusicPlaylistEditorExportToMtvCreationForm',
+                                    {
+                                        screen: 'MusicTrackVoteCreationFormName',
+                                    },
+                                );
+                            },
+
+                            sendParent(
+                                appModel.events.__ENTER_MPE_EXPORT_TO_MTV(),
+                            ),
+                        ],
 
                         exit: [
                             ({ closeMtvRoomCreationModal }) => {
@@ -809,11 +824,17 @@ export function createAppMusicPlaylistsMachine({
                             EXIT_MTV_ROOM_CREATION: {
                                 target: 'idle',
 
-                                actions: assign({
-                                    currentlyExportedToMtvMpeRoomID: (
-                                        _context,
-                                    ) => undefined,
-                                }),
+                                actions: [
+                                    assign({
+                                        currentlyExportedToMtvMpeRoomID: (
+                                            _context,
+                                        ) => undefined,
+                                    }),
+
+                                    sendParent(
+                                        appModel.events.__EXIT_MPE_EXPORT_TO_MTV(),
+                                    ),
+                                ],
                             },
                         },
                     },

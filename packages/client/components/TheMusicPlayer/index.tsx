@@ -73,6 +73,7 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
 
             {isInRoom && (
                 <View
+                    testID="music-player-fullscreen-container"
                     accessibilityState={{
                         expanded: isFullScreen === true,
                     }}

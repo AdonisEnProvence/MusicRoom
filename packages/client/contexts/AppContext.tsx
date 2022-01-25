@@ -104,7 +104,7 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
         [setIsFullScreen],
     );
 
-    const appMusicPlayerMachine = useMemo(
+    const appMachine = useMemo(
         () =>
             createAppMachine({
                 socket,
@@ -121,7 +121,7 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
             appMusicPlaylistsMachineOptions,
         ],
     );
-    const appService = useInterpret(appMusicPlayerMachine);
+    const appService = useInterpret(appMachine, { devTools: true });
 
     const hasShowApplicationLoaderTag = useSelector(appService, (state) =>
         state.hasTag('showApplicationLoader'),

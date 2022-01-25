@@ -95,6 +95,7 @@ export type AppMusicPlayerMachineEvent =
       }
     | { type: 'FOCUS_READY' }
     | { type: 'CHANGE_EMITTING_DEVICE_CALLBACK'; state: MtvWorkflowState }
+    | { type: '__GET_CONTEXT' }
     | {
           type: 'RETRIEVE_CONTEXT';
           state: MtvWorkflowState;
@@ -221,6 +222,8 @@ export const createAppMusicPlayerMachine = ({
         AppMusicPlayerMachineEvent
     >(
         {
+            id: 'AppMusicPlayer',
+
             invoke: {
                 id: 'socketConnection',
                 src:
@@ -373,6 +376,12 @@ export const createAppMusicPlayerMachine = ({
 
                         onReceive((event) => {
                             switch (event.type) {
+                                case '__GET_CONTEXT': {
+                                    socket.emit('MTV_GET_CONTEXT');
+
+                                    break;
+                                }
+
                                 case 'EMIT_ACTION_PLAY': {
                                     socket.emit('MTV_ACTION_PLAY');
 
@@ -479,6 +488,7 @@ export const createAppMusicPlayerMachine = ({
                                             });
                                         },
                                     );
+                                    break;
                                 }
                             }
                         });
@@ -507,394 +517,536 @@ export const createAppMusicPlayerMachine = ({
                 },
 
                 pageHasBeenFocused: {
-                    initial: 'waitingForJoinOrCreateRoom',
+                    initial: 'requestingInitialContext',
 
                     states: {
-                        waitingForJoinOrCreateRoom: {
-                            entry: 'assignRawContext',
+                        requestingInitialContext: {
+                            entry: [
+                                'assignRawContext',
+                                send(
+                                    {
+                                        type: '__GET_CONTEXT',
+                                    },
+                                    {
+                                        to: 'socketConnection',
+                                    },
+                                ),
+                            ],
 
-                            invoke: {
-                                src: (_context) => () => {
-                                    /**
-                                     * Looking for other sessions context
-                                     * e.g already joined room etc etc
-                                     */
-                                    socket.emit('MTV_GET_CONTEXT');
-                                },
+                            always: {
+                                target: 'settledInitialContext',
                             },
                         },
 
-                        creatingRoom: {
-                            initial: 'selectingRoomOptions',
-
-                            states: {
-                                selectingRoomOptions: {
-                                    entry: 'openCreationMtvRoomFormModal',
-
-                                    exit: 'closeCreationMtvRoomFormModal',
-
-                                    invoke: {
-                                        id: 'creationMtvRoomForm',
-
-                                        src: creationMtvRoomForm,
-
-                                        data: (
-                                            { initialTracksIDs },
-                                            event,
-                                        ): CreationMtvRoomFormMachineContext => {
-                                            assertEventType(
-                                                event,
-                                                'CREATE_ROOM',
-                                            );
-
-                                            if (
-                                                initialTracksIDs === undefined
-                                            ) {
-                                                throw new Error(
-                                                    'Initial tracks must have been assigned to the context',
-                                                );
-                                            }
-
-                                            return {
-                                                ...creationMtvRoomFormInitialContext,
-                                                initialTracksIDs,
-                                            };
-                                        },
-
-                                        onDone: {
-                                            target: 'connectingToRoom',
-
-                                            actions: (
-                                                _,
-                                                event: CreationMtvRoomFormDoneInvokeEvent,
-                                            ) => {
-                                                console.log(
-                                                    'done event',
-                                                    event,
-                                                );
-                                            },
-                                        },
-                                    },
-
-                                    on: {
-                                        SAVE_MTV_ROOM_CREATION_MODAL_CLOSER: {
-                                            actions: assign({
-                                                closeMtvRoomCreationModal: (
-                                                    _context,
-                                                    event,
-                                                ) => event.closeModal,
-                                            }),
-                                        },
-                                    },
-                                },
-
-                                connectingToRoom: {
-                                    invoke: {
-                                        src: (context, event) => () => {
-                                            const creationMtvRoomFormDoneInvokeEvent =
-                                                event as CreationMtvRoomFormDoneInvokeEvent;
-
-                                            const { initialTracksIDs } =
-                                                context;
-                                            if (
-                                                initialTracksIDs === undefined
-                                            ) {
-                                                return;
-                                            }
-
-                                            const {
-                                                data: {
-                                                    roomName,
-                                                    isOpen,
-                                                    onlyInvitedUsersCanVote,
-                                                    hasPhysicalConstraints,
-                                                    physicalConstraintPlaceID,
-                                                    physicalConstraintRadius,
-                                                    physicalConstraintStartsAt,
-                                                    physicalConstraintEndsAt,
-                                                    playingMode,
-                                                    minimumVotesForATrackToBePlayed,
-                                                },
-                                            } = creationMtvRoomFormDoneInvokeEvent;
-                                            let physicalConstraintEndsAtFormatted =
-                                                '';
-                                            if (
-                                                hasPhysicalConstraints === true
-                                            ) {
-                                                if (
-                                                    physicalConstraintEndsAt ===
-                                                    undefined
-                                                ) {
-                                                    throw new Error(
-                                                        'physicalConstraintEndsAt is undefined',
-                                                    );
-                                                }
-
-                                                physicalConstraintEndsAtFormatted =
-                                                    physicalConstraintEndsAt.toISOString();
-                                            }
-
-                                            const payload: MtvRoomClientToServerCreateArgs =
-                                                {
-                                                    name: roomName,
-                                                    initialTracksIDs:
-                                                        initialTracksIDs,
-                                                    hasPhysicalAndTimeConstraints:
-                                                        hasPhysicalConstraints,
-                                                    isOpen,
-
-                                                    playingMode: playingMode,
-                                                    isOpenOnlyInvitedUsersCanVote:
-                                                        onlyInvitedUsersCanVote,
-                                                    minimumScoreToBePlayed:
-                                                        minimumVotesForATrackToBePlayed,
-                                                    physicalAndTimeConstraints:
-                                                        hasPhysicalConstraints ===
-                                                        true
-                                                            ? {
-                                                                  physicalConstraintPlaceID,
-                                                                  physicalConstraintRadius,
-                                                                  physicalConstraintStartsAt:
-                                                                      physicalConstraintStartsAt.toISOString(),
-                                                                  physicalConstraintEndsAt:
-                                                                      physicalConstraintEndsAtFormatted,
-                                                              }
-                                                            : undefined,
-                                                };
-
-                                            socket.emit(
-                                                'MTV_CREATE_ROOM',
-                                                payload,
-                                            );
-                                        },
-                                    },
-
-                                    on: {
-                                        JOINED_CREATED_ROOM: {
-                                            target: 'roomIsNotReady',
-                                            //redirect here
-                                            actions: [
-                                                'assignMergeNewState',
-                                                `expandMusicPlayerFullScreen`,
-                                            ],
-                                        },
-                                    },
-                                },
-
-                                roomIsNotReady: {
-                                    on: {
-                                        ROOM_IS_READY: {
-                                            target: 'roomIsReady',
-                                            actions: 'assignMergeNewState',
-                                        },
-                                    },
-                                },
-
-                                roomIsReady: {
-                                    type: 'final',
-                                },
-                            },
-
-                            on: {
-                                EXIT_MTV_ROOM_CREATION: {
-                                    target: 'waitingForJoinOrCreateRoom',
-                                },
-                            },
-
-                            onDone: {
-                                target: 'connectedToRoom',
-                            },
-                        },
-
-                        joiningRoom: {
-                            invoke: {
-                                src: (_context, event) => (sendBack) => {
-                                    if (event.type !== 'JOIN_ROOM') {
-                                        throw new Error(
-                                            'Service must be called in reaction to JOIN_ROOM event',
-                                        );
-                                    }
-
-                                    socket.emit('MTV_JOIN_ROOM', {
-                                        roomID: event.roomID,
-                                    });
-                                },
-                            },
-
-                            on: {
-                                JOINED_ROOM: {
-                                    target: 'connectedToRoom',
-
-                                    actions: [
-                                        'assignMergeNewState',
-                                        'goBackFromRef',
-                                        'expandMusicPlayerFullScreen',
-                                    ],
-                                },
-                            },
-                        },
-
-                        connectedToRoom: {
+                        settledInitialContext: {
                             type: 'parallel',
 
                             states: {
-                                playerState: {
-                                    initial: 'init',
+                                connectionToRoom: {
+                                    initial: 'disconnected',
 
                                     states: {
-                                        init: {
-                                            always: [
-                                                {
-                                                    target: 'waitingForTrackToLoad',
-                                                    cond: 'roomHasPositionAndTimeConstraints',
-                                                    actions: sendParent(
-                                                        'REQUEST_LOCATION_PERMISSION',
-                                                    ),
-                                                },
-                                                {
-                                                    target: 'waitingForTrackToLoad',
-                                                },
-                                            ],
-                                        },
+                                        disconnected: {},
 
-                                        waitingForTrackToLoad: {
-                                            on: {
-                                                TRACK_HAS_LOADED: {
-                                                    target: 'loadingTrackDuration',
-                                                },
-                                            },
-                                        },
-
-                                        loadingTrackDuration: {
-                                            always: [
-                                                {
-                                                    cond: ({ playing }) =>
-                                                        playing === true,
-                                                    target: 'activatedPlayer.play',
-                                                },
-
-                                                {
-                                                    target: 'activatedPlayer.pause',
-                                                },
-                                            ],
-                                        },
-
-                                        activatedPlayer: {
-                                            initial: 'pause',
-
-                                            tags: 'playerIsReady',
+                                        connected: {
+                                            type: 'parallel',
 
                                             states: {
-                                                pause: {
-                                                    initial: 'idle',
+                                                playerState: {
+                                                    initial: 'init',
 
                                                     states: {
-                                                        idle: {
+                                                        init: {
+                                                            always: [
+                                                                {
+                                                                    target: 'waitingForTrackToLoad',
+                                                                    cond: 'roomHasPositionAndTimeConstraints',
+                                                                    actions:
+                                                                        sendParent(
+                                                                            'REQUEST_LOCATION_PERMISSION',
+                                                                        ),
+                                                                },
+                                                                {
+                                                                    target: 'waitingForTrackToLoad',
+                                                                },
+                                                            ],
+                                                        },
+
+                                                        waitingForTrackToLoad: {
                                                             on: {
-                                                                PLAY_PAUSE_TOGGLE:
+                                                                TRACK_HAS_LOADED:
                                                                     {
-                                                                        target: 'waitingServerAcknowledgement',
+                                                                        target: 'loadingTrackDuration',
                                                                     },
                                                             },
                                                         },
 
-                                                        waitingServerAcknowledgement:
-                                                            {
-                                                                entry: send(
-                                                                    () => ({
-                                                                        type: 'EMIT_ACTION_PLAY',
-                                                                    }),
-                                                                    {
-                                                                        to: 'socketConnection',
+                                                        loadingTrackDuration: {
+                                                            always: [
+                                                                {
+                                                                    cond: ({
+                                                                        playing,
+                                                                    }) =>
+                                                                        playing ===
+                                                                        true,
+                                                                    target: 'activatedPlayer.play',
+                                                                },
+
+                                                                {
+                                                                    target: 'activatedPlayer.pause',
+                                                                },
+                                                            ],
+                                                        },
+
+                                                        activatedPlayer: {
+                                                            initial: 'pause',
+
+                                                            tags: 'playerIsReady',
+
+                                                            states: {
+                                                                pause: {
+                                                                    initial:
+                                                                        'idle',
+
+                                                                    states: {
+                                                                        idle: {
+                                                                            on: {
+                                                                                PLAY_PAUSE_TOGGLE:
+                                                                                    {
+                                                                                        target: 'waitingServerAcknowledgement',
+                                                                                    },
+                                                                            },
+                                                                        },
+
+                                                                        waitingServerAcknowledgement:
+                                                                            {
+                                                                                entry: send(
+                                                                                    () => ({
+                                                                                        type: 'EMIT_ACTION_PLAY',
+                                                                                    }),
+                                                                                    {
+                                                                                        to: 'socketConnection',
+                                                                                    },
+                                                                                ),
+                                                                            },
                                                                     },
-                                                                ),
+                                                                },
+
+                                                                play: {
+                                                                    invoke: {
+                                                                        src: 'pollTrackElapsedTime',
+                                                                    },
+
+                                                                    initial:
+                                                                        'idle',
+
+                                                                    states: {
+                                                                        idle: {
+                                                                            on: {
+                                                                                PLAY_PAUSE_TOGGLE:
+                                                                                    {
+                                                                                        target: 'waitingServerAcknowledgement',
+                                                                                    },
+                                                                            },
+                                                                        },
+
+                                                                        waitingServerAcknowledgement:
+                                                                            {
+                                                                                entry: send(
+                                                                                    () => ({
+                                                                                        type: 'EMIT_ACTION_PAUSE',
+                                                                                    }),
+                                                                                    {
+                                                                                        to: 'socketConnection',
+                                                                                    },
+                                                                                ),
+                                                                            },
+                                                                    },
+
+                                                                    on: {
+                                                                        UPDATE_CURRENT_TRACK_ELAPSED_TIME:
+                                                                            {
+                                                                                actions:
+                                                                                    'assignElapsedTimeToContext',
+                                                                            },
+                                                                    },
+                                                                },
                                                             },
+
+                                                            on: {
+                                                                PAUSE_CALLBACK:
+                                                                    {
+                                                                        target: 'activatedPlayer.pause',
+                                                                        actions:
+                                                                            'assignMergeNewState',
+                                                                    },
+
+                                                                PLAY_CALLBACK: [
+                                                                    {
+                                                                        target: 'waitingForTrackToLoad',
+
+                                                                        /**
+                                                                         * Checking if we're on a new track
+                                                                         * Which means to reload a video in the players
+                                                                         */
+                                                                        cond: (
+                                                                            {
+                                                                                currentTrack,
+                                                                            },
+                                                                            {
+                                                                                state: {
+                                                                                    currentTrack:
+                                                                                        currentTrackToBeSet,
+                                                                                },
+                                                                            },
+                                                                        ) => {
+                                                                            const isDifferentCurrentTrack =
+                                                                                currentTrack?.id !==
+                                                                                currentTrackToBeSet?.id;
+
+                                                                            return isDifferentCurrentTrack;
+                                                                        },
+
+                                                                        actions:
+                                                                            'assignMergeNewState',
+                                                                    },
+
+                                                                    {
+                                                                        target: 'activatedPlayer.play',
+                                                                        actions:
+                                                                            'assignMergeNewState',
+                                                                    },
+                                                                ],
+
+                                                                GO_TO_NEXT_TRACK:
+                                                                    {
+                                                                        actions:
+                                                                            forwardTo(
+                                                                                'socketConnection',
+                                                                            ),
+                                                                    },
+                                                            },
+                                                        },
+                                                    },
+
+                                                    on: {
+                                                        /**
+                                                         * PAUSE_CALLBACK event must be handled in all substates, including waitingForTrackToLoad.
+                                                         * The updated state must be assigned to the context.
+                                                         */
+                                                        PAUSE_CALLBACK: {
+                                                            actions:
+                                                                'assignMergeNewState',
+                                                        },
+
+                                                        /**
+                                                         * PLAY_CALLBACK event must be handled in all substates, including waitingForTrackToLoad.
+                                                         * The updated state must be assigned to the context.
+                                                         */
+                                                        PLAY_CALLBACK: {
+                                                            actions:
+                                                                'assignMergeNewState',
+                                                        },
                                                     },
                                                 },
 
-                                                play: {
-                                                    invoke: {
-                                                        src: 'pollTrackElapsedTime',
-                                                    },
-
-                                                    initial: 'idle',
+                                                tracksSuggestion: {
+                                                    initial:
+                                                        'waitingForTracksToBeSuggested',
 
                                                     states: {
-                                                        idle: {
-                                                            on: {
-                                                                PLAY_PAUSE_TOGGLE:
-                                                                    {
-                                                                        target: 'waitingServerAcknowledgement',
-                                                                    },
-                                                            },
-                                                        },
-
-                                                        waitingServerAcknowledgement:
+                                                        waitingForTracksToBeSuggested:
                                                             {
-                                                                entry: send(
-                                                                    () => ({
-                                                                        type: 'EMIT_ACTION_PAUSE',
-                                                                    }),
-                                                                    {
-                                                                        to: 'socketConnection',
-                                                                    },
-                                                                ),
+                                                                on: {
+                                                                    SUGGEST_TRACKS:
+                                                                        {
+                                                                            target: 'waitingForTracksSuggestionToBeAcknowledged',
+
+                                                                            actions:
+                                                                                [
+                                                                                    assign(
+                                                                                        {
+                                                                                            closeSuggestionModal:
+                                                                                                (
+                                                                                                    _context,
+                                                                                                    {
+                                                                                                        closeSuggestionModal,
+                                                                                                    },
+                                                                                                ) =>
+                                                                                                    closeSuggestionModal,
+                                                                                        },
+                                                                                    ),
+
+                                                                                    send(
+                                                                                        (
+                                                                                            _context,
+                                                                                            event,
+                                                                                        ) => ({
+                                                                                            type: 'SUGGEST_TRACKS',
+                                                                                            tracksToSuggest:
+                                                                                                event.tracksToSuggest,
+                                                                                        }),
+                                                                                        {
+                                                                                            to: 'socketConnection',
+                                                                                        },
+                                                                                    ),
+                                                                                ],
+                                                                        },
+                                                                },
+                                                            },
+
+                                                        waitingForTracksSuggestionToBeAcknowledged:
+                                                            {
+                                                                tags: [
+                                                                    'showActivityIndicatorOnSuggestionsResultsScreen',
+                                                                ],
+
+                                                                on: {
+                                                                    SUGGEST_TRACKS_CALLBACK:
+                                                                        {
+                                                                            target: 'waitingForTracksToBeSuggested',
+
+                                                                            actions:
+                                                                                [
+                                                                                    ({
+                                                                                        closeSuggestionModal,
+                                                                                    }) => {
+                                                                                        closeSuggestionModal?.();
+                                                                                    },
+
+                                                                                    'showTracksSuggestionAcknowledgementToast',
+                                                                                ],
+                                                                        },
+                                                                    SUGGEST_TRACKS_FAIL_CALLBACK:
+                                                                        {
+                                                                            target: 'waitingForTracksToBeSuggested',
+
+                                                                            actions:
+                                                                                [
+                                                                                    ({
+                                                                                        closeSuggestionModal,
+                                                                                    }) => {
+                                                                                        closeSuggestionModal?.();
+                                                                                    },
+
+                                                                                    'showTracksSuggestionFailedToast',
+                                                                                ],
+                                                                        },
+                                                                },
                                                             },
                                                     },
 
                                                     on: {
-                                                        UPDATE_CURRENT_TRACK_ELAPSED_TIME:
+                                                        VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE:
                                                             {
                                                                 actions:
-                                                                    'assignElapsedTimeToContext',
+                                                                    'assignMergeNewState',
                                                             },
                                                     },
                                                 },
                                             },
 
                                             on: {
-                                                PAUSE_CALLBACK: {
-                                                    target: 'activatedPlayer.pause',
+                                                FORCED_DISCONNECTION: {
+                                                    target: 'disconnected',
+
+                                                    actions: [
+                                                        'assignRawContext',
+                                                        'displayAlertForcedDisconnection',
+                                                    ],
+                                                },
+
+                                                LEAVE_ROOM: {
+                                                    actions:
+                                                        forwardTo(
+                                                            'socketConnection',
+                                                        ),
+                                                },
+
+                                                LEAVE_ROOM_CALLBACK: {
+                                                    target: 'disconnected',
+
+                                                    actions: [
+                                                        'assignRawContext',
+                                                        'leaveRoomFromLeaveRoomButton',
+                                                    ],
+                                                },
+
+                                                TIME_CONSTRAINT_UPDATE: {
                                                     actions:
                                                         'assignMergeNewState',
                                                 },
 
-                                                PLAY_CALLBACK: [
-                                                    {
-                                                        target: 'waitingForTrackToLoad',
-
-                                                        /**
-                                                         * Checking if we're on a new track
-                                                         * Which means to reload a video in the players
-                                                         */
-                                                        cond: (
-                                                            { currentTrack },
-                                                            {
-                                                                state: {
-                                                                    currentTrack:
-                                                                        currentTrackToBeSet,
-                                                                },
-                                                            },
-                                                        ) => {
-                                                            const isDifferentCurrentTrack =
-                                                                currentTrack?.id !==
-                                                                currentTrackToBeSet?.id;
-
-                                                            return isDifferentCurrentTrack;
+                                                CHANGE_EMITTING_DEVICE: {
+                                                    cond: (
+                                                        {
+                                                            userRelatedInformation,
                                                         },
+                                                        { deviceID },
+                                                    ) => {
+                                                        if (
+                                                            userRelatedInformation !==
+                                                            null
+                                                        ) {
+                                                            const pickedDeviceIsNotEmitting =
+                                                                userRelatedInformation.emittingDeviceID !==
+                                                                deviceID;
 
-                                                        actions:
-                                                            'assignMergeNewState',
+                                                            return pickedDeviceIsNotEmitting;
+                                                        }
+                                                        return false;
                                                     },
 
+                                                    actions:
+                                                        forwardTo(
+                                                            'socketConnection',
+                                                        ),
+                                                },
+
+                                                CHANGE_EMITTING_DEVICE_CALLBACK:
                                                     {
-                                                        target: 'activatedPlayer.play',
+                                                        cond: ({
+                                                            userRelatedInformation,
+                                                        }) => {
+                                                            const userRelatedInformationIsNotNull =
+                                                                userRelatedInformation !==
+                                                                null;
+
+                                                            if (
+                                                                userRelatedInformationIsNotNull ===
+                                                                false
+                                                            ) {
+                                                                console.error(
+                                                                    'UserRelatedInformation should not be null',
+                                                                );
+                                                            }
+
+                                                            return userRelatedInformationIsNotNull;
+                                                        },
+                                                        actions: `assignMergeNewState`,
+                                                    },
+
+                                                VOTE_FOR_TRACK: {
+                                                    cond: 'canVoteForTrack',
+                                                    actions:
+                                                        forwardTo(
+                                                            'socketConnection',
+                                                        ),
+                                                },
+
+                                                VOTE_OR_SUGGEST_TRACK_CALLBACK:
+                                                    {
                                                         actions:
                                                             'assignMergeNewState',
                                                     },
-                                                ],
 
-                                                GO_TO_NEXT_TRACK: {
+                                                USER_LENGTH_UPDATE: {
+                                                    actions:
+                                                        'assignMergeNewState',
+                                                },
+
+                                                USER_PERMISSIONS_UPDATE: {
+                                                    actions:
+                                                        'assignMergeNewState',
+                                                },
+
+                                                UPDATE_DELEGATION_OWNER: {
+                                                    actions:
+                                                        forwardTo(
+                                                            'socketConnection',
+                                                        ),
+                                                },
+
+                                                UPDATE_CONTROL_AND_DELEGATION_PERMISSION:
+                                                    {
+                                                        actions:
+                                                            forwardTo(
+                                                                'socketConnection',
+                                                            ),
+                                                    },
+
+                                                UPDATE_DELEGATION_OWNER_CALLBACK:
+                                                    {
+                                                        actions:
+                                                            'assignMergeNewState',
+                                                    },
+
+                                                GET_ROOM_CONSTRAINTS_DETAILS: {
+                                                    actions:
+                                                        forwardTo(
+                                                            'socketConnection',
+                                                        ),
+                                                },
+
+                                                GET_ROOM_CONSTRAINTS_DETAILS_CALLBACK:
+                                                    {
+                                                        actions:
+                                                            'assignConstraintsDetails',
+                                                    },
+
+                                                SEND_CHAT_MESSAGE: {
+                                                    actions: [
+                                                        forwardTo(
+                                                            'socketConnection',
+                                                        ),
+                                                        assign({
+                                                            chatMessages: (
+                                                                {
+                                                                    chatMessages,
+                                                                    userRelatedInformation,
+                                                                },
+                                                                { message },
+                                                            ) => {
+                                                                if (
+                                                                    userRelatedInformation ===
+                                                                    null
+                                                                ) {
+                                                                    throw new Error(
+                                                                        'userRelatedInformation must not be null to use chat',
+                                                                    );
+                                                                }
+
+                                                                const previousMessages =
+                                                                    chatMessages ??
+                                                                    [];
+
+                                                                // Messages must be prepend as they are displayed in reverse order.
+                                                                return [
+                                                                    {
+                                                                        id: nanoid(),
+                                                                        authorID:
+                                                                            userRelatedInformation.userID,
+                                                                        authorName:
+                                                                            'Me',
+                                                                        text: message,
+                                                                    },
+                                                                    ...previousMessages,
+                                                                ];
+                                                            },
+                                                        }),
+                                                    ],
+                                                },
+
+                                                RECEIVED_CHAT_MESSAGE: {
+                                                    actions: assign({
+                                                        chatMessages: (
+                                                            { chatMessages },
+                                                            { message },
+                                                        ) => {
+                                                            const previousMessages =
+                                                                chatMessages ??
+                                                                [];
+
+                                                            // Messages must be prepend as they are displayed in reverse order.
+                                                            return [
+                                                                message,
+                                                                ...previousMessages,
+                                                            ];
+                                                        },
+                                                    }),
+                                                },
+
+                                                CREATOR_INVITE_USER: {
                                                     actions:
                                                         forwardTo(
                                                             'socketConnection',
@@ -905,310 +1057,300 @@ export const createAppMusicPlayerMachine = ({
                                     },
 
                                     on: {
-                                        /**
-                                         * PAUSE_CALLBACK event must be handled in all substates, including waitingForTrackToLoad.
-                                         * The updated state must be assigned to the context.
-                                         */
-                                        PAUSE_CALLBACK: {
+                                        RETRIEVE_CONTEXT: {
+                                            target: '.connected',
+
                                             actions: 'assignMergeNewState',
                                         },
 
-                                        /**
-                                         * PLAY_CALLBACK event must be handled in all substates, including waitingForTrackToLoad.
-                                         * The updated state must be assigned to the context.
-                                         */
-                                        PLAY_CALLBACK: {
-                                            actions: 'assignMergeNewState',
+                                        JOINED_ROOM: {
+                                            target: '.connected',
+                                        },
+
+                                        ROOM_IS_READY: {
+                                            target: '.connected',
                                         },
                                     },
                                 },
 
-                                tracksSuggestion: {
-                                    initial: 'waitingForTracksToBeSuggested',
+                                creatingRoom: {
+                                    initial: 'waitingForRoomCreationRequest',
 
                                     states: {
-                                        waitingForTracksToBeSuggested: {
+                                        waitingForRoomCreationRequest: {
                                             on: {
-                                                SUGGEST_TRACKS: {
-                                                    target: 'waitingForTracksSuggestionToBeAcknowledged',
+                                                CREATE_ROOM: {
+                                                    target: 'selectingRoomOptions',
 
-                                                    actions: [
-                                                        assign({
-                                                            closeSuggestionModal:
+                                                    actions: assign(
+                                                        (context, event) => ({
+                                                            ...context,
+                                                            initialTracksIDs:
+                                                                event.initialTracksIDs,
+                                                        }),
+                                                    ),
+                                                },
+                                            },
+                                        },
+
+                                        selectingRoomOptions: {
+                                            entry: 'openCreationMtvRoomFormModal',
+
+                                            exit: 'closeCreationMtvRoomFormModal',
+
+                                            invoke: {
+                                                id: 'creationMtvRoomForm',
+
+                                                src: creationMtvRoomForm,
+
+                                                data: (
+                                                    { initialTracksIDs },
+                                                    event,
+                                                ): CreationMtvRoomFormMachineContext => {
+                                                    assertEventType(
+                                                        event,
+                                                        'CREATE_ROOM',
+                                                    );
+
+                                                    if (
+                                                        initialTracksIDs ===
+                                                        undefined
+                                                    ) {
+                                                        throw new Error(
+                                                            'Initial tracks must have been assigned to the context',
+                                                        );
+                                                    }
+
+                                                    return {
+                                                        ...creationMtvRoomFormInitialContext,
+                                                        initialTracksIDs,
+                                                    };
+                                                },
+
+                                                onDone: {
+                                                    target: 'connectingToRoom',
+
+                                                    actions: (
+                                                        _,
+                                                        event: CreationMtvRoomFormDoneInvokeEvent,
+                                                    ) => {
+                                                        console.log(
+                                                            'done event',
+                                                            event,
+                                                        );
+                                                    },
+                                                },
+                                            },
+
+                                            on: {
+                                                SAVE_MTV_ROOM_CREATION_MODAL_CLOSER:
+                                                    {
+                                                        actions: assign({
+                                                            closeMtvRoomCreationModal:
                                                                 (
                                                                     _context,
-                                                                    {
-                                                                        closeSuggestionModal,
-                                                                    },
+                                                                    event,
                                                                 ) =>
-                                                                    closeSuggestionModal,
+                                                                    event.closeModal,
                                                         }),
+                                                    },
+                                            },
+                                        },
 
-                                                        send(
-                                                            (
-                                                                _context,
-                                                                event,
-                                                            ) => ({
-                                                                type: 'SUGGEST_TRACKS',
-                                                                tracksToSuggest:
-                                                                    event.tracksToSuggest,
-                                                            }),
-                                                            {
-                                                                to: 'socketConnection',
-                                                            },
-                                                        ),
+                                        connectingToRoom: {
+                                            invoke: {
+                                                src: (context, event) => () => {
+                                                    const creationMtvRoomFormDoneInvokeEvent =
+                                                        event as CreationMtvRoomFormDoneInvokeEvent;
+
+                                                    const { initialTracksIDs } =
+                                                        context;
+                                                    if (
+                                                        initialTracksIDs ===
+                                                        undefined
+                                                    ) {
+                                                        return;
+                                                    }
+
+                                                    const {
+                                                        data: {
+                                                            roomName,
+                                                            isOpen,
+                                                            onlyInvitedUsersCanVote,
+                                                            hasPhysicalConstraints,
+                                                            physicalConstraintPlaceID,
+                                                            physicalConstraintRadius,
+                                                            physicalConstraintStartsAt,
+                                                            physicalConstraintEndsAt,
+                                                            playingMode,
+                                                            minimumVotesForATrackToBePlayed,
+                                                        },
+                                                    } = creationMtvRoomFormDoneInvokeEvent;
+                                                    let physicalConstraintEndsAtFormatted =
+                                                        '';
+                                                    if (
+                                                        hasPhysicalConstraints ===
+                                                        true
+                                                    ) {
+                                                        if (
+                                                            physicalConstraintEndsAt ===
+                                                            undefined
+                                                        ) {
+                                                            throw new Error(
+                                                                'physicalConstraintEndsAt is undefined',
+                                                            );
+                                                        }
+
+                                                        physicalConstraintEndsAtFormatted =
+                                                            physicalConstraintEndsAt.toISOString();
+                                                    }
+
+                                                    const payload: MtvRoomClientToServerCreateArgs =
+                                                        {
+                                                            name: roomName,
+                                                            initialTracksIDs:
+                                                                initialTracksIDs,
+                                                            hasPhysicalAndTimeConstraints:
+                                                                hasPhysicalConstraints,
+                                                            isOpen,
+
+                                                            playingMode:
+                                                                playingMode,
+                                                            isOpenOnlyInvitedUsersCanVote:
+                                                                onlyInvitedUsersCanVote,
+                                                            minimumScoreToBePlayed:
+                                                                minimumVotesForATrackToBePlayed,
+                                                            physicalAndTimeConstraints:
+                                                                hasPhysicalConstraints ===
+                                                                true
+                                                                    ? {
+                                                                          physicalConstraintPlaceID,
+                                                                          physicalConstraintRadius,
+                                                                          physicalConstraintStartsAt:
+                                                                              physicalConstraintStartsAt.toISOString(),
+                                                                          physicalConstraintEndsAt:
+                                                                              physicalConstraintEndsAtFormatted,
+                                                                      }
+                                                                    : undefined,
+                                                        };
+
+                                                    socket.emit(
+                                                        'MTV_CREATE_ROOM',
+                                                        payload,
+                                                    );
+                                                },
+                                            },
+
+                                            on: {
+                                                JOINED_CREATED_ROOM: {
+                                                    target: 'roomIsNotReady',
+                                                    //redirect here
+                                                    actions: [
+                                                        'assignMergeNewState',
+                                                        `expandMusicPlayerFullScreen`,
                                                     ],
                                                 },
                                             },
                                         },
 
-                                        waitingForTracksSuggestionToBeAcknowledged:
-                                            {
-                                                tags: [
-                                                    'showActivityIndicatorOnSuggestionsResultsScreen',
-                                                ],
+                                        roomIsNotReady: {
+                                            on: {
+                                                // When receiving ROOM_IS_READY event,
+                                                // connectionToRoom state will go to connected substate.
+                                                ROOM_IS_READY: {
+                                                    target: 'waitingForRoomCreationRequest',
 
-                                                on: {
-                                                    SUGGEST_TRACKS_CALLBACK: {
-                                                        target: 'waitingForTracksToBeSuggested',
-
-                                                        actions: [
-                                                            ({
-                                                                closeSuggestionModal,
-                                                            }) => {
-                                                                closeSuggestionModal?.();
-                                                            },
-
-                                                            'showTracksSuggestionAcknowledgementToast',
-                                                        ],
-                                                    },
-                                                    SUGGEST_TRACKS_FAIL_CALLBACK:
-                                                        {
-                                                            target: 'waitingForTracksToBeSuggested',
-
-                                                            actions: [
-                                                                ({
-                                                                    closeSuggestionModal,
-                                                                }) => {
-                                                                    closeSuggestionModal?.();
-                                                                },
-
-                                                                'showTracksSuggestionFailedToast',
-                                                            ],
-                                                        },
+                                                    actions: [
+                                                        'assignMergeNewState',
+                                                    ],
                                                 },
                                             },
+                                        },
                                     },
 
                                     on: {
-                                        VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE: {
+                                        EXIT_MTV_ROOM_CREATION: {
+                                            target: '.waitingForRoomCreationRequest',
+                                        },
+
+                                        JOINED_CREATED_ROOM: {
+                                            target: '.roomIsNotReady',
+
+                                            actions: 'assignMergeNewState',
+                                        },
+
+                                        // When receiving ROOM_IS_READY event,
+                                        // connectionToRoom state will go to connected substate.
+                                        ROOM_IS_READY: {
+                                            target: '.waitingForRoomCreationRequest',
+
+                                            actions: 'assignMergeNewState',
+                                        },
+                                    },
+                                },
+
+                                joiningRoom: {
+                                    initial: 'waitingToJoinRoom',
+
+                                    states: {
+                                        waitingToJoinRoom: {
+                                            on: {
+                                                JOIN_ROOM: {
+                                                    target: 'joiningRoom',
+                                                },
+                                            },
+                                        },
+
+                                        joiningRoom: {
+                                            invoke: {
+                                                src:
+                                                    (_context, event) =>
+                                                    (sendBack) => {
+                                                        if (
+                                                            event.type !==
+                                                            'JOIN_ROOM'
+                                                        ) {
+                                                            throw new Error(
+                                                                'Service must be called in reaction to JOIN_ROOM event',
+                                                            );
+                                                        }
+
+                                                        socket.emit(
+                                                            'MTV_JOIN_ROOM',
+                                                            {
+                                                                roomID: event.roomID,
+                                                            },
+                                                        );
+                                                    },
+                                            },
+
+                                            on: {
+                                                // When receiving JOINED_ROOM event,
+                                                // connectionToRoom state will go to connected substate.
+                                                JOINED_ROOM: {
+                                                    target: 'waitingToJoinRoom',
+
+                                                    actions: [
+                                                        'assignMergeNewState',
+                                                        'goBackFromRef',
+                                                        'expandMusicPlayerFullScreen',
+                                                    ],
+                                                },
+                                            },
+                                        },
+                                    },
+
+                                    on: {
+                                        // When receiving JOINED_ROOM event,
+                                        // connectionToRoom state will go to connected substate.
+                                        JOINED_ROOM: {
+                                            target: '.waitingToJoinRoom',
+
                                             actions: 'assignMergeNewState',
                                         },
                                     },
                                 },
                             },
-
-                            on: {
-                                FORCED_DISCONNECTION: {
-                                    target: 'waitingForJoinOrCreateRoom',
-                                    actions: [
-                                        'assignRawContext',
-                                        'displayAlertForcedDisconnection',
-                                    ],
-                                },
-
-                                LEAVE_ROOM: {
-                                    actions: forwardTo('socketConnection'),
-                                },
-
-                                LEAVE_ROOM_CALLBACK: {
-                                    target: 'waitingForJoinOrCreateRoom',
-
-                                    actions: [
-                                        'assignRawContext',
-                                        'leaveRoomFromLeaveRoomButton',
-                                    ],
-                                },
-
-                                TIME_CONSTRAINT_UPDATE: {
-                                    actions: 'assignMergeNewState',
-                                },
-
-                                CHANGE_EMITTING_DEVICE: {
-                                    cond: (
-                                        { userRelatedInformation },
-                                        { deviceID },
-                                    ) => {
-                                        if (userRelatedInformation !== null) {
-                                            const pickedDeviceIsNotEmitting =
-                                                userRelatedInformation.emittingDeviceID !==
-                                                deviceID;
-
-                                            return pickedDeviceIsNotEmitting;
-                                        }
-                                        return false;
-                                    },
-
-                                    actions: forwardTo('socketConnection'),
-                                },
-
-                                CHANGE_EMITTING_DEVICE_CALLBACK: {
-                                    cond: ({ userRelatedInformation }) => {
-                                        const userRelatedInformationIsNotNull =
-                                            userRelatedInformation !== null;
-
-                                        if (
-                                            userRelatedInformationIsNotNull ===
-                                            false
-                                        ) {
-                                            console.error(
-                                                'UserRelatedInformation should not be null',
-                                            );
-                                        }
-
-                                        return userRelatedInformationIsNotNull;
-                                    },
-                                    actions: `assignMergeNewState`,
-                                },
-
-                                VOTE_FOR_TRACK: {
-                                    cond: 'canVoteForTrack',
-                                    actions: forwardTo('socketConnection'),
-                                },
-
-                                VOTE_OR_SUGGEST_TRACK_CALLBACK: {
-                                    actions: 'assignMergeNewState',
-                                },
-
-                                USER_LENGTH_UPDATE: {
-                                    actions: 'assignMergeNewState',
-                                },
-
-                                USER_PERMISSIONS_UPDATE: {
-                                    actions: 'assignMergeNewState',
-                                },
-
-                                UPDATE_DELEGATION_OWNER: {
-                                    actions: forwardTo('socketConnection'),
-                                },
-
-                                UPDATE_CONTROL_AND_DELEGATION_PERMISSION: {
-                                    actions: forwardTo('socketConnection'),
-                                },
-
-                                UPDATE_DELEGATION_OWNER_CALLBACK: {
-                                    actions: 'assignMergeNewState',
-                                },
-
-                                GET_ROOM_CONSTRAINTS_DETAILS: {
-                                    actions: forwardTo('socketConnection'),
-                                },
-
-                                GET_ROOM_CONSTRAINTS_DETAILS_CALLBACK: {
-                                    actions: 'assignConstraintsDetails',
-                                },
-
-                                SEND_CHAT_MESSAGE: {
-                                    actions: [
-                                        forwardTo('socketConnection'),
-                                        assign({
-                                            chatMessages: (
-                                                {
-                                                    chatMessages,
-                                                    userRelatedInformation,
-                                                },
-                                                { message },
-                                            ) => {
-                                                if (
-                                                    userRelatedInformation ===
-                                                    null
-                                                ) {
-                                                    throw new Error(
-                                                        'userRelatedInformation must not be null to use chat',
-                                                    );
-                                                }
-
-                                                const previousMessages =
-                                                    chatMessages ?? [];
-
-                                                // Messages must be prepend as they are displayed in reverse order.
-                                                return [
-                                                    {
-                                                        id: nanoid(),
-                                                        authorID:
-                                                            userRelatedInformation.userID,
-                                                        authorName: 'Me',
-                                                        text: message,
-                                                    },
-                                                    ...previousMessages,
-                                                ];
-                                            },
-                                        }),
-                                    ],
-                                },
-
-                                RECEIVED_CHAT_MESSAGE: {
-                                    actions: assign({
-                                        chatMessages: (
-                                            { chatMessages },
-                                            { message },
-                                        ) => {
-                                            const previousMessages =
-                                                chatMessages ?? [];
-
-                                            // Messages must be prepend as they are displayed in reverse order.
-                                            return [
-                                                message,
-                                                ...previousMessages,
-                                            ];
-                                        },
-                                    }),
-                                },
-
-                                CREATOR_INVITE_USER: {
-                                    actions: forwardTo('socketConnection'),
-                                },
-                            },
-                            //End of connectedToRoom state transitions
-                        },
-                    },
-
-                    on: {
-                        JOIN_ROOM: {
-                            target: '.joiningRoom',
-                        },
-
-                        CREATE_ROOM: {
-                            target: '.creatingRoom',
-
-                            actions: assign((context, event) => ({
-                                ...context,
-                                initialTracksIDs: event.initialTracksIDs,
-                            })),
-                        },
-
-                        RETRIEVE_CONTEXT: {
-                            target: '.connectedToRoom',
-
-                            actions: 'assignMergeNewState',
-                        },
-
-                        JOINED_CREATED_ROOM: {
-                            target: '.creatingRoom.roomIsNotReady',
-
-                            actions: 'assignMergeNewState',
-                        },
-
-                        ROOM_IS_READY: {
-                            target: '.creatingRoom.roomIsReady',
-
-                            actions: 'assignMergeNewState',
-                        },
-
-                        JOINED_ROOM: {
-                            target: 'pageHasBeenFocused.connectedToRoom',
-
-                            actions: 'assignMergeNewState',
                         },
                     },
                 },

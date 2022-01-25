@@ -1,0 +1,85 @@
+name: e2e
+
+on:
+    push:
+        branches:
+            - master
+
+jobs:
+    e2e-tests:
+        runs-on: ubuntu-latest
+        # services:
+        #     redis:
+        #         image: redis
+        #         ports:
+        #             - '6379:6379'
+        #         options: --entrypoint redis-server
+        #     postgresql:
+        #         image: postgres:latest
+        #         ports:
+        #             - 5432:5432
+        #         env:
+        #             POSTGRES_PASSWORD: yourpassword
+        #             POSTGRES_USER: lucid
+        #             POSTGRES_DB: lucid
+        steps:
+            - name: Checkout 🛎
+              uses: actions/checkout@v2
+
+            - name: Setup node env 🏗
+              uses: actions/setup-node@v2.1.2
+              with:
+                  node-version: 16.8.0
+                  check-latest: true
+
+            #Modify key version to force cache reset
+            - name: Cache node_modules 📦
+              uses: actions/cache@v2
+              with:
+                  path: '**/node_modules'
+                  key: ${{ runner.os }}-modules-v1-${{ hashFiles('**/yarn.lock') }}
+
+            - name: Install dependencies 👨🏻‍💻
+              run: yarn install
+
+            - name: Build packages 👷
+              run: yarn run build:tsc
+
+            - name: Start services
+              run: yarn test:e2e:start
+              env:
+                GOOGLE_API_KEY: ""
+                GOOGLE_PLACES_API_KEY: ""
+                GOOGLE_GEOCODING_API_KEY: ""
+
+                PORT: 3333
+                HOST: 0.0.0.0
+                NODE_ENV: development
+                APP_KEY: WUsu75COCN2xzof_Ks7vd64gm72HmGba
+
+                REDIS_CONNECTION: local
+                REDIS_HOST: 127.0.0.1
+                REDIS_PORT: 6379
+                REDIS_PASSWORD: yourpassword
+
+                TEMPORAL_ENDPOINT: http://localhost:3000/
+
+                DB_CONNECTION: pg
+                PG_HOST: localhost
+                PG_PORT: 5434
+                PG_USER: lucid
+                PG_PASSWORD: yourpassword
+                PG_DB_NAME: lucid
+
+                # Variables for testing database
+                # Needed by docker-compose file
+                DB_TEST_CONNECTION: pg
+                PG_TEST_HOST: localhost
+                PG_TEST_PORT: 5435
+                PG_TEST_USER: lucidTest
+                PG_TEST_PASSWORD: yourpasswordTest
+                PG_TEST_DB_NAME: lucidTest
+
+
+            - name: Run E2E services
+              run: yarn test:e2e:run

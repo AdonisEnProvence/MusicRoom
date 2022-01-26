@@ -4,7 +4,7 @@ import {
     assertMusicPlayerStatusIs,
 } from '../_utils/assert';
 import { hitGoNextButton } from '../_utils/global';
-import { KnownSearchesRecord } from '../_utils/mock-http';
+import { knownSearches } from '../_utils/mpe-e2e-utils';
 import {
     closeAllContexts,
     setupAndGetUserPage,
@@ -420,73 +420,6 @@ test.afterEach(async ({ browser }) => {
 test('Test B see following link for more information: https://3.basecamp.com/4704981/buckets/22220886/messages/4292491228#:~:text=Test%20end-,Test%20B/,-UserA%20Section%20full', async ({
     browser,
 }) => {
-    const knownSearches: KnownSearchesRecord = {
-        'Biolay - Vendredi 12': [
-            {
-                id: 'eD-ORVUQ-pw',
-                title: 'Benjamin Biolay - Vendredi 12 (Clip Officiel)',
-                artistName: 'BenjaminBiolayVEVO',
-                duration: 0,
-            },
-            {
-                id: 'H8GDdTX8Cww',
-                title: 'Vendredi 12',
-                artistName: 'Benjamin Biolay - Topic',
-                duration: 0,
-            },
-            {
-                id: '7aW8iGoqi1o',
-                title: 'Benjamin Biolay - Vendredi 12',
-                artistName: 'Bruno Gaillardo',
-                duration: 0,
-            },
-            {
-                id: 'O8HyyYxbznQ',
-                title: 'Vendredi 12 - Benjamin Biolay (reprise)',
-                artistName: 'Clémence Bnt',
-                duration: 0,
-            },
-            {
-                id: 'LZ6EkzDQbiY',
-                title: 'Benjamin Biolay - Où est passée la tendresse (Live) - Le Grand Studio RTL',
-                artistName: 'Le Grand Studio RTL',
-                duration: 0,
-            },
-        ],
-        'BB Brunes': [
-            {
-                id: 'X3VNRVo7irM',
-                title: 'BB BRUNES - Dis-Moi [Clip Officiel]',
-                artistName: 'BBBrunesMusic',
-                duration: 0,
-            },
-            {
-                id: 'mF5etHMRMMM',
-                title: 'BB BRUNES - Coups et Blessures [Clip Officiel]',
-                artistName: 'BBBrunesMusic',
-                duration: 0,
-            },
-            {
-                id: '1d3etBBSSfw',
-                title: 'BB BRUNES - Lalalove You [Clip Officiel]',
-                artistName: 'BBBrunesMusic',
-                duration: 0,
-            },
-            {
-                id: 'DyRDeEWhW6M',
-                title: 'BB BRUNES - Aficionado [Clip Officiel]',
-                artistName: 'BBBrunesMusic',
-                duration: 0,
-            },
-            {
-                id: 'Qs-ucIS2B-0',
-                title: 'BB BRUNES - Stéréo [Clip Officiel]',
-                artistName: 'BBBrunesMusic',
-                duration: 0,
-            },
-        ],
-    };
-
     const [
         { page: creatorUserA },
         { page: joiningUserB, userNickname: joiningUserBNickname },

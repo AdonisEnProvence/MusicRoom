@@ -12,7 +12,7 @@ test.afterEach(async ({ browser }) => {
     await closeAllContexts(browser);
 });
 
-// Test-c UserA creates a room and invites UserB in it
+// Test-d UserA creates a room and invites UserB in it
 // UserA creates a public and onlyInvitedUsersCanEdit mpe room and goes to the created mpe room view
 // UserA hit the invite user button and search for UserB nickname and invites him
 // UserB receives the UserA MpeRoom invitation via the toast, he presses the toast UserB is redirected to the related mpe room view

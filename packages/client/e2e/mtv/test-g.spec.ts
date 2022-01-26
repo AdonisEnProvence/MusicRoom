@@ -1,8 +1,8 @@
 import { test, expect, Page, Locator } from '@playwright/test';
 import { assertIsNotNull, assertIsNotUndefined } from '../_utils/assert';
 import { hitGoNextButton } from '../_utils/global';
-import { KnownSearchesRecord } from '../_utils/mock-http';
 import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
+import { knownSearches } from '../_utils/mpe-e2e-utils';
 
 async function createPrivateRoom(page: Page) {
     await expect(page.locator('text="Home"').first()).toBeVisible();
@@ -184,40 +184,6 @@ test.afterEach(async ({ browser }) => {
 });
 
 test('Test G', async ({ browser }) => {
-    const knownSearches: KnownSearchesRecord = {
-        'BB Brunes': [
-            {
-                id: 'X3VNRVo7irM',
-                title: 'BB BRUNES - Dis-Moi [Clip Officiel]',
-                artistName: 'BBBrunesMusic',
-                duration: 0,
-            },
-            {
-                id: 'mF5etHMRMMM',
-                title: 'BB BRUNES - Coups et Blessures [Clip Officiel]',
-                artistName: 'BBBrunesMusic',
-                duration: 0,
-            },
-            {
-                id: '1d3etBBSSfw',
-                title: 'BB BRUNES - Lalalove You [Clip Officiel]',
-                artistName: 'BBBrunesMusic',
-                duration: 0,
-            },
-            {
-                id: 'DyRDeEWhW6M',
-                title: 'BB BRUNES - Aficionado [Clip Officiel]',
-                artistName: 'BBBrunesMusic',
-                duration: 0,
-            },
-            {
-                id: 'Qs-ucIS2B-0',
-                title: 'BB BRUNES - Stéréo [Clip Officiel]',
-                artistName: 'BBBrunesMusic',
-                duration: 0,
-            },
-        ],
-    };
     const [{ page: userAPage }, { page: userBPage, userNickname: userBName }] =
         await Promise.all([
             setupAndGetUserPage({ browser, userIndex: 0, knownSearches }),

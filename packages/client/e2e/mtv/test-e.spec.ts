@@ -2,7 +2,7 @@ import { test, expect, Page, Locator } from '@playwright/test';
 import { lorem } from 'faker';
 import { assertIsNotUndefined } from '../_utils/assert';
 import { hitGoNextButton } from '../_utils/global';
-import { KnownSearchesRecord } from '../_utils/mock-http';
+import { knownSearches } from '../_utils/mpe-e2e-utils';
 import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
 
 type FindMiniPlayerWithRoomNameAndGoFullscreenArgs = {
@@ -290,41 +290,6 @@ test.afterEach(async ({ browser }) => {
 test('Test E see following link for more information: https://3.basecamp.com/4704981/buckets/22220886/messages/4292491228#:~:text=Test%20end-,Test%20E/,-UserA%20Section%20full', async ({
     browser,
 }) => {
-    const knownSearches: KnownSearchesRecord = {
-        'BB Brunes': [
-            {
-                id: 'X3VNRVo7irM',
-                title: 'BB BRUNES - Dis-Moi [Clip Officiel]',
-                artistName: 'BBBrunesMusic',
-                duration: 0,
-            },
-            {
-                id: 'mF5etHMRMMM',
-                title: 'BB BRUNES - Coups et Blessures [Clip Officiel]',
-                artistName: 'BBBrunesMusic',
-                duration: 0,
-            },
-            {
-                id: '1d3etBBSSfw',
-                title: 'BB BRUNES - Lalalove You [Clip Officiel]',
-                artistName: 'BBBrunesMusic',
-                duration: 0,
-            },
-            {
-                id: 'DyRDeEWhW6M',
-                title: 'BB BRUNES - Aficionado [Clip Officiel]',
-                artistName: 'BBBrunesMusic',
-                duration: 0,
-            },
-            {
-                id: 'Qs-ucIS2B-0',
-                title: 'BB BRUNES - Stéréo [Clip Officiel]',
-                artistName: 'BBBrunesMusic',
-                duration: 0,
-            },
-        ],
-    };
-
     let userIndex = 0;
     const [
         { page: creatorUserA, userNickname: creatorUserANickname },

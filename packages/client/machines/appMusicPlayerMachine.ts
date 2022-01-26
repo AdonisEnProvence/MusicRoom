@@ -10,6 +10,7 @@ import {
     ActorRef,
     assign,
     createMachine,
+    EventFrom,
     forwardTo,
     Receiver,
     send,
@@ -20,6 +21,7 @@ import {
 } from 'xstate';
 import { SocketClient } from '../contexts/SocketContext';
 import { navigateFromRef } from '../navigation/RootNavigation';
+import { appModel } from './appModel';
 import {
     createCreationMtvRoomFormMachine,
     CreationMtvRoomFormDoneInvokeEvent,
@@ -133,7 +135,11 @@ export type AppMusicPlayerMachineEvent =
           payload: MtvRoomGetRoomConstraintDetailsCallbackArgs;
       }
     | { type: 'CREATOR_INVITE_USER'; invitedUserID: string }
-    | CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents;
+    | CreationMtvRoomFormMachineToAppMusicPlayerMachineEvents
+    | EventFrom<
+          typeof appModel,
+          '__ENTER_MPE_EXPORT_TO_MTV' | '__EXIT_MPE_EXPORT_TO_MTV'
+      >;
 
 interface CreateAppMusicPlayerMachineArgs {
     socket: SocketClient;
@@ -1347,6 +1353,37 @@ export const createAppMusicPlayerMachine = ({
                                             target: '.waitingToJoinRoom',
 
                                             actions: 'assignMergeNewState',
+                                        },
+                                    },
+                                },
+
+                                mpeToMtvExport: {
+                                    initial: 'waitingForExport',
+
+                                    states: {
+                                        waitingForExport: {
+                                            on: {
+                                                __ENTER_MPE_EXPORT_TO_MTV: {
+                                                    target: 'exporting',
+                                                },
+                                            },
+                                        },
+
+                                        exporting: {
+                                            on: {
+                                                __EXIT_MPE_EXPORT_TO_MTV: {
+                                                    target: 'waitingForExport',
+                                                },
+
+                                                // We let `creatingRoom` orthogonal region handle
+                                                // assigning received data to context.
+                                                ROOM_IS_READY: {
+                                                    target: 'waitingForExport',
+
+                                                    actions:
+                                                        'expandMusicPlayerFullScreen',
+                                                },
+                                            },
                                         },
                                     },
                                 },

@@ -317,17 +317,6 @@ const exportToMtvMachine = exportToMtvModel.createMachine({
             on: {
                 GO_NEXT: [
                     {
-                        cond: (context) => {
-                            const playerAlreadyHasARoomLoaded =
-                                context.loadedMtvRoomName !== undefined;
-
-                            return playerAlreadyHasARoomLoaded === true;
-                        },
-
-                        target: 'onlyMiniPlayerLoadedWithExportedRoom',
-                    },
-
-                    {
                         target: 'fullScreenPlayerLoadedWithExportedRoom',
                     },
                 ],
@@ -371,53 +360,6 @@ const exportToMtvMachine = exportToMtvModel.createMachine({
                     expect(
                         within(musicPlayerFullScreen).getByText(roomName),
                     ).toBeTruthy();
-                },
-            },
-        },
-
-        onlyMiniPlayerLoadedWithExportedRoom: {
-            type: 'final',
-
-            // FIXME: Open full-screen player even when a room was already loaded.
-            description: `
-                The mini player is loaded with the exported room, but the full-screen player is hidden
-                because a room was loaded before we exported the mpe room.
-                As a consequence, the first loaded room is leaved and closes the full-screen player.
-            `,
-
-            meta: {
-                test: async (
-                    { screen }: TestingContext,
-                    { context: { roomName } }: ExportToMtvMachineState,
-                ) => {
-                    invariant(
-                        typeof roomName === 'string',
-                        'roomName must have been set before confirming exporting',
-                    );
-
-                    await waitFor(() => {
-                        const confirmationScreen = screen.queryByTestId(
-                            'mtv-room-creation-confirmation-step',
-                        );
-                        expect(confirmationScreen).toBeNull();
-                    });
-
-                    const musicPlayerMini =
-                        screen.getByTestId('music-player-mini');
-                    expect(musicPlayerMini).toBeTruthy();
-
-                    await waitFor(() => {
-                        expect(
-                            within(musicPlayerMini).getByText(roomName),
-                        ).toBeTruthy();
-                    });
-
-                    await waitFor(() => {
-                        const musicPlayerFullScreen = screen.queryByA11yState({
-                            expanded: true,
-                        });
-                        expect(musicPlayerFullScreen).toBeNull();
-                    });
                 },
             },
         },

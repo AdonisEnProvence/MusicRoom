@@ -1,24 +1,12 @@
 import { ContextFrom, EventFrom, forwardTo, StateMachine } from 'xstate';
-import { createModel } from 'xstate/lib/model';
 import { SocketClient } from '../contexts/SocketContext';
+import { appModel } from './appModel';
 import { createAppMusicPlayerMachine } from './appMusicPlayerMachine';
 import { createAppMusicPlaylistsMachine } from './appMusicPlaylistsMachine';
 import { createUserMachine } from './appUserMachine';
 import { AppMusicPlayerMachineOptions } from './options/appMusicPlayerMachineOptions';
 import { AppMusicPlaylistsOptions } from './options/appMusicPlaylistsMachineOptions';
 import { AppUserMachineOptions } from './options/appUserMachineOptions';
-
-const appMachineModel = createModel(
-    {},
-    {
-        events: {
-            ACKNOWLEDGE_SOCKET_CONNECTION: () => ({}),
-
-            JOIN_ROOM: (roomID: string) => ({ roomID }),
-            REQUEST_LOCATION_PERMISSION: () => ({}),
-        },
-    },
-);
 
 interface CreateAppMachineArgs {
     locationPollingTickDelay: number;
@@ -35,11 +23,11 @@ export const createAppMachine = ({
     userMachineOptions,
     appMusicPlaylistsMachineOptions,
 }: CreateAppMachineArgs): StateMachine<
-    ContextFrom<typeof appMachineModel>,
+    ContextFrom<typeof appModel>,
     any,
-    EventFrom<typeof appMachineModel>
+    EventFrom<typeof appModel>
 > => {
-    return appMachineModel.createMachine({
+    return appModel.createMachine({
         initial: 'waitingForServerToAcknowledgeSocketConnection',
 
         states: {
@@ -64,7 +52,7 @@ export const createAppMachine = ({
                                     'GET_HAS_ACKNOWLEDGED_CONNECTION',
                                     () => {
                                         sendBack(
-                                            appMachineModel.events.ACKNOWLEDGE_SOCKET_CONNECTION(),
+                                            appModel.events.ACKNOWLEDGE_SOCKET_CONNECTION(),
                                         );
                                     },
                                 );
@@ -122,6 +110,14 @@ export const createAppMachine = ({
                     },
 
                     JOIN_ROOM: {
+                        actions: forwardTo('appMusicPlayerMachine'),
+                    },
+
+                    __ENTER_MPE_EXPORT_TO_MTV: {
+                        actions: forwardTo('appMusicPlayerMachine'),
+                    },
+
+                    __EXIT_MPE_EXPORT_TO_MTV: {
                         actions: forwardTo('appMusicPlayerMachine'),
                     },
                 },

@@ -104,16 +104,16 @@ export function withinMpeRoomScreen(selector: string): string {
     return `css=[data-testid^="mpe-room-screen-"] >> ${selector}`;
 }
 
+export function withinMusicPlayerFullscreenContainer(selector: string): string {
+    return `css=[data-testid="music-player-fullscreen-container"] >> ${selector}`;
+}
+
 export function withinMpeRoomsSearchEngineScreen(selector: string): string {
     return `css=[data-testid="mpe-room-search-engine"] >> ${selector}`;
 }
 
 export function withinSearchTrackTabScreen(selector: string): string {
     return `css=[data-testid="search-track-screen"] >> ${selector}`;
-}
-
-export function withinMusicPlayerFullScreen(locator: string): string {
-    return `css=[data-testid="music-player-mini"] ~ [aria-expanded="true"] >> ${locator}`;
 }
 
 export async function createMpeRoom({

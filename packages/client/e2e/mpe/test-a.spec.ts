@@ -9,7 +9,7 @@ import {
     waitForTrackToBeAddedOnRoomScreen,
     knownSearches,
     openMpeSettingsModal,
-    withinMusicPlayerFullScreen,
+    withinMusicPlayerFullscreenContainer,
 } from '../_utils/mpe-e2e-utils';
 import { hitGoNextButton } from '../_utils/global';
 import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
@@ -60,7 +60,7 @@ async function exportMpeRoomToMtvRoom({
     await hitGoNextButton({ page });
 
     const roomNameInFullScreenPlayer = page.locator(
-        withinMusicPlayerFullScreen(`text="${mtvRoomName}"`),
+        withinMusicPlayerFullscreenContainer(`text="${mtvRoomName}"`),
     );
     await expect(roomNameInFullScreenPlayer).toBeVisible();
 }

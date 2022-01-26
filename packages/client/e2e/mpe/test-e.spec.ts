@@ -7,8 +7,7 @@ import {
     goToHomeTabScreen,
     knownSearches,
     openMpeSettingsModal,
-    withinMpeRoomScreen,
-    withinMusicPlayerFullScreen,
+    withinMusicPlayerFullscreenContainer,
 } from '../_utils/mpe-e2e-utils';
 import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
 
@@ -171,7 +170,7 @@ async function exportMpeRoomToMtvRoom({
     await hitGoNextButton({ page });
 
     const roomNameInFullScreenPlayer = page.locator(
-        withinMusicPlayerFullScreen(`text="${mtvRoomName}"`),
+        withinMusicPlayerFullscreenContainer(`text="${mtvRoomName}"`),
     );
     await expect(roomNameInFullScreenPlayer).toBeVisible();
 }
@@ -239,7 +238,9 @@ test('mpe e2e test-e', async ({ browser }) => {
 
     const addedTrackTestID = `mtv-${addedTrack.id}-track-card-container`;
     const addedTrackMtvCard = page.locator(
-        withinMpeRoomScreen(`css=[data-testid$="${addedTrackTestID}"]`),
+        withinMusicPlayerFullscreenContainer(
+            `css=[data-testid$="${addedTrackTestID}"]`,
+        ),
     );
     await expect(addedTrackMtvCard).toBeVisible();
 });

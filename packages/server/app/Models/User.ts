@@ -51,11 +51,11 @@ export default class User extends BaseModel {
     public mpeRooms: ManyToMany<typeof MpeRoom>;
     ///
 
-    @hasOne(() => SettingVisibility, {
-        localKey: 'playlistsVisibilitySettingUuid',
-        foreignKey: 'uuid',
+    @belongsTo(() => SettingVisibility, {
+        localKey: 'uuid',
+        foreignKey: 'playlistsVisibilitySettingUuid',
     })
-    public playlistsVisibilitySetting: HasOne<typeof SettingVisibility>;
+    public playlistsVisibilitySetting: BelongsTo<typeof SettingVisibility>;
 
     @column({ columnName: 'playlists_visibility_setting_uuid' })
     public playlistsVisibilitySettingUuid: string;
@@ -75,11 +75,11 @@ export default class User extends BaseModel {
         }
     }
 
-    @hasOne(() => SettingVisibility, {
-        localKey: 'relationsVisibilitySettingUuid',
-        foreignKey: 'uuid',
+    @belongsTo(() => SettingVisibility, {
+        localKey: 'uuid',
+        foreignKey: 'relationsVisibilitySettingUuid',
     })
-    public relationsVisibilitySetting: HasOne<typeof SettingVisibility>;
+    public relationsVisibilitySetting: BelongsTo<typeof SettingVisibility>;
 
     @column({ columnName: 'relations_visibility_setting_uuid' })
     public relationsVisibilitySettingUuid: string;
@@ -99,11 +99,11 @@ export default class User extends BaseModel {
         }
     }
 
-    @hasOne(() => SettingVisibility, {
-        localKey: 'devicesVisibilitySettingUuid',
-        foreignKey: 'uuid',
+    @belongsTo(() => SettingVisibility, {
+        localKey: 'uuid',
+        foreignKey: 'devicesVisibilitySettingUuid',
     })
-    public devicesVisibilitySetting: HasOne<typeof SettingVisibility>;
+    public devicesVisibilitySetting: BelongsTo<typeof SettingVisibility>;
 
     @column({ columnName: 'devices_visibility_setting_uuid' })
     public devicesVisibilitySettingUuid: string;

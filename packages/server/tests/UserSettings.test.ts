@@ -27,8 +27,6 @@ test.group('User settings', (group) => {
             uuid: userID,
             nickname: random.word(),
         });
-        // Necessary, otherwise all columns of the row are not present.
-        await user.refresh();
 
         await user.load('playlistsVisibilitySetting');
         await user.load('relationsVisibilitySetting');

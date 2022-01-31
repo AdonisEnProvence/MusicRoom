@@ -34,34 +34,20 @@ export default class CreateVisibilitySettingsTableAndReferenceItInUsersTables ex
         });
 
         this.schema.alterTable('users', (table) => {
-            const publicVisibilitySettingRow =
-                settingVisibilitiesPossibleValues.find(
-                    (settingVisibility) => settingVisibility.name === 'PUBLIC',
-                );
-            invariant(
-                publicVisibilitySettingRow !== undefined,
-                'Public visibility setting row not found',
-            );
-            const publicVisibilitySettingRowUUID =
-                publicVisibilitySettingRow.uuid;
-
             table
                 .uuid('playlists_visibility_setting_uuid')
                 .references(`${this.tableName}.uuid`)
-                .notNullable()
-                .defaultTo(publicVisibilitySettingRowUUID);
+                .notNullable();
 
             table
                 .uuid('relations_visibility_setting_uuid')
                 .references(`${this.tableName}.uuid`)
-                .notNullable()
-                .defaultTo(publicVisibilitySettingRowUUID);
+                .notNullable();
 
             table
                 .uuid('devices_visibility_setting_uuid')
                 .references(`${this.tableName}.uuid`)
-                .notNullable()
-                .defaultTo(publicVisibilitySettingRowUUID);
+                .notNullable();
         });
     }
 

@@ -176,6 +176,16 @@ Route.post(
     'UserSettingsController.updatePlaylistsVisibility',
 );
 
+Route.post(
+    '/me/relations-visibility',
+    'UserSettingsController.updateRelationsVisibility',
+);
+
+Route.post(
+    '/me/devices-visibility',
+    'UserSettingsController.updateDevicesVisibility',
+);
+
 Route.get('/', () => {
     return { hello: 'world' };
 });

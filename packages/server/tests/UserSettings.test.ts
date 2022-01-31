@@ -1,7 +1,11 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import {
+    UpdateDevicesVisibilityRequestBody,
+    UpdateDevicesVisibilityResponseBody,
     UpdatePlaylistsVisibilityRequestBody,
     UpdatePlaylistsVisibilityResponseBody,
+    UpdateRelationsVisibilityRequestBody,
+    UpdateRelationsVisibilityResponseBody,
     UserSettingVisibility,
 } from '@musicroom/types';
 import User from 'App/Models/User';
@@ -141,6 +145,190 @@ test.group('User settings', (group) => {
 
         assert.equal<UserSettingVisibility>(
             user.playlistsVisibilitySetting.name,
+            'FOLLOWERS_ONLY',
+        );
+    });
+
+    test(`Can set relations visibility to 'PUBLIC'`, async (assert) => {
+        const userID = datatype.uuid();
+        const user = await User.create({
+            uuid: userID,
+            nickname: random.word(),
+        });
+
+        const requestBody: UpdateRelationsVisibilityRequestBody = {
+            tmpAuthUserID: userID,
+            visibility: 'PUBLIC',
+        };
+
+        const { body: rawResponseBody } = await supertest(BASE_URL)
+            .post('/me/relations-visibility')
+            .send(requestBody)
+            .expect(200)
+            .expect('Content-Type', /json/);
+        const responseBody =
+            UpdateRelationsVisibilityResponseBody.parse(rawResponseBody);
+
+        assert.equal(responseBody.status, 'SUCCESS');
+
+        await user.load('relationsVisibilitySetting');
+
+        assert.equal<UserSettingVisibility>(
+            user.relationsVisibilitySetting.name,
+            'PUBLIC',
+        );
+    });
+
+    test(`Can set relations visibility to 'PRIVATE'`, async (assert) => {
+        const userID = datatype.uuid();
+        const user = await User.create({
+            uuid: userID,
+            nickname: random.word(),
+        });
+
+        const requestBody: UpdateRelationsVisibilityRequestBody = {
+            tmpAuthUserID: userID,
+            visibility: 'PRIVATE',
+        };
+
+        const { body: rawResponseBody } = await supertest(BASE_URL)
+            .post('/me/relations-visibility')
+            .send(requestBody)
+            .expect(200)
+            .expect('Content-Type', /json/);
+        const responseBody =
+            UpdateRelationsVisibilityResponseBody.parse(rawResponseBody);
+
+        assert.equal(responseBody.status, 'SUCCESS');
+
+        await user.refresh();
+        await user.load('relationsVisibilitySetting');
+
+        assert.equal<UserSettingVisibility>(
+            user.relationsVisibilitySetting.name,
+            'PRIVATE',
+        );
+    });
+
+    test(`Can set relations visibility to 'FOLLOWERS_ONLY'`, async (assert) => {
+        const userID = datatype.uuid();
+        const user = await User.create({
+            uuid: userID,
+            nickname: random.word(),
+        });
+
+        const requestBody: UpdateRelationsVisibilityRequestBody = {
+            tmpAuthUserID: userID,
+            visibility: 'FOLLOWERS_ONLY',
+        };
+
+        const { body: rawResponseBody } = await supertest(BASE_URL)
+            .post('/me/relations-visibility')
+            .send(requestBody)
+            .expect(200)
+            .expect('Content-Type', /json/);
+        const responseBody =
+            UpdateRelationsVisibilityResponseBody.parse(rawResponseBody);
+
+        assert.equal(responseBody.status, 'SUCCESS');
+
+        await user.refresh();
+        await user.load('relationsVisibilitySetting');
+
+        assert.equal<UserSettingVisibility>(
+            user.relationsVisibilitySetting.name,
+            'FOLLOWERS_ONLY',
+        );
+    });
+
+    test(`Can set devices visibility to 'PUBLIC'`, async (assert) => {
+        const userID = datatype.uuid();
+        const user = await User.create({
+            uuid: userID,
+            nickname: random.word(),
+        });
+
+        const requestBody: UpdateDevicesVisibilityRequestBody = {
+            tmpAuthUserID: userID,
+            visibility: 'PUBLIC',
+        };
+
+        const { body: rawResponseBody } = await supertest(BASE_URL)
+            .post('/me/devices-visibility')
+            .send(requestBody)
+            .expect(200)
+            .expect('Content-Type', /json/);
+        const responseBody =
+            UpdateDevicesVisibilityResponseBody.parse(rawResponseBody);
+
+        assert.equal(responseBody.status, 'SUCCESS');
+
+        await user.load('devicesVisibilitySetting');
+
+        assert.equal<UserSettingVisibility>(
+            user.devicesVisibilitySetting.name,
+            'PUBLIC',
+        );
+    });
+
+    test(`Can set devices visibility to 'PRIVATE'`, async (assert) => {
+        const userID = datatype.uuid();
+        const user = await User.create({
+            uuid: userID,
+            nickname: random.word(),
+        });
+
+        const requestBody: UpdateDevicesVisibilityRequestBody = {
+            tmpAuthUserID: userID,
+            visibility: 'PRIVATE',
+        };
+
+        const { body: rawResponseBody } = await supertest(BASE_URL)
+            .post('/me/devices-visibility')
+            .send(requestBody)
+            .expect(200)
+            .expect('Content-Type', /json/);
+        const responseBody =
+            UpdateDevicesVisibilityResponseBody.parse(rawResponseBody);
+
+        assert.equal(responseBody.status, 'SUCCESS');
+
+        await user.refresh();
+        await user.load('devicesVisibilitySetting');
+
+        assert.equal<UserSettingVisibility>(
+            user.devicesVisibilitySetting.name,
+            'PRIVATE',
+        );
+    });
+
+    test(`Can set devices visibility to 'FOLLOWERS_ONLY'`, async (assert) => {
+        const userID = datatype.uuid();
+        const user = await User.create({
+            uuid: userID,
+            nickname: random.word(),
+        });
+
+        const requestBody: UpdateDevicesVisibilityRequestBody = {
+            tmpAuthUserID: userID,
+            visibility: 'FOLLOWERS_ONLY',
+        };
+
+        const { body: rawResponseBody } = await supertest(BASE_URL)
+            .post('/me/devices-visibility')
+            .send(requestBody)
+            .expect(200)
+            .expect('Content-Type', /json/);
+        const responseBody =
+            UpdateDevicesVisibilityResponseBody.parse(rawResponseBody);
+
+        assert.equal(responseBody.status, 'SUCCESS');
+
+        await user.refresh();
+        await user.load('devicesVisibilitySetting');
+
+        assert.equal<UserSettingVisibility>(
+            user.devicesVisibilitySetting.name,
             'FOLLOWERS_ONLY',
         );
     });

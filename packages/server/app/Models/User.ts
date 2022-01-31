@@ -7,6 +7,8 @@ import {
     column,
     HasMany,
     hasMany,
+    HasOne,
+    hasOne,
     ManyToMany,
     manyToMany,
 } from '@ioc:Adonis/Lucid/Orm';
@@ -14,6 +16,7 @@ import { DateTime } from 'luxon';
 import Device from './Device';
 import MtvRoom from './MtvRoom';
 import MpeRoom from './MpeRoom';
+import SettingVisibility from './SettingVisibility';
 
 export default class User extends BaseModel {
     @column({ isPrimary: true })
@@ -46,6 +49,33 @@ export default class User extends BaseModel {
     })
     public mpeRooms: ManyToMany<typeof MpeRoom>;
     ///
+
+    @hasOne(() => SettingVisibility, {
+        localKey: 'playlistsVisibilitySettingUuid',
+        foreignKey: 'uuid',
+    })
+    public playlistsVisibilitySetting: HasOne<typeof SettingVisibility>;
+
+    @column({ columnName: 'playlists_visibility_setting_uuid' })
+    public playlistsVisibilitySettingUuid: string;
+
+    @hasOne(() => SettingVisibility, {
+        localKey: 'relationsVisibilitySettingUuid',
+        foreignKey: 'uuid',
+    })
+    public relationsVisibilitySetting: HasOne<typeof SettingVisibility>;
+
+    @column({ columnName: 'relations_visibility_setting_uuid' })
+    public relationsVisibilitySettingUuid: string;
+
+    @hasOne(() => SettingVisibility, {
+        localKey: 'devicesVisibilitySettingUuid',
+        foreignKey: 'uuid',
+    })
+    public devicesVisibilitySetting: HasOne<typeof SettingVisibility>;
+
+    @column({ columnName: 'devices_visibility_setting_uuid' })
+    public devicesVisibilitySettingUuid: string;
 
     @column.dateTime({ autoCreate: true })
     public createdAt: DateTime;

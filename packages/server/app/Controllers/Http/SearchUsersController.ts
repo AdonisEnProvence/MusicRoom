@@ -1,7 +1,9 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import {
+    GetUserProfileInformationRequestBody,
     SearchUsersRequestBody,
     SearchUsersResponseBody,
+    UserProfileInformation,
 } from '@musicroom/types';
 import User from 'App/Models/User';
 
@@ -32,6 +34,27 @@ export default class SearchUsersController {
             hasMore: hasMoreUsersToLoad,
             totalEntries: totalUsersToLoad,
             data: formattedUsers,
+        };
+    }
+
+    public async getUserProfileInformation({
+        request,
+    }: HttpContextContract): Promise<UserProfileInformation> {
+        const rawBody = request.body();
+        //TODO tmpAuthUserID refactor authentication
+        const { tmpAuthUserID, userID } =
+            GetUserProfileInformationRequestBody.parse(rawBody);
+
+        await User.findOrFail(tmpAuthUserID);
+        //TODO refactor after follow feature implem
+        const following = false; //tmp
+
+        const { nickname: userNickname } = await User.findOrFail(userID);
+
+        return {
+            userID,
+            userNickname,
+            following,
         };
     }
 }

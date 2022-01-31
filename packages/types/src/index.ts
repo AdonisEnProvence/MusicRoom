@@ -36,3 +36,4 @@ export * from './mpe-server-to-temporal';
 export * from './mpe-temporal-to-server';
 export * from './mpe-room-websockets';
 export * from './mpe-room-search';
+export * from './user';

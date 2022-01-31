@@ -171,6 +171,11 @@ Route.group(() => {
 
 /// //////// ////// ///
 
+Route.post(
+    '/me/playlists-visibility',
+    'UserSettingsController.updatePlaylistsVisibility',
+);
+
 Route.get('/', () => {
     return { hello: 'world' };
 });

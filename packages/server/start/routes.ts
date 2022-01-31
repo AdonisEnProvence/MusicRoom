@@ -34,6 +34,11 @@ Route.post('/mpe/search/my-rooms', 'MpeRoomsHttpController.listMyRooms');
 
 Route.post('/mpe/search/all-rooms', 'MpeRoomsHttpController.listAllRooms');
 
+Route.post(
+    '/user/profile-information',
+    'SearchUsersController.getUserProfileInformation',
+);
+
 /// Temporal MTV Routes ///
 
 export const MTV_TEMPORAL_LISTENER = `/temporal/mtv`;

@@ -1,14 +1,19 @@
 import { UserSettingVisibility } from '@musicroom/types';
+import { ActorRefFrom, send } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { assertEventType } from '../../machines/utils';
 
 const visibilitySettingModel = createModel(
     {},
     {
         events: {
-            'Update Visibility': (visibility: UserSettingVisibility) => ({
-                visibility,
-            }),
-            'Send Visibility Update to Backend': () => ({}),
+            'Update Visibility': (args: {
+                visibility: UserSettingVisibility;
+            }) => args,
+
+            'Send Visibility Update to Backend': (args: {
+                visibility: UserSettingVisibility;
+            }) => args,
         },
         actions: {
             'Send updated visibility to server': () => ({}),
@@ -16,9 +21,8 @@ const visibilitySettingModel = createModel(
     },
 );
 
-const visibilitySettingMachine =
-    /** @xstate-layout N4IgpgJg5mDOIC5QDUCWtUCNUBtUBcBPAAgGUx99UA7KAOjQ2zyLPwEN8BXWOgBS6Y8AYwDEAVQAOETmGKMsuAoUShJAewxV11VSAAeiAOwAGI3QCcARiMWAzLYCsAJjvOTzgDQgVCACwAHCaWFo5GjhYBAGyOVnZWVlEAvkneCszKZBRUtAzoiiwkpBzcvABi6jg46gDuYABOsMQA8tQ4hBLSsvL5GUR6GlqoOnqGCM5RfnR2fi4m8-Y2AbPevlYBViEBRnahy1auNilpvUqs5JQ09OlnRSU8-PWoAG6ynTL4cjeFA5oEw7okAZjGZLDZ7E5XO4vD5EDYprswiYAhYolY-GiwscQN9MhccvQ+A0MLBPtRhHJ8OpiAAhdjCADWYGoEDoAEkIDgwO9urj+kDBv8RkCxutHHQ-HZ4kYjBsTI4zBYjKs4R5nBLTO4IvtAti+UVsld+MT0GSKcQqbT6UyWcbGqarhbqXTGcyIKIIDowHQaM91Ey7ST8MQpB9ID0mLc2JweL8hsLQKKAuLJdLZVZ5YrlbCEHs6EZAo5JR49tY9adCllLrkifbSczzZaXTbWbWg46m9a3TzPhGCso40LAYnEGjNlFtvFYgr7B4Vbn4pY-AdnH4dlFJn5nClUiBqOoIHA9PqqwS8pHK8UY7wBEJUMJB9ph8CEGFxc4lQcAgEHCY7CYLHnf8pkCUJTCVeUNjscsLzxQ1chPK9SjoCoqlqYkWjaXw1D+J9RmMGFfGAiUUSRCDHCgmD+3OeDrgrPF7hvJ5Xk+R8AXwhAM3WOhogsSIEjsGITElICTCiSxSL4oxnAmAIqL6A1qzo2DzkYtiExfQJ5z4-MZRkyUYhRZJd0Q2jA1NBtKWdLtbQ5Ll1OfMZpPnLi7AldYJyiXZEi3Ix5KjfEjTbCzySsq1XVtYLSQ7ayIogByONiAJ8ysUI7AVMI4gLFz5mCDdnB-ex9PsOSTPomilPM+tQqdcKWwSkVEC0nNk3MNxnALEx0QzWU-LKlTFIJBqR3GPx52ccUrAonYlVMKVhK3HckiAA */
-    visibilitySettingModel.createMachine({
+const visibilitySettingMachine = visibilitySettingModel.createMachine(
+    {
         id: 'Visibility Setting',
         type: 'parallel',
         states: {
@@ -26,6 +30,7 @@ const visibilitySettingMachine =
                 initial: 'Public',
                 states: {
                     Public: {
+                        tags: 'Public Visibility',
                         on: {
                             'Update Visibility': [
                                 {
@@ -44,6 +49,7 @@ const visibilitySettingMachine =
                         },
                     },
                     'Followers Only': {
+                        tags: 'Followers Only Visibility',
                         on: {
                             'Update Visibility': [
                                 {
@@ -62,6 +68,7 @@ const visibilitySettingMachine =
                         },
                     },
                     Private: {
+                        tags: 'Private Visibility',
                         on: {
                             'Update Visibility': [
                                 {
@@ -73,7 +80,7 @@ const visibilitySettingMachine =
                                 {
                                     actions:
                                         'Send updated visibility to server',
-                                    cond: 'Is Followers Only',
+                                    cond: 'Is Followers Only Visibility',
                                     target: '#Visibility Setting.Visibility Status.Followers Only',
                                 },
                             ],
@@ -86,7 +93,7 @@ const visibilitySettingMachine =
                 states: {
                     Idle: {
                         on: {
-                            'Update Visibility': {
+                            'Send Visibility Update to Backend': {
                                 target: '#Visibility Setting.Persistence to Backend.Persisting to Backend',
                             },
                         },
@@ -102,7 +109,7 @@ const visibilitySettingMachine =
                             ],
                         },
                         on: {
-                            'Update Visibility': {
+                            'Send Visibility Update to Backend': {
                                 target: '#Visibility Setting.Persistence to Backend.Persisting to Backend',
                             },
                         },
@@ -110,7 +117,53 @@ const visibilitySettingMachine =
                 },
             },
         },
-    });
+    },
+    {
+        guards: {
+            'Is Public Visibility': (_context, event) => {
+                assertEventType(event, 'Update Visibility');
+
+                return event.visibility === 'PUBLIC';
+            },
+
+            'Is Followers Only Visibility': (_context, event) => {
+                assertEventType(event, 'Update Visibility');
+
+                return event.visibility === 'FOLLOWERS_ONLY';
+            },
+
+            'Is Private Visibility': (_context, event) => {
+                assertEventType(event, 'Update Visibility');
+
+                return event.visibility === 'PRIVATE';
+            },
+        },
+
+        actions: {
+            'Send updated visibility to server': send((_context, event) => {
+                assertEventType(event, 'Update Visibility');
+
+                return visibilitySettingModel.events[
+                    'Send Visibility Update to Backend'
+                ]({
+                    visibility: event.visibility,
+                });
+            }),
+        },
+
+        services: {
+            'Persist Updated Visibility Status': (_context, event) => {
+                console.log('Persist Updated Visibility Status service', event);
+
+                return Promise.resolve();
+            },
+        },
+    },
+);
+
+export type VisibilitySettingMachineActor = ActorRefFrom<
+    typeof visibilitySettingMachine
+>;
 
 const settingsModel = createModel(
     {},
@@ -130,6 +183,8 @@ const settingsModel = createModel(
         },
         actions: {
             'Forward to Playlists Visibility Manager Machine': () => ({}),
+            'Forward to Relations Visibility Manager Machine': () => ({}),
+            'Forward to Devices Visibility Manager Machine': () => ({}),
         },
     },
 );
@@ -185,5 +240,114 @@ export const settingsMachine =
                 },
             },
         },
-        {},
+        {
+            services: {
+                'Playlists Visibility Manager Machine':
+                    visibilitySettingMachine.withConfig({
+                        services: {
+                            'Persist Updated Visibility Status': (
+                                _context,
+                                event,
+                            ) => {
+                                console.log(
+                                    'in Persist Updated Visibility Status from withConfig',
+                                    event,
+                                );
+
+                                return Promise.resolve();
+                            },
+                        },
+                    }),
+
+                'Relations Visibility Manager Machine':
+                    visibilitySettingMachine.withConfig({
+                        services: {
+                            'Persist Updated Visibility Status': (
+                                _context,
+                                event,
+                            ) => {
+                                console.log(
+                                    'in Persist Updated Visibility Status from withConfig',
+                                    event,
+                                );
+
+                                return Promise.resolve();
+                            },
+                        },
+                    }),
+
+                'Devices Visibility Manager Machine':
+                    visibilitySettingMachine.withConfig({
+                        services: {
+                            'Persist Updated Visibility Status': (
+                                _context,
+                                event,
+                            ) => {
+                                console.log(
+                                    'in Persist Updated Visibility Status from withConfig',
+                                    event,
+                                );
+
+                                return Promise.resolve();
+                            },
+                        },
+                    }),
+            },
+
+            actions: {
+                'Forward to Playlists Visibility Manager Machine': send(
+                    (_context, event) => {
+                        assertEventType(
+                            event,
+                            'Update Playlists Visibility Setting',
+                        );
+
+                        return visibilitySettingModel.events[
+                            'Update Visibility'
+                        ]({
+                            visibility: event.visibility,
+                        });
+                    },
+                    {
+                        to: 'Playlists Visibility Manager Machine',
+                    },
+                ),
+
+                'Forward to Relations Visibility Manager Machine': send(
+                    (_context, event) => {
+                        assertEventType(
+                            event,
+                            'Update Playlists Visibility Setting',
+                        );
+
+                        return visibilitySettingModel.events[
+                            'Update Visibility'
+                        ]({
+                            visibility: event.visibility,
+                        });
+                    },
+                    {
+                        to: 'Relations Visibility Manager Machine',
+                    },
+                ),
+
+                'Forward to Devices Visibility Manager Machine': send(
+                    (_context, event) => {
+                        assertEventType(
+                            event,
+                            'Update Playlists Visibility Setting',
+                        );
+
+                        return visibilitySettingModel.events[
+                            'Update Visibility'
+                        ]({
+                            visibility: event.visibility,
+                        });
+                    },
+                    {
+                        to: 'Devices Visibility Manager Machine',
+                    },
+                ),
+            },
+        },
     );

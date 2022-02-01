@@ -61,12 +61,12 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                 />
 
                 <Button
-                    title="Go to my profile screen"
+                    title="known user profile page"
                     onPress={() => {
                         navigation.navigate('UserProfile', {
                             screen: 'UserProfile',
                             params: {
-                                userID: 'just a fake user id',
+                                userID: '9ed60e96-d5fc-40b3-b842-aeaa75e93972',
                             },
                         });
                     }}

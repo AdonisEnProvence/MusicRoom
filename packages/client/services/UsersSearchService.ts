@@ -1,4 +1,6 @@
 import {
+    GetUserProfileInformationRequestBody,
+    GetUserProfileInformationResponseBody,
     SearchUsersRequestBody,
     SearchUsersResponseBody,
     UserSummary,
@@ -37,4 +39,17 @@ export async function fetchUsers(
     const parsedResponse = SearchUsersResponseBody.parse(rawResponse.data);
 
     return parsedResponse;
+}
+
+export async function getUserProfileInformation(
+    body: GetUserProfileInformationRequestBody,
+): Promise<GetUserProfileInformationResponseBody> {
+    const url = urlcat(SERVER_ENDPOINT, '/user/profile-information');
+
+    const rawResponse = await redaxios.post(url, body);
+    const parsedBody = GetUserProfileInformationResponseBody.parse(
+        rawResponse.data,
+    );
+
+    return parsedBody;
 }

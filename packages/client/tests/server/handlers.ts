@@ -1,7 +1,8 @@
 import {
+    GetUserProfileInformationRequestBody,
+    GetUserProfileInformationResponseBody,
     ListAllMpeRoomsRequestBody,
     ListAllMpeRoomsResponseBody,
-    MpeRoomSummary,
     MpeSearchMyRoomsRequestBody,
     MpeSearchMyRoomsResponseBody,
     MtvRoomSearchRequestBody,
@@ -147,6 +148,31 @@ export const handlers = [
             );
         },
     ),
+
+    rest.post<
+        GetUserProfileInformationRequestBody,
+        GetUserProfileInformationResponseBody
+    >(`${SERVER_ENDPOINT}/user/profile-information`, async (req, res, ctx) => {
+        const { userID } = req.body;
+
+        const user = db.userProfileInformation.findFirst({
+            where: {
+                userID: {
+                    equals: userID,
+                },
+            },
+        });
+
+        if (user === null) {
+            return res(ctx.status(404));
+        }
+
+        return res(
+            ctx.json({
+                ...user,
+            }),
+        );
+    }),
 
     //Normally we should be filtering on mpe room user has joined
     //Atm we don't maintain or have any kind of users list in the client db mock

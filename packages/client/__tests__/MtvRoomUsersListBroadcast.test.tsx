@@ -5,7 +5,7 @@ import {
 } from '@musicroom/types';
 import { datatype, random } from 'faker';
 import { serverSocket } from '../services/websockets';
-import { generateTrackMetadata } from '../tests/data';
+import { db, generateTrackMetadata } from '../tests/data';
 import {
     fireEvent,
     getFakeUsersList,
@@ -781,6 +781,12 @@ describe('User list tests', () => {
         });
 
         const pressedUser = fakeUsersArray[0];
+        db.userProfileInformation.create({
+            following: true,
+            userID: pressedUser.userID,
+            userNickname: pressedUser.nickname,
+        });
+
         const userListItem = screen.getByTestId(
             `${pressedUser.nickname}-user-card`,
         );
@@ -789,8 +795,8 @@ describe('User list tests', () => {
         fireEvent.press(userListItem);
 
         await waitFor(() => {
-            const profileScreen = screen.getByText(
-                new RegExp(`${pressedUser.userID} Profile Screen`),
+            const profileScreen = screen.getByTestId(
+                `${pressedUser.userID}-profile-page-screen`,
             );
             expect(profileScreen).toBeTruthy();
         });

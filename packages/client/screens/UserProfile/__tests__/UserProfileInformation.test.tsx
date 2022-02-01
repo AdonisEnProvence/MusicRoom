@@ -154,7 +154,7 @@ test('It should display not followed known user profile page', async () => {
             `${userID}-profile-page-screen`,
         );
         expect(profileScreen).toBeTruthy();
-        const followButton = screen.getByText(/follow/i);
+        const followButton = screen.getByText(/\bfollow\b/i);
         expect(followButton).toBeTruthy();
     });
 });

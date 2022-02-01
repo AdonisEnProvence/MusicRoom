@@ -1,5 +1,6 @@
 import { UserSettingVisibility } from '@musicroom/types';
-import { ActorRefFrom, send } from 'xstate';
+import invariant from 'tiny-invariant';
+import { ActorRefFrom, assign, send } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { assertEventType } from '../../machines/utils';
 import {
@@ -9,7 +10,11 @@ import {
 } from '../../services/UserSettingsService';
 
 const visibilitySettingModel = createModel(
-    {},
+    {
+        lastSelectedVisibilityStatus: undefined as
+            | UserSettingVisibility
+            | undefined,
+    },
     {
         events: {
             'Update Visibility': (args: {
@@ -22,149 +27,157 @@ const visibilitySettingModel = createModel(
         },
         actions: {
             'Send updated visibility to server': () => ({}),
+            'Assign visibility status to context': () => ({}),
         },
     },
 );
 
-const visibilitySettingMachine = visibilitySettingModel.createMachine(
-    {
-        id: 'Visibility Setting',
-        type: 'parallel',
-        states: {
-            'Visibility Status': {
-                initial: 'Public',
-                states: {
-                    Public: {
-                        tags: 'Public Visibility',
-                        on: {
-                            'Update Visibility': [
-                                {
-                                    actions:
-                                        'Send updated visibility to server',
-                                    cond: 'Is Private Visibility',
-                                    target: '#Visibility Setting.Visibility Status.Private',
-                                },
-                                {
-                                    actions:
-                                        'Send updated visibility to server',
-                                    cond: 'Is Followers Only Visibility',
-                                    target: '#Visibility Setting.Visibility Status.Followers Only',
-                                },
-                            ],
-                        },
-                    },
-                    'Followers Only': {
-                        tags: 'Followers Only Visibility',
-                        on: {
-                            'Update Visibility': [
-                                {
-                                    actions:
-                                        'Send updated visibility to server',
-                                    cond: 'Is Public Visibility',
-                                    target: '#Visibility Setting.Visibility Status.Public',
-                                },
-                                {
-                                    actions:
-                                        'Send updated visibility to server',
-                                    cond: 'Is Private Visibility',
-                                    target: '#Visibility Setting.Visibility Status.Private',
-                                },
-                            ],
-                        },
-                    },
-                    Private: {
-                        tags: 'Private Visibility',
-                        on: {
-                            'Update Visibility': [
-                                {
-                                    actions:
-                                        'Send updated visibility to server',
-                                    cond: 'Is Public Visibility',
-                                    target: '#Visibility Setting.Visibility Status.Public',
-                                },
-                                {
-                                    actions:
-                                        'Send updated visibility to server',
-                                    cond: 'Is Followers Only Visibility',
-                                    target: '#Visibility Setting.Visibility Status.Followers Only',
-                                },
-                            ],
-                        },
-                    },
-                },
-            },
-            'Persistence to Backend': {
-                initial: 'Idle',
-                states: {
-                    Idle: {
-                        on: {
-                            'Send Visibility Update to Backend': {
-                                target: '#Visibility Setting.Persistence to Backend.Persisting to Backend',
+const visibilitySettingMachine =
+    /** @xstate-layout N4IgpgJg5mDOIC5QDUCWtUCNUBtUBcBPAAgGUx99UA7KAOjQ2zyLPwEN8BXWOgBS6Y8AYwDEAVQAOETmGKMsuAoUShJAewxV11VSAAeiAOwAGI3QCcARiMWLAJgCsVgCwv7ADnsAaECoSOJgDMdI4AbEEWtlEmTh4uAL4JvgrMymQUVLQM6IosJKQc3LwAYuo4OOoA7mAATrDEAPLUOIQS0rLyuWlEehpaqDp6hgj2YS50QS6O9vZGHo5BVmEmNr7+Vg50pkHOYcu7LkbuSSndSqzklDT0qRcFRTz8tagAbrLtMvhyd-l9mgRBrokAZjGZLDY7E5XO4vOtEDYQvYgqYTC4VkYrEszKcQL90lcsvQ+HUMLBvtRhHJ8OpiAAhdjCADWYGoEH4pPQROINPpjJZbNEEB0YDoNFe6hZHPqXOIUi+kC6THubE4PH+AyGIJGVnssW2i3sFmckXirnhCCiHjoHmWHgsQS81jCRiCuPxl0yN2lZIpVJ5tIZzNZ7IAImBMOouJS5AAlMAARy4cHwDV5QYFEFE+nJsjo7AAZt9apMTCYNYCtaARmELCZJjCYlEjGFxharTblg4XEtFl4wu7zvkMtdsiSZeTWf70-yQ6JyGylXl0vLOjPg2yK9pgdXjD4-IgO7ba-Ye1Y+2MkskQNR1BA4HoPQUvdkn6rivxBCIt0DhohHEYjh0EaRh6ueswrPaFq9nQmw9rsqxhKe6KDsqw6Et6b6FGqpTlJUNT1E0LT+GoALbn+CCgdB56wRY8GBMsyEDteWEvrcQ4Eo8vB8C87zfD+VagggVirNaHi1hYrZWB4jpGEY1HmLW9GIUxqHLp6o7sWhnE4QJO5CS4Hjtta+wLO4QRIQ4yKOGpPTPppPpclO1KBrObJ0AAkhAOBgHpFHnhZdDBJJQRzEEsSQe2tg2mE8QuiiSwojZLEcRpRKOZOMYBnyG7suOvo3NlGYhn52qIAsVilmYLomLaxpHO2jgTIEdEeLayLLK2tkqhhY6cpl06ubldDhpG0b+vGSYpmmQ2ZqVu4IBZ9ihD2AFWq64VjFFFgxfEdiOIswSuN16FsRlfouTlc0gv0lb6SMhkWuJ5j2iYdFlsi7g9idBJsfNQmnhap5BWWtWrNJmIWQdV4JEAA */
+    visibilitySettingModel.createMachine(
+        {
+            id: 'Visibility Setting',
+            type: 'parallel',
+            states: {
+                'Visibility Status': {
+                    initial: 'Public',
+                    states: {
+                        Public: {
+                            tags: 'Public Visibility',
+                            on: {
+                                'Update Visibility': [
+                                    {
+                                        actions:
+                                            'Send updated visibility to server',
+                                        cond: 'Is Private Visibility',
+                                        target: '#Visibility Setting.Visibility Status.Private',
+                                    },
+                                    {
+                                        actions:
+                                            'Send updated visibility to server',
+                                        cond: 'Is Followers Only Visibility',
+                                        target: '#Visibility Setting.Visibility Status.Followers Only',
+                                    },
+                                ],
                             },
                         },
-                    },
-                    'Persisting to Backend': {
-                        invoke: {
-                            id: 'Persist Updated Visibility Status',
-                            src: 'Persist Updated Visibility Status',
-                            onDone: [
-                                {
-                                    target: '#Visibility Setting.Persistence to Backend.Idle',
-                                },
-                            ],
+                        'Followers Only': {
+                            tags: 'Followers Only Visibility',
+                            on: {
+                                'Update Visibility': [
+                                    {
+                                        actions:
+                                            'Send updated visibility to server',
+                                        cond: 'Is Public Visibility',
+                                        target: '#Visibility Setting.Visibility Status.Public',
+                                    },
+                                    {
+                                        actions:
+                                            'Send updated visibility to server',
+                                        cond: 'Is Private Visibility',
+                                        target: '#Visibility Setting.Visibility Status.Private',
+                                    },
+                                ],
+                            },
                         },
-                        on: {
-                            'Send Visibility Update to Backend': {
-                                target: '#Visibility Setting.Persistence to Backend.Persisting to Backend',
+                        Private: {
+                            tags: 'Private Visibility',
+                            on: {
+                                'Update Visibility': [
+                                    {
+                                        actions:
+                                            'Send updated visibility to server',
+                                        cond: 'Is Public Visibility',
+                                        target: '#Visibility Setting.Visibility Status.Public',
+                                    },
+                                    {
+                                        actions:
+                                            'Send updated visibility to server',
+                                        cond: 'Is Followers Only Visibility',
+                                        target: '#Visibility Setting.Visibility Status.Followers Only',
+                                    },
+                                ],
                             },
                         },
                     },
                 },
+                'Persistence to Backend': {
+                    initial: 'Idle',
+                    states: {
+                        Idle: {},
+                        'Persisting to Backend': {
+                            invoke: {
+                                id: 'Persist Updated Visibility Status',
+                                src: 'Persist Updated Visibility Status',
+                                onDone: [
+                                    {
+                                        target: '#Visibility Setting.Persistence to Backend.Idle',
+                                    },
+                                ],
+                            },
+                        },
+                        'Debounce Requests to Backend': {
+                            after: {
+                                '300': {
+                                    target: '#Visibility Setting.Persistence to Backend.Persisting to Backend',
+                                },
+                            },
+                        },
+                    },
+                    on: {
+                        'Send Visibility Update to Backend': {
+                            actions: 'Assign visibility status to context',
+                            target: '#Visibility Setting.Persistence to Backend.Debounce Requests to Backend',
+                        },
+                    },
+                },
             },
         },
-    },
-    {
-        guards: {
-            'Is Public Visibility': (_context, event) => {
-                assertEventType(event, 'Update Visibility');
+        {
+            guards: {
+                'Is Public Visibility': (_context, event) => {
+                    assertEventType(event, 'Update Visibility');
 
-                return event.visibility === 'PUBLIC';
+                    return event.visibility === 'PUBLIC';
+                },
+
+                'Is Followers Only Visibility': (_context, event) => {
+                    assertEventType(event, 'Update Visibility');
+
+                    return event.visibility === 'FOLLOWERS_ONLY';
+                },
+
+                'Is Private Visibility': (_context, event) => {
+                    assertEventType(event, 'Update Visibility');
+
+                    return event.visibility === 'PRIVATE';
+                },
             },
 
-            'Is Followers Only Visibility': (_context, event) => {
-                assertEventType(event, 'Update Visibility');
+            actions: {
+                'Send updated visibility to server': send((_context, event) => {
+                    assertEventType(event, 'Update Visibility');
 
-                return event.visibility === 'FOLLOWERS_ONLY';
-            },
+                    return visibilitySettingModel.events[
+                        'Send Visibility Update to Backend'
+                    ]({
+                        visibility: event.visibility,
+                    });
+                }),
 
-            'Is Private Visibility': (_context, event) => {
-                assertEventType(event, 'Update Visibility');
+                'Assign visibility status to context': assign({
+                    lastSelectedVisibilityStatus: (_context, event) => {
+                        assertEventType(
+                            event,
+                            'Send Visibility Update to Backend',
+                        );
 
-                return event.visibility === 'PRIVATE';
+                        return event.visibility;
+                    },
+                }),
             },
         },
-
-        actions: {
-            'Send updated visibility to server': send((_context, event) => {
-                assertEventType(event, 'Update Visibility');
-
-                return visibilitySettingModel.events[
-                    'Send Visibility Update to Backend'
-                ]({
-                    visibility: event.visibility,
-                });
-            }),
-        },
-
-        services: {
-            'Persist Updated Visibility Status': (_context, event) => {
-                console.log('Persist Updated Visibility Status service', event);
-
-                return Promise.resolve();
-            },
-        },
-    },
-);
+    );
 
 export type VisibilitySettingMachineActor = ActorRefFrom<
     typeof visibilitySettingMachine
@@ -250,17 +263,16 @@ export const settingsMachine =
                 'Playlists Visibility Manager Machine':
                     visibilitySettingMachine.withConfig({
                         services: {
-                            'Persist Updated Visibility Status': async (
-                                _context,
-                                event,
-                            ) => {
-                                assertEventType(
-                                    event,
-                                    'Send Visibility Update to Backend',
+                            'Persist Updated Visibility Status': async ({
+                                lastSelectedVisibilityStatus,
+                            }) => {
+                                invariant(
+                                    lastSelectedVisibilityStatus !== undefined,
+                                    'lastSelectedVisibilityStatus must have been assigned before trying to send it to the server',
                                 );
 
                                 await setUserPlaylistsSettingVisibility({
-                                    visibility: event.visibility,
+                                    visibility: lastSelectedVisibilityStatus,
                                 });
                             },
                         },
@@ -269,17 +281,16 @@ export const settingsMachine =
                 'Relations Visibility Manager Machine':
                     visibilitySettingMachine.withConfig({
                         services: {
-                            'Persist Updated Visibility Status': async (
-                                _context,
-                                event,
-                            ) => {
-                                assertEventType(
-                                    event,
-                                    'Send Visibility Update to Backend',
+                            'Persist Updated Visibility Status': async ({
+                                lastSelectedVisibilityStatus,
+                            }) => {
+                                invariant(
+                                    lastSelectedVisibilityStatus !== undefined,
+                                    'lastSelectedVisibilityStatus must have been assigned before trying to send it to the server',
                                 );
 
                                 await setUserRelationsSettingVisibility({
-                                    visibility: event.visibility,
+                                    visibility: lastSelectedVisibilityStatus,
                                 });
                             },
                         },
@@ -288,17 +299,16 @@ export const settingsMachine =
                 'Devices Visibility Manager Machine':
                     visibilitySettingMachine.withConfig({
                         services: {
-                            'Persist Updated Visibility Status': async (
-                                _context,
-                                event,
-                            ) => {
-                                assertEventType(
-                                    event,
-                                    'Send Visibility Update to Backend',
+                            'Persist Updated Visibility Status': async ({
+                                lastSelectedVisibilityStatus,
+                            }) => {
+                                invariant(
+                                    lastSelectedVisibilityStatus !== undefined,
+                                    'lastSelectedVisibilityStatus must have been assigned before trying to send it to the server',
                                 );
 
                                 await setUserDevicesSettingVisibility({
-                                    visibility: event.visibility,
+                                    visibility: lastSelectedVisibilityStatus,
                                 });
                             },
                         },

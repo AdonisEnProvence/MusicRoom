@@ -3,7 +3,7 @@ import {
     GetUserProfileInformationResponseBody,
     UserProfileInformation,
 } from '@musicroom/types';
-import { ContextFrom, EventFrom, StateMachine } from 'xstate';
+import { ContextFrom, EventFrom, MachineOptions, StateMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { getFakeUserID } from '../contexts/SocketContext';
 import { getUserProfileInformation } from '../services/UsersSearchService';
@@ -18,6 +18,9 @@ const userProfileInformationModel = createModel(
                 userProfileInformation: UserProfileInformation,
             ) => ({ userProfileInformation }),
             __RETRIEVE_USER_PROFILE_INFORMATION_FAILURE: () => ({}),
+        },
+        actions: {
+            triggerFailurRetrieveProfileUserInformationToast: () => ({}),
         },
     },
 );
@@ -55,13 +58,22 @@ function createProfileInformationMachine({
                         on: {
                             __RETRIEVE_USER_PROFILE_INFORMATION_SUCCESS: {
                                 actions: assignUserProfileInformation,
+                                target: 'userFound',
                             },
 
                             __RETRIEVE_USER_PROFILE_INFORMATION_FAILURE: {
-                                //should display toast and redirect ? should take actions from params
+                                target: 'userNotFound',
+                                actions:
+                                    userProfileInformationModel.actions.triggerFailurRetrieveProfileUserInformationToast(),
                             },
                         },
                     },
+
+                    userNotFound: {
+                        tags: 'userNotFound',
+                    },
+
+                    userFound: {},
                 },
             },
             {
@@ -91,12 +103,30 @@ function createProfileInformationMachine({
     return userProfileInformationMachine;
 }
 
-export function createUserProfileInformationMachine(
-    userID: string,
-): StateMachine<
-    ContextFrom<typeof userProfileInformationModel>,
+export type ProfileInformationMachineContext = ContextFrom<
+    typeof userProfileInformationModel
+>;
+export type ProfileInformationMachineEvents = EventFrom<
+    typeof userProfileInformationModel
+>;
+
+export type ProfileInformationMachineOptions = Partial<
+    MachineOptions<
+        ProfileInformationMachineContext,
+        ProfileInformationMachineEvents
+    >
+>;
+
+export function createUserProfileInformationMachine({
+    userID,
+    config,
+}: {
+    userID: string;
+    config: ProfileInformationMachineOptions;
+}): StateMachine<
+    ProfileInformationMachineContext,
     any,
-    EventFrom<typeof userProfileInformationModel>
+    ProfileInformationMachineEvents
 > {
     return createProfileInformationMachine({
         userID,
@@ -110,5 +140,5 @@ export function createUserProfileInformationMachine(
                 userID: givenUserID,
             });
         },
-    });
+    }).withConfig(config);
 }

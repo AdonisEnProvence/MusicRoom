@@ -1,4 +1,4 @@
-import { useInterpret, useMachine, useSelector } from '@xstate/react';
+import { useInterpret, useSelector } from '@xstate/react';
 import { Button, Text } from 'dripsy';
 import React, { useMemo } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,9 +6,10 @@ import {
     AppScreen,
     AppScreenContainer,
     AppScreenHeader,
-} from '../components/kit';
-import { UserProfileScreenProps } from '../types';
-import { createUserProfileInformationMachine } from '../machines/profileInformationMachine';
+} from '../../components/kit';
+import { UserProfileScreenProps } from '../../types';
+import { createUserProfileInformationMachine } from '../../machines/profileInformationMachine';
+import { getUserProfileInformationMachineOptions } from '../../machines/options/userProfileInformationMachineOptions';
 
 const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
     navigation,
@@ -21,7 +22,11 @@ const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
     }
 
     const userProfileInformationMachineConfigured = useMemo(
-        () => createUserProfileInformationMachine(userID),
+        () =>
+            createUserProfileInformationMachine({
+                userID,
+                config: getUserProfileInformationMachineOptions(),
+            }),
         [userID],
     );
 
@@ -32,6 +37,10 @@ const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
     const userProfileInformation = useSelector(
         userProfileInformationService,
         (state) => state.context.userProfileInformation,
+    );
+
+    const userNotFound = useSelector(userProfileInformationService, (state) =>
+        state.hasTag('userNotFound'),
     );
 
     if (userProfileInformation === undefined) {
@@ -47,7 +56,17 @@ const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
                 />
 
                 <AppScreenContainer>
-                    <Text>LOADING</Text>
+                    {userNotFound ? (
+                        <>
+                            <Text>User not found</Text>
+                            <Button
+                                title="Go back"
+                                onPress={() => navigation.goBack()}
+                            />
+                        </>
+                    ) : (
+                        <Text>LOADING</Text>
+                    )}
                 </AppScreenContainer>
             </AppScreen>
         );

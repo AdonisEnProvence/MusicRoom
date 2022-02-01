@@ -61,7 +61,7 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                 />
 
                 <Button
-                    title="Go to other user profile page"
+                    title="known user profile page"
                     onPress={() => {
                         navigation.navigate('UserProfile', {
                             screen: 'UserProfile',

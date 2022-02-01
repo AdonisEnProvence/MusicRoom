@@ -3,14 +3,17 @@ import { View } from 'dripsy';
 
 interface AppScreenContainerProps {
     scrollable?: boolean;
+    testID?: string;
 }
 
 const AppScreenContainer: React.FC<AppScreenContainerProps> = ({
     scrollable = false,
+    testID,
     children,
 }) => {
     return (
         <View
+            testID={testID}
             sx={{
                 paddingLeft: 'l',
                 paddingRight: 'l',

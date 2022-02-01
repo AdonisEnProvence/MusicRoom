@@ -55,7 +55,7 @@ const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
                     }}
                 />
 
-                <AppScreenContainer>
+                <AppScreenContainer testID="default-profile-page-screen">
                     {userNotFound ? (
                         <>
                             <Text>User not found</Text>
@@ -83,8 +83,9 @@ const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
                 }}
             />
 
-            <AppScreenContainer>
-                <Text>{userID} Profile Screen</Text>
+            <AppScreenContainer
+                testID={`${userProfileInformation.userID}-profile-page-screen`}
+            >
                 {userProfileInformation.following ? (
                     <Button
                         title="UNFOLLOW"

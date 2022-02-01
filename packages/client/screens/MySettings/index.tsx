@@ -1,3 +1,4 @@
+import { useActor, useMachine } from '@xstate/react';
 import { ScrollView, Text, View } from 'dripsy';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,74 +9,111 @@ import {
 } from '../../components/kit';
 import MtvRoomCreationFormOptionButton from '../../components/MtvRoomCreationForm/MtvRoomCreationFormOptionButton';
 import { MySettingsScreenProps } from '../../types';
+import {
+    settingsMachine,
+    VisibilitySettingMachineActor,
+} from './settingsMachine';
+
+interface VisibilitySettingProps {
+    title: string;
+    visibilitySettingActor: VisibilitySettingMachineActor;
+}
+
+const VisibilitySetting: React.FC<VisibilitySettingProps> = ({
+    title,
+    visibilitySettingActor,
+}) => {
+    const [state, send] = useActor(visibilitySettingActor);
+
+    const options = [
+        {
+            text: 'Public',
+            selected: state.hasTag('Public Visibility'),
+            onPress: () => {
+                send({
+                    type: 'Update Visibility',
+                    visibility: 'PUBLIC',
+                });
+            },
+        },
+        {
+            text: 'Followers only',
+            selected: state.hasTag('Followers Only Visibility'),
+            onPress: () => {
+                send({
+                    type: 'Update Visibility',
+                    visibility: 'FOLLOWERS_ONLY',
+                });
+            },
+        },
+        {
+            text: 'Private',
+            selected: state.hasTag('Private Visibility'),
+            onPress: () => {
+                send({
+                    type: 'Update Visibility',
+                    visibility: 'PRIVATE',
+                });
+            },
+        },
+    ];
+
+    return (
+        <View
+            sx={{
+                justifyContent: 'space-between',
+            }}
+        >
+            <Text sx={{ color: 'white', fontSize: 'l' }}>{title}</Text>
+
+            <View
+                sx={{
+                    marginTop: 'xl',
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                }}
+            >
+                {options.map(({ text, selected, onPress }, index) => {
+                    const isNotLastButton = index < options.length - 1;
+
+                    return (
+                        <MtvRoomCreationFormOptionButton
+                            key={text}
+                            text={text}
+                            isSelected={selected}
+                            onPress={onPress}
+                            shouldApplyRightMargin={isNotLastButton}
+                        />
+                    );
+                })}
+            </View>
+        </View>
+    );
+};
 
 const MySettings: React.FC<MySettingsScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
-
-    function noop() {
-        return undefined;
-    }
+    const [state] = useMachine(settingsMachine);
 
     const settings = [
         {
             title: 'Playlists visibility',
-            options: [
-                {
-                    text: 'Public',
-                    selected: true,
-                    onPress: noop,
-                },
-                {
-                    text: 'Followers only',
-                    selected: false,
-                    onPress: noop,
-                },
-                {
-                    text: 'Private',
-                    selected: false,
-                    onPress: noop,
-                },
-            ],
+            visibilitySettingActor: state.children[
+                'Playlists Visibility Manager Machine'
+            ] as VisibilitySettingMachineActor,
         },
         {
             title: 'Relations visibility',
-            options: [
-                {
-                    text: 'Public',
-                    selected: true,
-                    onPress: noop,
-                },
-                {
-                    text: 'Followers only',
-                    selected: false,
-                    onPress: noop,
-                },
-                {
-                    text: 'Private',
-                    selected: false,
-                    onPress: noop,
-                },
-            ],
+            visibilitySettingActor: state.children[
+                'Relations Visibility Manager Machine'
+            ] as VisibilitySettingMachineActor,
         },
         {
             title: 'Devices visibility',
-            options: [
-                {
-                    text: 'Public',
-                    selected: true,
-                    onPress: noop,
-                },
-                {
-                    text: 'Followers only',
-                    selected: false,
-                    onPress: noop,
-                },
-                {
-                    text: 'Private',
-                    selected: false,
-                    onPress: noop,
-                },
-            ],
+            visibilitySettingActor: state.children[
+                'Devices Visibility Manager Machine'
+            ] as VisibilitySettingMachineActor,
         },
     ];
 
@@ -96,66 +134,38 @@ const MySettings: React.FC<MySettingsScreenProps> = ({ navigation }) => {
                         flex: 1,
                         paddingTop: insets.top,
                         paddingBottom: insets.bottom,
+                        paddingLeft: 'l',
+                        paddingRight: 'l',
+                        maxWidth: [null, 420, 720],
+                        marginLeft: 'auto',
+                        marginRight: 'auto',
                     }}
                 >
-                    {settings.map(({ title, options }, index) => {
-                        const isLastSetting = index === settings.length - 1;
-                        const isNotLastSetting = isLastSetting === false;
+                    {settings.map(
+                        ({ title, visibilitySettingActor }, index) => {
+                            const isLastSetting = index === settings.length - 1;
+                            const isNotLastSetting = isLastSetting === false;
 
-                        return (
-                            <View
-                                key={index}
-                                sx={{
-                                    paddingLeft: 'l',
-                                    paddingRight: 'l',
-                                    maxWidth: [null, 420, 720],
-                                    marginLeft: 'auto',
-                                    marginRight: 'auto',
-                                    marginBottom:
-                                        isNotLastSetting === true
-                                            ? 'xxl'
-                                            : undefined,
-
-                                    justifyContent: 'space-between',
-                                }}
-                            >
-                                <Text sx={{ color: 'white', fontSize: 'l' }}>
-                                    {title}
-                                </Text>
-
+                            return (
                                 <View
+                                    key={index}
                                     sx={{
-                                        marginTop: 'xl',
-                                        flexDirection: 'row',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
+                                        marginBottom:
+                                            isNotLastSetting === true
+                                                ? 'xxl'
+                                                : undefined,
                                     }}
                                 >
-                                    {options.map(
-                                        (
-                                            { text, selected, onPress },
-                                            index,
-                                        ) => {
-                                            const isNotLastButton =
-                                                index < options.length - 1;
-
-                                            return (
-                                                <MtvRoomCreationFormOptionButton
-                                                    key={text}
-                                                    text={text}
-                                                    isSelected={selected}
-                                                    onPress={onPress}
-                                                    shouldApplyRightMargin={
-                                                        isNotLastButton
-                                                    }
-                                                />
-                                            );
-                                        },
-                                    )}
+                                    <VisibilitySetting
+                                        title={title}
+                                        visibilitySettingActor={
+                                            visibilitySettingActor
+                                        }
+                                    />
                                 </View>
-                            </View>
-                        );
-                    })}
+                            );
+                        },
+                    )}
                 </ScrollView>
             </AppScreenContainer>
         </AppScreen>

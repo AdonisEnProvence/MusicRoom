@@ -63,6 +63,8 @@ export type RootStackParamList = {
 
     UserProfile: NavigatorScreenParams<UserProfileStackParamsList>;
 
+    MySettings: undefined;
+
     MusicPlaylistEditorCreationForm: NavigatorScreenParams<MusicPlaylistEditorCreationFormParamList>;
     MusicPlaylistEditorExportToMtvCreationForm: NavigatorScreenParams<MusicTrackVoteCreationFormParamList>;
 };
@@ -360,6 +362,11 @@ export type AlertScreenProps = {
 export type UserProfileScreenProps = {
     navigation: StackNavigationProp<UserProfileStackParamsList, 'UserProfile'>;
     route: RouteProp<UserProfileStackParamsList, 'UserProfile'>;
+};
+
+export type MySettingsScreenProps = {
+    navigation: StackNavigationProp<RootStackParamList, 'MySettings'>;
+    route: RouteProp<RootStackParamList, 'MySettings'>;
 };
 
 export type HomeTabProps = {

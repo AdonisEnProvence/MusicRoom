@@ -2,6 +2,11 @@ import { UserSettingVisibility } from '@musicroom/types';
 import { ActorRefFrom, send } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { assertEventType } from '../../machines/utils';
+import {
+    setUserDevicesSettingVisibility,
+    setUserPlaylistsSettingVisibility,
+    setUserRelationsSettingVisibility,
+} from '../../services/UserSettingsService';
 
 const visibilitySettingModel = createModel(
     {},
@@ -245,16 +250,18 @@ export const settingsMachine =
                 'Playlists Visibility Manager Machine':
                     visibilitySettingMachine.withConfig({
                         services: {
-                            'Persist Updated Visibility Status': (
+                            'Persist Updated Visibility Status': async (
                                 _context,
                                 event,
                             ) => {
-                                console.log(
-                                    'in Persist Updated Visibility Status from withConfig',
+                                assertEventType(
                                     event,
+                                    'Send Visibility Update to Backend',
                                 );
 
-                                return Promise.resolve();
+                                await setUserPlaylistsSettingVisibility({
+                                    visibility: event.visibility,
+                                });
                             },
                         },
                     }),
@@ -262,16 +269,18 @@ export const settingsMachine =
                 'Relations Visibility Manager Machine':
                     visibilitySettingMachine.withConfig({
                         services: {
-                            'Persist Updated Visibility Status': (
+                            'Persist Updated Visibility Status': async (
                                 _context,
                                 event,
                             ) => {
-                                console.log(
-                                    'in Persist Updated Visibility Status from withConfig',
+                                assertEventType(
                                     event,
+                                    'Send Visibility Update to Backend',
                                 );
 
-                                return Promise.resolve();
+                                await setUserRelationsSettingVisibility({
+                                    visibility: event.visibility,
+                                });
                             },
                         },
                     }),
@@ -279,16 +288,18 @@ export const settingsMachine =
                 'Devices Visibility Manager Machine':
                     visibilitySettingMachine.withConfig({
                         services: {
-                            'Persist Updated Visibility Status': (
+                            'Persist Updated Visibility Status': async (
                                 _context,
                                 event,
                             ) => {
-                                console.log(
-                                    'in Persist Updated Visibility Status from withConfig',
+                                assertEventType(
                                     event,
+                                    'Send Visibility Update to Backend',
                                 );
 
-                                return Promise.resolve();
+                                await setUserDevicesSettingVisibility({
+                                    visibility: event.visibility,
+                                });
                             },
                         },
                     }),

@@ -110,4 +110,20 @@ test.group('Users Profile information tests', (group) => {
             } as GetUserProfileInformationRequestBody)
             .expect(404);
     });
+
+    test('Searched user is searching user', async () => {
+        const userID = datatype.uuid();
+        await User.create({
+            uuid: userID,
+            nickname: internet.userName(),
+        });
+
+        await supertest(BASE_URL)
+            .post('/user/profile-information')
+            .send({
+                tmpAuthUserID: userID,
+                userID: userID,
+            } as GetUserProfileInformationRequestBody)
+            .expect(403);
+    });
 });

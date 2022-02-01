@@ -5,6 +5,7 @@ import {
     SearchUsersResponseBody,
     UserProfileInformation,
 } from '@musicroom/types';
+import ForbiddenException from 'App/Exceptions/ForbiddenException';
 import User from 'App/Models/User';
 
 const SEARCH_USERS_LIMIT = 10;
@@ -44,6 +45,11 @@ export default class SearchUsersController {
         //TODO tmpAuthUserID refactor authentication
         const { tmpAuthUserID, userID } =
             GetUserProfileInformationRequestBody.parse(rawBody);
+
+        const requestingUserIsRelatedUser = tmpAuthUserID === userID;
+        if (requestingUserIsRelatedUser) {
+            throw new ForbiddenException();
+        }
 
         await User.findOrFail(tmpAuthUserID);
         //TODO refactor after follow feature implem

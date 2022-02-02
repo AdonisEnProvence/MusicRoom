@@ -59,32 +59,34 @@ const VisibilitySetting: React.FC<VisibilitySettingProps> = ({
     ];
 
     return (
-        <View
-            sx={{
-                justifyContent: 'space-between',
-            }}
-        >
+        <View>
             <Text sx={{ color: 'white', fontSize: 'l' }}>{title}</Text>
 
             <View
                 sx={{
-                    marginTop: 'xl',
                     flexDirection: 'row',
-                    justifyContent: 'space-between',
+                    justifyContent: 'space-around',
                     alignItems: 'center',
+                    flexWrap: 'wrap',
                 }}
             >
                 {options.map(({ text, selected, onPress }, index) => {
-                    const isNotLastButton = index < options.length - 1;
-
                     return (
-                        <MtvRoomCreationFormOptionButton
-                            key={text}
-                            text={text}
-                            isSelected={selected}
-                            onPress={onPress}
-                            shouldApplyRightMargin={isNotLastButton}
-                        />
+                        <View
+                            key={index}
+                            sx={{
+                                paddingTop: 'xl',
+                                marginX: 'm',
+                            }}
+                        >
+                            <MtvRoomCreationFormOptionButton
+                                key={text}
+                                text={text}
+                                isSelected={selected}
+                                onPress={onPress}
+                                shouldApplyRightMargin={false}
+                            />
+                        </View>
                     );
                 })}
             </View>
@@ -135,44 +137,58 @@ const MySettings: React.FC<MySettingsScreenProps> = ({ navigation }) => {
                 <ScrollView
                     sx={{
                         flex: 1,
-                        paddingTop: insets.top,
+                    }}
+                    contentContainerStyle={{
                         paddingBottom: insets.bottom,
-                        paddingLeft: 'l',
-                        paddingRight: 'l',
-                        maxWidth: [null, 420, 720],
-                        marginLeft: 'auto',
-                        marginRight: 'auto',
                     }}
                 >
-                    {settings.map(
-                        (
-                            { containerTestID, title, visibilitySettingActor },
-                            index,
-                        ) => {
-                            const isLastSetting = index === settings.length - 1;
-                            const isNotLastSetting = isLastSetting === false;
+                    <View
+                        sx={{
+                            flex: 1,
+                            paddingBottom: 'xxl',
+                            paddingLeft: 'l',
+                            paddingRight: 'l',
+                            maxWidth: [null, 420, 720],
+                            marginLeft: 'auto',
+                            marginRight: 'auto',
+                        }}
+                    >
+                        {settings.map(
+                            (
+                                {
+                                    containerTestID,
+                                    title,
+                                    visibilitySettingActor,
+                                },
+                                index,
+                            ) => {
+                                const isLastSetting =
+                                    index === settings.length - 1;
+                                const isNotLastSetting =
+                                    isLastSetting === false;
 
-                            return (
-                                <View
-                                    testID={containerTestID}
-                                    key={index}
-                                    sx={{
-                                        marginBottom:
-                                            isNotLastSetting === true
-                                                ? 'xxl'
-                                                : undefined,
-                                    }}
-                                >
-                                    <VisibilitySetting
-                                        title={title}
-                                        visibilitySettingActor={
-                                            visibilitySettingActor
-                                        }
-                                    />
-                                </View>
-                            );
-                        },
-                    )}
+                                return (
+                                    <View
+                                        testID={containerTestID}
+                                        key={index}
+                                        sx={{
+                                            marginBottom:
+                                                isNotLastSetting === true
+                                                    ? 'xxl'
+                                                    : undefined,
+                                        }}
+                                    >
+                                        <VisibilitySetting
+                                            title={title}
+                                            visibilitySettingActor={
+                                                visibilitySettingActor
+                                            }
+                                        />
+                                    </View>
+                                );
+                            },
+                        )}
+                    </View>
                 </ScrollView>
             </AppScreenContainer>
         </AppScreen>

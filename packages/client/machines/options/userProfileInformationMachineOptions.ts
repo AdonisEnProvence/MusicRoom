@@ -1,7 +1,7 @@
 import Toast from 'react-native-toast-message';
-import { ProfileInformationMachineOptions } from '../profileInformationMachine';
+import { UserProfileInformationMachineOptions } from '../userProfileInformationMachine';
 
-export function getUserProfileInformationMachineOptions(): ProfileInformationMachineOptions {
+export function getUserProfileInformationMachineOptions(): UserProfileInformationMachineOptions {
     return {
         actions: {
             triggerFailurRetrieveProfileUserInformationToast: () => {

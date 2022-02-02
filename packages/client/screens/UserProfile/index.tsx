@@ -8,8 +8,7 @@ import {
     AppScreenHeader,
 } from '../../components/kit';
 import { UserProfileScreenProps } from '../../types';
-import { createUserProfileInformationMachine } from '../../machines/profileInformationMachine';
-import { getUserProfileInformationMachineOptions } from '../../machines/options/userProfileInformationMachineOptions';
+import { createUserProfileInformationMachine } from '../../machines/userProfileInformationMachine';
 
 const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
     navigation,
@@ -25,7 +24,6 @@ const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
         () =>
             createUserProfileInformationMachine({
                 userID,
-                config: getUserProfileInformationMachineOptions(),
             }),
         [userID],
     );

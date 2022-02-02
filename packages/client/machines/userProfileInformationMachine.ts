@@ -7,6 +7,7 @@ import { ContextFrom, EventFrom, MachineOptions, StateMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { getFakeUserID } from '../contexts/SocketContext';
 import { getUserProfileInformation } from '../services/UsersSearchService';
+import { getUserProfileInformationMachineOptions } from './options/userProfileInformationMachineOptions';
 
 const userProfileInformationModel = createModel(
     {
@@ -33,17 +34,42 @@ const assignUserProfileInformation = userProfileInformationModel.assign(
     '__RETRIEVE_USER_PROFILE_INFORMATION_SUCCESS',
 );
 
-function createProfileInformationMachine({
-    fetchUserProfileInformation,
+export type UserProfileInformationMachineContext = ContextFrom<
+    typeof userProfileInformationModel
+>;
+export type UserProfileInformationMachineEvents = EventFrom<
+    typeof userProfileInformationModel
+>;
+
+export type UserProfileInformationMachineOptions = Partial<
+    MachineOptions<
+        UserProfileInformationMachineContext,
+        UserProfileInformationMachineEvents
+    >
+>;
+
+export function createUserProfileInformationMachine({
     userID,
 }: {
     userID: string;
-    fetchUserProfileInformation: (
-        body: GetUserProfileInformationRequestBody,
-    ) => Promise<GetUserProfileInformationResponseBody>;
-}) {
-    const userProfileInformationMachine =
-        userProfileInformationModel.createMachine(
+}): StateMachine<
+    UserProfileInformationMachineContext,
+    any,
+    UserProfileInformationMachineEvents
+> {
+    async function fetchUserProfileInformation({
+        tmpAuthUserID,
+        userID: givenUserID,
+    }: GetUserProfileInformationRequestBody): Promise<GetUserProfileInformationResponseBody> {
+        return await getUserProfileInformation({
+            tmpAuthUserID,
+            userID: givenUserID,
+        });
+    }
+    const config = getUserProfileInformationMachineOptions();
+
+    const userProfileInformationMachine = userProfileInformationModel
+        .createMachine(
             {
                 context: {
                     userProfileInformation: undefined,
@@ -98,47 +124,8 @@ function createProfileInformationMachine({
                     },
                 },
             },
-        );
+        )
+        .withConfig(config);
 
     return userProfileInformationMachine;
-}
-
-export type ProfileInformationMachineContext = ContextFrom<
-    typeof userProfileInformationModel
->;
-export type ProfileInformationMachineEvents = EventFrom<
-    typeof userProfileInformationModel
->;
-
-export type ProfileInformationMachineOptions = Partial<
-    MachineOptions<
-        ProfileInformationMachineContext,
-        ProfileInformationMachineEvents
-    >
->;
-
-export function createUserProfileInformationMachine({
-    userID,
-    config,
-}: {
-    userID: string;
-    config: ProfileInformationMachineOptions;
-}): StateMachine<
-    ProfileInformationMachineContext,
-    any,
-    ProfileInformationMachineEvents
-> {
-    return createProfileInformationMachine({
-        userID,
-        //could I be using with config the forward fetchUserProfileInformation ?
-        fetchUserProfileInformation: async ({
-            tmpAuthUserID,
-            userID: givenUserID,
-        }: GetUserProfileInformationRequestBody) => {
-            return await getUserProfileInformation({
-                tmpAuthUserID,
-                userID: givenUserID,
-            });
-        },
-    }).withConfig(config);
 }

@@ -10,10 +10,59 @@ import {
 } from '../../components/kit';
 import { UserProfileScreenProps } from '../../types';
 import { getFakeUserID } from '../../contexts/SocketContext';
+import { createMyProfileInformationMachine } from '../../machines/myProfileInformationMachine';
+import { MusicPlaylistEditorUsersSearchNavigator } from '../../navigation';
 
 const MyProfileScreen: React.FC<UserProfileScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const userID = getFakeUserID();
+
+    const userProfileInformationMachineConfigured = useMemo(
+        createMyProfileInformationMachine,
+        [],
+    );
+
+    const userProfileInformationService = useInterpret(
+        userProfileInformationMachineConfigured,
+    );
+
+    const myProfileInformation = useSelector(
+        userProfileInformationService,
+        (state) => state.context.myProfileInformation,
+    );
+
+    const userNotFound = useSelector(userProfileInformationService, (state) =>
+        state.hasTag('userNotFound'),
+    );
+
+    if (myProfileInformation === undefined) {
+        return (
+            <AppScreen>
+                <AppScreenHeader
+                    title=""
+                    insetTop={insets.top}
+                    canGoBack={true}
+                    goBack={() => {
+                        navigation.goBack();
+                    }}
+                />
+
+                <AppScreenContainer testID="default-my-profile-page-screen">
+                    {userNotFound ? (
+                        <>
+                            <Text>User not found</Text>
+                            <Button
+                                title="Go back"
+                                onPress={() => navigation.goBack()}
+                            />
+                        </>
+                    ) : (
+                        <Text>LOADING</Text>
+                    )}
+                </AppScreenContainer>
+            </AppScreen>
+        );
+    }
 
     return (
         <AppScreen>
@@ -28,6 +77,7 @@ const MyProfileScreen: React.FC<UserProfileScreenProps> = ({ navigation }) => {
 
             <AppScreenContainer testID="my-profile-page-container">
                 <Typo>{userID} my profile</Typo>
+                <Typo>My Devices: {myProfileInformation.devicesCounter}</Typo>
             </AppScreenContainer>
         </AppScreen>
     );

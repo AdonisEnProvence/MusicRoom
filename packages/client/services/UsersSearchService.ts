@@ -1,4 +1,6 @@
 import {
+    GetMyProfileInformationRequestBody,
+    GetMyProfileInformationResponseBody,
     GetUserProfileInformationRequestBody,
     GetUserProfileInformationResponseBody,
     SearchUsersRequestBody,
@@ -48,6 +50,19 @@ export async function getUserProfileInformation(
 
     const rawResponse = await redaxios.post(url, body);
     const parsedBody = GetUserProfileInformationResponseBody.parse(
+        rawResponse.data,
+    );
+
+    return parsedBody;
+}
+
+export async function getMyProfileInformation(
+    body: GetMyProfileInformationRequestBody,
+): Promise<GetMyProfileInformationResponseBody> {
+    const url = urlcat(SERVER_ENDPOINT, '/user/my-profile-information');
+
+    const rawResponse = await redaxios.post(url, body);
+    const parsedBody = GetMyProfileInformationResponseBody.parse(
         rawResponse.data,
     );
 

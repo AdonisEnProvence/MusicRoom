@@ -1,6 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useActor, useMachine } from '@xstate/react';
-import { ScrollView, Text, View } from 'dripsy';
+import { ScrollView, Text, useSx, View } from 'dripsy';
 import React from 'react';
+import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
     AppScreen,
@@ -13,6 +15,23 @@ import {
     settingsMachine,
     VisibilitySettingMachineActor,
 } from './settingsMachine';
+
+interface SettingContainerProps {
+    title: string;
+}
+
+const SettingContainer: React.FC<SettingContainerProps> = ({
+    title,
+    children,
+}) => {
+    return (
+        <View>
+            <Text sx={{ color: 'white', fontSize: 'l' }}>{title}</Text>
+
+            {children}
+        </View>
+    );
+};
 
 interface VisibilitySettingProps {
     title: string;
@@ -59,9 +78,7 @@ const VisibilitySetting: React.FC<VisibilitySettingProps> = ({
     ];
 
     return (
-        <View>
-            <Text sx={{ color: 'white', fontSize: 'l' }}>{title}</Text>
-
+        <SettingContainer title={title}>
             <View
                 sx={{
                     flexDirection: 'row',
@@ -90,12 +107,13 @@ const VisibilitySetting: React.FC<VisibilitySettingProps> = ({
                     );
                 })}
             </View>
-        </View>
+        </SettingContainer>
     );
 };
 
 const MySettings: React.FC<MySettingsScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
+    const sx = useSx();
     const [state] = useMachine(settingsMachine);
 
     const settings = [
@@ -146,6 +164,57 @@ const MySettings: React.FC<MySettingsScreenProps> = ({ navigation }) => {
                             marginRight: 'auto',
                         }}
                     >
+                        <View
+                            sx={{
+                                marginBottom: 'xxl',
+                            }}
+                        >
+                            <SettingContainer title="Personal information">
+                                <View
+                                    sx={{
+                                        paddingTop: 'm',
+                                    }}
+                                >
+                                    <TouchableOpacity
+                                        style={sx({
+                                            flexDirection: 'row',
+                                            justifyContent: 'space-between',
+                                            paddingX: 'm',
+                                            paddingY: 'l',
+                                        })}
+                                    >
+                                        <Text sx={{ color: 'white' }}>
+                                            Nickname
+                                        </Text>
+
+                                        <View
+                                            sx={{
+                                                flexDirection: 'row',
+                                                alignItems: 'center',
+                                            }}
+                                        >
+                                            <Text
+                                                sx={{
+                                                    color: 'greyLighter',
+                                                    marginRight: 's',
+                                                }}
+                                            >
+                                                Devessier
+                                            </Text>
+
+                                            <Ionicons
+                                                name="chevron-forward"
+                                                size={16}
+                                                style={sx({
+                                                    color: 'greyLighter',
+                                                })}
+                                            />
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
+                            </SettingContainer>
+                        </View>
+
                         {settings.map(
                             (
                                 {

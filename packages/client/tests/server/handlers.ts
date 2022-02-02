@@ -11,6 +11,12 @@ import {
     SearchUsersRequestBody,
     SearchUsersResponseBody,
     TrackMetadata,
+    UpdateDevicesVisibilityRequestBody,
+    UpdateDevicesVisibilityResponseBody,
+    UpdatePlaylistsVisibilityRequestBody,
+    UpdatePlaylistsVisibilityResponseBody,
+    UpdateRelationsVisibilityRequestBody,
+    UpdateRelationsVisibilityResponseBody,
 } from '@musicroom/types';
 import { datatype } from 'faker';
 import { rest } from 'msw';
@@ -201,4 +207,37 @@ export const handlers = [
             );
         },
     ),
+
+    rest.post<
+        UpdatePlaylistsVisibilityRequestBody,
+        UpdatePlaylistsVisibilityResponseBody
+    >(`${SERVER_ENDPOINT}/me/playlists-visibility`, (_req, res, ctx) => {
+        return res(
+            ctx.json({
+                status: 'SUCCESS',
+            }),
+        );
+    }),
+
+    rest.post<
+        UpdateRelationsVisibilityRequestBody,
+        UpdateRelationsVisibilityResponseBody
+    >(`${SERVER_ENDPOINT}/me/relations-visibility`, (_req, res, ctx) => {
+        return res(
+            ctx.json({
+                status: 'SUCCESS',
+            }),
+        );
+    }),
+
+    rest.post<
+        UpdateDevicesVisibilityRequestBody,
+        UpdateDevicesVisibilityResponseBody
+    >(`${SERVER_ENDPOINT}/me/devices-visibility`, (_req, res, ctx) => {
+        return res(
+            ctx.json({
+                status: 'SUCCESS',
+            }),
+        );
+    }),
 ];

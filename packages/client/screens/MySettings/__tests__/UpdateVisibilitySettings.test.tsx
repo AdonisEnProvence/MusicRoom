@@ -3,11 +3,13 @@ import { createModel } from 'xstate/lib/model';
 import { createModel as createTestModel } from '@xstate/test';
 import { EventFrom } from 'xstate';
 import cases from 'jest-in-case';
+import Toast from 'react-native-toast-message';
 import {
     fireEvent,
     render,
     renderApp,
     within,
+    waitFor,
 } from '../../../tests/tests-utils';
 
 interface TestingContext {
@@ -580,6 +582,14 @@ cases<{
         await plan.test({
             screen,
         });
+
+        await waitFor(() => {
+            expect(Toast.show).toHaveBeenCalledWith({
+                type: 'success',
+                text1: expect.any(String),
+            });
+        });
+        expect(Toast.show).toHaveBeenCalledTimes(1);
     },
     {
         'Can set playlists visibility to public': {

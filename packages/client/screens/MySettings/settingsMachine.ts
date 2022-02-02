@@ -1,4 +1,5 @@
 import { UserSettingVisibility } from '@musicroom/types';
+import Toast from 'react-native-toast-message';
 import invariant from 'tiny-invariant';
 import { ActorRefFrom, assign, send } from 'xstate';
 import { createModel } from 'xstate/lib/model';
@@ -33,7 +34,7 @@ const visibilitySettingModel = createModel(
 );
 
 const visibilitySettingMachine =
-    /** @xstate-layout N4IgpgJg5mDOIC5QDUCWtUCNUBtUBcBPAAgGUx99UA7KAOjQ2zyLPwEN8BXWOgBS6Y8AYwDEAVQAOETmGKMsuAoUShJAewxV11VSAAeiAOwAGI3QCcARiMWLAJgCsVgCwv7ADnsAaECoSOJgDMdI4AbEEWtlEmTh4uAL4JvgrMymQUVLQM6IosJKQc3LwAYuo4OOoA7mAATrDEAPLUOIQS0rLyuWlEehpaqDp6hgj2YS50QS6O9vZGHo5BVmEmNr7+Vg50pkHOYcu7LkbuSSndSqzklDT0qRcFRTz8tagAbrLtMvhyd-l9mgRBrokAZjGZLDY7E5XO4vOtEDYQvYgqYTC4VkYrEszKcQL90lcsvQ+HUMLBvtRhHJ8OpiAAhdjCADWYGoEH4pPQROINPpjJZbNEEB0YDoNFe6hZHPqXOIUi+kC6THubE4PH+AyGIJGVnssW2i3sFmckXirnhCCiHjoHmWHgsQS81jCRiCuPxl0yN2lZIpVJ5tIZzNZ7IAImBMOouJS5AAlMAARy4cHwDV5QYFEFE+nJsjo7AAZt9apMTCYNYCtaARmELCZJjCYlEjGFxharTblg4XEtFl4wu7zvkMtdsiSZeTWf70-yQ6JyGylXl0vLOjPg2yK9pgdXjD4-IgO7ba-Ye1Y+2MkskQNR1BA4HoPQUvdkn6rivxBCIt0DhohHEYjh0EaRh6ueswrPaFq9nQmw9rsqxhKe6KDsqw6Et6b6FGqpTlJUNT1E0LT+GoALbn+CCgdB56wRY8GBMsyEDteWEvrcQ4Eo8vB8C87zfD+VagggVirNaHi1hYrZWB4jpGEY1HmLW9GIUxqHLp6o7sWhnE4QJO5CS4Hjtta+wLO4QRIQ4yKOGpPTPppPpclO1KBrObJ0AAkhAOBgHpFHnhZdDBJJQRzEEsSQe2tg2mE8QuiiSwojZLEcRpRKOZOMYBnyG7suOvo3NlGYhn52qIAsVilmYLomLaxpHO2jgTIEdEeLayLLK2tkqhhY6cpl06ubldDhpG0b+vGSYpmmQ2ZqVu4IBZ9ihD2AFWq64VjFFFgxfEdiOIswSuN16FsRlfouTlc0gv0lb6SMhkWuJ5j2iYdFlsi7g9idBJsfNQmnhap5BWWtWrNJmIWQdV4JEAA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QDUCWtUCNUBtUBcBPAAgGUx99UA7KAOjQ2zyLPwEN8BXWOgBS6Y8AYwDEAVQAOETmGKMsuAoUShJAewxV11VSAAeiAOwAGI3QCcARiMWLAJgCsVgCwv7ADnsAaECoSOJgDMdI4AbEEWtlEmTh4uAL4JvgrMymQUVLQM6IosJKQc3LwAYuo4OOoA7mAATrDEAPLUOIQS0rLyuWlEehpaqDp6hgj2YS50QS6O9vZGHo5BVmEmNr7+Vg50pkHOYcu7LkbuSSndSqzklDT0qRcFRTz8tagAbrLtMvhyd-l9mgRBrokAZjGZLDY7E5XO4vOtEDYQvYgqYTC4VkYrEszKcQL90lcsvQ+HUMLBvtRhHJ8OpiAAhdjCADWYGoEH4pPQROINPpjJZbNEEB0YDoNFe6hZHPqXOIUi+kC6THubE4PH+AyGIJGVnssW2i3sFmckXirnhCCiHjoHmWHgsQS81jCRiCuPxl0yN2lZIpVJ5tIZzNZ7IAImBMOouJS5AAlMAARy4cHwDV5QYFEFE+nJsjo7AAZt9apMTCYNYCtaARmELCZJjCYlEjGFxharTblg4XEtFl4wu7zvkMtdsiSZeTWf70-yQ6JyGylXl0vLOjPg2yK9pgdXjD4-IgO7ba-Ye1Y+2MkskQNR1BA4HoPQUvdkn6rivxBCIt0DhohHEYjh0EaRh6ueswrPaFq9nQmw9rsqxhKe6KDsqw6Et6b6FGqpTlJUNT1E0LT+GoALbn+CCgdB56wRY8GBMsyEDteWEvrcQ4Eo8vB8C87zfD+VagggVirNaHi1hYrZWB4jpGEY1HmLW9GIUxqHLp6o7sWhnE4QJO5CS4Hjtta+zxJitquoEp5qT0z6aT6XJTtSgazmydAAJIQDgYB6RR55BGEdDBJJQRzEEsSQe2tg2mE8QuiiSwoo4NkqhhY6cpOMYBnyG7suOvo3NlGYhr52qIAsVilmYLomLaxpHO2jgTIEdEeLayLLK2KXoWxDmZdOLm5XQ4aRtG-rxkmKZpoNmalbuCABfYoQ9gBVquuFYxRRYMXxHYjiLMErjdQSvX5Y5WXrrNIL9JW+kjIZFrieY9omMaixBB9CweMdGlEnNQmnha1lXkAA */
     visibilitySettingModel.createMachine(
         {
             id: 'Visibility Setting',
@@ -111,6 +112,8 @@ const visibilitySettingMachine =
                                 src: 'Persist Updated Visibility Status',
                                 onDone: [
                                     {
+                                        actions:
+                                            'Trigger acknowledgement toast',
                                         target: '#Visibility Setting.Persistence to Backend.Idle',
                                     },
                                 ],
@@ -276,6 +279,15 @@ export const settingsMachine =
                                 });
                             },
                         },
+
+                        actions: {
+                            'Trigger acknowledgement toast': () => {
+                                Toast.show({
+                                    type: 'success',
+                                    text1: 'Playlists visibility updated successfully',
+                                });
+                            },
+                        },
                     }),
 
                 'Relations Visibility Manager Machine':
@@ -294,6 +306,15 @@ export const settingsMachine =
                                 });
                             },
                         },
+
+                        actions: {
+                            'Trigger acknowledgement toast': () => {
+                                Toast.show({
+                                    type: 'success',
+                                    text1: 'Relations visibility updated successfully',
+                                });
+                            },
+                        },
                     }),
 
                 'Devices Visibility Manager Machine':
@@ -309,6 +330,15 @@ export const settingsMachine =
 
                                 await setUserDevicesSettingVisibility({
                                     visibility: lastSelectedVisibilityStatus,
+                                });
+                            },
+                        },
+
+                        actions: {
+                            'Trigger acknowledgement toast': () => {
+                                Toast.show({
+                                    type: 'success',
+                                    text1: 'Devices visibility updated successfully',
                                 });
                             },
                         },

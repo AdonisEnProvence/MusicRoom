@@ -1,6 +1,8 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import { MtvWorkflowState } from '@musicroom/types';
-import { Button } from 'dripsy';
+import { Button, useSx, View } from 'dripsy';
 import React from 'react';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
     AppScreen,
@@ -15,10 +17,42 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const { sendToMusicPlayerMachine } = useMusicPlayerContext();
     const { sendToUserMachine } = useUserContext();
+    const sx = useSx();
+
+    function handleMyProfileIconPress() {
+        navigation.navigate('MyProfile', {
+            screen: 'MyProfile',
+        });
+    }
 
     return (
         <AppScreen>
-            <AppScreenHeader title="Home" insetTop={insets.top} />
+            <AppScreenHeader
+                title="Home"
+                insetTop={insets.top}
+                HeaderRight={() => {
+                    return (
+                        <View sx={{ marginLeft: 'xl' }}>
+                            <TouchableOpacity
+                                onPress={handleMyProfileIconPress}
+                            >
+                                <MaterialIcons
+                                    testID="open-my-profile-page-button"
+                                    accessibilityLabel={`Open my profile page`}
+                                    name="account-circle"
+                                    style={sx({
+                                        fontSize: 'm',
+                                        color: 'white',
+                                        padding: 's',
+                                        alignSelf: 'flex-end',
+                                    })}
+                                    color="black"
+                                />
+                            </TouchableOpacity>
+                        </View>
+                    );
+                }}
+            />
 
             <AppScreenContainer>
                 <Button

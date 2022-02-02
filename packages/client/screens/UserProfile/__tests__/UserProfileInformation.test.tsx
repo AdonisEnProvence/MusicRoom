@@ -72,8 +72,8 @@ test('It should display user not found after display unkown user profile page', 
     await waitFor(() => {
         const profileScreen = screen.getByTestId(`default-profile-page-screen`);
         expect(profileScreen).toBeTruthy();
-        const followButton = screen.getByText(/go back/i);
-        expect(followButton).toBeTruthy();
+        const goBackButton = screen.getByText(/go back/i);
+        expect(goBackButton).toBeTruthy();
         expect(Toast.show).toHaveBeenNthCalledWith(1, {
             type: 'error',
             text1: 'User not found',

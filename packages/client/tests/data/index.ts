@@ -47,6 +47,12 @@ export const db = factory({
         userNickname: () => internet.userName(),
         following: () => datatype.boolean(),
     },
+
+    myProfileInformation: {
+        userID: primaryKey(() => datatype.uuid()),
+        userNickname: () => internet.userName(),
+        devicesCounter: () => datatype.number(),
+    },
 });
 
 export function generateTrackMetadata(

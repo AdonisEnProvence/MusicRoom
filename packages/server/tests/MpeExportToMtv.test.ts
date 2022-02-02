@@ -12,12 +12,13 @@ import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
 import urlcat from 'urlcat';
-import { MPE_TEMPORAL_LISTENER, MTV_TEMPORAL_LISTENER } from '../start/routes';
 import {
     BASE_URL,
     initTestUtils,
     createSpyOnClientSocketEvent,
     waitForTimeout,
+    TEST_MTV_TEMPORAL_LISTENER,
+    TEST_MPE_TEMPORAL_LISTENER,
 } from './utils/TestUtils';
 
 test.group('MPE Export to MTV', (group) => {
@@ -78,7 +79,7 @@ test.group('MPE Export to MTV', (group) => {
                     await supertest(BASE_URL)
                         .post(
                             urlcat(
-                                MPE_TEMPORAL_LISTENER,
+                                TEST_MPE_TEMPORAL_LISTENER,
                                 'request-mtv-room-creation',
                             ),
                         )
@@ -138,7 +139,7 @@ test.group('MPE Export to MTV', (group) => {
                     await supertest(BASE_URL)
                         .post(
                             urlcat(
-                                MTV_TEMPORAL_LISTENER,
+                                TEST_MTV_TEMPORAL_LISTENER,
                                 '/mtv-creation-acknowledgement',
                             ),
                         )

@@ -95,6 +95,10 @@ export type MtvServerToTemporalControllerLeaveWorkflowStub = sinon.SinonStub<
 
 export const BASE_URL = `http://${process.env.HOST!}:${process.env.PORT!}`;
 
+export const TEST_MTV_TEMPORAL_LISTENER = `/temporal/mtv`;
+export const TEST_MPE_TEMPORAL_LISTENER = `/temporal/mpe`;
+export const TEST_USER_ROUTES_GROUP_PREFIX = '/user';
+
 interface TestUtilsReturnedValue {
     initSocketConnection: () => void;
     disconnectEveryRemainingSocketConnection: () => Promise<void>;

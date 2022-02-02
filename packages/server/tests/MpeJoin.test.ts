@@ -6,12 +6,12 @@ import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
 import urlcat from 'urlcat';
-import { MPE_TEMPORAL_LISTENER } from '../start/routes';
 import {
     BASE_URL,
     createSpyOnClientSocketEvent,
     generateMpeWorkflowState,
     initTestUtils,
+    TEST_MPE_TEMPORAL_LISTENER,
 } from './utils/TestUtils';
 
 test.group(`join mpe room group test`, (group) => {
@@ -126,7 +126,12 @@ test.group(`join mpe room group test`, (group) => {
 
                 setImmediate(async () => {
                     await supertest(BASE_URL)
-                        .post(urlcat(MPE_TEMPORAL_LISTENER, 'acknowledge-join'))
+                        .post(
+                            urlcat(
+                                TEST_MPE_TEMPORAL_LISTENER,
+                                'acknowledge-join',
+                            ),
+                        )
                         .send(response)
                         .expect(200);
                 });

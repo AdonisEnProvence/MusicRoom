@@ -10,11 +10,11 @@ import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
 import urlcat from 'urlcat';
-import { MPE_TEMPORAL_LISTENER } from '../start/routes';
 import {
     BASE_URL,
     initTestUtils,
     generateMpeWorkflowState,
+    TEST_MPE_TEMPORAL_LISTENER,
 } from './utils/TestUtils';
 
 function noop() {
@@ -105,7 +105,7 @@ test.group('MPE Add Tracks', (group) => {
                     await supertest(BASE_URL)
                         .post(
                             urlcat(
-                                MPE_TEMPORAL_LISTENER,
+                                TEST_MPE_TEMPORAL_LISTENER,
                                 'reject-adding-tracks',
                             ),
                         )
@@ -182,7 +182,7 @@ test.group('MPE Add Tracks', (group) => {
                     await supertest(BASE_URL)
                         .post(
                             urlcat(
-                                MPE_TEMPORAL_LISTENER,
+                                TEST_MPE_TEMPORAL_LISTENER,
                                 'acknowledge-adding-tracks',
                             ),
                         )
@@ -261,7 +261,7 @@ test.group('MPE Add Tracks', (group) => {
                     await supertest(BASE_URL)
                         .post(
                             urlcat(
-                                MPE_TEMPORAL_LISTENER,
+                                TEST_MPE_TEMPORAL_LISTENER,
                                 'acknowledge-adding-tracks',
                             ),
                         )
@@ -345,7 +345,7 @@ test.group('MPE Add Tracks', (group) => {
                     await supertest(BASE_URL)
                         .post(
                             urlcat(
-                                MPE_TEMPORAL_LISTENER,
+                                TEST_MPE_TEMPORAL_LISTENER,
                                 'acknowledge-adding-tracks',
                             ),
                         )

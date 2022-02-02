@@ -9,11 +9,11 @@ import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
 import urlcat from 'urlcat';
-import { MPE_TEMPORAL_LISTENER } from '../start/routes';
 import {
     BASE_URL,
     getDefaultMpeRoomCreateRoomArgs,
     initTestUtils,
+    TEST_MPE_TEMPORAL_LISTENER,
 } from './utils/TestUtils';
 
 test.group(`mpe rooms relationship tests`, (group) => {
@@ -155,7 +155,7 @@ test.group(`mpe rooms relationship tests`, (group) => {
                     await supertest(BASE_URL)
                         .post(
                             urlcat(
-                                MPE_TEMPORAL_LISTENER,
+                                TEST_MPE_TEMPORAL_LISTENER,
                                 'mpe-creation-acknowledgement',
                             ),
                         )

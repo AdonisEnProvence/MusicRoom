@@ -10,12 +10,12 @@ import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
 import urlcat from 'urlcat';
-import { MPE_TEMPORAL_LISTENER } from '../start/routes';
 import {
     BASE_URL,
     createSpyOnClientSocketEvent,
     generateMpeWorkflowState,
     initTestUtils,
+    TEST_MPE_TEMPORAL_LISTENER,
 } from './utils/TestUtils';
 
 test.group(`mpe rooms change track order group test`, (group) => {
@@ -156,7 +156,7 @@ test.group(`mpe rooms change track order group test`, (group) => {
                 await supertest(BASE_URL)
                     .post(
                         urlcat(
-                            MPE_TEMPORAL_LISTENER,
+                            TEST_MPE_TEMPORAL_LISTENER,
                             'acknowledge-change-track-order',
                         ),
                     )
@@ -327,7 +327,7 @@ test.group(`mpe rooms change track order group test`, (group) => {
                     await supertest(BASE_URL)
                         .post(
                             urlcat(
-                                MPE_TEMPORAL_LISTENER,
+                                TEST_MPE_TEMPORAL_LISTENER,
                                 'reject-change-track-order',
                             ),
                         )

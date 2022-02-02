@@ -1,12 +1,15 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import {
+    GetMyProfileInformationRequestBody,
+    GetMyProfileInformationResponseBody,
     GetUserProfileInformationRequestBody,
+    GetUserProfileInformationResponseBody,
     SearchUsersRequestBody,
     SearchUsersResponseBody,
-    UserProfileInformation,
 } from '@musicroom/types';
 import ForbiddenException from 'App/Exceptions/ForbiddenException';
 import User from 'App/Models/User';
+import invariant from 'tiny-invariant';
 
 const SEARCH_USERS_LIMIT = 10;
 
@@ -40,7 +43,7 @@ export default class SearchUsersController {
 
     public async getUserProfileInformation({
         request,
-    }: HttpContextContract): Promise<UserProfileInformation> {
+    }: HttpContextContract): Promise<GetUserProfileInformationResponseBody> {
         const rawBody = request.body();
         //TODO tmpAuthUserID refactor authentication
         const { tmpAuthUserID, userID } =
@@ -61,6 +64,26 @@ export default class SearchUsersController {
             userID,
             userNickname,
             following,
+        };
+    }
+
+    public async getMyProfileInformation({
+        request,
+    }: HttpContextContract): Promise<GetMyProfileInformationResponseBody> {
+        const rawBody = request.body();
+
+        const { tmpAuthUserID } =
+            GetMyProfileInformationRequestBody.parse(rawBody);
+
+        const user = await User.findOrFail(tmpAuthUserID);
+        await user.load('devices');
+
+        invariant(user.devices.length > 0, 'user has no related devices');
+
+        return {
+            userID: user.uuid,
+            devicesCounter: user.devices.length,
+            userNickname: user.nickname,
         };
     }
 }

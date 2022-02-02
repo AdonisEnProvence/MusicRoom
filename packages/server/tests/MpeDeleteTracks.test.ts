@@ -6,12 +6,12 @@ import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
 import urlcat from 'urlcat';
-import { MPE_TEMPORAL_LISTENER } from '../start/routes';
 import {
     BASE_URL,
     initTestUtils,
     generateMpeWorkflowState,
     createSpyOnClientSocketEvent,
+    TEST_MPE_TEMPORAL_LISTENER,
 } from './utils/TestUtils';
 
 test.group('MPE Delete Tracks', (group) => {
@@ -65,7 +65,7 @@ test.group('MPE Delete Tracks', (group) => {
                 await supertest(BASE_URL)
                     .post(
                         urlcat(
-                            MPE_TEMPORAL_LISTENER,
+                            TEST_MPE_TEMPORAL_LISTENER,
                             'acknowledge-deleting-tracks',
                         ),
                     )
@@ -144,7 +144,7 @@ test.group('MPE Delete Tracks', (group) => {
                 await supertest(BASE_URL)
                     .post(
                         urlcat(
-                            MPE_TEMPORAL_LISTENER,
+                            TEST_MPE_TEMPORAL_LISTENER,
                             'acknowledge-deleting-tracks',
                         ),
                     )
@@ -219,7 +219,7 @@ test.group('MPE Delete Tracks', (group) => {
                 await supertest(BASE_URL)
                     .post(
                         urlcat(
-                            MPE_TEMPORAL_LISTENER,
+                            TEST_MPE_TEMPORAL_LISTENER,
                             'acknowledge-deleting-tracks',
                         ),
                     )

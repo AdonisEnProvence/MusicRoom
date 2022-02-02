@@ -7,7 +7,8 @@ import User from 'App/Models/User';
 import { datatype, internet } from 'faker';
 import test from 'japa';
 import supertest from 'supertest';
-import { BASE_URL } from './utils/TestUtils';
+import urlcat from 'urlcat';
+import { BASE_URL, TEST_USER_ROUTES_GROUP_PREFIX } from './utils/TestUtils';
 
 test.group('Users Profile information tests', (group) => {
     group.beforeEach(async () => {
@@ -31,7 +32,7 @@ test.group('Users Profile information tests', (group) => {
         });
 
         const { body: rawBody } = await supertest(BASE_URL)
-            .post('/user/profile-information')
+            .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
             .send({
                 tmpAuthUserID: userID,
                 userID: searchedUserID,
@@ -60,7 +61,12 @@ test.group('Users Profile information tests', (group) => {
             });
 
             const { body: rawBody } = await supertest(BASE_URL)
-                .post('/user/profile-information')
+                .post(
+                    urlcat(
+                        TEST_USER_ROUTES_GROUP_PREFIX,
+                        'profile-information',
+                    ),
+                )
                 .send({
                     tmpAuthUserID: userID,
                     userID: searchedUserID,
@@ -86,7 +92,7 @@ test.group('Users Profile information tests', (group) => {
         });
 
         await supertest(BASE_URL)
-            .post('/user/profile-information')
+            .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
             .send({
                 tmpAuthUserID: userID,
                 userID: searchedUserID,
@@ -103,7 +109,7 @@ test.group('Users Profile information tests', (group) => {
         });
 
         await supertest(BASE_URL)
-            .post('/user/profile-information')
+            .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
             .send({
                 tmpAuthUserID: userID,
                 userID: searchedUserID,
@@ -119,7 +125,7 @@ test.group('Users Profile information tests', (group) => {
         });
 
         await supertest(BASE_URL)
-            .post('/user/profile-information')
+            .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
             .send({
                 tmpAuthUserID: userID,
                 userID: userID,

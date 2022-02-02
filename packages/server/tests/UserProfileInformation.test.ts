@@ -7,6 +7,8 @@ import User from 'App/Models/User';
 import { datatype, internet } from 'faker';
 import test from 'japa';
 import supertest from 'supertest';
+import urlcat from 'urlcat';
+import { USER_ROUTES_GROUP_PREFIX } from '../start/routes';
 import { BASE_URL } from './utils/TestUtils';
 
 test.group('Users Profile information tests', (group) => {
@@ -31,7 +33,7 @@ test.group('Users Profile information tests', (group) => {
         });
 
         const { body: rawBody } = await supertest(BASE_URL)
-            .post('/user/profile-information')
+            .post(urlcat(USER_ROUTES_GROUP_PREFIX, 'profile-information'))
             .send({
                 tmpAuthUserID: userID,
                 userID: searchedUserID,
@@ -60,7 +62,7 @@ test.group('Users Profile information tests', (group) => {
             });
 
             const { body: rawBody } = await supertest(BASE_URL)
-                .post('/user/profile-information')
+                .post(urlcat(USER_ROUTES_GROUP_PREFIX, 'profile-information'))
                 .send({
                     tmpAuthUserID: userID,
                     userID: searchedUserID,
@@ -86,7 +88,7 @@ test.group('Users Profile information tests', (group) => {
         });
 
         await supertest(BASE_URL)
-            .post('/user/profile-information')
+            .post(urlcat(USER_ROUTES_GROUP_PREFIX, 'profile-information'))
             .send({
                 tmpAuthUserID: userID,
                 userID: searchedUserID,
@@ -103,7 +105,7 @@ test.group('Users Profile information tests', (group) => {
         });
 
         await supertest(BASE_URL)
-            .post('/user/profile-information')
+            .post(urlcat(USER_ROUTES_GROUP_PREFIX, 'profile-information'))
             .send({
                 tmpAuthUserID: userID,
                 userID: searchedUserID,
@@ -119,7 +121,7 @@ test.group('Users Profile information tests', (group) => {
         });
 
         await supertest(BASE_URL)
-            .post('/user/profile-information')
+            .post(urlcat(USER_ROUTES_GROUP_PREFIX, 'profile-information'))
             .send({
                 tmpAuthUserID: userID,
                 userID: userID,

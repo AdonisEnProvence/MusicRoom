@@ -26,8 +26,9 @@ export async function setUserPlaylistsSettingVisibility({
     };
 
     const rawResponse = await redaxios.post(url, body);
-    const parsedResponse =
-        UpdatePlaylistsVisibilityResponseBody.parse(rawResponse);
+    const parsedResponse = UpdatePlaylistsVisibilityResponseBody.parse(
+        rawResponse.data,
+    );
 
     return parsedResponse;
 }
@@ -46,8 +47,9 @@ export async function setUserRelationsSettingVisibility({
     };
 
     const rawResponse = await redaxios.post(url, body);
-    const parsedResponse =
-        UpdateRelationsVisibilityResponseBody.parse(rawResponse);
+    const parsedResponse = UpdateRelationsVisibilityResponseBody.parse(
+        rawResponse.data,
+    );
 
     return parsedResponse;
 }
@@ -66,8 +68,9 @@ export async function setUserDevicesSettingVisibility({
     };
 
     const rawResponse = await redaxios.post(url, body);
-    const parsedResponse =
-        UpdateDevicesVisibilityResponseBody.parse(rawResponse);
+    const parsedResponse = UpdateDevicesVisibilityResponseBody.parse(
+        rawResponse.data,
+    );
 
     return parsedResponse;
 }

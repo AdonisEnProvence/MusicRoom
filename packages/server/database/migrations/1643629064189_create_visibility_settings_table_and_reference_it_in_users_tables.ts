@@ -1,7 +1,6 @@
 import { randomUUID } from 'crypto';
 import BaseSchema from '@ioc:Adonis/Lucid/Schema';
 import { UserSettingVisibility } from '@musicroom/types';
-import invariant from 'tiny-invariant';
 
 export default class CreateVisibilitySettingsTableAndReferenceItInUsersTables extends BaseSchema {
     protected tableName = 'setting_visibilities';

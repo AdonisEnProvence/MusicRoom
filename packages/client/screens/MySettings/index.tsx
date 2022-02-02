@@ -98,18 +98,21 @@ const MySettings: React.FC<MySettingsScreenProps> = ({ navigation }) => {
 
     const settings = [
         {
+            containerTestID: 'playlists-visibility-radio-group',
             title: 'Playlists visibility',
             visibilitySettingActor: state.children[
                 'Playlists Visibility Manager Machine'
             ] as VisibilitySettingMachineActor,
         },
         {
+            containerTestID: 'playlists-relations-radio-group',
             title: 'Relations visibility',
             visibilitySettingActor: state.children[
                 'Relations Visibility Manager Machine'
             ] as VisibilitySettingMachineActor,
         },
         {
+            containerTestID: 'playlists-devices-radio-group',
             title: 'Devices visibility',
             visibilitySettingActor: state.children[
                 'Devices Visibility Manager Machine'
@@ -142,12 +145,16 @@ const MySettings: React.FC<MySettingsScreenProps> = ({ navigation }) => {
                     }}
                 >
                     {settings.map(
-                        ({ title, visibilitySettingActor }, index) => {
+                        (
+                            { containerTestID, title, visibilitySettingActor },
+                            index,
+                        ) => {
                             const isLastSetting = index === settings.length - 1;
                             const isNotLastSetting = isLastSetting === false;
 
                             return (
                                 <View
+                                    testID={containerTestID}
                                     key={index}
                                     sx={{
                                         marginBottom:

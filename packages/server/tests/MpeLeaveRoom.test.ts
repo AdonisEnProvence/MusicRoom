@@ -7,12 +7,12 @@ import sinon from 'sinon';
 import supertest from 'supertest';
 import urlcat from 'urlcat';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
-import { MPE_TEMPORAL_LISTENER } from '../start/routes';
 import {
     initTestUtils,
     generateMpeWorkflowState,
     createSpyOnClientSocketEvent,
     BASE_URL,
+    TEST_MPE_TEMPORAL_LISTENER,
 } from './utils/TestUtils';
 
 test.group('MPE leave room tests group', (group) => {
@@ -78,7 +78,7 @@ test.group('MPE leave room tests group', (group) => {
                         await supertest(BASE_URL)
                             .post(
                                 urlcat(
-                                    MPE_TEMPORAL_LISTENER,
+                                    TEST_MPE_TEMPORAL_LISTENER,
                                     'acknowledge-leave',
                                 ),
                             )

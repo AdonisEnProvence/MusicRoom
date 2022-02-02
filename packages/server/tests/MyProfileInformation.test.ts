@@ -6,22 +6,33 @@ import {
 import User from 'App/Models/User';
 import { datatype, internet } from 'faker';
 import test from 'japa';
+import sinon from 'sinon';
 import supertest from 'supertest';
 import urlcat from 'urlcat';
-import { USER_ROUTES_GROUP_PREFIX } from '../start/routes';
-import { BASE_URL, initTestUtils } from './utils/TestUtils';
+import {
+    BASE_URL,
+    initTestUtils,
+    TEST_USER_ROUTES_GROUP_PREFIX,
+} from './utils/TestUtils';
 
 test.group('Users Profile information tests', (group) => {
-    const { createUserAndGetSocket, createSocketConnection } = initTestUtils();
+    const {
+        createUserAndGetSocket,
+        createSocketConnection,
+        initSocketConnection,
+        disconnectEveryRemainingSocketConnection,
+    } = initTestUtils();
 
     group.beforeEach(async () => {
+        initSocketConnection();
         await Database.beginGlobalTransaction();
     });
 
     group.afterEach(async () => {
+        await disconnectEveryRemainingSocketConnection();
+        sinon.restore();
         await Database.rollbackGlobalTransaction();
     });
-
     test('It should retrieve my profile information', async (assert) => {
         const userID = datatype.uuid();
         const userNickname = internet.userName();
@@ -34,7 +45,9 @@ test.group('Users Profile information tests', (group) => {
         });
 
         const { body: rawBody } = await supertest(BASE_URL)
-            .post(urlcat(USER_ROUTES_GROUP_PREFIX, 'my-profile-information'))
+            .post(
+                urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'my-profile-information'),
+            )
             .send({
                 tmpAuthUserID: userID,
             } as GetMyProfileInformationRequestBody)
@@ -51,7 +64,9 @@ test.group('Users Profile information tests', (group) => {
         const userID = datatype.uuid();
 
         await supertest(BASE_URL)
-            .post(urlcat(USER_ROUTES_GROUP_PREFIX, 'my-profile-information'))
+            .post(
+                urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'my-profile-information'),
+            )
             .send({
                 tmpAuthUserID: userID,
             } as GetMyProfileInformationRequestBody)
@@ -66,7 +81,9 @@ test.group('Users Profile information tests', (group) => {
         });
 
         await supertest(BASE_URL)
-            .post(urlcat(USER_ROUTES_GROUP_PREFIX, 'my-profile-information'))
+            .post(
+                urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'my-profile-information'),
+            )
             .send({
                 tmpAuthUserID: userID,
             } as GetMyProfileInformationRequestBody)

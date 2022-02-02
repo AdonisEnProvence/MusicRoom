@@ -1,4 +1,5 @@
 import * as z from 'zod';
+import { StrictlyPositiveInteger } from './int';
 
 const SharedUserProfileInformation = z.object({
     userID: z.string().uuid(),
@@ -8,6 +9,7 @@ type SharedUserProfileInformation = z.infer<
     typeof SharedUserProfileInformation
 >;
 
+//User profile information
 export const UserProfileInformation = SharedUserProfileInformation.extend({
     following: z.boolean(),
 });
@@ -24,4 +26,23 @@ export type GetUserProfileInformationRequestBody = z.infer<
 export const GetUserProfileInformationResponseBody = UserProfileInformation;
 export type GetUserProfileInformationResponseBody = z.infer<
     typeof GetUserProfileInformationResponseBody
+>;
+
+//my profile information
+
+export const MyProfileInformation = SharedUserProfileInformation.extend({
+    devicesCounter: StrictlyPositiveInteger,
+});
+export type MyProfileInformation = z.infer<typeof MyProfileInformation>;
+
+export const GetMyProfileInformationRequestBody = z.object({
+    tmpAuthUserID: z.string().uuid(),
+});
+export type GetMyProfileInformationRequestBody = z.infer<
+    typeof GetMyProfileInformationRequestBody
+>;
+
+export const GetMyProfileInformationResponseBody = MyProfileInformation;
+export type GetMyProfileInformationResponseBody = z.infer<
+    typeof GetMyProfileInformationResponseBody
 >;

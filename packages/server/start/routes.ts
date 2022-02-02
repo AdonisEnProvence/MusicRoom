@@ -34,10 +34,19 @@ Route.post('/mpe/search/my-rooms', 'MpeRoomsHttpController.listMyRooms');
 
 Route.post('/mpe/search/all-rooms', 'MpeRoomsHttpController.listAllRooms');
 
-Route.post(
-    '/user/profile-information',
-    'SearchUsersController.getUserProfileInformation',
-);
+export const USER_ROUTES_GROUP_PREFIX = '/user';
+
+Route.group(() => {
+    Route.post(
+        '/profile-information',
+        'SearchUsersController.getUserProfileInformation',
+    );
+
+    Route.post(
+        '/my-profile-information',
+        'SearchUsersController.getMyProfileInformation',
+    );
+}).prefix(USER_ROUTES_GROUP_PREFIX);
 
 /// Temporal MTV Routes ///
 

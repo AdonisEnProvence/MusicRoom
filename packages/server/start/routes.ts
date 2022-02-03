@@ -171,6 +171,16 @@ Route.group(() => {
 
 /// //////// ////// ///
 
+Route.post(
+    '/me/playlists-visibility',
+    'UserSettingsController.updatePlaylistsVisibility',
+);
+
+Route.post(
+    '/me/relations-visibility',
+    'UserSettingsController.updateRelationsVisibility',
+);
+
 Route.get('/', () => {
     return { hello: 'world' };
 });

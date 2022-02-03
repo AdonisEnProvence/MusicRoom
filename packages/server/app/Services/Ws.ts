@@ -31,10 +31,10 @@ class Ws {
         });
         const subClient = pubClient.duplicate();
         //For further informations see https://socket.io/docs/v3/using-multiple-nodes/index.html
-        this.io.adapter(createAdapter(pubClient, subClient));
+        this.io.adapter(createAdapter(pubClient, subClient) as any);
     }
     public adapter(namespace?: string): RedisAdapter {
-        return this.io.of(namespace ?? '/').adapter as RedisAdapter;
+        return this.io.of(namespace ?? '/').adapter as unknown as RedisAdapter;
     }
 }
 

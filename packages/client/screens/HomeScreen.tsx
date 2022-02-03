@@ -73,6 +73,13 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                 />
 
                 <Button
+                    title="My Settings"
+                    onPress={() => {
+                        navigation.navigate('MySettings');
+                    }}
+                />
+
+                <Button
                     title="Inject fake room"
                     onPress={() => {
                         const fakeState: MtvWorkflowState = {

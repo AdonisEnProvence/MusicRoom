@@ -11,9 +11,11 @@ import {
     manyToMany,
 } from '@ioc:Adonis/Lucid/Orm';
 import { DateTime } from 'luxon';
+import { UserSettingVisibility } from '@musicroom/types';
 import Device from './Device';
 import MtvRoom from './MtvRoom';
 import MpeRoom from './MpeRoom';
+import SettingVisibility from './SettingVisibility';
 
 export default class User extends BaseModel {
     @column({ isPrimary: true })
@@ -46,6 +48,54 @@ export default class User extends BaseModel {
     })
     public mpeRooms: ManyToMany<typeof MpeRoom>;
     ///
+
+    @belongsTo(() => SettingVisibility, {
+        localKey: 'uuid',
+        foreignKey: 'playlistsVisibilitySettingUuid',
+    })
+    public playlistsVisibilitySetting: BelongsTo<typeof SettingVisibility>;
+
+    @column({ columnName: 'playlists_visibility_setting_uuid' })
+    public playlistsVisibilitySettingUuid: string;
+
+    @beforeCreate()
+    public static async assignPlaylistsVisibilitySetting(
+        user: User,
+    ): Promise<void> {
+        if (user.playlistsVisibilitySettingUuid === undefined) {
+            const publicVisibilitySetting =
+                await SettingVisibility.findByOrFail(
+                    'name',
+                    UserSettingVisibility.enum.PUBLIC,
+                );
+
+            user.playlistsVisibilitySettingUuid = publicVisibilitySetting.uuid;
+        }
+    }
+
+    @belongsTo(() => SettingVisibility, {
+        localKey: 'uuid',
+        foreignKey: 'relationsVisibilitySettingUuid',
+    })
+    public relationsVisibilitySetting: BelongsTo<typeof SettingVisibility>;
+
+    @column({ columnName: 'relations_visibility_setting_uuid' })
+    public relationsVisibilitySettingUuid: string;
+
+    @beforeCreate()
+    public static async assignRelationsVisibilitySetting(
+        user: User,
+    ): Promise<void> {
+        if (user.relationsVisibilitySettingUuid === undefined) {
+            const publicVisibilitySetting =
+                await SettingVisibility.findByOrFail(
+                    'name',
+                    UserSettingVisibility.enum.PUBLIC,
+                );
+
+            user.relationsVisibilitySettingUuid = publicVisibilitySetting.uuid;
+        }
+    }
 
     @column.dateTime({ autoCreate: true })
     public createdAt: DateTime;

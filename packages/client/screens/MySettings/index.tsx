@@ -161,7 +161,8 @@ const MySettingsScreen: React.FC<MySettingsIndexScreenProps> = ({
                             paddingBottom: 'xxl',
                             paddingLeft: 'l',
                             paddingRight: 'l',
-                            maxWidth: [null, 420, 720],
+                            maxWidth: [null, 420],
+                            width: '100%',
                             marginLeft: 'auto',
                             marginRight: 'auto',
                         }}

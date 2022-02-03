@@ -97,30 +97,6 @@ export default class User extends BaseModel {
         }
     }
 
-    @belongsTo(() => SettingVisibility, {
-        localKey: 'uuid',
-        foreignKey: 'devicesVisibilitySettingUuid',
-    })
-    public devicesVisibilitySetting: BelongsTo<typeof SettingVisibility>;
-
-    @column({ columnName: 'devices_visibility_setting_uuid' })
-    public devicesVisibilitySettingUuid: string;
-
-    @beforeCreate()
-    public static async assignDevicesVisibilitySetting(
-        user: User,
-    ): Promise<void> {
-        if (user.devicesVisibilitySettingUuid === undefined) {
-            const publicVisibilitySetting =
-                await SettingVisibility.findByOrFail(
-                    'name',
-                    UserSettingVisibility.enum.PUBLIC,
-                );
-
-            user.devicesVisibilitySettingUuid = publicVisibilitySetting.uuid;
-        }
-    }
-
     @column.dateTime({ autoCreate: true })
     public createdAt: DateTime;
 

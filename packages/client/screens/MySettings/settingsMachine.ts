@@ -5,7 +5,6 @@ import { ActorRefFrom, assign, send } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { assertEventType } from '../../machines/utils';
 import {
-    setUserDevicesSettingVisibility,
     setUserPlaylistsSettingVisibility,
     setUserRelationsSettingVisibility,
 } from '../../services/UserSettingsService';
@@ -197,15 +196,10 @@ const settingsModel = createModel(
             'Update Relations Visibility Setting': (
                 visibility: UserSettingVisibility,
             ) => ({ visibility }),
-
-            'Update Devices Visibility Setting': (
-                visibility: UserSettingVisibility,
-            ) => ({ visibility }),
         },
         actions: {
             'Forward to Playlists Visibility Manager Machine': () => ({}),
             'Forward to Relations Visibility Manager Machine': () => ({}),
-            'Forward to Devices Visibility Manager Machine': () => ({}),
         },
     },
 );
@@ -242,20 +236,6 @@ export const settingsMachine =
                                 'Forward to Relations Visibility Manager Machine',
                             internal: true,
                             target: '#Settings.Relations Visibility',
-                        },
-                    },
-                },
-                'Devices Visibility': {
-                    invoke: {
-                        id: 'Devices Visibility Manager Machine',
-                        src: 'Devices Visibility Manager Machine',
-                    },
-                    on: {
-                        'Update Devices Visibility Setting': {
-                            actions:
-                                'Forward to Devices Visibility Manager Machine',
-                            internal: true,
-                            target: '#Settings.Devices Visibility',
                         },
                     },
                 },
@@ -316,33 +296,6 @@ export const settingsMachine =
                             },
                         },
                     }),
-
-                'Devices Visibility Manager Machine':
-                    visibilitySettingMachine.withConfig({
-                        services: {
-                            'Persist Updated Visibility Status': async ({
-                                lastSelectedVisibilityStatus,
-                            }) => {
-                                invariant(
-                                    lastSelectedVisibilityStatus !== undefined,
-                                    'lastSelectedVisibilityStatus must have been assigned before trying to send it to the server',
-                                );
-
-                                await setUserDevicesSettingVisibility({
-                                    visibility: lastSelectedVisibilityStatus,
-                                });
-                            },
-                        },
-
-                        actions: {
-                            'Trigger acknowledgement toast': () => {
-                                Toast.show({
-                                    type: 'success',
-                                    text1: 'Devices visibility updated successfully',
-                                });
-                            },
-                        },
-                    }),
             },
 
             actions: {
@@ -379,24 +332,6 @@ export const settingsMachine =
                     },
                     {
                         to: 'Relations Visibility Manager Machine',
-                    },
-                ),
-
-                'Forward to Devices Visibility Manager Machine': send(
-                    (_context, event) => {
-                        assertEventType(
-                            event,
-                            'Update Playlists Visibility Setting',
-                        );
-
-                        return visibilitySettingModel.events[
-                            'Update Visibility'
-                        ]({
-                            visibility: event.visibility,
-                        });
-                    },
-                    {
-                        to: 'Devices Visibility Manager Machine',
                     },
                 ),
             },

@@ -27,10 +27,6 @@ const updateVisibilitySettingsModel = createModel(
             'Update Relations Visibility': (args: {
                 visibility: UserSettingVisibility;
             }) => args,
-
-            'Update Devices Visibility': (args: {
-                visibility: UserSettingVisibility;
-            }) => args,
         },
     },
 );
@@ -268,119 +264,6 @@ const updateVisibilitySettingsMachine =
                         },
                     },
                 },
-                Devices: {
-                    initial: 'Public',
-                    states: {
-                        Public: {
-                            meta: {
-                                test: async ({ screen }: TestingContext) => {
-                                    const playlistsVisibilitySettingRadioGroup =
-                                        await screen.findByTestId(
-                                            'playlists-devices-radio-group',
-                                        );
-                                    expect(
-                                        playlistsVisibilitySettingRadioGroup,
-                                    ).toBeTruthy();
-
-                                    const selectedRadio = await within(
-                                        playlistsVisibilitySettingRadioGroup,
-                                    ).findByA11yState({
-                                        selected: true,
-                                    });
-                                    expect(selectedRadio).toBeTruthy();
-
-                                    expect(selectedRadio).toHaveTextContent(
-                                        /public/i,
-                                    );
-                                },
-                            },
-                            on: {
-                                'Update Devices Visibility': [
-                                    {
-                                        cond: 'Is Private Visibility',
-                                        target: '#Update Visibility Settings.Devices.Private',
-                                    },
-                                    {
-                                        cond: 'Is Followers Only Visibility',
-                                        target: '#Update Visibility Settings.Devices.Followers Only',
-                                    },
-                                ],
-                            },
-                        },
-                        'Followers Only': {
-                            meta: {
-                                test: async ({ screen }: TestingContext) => {
-                                    const playlistsVisibilitySettingRadioGroup =
-                                        await screen.findByTestId(
-                                            'playlists-devices-radio-group',
-                                        );
-                                    expect(
-                                        playlistsVisibilitySettingRadioGroup,
-                                    ).toBeTruthy();
-
-                                    const selectedRadio = await within(
-                                        playlistsVisibilitySettingRadioGroup,
-                                    ).findByA11yState({
-                                        selected: true,
-                                    });
-                                    expect(selectedRadio).toBeTruthy();
-
-                                    expect(selectedRadio).toHaveTextContent(
-                                        /followers.*only/i,
-                                    );
-                                },
-                            },
-                            on: {
-                                'Update Devices Visibility': [
-                                    {
-                                        cond: 'Is Public Visibility',
-                                        target: '#Update Visibility Settings.Devices.Public',
-                                    },
-                                    {
-                                        cond: 'Is Private Visibility',
-                                        target: '#Update Visibility Settings.Devices.Private',
-                                    },
-                                ],
-                            },
-                        },
-                        Private: {
-                            meta: {
-                                test: async ({ screen }: TestingContext) => {
-                                    const playlistsVisibilitySettingRadioGroup =
-                                        await screen.findByTestId(
-                                            'playlists-devices-radio-group',
-                                        );
-                                    expect(
-                                        playlistsVisibilitySettingRadioGroup,
-                                    ).toBeTruthy();
-
-                                    const selectedRadio = await within(
-                                        playlistsVisibilitySettingRadioGroup,
-                                    ).findByA11yState({
-                                        selected: true,
-                                    });
-                                    expect(selectedRadio).toBeTruthy();
-
-                                    expect(selectedRadio).toHaveTextContent(
-                                        /private/i,
-                                    );
-                                },
-                            },
-                            on: {
-                                'Update Devices Visibility': [
-                                    {
-                                        cond: 'Is Public Visibility',
-                                        target: '#Update Visibility Settings.Devices.Public',
-                                    },
-                                    {
-                                        cond: 'Is Followers Only Visibility',
-                                        target: '#Update Visibility Settings.Devices.Followers Only',
-                                    },
-                                ],
-                            },
-                        },
-                    },
-                },
             },
         },
         {
@@ -504,57 +387,6 @@ const updateVisibilitySettingsTestModel = createTestModel<TestingContext>(
             }
         }
     },
-
-    'Update Devices Visibility': async ({ screen }, e) => {
-        const event = e as EventFrom<
-            typeof updateVisibilitySettingsModel,
-            'Update Devices Visibility'
-        >;
-
-        const playlistsVisibilitySettingRadioGroup = await screen.findByTestId(
-            'playlists-devices-radio-group',
-        );
-        expect(playlistsVisibilitySettingRadioGroup).toBeTruthy();
-
-        switch (event.visibility) {
-            case 'PUBLIC': {
-                const publicRadio = within(
-                    playlistsVisibilitySettingRadioGroup,
-                ).getByText(/public/i);
-                expect(publicRadio).toBeTruthy();
-
-                fireEvent.press(publicRadio);
-
-                break;
-            }
-
-            case 'PRIVATE': {
-                const privateRadio = within(
-                    playlistsVisibilitySettingRadioGroup,
-                ).getByText(/private/i);
-                expect(privateRadio).toBeTruthy();
-
-                fireEvent.press(privateRadio);
-
-                break;
-            }
-
-            case 'FOLLOWERS_ONLY': {
-                const followersOnlyRadio = within(
-                    playlistsVisibilitySettingRadioGroup,
-                ).getByText(/followers.*only/i);
-                expect(followersOnlyRadio).toBeTruthy();
-
-                fireEvent.press(followersOnlyRadio);
-
-                break;
-            }
-
-            default: {
-                throw new Error('Reached unreachable state');
-            }
-        }
-    },
 });
 
 cases<{
@@ -562,7 +394,6 @@ cases<{
     target: {
         Playlists: 'Public' | 'Private' | 'Followers Only';
         Relations: 'Public' | 'Private' | 'Followers Only';
-        Devices: 'Public' | 'Private' | 'Followers Only';
     };
 }>(
     'Change visibility settings',
@@ -608,7 +439,6 @@ cases<{
             target: {
                 Playlists: 'Public',
                 Relations: 'Public',
-                Devices: 'Public',
             },
         },
 
@@ -623,7 +453,6 @@ cases<{
             target: {
                 Playlists: 'Private',
                 Relations: 'Public',
-                Devices: 'Public',
             },
         },
 
@@ -638,7 +467,6 @@ cases<{
             target: {
                 Playlists: 'Followers Only',
                 Relations: 'Public',
-                Devices: 'Public',
             },
         },
 
@@ -658,7 +486,6 @@ cases<{
             target: {
                 Playlists: 'Public',
                 Relations: 'Public',
-                Devices: 'Public',
             },
         },
 
@@ -673,7 +500,6 @@ cases<{
             target: {
                 Playlists: 'Public',
                 Relations: 'Private',
-                Devices: 'Public',
             },
         },
 
@@ -688,57 +514,6 @@ cases<{
             target: {
                 Playlists: 'Public',
                 Relations: 'Followers Only',
-                Devices: 'Public',
-            },
-        },
-
-        'Can set devices visibility to public': {
-            events: [
-                updateVisibilitySettingsModel.events[
-                    'Update Devices Visibility'
-                ]({
-                    visibility: 'PRIVATE',
-                }),
-                updateVisibilitySettingsModel.events[
-                    'Update Devices Visibility'
-                ]({
-                    visibility: 'PUBLIC',
-                }),
-            ],
-            target: {
-                Playlists: 'Public',
-                Relations: 'Public',
-                Devices: 'Public',
-            },
-        },
-
-        'Can set devices visibility to private': {
-            events: [
-                updateVisibilitySettingsModel.events[
-                    'Update Devices Visibility'
-                ]({
-                    visibility: 'PRIVATE',
-                }),
-            ],
-            target: {
-                Playlists: 'Public',
-                Relations: 'Public',
-                Devices: 'Private',
-            },
-        },
-
-        'Can set devices visibility to followers only': {
-            events: [
-                updateVisibilitySettingsModel.events[
-                    'Update Devices Visibility'
-                ]({
-                    visibility: 'FOLLOWERS_ONLY',
-                }),
-            ],
-            target: {
-                Playlists: 'Public',
-                Relations: 'Public',
-                Devices: 'Followers Only',
             },
         },
     },

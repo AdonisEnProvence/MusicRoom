@@ -1,6 +1,4 @@
 import {
-    UpdateDevicesVisibilityRequestBody,
-    UpdateDevicesVisibilityResponseBody,
     UpdatePlaylistsVisibilityRequestBody,
     UpdatePlaylistsVisibilityResponseBody,
     UpdateRelationsVisibilityRequestBody,
@@ -48,27 +46,6 @@ export async function setUserRelationsSettingVisibility({
 
     const rawResponse = await redaxios.post(url, body);
     const parsedResponse = UpdateRelationsVisibilityResponseBody.parse(
-        rawResponse.data,
-    );
-
-    return parsedResponse;
-}
-
-interface SetUserDevicesSettingVisibilityArgs {
-    visibility: UserSettingVisibility;
-}
-
-export async function setUserDevicesSettingVisibility({
-    visibility,
-}: SetUserDevicesSettingVisibilityArgs): Promise<UpdateDevicesVisibilityResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/me/devices-visibility');
-    const body: UpdateDevicesVisibilityRequestBody = {
-        tmpAuthUserID: getFakeUserID(),
-        visibility,
-    };
-
-    const rawResponse = await redaxios.post(url, body);
-    const parsedResponse = UpdateDevicesVisibilityResponseBody.parse(
         rawResponse.data,
     );
 

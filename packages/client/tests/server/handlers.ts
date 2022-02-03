@@ -11,8 +11,6 @@ import {
     SearchUsersRequestBody,
     SearchUsersResponseBody,
     TrackMetadata,
-    UpdateDevicesVisibilityRequestBody,
-    UpdateDevicesVisibilityResponseBody,
     UpdatePlaylistsVisibilityRequestBody,
     UpdatePlaylistsVisibilityResponseBody,
     UpdateRelationsVisibilityRequestBody,
@@ -223,17 +221,6 @@ export const handlers = [
         UpdateRelationsVisibilityRequestBody,
         UpdateRelationsVisibilityResponseBody
     >(`${SERVER_ENDPOINT}/me/relations-visibility`, (_req, res, ctx) => {
-        return res(
-            ctx.json({
-                status: 'SUCCESS',
-            }),
-        );
-    }),
-
-    rest.post<
-        UpdateDevicesVisibilityRequestBody,
-        UpdateDevicesVisibilityResponseBody
-    >(`${SERVER_ENDPOINT}/me/devices-visibility`, (_req, res, ctx) => {
         return res(
             ctx.json({
                 status: 'SUCCESS',

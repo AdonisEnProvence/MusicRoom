@@ -113,13 +113,6 @@ const MySettings: React.FC<MySettingsScreenProps> = ({ navigation }) => {
                 'Relations Visibility Manager Machine'
             ] as VisibilitySettingMachineActor,
         },
-        {
-            containerTestID: 'playlists-devices-radio-group',
-            title: 'Devices visibility',
-            visibilitySettingActor: state.children[
-                'Devices Visibility Manager Machine'
-            ] as VisibilitySettingMachineActor,
-        },
     ];
 
     return (

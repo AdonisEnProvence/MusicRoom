@@ -42,11 +42,6 @@ export default class CreateVisibilitySettingsTableAndReferenceItInUsersTables ex
                 .uuid('relations_visibility_setting_uuid')
                 .references(`${this.tableName}.uuid`)
                 .notNullable();
-
-            table
-                .uuid('devices_visibility_setting_uuid')
-                .references(`${this.tableName}.uuid`)
-                .notNullable();
         });
     }
 
@@ -54,7 +49,6 @@ export default class CreateVisibilitySettingsTableAndReferenceItInUsersTables ex
         this.schema.alterTable('users', (table) => {
             table.dropColumn('playlists_visibility_setting_uuid');
             table.dropColumn('relations_visibility_setting_uuid');
-            table.dropColumn('devices_visibility_setting_uuid');
         });
 
         this.schema.dropTable(this.tableName);

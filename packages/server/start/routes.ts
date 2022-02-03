@@ -181,11 +181,6 @@ Route.post(
     'UserSettingsController.updateRelationsVisibility',
 );
 
-Route.post(
-    '/me/devices-visibility',
-    'UserSettingsController.updateDevicesVisibility',
-);
-
 Route.get('/', () => {
     return { hello: 'world' };
 });

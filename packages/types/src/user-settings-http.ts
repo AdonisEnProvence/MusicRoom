@@ -32,19 +32,3 @@ export const UpdateRelationsVisibilityResponseBody = z.object({
 export type UpdateRelationsVisibilityResponseBody = z.infer<
     typeof UpdateRelationsVisibilityResponseBody
 >;
-
-export const UpdateDevicesVisibilityRequestBody = z.object({
-    tmpAuthUserID: z.string(),
-
-    visibility: UserSettingVisibility,
-});
-export type UpdateDevicesVisibilityRequestBody = z.infer<
-    typeof UpdateDevicesVisibilityRequestBody
->;
-
-export const UpdateDevicesVisibilityResponseBody = z.object({
-    status: z.enum(['SUCCESS']),
-});
-export type UpdateDevicesVisibilityResponseBody = z.infer<
-    typeof UpdateDevicesVisibilityResponseBody
->;

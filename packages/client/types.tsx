@@ -63,7 +63,7 @@ export type RootStackParamList = {
 
     UserProfile: NavigatorScreenParams<UserProfileStackParamsList>;
 
-    MySettings: undefined;
+    MySettings: NavigatorScreenParams<MySettingsStackParamsList>;
 
     MyProfile: NavigatorScreenParams<MyProfileStackparamsList>;
 
@@ -111,6 +111,11 @@ export type UserProfileStackParamsList = {
 
 export type MyProfileStackparamsList = {
     MyProfile: undefined;
+};
+
+export type MySettingsStackParamsList = {
+    Index: undefined;
+    UpdateNickname: undefined;
 };
 
 export type MusicPlaylistEditorCreationFormParamList = {
@@ -372,9 +377,20 @@ export type UserProfileScreenProps = {
     route: RouteProp<UserProfileStackParamsList, 'UserProfile'>;
 };
 
-export type MySettingsScreenProps = {
-    navigation: StackNavigationProp<RootStackParamList, 'MySettings'>;
-    route: RouteProp<RootStackParamList, 'MySettings'>;
+export type MySettingsIndexScreenProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'MySettings'>,
+        StackNavigationProp<MySettingsStackParamsList, 'Index'>
+    >;
+    route: RouteProp<MySettingsStackParamsList, 'Index'>;
+};
+
+export type MySettingsUpdateNicknameScreenProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'MySettings'>,
+        StackNavigationProp<MySettingsStackParamsList, 'UpdateNickname'>
+    >;
+    route: RouteProp<MySettingsStackParamsList, 'UpdateNickname'>;
 };
 
 export type MyProfileScreenProps = {

@@ -38,6 +38,7 @@ import {
     UserProfileStackParamsList,
     MusicPlaylistEditorUsersSearchStackParamList,
     MyProfileStackparamsList,
+    MySettingsStackParamsList,
 } from '../types';
 import { SplashScreen } from '../screens/SplashScreen';
 import MusicTrackVoteConstraintsDetailsModal from '../screens/MusicTrackVoteConstraintsDetailsModal';
@@ -52,8 +53,9 @@ import MusicPlaylistEditorExportToMtvCreationFormPhysicalConstraints from '../sc
 import MusicPlaylistEditorExportToMtvCreationFormPlayingMode from '../screens/MusicPlaylistEditorMusicTrackVoteCreationForm/MusicTrackVoteCreationFormPlayingMode';
 import MusicPlaylistEditorExportToMtvCreationFormVotesConstraints from '../screens/MusicPlaylistEditorMusicTrackVoteCreationForm/MusicTrackVoteCreationFormVotesConstraints';
 import MusicPlaylistEditorUsersSearchModal from '../screens/MusicPlaylistEditorUsersSearchModal';
-import MySettings from '../screens/MySettings';
 import MyProfileScreen from '../screens/MyProfile';
+import MySettingsScreen from '../screens/MySettings';
+import UpdateNicknameScreen from '../screens/MySettings/UpdateNickname';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
@@ -121,6 +123,7 @@ const MusicPlaylistEditorRoomsSearchStack =
     createStackNavigator<MusicPlaylistEditorRoomsSearchParamList>();
 const UserProfileStack = createStackNavigator<UserProfileStackParamsList>();
 const MyProfileStack = createStackNavigator<MyProfileStackparamsList>();
+const MySettingsStack = createStackNavigator<MySettingsStackParamsList>();
 
 export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
     const style = navigationStyle(colorScheme);
@@ -217,7 +220,7 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
                     headerShown: false,
                     detachPreviousScreen: false,
                 }}
-                component={MySettings}
+                component={MySettingsNavigator}
             />
 
             <RootStack.Screen
@@ -482,6 +485,38 @@ export const MyProfileNavigator: React.FC<ColorModeProps> = ({
                 component={MyProfileScreen}
             />
         </MyProfileStack.Navigator>
+    );
+};
+
+export const MySettingsNavigator: React.FC<ColorModeProps> = ({
+    colorScheme,
+}) => {
+    const style = navigationStyle(colorScheme);
+
+    return (
+        <MySettingsStack.Navigator
+            initialRouteName="Index"
+            mode="modal"
+            screenOptions={{ ...style, headerShown: false }}
+        >
+            <MySettingsStack.Screen
+                name="Index"
+                options={{
+                    title: 'My Settings',
+                    headerShown: false,
+                }}
+                component={MySettingsScreen}
+            />
+
+            <MySettingsStack.Screen
+                name="UpdateNickname"
+                options={{
+                    title: 'Update nickname',
+                    headerShown: false,
+                }}
+                component={UpdateNicknameScreen}
+            />
+        </MySettingsStack.Navigator>
     );
 };
 

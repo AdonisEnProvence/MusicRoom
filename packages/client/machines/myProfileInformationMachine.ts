@@ -53,15 +53,7 @@ export function createMyProfileInformationMachine(): StateMachine<
     any,
     MyProfileInformationMachineEvents
 > {
-    async function FetchMyUserInformation({
-        tmpAuthUserID,
-    }: GetMyProfileInformationRequestBody): Promise<GetMyProfileInformationResponseBody> {
-        return await getMyProfileInformation({
-            tmpAuthUserID,
-        });
-    }
-    const config = getMyProfileInformationMachineOptions();
-    const myProfileInformationMachine = myProfileInformationModel
+    return myProfileInformationModel
         .createMachine(
             {
                 context: {
@@ -99,7 +91,7 @@ export function createMyProfileInformationMachine(): StateMachine<
                 services: {
                     retrieveMyProfileInformation: () => async (sendBack) => {
                         try {
-                            const response = await FetchMyUserInformation({
+                            const response = await getMyProfileInformation({
                                 tmpAuthUserID: getFakeUserID(),
                             });
 
@@ -117,7 +109,5 @@ export function createMyProfileInformationMachine(): StateMachine<
                 },
             },
         )
-        .withConfig(config);
-
-    return myProfileInformationMachine;
+        .withConfig(getMyProfileInformationMachineOptions());
 }

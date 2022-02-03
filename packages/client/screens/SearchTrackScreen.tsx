@@ -1,5 +1,5 @@
 import { useActor, useInterpret, useSelector } from '@xstate/react';
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { FlatList, Modal, TouchableOpacity } from 'react-native';
 import { Text, useSx, View } from 'dripsy';
 import { ActorRef } from 'xstate';
@@ -122,39 +122,35 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
     const [screenOffsetY, setScreenOffsetY] = useState(0);
     const { sendToMusicPlayerMachine } = useMusicPlayerContext();
     const { appMusicPlaylistsActorRef } = useMusicPlaylistsActor();
-    const searchTrackScreenMachineConfigured = useMemo(() => {
-        return searchTrackScreenMachine.withConfig({
-            actions: {
-                forwardMtvCreation: ({ selectedTrackID }) => {
-                    invariant(
-                        selectedTrackID !== undefined,
-                        'Creating a MTV requires a selected track',
-                    );
 
-                    sendToMusicPlayerMachine({
-                        type: 'CREATE_ROOM',
-                        roomName: selectedTrackID,
-                        initialTracksIDs: [selectedTrackID],
-                    });
-                },
+    const searchTracksScreenService = useInterpret(searchTrackScreenMachine, {
+        actions: {
+            forwardMtvCreation: ({ selectedTrackID }) => {
+                invariant(
+                    selectedTrackID !== undefined,
+                    'Creating a MTV requires a selected track',
+                );
 
-                forwardMpeCreation: ({ selectedTrackID }) => {
-                    invariant(
-                        selectedTrackID !== undefined,
-                        'Creating a MPE requires a selected track',
-                    );
-
-                    appMusicPlaylistsActorRef.send({
-                        type: 'OPEN_CREATION_FORM',
-                        initialTracksIDs: [selectedTrackID],
-                    });
-                },
+                sendToMusicPlayerMachine({
+                    type: 'CREATE_ROOM',
+                    roomName: selectedTrackID,
+                    initialTracksIDs: [selectedTrackID],
+                });
             },
-        });
-    }, [appMusicPlaylistsActorRef, sendToMusicPlayerMachine]);
-    const searchTracksScreenService = useInterpret(
-        searchTrackScreenMachineConfigured,
-    );
+
+            forwardMpeCreation: ({ selectedTrackID }) => {
+                invariant(
+                    selectedTrackID !== undefined,
+                    'Creating a MPE requires a selected track',
+                );
+
+                appMusicPlaylistsActorRef.send({
+                    type: 'OPEN_CREATION_FORM',
+                    initialTracksIDs: [selectedTrackID],
+                });
+            },
+        },
+    });
     const showModal = useSelector(searchTracksScreenService, (state) =>
         state.hasTag('showModal'),
     );

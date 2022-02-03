@@ -1,6 +1,6 @@
 import { useInterpret, useSelector } from '@xstate/react';
 import { Button, Text } from 'dripsy';
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
     AppScreen,
@@ -11,19 +11,13 @@ import {
 import { UserProfileScreenProps } from '../../types';
 import { getFakeUserID } from '../../contexts/SocketContext';
 import { createMyProfileInformationMachine } from '../../machines/myProfileInformationMachine';
-import { MusicPlaylistEditorUsersSearchNavigator } from '../../navigation';
 
 const MyProfileScreen: React.FC<UserProfileScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const userID = getFakeUserID();
 
-    const userProfileInformationMachineConfigured = useMemo(
-        createMyProfileInformationMachine,
-        [],
-    );
-
-    const userProfileInformationService = useInterpret(
-        userProfileInformationMachineConfigured,
+    const userProfileInformationService = useInterpret(() =>
+        createMyProfileInformationMachine(),
     );
 
     const myProfileInformation = useSelector(

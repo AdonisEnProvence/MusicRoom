@@ -364,7 +364,9 @@ test('Test E see following link for more information: https://3.basecamp.com/470
     //UserA hits the userBcard, he should see the userB profile
     await userBcard.click();
     await expect(
-        creatorUserA.locator(`text="${joiningUserBID} Profile Screen"`),
+        creatorUserA.locator(
+            `css=[data-testid="${joiningUserBID}-profile-page-screen"]`,
+        ),
     ).toBeVisible();
 
     //UserA goes back, the results should still be filtered

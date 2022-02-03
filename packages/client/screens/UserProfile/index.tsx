@@ -1,6 +1,6 @@
 import { useInterpret, useSelector } from '@xstate/react';
 import { Button, Text } from 'dripsy';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
     AppScreen,
@@ -10,26 +10,18 @@ import {
 import { UserProfileScreenProps } from '../../types';
 import { createUserProfileInformationMachine } from '../../machines/userProfileInformationMachine';
 
-const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
+type UserProfileContentProps = UserProfileScreenProps & {
+    userID: string;
+};
+
+const UserProfileContent: React.FC<UserProfileContentProps> = ({
+    userID,
     navigation,
-    route,
 }) => {
     const insets = useSafeAreaInsets();
-    const userID = route.params.userID;
-    if (userID === undefined || userID === null) {
-        throw new Error('UserProfile received no userID');
-    }
 
-    const userProfileInformationMachineConfigured = useMemo(
-        () =>
-            createUserProfileInformationMachine({
-                userID,
-            }),
-        [userID],
-    );
-
-    const userProfileInformationService = useInterpret(
-        userProfileInformationMachineConfigured,
+    const userProfileInformationService = useInterpret(() =>
+        createUserProfileInformationMachine({ userID }),
     );
 
     const userProfileInformation = useSelector(
@@ -101,6 +93,29 @@ const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
                 )}
             </AppScreenContainer>
         </AppScreen>
+    );
+};
+
+//Wrapping UserProfileScreen content inside a second component
+//To allow useInterpret to recompute a machine when userID comes to change
+//The key given to the UserProfileContent when changing will bring the componement to rerender
+//And then to rerun a useInterpret with the new userID
+const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
+    navigation,
+    route,
+}) => {
+    const userID = route.params.userID;
+    if (userID === undefined || userID === null) {
+        throw new Error('UserProfile received no userID');
+    }
+
+    return (
+        <UserProfileContent
+            route={route}
+            navigation={navigation}
+            userID={userID}
+            key={userID}
+        />
     );
 };
 

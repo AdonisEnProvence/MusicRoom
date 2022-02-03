@@ -9,6 +9,7 @@ import {
 import { DripsyProvider } from 'dripsy';
 import { datatype } from 'faker';
 import React from 'react';
+import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import invariant from 'tiny-invariant';
 import { AppContextProvider } from '../contexts/AppContext';
@@ -172,4 +173,17 @@ export function toTrackCardContainerTestID({
     return [testIDPrefix, trackID, 'track-card-container']
         .filter((chunk) => chunk !== undefined)
         .join('-');
+}
+
+export function testGetFakeUserID(): string {
+    if (typeof window !== 'undefined' && 'localStorage' in window) {
+        const userIDFromLocalStorage = window.localStorage.getItem('USER_ID');
+        if (typeof userIDFromLocalStorage === 'string') {
+            return userIDFromLocalStorage;
+        }
+    }
+
+    return Platform.OS === 'web'
+        ? 'f5ddbf01-cc01-4422-b347-67988342b558'
+        : '9ed60e96-d5fc-40b3-b842-aeaa75e93972';
 }

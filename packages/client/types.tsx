@@ -65,6 +65,8 @@ export type RootStackParamList = {
 
     MySettings: undefined;
 
+    MyProfile: NavigatorScreenParams<MyProfileStackparamsList>;
+
     MusicPlaylistEditorCreationForm: NavigatorScreenParams<MusicPlaylistEditorCreationFormParamList>;
     MusicPlaylistEditorExportToMtvCreationForm: NavigatorScreenParams<MusicTrackVoteCreationFormParamList>;
 };
@@ -107,6 +109,10 @@ export type UserProfileStackParamsList = {
     UserProfile: UserProfileParams;
 };
 
+export type MyProfileStackparamsList = {
+    MyProfile: undefined;
+};
+
 export type MusicPlaylistEditorCreationFormParamList = {
     MusicPlaylistEditorCreationFormName: undefined;
     MusicPlaylistEditorCreationFormOpeningStatus: undefined;
@@ -142,9 +148,11 @@ export type MainStackParamList = {
 interface AlertParams {
     reason: 'FORCED_DISCONNECTION';
 }
+
 interface UserProfileParams {
     userID: string;
 }
+
 interface SearchTracksResultsParams {
     tracks?: TrackMetadata[];
 }
@@ -367,6 +375,11 @@ export type UserProfileScreenProps = {
 export type MySettingsScreenProps = {
     navigation: StackNavigationProp<RootStackParamList, 'MySettings'>;
     route: RouteProp<RootStackParamList, 'MySettings'>;
+};
+
+export type MyProfileScreenProps = {
+    navigation: StackNavigationProp<MyProfileStackparamsList, 'MyProfile'>;
+    route: RouteProp<MyProfileStackparamsList, 'MyProfile'>;
 };
 
 export type HomeTabProps = {

@@ -1,4 +1,4 @@
-import { drop, factory, primaryKey } from '@mswjs/data';
+import { drop, factory, primaryKey, nullable } from '@mswjs/data';
 import {
     MpeRoomSummary,
     MpeWorkflowState,
@@ -45,9 +45,9 @@ export const db = factory({
         userID: primaryKey(() => datatype.uuid()),
         userNickname: () => internet.userName(),
         following: () => datatype.boolean(),
-        followersCounter: () => datatype.number() || undefined,
-        followingCounter: () => datatype.number() || undefined,
-        playlistsCounter: () => datatype.number() || undefined,
+        followersCounter: nullable(Number),
+        followingCounter: nullable(Number),
+        playlistsCounter: nullable(Number),
     },
 
     myProfileInformation: {

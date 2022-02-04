@@ -181,6 +181,8 @@ Route.post(
     'UserSettingsController.updateRelationsVisibility',
 );
 
+Route.post('/me/nickname', 'UserSettingsController.updateNickname');
+
 Route.get('/', () => {
     return { hello: 'world' };
 });

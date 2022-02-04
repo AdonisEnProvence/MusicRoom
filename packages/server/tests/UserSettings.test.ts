@@ -1,5 +1,8 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import {
+    UpdateNicknameRequestBody,
+    UpdateNicknameResponseBody,
+    UpdateNicknameResponseStatus,
     UpdatePlaylistsVisibilityRequestBody,
     UpdatePlaylistsVisibilityResponseBody,
     UpdateRelationsVisibilityRequestBody,
@@ -231,5 +234,121 @@ test.group('User settings', (group) => {
             user.relationsVisibilitySetting.name,
             'FOLLOWERS_ONLY',
         );
+    });
+
+    test(`Returns an error when trying to update user's nickname with her current nickname`, async (assert) => {
+        const userID = datatype.uuid();
+        const userNickname = random.word();
+        const user = await User.create({
+            uuid: userID,
+            nickname: userNickname,
+        });
+
+        const requestBody: UpdateNicknameRequestBody = {
+            tmpAuthUserID: userID,
+            nickname: userNickname,
+        };
+        const { body: rawResponseBody } = await supertest(BASE_URL)
+            .post('/me/nickname')
+            .send(requestBody)
+            .expect(200)
+            .expect('Content-Type', /json/);
+        const responseBody = UpdateNicknameResponseBody.parse(rawResponseBody);
+
+        assert.equal<UpdateNicknameResponseStatus>(
+            responseBody.status,
+            'SAME_NICKNAME',
+        );
+
+        await user.refresh();
+
+        assert.equal(user.nickname, userNickname);
+    });
+
+    test(`Returns an error when trying to update user's nickname with an unavailable nickname`, async (assert) => {
+        const userID = datatype.uuid();
+        const userNickname = random.word();
+        await User.create({
+            uuid: userID,
+            nickname: userNickname,
+        });
+
+        const randomUser = await User.create({
+            uuid: datatype.uuid(),
+            nickname: random.word(),
+        });
+
+        const requestBody: UpdateNicknameRequestBody = {
+            tmpAuthUserID: userID,
+            nickname: randomUser.nickname,
+        };
+        const { body: rawResponseBody } = await supertest(BASE_URL)
+            .post('/me/nickname')
+            .send(requestBody)
+            .expect(200)
+            .expect('Content-Type', /json/);
+        const responseBody = UpdateNicknameResponseBody.parse(rawResponseBody);
+
+        assert.equal<UpdateNicknameResponseStatus>(
+            responseBody.status,
+            'UNAVAILABLE_NICKNAME',
+        );
+
+        // We can not refresh the user because the transaction has failed,
+        // as we violated a unique constraint, and Postgres does not allow
+        // to make additional requests on a transaction that has been aborted.
+        // See: https://stackoverflow.com/questions/10399727/psqlexception-current-transaction-is-aborted-commands-ignored-until-end-of-tra.
+    });
+
+    test(`Returns an error when trying to set username as an empty string`, async (assert) => {
+        const userID = datatype.uuid();
+        const userNickname = random.word();
+        const user = await User.create({
+            uuid: userID,
+            nickname: userNickname,
+        });
+
+        const requestBody: UpdateNicknameRequestBody = {
+            tmpAuthUserID: userID,
+            nickname: '',
+        };
+        await supertest(BASE_URL)
+            .post('/me/nickname')
+            .send(requestBody)
+            .expect(500);
+
+        await user.refresh();
+
+        assert.equal(user.nickname, userNickname);
+    });
+
+    test(`Updates user's nickname`, async (assert) => {
+        const userID = datatype.uuid();
+        const userNickname = random.word();
+        const user = await User.create({
+            uuid: userID,
+            nickname: userNickname,
+        });
+        const newNickname = random.words();
+
+        const requestBody: UpdateNicknameRequestBody = {
+            tmpAuthUserID: userID,
+            nickname: newNickname,
+        };
+        const { body: rawResponseBody } = await supertest(BASE_URL)
+            .post('/me/nickname')
+            .send(requestBody)
+            .expect(200)
+            .expect('Content-Type', /json/);
+        const responseBody = UpdateNicknameResponseBody.parse(rawResponseBody);
+
+        assert.equal<UpdateNicknameResponseStatus>(
+            responseBody.status,
+            'SUCCESS',
+        );
+
+        await user.refresh();
+
+        assert.equal(user.nickname, newNickname);
     });
 });

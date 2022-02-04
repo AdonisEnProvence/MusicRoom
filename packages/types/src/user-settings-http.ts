@@ -32,3 +32,28 @@ export const UpdateRelationsVisibilityResponseBody = z.object({
 export type UpdateRelationsVisibilityResponseBody = z.infer<
     typeof UpdateRelationsVisibilityResponseBody
 >;
+
+export const UpdateNicknameRequestBody = z.object({
+    tmpAuthUserID: z.string(),
+
+    nickname: z.string().nonempty(),
+});
+export type UpdateNicknameRequestBody = z.infer<
+    typeof UpdateNicknameRequestBody
+>;
+
+export const UpdateNicknameResponseStatus = z.enum([
+    'SUCCESS',
+    'SAME_NICKNAME',
+    'UNAVAILABLE_NICKNAME',
+]);
+export type UpdateNicknameResponseStatus = z.infer<
+    typeof UpdateNicknameResponseStatus
+>;
+
+export const UpdateNicknameResponseBody = z.object({
+    status: UpdateNicknameResponseStatus,
+});
+export type UpdateNicknameResponseBody = z.infer<
+    typeof UpdateNicknameResponseBody
+>;

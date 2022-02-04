@@ -50,6 +50,9 @@ export const db = factory({
 
     myProfileInformation: {
         userID: primaryKey(() => datatype.uuid()),
+        followersCounter: () => datatype.number(),
+        followingCounter: () => datatype.number(),
+        playlistsCounter: () => datatype.number(),
         userNickname: () => internet.userName(),
         devicesCounter: () => datatype.number(),
     },

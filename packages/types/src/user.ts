@@ -35,6 +35,9 @@ export type GetUserProfileInformationResponseBody = z.infer<
 
 export const MyProfileInformation = SharedUserProfileInformation.extend({
     devicesCounter: StrictlyPositiveInteger,
+    playlistsCounter: z.number(),
+    followersCounter: z.number(),
+    followingCounter: z.number(),
 });
 export type MyProfileInformation = z.infer<typeof MyProfileInformation>;
 

@@ -139,6 +139,9 @@ export default class SearchUsersController {
 
         const user = await User.findOrFail(tmpAuthUserID);
         await user.load('devices');
+        await user.load('mpeRooms');
+        const followingCounter = 12; //FIXME follow unfollow dev
+        const followersCounter = 13; //FIXME follow unfollow dev
 
         invariant(user.devices.length > 0, 'user has no related devices');
 
@@ -146,6 +149,9 @@ export default class SearchUsersController {
             userID: user.uuid,
             devicesCounter: user.devices.length,
             userNickname: user.nickname,
+            followersCounter,
+            followingCounter,
+            playlistsCounter: user.mpeRooms.length,
         };
     }
 }

@@ -12,6 +12,9 @@ type SharedUserProfileInformation = z.infer<
 //User profile information
 export const UserProfileInformation = SharedUserProfileInformation.extend({
     following: z.boolean(),
+    playlistsCounter: z.number().optional(),
+    followersCounter: z.number().optional(),
+    followingCounter: z.number().optional(),
 });
 export type UserProfileInformation = z.infer<typeof UserProfileInformation>;
 

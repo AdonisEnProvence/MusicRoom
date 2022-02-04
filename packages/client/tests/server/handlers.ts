@@ -167,17 +167,13 @@ export const handlers = [
                     equals: userID,
                 },
             },
-        });
+        }) as GetUserProfileInformationResponseBody;
 
         if (user === null) {
             return res(ctx.status(404));
         }
 
-        return res(
-            ctx.json({
-                ...user,
-            }),
-        );
+        return res(ctx.json(user));
     }),
 
     rest.post<

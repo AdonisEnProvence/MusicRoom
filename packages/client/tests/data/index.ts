@@ -11,7 +11,6 @@ import {
 } from '@musicroom/types';
 import { LocationObject } from 'expo-location';
 import { datatype, name, random, internet } from 'faker';
-import { data } from 'msw/lib/types/context';
 
 export const db = factory({
     searchableTracks: {
@@ -46,6 +45,9 @@ export const db = factory({
         userID: primaryKey(() => datatype.uuid()),
         userNickname: () => internet.userName(),
         following: () => datatype.boolean(),
+        followersCounter: () => datatype.number() || undefined,
+        followingCounter: () => datatype.number() || undefined,
+        playlistsCounter: () => datatype.number() || undefined,
     },
 
     myProfileInformation: {

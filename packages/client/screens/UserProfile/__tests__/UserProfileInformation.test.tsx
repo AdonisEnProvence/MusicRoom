@@ -160,9 +160,15 @@ test('It should display not followed known user profile page', async () => {
         const followButton = screen.getByText(/\bfollow\b/i);
         expect(followButton).toBeTruthy();
         //not working to fix
-        const playlistCounter = screen.queryByText(/playlists/i);
-        const followersCounter = screen.queryByText(/followers/i);
-        const followingCounter = screen.queryByText(/following/i);
+        const playlistCounter = screen.queryByTestId(
+            `${userID}-playlists-button`,
+        );
+        const followersCounter = screen.queryByTestId(
+            `${userID}-followers-button`,
+        );
+        const followingCounter = screen.queryByTestId(
+            `${userID}-following-button`,
+        );
         expect(playlistCounter).toBeNull();
         expect(followersCounter).toBeNull();
         expect(followingCounter).toBeNull();

@@ -1,6 +1,6 @@
 import { useInterpret, useSelector } from '@xstate/react';
 import { Button, Text, useSx, View } from 'dripsy';
-import React, { useEffect, useMemo } from 'react';
+import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TouchableOpacity } from 'react-native';
 import {
@@ -15,23 +15,34 @@ type UserProfileContentProps = UserProfileScreenProps & {
     userID: string;
 };
 
-interface UserProfileInformationSectionProps {
+interface UserProfileInformationSection {
     onPress: () => void;
     informationName: string;
     informationCounter: number | undefined;
 }
 
+interface UserProfileInformationSectionProps
+    extends UserProfileInformationSection {
+    testID: string;
+}
+
 const UserProfileInformationSection: React.FC<UserProfileInformationSectionProps> =
-    ({ informationName, informationCounter, onPress }) => {
+    ({ informationName, informationCounter, onPress, testID }) => {
         const sx = useSx();
 
         const informationIsNotVisibleForUser = informationCounter === undefined;
+        console.log({
+            informationCounter,
+            informationName,
+            informationIsNotVisibleForUser,
+        });
         if (informationIsNotVisibleForUser) {
             return null;
         }
 
         return (
             <View
+                testID={testID}
                 sx={{
                     display: 'flex',
                     flexDirection: 'row',
@@ -101,30 +112,29 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
         );
     }
 
-    const userProfileInformationSections: UserProfileInformationSectionProps[] =
-        [
-            {
-                informationName: 'followers',
-                onPress: () => {
-                    console.log('followers section pressed');
-                },
-                informationCounter: userProfileInformation.followersCounter,
+    const userProfileInformationSections: UserProfileInformationSection[] = [
+        {
+            informationName: 'followers',
+            onPress: () => {
+                console.log('followers section pressed');
             },
-            {
-                informationName: 'following',
-                onPress: () => {
-                    console.log('following section pressed');
-                },
-                informationCounter: userProfileInformation.followingCounter,
+            informationCounter: userProfileInformation.followersCounter,
+        },
+        {
+            informationName: 'following',
+            onPress: () => {
+                console.log('following section pressed');
             },
-            {
-                informationName: 'playlists',
-                onPress: () => {
-                    console.log('paylists section pressed');
-                },
-                informationCounter: userProfileInformation.playlistsCounter,
+            informationCounter: userProfileInformation.followingCounter,
+        },
+        {
+            informationName: 'playlists',
+            onPress: () => {
+                console.log('paylists section pressed');
             },
-        ];
+            informationCounter: userProfileInformation.playlistsCounter,
+        },
+    ];
 
     return (
         <AppScreen>
@@ -144,6 +154,7 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
                     ({ informationName, onPress, informationCounter }) => (
                         <UserProfileInformationSection
                             key={`${userProfileInformation.userID}_${informationName}`}
+                            testID={`${userProfileInformation.userID}-${informationName}-button`}
                             informationName={informationName}
                             onPress={onPress}
                             informationCounter={informationCounter}

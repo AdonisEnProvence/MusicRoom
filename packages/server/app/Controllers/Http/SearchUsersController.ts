@@ -6,12 +6,41 @@ import {
     GetUserProfileInformationResponseBody,
     SearchUsersRequestBody,
     SearchUsersResponseBody,
+    UserSettingVisibility,
 } from '@musicroom/types';
 import ForbiddenException from 'App/Exceptions/ForbiddenException';
 import User from 'App/Models/User';
 import invariant from 'tiny-invariant';
 
 const SEARCH_USERS_LIMIT = 10;
+
+function getUserProfileInformationDependingOnItsVisibility({
+    fieldValue,
+    fieldVisibility,
+    requestingUserIsfollowingRelatedUser,
+}: {
+    requestingUserIsfollowingRelatedUser: boolean;
+    fieldValue: number;
+    fieldVisibility: UserSettingVisibility;
+}): number | undefined {
+    switch (fieldVisibility) {
+        case UserSettingVisibility.Values.PRIVATE: {
+            return undefined;
+        }
+        case UserSettingVisibility.Values.PUBLIC: {
+            return fieldValue;
+        }
+        case UserSettingVisibility.Values.FOLLOWERS_ONLY: {
+            if (requestingUserIsfollowingRelatedUser) {
+                return fieldValue;
+            }
+            return undefined;
+        }
+        default: {
+            throw new Error(`unknown switch ue case ${fieldVisibility}`);
+        }
+    }
+}
 
 export default class SearchUsersController {
     public async searchUsers({
@@ -56,14 +85,47 @@ export default class SearchUsersController {
 
         await User.findOrFail(tmpAuthUserID);
         //TODO refactor after follow feature implem
-        const following = false; //tmp
+        const requestingUserIsfollowingRelatedUser = false; //tmp
 
-        const { nickname: userNickname } = await User.findOrFail(userID);
+        const relateduser = await User.findOrFail(userID);
+        await relateduser.load('playlistsVisibilitySetting');
+        await relateduser.load('relationsVisibilitySetting');
+        await relateduser.load('mpeRooms');
+
+        const {
+            nickname: userNickname,
+            playlistsVisibilitySetting,
+            relationsVisibilitySetting,
+        } = relateduser;
+
+        const playlistsCounter =
+            getUserProfileInformationDependingOnItsVisibility({
+                fieldValue: relateduser.mpeRooms.length,
+                fieldVisibility: playlistsVisibilitySetting.name,
+                requestingUserIsfollowingRelatedUser,
+            });
+
+        const followingCounter =
+            getUserProfileInformationDependingOnItsVisibility({
+                fieldValue: 42, //FIXME relateduser.followings.length,
+                fieldVisibility: relationsVisibilitySetting.name,
+                requestingUserIsfollowingRelatedUser,
+            });
+
+        const followersCounter =
+            getUserProfileInformationDependingOnItsVisibility({
+                fieldValue: 21, //FIXME relateduser.followers.length,
+                fieldVisibility: relationsVisibilitySetting.name,
+                requestingUserIsfollowingRelatedUser,
+            });
 
         return {
             userID,
             userNickname,
-            following,
+            following: requestingUserIsfollowingRelatedUser,
+            playlistsCounter,
+            followersCounter,
+            followingCounter,
         };
     }
 

@@ -2,6 +2,7 @@ import { useInterpret, useSelector } from '@xstate/react';
 import { Button, Text, useSx, View } from 'dripsy';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
 import {
     AppScreen,
@@ -9,7 +10,7 @@ import {
     AppScreenHeader,
     Typo,
 } from '../../components/kit';
-import { UserProfileScreenProps } from '../../types';
+import { MyProfileScreenProps } from '../../types';
 import { getFakeUserID } from '../../contexts/SocketContext';
 import { createMyProfileInformationMachine } from '../../machines/myProfileInformationMachine';
 
@@ -51,8 +52,9 @@ const MyProfileInformationSection: React.FC<MyProfileInformationSectionProps> =
         );
     };
 
-const MyProfileScreen: React.FC<UserProfileScreenProps> = ({ navigation }) => {
+const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
+    const sx = useSx();
     const userID = getFakeUserID();
 
     const userProfileInformationService = useInterpret(() =>
@@ -68,13 +70,17 @@ const MyProfileScreen: React.FC<UserProfileScreenProps> = ({ navigation }) => {
         state.hasTag('userNotFound'),
     );
 
+    function handleGoToMySettingsScreen() {
+        navigation.navigate('MySettings');
+    }
+
     if (myProfileInformation === undefined) {
         return (
             <AppScreen>
                 <AppScreenHeader
-                    title=""
+                    title="My profile"
                     insetTop={insets.top}
-                    canGoBack={true}
+                    canGoBack
                     goBack={() => {
                         navigation.goBack();
                     }}
@@ -133,9 +139,24 @@ const MyProfileScreen: React.FC<UserProfileScreenProps> = ({ navigation }) => {
             <AppScreenHeader
                 title={`My profile`}
                 insetTop={insets.top}
-                canGoBack={true}
+                canGoBack
                 goBack={() => {
                     navigation.goBack();
+                }}
+                HeaderRight={() => {
+                    return (
+                        <TouchableOpacity onPress={handleGoToMySettingsScreen}>
+                            <Ionicons
+                                name="cog"
+                                accessibilityLabel="Open my settings screen"
+                                style={sx({
+                                    fontSize: 'm',
+                                    color: 'white',
+                                    padding: 's',
+                                })}
+                            />
+                        </TouchableOpacity>
+                    );
                 }}
             />
 

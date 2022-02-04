@@ -21,7 +21,7 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
 
     function handleMyProfileIconPress() {
         navigation.navigate('MyProfile', {
-            screen: 'MyProfile',
+            screen: 'MyProfileIndex',
         });
     }
 
@@ -103,13 +103,6 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                                 userID: '9ed60e96-d5fc-40b3-b842-aeaa75e93972',
                             },
                         });
-                    }}
-                />
-
-                <Button
-                    title="My Settings"
-                    onPress={() => {
-                        navigation.navigate('MySettings');
                     }}
                 />
 

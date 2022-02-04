@@ -63,9 +63,7 @@ export type RootStackParamList = {
 
     UserProfile: NavigatorScreenParams<UserProfileStackParamsList>;
 
-    MySettings: NavigatorScreenParams<MySettingsStackParamsList>;
-
-    MyProfile: NavigatorScreenParams<MyProfileStackparamsList>;
+    MyProfile: NavigatorScreenParams<MyProfileStackParamsList>;
 
     MusicPlaylistEditorCreationForm: NavigatorScreenParams<MusicPlaylistEditorCreationFormParamList>;
     MusicPlaylistEditorExportToMtvCreationForm: NavigatorScreenParams<MusicTrackVoteCreationFormParamList>;
@@ -109,13 +107,10 @@ export type UserProfileStackParamsList = {
     UserProfile: UserProfileParams;
 };
 
-export type MyProfileStackparamsList = {
-    MyProfile: undefined;
-};
-
-export type MySettingsStackParamsList = {
-    Index: undefined;
-    UpdateNickname: undefined;
+export type MyProfileStackParamsList = {
+    MyProfileIndex: undefined;
+    MySettings: undefined;
+    MySettingsUpdateNickname: undefined;
 };
 
 export type MusicPlaylistEditorCreationFormParamList = {
@@ -377,25 +372,31 @@ export type UserProfileScreenProps = {
     route: RouteProp<UserProfileStackParamsList, 'UserProfile'>;
 };
 
-export type MySettingsIndexScreenProps = {
+export type MySettingsScreenProps = {
     navigation: CompositeNavigationProp<
-        StackNavigationProp<RootStackParamList, 'MySettings'>,
-        StackNavigationProp<MySettingsStackParamsList, 'Index'>
+        StackNavigationProp<RootStackParamList, 'MyProfile'>,
+        StackNavigationProp<MyProfileStackParamsList, 'MySettings'>
     >;
-    route: RouteProp<MySettingsStackParamsList, 'Index'>;
+    route: RouteProp<MyProfileStackParamsList, 'MySettings'>;
 };
 
 export type MySettingsUpdateNicknameScreenProps = {
     navigation: CompositeNavigationProp<
-        StackNavigationProp<RootStackParamList, 'MySettings'>,
-        StackNavigationProp<MySettingsStackParamsList, 'UpdateNickname'>
+        StackNavigationProp<RootStackParamList, 'MyProfile'>,
+        StackNavigationProp<
+            MyProfileStackParamsList,
+            'MySettingsUpdateNickname'
+        >
     >;
-    route: RouteProp<MySettingsStackParamsList, 'UpdateNickname'>;
+    route: RouteProp<MyProfileStackParamsList, 'MySettingsUpdateNickname'>;
 };
 
 export type MyProfileScreenProps = {
-    navigation: StackNavigationProp<MyProfileStackparamsList, 'MyProfile'>;
-    route: RouteProp<MyProfileStackparamsList, 'MyProfile'>;
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'MyProfile'>,
+        StackNavigationProp<MyProfileStackParamsList, 'MyProfileIndex'>
+    >;
+    route: RouteProp<MyProfileStackParamsList, 'MyProfileIndex'>;
 };
 
 export type HomeTabProps = {

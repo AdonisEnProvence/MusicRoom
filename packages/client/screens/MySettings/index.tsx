@@ -10,7 +10,7 @@ import {
     AppScreenHeader,
 } from '../../components/kit';
 import MtvRoomCreationFormOptionButton from '../../components/MtvRoomCreationForm/MtvRoomCreationFormOptionButton';
-import { MySettingsIndexScreenProps } from '../../types';
+import { MySettingsScreenProps } from '../../types';
 import {
     settingsMachine,
     VisibilitySettingMachineActor,
@@ -111,9 +111,7 @@ const VisibilitySetting: React.FC<VisibilitySettingProps> = ({
     );
 };
 
-const MySettingsScreen: React.FC<MySettingsIndexScreenProps> = ({
-    navigation,
-}) => {
+const MySettingsScreen: React.FC<MySettingsScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const sx = useSx();
     const [state] = useMachine(settingsMachine);
@@ -181,7 +179,7 @@ const MySettingsScreen: React.FC<MySettingsIndexScreenProps> = ({
                                     <TouchableOpacity
                                         onPress={() => {
                                             navigation.navigate(
-                                                'UpdateNickname',
+                                                'MySettingsUpdateNickname',
                                             );
                                         }}
                                         style={sx({

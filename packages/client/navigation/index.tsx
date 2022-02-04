@@ -37,8 +37,7 @@ import {
     SuggestTrackStackParamList,
     UserProfileStackParamsList,
     MusicPlaylistEditorUsersSearchStackParamList,
-    MyProfileStackparamsList,
-    MySettingsStackParamsList,
+    MyProfileStackParamsList,
 } from '../types';
 import { SplashScreen } from '../screens/SplashScreen';
 import MusicTrackVoteConstraintsDetailsModal from '../screens/MusicTrackVoteConstraintsDetailsModal';
@@ -122,8 +121,7 @@ const MusisPlaylistEditorUsersSearchStack =
 const MusicPlaylistEditorRoomsSearchStack =
     createStackNavigator<MusicPlaylistEditorRoomsSearchParamList>();
 const UserProfileStack = createStackNavigator<UserProfileStackParamsList>();
-const MyProfileStack = createStackNavigator<MyProfileStackparamsList>();
-const MySettingsStack = createStackNavigator<MySettingsStackParamsList>();
+const MyProfileStack = createStackNavigator<MyProfileStackParamsList>();
 
 export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
     const style = navigationStyle(colorScheme);
@@ -212,15 +210,6 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
                     detachPreviousScreen: false,
                 }}
                 component={MyProfileNavigator}
-            />
-
-            <RootStack.Screen
-                name="MySettings"
-                options={{
-                    headerShown: false,
-                    detachPreviousScreen: false,
-                }}
-                component={MySettingsNavigator}
             />
 
             <RootStack.Screen
@@ -466,7 +455,7 @@ export const MyProfileNavigator: React.FC<ColorModeProps> = ({
 
     return (
         <MyProfileStack.Navigator
-            initialRouteName="MyProfile"
+            initialRouteName="MyProfileIndex"
             mode="modal"
             detachInactiveScreens
             screenOptions={{
@@ -476,7 +465,7 @@ export const MyProfileNavigator: React.FC<ColorModeProps> = ({
             }}
         >
             <MyProfileStack.Screen
-                name="MyProfile"
+                name="MyProfileIndex"
                 options={{
                     title: 'My Profile',
                     headerShown: false,
@@ -484,23 +473,9 @@ export const MyProfileNavigator: React.FC<ColorModeProps> = ({
                 }}
                 component={MyProfileScreen}
             />
-        </MyProfileStack.Navigator>
-    );
-};
 
-export const MySettingsNavigator: React.FC<ColorModeProps> = ({
-    colorScheme,
-}) => {
-    const style = navigationStyle(colorScheme);
-
-    return (
-        <MySettingsStack.Navigator
-            initialRouteName="Index"
-            mode="modal"
-            screenOptions={{ ...style, headerShown: false }}
-        >
-            <MySettingsStack.Screen
-                name="Index"
+            <MyProfileStack.Screen
+                name="MySettings"
                 options={{
                     title: 'My Settings',
                     headerShown: false,
@@ -508,15 +483,15 @@ export const MySettingsNavigator: React.FC<ColorModeProps> = ({
                 component={MySettingsScreen}
             />
 
-            <MySettingsStack.Screen
-                name="UpdateNickname"
+            <MyProfileStack.Screen
+                name="MySettingsUpdateNickname"
                 options={{
                     title: 'Update nickname',
                     headerShown: false,
                 }}
                 component={UpdateNicknameScreen}
             />
-        </MySettingsStack.Navigator>
+        </MyProfileStack.Navigator>
     );
 };
 

@@ -54,10 +54,15 @@ test.group('Users Profile information tests', (group) => {
             .expect(200);
 
         const parsedBody = GetMyProfileInformationResponseBody.parse(rawBody);
-
-        assert.equal(parsedBody.devicesCounter, 2);
-        assert.equal(parsedBody.userID, userID);
-        assert.equal(parsedBody.userNickname, userNickname);
+        const expectedBody: GetMyProfileInformationResponseBody = {
+            devicesCounter: 2,
+            followersCounter: 13,
+            followingCounter: 12,
+            playlistsCounter: 0,
+            userID,
+            userNickname,
+        };
+        assert.deepEqual(parsedBody, expectedBody);
     });
 
     test('It should send back user not found', async () => {

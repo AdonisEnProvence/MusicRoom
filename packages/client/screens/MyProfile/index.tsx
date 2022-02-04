@@ -1,7 +1,8 @@
 import { useInterpret, useSelector } from '@xstate/react';
-import { Button, Text } from 'dripsy';
+import { Button, Text, useSx, View } from 'dripsy';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TouchableOpacity } from 'react-native';
 import {
     AppScreen,
     AppScreenContainer,
@@ -11,6 +12,44 @@ import {
 import { UserProfileScreenProps } from '../../types';
 import { getFakeUserID } from '../../contexts/SocketContext';
 import { createMyProfileInformationMachine } from '../../machines/myProfileInformationMachine';
+
+interface MyProfileInformationSectionProps {
+    onPress: () => void;
+    informationName: string;
+    informationCounter: number | undefined;
+}
+
+const MyProfileInformationSection: React.FC<MyProfileInformationSectionProps> =
+    ({ informationName, informationCounter, onPress }) => {
+        const sx = useSx();
+
+        const informationIsNotVisibleForUser = informationCounter === undefined;
+        if (informationIsNotVisibleForUser) {
+            return null;
+        }
+
+        return (
+            <View
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    width: '100%',
+                }}
+            >
+                <TouchableOpacity
+                    onPress={() => onPress()}
+                    style={sx({
+                        backgroundColor: 'gold',
+                        padding: 'l',
+                        borderRadius: 's',
+                        textAlign: 'center',
+                    })}
+                >
+                    <Text>{`${informationName} ${informationCounter}`}</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    };
 
 const MyProfileScreen: React.FC<UserProfileScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
@@ -58,6 +97,37 @@ const MyProfileScreen: React.FC<UserProfileScreenProps> = ({ navigation }) => {
         );
     }
 
+    const myProfileInformationSections: MyProfileInformationSectionProps[] = [
+        {
+            informationName: 'followers',
+            onPress: () => {
+                console.log('followers section pressed');
+            },
+            informationCounter: myProfileInformation.followersCounter,
+        },
+        {
+            informationName: 'following',
+            onPress: () => {
+                console.log('following section pressed');
+            },
+            informationCounter: myProfileInformation.followingCounter,
+        },
+        {
+            informationName: 'playlists',
+            onPress: () => {
+                console.log('paylists section pressed');
+            },
+            informationCounter: myProfileInformation.playlistsCounter,
+        },
+        {
+            informationName: 'devices',
+            onPress: () => {
+                console.log('devices section pressed');
+            },
+            informationCounter: myProfileInformation.devicesCounter,
+        },
+    ];
+
     return (
         <AppScreen>
             <AppScreenHeader
@@ -71,7 +141,16 @@ const MyProfileScreen: React.FC<UserProfileScreenProps> = ({ navigation }) => {
 
             <AppScreenContainer testID="my-profile-page-container">
                 <Typo>{userID} my profile</Typo>
-                <Typo>My Devices: {myProfileInformation.devicesCounter}</Typo>
+                {myProfileInformationSections.map(
+                    ({ informationName, onPress, informationCounter }) => (
+                        <MyProfileInformationSection
+                            key={`${userID}_${informationName}`}
+                            informationName={informationName}
+                            onPress={onPress}
+                            informationCounter={informationCounter}
+                        />
+                    ),
+                )}
             </AppScreenContainer>
         </AppScreen>
     );

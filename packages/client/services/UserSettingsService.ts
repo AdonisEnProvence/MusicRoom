@@ -1,4 +1,6 @@
 import {
+    UpdateNicknameRequestBody,
+    UpdateNicknameResponseBody,
     UpdatePlaylistsVisibilityRequestBody,
     UpdatePlaylistsVisibilityResponseBody,
     UpdateRelationsVisibilityRequestBody,
@@ -48,6 +50,26 @@ export async function setUserRelationsSettingVisibility({
     const parsedResponse = UpdateRelationsVisibilityResponseBody.parse(
         rawResponse.data,
     );
+
+    return parsedResponse;
+}
+
+interface SetUserNicknameArgs {
+    nickname: string;
+}
+
+export async function setUserNickname({
+    nickname,
+}: SetUserNicknameArgs): Promise<UpdateNicknameResponseBody> {
+    const url = urlcat(SERVER_ENDPOINT, '/me/nickname');
+    const body: UpdateNicknameRequestBody = {
+        tmpAuthUserID: getFakeUserID(),
+
+        nickname,
+    };
+
+    const rawResponse = await redaxios.post(url, body);
+    const parsedResponse = UpdateNicknameResponseBody.parse(rawResponse.data);
 
     return parsedResponse;
 }

@@ -172,7 +172,7 @@ const UpdateNicknameScreen: React.FC<MySettingsUpdateNicknameScreenProps> = ({
     }
 
     return (
-        <AppScreen>
+        <AppScreen testID="update-nickname-screen">
             <AppScreenHeader
                 title="Update nickname"
                 insetTop={insets.top}

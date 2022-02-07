@@ -187,11 +187,7 @@ const UpdateNicknameScreen: React.FC<MySettingsUpdateNicknameScreenProps> = ({
                             display: ['flex', 'none'],
                         })}
                     >
-                        <Text
-                            sx={{ color: 'greyLighter', fontWeight: 'medium' }}
-                        >
-                            Edit
-                        </Text>
+                        <Text sx={{ color: 'greyLighter' }}>Edit</Text>
                     </TouchableOpacity>
                 )}
             />
@@ -215,7 +211,7 @@ const UpdateNicknameScreen: React.FC<MySettingsUpdateNicknameScreenProps> = ({
                                 color: 'greyLighter',
                                 fontSize: 'xs',
                                 fontWeight: 'bold',
-                                textAlign: 'start',
+                                textAlign: 'left',
 
                                 marginBottom: 'm',
                             }}

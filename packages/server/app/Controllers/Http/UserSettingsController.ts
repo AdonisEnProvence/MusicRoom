@@ -4,6 +4,8 @@ import {
     UpdatePlaylistsVisibilityResponseBody,
     UpdateRelationsVisibilityRequestBody,
     UpdateRelationsVisibilityResponseBody,
+    UpdateNicknameRequestBody,
+    UpdateNicknameResponseBody,
 } from '@musicroom/types';
 import SettingVisibility from 'App/Models/SettingVisibility';
 import User from 'App/Models/User';
@@ -51,5 +53,34 @@ export default class UserSettingsController {
         return {
             status: 'SUCCESS',
         };
+    }
+
+    public async updateNickname({
+        request,
+    }: HttpContextContract): Promise<UpdateNicknameResponseBody> {
+        const rawBody = request.body();
+        const { tmpAuthUserID, nickname } =
+            UpdateNicknameRequestBody.parse(rawBody);
+
+        const user = await User.findOrFail(tmpAuthUserID);
+        if (user.nickname === nickname) {
+            return {
+                status: 'SAME_NICKNAME',
+            };
+        }
+
+        try {
+            user.nickname = nickname;
+
+            await user.save();
+
+            return {
+                status: 'SUCCESS',
+            };
+        } catch (err: unknown) {
+            return {
+                status: 'UNAVAILABLE_NICKNAME',
+            };
+        }
     }
 }

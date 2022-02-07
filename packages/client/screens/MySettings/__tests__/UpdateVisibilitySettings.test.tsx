@@ -4,13 +4,17 @@ import { createModel as createTestModel } from '@xstate/test';
 import { EventFrom } from 'xstate';
 import cases from 'jest-in-case';
 import Toast from 'react-native-toast-message';
+import { getCurrentPositionAsync, LocationObject } from 'expo-location';
+import { datatype, internet } from 'faker';
 import {
     fireEvent,
     render,
     renderApp,
     within,
     waitFor,
+    testGetFakeUserID,
 } from '../../../tests/tests-utils';
+import { db } from '../../../tests/data';
 
 interface TestingContext {
     screen: ReturnType<typeof render>;
@@ -398,9 +402,49 @@ cases<{
 }>(
     'Change visibility settings',
     async ({ events, target }) => {
+        const userID = testGetFakeUserID();
+
+        db.myProfileInformation.create({
+            userID,
+            devicesCounter: 3,
+            userNickname: internet.userName(),
+        });
+
+        const location: LocationObject = {
+            timestamp: datatype.number(),
+            coords: {
+                accuracy: 4,
+                altitude: null,
+                altitudeAccuracy: null,
+                heading: null,
+                latitude: datatype.number({
+                    min: -80,
+                    max: 75,
+                }),
+                longitude: datatype.number({
+                    min: -180,
+                    max: 175,
+                }),
+                speed: null,
+            },
+        };
+
+        (getCurrentPositionAsync as any).mockImplementation(() => {
+            return Promise.resolve(location);
+        });
+
         const screen = await renderApp();
 
-        const goToMySettingsButton = await screen.findByText(/my.*settings/i);
+        const goToMyProfileButton = await screen.findByLabelText(
+            /open.*my.*profile/i,
+        );
+        expect(goToMyProfileButton).toBeTruthy();
+
+        fireEvent.press(goToMyProfileButton);
+
+        const goToMySettingsButton = await screen.findByLabelText(
+            /open.*my.*settings/i,
+        );
         expect(goToMySettingsButton).toBeTruthy();
 
         fireEvent.press(goToMySettingsButton);

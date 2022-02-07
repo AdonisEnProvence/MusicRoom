@@ -87,14 +87,19 @@ export default class SearchUsersController {
             throw new ForbiddenException();
         }
 
-        await User.findOrFail(tmpAuthUserID);
-        //TODO refactor after follow feature implem
-        const requestingUserIsfollowingRelatedUser = false; //tmp
+        const requestingUser = await User.findOrFail(tmpAuthUserID);
+        await requestingUser.load('following', (userQuery) => {
+            return userQuery.where('uuid', userID);
+        });
+        const requestingUserIsfollowingRelatedUser =
+            requestingUser.following.length > 0;
 
         const relateduser = await User.findOrFail(userID);
         await relateduser.load('playlistsVisibilitySetting');
         await relateduser.load('relationsVisibilitySetting');
         await relateduser.load('mpeRooms');
+        await relateduser.load('following');
+        await relateduser.load('followers');
 
         const {
             nickname: userNickname,
@@ -111,14 +116,14 @@ export default class SearchUsersController {
 
         const followingCounter =
             getUserProfileInformationDependingOnItsVisibility({
-                fieldValue: 42, //FIXME relateduser.followings.length,
+                fieldValue: relateduser.following.length,
                 fieldVisibility: relationsVisibilitySetting.name,
                 requestingUserIsfollowingRelatedUser,
             });
 
         const followersCounter =
             getUserProfileInformationDependingOnItsVisibility({
-                fieldValue: 21, //FIXME relateduser.followers.length,
+                fieldValue: relateduser.followers.length,
                 fieldVisibility: relationsVisibilitySetting.name,
                 requestingUserIsfollowingRelatedUser,
             });

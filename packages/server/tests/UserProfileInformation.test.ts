@@ -52,46 +52,38 @@ test.group('Users Profile information tests', (group) => {
         assert.isFalse(parsedBody.following);
         assert.equal(parsedBody.userID, searchedUser.uuid);
         assert.equal(parsedBody.userNickname, searchedUser.nickname);
-        assert.equal(parsedBody.followersCounter, 21);
-        assert.equal(parsedBody.followingCounter, 42);
+        assert.equal(parsedBody.followersCounter, 0);
+        assert.equal(parsedBody.followingCounter, 0);
         assert.equal(parsedBody.playlistsCounter, 0);
     });
 
-    test.failing(
-        'It should retrieve followed user profile information',
-        async (assert) => {
-            const userID = datatype.uuid();
-            const searchedUserID = datatype.uuid();
-            await User.create({
-                uuid: userID,
-                nickname: internet.userName(),
-            });
-            const searchedUser = await User.create({
-                uuid: searchedUserID,
-                nickname: internet.userName(),
-            });
+    test('It should retrieve followed user profile information', async (assert) => {
+        const userID = datatype.uuid();
+        const searchedUserID = datatype.uuid();
+        const searchingUser = await User.create({
+            uuid: userID,
+            nickname: internet.userName(),
+        });
+        const searchedUser = await User.create({
+            uuid: searchedUserID,
+            nickname: internet.userName(),
+        });
+        await searchedUser.related('followers').save(searchingUser);
 
-            const { body: rawBody } = await supertest(BASE_URL)
-                .post(
-                    urlcat(
-                        TEST_USER_ROUTES_GROUP_PREFIX,
-                        'profile-information',
-                    ),
-                )
-                .send({
-                    tmpAuthUserID: userID,
-                    userID: searchedUserID,
-                } as GetUserProfileInformationRequestBody)
-                .expect(200);
+        const { body: rawBody } = await supertest(BASE_URL)
+            .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
+            .send({
+                tmpAuthUserID: userID,
+                userID: searchedUserID,
+            } as GetUserProfileInformationRequestBody)
+            .expect(200);
 
-            const parsedBody =
-                GetUserProfileInformationResponseBody.parse(rawBody);
+        const parsedBody = GetUserProfileInformationResponseBody.parse(rawBody);
 
-            assert.isTrue(parsedBody.following);
-            assert.equal(parsedBody.userID, searchedUser.uuid);
-            assert.equal(parsedBody.userNickname, searchedUser.nickname);
-        },
-    );
+        assert.isTrue(parsedBody.following);
+        assert.equal(parsedBody.userID, searchedUser.uuid);
+        assert.equal(parsedBody.userNickname, searchedUser.nickname);
+    });
 
     test('Requesting user not found', async () => {
         const userID = datatype.uuid();
@@ -213,8 +205,8 @@ test.group('Users Profile information tests', (group) => {
         assert.isFalse(parsedBody.following);
         assert.equal(parsedBody.userID, searchedUser.uuid);
         assert.equal(parsedBody.userNickname, searchedUser.nickname);
-        assert.equal(parsedBody.followersCounter, 21);
-        assert.equal(parsedBody.followingCounter, 42);
+        assert.equal(parsedBody.followersCounter, 0);
+        assert.equal(parsedBody.followingCounter, 0);
         assert.isUndefined(parsedBody.playlistsCounter);
     });
 
@@ -258,52 +250,45 @@ test.group('Users Profile information tests', (group) => {
         assert.isUndefined(parsedBody.playlistsCounter);
     });
 
-    test.failing(
-        "It should return playlist and relations information as they're followers only",
-        async (assert) => {
-            const userID = datatype.uuid();
-            await User.create({
-                uuid: userID,
-                nickname: internet.userName(),
-            });
+    test("It should return playlist and relations information as they're followers only", async (assert) => {
+        const userID = datatype.uuid();
+        const searchingUser = await User.create({
+            uuid: userID,
+            nickname: internet.userName(),
+        });
 
-            const searchedUserID = datatype.uuid();
-            const searchedUser = await User.create({
-                uuid: searchedUserID,
-                nickname: internet.userName(),
-            });
-            const followerOnlyVisibility = await getVisibilityDatabaseEntry(
-                UserSettingVisibility.Values.FOLLOWERS_ONLY,
-            );
-            await searchedUser
-                .related('playlistsVisibilitySetting')
-                .associate(followerOnlyVisibility);
-            await searchedUser
-                .related('relationsVisibilitySetting')
-                .associate(followerOnlyVisibility);
+        const searchedUserID = datatype.uuid();
+        const searchedUser = await User.create({
+            uuid: searchedUserID,
+            nickname: internet.userName(),
+        });
 
-            const { body: rawBody } = await supertest(BASE_URL)
-                .post(
-                    urlcat(
-                        TEST_USER_ROUTES_GROUP_PREFIX,
-                        'profile-information',
-                    ),
-                )
-                .send({
-                    tmpAuthUserID: userID,
-                    userID: searchedUserID,
-                } as GetUserProfileInformationRequestBody)
-                .expect(200);
+        const followerOnlyVisibility = await getVisibilityDatabaseEntry(
+            UserSettingVisibility.Values.FOLLOWERS_ONLY,
+        );
+        await searchedUser.related('followers').save(searchingUser);
+        await searchedUser
+            .related('playlistsVisibilitySetting')
+            .associate(followerOnlyVisibility);
+        await searchedUser
+            .related('relationsVisibilitySetting')
+            .associate(followerOnlyVisibility);
 
-            const parsedBody =
-                GetUserProfileInformationResponseBody.parse(rawBody);
+        const { body: rawBody } = await supertest(BASE_URL)
+            .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
+            .send({
+                tmpAuthUserID: userID,
+                userID: searchedUserID,
+            } as GetUserProfileInformationRequestBody)
+            .expect(200);
 
-            assert.isFalse(parsedBody.following);
-            assert.equal(parsedBody.userID, searchedUser.uuid);
-            assert.equal(parsedBody.userNickname, searchedUser.nickname);
-            assert.equal(parsedBody.followersCounter, 21);
-            assert.equal(parsedBody.followingCounter, 42);
-            assert.equal(parsedBody.playlistsCounter, 0);
-        },
-    );
+        const parsedBody = GetUserProfileInformationResponseBody.parse(rawBody);
+
+        assert.isTrue(parsedBody.following);
+        assert.equal(parsedBody.userID, searchedUser.uuid);
+        assert.equal(parsedBody.userNickname, searchedUser.nickname);
+        assert.equal(parsedBody.followersCounter, 1);
+        assert.equal(parsedBody.followingCounter, 0);
+        assert.equal(parsedBody.playlistsCounter, 0);
+    });
 });

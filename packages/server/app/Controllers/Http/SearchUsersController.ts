@@ -7,6 +7,8 @@ import {
     GetUserProfileInformationResponseBody,
     SearchUsersRequestBody,
     SearchUsersResponseBody,
+    UnfollowUserRequestBody,
+    UnfollowUserResponseBody,
     UserSettingVisibility,
 } from '@musicroom/types';
 import { FollowUserResponseBody } from '@musicroom/types/src/user';
@@ -185,6 +187,43 @@ export default class SearchUsersController {
         }
 
         await followingUser.related('following').save(followedUser);
+
+        return {
+            status: 'SUCCESS',
+        };
+    }
+
+    public async unfollowUser({
+        request,
+    }: HttpContextContract): Promise<UnfollowUserResponseBody> {
+        const rawBody = request.body();
+
+        const { tmpAuthUserID, userID } =
+            UnfollowUserRequestBody.parse(rawBody);
+
+        const unfollowingUser = await User.findOrFail(tmpAuthUserID);
+        await unfollowingUser.load('following', (userQuery) => {
+            return userQuery.where('uuid', userID);
+        });
+        const unfollowedUser = await User.findOrFail(userID);
+        await unfollowedUser.load('followers', (userQuery) => {
+            return userQuery.where('uuid', tmpAuthUserID);
+        });
+
+        const unfollowingUserDoesnotFollowGivenUser =
+            unfollowingUser.following.length === 0;
+        const unfollowedUserDoesnotHaveFollowingUserInHisFollowers =
+            unfollowedUser.followers.length === 0;
+        if (
+            unfollowingUserDoesnotFollowGivenUser ||
+            unfollowedUserDoesnotHaveFollowingUserInHisFollowers
+        ) {
+            throw new Error('User is not following given user');
+        }
+
+        await unfollowingUser
+            .related('following')
+            .detach([unfollowedUser.uuid]);
 
         return {
             status: 'SUCCESS',

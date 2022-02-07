@@ -1,7 +1,8 @@
 import { useInterpret, useSelector } from '@xstate/react';
-import { Button, Text } from 'dripsy';
-import React, { useEffect, useMemo } from 'react';
+import { Button, Text, useSx, View } from 'dripsy';
+import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TouchableOpacity } from 'react-native';
 import {
     AppScreen,
     AppScreenContainer,
@@ -13,6 +14,55 @@ import { createUserProfileInformationMachine } from '../../machines/userProfileI
 type UserProfileContentProps = UserProfileScreenProps & {
     userID: string;
 };
+
+interface UserProfileInformationSection {
+    onPress: () => void;
+    informationName: string;
+    informationCounter: number | undefined;
+}
+
+interface UserProfileInformationSectionProps
+    extends UserProfileInformationSection {
+    testID: string;
+}
+
+const UserProfileInformationSection: React.FC<UserProfileInformationSectionProps> =
+    ({ informationName, informationCounter, onPress, testID }) => {
+        const sx = useSx();
+
+        const informationIsNotVisibleForUser = informationCounter === undefined;
+        console.log({
+            informationCounter,
+            informationName,
+            informationIsNotVisibleForUser,
+        });
+        if (informationIsNotVisibleForUser) {
+            return null;
+        }
+
+        return (
+            <View
+                testID={testID}
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    width: '100%',
+                }}
+            >
+                <TouchableOpacity
+                    onPress={() => onPress()}
+                    style={sx({
+                        backgroundColor: 'gold',
+                        padding: 'l',
+                        borderRadius: 's',
+                        textAlign: 'center',
+                    })}
+                >
+                    <Text>{`${informationName} ${informationCounter}`}</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    };
 
 const UserProfileContent: React.FC<UserProfileContentProps> = ({
     userID,
@@ -62,6 +112,30 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
         );
     }
 
+    const userProfileInformationSections: UserProfileInformationSection[] = [
+        {
+            informationName: 'followers',
+            onPress: () => {
+                console.log('followers section pressed');
+            },
+            informationCounter: userProfileInformation.followersCounter,
+        },
+        {
+            informationName: 'following',
+            onPress: () => {
+                console.log('following section pressed');
+            },
+            informationCounter: userProfileInformation.followingCounter,
+        },
+        {
+            informationName: 'playlists',
+            onPress: () => {
+                console.log('paylists section pressed');
+            },
+            informationCounter: userProfileInformation.playlistsCounter,
+        },
+    ];
+
     return (
         <AppScreen>
             <AppScreenHeader
@@ -76,6 +150,17 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
             <AppScreenContainer
                 testID={`${userProfileInformation.userID}-profile-page-screen`}
             >
+                {userProfileInformationSections.map(
+                    ({ informationName, onPress, informationCounter }) => (
+                        <UserProfileInformationSection
+                            key={`${userProfileInformation.userID}_${informationName}`}
+                            testID={`${userProfileInformation.userID}-${informationName}-button`}
+                            informationName={informationName}
+                            onPress={onPress}
+                            informationCounter={informationCounter}
+                        />
+                    ),
+                )}
                 {userProfileInformation.following ? (
                     <Button
                         title="UNFOLLOW"

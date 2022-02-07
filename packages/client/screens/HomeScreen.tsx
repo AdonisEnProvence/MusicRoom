@@ -1,8 +1,8 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { MtvWorkflowState } from '@musicroom/types';
 import { Button, useSx, View } from 'dripsy';
+import { TouchableOpacity } from 'react-native';
 import React from 'react';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
     AppScreen,

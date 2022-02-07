@@ -1,4 +1,4 @@
-import { drop, factory, primaryKey } from '@mswjs/data';
+import { drop, factory, primaryKey, nullable } from '@mswjs/data';
 import {
     MpeRoomSummary,
     MpeWorkflowState,
@@ -11,7 +11,6 @@ import {
 } from '@musicroom/types';
 import { LocationObject } from 'expo-location';
 import { datatype, name, random, internet } from 'faker';
-import { data } from 'msw/lib/types/context';
 
 export const db = factory({
     searchableTracks: {
@@ -46,6 +45,9 @@ export const db = factory({
         userID: primaryKey(() => datatype.uuid()),
         userNickname: () => internet.userName(),
         following: () => datatype.boolean(),
+        followersCounter: nullable(Number),
+        followingCounter: nullable(Number),
+        playlistsCounter: nullable(Number),
     },
 
     myProfileInformation: {

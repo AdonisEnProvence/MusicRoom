@@ -14,6 +14,9 @@ test('It should display my profile page with my profile information', async () =
     db.myProfileInformation.create({
         userID,
         devicesCounter: 3,
+        playlistsCounter: 4,
+        followersCounter: 5,
+        followingCounter: 6,
         userNickname: internet.userName(),
     });
 
@@ -28,8 +31,14 @@ test('It should display my profile page with my profile information', async () =
 
     await waitFor(() => {
         expect(screen.getByTestId('my-profile-page-container')).toBeTruthy();
-        const devicesCounter = screen.getByText(/.*my.*devices.*3.*/i);
+        const devicesCounter = screen.getByText(/.*devices.*3/i);
+        const playlistsCounter = screen.getByText(/.*playlists.*4/i);
+        const followersCounter = screen.getByText(/.*followers.*5/i);
+        const followingCounter = screen.getByText(/.*following.*6/i);
         expect(devicesCounter).toBeTruthy();
+        expect(playlistsCounter).toBeTruthy();
+        expect(followersCounter).toBeTruthy();
+        expect(followingCounter).toBeTruthy();
     });
 });
 

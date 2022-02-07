@@ -48,6 +48,7 @@ Route.group(() => {
     );
 
     Route.post('/follow', 'SearchUsersController.followUser');
+    Route.post('/unfollow', 'SearchUsersController.unfollowUser');
 }).prefix(USER_ROUTES_GROUP_PREFIX);
 
 /// Temporal MTV Routes ///

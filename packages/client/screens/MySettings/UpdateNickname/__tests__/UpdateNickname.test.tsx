@@ -261,7 +261,6 @@ describe('Update Nickname', () => {
                             switch (req.body.nickname) {
                                 case CURRENT_USER_NICKNAME: {
                                     return res(
-                                        // @ts-expect-error Will be solved by new version of @mswjs/data
                                         ctx.json({
                                             status: 'SAME_NICKNAME',
                                         }),
@@ -270,7 +269,6 @@ describe('Update Nickname', () => {
 
                                 case UNAVAILABLE_NICKNAME: {
                                     return res(
-                                        // @ts-expect-error Will be solved by new version of @mswjs/data
                                         ctx.json({
                                             status: 'UNAVAILABLE_NICKNAME',
                                         }),
@@ -279,7 +277,6 @@ describe('Update Nickname', () => {
 
                                 default: {
                                     return res(
-                                        // @ts-expect-error Will be solved by new version of @mswjs/data
                                         ctx.json({
                                             status: 'SUCCESS',
                                         }),

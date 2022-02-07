@@ -97,6 +97,26 @@ export default class User extends BaseModel {
         }
     }
 
+    @manyToMany(() => User, {
+        localKey: 'uuid', //following
+        relatedKey: 'uuid', //followed
+
+        pivotTable: 'following_user_followed_user',
+        pivotForeignKey: 'following_user_uuid',
+        pivotRelatedForeignKey: 'followed_user_uuid',
+    })
+    public following: ManyToMany<typeof User>;
+
+    @manyToMany(() => User, {
+        localKey: 'uuid', //followed
+        relatedKey: 'uuid', //following
+
+        pivotTable: 'following_user_followed_user',
+        pivotForeignKey: 'followed_user_uuid',
+        pivotRelatedForeignKey: 'following_user_uuid',
+    })
+    public followers: ManyToMany<typeof User>;
+
     @column.dateTime({ autoCreate: true })
     public createdAt: DateTime;
 

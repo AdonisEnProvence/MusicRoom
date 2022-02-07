@@ -1,5 +1,6 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import {
+    FollowUserRequestBody,
     GetMyProfileInformationRequestBody,
     GetMyProfileInformationResponseBody,
     GetUserProfileInformationRequestBody,
@@ -8,6 +9,7 @@ import {
     SearchUsersResponseBody,
     UserSettingVisibility,
 } from '@musicroom/types';
+import { FollowUserResponseBody } from '@musicroom/types/src/user';
 import ForbiddenException from 'App/Exceptions/ForbiddenException';
 import User from 'App/Models/User';
 import invariant from 'tiny-invariant';
@@ -152,6 +154,40 @@ export default class SearchUsersController {
             followersCounter,
             followingCounter,
             playlistsCounter: user.mpeRooms.length,
+        };
+    }
+
+    public async followUser({
+        request,
+    }: HttpContextContract): Promise<FollowUserResponseBody> {
+        const rawBody = request.body();
+
+        const { tmpAuthUserID, userID } = FollowUserRequestBody.parse(rawBody);
+
+        const followingUser = await User.findOrFail(tmpAuthUserID);
+        await followingUser.load('following', (userQuery) => {
+            return userQuery.where('uuid', userID);
+        });
+        const followedUser = await User.findOrFail(userID);
+        await followedUser.load('followers', (userQuery) => {
+            return userQuery.where('uuid', tmpAuthUserID);
+        });
+
+        const followingUserIsAlreadyFollowingGivenUser =
+            followingUser.following.length > 0;
+        const followedUserAlreadyHasFollowingUserInHisFollowers =
+            followedUser.followers.length > 0;
+        if (
+            followingUserIsAlreadyFollowingGivenUser ||
+            followedUserAlreadyHasFollowingUserInHisFollowers
+        ) {
+            throw new Error('User is already following given user');
+        }
+
+        await followingUser.related('following').save(followedUser);
+
+        return {
+            status: 'SUCCESS',
         };
     }
 }

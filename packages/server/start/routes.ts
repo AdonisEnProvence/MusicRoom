@@ -46,6 +46,8 @@ Route.group(() => {
         '/my-profile-information',
         'SearchUsersController.getMyProfileInformation',
     );
+
+    Route.post('/follow', 'SearchUsersController.followUser');
 }).prefix(USER_ROUTES_GROUP_PREFIX);
 
 /// Temporal MTV Routes ///

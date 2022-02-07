@@ -52,3 +52,14 @@ export const GetMyProfileInformationResponseBody = MyProfileInformation;
 export type GetMyProfileInformationResponseBody = z.infer<
     typeof GetMyProfileInformationResponseBody
 >;
+
+export const FollowUserRequestBody = z.object({
+    userID: z.string().uuid(),
+    tmpAuthUserID: z.string().uuid(),
+});
+export type FollowUserRequestBody = z.infer<typeof FollowUserRequestBody>;
+
+export const FollowUserResponseBody = z.object({
+    status: z.enum(['SUCCESS']),
+});
+export type FollowUserResponseBody = z.infer<typeof FollowUserResponseBody>;

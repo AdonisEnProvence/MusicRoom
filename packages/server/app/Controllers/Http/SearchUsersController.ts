@@ -95,11 +95,9 @@ export default class SearchUsersController {
             requestingUser.following.length > 0;
 
         const relateduser = await User.findOrFail(userID);
+        //Note: cannot load relationship after the loadAggregate block
         await relateduser.load('playlistsVisibilitySetting');
         await relateduser.load('relationsVisibilitySetting');
-        await relateduser.load('mpeRooms');
-        await relateduser.load('following');
-        await relateduser.load('followers');
 
         const {
             nickname: userNickname,
@@ -107,23 +105,28 @@ export default class SearchUsersController {
             relationsVisibilitySetting,
         } = relateduser;
 
+        await relateduser
+            .loadCount('following')
+            .loadCount('followers')
+            .loadCount('mpeRooms');
+
         const playlistsCounter =
             getUserProfileInformationDependingOnItsVisibility({
-                fieldValue: relateduser.mpeRooms.length,
+                fieldValue: Number(relateduser.$extras.mpeRooms_count),
                 fieldVisibility: playlistsVisibilitySetting.name,
                 requestingUserIsfollowingRelatedUser,
             });
 
         const followingCounter =
             getUserProfileInformationDependingOnItsVisibility({
-                fieldValue: relateduser.following.length,
+                fieldValue: Number(relateduser.$extras.following_count),
                 fieldVisibility: relationsVisibilitySetting.name,
                 requestingUserIsfollowingRelatedUser,
             });
 
         const followersCounter =
             getUserProfileInformationDependingOnItsVisibility({
-                fieldValue: relateduser.followers.length,
+                fieldValue: Number(relateduser.$extras.followers_count),
                 fieldVisibility: relationsVisibilitySetting.name,
                 requestingUserIsfollowingRelatedUser,
             });
@@ -147,20 +150,25 @@ export default class SearchUsersController {
             GetMyProfileInformationRequestBody.parse(rawBody);
 
         const user = await User.findOrFail(tmpAuthUserID);
-        await user.load('devices');
-        await user.load('mpeRooms');
-        await user.load('followers');
-        await user.load('following');
+        const { nickname: userNickname } = user;
 
-        invariant(user.devices.length > 0, 'user has no related devices');
+        //After this user model column are erased
+        await user
+            .loadCount('following')
+            .loadCount('followers')
+            .loadCount('mpeRooms')
+            .loadCount('devices');
+
+        const devicesCounter = Number(user.$extras.devices_count);
+        invariant(devicesCounter > 0, 'user has no related devices');
 
         return {
             userID: user.uuid,
-            devicesCounter: user.devices.length,
-            userNickname: user.nickname,
-            followersCounter: user.followers.length,
-            followingCounter: user.following.length,
-            playlistsCounter: user.mpeRooms.length,
+            userNickname,
+            devicesCounter,
+            followersCounter: Number(user.$extras.followers_count),
+            followingCounter: Number(user.$extras.following_count),
+            playlistsCounter: Number(user.$extras.mpeRooms_count),
         };
     }
 

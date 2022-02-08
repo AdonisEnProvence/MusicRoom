@@ -60,7 +60,7 @@ export const FollowUserRequestBody = z.object({
 export type FollowUserRequestBody = z.infer<typeof FollowUserRequestBody>;
 
 export const FollowUserResponseBody = z.object({
-    status: z.enum(['SUCCESS']),
+    userProfileInformation: UserProfileInformation,
 });
 export type FollowUserResponseBody = z.infer<typeof FollowUserResponseBody>;
 
@@ -71,6 +71,6 @@ export const UnfollowUserRequestBody = z.object({
 export type UnfollowUserRequestBody = z.infer<typeof UnfollowUserRequestBody>;
 
 export const UnfollowUserResponseBody = z.object({
-    status: z.enum(['SUCCESS']),
+    userProfileInformation: UserProfileInformation,
 });
 export type UnfollowUserResponseBody = z.infer<typeof UnfollowUserResponseBody>;

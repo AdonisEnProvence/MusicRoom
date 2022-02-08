@@ -4,19 +4,16 @@ import {
     GetUserProfileInformationResponseBody,
     UserSettingVisibility,
 } from '@musicroom/types';
-import SettingVisibility from 'App/Models/SettingVisibility';
 import User from 'App/Models/User';
 import { datatype, internet } from 'faker';
 import test from 'japa';
 import supertest from 'supertest';
 import urlcat from 'urlcat';
-import { BASE_URL, TEST_USER_ROUTES_GROUP_PREFIX } from './utils/TestUtils';
-
-async function getVisibilityDatabaseEntry(
-    visibilityValue: UserSettingVisibility,
-): Promise<SettingVisibility> {
-    return await SettingVisibility.findByOrFail('name', visibilityValue);
-}
+import {
+    BASE_URL,
+    getVisibilityDatabaseEntry,
+    TEST_USER_ROUTES_GROUP_PREFIX,
+} from './utils/TestUtils';
 
 test.group('Users Profile information tests', (group) => {
     group.beforeEach(async () => {

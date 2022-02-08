@@ -57,6 +57,18 @@ const updateNicknameMachine =
                             const alert =
                                 updateNicknameScreen.queryByA11yRole('alert');
                             expect(alert).toBeNull();
+
+                            await waitFor(() => {
+                                const nicknameInput =
+                                    updateNicknameScreen.getByPlaceholderText(
+                                        /nickname/i,
+                                    );
+                                expect(nicknameInput).toBeTruthy();
+
+                                expect(nicknameInput.props.value).toBe(
+                                    CURRENT_USER_NICKNAME,
+                                );
+                            });
                         },
                     },
                 },
@@ -291,7 +303,10 @@ describe('Update Nickname', () => {
                     db.myProfileInformation.create({
                         userID,
                         devicesCounter: 3,
-                        userNickname: internet.userName(),
+                        playlistsCounter: 4,
+                        followersCounter: 5,
+                        followingCounter: 6,
+                        userNickname: CURRENT_USER_NICKNAME,
                     });
 
                     const screen = await renderApp();
@@ -303,10 +318,13 @@ describe('Update Nickname', () => {
 
                     fireEvent.press(goToMyProfileButton);
 
-                    const goToMySettingsButton = await screen.findByLabelText(
-                        /open.*my.*settings/i,
-                    );
-                    expect(goToMySettingsButton).toBeTruthy();
+                    const goToMySettingsButton = await waitFor(() => {
+                        const button =
+                            screen.getByLabelText(/open.*my.*settings/i);
+                        expect(button).toBeTruthy();
+
+                        return button;
+                    });
 
                     fireEvent.press(goToMySettingsButton);
 

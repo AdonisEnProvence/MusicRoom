@@ -407,6 +407,9 @@ cases<{
         db.myProfileInformation.create({
             userID,
             devicesCounter: 3,
+            playlistsCounter: 4,
+            followersCounter: 5,
+            followingCounter: 6,
             userNickname: internet.userName(),
         });
 

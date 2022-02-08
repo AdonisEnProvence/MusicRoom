@@ -1,6 +1,8 @@
 import {
     GetMyProfileInformationRequestBody,
     GetMyProfileInformationResponseBody,
+    GetMySettingsRequestBody,
+    GetMySettingsResponseBody,
     GetUserProfileInformationRequestBody,
     GetUserProfileInformationResponseBody,
     ListAllMpeRoomsRequestBody,
@@ -210,7 +212,12 @@ export const handlers = [
 
             return res(
                 ctx.json({
-                    ...user,
+                    userID: user.userID,
+                    userNickname: user.userNickname,
+                    playlistsCounter: user.playlistsCounter,
+                    followersCounter: user.followersCounter,
+                    followingCounter: user.followingCounter,
+                    devicesCounter: user.devicesCounter,
                 }),
             );
         },
@@ -246,9 +253,46 @@ export const handlers = [
     }),
 
     rest.post<
+        GetMySettingsRequestBody,
+        Record<string, never>,
+        GetMySettingsResponseBody
+    >(`${SERVER_ENDPOINT}/me/settings`, (req, res, ctx) => {
+        const user = db.myProfileInformation.findFirst({
+            where: {
+                userID: {
+                    equals: req.body.tmpAuthUserID,
+                },
+            },
+        });
+        if (user === null) {
+            return res(ctx.status(404));
+        }
+
+        return res(
+            ctx.json({
+                nickname: user.userNickname,
+                playlistsVisibilitySetting: user.playlistsVisibilitySetting,
+                relationsVisibilitySetting: user.relationsVisibilitySetting,
+            }),
+        );
+    }),
+
+    rest.post<
         UpdatePlaylistsVisibilityRequestBody,
+        Record<string, never>,
         UpdatePlaylistsVisibilityResponseBody
-    >(`${SERVER_ENDPOINT}/me/playlists-visibility`, (_req, res, ctx) => {
+    >(`${SERVER_ENDPOINT}/me/playlists-visibility`, (req, res, ctx) => {
+        db.myProfileInformation.update({
+            where: {
+                userID: {
+                    equals: req.body.tmpAuthUserID,
+                },
+            },
+            data: {
+                playlistsVisibilitySetting: req.body.visibility,
+            },
+        });
+
         return res(
             ctx.json({
                 status: 'SUCCESS',
@@ -258,8 +302,20 @@ export const handlers = [
 
     rest.post<
         UpdateRelationsVisibilityRequestBody,
+        Record<string, never>,
         UpdateRelationsVisibilityResponseBody
-    >(`${SERVER_ENDPOINT}/me/relations-visibility`, (_req, res, ctx) => {
+    >(`${SERVER_ENDPOINT}/me/relations-visibility`, (req, res, ctx) => {
+        db.myProfileInformation.update({
+            where: {
+                userID: {
+                    equals: req.body.tmpAuthUserID,
+                },
+            },
+            data: {
+                relationsVisibilitySetting: req.body.visibility,
+            },
+        });
+
         return res(
             ctx.json({
                 status: 'SUCCESS',

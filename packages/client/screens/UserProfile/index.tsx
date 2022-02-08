@@ -31,11 +31,6 @@ const UserProfileInformationSection: React.FC<UserProfileInformationSectionProps
         const sx = useSx();
 
         const informationIsNotVisibleForUser = informationCounter === undefined;
-        console.log({
-            informationCounter,
-            informationName,
-            informationIsNotVisibleForUser,
-        });
         if (informationIsNotVisibleForUser) {
             return null;
         }
@@ -174,9 +169,17 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
                     ),
                 )}
                 {userProfileInformation.following ? (
-                    <Button title="UNFOLLOW" onPress={handleUnfollowPress} />
+                    <Button
+                        title="UNFOLLOW"
+                        testID={`unfollow-${userID}-button`}
+                        onPress={handleUnfollowPress}
+                    />
                 ) : (
-                    <Button title="FOLLOW" onPress={handleFollowPress} />
+                    <Button
+                        title="FOLLOW"
+                        testID={`follow-${userID}-button`}
+                        onPress={handleFollowPress}
+                    />
                 )}
             </AppScreenContainer>
         </AppScreen>

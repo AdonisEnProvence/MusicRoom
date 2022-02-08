@@ -87,14 +87,17 @@ export default class SearchUsersController {
             throw new ForbiddenException();
         }
 
-        await User.findOrFail(tmpAuthUserID);
-        //TODO refactor after follow feature implem
-        const requestingUserIsfollowingRelatedUser = false; //tmp
+        const requestingUser = await User.findOrFail(tmpAuthUserID);
+        await requestingUser.load('following', (userQuery) => {
+            return userQuery.where('uuid', userID);
+        });
+        const requestingUserIsfollowingRelatedUser =
+            requestingUser.following.length > 0;
 
         const relateduser = await User.findOrFail(userID);
+        //Note: cannot load relationship after the loadAggregate block
         await relateduser.load('playlistsVisibilitySetting');
         await relateduser.load('relationsVisibilitySetting');
-        await relateduser.load('mpeRooms');
 
         const {
             nickname: userNickname,
@@ -102,23 +105,28 @@ export default class SearchUsersController {
             relationsVisibilitySetting,
         } = relateduser;
 
+        await relateduser
+            .loadCount('following')
+            .loadCount('followers')
+            .loadCount('mpeRooms');
+
         const playlistsCounter =
             getUserProfileInformationDependingOnItsVisibility({
-                fieldValue: relateduser.mpeRooms.length,
+                fieldValue: Number(relateduser.$extras.mpeRooms_count),
                 fieldVisibility: playlistsVisibilitySetting.name,
                 requestingUserIsfollowingRelatedUser,
             });
 
         const followingCounter =
             getUserProfileInformationDependingOnItsVisibility({
-                fieldValue: 42, //FIXME relateduser.followings.length,
+                fieldValue: Number(relateduser.$extras.following_count),
                 fieldVisibility: relationsVisibilitySetting.name,
                 requestingUserIsfollowingRelatedUser,
             });
 
         const followersCounter =
             getUserProfileInformationDependingOnItsVisibility({
-                fieldValue: 21, //FIXME relateduser.followers.length,
+                fieldValue: Number(relateduser.$extras.followers_count),
                 fieldVisibility: relationsVisibilitySetting.name,
                 requestingUserIsfollowingRelatedUser,
             });
@@ -142,20 +150,25 @@ export default class SearchUsersController {
             GetMyProfileInformationRequestBody.parse(rawBody);
 
         const user = await User.findOrFail(tmpAuthUserID);
-        await user.load('devices');
-        await user.load('mpeRooms');
-        const followingCounter = 12; //FIXME follow unfollow dev
-        const followersCounter = 13; //FIXME follow unfollow dev
+        const { nickname: userNickname } = user;
 
-        invariant(user.devices.length > 0, 'user has no related devices');
+        //After this user model column are erased
+        await user
+            .loadCount('following')
+            .loadCount('followers')
+            .loadCount('mpeRooms')
+            .loadCount('devices');
+
+        const devicesCounter = Number(user.$extras.devices_count);
+        invariant(devicesCounter > 0, 'user has no related devices');
 
         return {
             userID: user.uuid,
-            devicesCounter: user.devices.length,
-            userNickname: user.nickname,
-            followersCounter,
-            followingCounter,
-            playlistsCounter: user.mpeRooms.length,
+            userNickname,
+            devicesCounter,
+            followersCounter: Number(user.$extras.followers_count),
+            followingCounter: Number(user.$extras.following_count),
+            playlistsCounter: Number(user.$extras.mpeRooms_count),
         };
     }
 

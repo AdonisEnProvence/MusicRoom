@@ -33,6 +33,7 @@ test.group('Users Profile information tests', (group) => {
         sinon.restore();
         await Database.rollbackGlobalTransaction();
     });
+
     test('It should retrieve my profile information', async (assert) => {
         const userID = datatype.uuid();
         const userNickname = internet.userName();
@@ -56,8 +57,8 @@ test.group('Users Profile information tests', (group) => {
         const parsedBody = GetMyProfileInformationResponseBody.parse(rawBody);
         const expectedBody: GetMyProfileInformationResponseBody = {
             devicesCounter: 2,
-            followersCounter: 13,
-            followingCounter: 12,
+            followersCounter: 0,
+            followingCounter: 0,
             playlistsCounter: 0,
             userID,
             userNickname,

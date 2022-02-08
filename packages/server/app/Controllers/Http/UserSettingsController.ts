@@ -6,11 +6,30 @@ import {
     UpdateRelationsVisibilityResponseBody,
     UpdateNicknameRequestBody,
     UpdateNicknameResponseBody,
+    GetMySettingsRequestBody,
+    GetMySettingsResponseBody,
 } from '@musicroom/types';
 import SettingVisibility from 'App/Models/SettingVisibility';
 import User from 'App/Models/User';
 
 export default class UserSettingsController {
+    public async getMySettings({
+        request,
+    }: HttpContextContract): Promise<GetMySettingsResponseBody> {
+        const rawBody = request.body();
+        const { tmpAuthUserID } = GetMySettingsRequestBody.parse(rawBody);
+
+        const user = await User.findOrFail(tmpAuthUserID);
+        await user.load('playlistsVisibilitySetting');
+        await user.load('relationsVisibilitySetting');
+
+        return {
+            nickname: user.nickname,
+            playlistsVisibilitySetting: user.playlistsVisibilitySetting.name,
+            relationsVisibilitySetting: user.relationsVisibilitySetting.name,
+        };
+    }
+
     public async updatePlaylistsVisibility({
         request,
     }: HttpContextContract): Promise<UpdatePlaylistsVisibilityResponseBody> {

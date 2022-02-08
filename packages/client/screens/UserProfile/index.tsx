@@ -136,6 +136,18 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
         },
     ];
 
+    function handleFollowPress() {
+        userProfileInformationService.send({
+            type: 'FOLLOW_USER',
+        });
+    }
+
+    function handleUnfollowPress() {
+        userProfileInformationService.send({
+            type: 'UNFOLLOW_USER',
+        });
+    }
+
     return (
         <AppScreen>
             <AppScreenHeader
@@ -162,19 +174,9 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
                     ),
                 )}
                 {userProfileInformation.following ? (
-                    <Button
-                        title="UNFOLLOW"
-                        onPress={() => {
-                            console.log('unfollow');
-                        }}
-                    />
+                    <Button title="UNFOLLOW" onPress={handleUnfollowPress} />
                 ) : (
-                    <Button
-                        title="FOLLOW"
-                        onPress={() => {
-                            console.log('follow');
-                        }}
-                    />
+                    <Button title="FOLLOW" onPress={handleFollowPress} />
                 )}
             </AppScreenContainer>
         </AppScreen>

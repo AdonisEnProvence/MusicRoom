@@ -9,6 +9,7 @@ import {
     SearchUsersResponseBody,
     UnfollowUserRequestBody,
     UnfollowUserResponseBody,
+    UserProfileInformation,
     UserSettingVisibility,
 } from '@musicroom/types';
 import { FollowUserResponseBody } from '@musicroom/types/src/user';
@@ -44,6 +45,69 @@ function getUserProfileInformationDependingOnItsVisibility({
             throw new Error(`unknown switch ue case ${fieldVisibility}`);
         }
     }
+}
+
+async function requestUserProfileInformation({
+    requestingUserID,
+    userID,
+}: {
+    requestingUserID: string;
+    userID: string;
+}): Promise<UserProfileInformation> {
+    const requestingUserIsRelatedUser = requestingUserID === userID;
+    if (requestingUserIsRelatedUser) {
+        throw new ForbiddenException();
+    }
+
+    const requestingUser = await User.findOrFail(requestingUserID);
+    await requestingUser.load('following', (userQuery) => {
+        return userQuery.where('uuid', userID);
+    });
+    const requestingUserIsfollowingRelatedUser =
+        requestingUser.following.length > 0;
+
+    const relateduser = await User.findOrFail(userID);
+    //Note: cannot load relationship after the loadAggregate block
+    await relateduser.load('playlistsVisibilitySetting');
+    await relateduser.load('relationsVisibilitySetting');
+
+    const {
+        nickname: userNickname,
+        playlistsVisibilitySetting,
+        relationsVisibilitySetting,
+    } = relateduser;
+
+    await relateduser
+        .loadCount('following')
+        .loadCount('followers')
+        .loadCount('mpeRooms');
+
+    const playlistsCounter = getUserProfileInformationDependingOnItsVisibility({
+        fieldValue: Number(relateduser.$extras.mpeRooms_count),
+        fieldVisibility: playlistsVisibilitySetting.name,
+        requestingUserIsfollowingRelatedUser,
+    });
+
+    const followingCounter = getUserProfileInformationDependingOnItsVisibility({
+        fieldValue: Number(relateduser.$extras.following_count),
+        fieldVisibility: relationsVisibilitySetting.name,
+        requestingUserIsfollowingRelatedUser,
+    });
+
+    const followersCounter = getUserProfileInformationDependingOnItsVisibility({
+        fieldValue: Number(relateduser.$extras.followers_count),
+        fieldVisibility: relationsVisibilitySetting.name,
+        requestingUserIsfollowingRelatedUser,
+    });
+
+    return {
+        userID,
+        userNickname,
+        following: requestingUserIsfollowingRelatedUser,
+        playlistsCounter,
+        followersCounter,
+        followingCounter,
+    };
 }
 
 export default class SearchUsersController {
@@ -82,62 +146,13 @@ export default class SearchUsersController {
         const { tmpAuthUserID, userID } =
             GetUserProfileInformationRequestBody.parse(rawBody);
 
-        const requestingUserIsRelatedUser = tmpAuthUserID === userID;
-        if (requestingUserIsRelatedUser) {
-            throw new ForbiddenException();
-        }
-
-        const requestingUser = await User.findOrFail(tmpAuthUserID);
-        await requestingUser.load('following', (userQuery) => {
-            return userQuery.where('uuid', userID);
+        const userProfileInformation = await requestUserProfileInformation({
+            requestingUserID: tmpAuthUserID,
+            userID,
         });
-        const requestingUserIsfollowingRelatedUser =
-            requestingUser.following.length > 0;
-
-        const relateduser = await User.findOrFail(userID);
-        //Note: cannot load relationship after the loadAggregate block
-        await relateduser.load('playlistsVisibilitySetting');
-        await relateduser.load('relationsVisibilitySetting');
-
-        const {
-            nickname: userNickname,
-            playlistsVisibilitySetting,
-            relationsVisibilitySetting,
-        } = relateduser;
-
-        await relateduser
-            .loadCount('following')
-            .loadCount('followers')
-            .loadCount('mpeRooms');
-
-        const playlistsCounter =
-            getUserProfileInformationDependingOnItsVisibility({
-                fieldValue: Number(relateduser.$extras.mpeRooms_count),
-                fieldVisibility: playlistsVisibilitySetting.name,
-                requestingUserIsfollowingRelatedUser,
-            });
-
-        const followingCounter =
-            getUserProfileInformationDependingOnItsVisibility({
-                fieldValue: Number(relateduser.$extras.following_count),
-                fieldVisibility: relationsVisibilitySetting.name,
-                requestingUserIsfollowingRelatedUser,
-            });
-
-        const followersCounter =
-            getUserProfileInformationDependingOnItsVisibility({
-                fieldValue: Number(relateduser.$extras.followers_count),
-                fieldVisibility: relationsVisibilitySetting.name,
-                requestingUserIsfollowingRelatedUser,
-            });
 
         return {
-            userID,
-            userNickname,
-            following: requestingUserIsfollowingRelatedUser,
-            playlistsCounter,
-            followersCounter,
-            followingCounter,
+            ...userProfileInformation,
         };
     }
 
@@ -179,6 +194,11 @@ export default class SearchUsersController {
 
         const { tmpAuthUserID, userID } = FollowUserRequestBody.parse(rawBody);
 
+        const requestingUserIsRelatedUser = tmpAuthUserID === userID;
+        if (requestingUserIsRelatedUser) {
+            throw new ForbiddenException();
+        }
+
         const followingUser = await User.findOrFail(tmpAuthUserID);
         await followingUser.load('following', (userQuery) => {
             return userQuery.where('uuid', userID);
@@ -201,8 +221,13 @@ export default class SearchUsersController {
 
         await followingUser.related('following').save(followedUser);
 
+        const userProfileInformation = await requestUserProfileInformation({
+            requestingUserID: tmpAuthUserID,
+            userID,
+        });
+
         return {
-            status: 'SUCCESS',
+            userProfileInformation,
         };
     }
 
@@ -213,6 +238,11 @@ export default class SearchUsersController {
 
         const { tmpAuthUserID, userID } =
             UnfollowUserRequestBody.parse(rawBody);
+
+        const requestingUserIsRelatedUser = tmpAuthUserID === userID;
+        if (requestingUserIsRelatedUser) {
+            throw new ForbiddenException();
+        }
 
         const unfollowingUser = await User.findOrFail(tmpAuthUserID);
         await unfollowingUser.load('following', (userQuery) => {
@@ -238,8 +268,13 @@ export default class SearchUsersController {
             .related('following')
             .detach([unfollowedUser.uuid]);
 
+        const userProfileInformation = await requestUserProfileInformation({
+            requestingUserID: tmpAuthUserID,
+            userID,
+        });
+
         return {
-            status: 'SUCCESS',
+            userProfileInformation,
         };
     }
 }

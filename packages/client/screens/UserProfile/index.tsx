@@ -31,11 +31,6 @@ const UserProfileInformationSection: React.FC<UserProfileInformationSectionProps
         const sx = useSx();
 
         const informationIsNotVisibleForUser = informationCounter === undefined;
-        console.log({
-            informationCounter,
-            informationName,
-            informationIsNotVisibleForUser,
-        });
         if (informationIsNotVisibleForUser) {
             return null;
         }
@@ -81,6 +76,10 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
 
     const userNotFound = useSelector(userProfileInformationService, (state) =>
         state.hasTag('userNotFound'),
+    );
+
+    const isLoading = useSelector(userProfileInformationService, (state) =>
+        state.hasTag('loading'),
     );
 
     if (userProfileInformation === undefined) {
@@ -136,6 +135,18 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
         },
     ];
 
+    function handleFollowPress() {
+        userProfileInformationService.send({
+            type: 'FOLLOW_USER',
+        });
+    }
+
+    function handleUnfollowPress() {
+        userProfileInformationService.send({
+            type: 'UNFOLLOW_USER',
+        });
+    }
+
     return (
         <AppScreen>
             <AppScreenHeader
@@ -163,17 +174,17 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
                 )}
                 {userProfileInformation.following ? (
                     <Button
+                        disabled={isLoading}
                         title="UNFOLLOW"
-                        onPress={() => {
-                            console.log('unfollow');
-                        }}
+                        testID={`unfollow-${userID}-button`}
+                        onPress={handleUnfollowPress}
                     />
                 ) : (
                     <Button
+                        disabled={isLoading}
                         title="FOLLOW"
-                        onPress={() => {
-                            console.log('follow');
-                        }}
+                        testID={`follow-${userID}-button`}
+                        onPress={handleFollowPress}
                     />
                 )}
             </AppScreenContainer>

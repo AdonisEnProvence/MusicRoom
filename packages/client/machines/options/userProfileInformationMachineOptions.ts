@@ -4,10 +4,17 @@ import { UserProfileInformationMachineOptions } from '../userProfileInformationM
 export function getUserProfileInformationMachineOptions(): UserProfileInformationMachineOptions {
     return {
         actions: {
-            triggerFailurRetrieveProfileUserInformationToast: () => {
+            displayFailureRetrieveProfileUserErrorToast: () => {
                 Toast.show({
                     type: 'error',
                     text1: 'User not found',
+                });
+            },
+
+            displayFailureFollowOrUnfollowUserErrorToast: () => {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Operation failed, please try again later',
                 });
             },
         },

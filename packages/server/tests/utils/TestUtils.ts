@@ -6,10 +6,12 @@ import {
     MpeWorkflowState,
     TrackMetadata,
     MpeWorkflowStateWithUserRelatedInformation,
+    UserSettingVisibility,
 } from '@musicroom/types';
 import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import MpeRoom from 'App/Models/MpeRoom';
 import MtvRoom from 'App/Models/MtvRoom';
+import SettingVisibility from 'App/Models/SettingVisibility';
 import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import { unique, datatype, random, name } from 'faker';
@@ -56,6 +58,12 @@ export function waitForTimeout(ms: number): Promise<void> {
             resolve();
         }, ms);
     });
+}
+
+export async function getVisibilityDatabaseEntry(
+    visibilityValue: UserSettingVisibility,
+): Promise<SettingVisibility> {
+    return await SettingVisibility.findByOrFail('name', visibilityValue);
 }
 
 export const sleep = async (): Promise<void> => await waitForTimeout(200);

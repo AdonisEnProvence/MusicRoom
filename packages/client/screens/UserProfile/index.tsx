@@ -78,6 +78,10 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
         state.hasTag('userNotFound'),
     );
 
+    const isLoading = useSelector(userProfileInformationService, (state) =>
+        state.hasTag('loading'),
+    );
+
     if (userProfileInformation === undefined) {
         return (
             <AppScreen>
@@ -170,12 +174,14 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
                 )}
                 {userProfileInformation.following ? (
                     <Button
+                        disabled={isLoading}
                         title="UNFOLLOW"
                         testID={`unfollow-${userID}-button`}
                         onPress={handleUnfollowPress}
                     />
                 ) : (
                     <Button
+                        disabled={isLoading}
                         title="FOLLOW"
                         testID={`follow-${userID}-button`}
                         onPress={handleFollowPress}

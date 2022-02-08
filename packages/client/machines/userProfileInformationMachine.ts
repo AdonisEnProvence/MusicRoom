@@ -32,7 +32,8 @@ const userProfileInformationModel = createModel(
             __UNFOLLOW_USER_FAILURE: () => ({}),
         },
         actions: {
-            triggerFailurRetrieveProfileUserInformationToast: () => ({}),
+            displayFailureRetrieveProfileUserErrorToast: () => ({}),
+            displayFailureFollowOrUnfollowUserErrorToast: () => ({}),
         },
     },
 );
@@ -94,6 +95,8 @@ export function createUserProfileInformationMachine({
                 initial: 'retrieveUserProfileInformation',
                 states: {
                     retrieveUserProfileInformation: {
+                        tags: 'loading',
+
                         invoke: {
                             src: 'retrieveUserProfileInformation',
                         },
@@ -123,7 +126,7 @@ export function createUserProfileInformationMachine({
                             __RETRIEVE_USER_PROFILE_INFORMATION_FAILURE: {
                                 target: 'userNotFound',
                                 actions:
-                                    userProfileInformationModel.actions.triggerFailurRetrieveProfileUserInformationToast(),
+                                    userProfileInformationModel.actions.displayFailureRetrieveProfileUserErrorToast(),
                             },
                         },
                     },
@@ -151,6 +154,8 @@ export function createUserProfileInformationMachine({
                             },
 
                             sendingFollowUser: {
+                                tags: 'loading',
+
                                 invoke: {
                                     src: 'sendFollowToServer',
                                 },
@@ -163,12 +168,16 @@ export function createUserProfileInformationMachine({
                                     },
 
                                     __FOLLOW_USER_FAILURE: {
-                                        // ??
+                                        target: 'currentlyNotFollowingUser',
+                                        actions:
+                                            userProfileInformationModel.actions.displayFailureFollowOrUnfollowUserErrorToast(),
                                     },
                                 },
                             },
 
                             sendingUnfollowUser: {
+                                tags: 'loading',
+
                                 invoke: {
                                     src: 'sendUnfollowToServer',
                                 },
@@ -181,7 +190,9 @@ export function createUserProfileInformationMachine({
                                     },
 
                                     __UNFOLLOW_USER_FAILURE: {
-                                        // ??
+                                        target: 'currentlyFollowingUser',
+                                        actions:
+                                            userProfileInformationModel.actions.displayFailureFollowOrUnfollowUserErrorToast(),
                                     },
                                 },
                             },

@@ -165,7 +165,7 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
                     ({ informationName, onPress, informationCounter }) => (
                         <UserProfileInformationSection
                             key={`${userProfileInformation.userID}_${informationName}`}
-                            testID={`${userProfileInformation.userID}-${informationName}-button`}
+                            testID={`${userProfileInformation.userID}-${informationName}-user-profile-information`}
                             informationName={informationName}
                             onPress={onPress}
                             informationCounter={informationCounter}

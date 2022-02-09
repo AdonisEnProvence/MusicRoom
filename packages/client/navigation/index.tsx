@@ -55,6 +55,7 @@ import MusicPlaylistEditorUsersSearchModal from '../screens/MusicPlaylistEditorU
 import MyProfileScreen from '../screens/MyProfile';
 import MySettingsScreen from '../screens/MySettings';
 import UpdateNicknameScreen from '../screens/MySettings/UpdateNickname';
+import MyDevicesScreen from '../screens/MyProfile/MyDevices';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
@@ -472,6 +473,16 @@ export const MyProfileNavigator: React.FC<ColorModeProps> = ({
                     detachPreviousScreen: false,
                 }}
                 component={MyProfileScreen}
+            />
+
+            <MyProfileStack.Screen
+                name="MyDevices"
+                options={{
+                    title: 'My Devices',
+                    headerShown: false,
+                    detachPreviousScreen: false,
+                }}
+                component={MyDevicesScreen}
             />
 
             <MyProfileStack.Screen

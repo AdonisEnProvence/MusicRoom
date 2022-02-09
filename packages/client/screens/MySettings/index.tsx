@@ -5,6 +5,7 @@ import { ScrollView, Text, useSx, View } from 'dripsy';
 import React, { useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import invariant from 'tiny-invariant';
 import {
     AppScreen,
     AppScreenContainer,
@@ -137,8 +138,16 @@ const MySettingsScreen: React.FC<MySettingsScreenProps> = ({ navigation }) => {
         }
 
         if (state.hasTag("Fetched user's settings")) {
+            const mySettings = state.context.mySettings;
+
+            invariant(
+                mySettings !== undefined,
+                "User's settings must have been fetched in this state",
+            );
+
             return {
                 status: 'success' as const,
+                nickname: mySettings.nickname,
                 settings: [
                     {
                         containerTestID: 'playlists-visibility-radio-group',
@@ -236,7 +245,7 @@ const MySettingsScreen: React.FC<MySettingsScreenProps> = ({ navigation }) => {
                                                             marginRight: 's',
                                                         }}
                                                     >
-                                                        Devessier
+                                                        {settingsState.nickname}
                                                     </Text>
 
                                                     <Ionicons

@@ -28,6 +28,7 @@ import { server } from '../../../tests/server/test-server';
 
 interface TestingContext {
     screen: ReturnType<typeof render> | undefined;
+    nickname: string;
     initialPlaylistsVisibilitySetting: UserSettingVisibility;
     initialRelationsVisibilitySetting: UserSettingVisibility;
 }
@@ -189,6 +190,25 @@ const updateVisibilitySettingsMachine =
                 "Fetched user's settings": {
                     type: 'parallel',
                     states: {
+                        Nickname: {
+                            meta: {
+                                test: async ({
+                                    screen,
+                                    nickname,
+                                }: TestingContext) => {
+                                    invariant(
+                                        screen !== undefined,
+                                        'Screen must have been rendered before being in this state',
+                                    );
+
+                                    await waitFor(() => {
+                                        expect(
+                                            screen.getByText(nickname),
+                                        ).toBeTruthy();
+                                    });
+                                },
+                            },
+                        },
                         Playlists: {
                             initial: 'Init',
                             states: {
@@ -851,7 +871,7 @@ cases<{
     async ({ events, target }) => {
         const userID = testGetFakeUserID();
 
-        db.myProfileInformation.create({
+        const user = db.myProfileInformation.create({
             userID,
             devicesCounter: 3,
             playlistsCounter: 4,
@@ -869,6 +889,7 @@ cases<{
 
         await plan.test({
             screen: undefined,
+            nickname: user.userNickname,
             initialPlaylistsVisibilitySetting: 'PUBLIC',
             initialRelationsVisibilitySetting: 'PUBLIC',
         });
@@ -908,6 +929,7 @@ cases<{
     initialRelationsVisibility: UserSettingVisibility;
     events: EventFrom<typeof updateVisibilitySettingsModel>[];
     target: {
+        Nickname: Record<string, never>;
         Playlists: 'Public' | 'Private' | 'Followers Only';
         Relations: 'Public' | 'Private' | 'Followers Only';
     };
@@ -921,7 +943,7 @@ cases<{
     }) => {
         const userID = testGetFakeUserID();
 
-        db.myProfileInformation.create({
+        const user = db.myProfileInformation.create({
             userID,
             devicesCounter: 3,
             playlistsCounter: 4,
@@ -966,6 +988,7 @@ cases<{
 
         await plan.test({
             screen: undefined,
+            nickname: user.userNickname,
             initialPlaylistsVisibilitySetting: initialPlaylistsVisibility,
             initialRelationsVisibilitySetting: initialRelationsVisibility,
         });
@@ -999,6 +1022,7 @@ cases<{
                 }),
             ],
             target: {
+                Nickname: {},
                 Playlists: 'Public',
                 Relations: 'Public',
             },
@@ -1024,6 +1048,7 @@ cases<{
                 }),
             ],
             target: {
+                Nickname: {},
                 Playlists: 'Private',
                 Relations: 'Public',
             },
@@ -1049,6 +1074,7 @@ cases<{
                 }),
             ],
             target: {
+                Nickname: {},
                 Playlists: 'Followers Only',
                 Relations: 'Public',
             },
@@ -1074,6 +1100,7 @@ cases<{
                 }),
             ],
             target: {
+                Nickname: {},
                 Playlists: 'Public',
                 Relations: 'Public',
             },
@@ -1099,6 +1126,7 @@ cases<{
                 }),
             ],
             target: {
+                Nickname: {},
                 Playlists: 'Public',
                 Relations: 'Private',
             },
@@ -1124,6 +1152,7 @@ cases<{
                 }),
             ],
             target: {
+                Nickname: {},
                 Playlists: 'Public',
                 Relations: 'Followers Only',
             },

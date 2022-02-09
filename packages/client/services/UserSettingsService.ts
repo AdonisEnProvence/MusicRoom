@@ -1,4 +1,6 @@
 import {
+    GetMySettingsRequestBody,
+    GetMySettingsResponseBody,
     UpdateNicknameRequestBody,
     UpdateNicknameResponseBody,
     UpdatePlaylistsVisibilityRequestBody,
@@ -11,6 +13,18 @@ import redaxios from 'redaxios';
 import urlcat from 'urlcat';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
 import { getFakeUserID } from '../contexts/SocketContext';
+
+export async function getMySettings(): Promise<GetMySettingsResponseBody> {
+    const url = urlcat(SERVER_ENDPOINT, '/me/settings');
+    const body: GetMySettingsRequestBody = {
+        tmpAuthUserID: getFakeUserID(),
+    };
+
+    const rawResponse = await redaxios.post(url, body);
+    const parsedResponse = GetMySettingsResponseBody.parse(rawResponse.data);
+
+    return parsedResponse;
+}
 
 interface SetUserPlaylistsSettingVisibilityArgs {
     visibility: UserSettingVisibility;

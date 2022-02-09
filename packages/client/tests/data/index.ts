@@ -7,6 +7,7 @@ import {
     MtvWorkflowState,
     TrackMetadataWithScore,
     UserDevice,
+    UserSettingVisibility,
     UserSummary,
 } from '@musicroom/types';
 import { LocationObject } from 'expo-location';
@@ -57,6 +58,10 @@ export const db = factory({
         playlistsCounter: () => datatype.number(),
         userNickname: () => internet.userName(),
         devicesCounter: () => datatype.number(),
+        playlistsVisibilitySetting: () =>
+            UserSettingVisibility.enum.PUBLIC as UserSettingVisibility,
+        relationsVisibilitySetting: () =>
+            UserSettingVisibility.enum.PUBLIC as UserSettingVisibility,
     },
 });
 

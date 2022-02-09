@@ -174,6 +174,8 @@ Route.group(() => {
 
 /// //////// ////// ///
 
+Route.post('/me/settings', 'UserSettingsController.getMySettings');
+
 Route.post(
     '/me/playlists-visibility',
     'UserSettingsController.updatePlaylistsVisibility',

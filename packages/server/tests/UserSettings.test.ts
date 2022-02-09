@@ -1,5 +1,7 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import {
+    GetMySettingsRequestBody,
+    GetMySettingsResponseBody,
     UpdateNicknameRequestBody,
     UpdateNicknameResponseBody,
     UpdateNicknameResponseStatus,
@@ -9,6 +11,7 @@ import {
     UpdateRelationsVisibilityResponseBody,
     UserSettingVisibility,
 } from '@musicroom/types';
+import SettingVisibility from 'App/Models/SettingVisibility';
 import User from 'App/Models/User';
 import { datatype, random } from 'faker';
 import test from 'japa';
@@ -29,6 +32,61 @@ test.group('User settings', (group) => {
         await disconnectEveryRemainingSocketConnection();
         sinon.restore();
         await Database.rollbackGlobalTransaction();
+    });
+
+    test('Gets my settings', async (assert) => {
+        const privateVisibilitySetting = await SettingVisibility.findByOrFail(
+            'name',
+            UserSettingVisibility.enum.PRIVATE,
+        );
+        const followersOnlyVisibilitySetting =
+            await SettingVisibility.findByOrFail(
+                'name',
+                UserSettingVisibility.enum.FOLLOWERS_ONLY,
+            );
+        const userID = datatype.uuid();
+        const user = await User.create({
+            uuid: userID,
+            nickname: random.word(),
+            playlistsVisibilitySettingUuid: privateVisibilitySetting.uuid,
+            relationsVisibilitySettingUuid: followersOnlyVisibilitySetting.uuid,
+        });
+
+        const requestBody: GetMySettingsRequestBody = {
+            tmpAuthUserID: userID,
+        };
+        const { body: rawResponseBody } = await supertest(BASE_URL)
+            .post('/me/settings')
+            .send(requestBody)
+            .expect(200)
+            .expect('Content-Type', /json/);
+        const responseBody = GetMySettingsResponseBody.parse(rawResponseBody);
+
+        assert.equal(responseBody.nickname, user.nickname);
+        assert.equal<UserSettingVisibility>(
+            responseBody.playlistsVisibilitySetting,
+            'PRIVATE',
+        );
+        assert.equal<UserSettingVisibility>(
+            responseBody.relationsVisibilitySetting,
+            'FOLLOWERS_ONLY',
+        );
+    });
+
+    test('Returns Authorization error when the user is not authenticated', async () => {
+        const userID = datatype.uuid();
+        await User.create({
+            uuid: userID,
+            nickname: random.word(),
+        });
+
+        const requestBody: GetMySettingsRequestBody = {
+            tmpAuthUserID: datatype.uuid(),
+        };
+        await supertest(BASE_URL)
+            .post('/me/settings')
+            .send(requestBody)
+            .expect(404);
     });
 
     test(`'PUBLIC' is the default setting for playlists, relations and devices visibility settings`, async (assert) => {

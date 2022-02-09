@@ -1,8 +1,4 @@
-import {
-    GetMyProfileInformationRequestBody,
-    GetMyProfileInformationResponseBody,
-    MyProfileInformation,
-} from '@musicroom/types';
+import { MyProfileInformation } from '@musicroom/types';
 import { ContextFrom, EventFrom, MachineOptions, StateMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { getFakeUserID } from '../contexts/SocketContext';
@@ -100,7 +96,7 @@ export function createMyProfileInformationMachine(): StateMachine<
                                 myProfileInformation: response,
                             });
                         } catch (e) {
-                            console.log('error occured');
+                            console.log('error occured', e);
                             sendBack({
                                 type: '__RETRIEVE_MY_PROFILE_INFORMATION_FAILURE',
                             });

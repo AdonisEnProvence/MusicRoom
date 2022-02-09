@@ -82,6 +82,7 @@ export async function setupAndGetUserPage({
 
     await initPage(page);
 
+    console.log(AVAILABLE_USERS_LIST[userIndex].nickname);
     return {
         context,
         page,

@@ -1,16 +1,12 @@
-import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
-import { SignUpRequestBody, SignUpResponseBody } from '@musicroom/types';
+import { SignUpResponseBody } from '@musicroom/types';
 import User from 'App/Models/User';
-import { datatype } from 'faker';
+import { datatype, internet } from 'faker';
 
 export default class AuthenticationController {
-    public async signUp({
-        request,
-    }: HttpContextContract): Promise<SignUpResponseBody> {
-        const rawBody = request.body();
-
-        const { userNickname } = SignUpRequestBody.parse(rawBody);
+    public async signUp(): Promise<SignUpResponseBody> {
         const userID = datatype.uuid();
+        const userNickname = internet.userName();
+
         await User.create({
             uuid: userID,
             nickname: userNickname,
@@ -18,6 +14,7 @@ export default class AuthenticationController {
 
         return {
             userID,
+            userNickname,
         };
     }
 }

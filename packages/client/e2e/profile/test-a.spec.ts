@@ -10,7 +10,6 @@ import {
     goToEditMyNicknameFromMyProfileScreen,
     withinEditMyNicknameContainer,
     hitGoBack,
-    withinMyProfilePageContainer,
     withinMyUserProfilePageContainer,
 } from '../_utils/mpe-e2e-utils';
 import { hitGoNextButton } from '../_utils/global';
@@ -244,8 +243,8 @@ test('Profile test-a', async ({ browser }) => {
         userNickname: userANickname,
     } = await setupAndGetUserPage({
         browser,
+
         knownSearches,
-        userIndex: 2,
     });
 
     const {
@@ -255,7 +254,6 @@ test('Profile test-a', async ({ browser }) => {
     } = await setupAndGetUserPage({
         browser,
         knownSearches,
-        userIndex: 3,
     });
 
     const { roomName } = await createMtvRoom({
@@ -402,8 +400,29 @@ test('Profile test-a', async ({ browser }) => {
                 selector: 'css=[data-testid$="user-profile-information"]',
             }),
         );
-        await expect(allUserProfileInformationElements).toHaveCount(2);
+        await expect(allUserProfileInformationElements).toHaveCount(0);
 
+        const userANicknameText = userBPage
+            .locator(`text="${newUserANickname} profile"`)
+            .last();
+        await expect(userANicknameText).toBeVisible();
+    }
+
+    const followButton = userBPage
+        .locator(`css=[data-testid="follow-${userAUserID}-button"]`)
+        .last();
+    await expect(followButton).toBeVisible();
+
+    await Promise.all([
+        expect(
+            userBPage.locator(
+                `css=[data-testid="unfollow-${userAUserID}-button"]`,
+            ),
+        ).toBeVisible(),
+        followButton.click(),
+    ]);
+
+    {
         const userANicknameText = userBPage
             .locator(`text="${newUserANickname} profile"`)
             .last();
@@ -415,9 +434,12 @@ test('Profile test-a', async ({ browser }) => {
         const followingCounter = userBPage.locator(`text="following 0"`).last();
         await expect(followingCounter).toBeVisible();
 
-        const followButton = userBPage
-            .locator(`css=[data-testid="follow-${userAUserID}-button"]`)
-            .last();
-        await expect(followButton).toBeVisible();
+        const allUserProfileInformationElements = userBPage.locator(
+            withinMyUserProfilePageContainer({
+                userID: userAUserID,
+                selector: 'css=[data-testid$="user-profile-information"]',
+            }),
+        );
+        await expect(allUserProfileInformationElements).toHaveCount(2);
     }
 });

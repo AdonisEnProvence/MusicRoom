@@ -109,6 +109,7 @@ export type UserProfileStackParamsList = {
 
 export type MyProfileStackParamsList = {
     MyProfileIndex: undefined;
+    MyDevices: undefined;
     MySettings: undefined;
     MySettingsUpdateNickname: undefined;
 };
@@ -397,6 +398,14 @@ export type MyProfileScreenProps = {
         StackNavigationProp<MyProfileStackParamsList, 'MyProfileIndex'>
     >;
     route: RouteProp<MyProfileStackParamsList, 'MyProfileIndex'>;
+};
+
+export type MyDevicesScreenProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'MyProfile'>,
+        StackNavigationProp<MyProfileStackParamsList, 'MyDevices'>
+    >;
+    route: RouteProp<MyProfileStackParamsList, 'MyDevices'>;
 };
 
 export type HomeTabProps = {

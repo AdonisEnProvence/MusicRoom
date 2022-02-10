@@ -74,6 +74,10 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
         navigation.navigate('MySettings');
     }
 
+    function handleGoToMyDevices() {
+        navigation.navigate('MyDevices');
+    }
+
     if (myProfileInformation === undefined) {
         return (
             <AppScreen>
@@ -127,9 +131,7 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
         },
         {
             informationName: 'devices',
-            onPress: () => {
-                console.log('devices section pressed');
-            },
+            onPress: handleGoToMyDevices,
             informationCounter: myProfileInformation.devicesCounter,
         },
     ];

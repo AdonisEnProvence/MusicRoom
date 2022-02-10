@@ -1,7 +1,7 @@
 import { test, expect, Page, Locator } from '@playwright/test';
 import { assertIsNotNull, assertIsNotUndefined } from '../_utils/assert';
 import { hitGoNextButton } from '../_utils/global';
-import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
+import { closeAllContexts, setupPageAndSignUpUser } from '../_utils/page';
 import { knownSearches } from '../_utils/mpe-e2e-utils';
 
 async function createPrivateRoom(page: Page) {
@@ -186,8 +186,8 @@ test.afterEach(async ({ browser }) => {
 test('Test G', async ({ browser }) => {
     const [{ page: userAPage }, { page: userBPage, userNickname: userBName }] =
         await Promise.all([
-            setupAndGetUserPage({ browser, userIndex: 0, knownSearches }),
-            setupAndGetUserPage({ browser, userIndex: 1, knownSearches }),
+            setupPageAndSignUpUser({ browser, knownSearches }),
+            setupPageAndSignUpUser({ browser, knownSearches }),
         ]);
 
     const { roomName } = await createPrivateRoom(userAPage);

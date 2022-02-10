@@ -4,6 +4,8 @@ import { Button, useSx, View } from 'dripsy';
 import { TouchableOpacity } from 'react-native';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { internet } from 'faker';
+import Toast from 'react-native-toast-message';
 import {
     AppScreen,
     AppScreenContainer,
@@ -12,6 +14,7 @@ import {
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import { useUserContext } from '../hooks/userHooks';
 import { HomeTabHomeScreenScreenProps } from '../types';
+import { sendSignUp } from '../services/AuthenticationService';
 
 const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
@@ -103,6 +106,27 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                                 userID: '9ed60e96-d5fc-40b3-b842-aeaa75e93972',
                             },
                         });
+                    }}
+                />
+
+                <Button
+                    testID="sign-up-button"
+                    title="signUp"
+                    onPress={async () => {
+                        const { userID, userNickname } = await sendSignUp();
+                        Toast.show({
+                            type: 'success',
+                            text1: 'Signed up successfully',
+                        });
+
+                        localStorage.setItem('USER_ID', userID);
+                        localStorage.setItem(
+                            'USER_CREDENTIALS',
+                            JSON.stringify({
+                                userID,
+                                userNickname,
+                            }),
+                        );
                     }}
                 />
 

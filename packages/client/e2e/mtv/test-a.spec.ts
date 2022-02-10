@@ -6,7 +6,7 @@ import {
 } from '../_utils/assert';
 import { hitGoNextButton } from '../_utils/global';
 import { knownSearches } from '../_utils/mpe-e2e-utils';
-import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
+import { closeAllContexts, setupPageAndSignUpUser } from '../_utils/page';
 import { waitForYouTubeVideoToLoad } from '../_utils/wait-youtube';
 
 async function createRoom({ creatorPage }: { creatorPage: Page }) {
@@ -279,8 +279,8 @@ test.afterEach(async ({ browser }) => {
 
 test('Test A', async ({ browser }) => {
     const [{ page: creatorPage }, { page: joinerPage }] = await Promise.all([
-        setupAndGetUserPage({ browser, knownSearches, userIndex: 0 }),
-        setupAndGetUserPage({ browser, knownSearches, userIndex: 1 }),
+        setupPageAndSignUpUser({ browser, knownSearches }),
+        setupPageAndSignUpUser({ browser, knownSearches }),
     ]);
 
     const { roomName, initialTrack } = await createRoom({ creatorPage });

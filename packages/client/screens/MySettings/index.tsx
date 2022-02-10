@@ -157,7 +157,7 @@ const MySettingsScreen: React.FC<MySettingsScreenProps> = ({ navigation }) => {
                         ] as VisibilitySettingMachineActor,
                     },
                     {
-                        containerTestID: 'playlists-relations-radio-group',
+                        containerTestID: 'relations-visibility-radio-group',
                         title: 'Relations visibility',
                         visibilitySettingActor: state.children[
                             'Relations Visibility Manager Machine'
@@ -181,7 +181,7 @@ const MySettingsScreen: React.FC<MySettingsScreenProps> = ({ navigation }) => {
                 }}
             />
 
-            <AppScreenContainer>
+            <AppScreenContainer testID="my-profile-settings-page-container">
                 <ScrollView
                     sx={{
                         flex: 1,

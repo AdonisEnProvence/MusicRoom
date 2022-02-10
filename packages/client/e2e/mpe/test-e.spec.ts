@@ -9,7 +9,7 @@ import {
     openMpeSettingsModal,
     withinMusicPlayerFullscreenContainer,
 } from '../_utils/mpe-e2e-utils';
-import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
+import { closeAllContexts, setupPageAndSignUpUser } from '../_utils/page';
 
 test.afterEach(async ({ browser }) => {
     await closeAllContexts(browser);
@@ -183,10 +183,9 @@ async function exportMpeRoomToMtvRoom({
 // UserA exports the created MPE as MTV, default settings, created MTV should still be playing, all mpe tracks should have been exported
 // UserA should see exported MTV room music player fullscreen
 test('mpe e2e test-e', async ({ browser }) => {
-    const { page } = await setupAndGetUserPage({
+    const { page } = await setupPageAndSignUpUser({
         browser,
         knownSearches,
-        userIndex: 0,
     });
 
     await createRoom({

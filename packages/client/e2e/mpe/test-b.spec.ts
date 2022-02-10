@@ -11,7 +11,7 @@ import {
 import {
     closeAllContexts,
     createNewTabFromExistingContext,
-    setupAndGetUserPage,
+    setupPageAndSignUpUser,
 } from '../_utils/page';
 
 test.afterEach(async ({ browser }) => {
@@ -32,17 +32,15 @@ test.afterEach(async ({ browser }) => {
 // UserB Device2 should see the leave success toast only
 // UserA should receive a usersLengthUpdate
 test('Basic user leaves mpe room', async ({ browser }) => {
-    const { page: creatorPage } = await setupAndGetUserPage({
+    const { page: creatorPage } = await setupPageAndSignUpUser({
         browser,
         knownSearches,
-        userIndex: 0,
     });
 
     const { page: joiningUserPage1, context: joiningUserContext } =
-        await setupAndGetUserPage({
+        await setupPageAndSignUpUser({
             browser,
             knownSearches,
-            userIndex: 1,
         });
 
     const { page: joiningUserPage2 } = await createNewTabFromExistingContext(

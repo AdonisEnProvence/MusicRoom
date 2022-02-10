@@ -7,7 +7,7 @@ import { hitGoNextButton } from '../_utils/global';
 import { knownSearches } from '../_utils/mpe-e2e-utils';
 import {
     closeAllContexts,
-    setupAndGetUserPage,
+    setupPageAndSignUpUser,
     createNewTabFromExistingContext,
 } from '../_utils/page';
 import { waitForYouTubeVideoToLoad } from '../_utils/wait-youtube';
@@ -429,19 +429,16 @@ test('Test B see following link for more information: https://3.basecamp.com/470
             context: userCContext,
         },
     ] = await Promise.all([
-        setupAndGetUserPage({
+        setupPageAndSignUpUser({
             browser,
-            userIndex: 0,
             knownSearches,
         }),
-        setupAndGetUserPage({
+        setupPageAndSignUpUser({
             browser,
-            userIndex: 1,
             knownSearches,
         }),
-        setupAndGetUserPage({
+        setupPageAndSignUpUser({
             browser,
-            userIndex: 2,
             knownSearches,
         }),
     ]);

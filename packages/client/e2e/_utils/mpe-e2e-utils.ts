@@ -116,6 +116,32 @@ export function withinSearchTrackTabScreen(selector: string): string {
     return `css=[data-testid="search-track-screen"] >> ${selector}`;
 }
 
+export function withinPlaylistsVisibilityContainer(selector: string): string {
+    return `css=[data-testid="playlists-visibility-radio-group"] >> ${selector}`;
+}
+
+export function withinRelationsVisibilityContainer(selector: string): string {
+    return `css=[data-testid="relations-visibility-radio-group"] >> ${selector}`;
+}
+
+export function withinMyProfilePageContainer(selector: string): string {
+    return `css=[data-testid="my-profile-settings-page-container"] >> ${selector}`;
+}
+
+export function withinMyUserProfilePageContainer({
+    selector,
+    userID,
+}: {
+    selector: string;
+    userID: string;
+}): string {
+    return `css=[data-testid="${userID}-profile-page-screen"] >> ${selector}`;
+}
+
+export function withinEditMyNicknameContainer(selector: string): string {
+    return `css=[data-testid="update-nickname-screen"] >> ${selector}`;
+}
+
 export async function createMpeRoom({
     page,
 }: {
@@ -460,6 +486,36 @@ export async function pageIsOnHomeScreen({
     await expect(goToMusicPlaylistEditorButton).toBeEnabled();
 }
 
+export async function pageIsOnMyProfileScreen({
+    page,
+}: {
+    page: Page;
+}): Promise<void> {
+    await expect(
+        page.locator(`css=[data-testid="my-profile-page-container"]`).last(),
+    ).toBeVisible();
+}
+
+export async function pageIsOnMyProfileSettingsScreen({
+    page,
+}: {
+    page: Page;
+}): Promise<void> {
+    await expect(
+        page.locator(`css=[data-testid="my-profile-settings-page-container"]`),
+    ).toBeVisible();
+}
+
+export async function pageIsOnEditMyNicknameScreen({
+    page,
+}: {
+    page: Page;
+}): Promise<void> {
+    await expect(
+        page.locator(`css=[data-testid="update-nickname-screen"]`),
+    ).toBeVisible();
+}
+
 export async function pageIsOnSearchTrackScreen({
     page,
 }: {
@@ -469,6 +525,67 @@ export async function pageIsOnSearchTrackScreen({
         withinSearchTrackTabScreen('text="Search a track"'),
     );
     await expect(searchTrackScreenTitle).toBeVisible();
+}
+
+export async function goToMyProfileFromHomeTab({
+    page,
+}: {
+    page: Page;
+}): Promise<void> {
+    await pageIsOnHomeScreen({
+        page,
+    });
+
+    const myProfileIcon = page
+        .locator(`css=[data-testid="open-my-profile-page-button"]`)
+        .last();
+    await expect(myProfileIcon).toBeVisible();
+
+    await myProfileIcon.click();
+
+    await pageIsOnMyProfileScreen({
+        page,
+    });
+}
+
+export async function goToMyProfileSettingsFromMyProfileScreen({
+    page,
+}: {
+    page: Page;
+}): Promise<void> {
+    await pageIsOnMyProfileScreen({
+        page,
+    });
+
+    const mySettingsButton = page
+        .locator(`css=[aria-label="Open my settings screen"]`)
+        .last();
+    await expect(mySettingsButton).toBeVisible();
+
+    await mySettingsButton.click();
+
+    await pageIsOnMyProfileSettingsScreen({
+        page,
+    });
+}
+
+export async function goToEditMyNicknameFromMyProfileScreen({
+    page,
+    userNickname,
+}: {
+    page: Page;
+    userNickname: string;
+}): Promise<void> {
+    const goToEditNickName = page
+        .locator(withinMyProfilePageContainer(`text="${userNickname}"`))
+        .last();
+    await expect(goToEditNickName).toBeVisible();
+
+    await goToEditNickName.click();
+
+    await pageIsOnEditMyNicknameScreen({
+        page,
+    });
 }
 
 export async function goToHomeTabScreen({

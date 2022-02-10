@@ -5,15 +5,15 @@ import {
 } from '@expo/vector-icons';
 import { Skeleton } from '@motify/skeleton';
 import { MtvRoomUsersListElement } from '@musicroom/types';
-import { Image, Text, useSx, View } from 'dripsy';
+import { Text, useSx, View } from 'dripsy';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
+import { SvgImage } from '../kit';
 
 type UserListItemProps =
     | { loading: true }
     | {
           loading: false;
-          index: number;
           user: MtvRoomUsersListElement;
           disabled?: boolean;
           onPress?: () => void;
@@ -57,15 +57,14 @@ const UserListItem: React.FC<UserListItemProps> = (props) => {
                                     alignItems: 'center',
                                 }}
                             >
-                                <Image
-                                    source={{
-                                        uri: 'https://stately.ai/registry/machines/03107919-a451-4085-9b66-633cd8794164.png',
-                                    }}
-                                    sx={{
+                                <SvgImage
+                                    uri={`https://avatars.dicebear.com/api/big-smile/${props.user.userID}.svg`}
+                                    accessibilityLabel={`${props.user.nickname} avatar`}
+                                    style={sx({
                                         width: 'm',
                                         height: 'm',
                                         marginRight: 'm',
-                                    }}
+                                    })}
                                 />
 
                                 <Text

@@ -67,6 +67,7 @@
     "react-native-reanimated": "~2.1.0",
     "react-native-safe-area-context": "3.2.0",
     "react-native-screens": "~3.0.0",
+    "react-native-svg": "12.1.0",
     "react-native-toast-message": "^1.4.9",
     "react-native-web": "~0.16.3",
     "react-native-web-refresh-control": "^1.1.0",

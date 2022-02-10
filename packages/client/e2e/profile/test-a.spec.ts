@@ -13,7 +13,7 @@ import {
     withinMyUserProfilePageContainer,
 } from '../_utils/mpe-e2e-utils';
 import { hitGoNextButton } from '../_utils/global';
-import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
+import { closeAllContexts, setupPageAndSignUpUser } from '../_utils/page';
 import { assertIsNotNull, assertIsNotUndefined } from '../_utils/assert';
 
 test.afterEach(async ({ browser }) => {
@@ -235,13 +235,11 @@ async function minimizeMusicPlayer({ page }: { page: Page }) {
  */
 
 test('Profile test-a', async ({ browser }) => {
-    //This test is not protected from black box testing
-    //To avoid conflicts with previous tests, ftm workaround is to user specific profile group e2e tests userIndex 2 & 3
     const {
         page: userAPage,
         userID: userAUserID,
         userNickname: userANickname,
-    } = await setupAndGetUserPage({
+    } = await setupPageAndSignUpUser({
         browser,
 
         knownSearches,
@@ -251,7 +249,7 @@ test('Profile test-a', async ({ browser }) => {
         page: userBPage,
         userID: userBUserID,
         userNickname: userBNickname,
-    } = await setupAndGetUserPage({
+    } = await setupPageAndSignUpUser({
         browser,
         knownSearches,
     });

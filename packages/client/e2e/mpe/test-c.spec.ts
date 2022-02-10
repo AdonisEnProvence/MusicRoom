@@ -8,7 +8,7 @@ import {
     goToHomeTabScreen,
     pageIsOnHomeScreen,
 } from '../_utils/mpe-e2e-utils';
-import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
+import { closeAllContexts, setupPageAndSignUpUser } from '../_utils/page';
 
 test.afterEach(async ({ browser }) => {
     await closeAllContexts(browser);
@@ -23,17 +23,17 @@ test.afterEach(async ({ browser }) => {
 // UserB should receive a FORCED_DISCONNECTION event. He should see a related forced disconnection toast and should be redirected on the library view
 // UserC should receive a FORCED_DISCONNECTION event. He should see a related forced disconnection toast and should not be redirect anywhere as he's viewing the home ( at least an other screen then the disconnected from mpe room view )
 test('Basic user leaves mpe room', async ({ browser }) => {
-    const { page: creatorUserA } = await setupAndGetUserPage({
+    const { page: creatorUserA } = await setupPageAndSignUpUser({
         browser,
         knownSearches,
     });
 
-    const { page: joiningUserB } = await setupAndGetUserPage({
+    const { page: joiningUserB } = await setupPageAndSignUpUser({
         browser,
         knownSearches,
     });
 
-    const { page: joiningUserC } = await setupAndGetUserPage({
+    const { page: joiningUserC } = await setupPageAndSignUpUser({
         browser,
         knownSearches,
     });

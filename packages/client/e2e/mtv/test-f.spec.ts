@@ -11,7 +11,7 @@ import {
     createNewTabFromExistingContext,
     GEOLOCATION_POSITIONS,
     initPage,
-    setupAndGetUserPage,
+    setupPageAndSignUpUser,
 } from '../_utils/page';
 import { knownSearches } from '../_utils/mpe-e2e-utils';
 import { waitForYouTubeVideoToLoad } from '../_utils/wait-youtube';
@@ -321,12 +321,12 @@ test('Test F', async ({ browser }) => {
         { page: userADevice1Page },
         { context: userBContext, page: userBDevice1Page },
     ] = await Promise.all([
-        setupAndGetUserPage({
+        setupPageAndSignUpUser({
             browser,
             knownSearches,
             town: 'Manosque, France',
         }),
-        setupAndGetUserPage({
+        setupPageAndSignUpUser({
             browser,
             knownSearches,
             town: 'Paris, France',

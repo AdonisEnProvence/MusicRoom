@@ -6,7 +6,7 @@ import {
     pressMpeRoomInvitationToast,
     searchAndJoinMpeRoomFromMpeRoomsSearchEngine,
 } from '../_utils/mpe-e2e-utils';
-import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
+import { closeAllContexts, setupPageAndSignUpUser } from '../_utils/page';
 
 test.afterEach(async ({ browser }) => {
     await closeAllContexts(browser);
@@ -23,18 +23,18 @@ test('MpeRoom invitation and onlyInvitedUserCanEdit test', async ({
     browser,
 }) => {
     const { page: creatorUserA, userNickname: creatorUserANickname } =
-        await setupAndGetUserPage({
+        await setupPageAndSignUpUser({
             browser,
             knownSearches,
         });
 
     const { page: joiningUserB, userNickname: userBNickname } =
-        await setupAndGetUserPage({
+        await setupPageAndSignUpUser({
             browser,
             knownSearches,
         });
 
-    const { page: joiningUserC } = await setupAndGetUserPage({
+    const { page: joiningUserC } = await setupPageAndSignUpUser({
         browser,
         knownSearches,
     });

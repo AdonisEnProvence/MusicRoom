@@ -9,7 +9,7 @@ import { knownSearches } from '../_utils/mpe-e2e-utils';
 import {
     closeAllContexts,
     createNewTabFromExistingContext,
-    setupAndGetUserPage,
+    setupPageAndSignUpUser,
 } from '../_utils/page';
 import { waitForYouTubeVideoToLoad } from '../_utils/wait-youtube';
 
@@ -220,8 +220,8 @@ test('Test D see following link for more informations https://3.basecamp.com/470
         { context: userAContext, page: userADevice1Page },
         { page: userBPage },
     ] = await Promise.all([
-        setupAndGetUserPage({ browser, knownSearches }),
-        setupAndGetUserPage({ browser, knownSearches }),
+        setupPageAndSignUpUser({ browser, knownSearches }),
+        setupPageAndSignUpUser({ browser, knownSearches }),
     ]);
 
     const roomName = 'MusicRoom is the best';

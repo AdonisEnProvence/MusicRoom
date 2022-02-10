@@ -32,7 +32,7 @@ type SetupAndGetUserContextArgs = {
     knownSearches: KnownSearchesRecord;
     town?: keyof typeof GEOLOCATION_POSITIONS;
 };
-export async function setupAndGetUserPage({
+export async function setupPageAndSignUpUser({
     browser,
     knownSearches,
     town,
@@ -70,7 +70,7 @@ export async function setupAndGetUserPage({
 
     await initPage(page);
 
-    await PerformSignUp(page);
+    await performSignUp(page);
 
     await initPage(page);
 
@@ -103,7 +103,7 @@ export async function initPage(page: Page): Promise<void> {
     await focusTrap.click();
 }
 
-export async function PerformSignUp(page: Page): Promise<void> {
+export async function performSignUp(page: Page): Promise<void> {
     const signUpButton = page
         .locator(`css=[data-testid="sign-up-button"]`)
         .last();

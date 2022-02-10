@@ -15,7 +15,7 @@ import { hitGoNextButton } from '../_utils/global';
 import {
     closeAllContexts,
     createNewTabFromExistingContext,
-    setupAndGetUserPage,
+    setupPageAndSignUpUser,
 } from '../_utils/page';
 
 test.afterEach(async ({ browser }) => {
@@ -82,7 +82,7 @@ async function exportMpeRoomToMtvRoom({
  * -UserA shouldn't be able to see the deleted track on both his devices
  */
 test('Create MPE room', async ({ browser }) => {
-    const { page, context } = await setupAndGetUserPage({
+    const { page, context } = await setupPageAndSignUpUser({
         browser,
         knownSearches,
     });

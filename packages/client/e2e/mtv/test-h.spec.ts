@@ -16,7 +16,7 @@ import { knownSearches } from '../_utils/mpe-e2e-utils';
 import {
     closeAllContexts,
     GEOLOCATION_POSITIONS,
-    setupAndGetUserPage,
+    setupPageAndSignUpUser,
 } from '../_utils/page';
 import { waitForYouTubeVideoToLoad } from '../_utils/wait-youtube';
 
@@ -198,7 +198,7 @@ test.afterEach(async ({ browser }) => {
 });
 
 test('Test H', async ({ browser }) => {
-    const { page: userADevice1Page } = await setupAndGetUserPage({
+    const { page: userADevice1Page } = await setupPageAndSignUpUser({
         browser,
         knownSearches,
         town: 'Manosque, France',

@@ -6,7 +6,7 @@ import {
 } from '../_utils/assert';
 import { hitGoNextButton } from '../_utils/global';
 import { knownSearches } from '../_utils/mpe-e2e-utils';
-import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
+import { closeAllContexts, setupPageAndSignUpUser } from '../_utils/page';
 import { waitForYouTubeVideoToLoad } from '../_utils/wait-youtube';
 
 async function createPublicRoomWithInvitation(page: Page) {
@@ -248,9 +248,9 @@ test('Test C', async ({ browser }) => {
         { page: userBPage },
         { page: userCPage, userNickname: userCName },
     ] = await Promise.all([
-        setupAndGetUserPage({ browser, knownSearches }),
-        setupAndGetUserPage({ browser, knownSearches }),
-        setupAndGetUserPage({ browser, knownSearches }),
+        setupPageAndSignUpUser({ browser, knownSearches }),
+        setupPageAndSignUpUser({ browser, knownSearches }),
+        setupPageAndSignUpUser({ browser, knownSearches }),
     ]);
 
     const { roomName, initialTrackTitle } =

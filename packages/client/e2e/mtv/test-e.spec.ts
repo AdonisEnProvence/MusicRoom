@@ -3,7 +3,7 @@ import { lorem } from 'faker';
 import { assertIsNotUndefined } from '../_utils/assert';
 import { hitGoNextButton } from '../_utils/global';
 import { knownSearches } from '../_utils/mpe-e2e-utils';
-import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
+import { closeAllContexts, setupPageAndSignUpUser } from '../_utils/page';
 
 type FindMiniPlayerWithRoomNameAndGoFullscreenArgs = {
     roomName: string;
@@ -298,11 +298,11 @@ test('Test E see following link for more information: https://3.basecamp.com/470
             userID: joiningUserBID,
         },
     ] = await Promise.all([
-        setupAndGetUserPage({
+        setupPageAndSignUpUser({
             browser,
             knownSearches,
         }),
-        setupAndGetUserPage({
+        setupPageAndSignUpUser({
             browser,
             knownSearches,
         }),

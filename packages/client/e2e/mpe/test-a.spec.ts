@@ -12,7 +12,11 @@ import {
     withinMusicPlayerFullscreenContainer,
 } from '../_utils/mpe-e2e-utils';
 import { hitGoNextButton } from '../_utils/global';
-import { closeAllContexts, setupAndGetUserPage } from '../_utils/page';
+import {
+    closeAllContexts,
+    createNewTabFromExistingContext,
+    setupAndGetUserPage,
+} from '../_utils/page';
 
 test.afterEach(async ({ browser }) => {
     await closeAllContexts(browser);
@@ -78,17 +82,12 @@ async function exportMpeRoomToMtvRoom({
  * -UserA shouldn't be able to see the deleted track on both his devices
  */
 test('Create MPE room', async ({ browser }) => {
-    const { page } = await setupAndGetUserPage({
+    const { page, context } = await setupAndGetUserPage({
         browser,
         knownSearches,
-        userIndex: 0,
     });
 
-    const { page: pageB } = await setupAndGetUserPage({
-        browser,
-        knownSearches,
-        userIndex: 0,
-    });
+    const { page: pageB } = await createNewTabFromExistingContext(context);
 
     const { roomName } = await createMpeRoom({
         page,

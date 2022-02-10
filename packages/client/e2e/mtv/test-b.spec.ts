@@ -431,17 +431,14 @@ test('Test B see following link for more information: https://3.basecamp.com/470
     ] = await Promise.all([
         setupAndGetUserPage({
             browser,
-            userIndex: 0,
             knownSearches,
         }),
         setupAndGetUserPage({
             browser,
-            userIndex: 1,
             knownSearches,
         }),
         setupAndGetUserPage({
             browser,
-            userIndex: 2,
             knownSearches,
         }),
     ]);

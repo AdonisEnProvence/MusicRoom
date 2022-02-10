@@ -248,9 +248,9 @@ test('Test C', async ({ browser }) => {
         { page: userBPage },
         { page: userCPage, userNickname: userCName },
     ] = await Promise.all([
-        setupAndGetUserPage({ browser, userIndex: 0, knownSearches }),
-        setupAndGetUserPage({ browser, userIndex: 1, knownSearches }),
-        setupAndGetUserPage({ browser, userIndex: 2, knownSearches }),
+        setupAndGetUserPage({ browser, knownSearches }),
+        setupAndGetUserPage({ browser, knownSearches }),
+        setupAndGetUserPage({ browser, knownSearches }),
     ]);
 
     const { roomName, initialTrackTitle } =

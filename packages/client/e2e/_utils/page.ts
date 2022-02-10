@@ -1,24 +1,14 @@
-import { Browser, Page, BrowserContext } from '@playwright/test';
+import { Browser, Page, BrowserContext, expect } from '@playwright/test';
+import * as z from 'zod';
+import invariant from 'tiny-invariant';
 import { KnownSearchesRecord, mockSearchTracks } from './mock-http';
 
-export const AVAILABLE_USERS_LIST = [
-    {
-        uuid: '8d71dcb3-9638-4b7a-89ad-838e2310686c',
-        nickname: 'Francis',
-    },
-    {
-        uuid: '71bc3025-b765-4f84-928d-b4dca8871370',
-        nickname: 'Moris',
-    },
-    {
-        uuid: 'd125ecde-b0ee-4ab8-a488-c0e7a8dac7c5',
-        nickname: 'Leila',
-    },
-    {
-        uuid: '7f4bc598-c5be-4412-acc4-515a87b797e7',
-        nickname: 'Manon',
-    },
-];
+const UserCredentials = z.object({
+    userID: z.string().uuid(),
+    userNickname: z.string(),
+});
+
+type UserCredentials = z.infer<typeof UserCredentials>;
 
 export const GEOLOCATION_POSITIONS = {
     'Paris, France': {
@@ -39,13 +29,11 @@ export const GEOLOCATION_POSITIONS = {
 
 type SetupAndGetUserContextArgs = {
     browser: Browser;
-    userIndex: number;
     knownSearches: KnownSearchesRecord;
     town?: keyof typeof GEOLOCATION_POSITIONS;
 };
 export async function setupAndGetUserPage({
     browser,
-    userIndex,
     knownSearches,
     town,
 }: SetupAndGetUserContextArgs): Promise<{
@@ -63,7 +51,7 @@ export async function setupAndGetUserPage({
                     localStorage: [
                         {
                             name: 'USER_ID',
-                            value: AVAILABLE_USERS_LIST[userIndex].uuid,
+                            value: '8d71dcb3-9638-4b7a-89ad-838e2310686c',
                         },
                     ],
                 },
@@ -82,12 +70,29 @@ export async function setupAndGetUserPage({
 
     await initPage(page);
 
-    console.log(AVAILABLE_USERS_LIST[userIndex].nickname);
+    await PerformSignUp(page);
+
+    await initPage(page);
+
+    const storageState = await context.storageState();
+
+    const userCredentialsLocalStorage = storageState.origins
+        .slice(-1)[0]
+        .localStorage.find((el) => el.name === 'USER_CREDENTIALS');
+
+    invariant(
+        userCredentialsLocalStorage !== undefined,
+        'could not retrieve user credentials from local storage',
+    );
+    const { userID, userNickname } = UserCredentials.parse(
+        JSON.parse(userCredentialsLocalStorage.value),
+    );
+
     return {
         context,
         page,
-        userNickname: AVAILABLE_USERS_LIST[userIndex].nickname,
-        userID: AVAILABLE_USERS_LIST[userIndex].uuid,
+        userNickname,
+        userID,
     };
 }
 
@@ -96,6 +101,21 @@ export async function initPage(page: Page): Promise<void> {
 
     const focusTrap = page.locator('text="Click"').first();
     await focusTrap.click();
+}
+
+export async function PerformSignUp(page: Page): Promise<void> {
+    const signUpButton = page
+        .locator(`css=[data-testid="sign-up-button"]`)
+        .last();
+    await expect(signUpButton).toBeVisible();
+
+    await signUpButton.click();
+
+    await expect(
+        page.locator(`text="Signed up successfully"`).last(),
+    ).toBeVisible();
+
+    await page.reload();
 }
 
 /**
@@ -112,6 +132,8 @@ export async function createNewTabFromExistingContext(
         page,
     };
 }
+
+/** */
 
 export async function closeAllContexts(browser: Browser): Promise<void> {
     const contexts = browser.contexts();

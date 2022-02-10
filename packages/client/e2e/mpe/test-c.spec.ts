@@ -26,19 +26,16 @@ test('Basic user leaves mpe room', async ({ browser }) => {
     const { page: creatorUserA } = await setupAndGetUserPage({
         browser,
         knownSearches,
-        userIndex: 0,
     });
 
     const { page: joiningUserB } = await setupAndGetUserPage({
         browser,
         knownSearches,
-        userIndex: 1,
     });
 
     const { page: joiningUserC } = await setupAndGetUserPage({
         browser,
         knownSearches,
-        userIndex: 2,
     });
 
     const { roomName } = await createMpeRoom({

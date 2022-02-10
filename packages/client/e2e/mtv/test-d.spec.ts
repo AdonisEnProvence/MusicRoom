@@ -220,8 +220,8 @@ test('Test D see following link for more informations https://3.basecamp.com/470
         { context: userAContext, page: userADevice1Page },
         { page: userBPage },
     ] = await Promise.all([
-        setupAndGetUserPage({ browser, userIndex: 1, knownSearches }),
-        setupAndGetUserPage({ browser, userIndex: 0, knownSearches }),
+        setupAndGetUserPage({ browser, knownSearches }),
+        setupAndGetUserPage({ browser, knownSearches }),
     ]);
 
     const roomName = 'MusicRoom is the best';

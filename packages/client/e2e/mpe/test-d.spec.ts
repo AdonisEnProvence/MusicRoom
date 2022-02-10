@@ -26,20 +26,17 @@ test('MpeRoom invitation and onlyInvitedUserCanEdit test', async ({
         await setupAndGetUserPage({
             browser,
             knownSearches,
-            userIndex: 0,
         });
 
     const { page: joiningUserB, userNickname: userBNickname } =
         await setupAndGetUserPage({
             browser,
             knownSearches,
-            userIndex: 1,
         });
 
     const { page: joiningUserC } = await setupAndGetUserPage({
         browser,
         knownSearches,
-        userIndex: 2,
     });
 
     const { roomName } = await createMpeRoom({

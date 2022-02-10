@@ -392,7 +392,7 @@ const updateVisibilitySettingsMachine =
 
                                             const playlistsVisibilitySettingRadioGroup =
                                                 await screen.findByTestId(
-                                                    'playlists-relations-radio-group',
+                                                    'relations-visibility-radio-group',
                                                 );
                                             expect(
                                                 playlistsVisibilitySettingRadioGroup,
@@ -435,7 +435,7 @@ const updateVisibilitySettingsMachine =
 
                                             const playlistsVisibilitySettingRadioGroup =
                                                 await screen.findByTestId(
-                                                    'playlists-relations-radio-group',
+                                                    'relations-visibility-radio-group',
                                                 );
                                             expect(
                                                 playlistsVisibilitySettingRadioGroup,
@@ -480,7 +480,7 @@ const updateVisibilitySettingsMachine =
 
                                             const playlistsVisibilitySettingRadioGroup =
                                                 await screen.findByTestId(
-                                                    'playlists-relations-radio-group',
+                                                    'relations-visibility-radio-group',
                                                 );
                                             expect(
                                                 playlistsVisibilitySettingRadioGroup,
@@ -815,7 +815,7 @@ const updateVisibilitySettingsTestModel = createTestModel<TestingContext>(
         );
 
         const playlistsVisibilitySettingRadioGroup = await screen.findByTestId(
-            'playlists-relations-radio-group',
+            'relations-visibility-radio-group',
         );
         expect(playlistsVisibilitySettingRadioGroup).toBeTruthy();
 

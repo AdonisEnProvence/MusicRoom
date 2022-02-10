@@ -201,7 +201,6 @@ test('Test H', async ({ browser }) => {
     const { page: userADevice1Page } = await setupAndGetUserPage({
         browser,
         knownSearches,
-        userIndex: 0,
         town: 'Manosque, France',
     });
 

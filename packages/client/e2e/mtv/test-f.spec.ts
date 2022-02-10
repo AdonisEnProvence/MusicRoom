@@ -323,13 +323,11 @@ test('Test F', async ({ browser }) => {
     ] = await Promise.all([
         setupAndGetUserPage({
             browser,
-            userIndex: 0,
             knownSearches,
             town: 'Manosque, France',
         }),
         setupAndGetUserPage({
             browser,
-            userIndex: 1,
             knownSearches,
             town: 'Paris, France',
         }),

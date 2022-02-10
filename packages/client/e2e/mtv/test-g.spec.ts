@@ -186,8 +186,8 @@ test.afterEach(async ({ browser }) => {
 test('Test G', async ({ browser }) => {
     const [{ page: userAPage }, { page: userBPage, userNickname: userBName }] =
         await Promise.all([
-            setupAndGetUserPage({ browser, userIndex: 0, knownSearches }),
-            setupAndGetUserPage({ browser, userIndex: 1, knownSearches }),
+            setupAndGetUserPage({ browser, knownSearches }),
+            setupAndGetUserPage({ browser, knownSearches }),
         ]);
 
     const { roomName } = await createPrivateRoom(userAPage);

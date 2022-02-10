@@ -35,14 +35,12 @@ test('Basic user leaves mpe room', async ({ browser }) => {
     const { page: creatorPage } = await setupAndGetUserPage({
         browser,
         knownSearches,
-        userIndex: 0,
     });
 
     const { page: joiningUserPage1, context: joiningUserContext } =
         await setupAndGetUserPage({
             browser,
             knownSearches,
-            userIndex: 1,
         });
 
     const { page: joiningUserPage2 } = await createNewTabFromExistingContext(

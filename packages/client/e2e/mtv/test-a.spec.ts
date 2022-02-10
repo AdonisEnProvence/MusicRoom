@@ -279,8 +279,8 @@ test.afterEach(async ({ browser }) => {
 
 test('Test A', async ({ browser }) => {
     const [{ page: creatorPage }, { page: joinerPage }] = await Promise.all([
-        setupAndGetUserPage({ browser, knownSearches, userIndex: 0 }),
-        setupAndGetUserPage({ browser, knownSearches, userIndex: 1 }),
+        setupAndGetUserPage({ browser, knownSearches }),
+        setupAndGetUserPage({ browser, knownSearches }),
     ]);
 
     const { roomName, initialTrack } = await createRoom({ creatorPage });

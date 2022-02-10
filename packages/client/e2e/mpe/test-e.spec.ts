@@ -186,7 +186,6 @@ test('mpe e2e test-e', async ({ browser }) => {
     const { page } = await setupAndGetUserPage({
         browser,
         knownSearches,
-        userIndex: 0,
     });
 
     await createRoom({

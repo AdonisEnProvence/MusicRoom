@@ -39,3 +39,4 @@ export * from './mpe-room-search';
 export * from './user';
 export * from './user-settings';
 export * from './user-settings-http';
+export * from './authentication';

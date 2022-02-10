@@ -51,6 +51,12 @@ Route.group(() => {
     Route.post('/unfollow', 'SearchUsersController.unfollowUser');
 }).prefix(USER_ROUTES_GROUP_PREFIX);
 
+export const AUTHENTICATION_ROUTES_GROUP_PREFIX = '/authentication';
+
+Route.group(() => {
+    Route.post('/sign-up', 'AuthenticationController.signUp');
+}).prefix(AUTHENTICATION_ROUTES_GROUP_PREFIX);
+
 /// Temporal MTV Routes ///
 
 export const MTV_TEMPORAL_LISTENER = `/temporal/mtv`;

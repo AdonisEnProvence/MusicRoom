@@ -271,6 +271,7 @@ export default class SearchUsersController {
         const { tmpAuthUserID, userID } =
             GetUserProfileInformationRequestBody.parse(rawBody);
 
+        await User.findOrFail(tmpAuthUserID);
         const userProfileInformation = await requestUserProfileInformation({
             requestingUserID: tmpAuthUserID,
             userID,

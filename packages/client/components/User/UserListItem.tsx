@@ -8,6 +8,7 @@ import { MtvRoomUsersListElement } from '@musicroom/types';
 import { Text, useSx, View } from 'dripsy';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
+import { generateUserAvatarUri } from '../../constants/users-avatar';
 import { SvgImage } from '../kit';
 
 type UserListItemProps =
@@ -58,7 +59,9 @@ const UserListItem: React.FC<UserListItemProps> = (props) => {
                                 }}
                             >
                                 <SvgImage
-                                    uri={`https://avatars.dicebear.com/api/big-smile/${props.user.userID}.svg`}
+                                    uri={generateUserAvatarUri({
+                                        userID: props.user.userID,
+                                    })}
                                     accessibilityLabel={`${props.user.nickname} avatar`}
                                     style={sx({
                                         width: 'm',

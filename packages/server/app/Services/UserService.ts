@@ -178,4 +178,42 @@ export default class UserService {
 
         return previouslyEmittingDevices[0];
     }
+
+    /**
+     * Will returns a boolean depending on the user presence inside
+     * related user followers list
+     */
+    public static async userIsFollowingRelatedUser({
+        relatedUserID,
+        userID,
+    }: {
+        relatedUserID: string;
+        userID: string;
+    }): Promise<boolean> {
+        const relatedUser = await User.findOrFail(relatedUserID);
+
+        await relatedUser.load('followers', (userQuery) => {
+            return userQuery.where('uuid', userID);
+        });
+        return relatedUser.followers.length > 0;
+    }
+
+    /**
+     * Will returns a boolean depending on the user presence inside
+     * related user following list
+     */
+    public static async userIsFollowedByRelatedUser({
+        relatedUserID,
+        userID,
+    }: {
+        relatedUserID: string;
+        userID: string;
+    }): Promise<boolean> {
+        const relatedUser = await User.findOrFail(relatedUserID);
+
+        await relatedUser.load('following', (userQuery) => {
+            return userQuery.where('uuid', userID);
+        });
+        return relatedUser.followers.length > 0;
+    }
 }

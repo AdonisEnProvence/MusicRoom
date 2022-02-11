@@ -5,6 +5,10 @@ import {
     GetMyProfileInformationResponseBody,
     GetUserProfileInformationRequestBody,
     GetUserProfileInformationResponseBody,
+    ListUserFollowersRequestBody,
+    ListUserFollowersResponseBody,
+    ListUserFollowingRequestBody,
+    ListUserFollowingResponseBody,
     SearchUsersRequestBody,
     SearchUsersResponseBody,
     UnfollowUserRequestBody,
@@ -15,16 +19,60 @@ import {
 import { FollowUserResponseBody } from '@musicroom/types/src/user';
 import ForbiddenException from 'App/Exceptions/ForbiddenException';
 import User from 'App/Models/User';
+import UserService from 'App/Services/UserService';
 import invariant from 'tiny-invariant';
 
 const SEARCH_USERS_LIMIT = 10;
 
+async function throwErrorIfRequestingUserCanNotAccessRelatedUserRelationsVisibility({
+    relatedUserID,
+    requestingUserID,
+}: {
+    requestingUserID: string;
+    relatedUserID: string;
+}): Promise<void> {
+    await User.findOrFail(requestingUserID);
+    const relatedUser = await User.findOrFail(relatedUserID);
+    await relatedUser.load('relationsVisibilitySetting');
+
+    const relatedUserRelationsVisibilityName =
+        relatedUser.relationsVisibilitySetting.name;
+
+    switch (relatedUserRelationsVisibilityName) {
+        case UserSettingVisibility.Values.PRIVATE: {
+            throw new ForbiddenException();
+        }
+        case UserSettingVisibility.Values.PUBLIC: {
+            return;
+        }
+        case UserSettingVisibility.Values.FOLLOWERS_ONLY: {
+            const requestingUserIsFollowingRelatedUser =
+                await UserService.userIsFollowingRelatedUser({
+                    relatedUserID,
+                    userID: requestingUserID,
+                });
+            const requestingUserIsNotfollowingRelatedUser =
+                !requestingUserIsFollowingRelatedUser;
+
+            if (requestingUserIsNotfollowingRelatedUser) {
+                throw new ForbiddenException();
+            }
+            return;
+        }
+        default: {
+            throw new Error(
+                `unknown switch ue case ${relatedUserRelationsVisibilityName}`,
+            );
+        }
+    }
+}
+
 function getUserProfileInformationDependingOnItsVisibility({
     fieldValue,
     fieldVisibility,
-    requestingUserIsfollowingRelatedUser,
+    requestingUserIsFollowingRelatedUser,
 }: {
-    requestingUserIsfollowingRelatedUser: boolean;
+    requestingUserIsFollowingRelatedUser: boolean;
     fieldValue: number;
     fieldVisibility: UserSettingVisibility;
 }): number | undefined {
@@ -36,7 +84,7 @@ function getUserProfileInformationDependingOnItsVisibility({
             return fieldValue;
         }
         case UserSettingVisibility.Values.FOLLOWERS_ONLY: {
-            if (requestingUserIsfollowingRelatedUser) {
+            if (requestingUserIsFollowingRelatedUser) {
                 return fieldValue;
             }
             return undefined;
@@ -59,12 +107,11 @@ async function requestUserProfileInformation({
         throw new ForbiddenException();
     }
 
-    const requestingUser = await User.findOrFail(requestingUserID);
-    await requestingUser.load('following', (userQuery) => {
-        return userQuery.where('uuid', userID);
-    });
-    const requestingUserIsfollowingRelatedUser =
-        requestingUser.following.length > 0;
+    const requestingUserIsFollowingRelatedUser =
+        await UserService.userIsFollowingRelatedUser({
+            relatedUserID: userID,
+            userID: requestingUserID,
+        });
 
     const relateduser = await User.findOrFail(userID);
     //Note: cannot load relationship after the loadAggregate block
@@ -85,25 +132,25 @@ async function requestUserProfileInformation({
     const playlistsCounter = getUserProfileInformationDependingOnItsVisibility({
         fieldValue: Number(relateduser.$extras.mpeRooms_count),
         fieldVisibility: playlistsVisibilitySetting.name,
-        requestingUserIsfollowingRelatedUser,
+        requestingUserIsFollowingRelatedUser,
     });
 
     const followingCounter = getUserProfileInformationDependingOnItsVisibility({
         fieldValue: Number(relateduser.$extras.following_count),
         fieldVisibility: relationsVisibilitySetting.name,
-        requestingUserIsfollowingRelatedUser,
+        requestingUserIsFollowingRelatedUser,
     });
 
     const followersCounter = getUserProfileInformationDependingOnItsVisibility({
         fieldValue: Number(relateduser.$extras.followers_count),
         fieldVisibility: relationsVisibilitySetting.name,
-        requestingUserIsfollowingRelatedUser,
+        requestingUserIsFollowingRelatedUser,
     });
 
     return {
         userID,
         userNickname,
-        following: requestingUserIsfollowingRelatedUser,
+        following: requestingUserIsFollowingRelatedUser,
         playlistsCounter,
         followersCounter,
         followingCounter,
@@ -115,6 +162,7 @@ export default class SearchUsersController {
         request,
     }: HttpContextContract): Promise<SearchUsersResponseBody> {
         const rawBody = request.body();
+        //FIXME AUTH Given userID is TMP
         const { searchQuery, page, userID } =
             SearchUsersRequestBody.parse(rawBody);
 
@@ -126,6 +174,83 @@ export default class SearchUsersController {
         const totalUsersToLoad = usersPagination.total;
         const hasMoreUsersToLoad = usersPagination.hasMorePages;
         const formattedUsers = usersPagination.all().map((user) => ({
+            userID: user.uuid,
+            nickname: user.nickname,
+        }));
+
+        return {
+            page,
+            hasMore: hasMoreUsersToLoad,
+            totalEntries: totalUsersToLoad,
+            data: formattedUsers,
+        };
+    }
+
+    public async listUserFollowers({
+        request,
+    }: HttpContextContract): Promise<ListUserFollowersResponseBody> {
+        const rawBody = request.body();
+        const { page, searchQuery, userID, tmpAuthUserID } =
+            ListUserFollowersRequestBody.parse(rawBody);
+
+        //Checking relations visibility
+        await throwErrorIfRequestingUserCanNotAccessRelatedUserRelationsVisibility(
+            {
+                relatedUserID: userID,
+                requestingUserID: tmpAuthUserID,
+            },
+        );
+        //
+        const usersFollowersPagination = await User.query()
+            .whereNot('uuid', userID)
+            .andWhere('nickname', 'ilike', `${searchQuery}%`)
+            .andWhereHas('following', (userQuery) => {
+                return userQuery.where('uuid', userID);
+            })
+            .orderBy('nickname', 'asc')
+            .paginate(page, SEARCH_USERS_LIMIT);
+        const totalUsersToLoad = usersFollowersPagination.total;
+        const hasMoreUsersToLoad = usersFollowersPagination.hasMorePages;
+        const formattedUsers = usersFollowersPagination.all().map((user) => ({
+            userID: user.uuid,
+            nickname: user.nickname,
+        }));
+
+        return {
+            page,
+            hasMore: hasMoreUsersToLoad,
+            totalEntries: totalUsersToLoad,
+            data: formattedUsers,
+        };
+    }
+
+    public async listUserFollowing({
+        request,
+    }: HttpContextContract): Promise<ListUserFollowingResponseBody> {
+        const rawBody = request.body();
+        const { page, searchQuery, userID, tmpAuthUserID } =
+            ListUserFollowingRequestBody.parse(rawBody);
+
+        //Checking relations visibility
+        await throwErrorIfRequestingUserCanNotAccessRelatedUserRelationsVisibility(
+            {
+                relatedUserID: userID,
+                requestingUserID: tmpAuthUserID,
+            },
+        );
+        //
+
+        const usersFollowersPagination = await User.query()
+            .whereNot('uuid', userID)
+            .andWhere('nickname', 'ilike', `${searchQuery}%`)
+            .andWhereHas('followers', (userQuery) => {
+                return userQuery.where('uuid', userID);
+            })
+            .orderBy('nickname', 'asc')
+            .paginate(page, SEARCH_USERS_LIMIT);
+        const totalUsersToLoad = usersFollowersPagination.total;
+        const hasMoreUsersToLoad = usersFollowersPagination.hasMorePages;
+        const formattedUsers = usersFollowersPagination.all().map((user) => ({
             userID: user.uuid,
             nickname: user.nickname,
         }));

@@ -49,6 +49,9 @@ Route.group(() => {
 
     Route.post('/follow', 'SearchUsersController.followUser');
     Route.post('/unfollow', 'SearchUsersController.unfollowUser');
+
+    Route.post('/search/followers', 'SearchUsersController.listUserFollowers');
+    Route.post('/search/following', 'SearchUsersController.listUserFollowing');
 }).prefix(USER_ROUTES_GROUP_PREFIX);
 
 export const AUTHENTICATION_ROUTES_GROUP_PREFIX = '/authentication';

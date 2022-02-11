@@ -337,6 +337,9 @@ test('Profile test-a', async ({ browser }) => {
             .locator(`text="devices 1"`)
             .last();
         await expect(myDevicesPlaylistCounter).toBeVisible();
+
+        const myAvatar = userAPage.locator('css=[aria-label="My avatar"]');
+        await expect(myAvatar).toBeVisible();
     }
 
     await goToMyProfileSettingsFromMyProfileScreen({

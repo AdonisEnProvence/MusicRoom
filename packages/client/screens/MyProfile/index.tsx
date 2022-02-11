@@ -8,11 +8,13 @@ import {
     AppScreen,
     AppScreenContainer,
     AppScreenHeader,
+    SvgImage,
     Typo,
 } from '../../components/kit';
 import { MyProfileScreenProps } from '../../types';
 import { getFakeUserID } from '../../contexts/SocketContext';
 import { createMyProfileInformationMachine } from '../../machines/myProfileInformationMachine';
+import { generateUserAvatarUri } from '../../constants/users-avatar';
 
 interface MyProfileInformationSectionProps {
     onPress: () => void;
@@ -163,17 +165,46 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
             />
 
             <AppScreenContainer testID="my-profile-page-container">
-                <Typo>{userID} my profile</Typo>
-                {myProfileInformationSections.map(
-                    ({ informationName, onPress, informationCounter }) => (
-                        <MyProfileInformationSection
-                            key={`${userID}_${informationName}`}
-                            informationName={informationName}
-                            onPress={onPress}
-                            informationCounter={informationCounter}
+                <View
+                    sx={{
+                        flex: 1,
+                        paddingX: 'l',
+                        maxWidth: [null, 420, 720],
+                        marginX: 'auto',
+                        alignItems: 'center',
+                    }}
+                >
+                    <View
+                        sx={{
+                            padding: 'l',
+                            marginBottom: 'xl',
+                            borderRadius: 'full',
+                            backgroundColor: 'greyLight',
+                        }}
+                    >
+                        <SvgImage
+                            uri={generateUserAvatarUri({ userID })}
+                            accessibilityLabel="My avatar"
+                            style={sx({
+                                width: 'xl',
+                                height: 'xl',
+                                borderRadius: 'full',
+                            })}
                         />
-                    ),
-                )}
+                    </View>
+
+                    <Typo>{userID} my profile</Typo>
+                    {myProfileInformationSections.map(
+                        ({ informationName, onPress, informationCounter }) => (
+                            <MyProfileInformationSection
+                                key={`${userID}_${informationName}`}
+                                informationName={informationName}
+                                onPress={onPress}
+                                informationCounter={informationCounter}
+                            />
+                        ),
+                    )}
+                </View>
             </AppScreenContainer>
         </AppScreen>
     );

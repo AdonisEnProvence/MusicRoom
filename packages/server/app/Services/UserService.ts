@@ -195,7 +195,7 @@ export default class UserService {
         await relatedUser.load('followers', (userQuery) => {
             return userQuery.where('uuid', userID);
         });
-        return relatedUser.followers.length === 0;
+        return relatedUser.followers.length > 0;
     }
 
     /**
@@ -214,6 +214,6 @@ export default class UserService {
         await relatedUser.load('following', (userQuery) => {
             return userQuery.where('uuid', userID);
         });
-        return relatedUser.followers.length === 0;
+        return relatedUser.followers.length > 0;
     }
 }

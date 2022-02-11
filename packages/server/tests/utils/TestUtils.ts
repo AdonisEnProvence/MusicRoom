@@ -658,9 +658,12 @@ export function generateArray<Item>({
     maxLength,
     fill,
 }: GenerateArrayArgs<Item>): Item[] {
-    return Array.from({
-        length: datatype.number({ min: minLength, max: maxLength }),
-    }).map((_, index) => fill(index));
+    return Array.from(
+        {
+            length: datatype.number({ min: minLength, max: maxLength }),
+        },
+        (_, index) => fill(index),
+    );
 }
 
 export function generateMpeWorkflowState(

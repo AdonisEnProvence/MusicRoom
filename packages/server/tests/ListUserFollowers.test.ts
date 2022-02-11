@@ -210,7 +210,11 @@ test.group('List user followers tests group', (group) => {
         //filtering options
         const matchingSearchQuerySortedByNicknameSearchedUserFollowers =
             searchedUserFollowersUserSummary
-                .filter((user) => user.nickname.startsWith(searchQuery))
+                .filter((user) =>
+                    user.nickname
+                        .toLowerCase()
+                        .startsWith(searchQuery.toLowerCase()),
+                )
                 .sort((a, b) => {
                     if (a.nickname.toLowerCase() < b.nickname.toLowerCase()) {
                         return -1;

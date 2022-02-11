@@ -12,7 +12,7 @@ import urlcat from 'urlcat';
 import {
     BASE_URL,
     initTestUtils,
-    TEST_USER_ROUTES_GROUP_PREFIX,
+    TEST_MY_PROFILE_ROUTES_GROUP_PREFIX,
 } from './utils/TestUtils';
 
 test.group('Users Profile information tests', (group) => {
@@ -47,7 +47,10 @@ test.group('Users Profile information tests', (group) => {
 
         const { body: rawBody } = await supertest(BASE_URL)
             .post(
-                urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'my-profile-information'),
+                urlcat(
+                    TEST_MY_PROFILE_ROUTES_GROUP_PREFIX,
+                    'profile-information',
+                ),
             )
             .send({
                 tmpAuthUserID: userID,
@@ -71,7 +74,10 @@ test.group('Users Profile information tests', (group) => {
 
         await supertest(BASE_URL)
             .post(
-                urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'my-profile-information'),
+                urlcat(
+                    TEST_MY_PROFILE_ROUTES_GROUP_PREFIX,
+                    'profile-information',
+                ),
             )
             .send({
                 tmpAuthUserID: userID,
@@ -88,7 +94,10 @@ test.group('Users Profile information tests', (group) => {
 
         await supertest(BASE_URL)
             .post(
-                urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'my-profile-information'),
+                urlcat(
+                    TEST_MY_PROFILE_ROUTES_GROUP_PREFIX,
+                    'profile-information',
+                ),
             )
             .send({
                 tmpAuthUserID: userID,

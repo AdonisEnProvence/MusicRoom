@@ -199,35 +199,32 @@ export const handlers = [
         GetMyProfileInformationRequestBody,
         Record<string, never>,
         GetMyProfileInformationResponseBody
-    >(
-        `${SERVER_ENDPOINT}/user/my-profile-information`,
-        async (req, res, ctx) => {
-            const { tmpAuthUserID } = req.body;
+    >(`${SERVER_ENDPOINT}/me/profile-information`, async (req, res, ctx) => {
+        const { tmpAuthUserID } = req.body;
 
-            const user = db.myProfileInformation.findFirst({
-                where: {
-                    userID: {
-                        equals: tmpAuthUserID,
-                    },
+        const user = db.myProfileInformation.findFirst({
+            where: {
+                userID: {
+                    equals: tmpAuthUserID,
                 },
-            });
+            },
+        });
 
-            if (user === null) {
-                return res(ctx.status(404));
-            }
+        if (user === null) {
+            return res(ctx.status(404));
+        }
 
-            return res(
-                ctx.json({
-                    userID: user.userID,
-                    userNickname: user.userNickname,
-                    playlistsCounter: user.playlistsCounter,
-                    followersCounter: user.followersCounter,
-                    followingCounter: user.followingCounter,
-                    devicesCounter: user.devicesCounter,
-                }),
-            );
-        },
-    ),
+        return res(
+            ctx.json({
+                userID: user.userID,
+                userNickname: user.userNickname,
+                playlistsCounter: user.playlistsCounter,
+                followersCounter: user.followersCounter,
+                followingCounter: user.followingCounter,
+                devicesCounter: user.devicesCounter,
+            }),
+        );
+    }),
 
     rest.post<
         FollowUserRequestBody,

@@ -35,27 +35,18 @@ Route.post('/mpe/search/my-rooms', 'MpeRoomsHttpController.listMyRooms');
 Route.post('/mpe/search/all-rooms', 'MpeRoomsHttpController.listAllRooms');
 
 export const USER_ROUTES_GROUP_PREFIX = '/user';
-
 Route.group(() => {
     Route.post(
         '/profile-information',
-        'SearchUsersController.getUserProfileInformation',
+        'UserProfileController.getUserProfileInformation',
     );
-
-    Route.post(
-        '/my-profile-information',
-        'SearchUsersController.getMyProfileInformation',
-    );
-
-    Route.post('/follow', 'SearchUsersController.followUser');
-    Route.post('/unfollow', 'SearchUsersController.unfollowUser');
-
+    Route.post('/follow', 'UserProfileController.followUser');
+    Route.post('/unfollow', 'UserProfileController.unfollowUser');
     Route.post('/search/followers', 'SearchUsersController.listUserFollowers');
     Route.post('/search/following', 'SearchUsersController.listUserFollowing');
 }).prefix(USER_ROUTES_GROUP_PREFIX);
 
 export const AUTHENTICATION_ROUTES_GROUP_PREFIX = '/authentication';
-
 Route.group(() => {
     Route.post('/sign-up', 'AuthenticationController.signUp');
 }).prefix(AUTHENTICATION_ROUTES_GROUP_PREFIX);
@@ -63,7 +54,6 @@ Route.group(() => {
 /// Temporal MTV Routes ///
 
 export const MTV_TEMPORAL_LISTENER = `/temporal/mtv`;
-
 Route.group(() => {
     Route.post(
         `/mtv-creation-acknowledgement`,
@@ -183,19 +173,27 @@ Route.group(() => {
 
 /// //////// ////// ///
 
-Route.post('/me/settings', 'UserSettingsController.getMySettings');
+export const MY_PROFILE_ROUTES_GROUP_PREFIX = '/me';
+Route.group(() => {
+    Route.post(
+        '/profile-information',
+        'MyProfileController.getMyProfileInformation',
+    );
 
-Route.post(
-    '/me/playlists-visibility',
-    'UserSettingsController.updatePlaylistsVisibility',
-);
+    Route.post('/settings', 'UserSettingsController.getMySettings');
 
-Route.post(
-    '/me/relations-visibility',
-    'UserSettingsController.updateRelationsVisibility',
-);
+    Route.post(
+        '/playlists-visibility',
+        'UserSettingsController.updatePlaylistsVisibility',
+    );
 
-Route.post('/me/nickname', 'UserSettingsController.updateNickname');
+    Route.post(
+        '/relations-visibility',
+        'UserSettingsController.updateRelationsVisibility',
+    );
+
+    Route.post('/nickname', 'UserSettingsController.updateNickname');
+}).prefix(MY_PROFILE_ROUTES_GROUP_PREFIX);
 
 Route.get('/', () => {
     return { hello: 'world' };

@@ -107,6 +107,7 @@ export const TEST_MTV_TEMPORAL_LISTENER = `/temporal/mtv`;
 export const TEST_MPE_TEMPORAL_LISTENER = `/temporal/mpe`;
 export const TEST_USER_ROUTES_GROUP_PREFIX = '/user';
 export const TEST_AUTHENTICATION_GROUP_PREFIX = '/authentication';
+export const TEST_MY_PROFILE_ROUTES_GROUP_PREFIX = '/me';
 
 interface TestUtilsReturnedValue {
     initSocketConnection: () => void;

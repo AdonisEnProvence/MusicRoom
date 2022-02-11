@@ -128,6 +128,16 @@ export function withinMyProfilePageContainer(selector: string): string {
     return `css=[data-testid="my-profile-settings-page-container"] >> ${selector}`;
 }
 
+export function withinUserProfileScreen({
+    page,
+    userID,
+}: {
+    page: Page;
+    userID: string;
+}): Locator {
+    return page.locator(`css=[data-testid="${userID}-profile-page-screen"]`);
+}
+
 export function withinMyUserProfilePageContainer({
     selector,
     userID,

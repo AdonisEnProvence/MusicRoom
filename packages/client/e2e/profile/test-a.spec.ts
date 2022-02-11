@@ -11,6 +11,7 @@ import {
     withinEditMyNicknameContainer,
     hitGoBack,
     withinMyUserProfilePageContainer,
+    withinUserProfileScreen,
 } from '../_utils/mpe-e2e-utils';
 import { hitGoNextButton } from '../_utils/global';
 import { closeAllContexts, setupPageAndSignUpUser } from '../_utils/page';
@@ -274,34 +275,43 @@ test('Profile test-a', async ({ browser }) => {
         userID: userAUserID,
     });
 
-    //UserB looking on UserA profile page
+    //UserB looking at UserA profile page
     {
-        const allUserProfileInformationElements = userBPage.locator(
-            withinMyUserProfilePageContainer({
-                userID: userAUserID,
-                selector: 'css=[data-testid$="user-profile-information"]',
-            }),
+        const userAProfileScreen = withinUserProfileScreen({
+            page: userBPage,
+            userID: userAUserID,
+        });
+
+        const allUserProfileInformationElements = userAProfileScreen.locator(
+            'css=[data-testid$="user-profile-information"]',
         );
         await expect(allUserProfileInformationElements).toHaveCount(3);
 
-        const userANicknameText = userBPage
-            .locator(`text="${userANickname} profile"`)
-            .last();
+        const userANicknameText = userAProfileScreen.locator(
+            `text="${userANickname}"`,
+        );
         await expect(userANicknameText).toBeVisible();
 
-        const followerCounter = userBPage.locator(`text="followers 0"`).last();
+        const followerCounter =
+            userAProfileScreen.locator(`text="followers 0"`);
         await expect(followerCounter).toBeVisible();
 
         const followingCounter = userBPage.locator(`text="following 0"`).last();
         await expect(followingCounter).toBeVisible();
 
-        const playlistsCounter = userBPage.locator(`text="playlists 0"`).last();
+        const playlistsCounter =
+            userAProfileScreen.locator(`text="playlists 0"`);
         await expect(playlistsCounter).toBeVisible();
 
-        const followButton = userBPage
-            .locator(`css=[data-testid="follow-${userAUserID}-button"]`)
-            .last();
+        const followButton = userAProfileScreen.locator(
+            `css=[data-testid="follow-${userAUserID}-button"]`,
+        );
         await expect(followButton).toBeVisible();
+
+        const userAAvatar = userAProfileScreen.locator(
+            `css=[aria-label="${userANickname} avatar"]`,
+        );
+        await expect(userAAvatar).toBeVisible();
     }
 
     await minimizeMusicPlayer({

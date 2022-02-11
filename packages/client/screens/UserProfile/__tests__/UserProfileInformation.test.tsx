@@ -3,7 +3,25 @@ import { MtvRoomUsersListElement } from '@musicroom/types';
 import Toast from 'react-native-toast-message';
 import { serverSocket } from '../../../services/websockets';
 import { db, generateMtvWorklowState } from '../../../tests/data';
-import { fireEvent, renderApp, waitFor } from '../../../tests/tests-utils';
+import {
+    fireEvent,
+    renderApp,
+    waitFor,
+    render,
+    within,
+} from '../../../tests/tests-utils';
+
+interface WithinUserProfileScreen {
+    screen: ReturnType<typeof render>;
+    userID: string;
+}
+
+async function withinUserProfileScreen({
+    screen,
+    userID,
+}: WithinUserProfileScreen) {
+    return within(await screen.findByTestId(`${userID}-profile-page-screen`));
+}
 
 test('It should display user not found after display unkown user profile page', async () => {
     const userID = datatype.uuid();
@@ -152,25 +170,34 @@ test('It should display not followed known user profile page', async () => {
 
     fireEvent.press(userCardElement);
 
+    const userProfileScreen = await withinUserProfileScreen({
+        screen,
+        userID,
+    });
+
     await waitFor(() => {
-        const profileScreen = screen.getByTestId(
-            `${userID}-profile-page-screen`,
-        );
-        expect(profileScreen).toBeTruthy();
-        const followButton = screen.getByText(/\bfollow\b/i);
+        const followButton = userProfileScreen.getByText(/^follow$/i);
         expect(followButton).toBeTruthy();
-        const playlistCounter = screen.queryByTestId(
+
+        const playlistCounter = userProfileScreen.queryByTestId(
             `${userID}-playlists-button`,
         );
-        const followersCounter = screen.queryByTestId(
+        expect(playlistCounter).toBeNull();
+
+        const followersCounter = userProfileScreen.queryByTestId(
             `${userID}-followers-button`,
         );
-        const followingCounter = screen.queryByTestId(
+        expect(followersCounter).toBeNull();
+
+        const followingCounter = userProfileScreen.queryByTestId(
             `${userID}-following-button`,
         );
-        expect(playlistCounter).toBeNull();
-        expect(followersCounter).toBeNull();
         expect(followingCounter).toBeNull();
+
+        const userAvatar = userProfileScreen.getByLabelText(
+            `${userNickname} avatar`,
+        );
+        expect(userAvatar).toBeTruthy();
     });
 });
 
@@ -245,19 +272,28 @@ test('It should display not followed known user profile page with every user inf
 
     fireEvent.press(userCardElement);
 
+    const userProfileScreen = await withinUserProfileScreen({
+        screen,
+        userID,
+    });
+
     await waitFor(() => {
-        const profileScreen = screen.getByTestId(
-            `${userID}-profile-page-screen`,
-        );
-        expect(profileScreen).toBeTruthy();
-        const followButton = screen.getByText(/\bfollow\b/i);
+        const followButton = userProfileScreen.getByText(/^follow$/i);
         expect(followButton).toBeTruthy();
-        const playlistsCounter = screen.getByText(/.*playlists.*3/i);
-        const followersCounter = screen.getByText(/.*followers.*4/i);
-        const followingCounter = screen.getByText(/.*following.*5/i);
+
+        const playlistsCounter = userProfileScreen.getByText(/playlists.*3/i);
         expect(playlistsCounter).toBeTruthy();
+
+        const followersCounter = userProfileScreen.getByText(/followers.*4/i);
         expect(followersCounter).toBeTruthy();
+
+        const followingCounter = userProfileScreen.getByText(/following.*5/i);
         expect(followingCounter).toBeTruthy();
+
+        const userAvatar = userProfileScreen.getByLabelText(
+            `${userNickname} avatar`,
+        );
+        expect(userAvatar).toBeTruthy();
     });
 });
 
@@ -329,12 +365,18 @@ test('It should display followed known user profile page', async () => {
 
     fireEvent.press(userCardElement);
 
+    const userProfileScreen = await withinUserProfileScreen({
+        screen,
+        userID,
+    });
+
     await waitFor(() => {
-        const profileScreen = screen.getByTestId(
-            `${userID}-profile-page-screen`,
-        );
-        expect(profileScreen).toBeTruthy();
-        const followButton = screen.getByText(/unfollow/i);
+        const followButton = userProfileScreen.getByText(/^unfollow$/i);
         expect(followButton).toBeTruthy();
+
+        const userAvatar = userProfileScreen.getByLabelText(
+            `${userNickname} avatar`,
+        );
+        expect(userAvatar).toBeTruthy();
     });
 });

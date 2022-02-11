@@ -196,7 +196,6 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                                         hideThreeDots
                                     }
                                     user={item}
-                                    index={index}
                                     threeDotsAccessibilityLabel={`Open user ${item.nickname} settings`}
                                     onThreeDotsPress={() =>
                                         handlePresentModalPress(item)

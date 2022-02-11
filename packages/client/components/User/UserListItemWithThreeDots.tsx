@@ -11,7 +11,6 @@ type UserListItemWithThreeDotsProps =
       }
     | {
           loading: false;
-          index: number;
           onPress?: () => void;
           threeDotsAccessibilityLabel: string;
           onThreeDotsPress: () => void;
@@ -55,7 +54,6 @@ const UserListItemWithThreeDots: React.FC<UserListItemWithThreeDotsProps> = (
     }
 
     const {
-        index,
         onPress,
         threeDotsAccessibilityLabel,
         onThreeDotsPress,
@@ -67,7 +65,6 @@ const UserListItemWithThreeDots: React.FC<UserListItemWithThreeDotsProps> = (
     return (
         <UserListItem
             loading={false}
-            index={index}
             user={user}
             disabled={disabled}
             onPress={onPress}

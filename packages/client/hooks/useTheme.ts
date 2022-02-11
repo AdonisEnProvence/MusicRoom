@@ -53,6 +53,8 @@ export function useTheme(): UseThemeReturn {
         ...GLOBAL_THEME_CONSTANTS,
         sizes: {
             m: 24,
+            l: 48,
+            xl: 72,
         },
     };
 

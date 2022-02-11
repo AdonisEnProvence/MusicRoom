@@ -176,7 +176,6 @@ const UsersSearchEngineScreen: React.FC<UsersSearchEngineProps> = ({
                                         userID,
                                     }}
                                     disabled={disabled}
-                                    index={index}
                                     Actions={Actions}
                                     onPress={handleUserCardPressed(userID)}
                                 />

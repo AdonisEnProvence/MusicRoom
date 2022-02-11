@@ -7,9 +7,11 @@ import {
     AppScreen,
     AppScreenContainer,
     AppScreenHeader,
+    SvgImage,
 } from '../../components/kit';
 import { UserProfileScreenProps } from '../../types';
 import { createUserProfileInformationMachine } from '../../machines/userProfileInformationMachine';
+import { generateUserAvatarUri } from '../../constants/users-avatar';
 
 type UserProfileContentProps = UserProfileScreenProps & {
     userID: string;
@@ -64,6 +66,7 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
     navigation,
 }) => {
     const insets = useSafeAreaInsets();
+    const sx = useSx();
 
     const userProfileInformationService = useInterpret(() =>
         createUserProfileInformationMachine({ userID }),
@@ -161,32 +164,73 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
             <AppScreenContainer
                 testID={`${userProfileInformation.userID}-profile-page-screen`}
             >
-                {userProfileInformationSections.map(
-                    ({ informationName, onPress, informationCounter }) => (
-                        <UserProfileInformationSection
-                            key={`${userProfileInformation.userID}_${informationName}`}
-                            testID={`${userProfileInformation.userID}-${informationName}-user-profile-information`}
-                            informationName={informationName}
-                            onPress={onPress}
-                            informationCounter={informationCounter}
+                <View
+                    sx={{
+                        flex: 1,
+                        paddingX: 'l',
+                        maxWidth: [null, 420, 720],
+                        marginX: 'auto',
+                        alignItems: 'center',
+                    }}
+                >
+                    <View
+                        sx={{
+                            padding: 'l',
+                            marginBottom: 'xl',
+                            borderRadius: 'full',
+                            backgroundColor: 'greyLight',
+                        }}
+                    >
+                        <SvgImage
+                            uri={generateUserAvatarUri({ userID })}
+                            accessibilityLabel={`${userProfileInformation.userNickname} avatar`}
+                            style={sx({
+                                width: 'xl',
+                                height: 'l',
+                                borderRadius: 'full',
+                            })}
                         />
-                    ),
-                )}
-                {userProfileInformation.following ? (
-                    <Button
-                        disabled={isLoading}
-                        title="UNFOLLOW"
-                        testID={`unfollow-${userID}-button`}
-                        onPress={handleUnfollowPress}
-                    />
-                ) : (
-                    <Button
-                        disabled={isLoading}
-                        title="FOLLOW"
-                        testID={`follow-${userID}-button`}
-                        onPress={handleFollowPress}
-                    />
-                )}
+                    </View>
+
+                    <Text
+                        sx={{
+                            color: 'white',
+                            marginBottom: 'xl',
+                            fontSize: 'l',
+                            fontWeight: 'bold',
+                        }}
+                    >
+                        {userProfileInformation.userNickname}
+                    </Text>
+
+                    {userProfileInformationSections.map(
+                        ({ informationName, onPress, informationCounter }) => (
+                            <UserProfileInformationSection
+                                key={`${userProfileInformation.userID}_${informationName}`}
+                                testID={`${userProfileInformation.userID}-${informationName}-user-profile-information`}
+                                informationName={informationName}
+                                onPress={onPress}
+                                informationCounter={informationCounter}
+                            />
+                        ),
+                    )}
+
+                    {userProfileInformation.following ? (
+                        <Button
+                            disabled={isLoading}
+                            title="UNFOLLOW"
+                            testID={`unfollow-${userID}-button`}
+                            onPress={handleUnfollowPress}
+                        />
+                    ) : (
+                        <Button
+                            disabled={isLoading}
+                            title="FOLLOW"
+                            testID={`follow-${userID}-button`}
+                            onPress={handleFollowPress}
+                        />
+                    )}
+                </View>
             </AppScreenContainer>
         </AppScreen>
     );

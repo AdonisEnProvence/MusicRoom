@@ -1,3 +1,5 @@
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 import {
     FollowUserRequestBody,
     FollowUserResponseBody,
@@ -390,4 +392,21 @@ export const handlers = [
             }),
         );
     }),
+
+    rest.get(
+        'https://avatars.dicebear.com/api/big-smile/:seed.svg',
+        async (_req, res, ctx) => {
+            const defaultUserAvatar = await readFile(
+                join(__dirname, './user-avatar.svg'),
+                'utf8',
+            );
+
+            return res(
+                ctx.set({
+                    'content-type': 'image/svg+xml',
+                }),
+                ctx.body(defaultUserAvatar),
+            );
+        },
+    ),
 ];

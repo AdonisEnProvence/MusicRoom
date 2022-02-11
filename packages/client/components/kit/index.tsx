@@ -12,6 +12,7 @@ import AppScreenHeaderSearchBar from './AppScreenHeaderSearchBar';
 import AppScreenHeaderTitle from './AppScreenHeaderTitle';
 import AppScreenHeaderWithSearchBar from './AppScreenHeaderWithSearchBar';
 import AppScreenWithSearchBar from './AppScreenWithSearchBar';
+import SvgImage from './SvgImage';
 
 export {
     Block,
@@ -28,4 +29,5 @@ export {
     AppScreenHeaderTitle,
     AppScreenHeaderWithSearchBar,
     AppScreenWithSearchBar,
+    SvgImage,
 };

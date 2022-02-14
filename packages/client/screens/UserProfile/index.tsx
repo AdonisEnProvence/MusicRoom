@@ -132,7 +132,9 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
         {
             informationName: 'playlists',
             onPress: () => {
-                console.log('paylists section pressed');
+                navigation.navigate('UserMusicPlaylistEditorSearchScreen', {
+                    userID,
+                });
             },
             informationCounter: userProfileInformation.playlistsCounter,
         },

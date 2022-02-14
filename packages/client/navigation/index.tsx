@@ -56,6 +56,7 @@ import MyProfileScreen from '../screens/MyProfile';
 import MySettingsScreen from '../screens/MySettings';
 import UpdateNicknameScreen from '../screens/MySettings/UpdateNickname';
 import MyDevicesScreen from '../screens/MyProfile/MyDevices';
+import UserMusicPlaylistEditorSearchScreen from '../screens/UserMusicPlaylistEditorSearchScreen';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
@@ -444,6 +445,16 @@ export const UserProfileNavigator: React.FC<ColorModeProps> = ({
                     detachPreviousScreen: false,
                 }}
                 component={UserProfileScreen}
+            />
+
+            <UserProfileStack.Screen
+                name="UserMusicPlaylistEditorSearchScreen"
+                options={{
+                    title: 'User MPE Rooms',
+                    headerShown: false,
+                    detachPreviousScreen: false,
+                }}
+                component={UserMusicPlaylistEditorSearchScreen}
             />
         </UserProfileStack.Navigator>
     );

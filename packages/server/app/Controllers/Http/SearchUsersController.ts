@@ -1,9 +1,14 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import {
+    ListMyFollowersRequestBody,
+    ListMyFollowersResponseBody,
+    ListMyFollowingRequestBody,
+    ListMyFollowingResponseBody,
     ListUserFollowersRequestBody,
     ListUserFollowersResponseBody,
     ListUserFollowingRequestBody,
     ListUserFollowingResponseBody,
+    PaginatedUserSummariesSearchResult,
     SearchUsersRequestBody,
     SearchUsersResponseBody,
     UserSettingVisibility,
@@ -13,6 +18,70 @@ import User from 'App/Models/User';
 import UserService from 'App/Services/UserService';
 
 const SEARCH_USERS_LIMIT = 10;
+
+async function listUserFollowers({
+    page,
+    searchQuery,
+    userID,
+}: {
+    searchQuery: string;
+    page: number;
+    userID: string;
+}): Promise<PaginatedUserSummariesSearchResult> {
+    const usersFollowersPagination = await User.query()
+        .whereNot('uuid', userID)
+        .andWhere('nickname', 'ilike', `${searchQuery}%`)
+        .andWhereHas('following', (userQuery) => {
+            return userQuery.where('uuid', userID);
+        })
+        .orderBy('nickname', 'asc')
+        .paginate(page, SEARCH_USERS_LIMIT);
+    const totalUsersToLoad = usersFollowersPagination.total;
+    const hasMoreUsersToLoad = usersFollowersPagination.hasMorePages;
+    const formattedUsers = usersFollowersPagination.all().map((user) => ({
+        userID: user.uuid,
+        nickname: user.nickname,
+    }));
+
+    return {
+        page,
+        hasMore: hasMoreUsersToLoad,
+        totalEntries: totalUsersToLoad,
+        data: formattedUsers,
+    };
+}
+
+async function listUserFollowing({
+    page,
+    searchQuery,
+    userID,
+}: {
+    searchQuery: string;
+    page: number;
+    userID: string;
+}): Promise<PaginatedUserSummariesSearchResult> {
+    const usersFollowingPagination = await User.query()
+        .whereNot('uuid', userID)
+        .andWhere('nickname', 'ilike', `${searchQuery}%`)
+        .andWhereHas('followers', (userQuery) => {
+            return userQuery.where('uuid', userID);
+        })
+        .orderBy('nickname', 'asc')
+        .paginate(page, SEARCH_USERS_LIMIT);
+    const totalUsersToLoad = usersFollowingPagination.total;
+    const hasMoreUsersToLoad = usersFollowingPagination.hasMorePages;
+    const formattedUsers = usersFollowingPagination.all().map((user) => ({
+        userID: user.uuid,
+        nickname: user.nickname,
+    }));
+
+    return {
+        page,
+        hasMore: hasMoreUsersToLoad,
+        totalEntries: totalUsersToLoad,
+        data: formattedUsers,
+    };
+}
 
 async function throwErrorIfRequestingUserCanNotAccessRelatedUserRelationsVisibility({
     relatedUserID,
@@ -102,27 +171,12 @@ export default class SearchUsersController {
             },
         );
         //
-        const usersFollowersPagination = await User.query()
-            .whereNot('uuid', userID)
-            .andWhere('nickname', 'ilike', `${searchQuery}%`)
-            .andWhereHas('following', (userQuery) => {
-                return userQuery.where('uuid', userID);
-            })
-            .orderBy('nickname', 'asc')
-            .paginate(page, SEARCH_USERS_LIMIT);
-        const totalUsersToLoad = usersFollowersPagination.total;
-        const hasMoreUsersToLoad = usersFollowersPagination.hasMorePages;
-        const formattedUsers = usersFollowersPagination.all().map((user) => ({
-            userID: user.uuid,
-            nickname: user.nickname,
-        }));
 
-        return {
+        return await listUserFollowers({
             page,
-            hasMore: hasMoreUsersToLoad,
-            totalEntries: totalUsersToLoad,
-            data: formattedUsers,
-        };
+            searchQuery,
+            userID,
+        });
     }
 
     public async listUserFollowing({
@@ -142,26 +196,41 @@ export default class SearchUsersController {
         );
         //
 
-        const usersFollowersPagination = await User.query()
-            .whereNot('uuid', userID)
-            .andWhere('nickname', 'ilike', `${searchQuery}%`)
-            .andWhereHas('followers', (userQuery) => {
-                return userQuery.where('uuid', userID);
-            })
-            .orderBy('nickname', 'asc')
-            .paginate(page, SEARCH_USERS_LIMIT);
-        const totalUsersToLoad = usersFollowersPagination.total;
-        const hasMoreUsersToLoad = usersFollowersPagination.hasMorePages;
-        const formattedUsers = usersFollowersPagination.all().map((user) => ({
-            userID: user.uuid,
-            nickname: user.nickname,
-        }));
-
-        return {
+        return await listUserFollowing({
             page,
-            hasMore: hasMoreUsersToLoad,
-            totalEntries: totalUsersToLoad,
-            data: formattedUsers,
-        };
+            searchQuery,
+            userID,
+        });
+    }
+
+    public async listMyFollowing({
+        request,
+    }: HttpContextContract): Promise<ListMyFollowingResponseBody> {
+        const rawBody = request.body();
+        const { page, searchQuery, tmpAuthUserID } =
+            ListMyFollowingRequestBody.parse(rawBody);
+        await User.findOrFail(tmpAuthUserID);
+
+        return await listUserFollowing({
+            page,
+            searchQuery,
+            userID: tmpAuthUserID,
+        });
+    }
+
+    public async listMyFollowers({
+        request,
+    }: HttpContextContract): Promise<ListMyFollowersResponseBody> {
+        const rawBody = request.body();
+        const { page, searchQuery, tmpAuthUserID } =
+            ListMyFollowersRequestBody.parse(rawBody);
+
+        await User.findOrFail(tmpAuthUserID);
+
+        return await listUserFollowers({
+            page,
+            searchQuery,
+            userID: tmpAuthUserID,
+        });
     }
 }

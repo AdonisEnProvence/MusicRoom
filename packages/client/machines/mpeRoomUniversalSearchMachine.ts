@@ -77,7 +77,7 @@ export interface CreateMpeRoomUniversalSearchMachine {
     }>;
 }
 
-function createMpeRoomUniversalSearchMachine({
+export function createMpeRoomUniversalSearchMachine({
     fetchMpeRooms,
 }: CreateMpeRoomUniversalSearchMachine): MpeRoomsUniversalSearchMachine {
     return mpeRoomUniversalSearchModel.createMachine(

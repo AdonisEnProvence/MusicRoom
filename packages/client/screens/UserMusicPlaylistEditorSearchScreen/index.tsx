@@ -19,10 +19,11 @@ import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
 } from '../../machines/appScreenHeaderWithSearchBarMachine';
-import { libraryMpeRoomSearchMachine } from '../../machines/mpeRoomUniversalSearchMachine';
+import { createMpeRoomUniversalSearchMachine } from '../../machines/mpeRoomUniversalSearchMachine';
 import { IS_TEST } from '../../constants/Env';
 import { getUserProfileInformation } from '../../services/UserProfileService';
 import { getFakeUserID } from '../../contexts/SocketContext';
+import { fetchOtherUserMpeRooms } from '../../services/MpeService';
 import { userInformationMachine } from './userInformationMachine';
 
 const BlankScreen: React.FC<UserMusicPlaylistEditorSearchScreenProps> = ({
@@ -120,15 +121,36 @@ const MpeRoomsList: React.FC<
     UserMusicPlaylistEditorSearchScreenProps & {
         userProfileInformation: UserProfileInformation;
     }
-> = ({ navigation, userProfileInformation }) => {
+> = ({
+    route: {
+        params: { userID },
+    },
+    navigation,
+    userProfileInformation,
+}) => {
     const insets = useSafeAreaInsets();
     const sx = useSx();
     const [screenOffsetY, setScreenOffsetY] = useState(0);
     const initialNumberOfItemsToRender = IS_TEST ? Infinity : 10;
 
-    const [libraryRoomState, libraryRoomSend] = useMachine(
-        libraryMpeRoomSearchMachine,
-    );
+    const [libraryRoomState, libraryRoomSend] = useMachine(() => {
+        return createMpeRoomUniversalSearchMachine({
+            fetchMpeRooms: async ({
+                searchQuery,
+                page,
+                userID: currentUserID,
+            }) => {
+                const rooms = await fetchOtherUserMpeRooms({
+                    searchQuery,
+                    page,
+                    tmpAuthUserID: currentUserID,
+                    userID,
+                });
+
+                return rooms;
+            },
+        });
+    });
     const mpeRooms = libraryRoomState.context.rooms;
     const hasMoreRoomsToFetch = libraryRoomState.context.hasMore;
     const isLoadingRooms = libraryRoomState.hasTag('fetching');
@@ -163,7 +185,7 @@ const MpeRoomsList: React.FC<
 
     return (
         <AppScreenWithSearchBar
-            testID="library-mpe-rooms-list"
+            testID="other-user-mpe-rooms-list"
             title={`${userProfileInformation.userNickname}'s MPE rooms`}
             searchInputPlaceholder="Search a room..."
             showHeader={showHeader}
@@ -177,7 +199,7 @@ const MpeRoomsList: React.FC<
             }}
         >
             <FlatList
-                testID="library-mpe-room-search-flat-list"
+                testID="other-user-mpe-room-search-flat-list"
                 data={mpeRooms}
                 refreshControl={
                     <RefreshControl
@@ -197,7 +219,9 @@ const MpeRoomsList: React.FC<
                 ListEmptyComponent={() => {
                     return (
                         <Text sx={{ color: 'white' }}>
-                            You have not joined any MPE rooms
+                            {searchState.context.searchQuery === ''
+                                ? "The user hasn't joined any MPE room yet"
+                                : "The user hasn't joined any MPE room matching this query"}
                         </Text>
                     );
                 }}

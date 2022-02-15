@@ -118,14 +118,18 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
         {
             informationName: 'followers',
             onPress: () => {
-                console.log('followers section pressed');
+                navigation.navigate('UserFollowersSearch', {
+                    userID,
+                });
             },
             informationCounter: userProfileInformation.followersCounter,
         },
         {
             informationName: 'following',
             onPress: () => {
-                console.log('following section pressed');
+                navigation.navigate('UserFollowingSearch', {
+                    userID,
+                });
             },
             informationCounter: userProfileInformation.followingCounter,
         },

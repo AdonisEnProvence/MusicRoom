@@ -103,7 +103,7 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                         navigation.navigate('UserProfile', {
                             screen: 'UserProfile',
                             params: {
-                                userID: '9ed60e96-d5fc-40b3-b842-aeaa75e93972',
+                                userID: '7d21f121-bed5-4c20-9da5-94746bbc8c08',
                             },
                         });
                     }}

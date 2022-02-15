@@ -1,5 +1,5 @@
 import Database from '@ioc:Adonis/Lucid/Database';
-import { datatype, lorem } from 'faker';
+import { datatype, lorem, internet } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
@@ -14,7 +14,12 @@ import {
 } from '@musicroom/types';
 import MpeRoom from 'App/Models/MpeRoom';
 import User from 'App/Models/User';
-import { BASE_URL, initTestUtils, generateArray } from './utils/TestUtils';
+import {
+    BASE_URL,
+    initTestUtils,
+    generateArray,
+    getVisibilityDatabaseEntry,
+} from './utils/TestUtils';
 
 test.group('My MPE Rooms Search', (group) => {
     const {
@@ -574,6 +579,93 @@ test.group("Other user's MPE Rooms Search", (group) => {
             .post('/user/search/mpe')
             .send(requestBody)
             .expect(500);
+    });
+
+    test('Fails when user has set playlists setting visibility as PRIVATE', async () => {
+        const userID = datatype.uuid();
+        await User.create({
+            uuid: userID,
+            nickname: internet.userName(),
+        });
+        const otherUserID = datatype.uuid();
+        const privateVisibility = await getVisibilityDatabaseEntry('PRIVATE');
+        await User.create({
+            uuid: otherUserID,
+            nickname: internet.userName(),
+            playlistsVisibilitySettingUuid: privateVisibility.uuid,
+        });
+
+        const requestBody: UserSearchMpeRoomsRequestBody = {
+            tmpAuthUserID: userID,
+            userID: otherUserID,
+            searchQuery: '',
+            page: 1,
+        };
+        await supertest(BASE_URL)
+            .post('/user/search/mpe')
+            .send(requestBody)
+            .expect(403);
+    });
+
+    test('Fails when user has set playlists visibility setting as FOLLOWERS_ONLY, and requesting user does not follow her', async () => {
+        const userID = datatype.uuid();
+        await User.create({
+            uuid: userID,
+            nickname: internet.userName(),
+        });
+        const otherUserID = datatype.uuid();
+        const privateVisibility = await getVisibilityDatabaseEntry(
+            'FOLLOWERS_ONLY',
+        );
+        await User.create({
+            uuid: otherUserID,
+            nickname: internet.userName(),
+            playlistsVisibilitySettingUuid: privateVisibility.uuid,
+        });
+
+        const requestBody: UserSearchMpeRoomsRequestBody = {
+            tmpAuthUserID: userID,
+            userID: otherUserID,
+            searchQuery: '',
+            page: 1,
+        };
+        await supertest(BASE_URL)
+            .post('/user/search/mpe')
+            .send(requestBody)
+            .expect(403);
+    });
+
+    test("Returns user's MPE rooms who has set playlists visibility setting as FOLLOWERS_ONLY, and requesting user followers her", async (assert) => {
+        const userID = datatype.uuid();
+        const user = await User.create({
+            uuid: userID,
+            nickname: internet.userName(),
+        });
+        const otherUserID = datatype.uuid();
+        const privateVisibility = await getVisibilityDatabaseEntry(
+            'FOLLOWERS_ONLY',
+        );
+        const otherUser = await User.create({
+            uuid: otherUserID,
+            nickname: internet.userName(),
+            playlistsVisibilitySettingUuid: privateVisibility.uuid,
+        });
+
+        await user.related('following').save(otherUser);
+
+        const requestBody: UserSearchMpeRoomsRequestBody = {
+            tmpAuthUserID: userID,
+            userID: otherUserID,
+            searchQuery: '',
+            page: 1,
+        };
+        const { body } = await supertest(BASE_URL)
+            .post('/user/search/mpe')
+            .send(requestBody)
+            .expect(200);
+        const parsedBody = UserSearchMpeRoomsResponseBody.parse(body);
+
+        assert.equal(parsedBody.totalEntries, 0);
     });
 });
 

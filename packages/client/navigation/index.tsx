@@ -57,6 +57,8 @@ import MySettingsScreen from '../screens/MySettings';
 import UpdateNicknameScreen from '../screens/MySettings/UpdateNickname';
 import MyDevicesScreen from '../screens/MyProfile/MyDevices';
 import UserMusicPlaylistEditorSearchScreen from '../screens/UserMusicPlaylistEditorSearchScreen';
+import UserFollowersSearchScreen from '../screens/UserProfile/UserFollowersSearch';
+import UserFollowingSearchScreen from '../screens/UserProfile/UserFollowingSearch';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
@@ -455,6 +457,26 @@ export const UserProfileNavigator: React.FC<ColorModeProps> = ({
                     detachPreviousScreen: false,
                 }}
                 component={UserMusicPlaylistEditorSearchScreen}
+            />
+
+            <UserProfileStack.Screen
+                name="UserFollowersSearch"
+                options={{
+                    title: 'User Followers',
+                    headerShown: false,
+                    detachPreviousScreen: false,
+                }}
+                component={UserFollowersSearchScreen}
+            />
+
+            <UserProfileStack.Screen
+                name="UserFollowingSearch"
+                options={{
+                    title: 'User Followers',
+                    headerShown: false,
+                    detachPreviousScreen: false,
+                }}
+                component={UserFollowingSearchScreen}
             />
         </UserProfileStack.Navigator>
     );

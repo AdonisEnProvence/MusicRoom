@@ -106,6 +106,8 @@ export type MusicTrackVoteConstraintsDetailsParamList = {
 export type UserProfileStackParamsList = {
     UserProfile: UserProfileParams;
     UserMusicPlaylistEditorSearchScreen: UserProfileParams;
+    UserFollowersSearch: UserFollowersSearchParams;
+    UserFollowingSearch: UserFollowingSearchParams;
 };
 
 export type MyProfileStackParamsList = {
@@ -152,6 +154,14 @@ interface AlertParams {
 }
 
 interface UserProfileParams {
+    userID: string;
+}
+
+interface UserFollowersSearchParams {
+    userID: string;
+}
+
+interface UserFollowingSearchParams {
     userID: string;
 }
 
@@ -383,6 +393,22 @@ export type UserMusicPlaylistEditorSearchScreenProps = {
         UserProfileStackParamsList,
         'UserMusicPlaylistEditorSearchScreen'
     >;
+};
+
+export type UserFollowersSearchScreenProps = {
+    navigation: StackNavigationProp<
+        UserProfileStackParamsList,
+        'UserFollowersSearch'
+    >;
+    route: RouteProp<UserProfileStackParamsList, 'UserFollowersSearch'>;
+};
+
+export type UserFollowingSearchScreenProps = {
+    navigation: StackNavigationProp<
+        UserProfileStackParamsList,
+        'UserFollowingSearch'
+    >;
+    route: RouteProp<UserProfileStackParamsList, 'UserFollowingSearch'>;
 };
 
 export type MySettingsScreenProps = {

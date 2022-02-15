@@ -25,6 +25,8 @@ import {
     UpdatePlaylistsVisibilityResponseBody,
     UpdateRelationsVisibilityRequestBody,
     UpdateRelationsVisibilityResponseBody,
+    UserSearchMpeRoomsRequestBody,
+    UserSearchMpeRoomsResponseBody,
 } from '@musicroom/types';
 import { datatype } from 'faker';
 import { rest } from 'msw';
@@ -185,12 +187,22 @@ export const handlers = [
             return res(ctx.status(404));
         }
 
+        const {
+            userNickname,
+            following,
+            followersCounter,
+            followingCounter,
+            playlistsCounter,
+        } = user;
+
         return res(
             ctx.json({
-                ...user,
-                followersCounter: user.followersCounter ?? undefined,
-                followingCounter: user.followingCounter ?? undefined,
-                playlistsCounter: user.playlistsCounter ?? undefined,
+                userID,
+                userNickname,
+                following,
+                followersCounter: followersCounter ?? undefined,
+                followingCounter: followingCounter ?? undefined,
+                playlistsCounter: playlistsCounter ?? undefined,
             }),
         );
     }),
@@ -386,6 +398,33 @@ export const handlers = [
         return res(
             ctx.json({
                 status: 'SUCCESS',
+            }),
+        );
+    }),
+
+    rest.post<
+        UserSearchMpeRoomsRequestBody,
+        Record<string, never>,
+        UserSearchMpeRoomsResponseBody
+    >(`${SERVER_ENDPOINT}/user/search/mpe`, (req, res, ctx) => {
+        const PAGE_SIZE = 10;
+        const { page, searchQuery } = req.body;
+
+        const allRooms = db.searchableMpeRooms.getAll();
+        const roomsMatching = allRooms.filter(({ roomName }) =>
+            roomName.toLowerCase().startsWith(searchQuery.toLowerCase()),
+        );
+        const paginatedRooms = roomsMatching.slice(
+            (page - 1) * PAGE_SIZE,
+            page * PAGE_SIZE,
+        );
+
+        return res(
+            ctx.json({
+                data: paginatedRooms,
+                totalEntries: roomsMatching.length,
+                hasMore: roomsMatching.length > page * PAGE_SIZE,
+                page,
             }),
         );
     }),

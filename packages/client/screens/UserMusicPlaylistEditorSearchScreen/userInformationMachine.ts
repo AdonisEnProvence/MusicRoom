@@ -1,6 +1,7 @@
 import { UserProfileInformation } from '@musicroom/types';
 import { createModel } from 'xstate/lib/model';
 import { assign } from 'xstate';
+import Toast from 'react-native-toast-message';
 import { assertEventType } from '../../machines/utils';
 
 const userInformationModel = createModel(
@@ -72,6 +73,12 @@ export const userInformationMachine =
                         return event.userProfileInformation;
                     },
                 }),
+                "Display failure retrieving user's profile toast": () => {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Failed to retrieve user profile information',
+                    });
+                },
             },
         },
     );

@@ -68,6 +68,35 @@ const LoadingScreen: React.FC<UserMusicPlaylistEditorSearchScreenProps> = ({
     );
 };
 
+const ForbiddenAccessToPlaylistsScreen: React.FC<
+    UserMusicPlaylistEditorSearchScreenProps & {
+        userProfileInformation: UserProfileInformation;
+    }
+> = ({ navigation, userProfileInformation: { userNickname } }) => {
+    const insets = useSafeAreaInsets();
+
+    return (
+        <AppScreen>
+            <AppScreenHeader
+                title={`${userNickname}'s MPE rooms`}
+                insetTop={insets.top}
+                canGoBack
+                goBack={() => {
+                    navigation.goBack();
+                }}
+            />
+
+            <AppScreenContainer testID="default-profile-page-screen">
+                <Text sx={{ color: 'white', marginBottom: 'xl' }}>
+                    Access to user's MPE rooms is forbidden
+                </Text>
+
+                <Button title="Go back" onPress={() => navigation.goBack()} />
+            </AppScreenContainer>
+        </AppScreen>
+    );
+};
+
 const NotFoundScreen: React.FC<UserMusicPlaylistEditorSearchScreenProps> = ({
     navigation,
 }) => {
@@ -323,6 +352,17 @@ const UserMusicPlaylistEditorSearchScreen: React.FC<UserMusicPlaylistEditorSearc
             userProfileInformation !== undefined,
             'When the user is known, the user profile information must be defined',
         );
+
+        const accessToUserPlaylistsIsDisallowed =
+            userProfileInformation.playlistsCounter === undefined;
+        if (accessToUserPlaylistsIsDisallowed === true) {
+            return (
+                <ForbiddenAccessToPlaylistsScreen
+                    {...props}
+                    userProfileInformation={userProfileInformation}
+                />
+            );
+        }
 
         return (
             <MpeRoomsList

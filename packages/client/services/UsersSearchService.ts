@@ -1,6 +1,14 @@
 import {
     GetMyProfileInformationRequestBody,
     GetMyProfileInformationResponseBody,
+    ListMyFollowersRequestBody,
+    ListMyFollowersResponseBody,
+    ListMyFollowingRequestBody,
+    ListMyFollowingResponseBody,
+    ListUserFollowersRequestBody,
+    ListUserFollowersResponseBody,
+    ListUserFollowingRequestBody,
+    ListUserFollowingResponseBody,
     SearchUsersRequestBody,
     SearchUsersResponseBody,
     UserSummary,
@@ -50,6 +58,50 @@ export async function getMyProfileInformation(
     const parsedBody = GetMyProfileInformationResponseBody.parse(
         rawResponse.data,
     );
+
+    return parsedBody;
+}
+
+export async function fetchMyFollowers(
+    body: ListMyFollowersRequestBody,
+): Promise<ListMyFollowersResponseBody> {
+    const url = urlcat(SERVER_ENDPOINT, '/me/search/followers');
+
+    const rawResponse = await redaxios.post(url, body);
+    const parsedBody = ListMyFollowersResponseBody.parse(rawResponse.data);
+
+    return parsedBody;
+}
+
+export async function fetchMyFollowing(
+    body: ListMyFollowingRequestBody,
+): Promise<ListMyFollowingResponseBody> {
+    const url = urlcat(SERVER_ENDPOINT, '/me/search/following');
+
+    const rawResponse = await redaxios.post(url, body);
+    const parsedBody = ListMyFollowingResponseBody.parse(rawResponse.data);
+
+    return parsedBody;
+}
+
+export async function fetchUserFollowers(
+    body: ListUserFollowersRequestBody,
+): Promise<ListUserFollowersResponseBody> {
+    const url = urlcat(SERVER_ENDPOINT, '/user/search/followers');
+
+    const rawResponse = await redaxios.post(url, body);
+    const parsedBody = ListUserFollowersResponseBody.parse(rawResponse.data);
+
+    return parsedBody;
+}
+
+export async function fetchUserFollowing(
+    body: ListUserFollowingRequestBody,
+): Promise<ListUserFollowingResponseBody> {
+    const url = urlcat(SERVER_ENDPOINT, '/user/search/following');
+
+    const rawResponse = await redaxios.post(url, body);
+    const parsedBody = ListUserFollowingResponseBody.parse(rawResponse.data);
 
     return parsedBody;
 }

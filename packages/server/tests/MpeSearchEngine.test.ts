@@ -1,16 +1,25 @@
 import Database from '@ioc:Adonis/Lucid/Database';
-import { datatype, lorem } from 'faker';
+import { datatype, lorem, internet } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
 import {
     ListAllMpeRoomsRequestBody,
     ListAllMpeRoomsResponseBody,
+    MpeRoomSummary,
     MpeSearchMyRoomsRequestBody,
     MpeSearchMyRoomsResponseBody,
+    UserSearchMpeRoomsRequestBody,
+    UserSearchMpeRoomsResponseBody,
 } from '@musicroom/types';
 import MpeRoom from 'App/Models/MpeRoom';
-import { BASE_URL, initTestUtils, generateArray } from './utils/TestUtils';
+import User from 'App/Models/User';
+import {
+    BASE_URL,
+    initTestUtils,
+    generateArray,
+    getVisibilityDatabaseEntry,
+} from './utils/TestUtils';
 
 test.group('My MPE Rooms Search', (group) => {
     const {
@@ -278,6 +287,385 @@ test.group('My MPE Rooms Search', (group) => {
         assert.equal(extraPageBodyParsed.totalEntries, totalRoomsCount);
         assert.equal(extraPageBodyParsed.data.length, 0);
         assert.isFalse(extraPageBodyParsed.hasMore);
+    });
+});
+
+test.group("Other user's MPE Rooms Search", (group) => {
+    const {
+        createUserAndGetSocket,
+        disconnectEveryRemainingSocketConnection,
+        initSocketConnection,
+    } = initTestUtils();
+
+    group.beforeEach(async () => {
+        initSocketConnection();
+        await Database.beginGlobalTransaction();
+    });
+
+    group.afterEach(async () => {
+        await disconnectEveryRemainingSocketConnection();
+        sinon.restore();
+        await Database.rollbackGlobalTransaction();
+    });
+
+    test("It should send back all other user's public MPE rooms", async (assert) => {
+        const PAGE_MAX_LENGTH = 10;
+        const userID = datatype.uuid();
+        const otherUserID = datatype.uuid();
+        const otherUserPrivateRooms = generateArray({
+            fill: () => ({
+                roomName: lorem.sentence(),
+                roomID: datatype.uuid(),
+                isOpen: false,
+            }),
+            minLength: 3,
+            maxLength: 10,
+        });
+        const otherUserPublicRooms = generateArray({
+            fill: () => ({
+                roomName: lorem.sentence(),
+                roomID: datatype.uuid(),
+                isOpen: true,
+            }),
+            minLength: 11,
+            maxLength: 22,
+        });
+        await createUserAndGetSocket({
+            userID,
+        });
+        await createUserAndGetSocket({
+            userID: otherUserID,
+            mpeRoomIDToAssociate: [
+                ...otherUserPrivateRooms,
+                ...otherUserPublicRooms,
+            ],
+        });
+        const otherUser = await User.findOrFail(otherUserID);
+        const otherUserPublicRoomsOrderedByUUID = await MpeRoom.query()
+            .whereIn(
+                'uuid',
+                otherUserPublicRooms.map((room) => room.roomID),
+            )
+            .orderBy('uuid', 'asc');
+        const formattedOtherUserPublicRoomsOrderedByUUID =
+            otherUserPublicRoomsOrderedByUUID.map(({ uuid, isOpen, name }) => ({
+                roomID: uuid,
+                isOpen,
+                roomName: name,
+                creatorName: otherUser.nickname,
+                isInvited: false,
+            }));
+        const totalPublicRoomsCount =
+            formattedOtherUserPublicRoomsOrderedByUUID.length;
+
+        let page = 1;
+        let hasMore = true;
+        const fetchedEntries: MpeRoomSummary[] = [];
+        while (hasMore === true) {
+            const requestBody: UserSearchMpeRoomsRequestBody = {
+                tmpAuthUserID: userID,
+                userID: otherUserID,
+                searchQuery: '',
+                page,
+            };
+
+            const { body: pageBodyRaw } = await supertest(BASE_URL)
+                .post('/user/search/mpe')
+                .send(requestBody)
+                .expect('Content-Type', /json/)
+                .expect(200);
+            const pageBodyParsed =
+                UserSearchMpeRoomsResponseBody.parse(pageBodyRaw);
+
+            assert.equal(pageBodyParsed.page, page);
+            assert.equal(pageBodyParsed.totalEntries, totalPublicRoomsCount);
+            assert.isAtMost(pageBodyParsed.data.length, PAGE_MAX_LENGTH);
+
+            fetchedEntries.push(...pageBodyParsed.data);
+            hasMore = pageBodyParsed.hasMore;
+            page++;
+        }
+
+        assert.deepEqual(
+            fetchedEntries,
+            formattedOtherUserPublicRoomsOrderedByUUID,
+        );
+
+        const extraRequestBody: UserSearchMpeRoomsRequestBody = {
+            tmpAuthUserID: userID,
+            userID: otherUserID,
+            searchQuery: '',
+            page,
+        };
+        const { body: extraPageBodyRaw } = await supertest(BASE_URL)
+            .post('/user/search/mpe')
+            .send(extraRequestBody)
+            .expect('Content-Type', /json/)
+            .expect(200);
+        const extraPageBodyParsed =
+            UserSearchMpeRoomsResponseBody.parse(extraPageBodyRaw);
+
+        assert.equal(extraPageBodyParsed.page, page);
+        assert.equal(extraPageBodyParsed.totalEntries, totalPublicRoomsCount);
+        assert.equal(extraPageBodyParsed.data.length, 0);
+        assert.isFalse(extraPageBodyParsed.hasMore);
+    });
+
+    test('It should fail when querying the MPE rooms of an unknown user', async () => {
+        const userID = datatype.uuid();
+        await createUserAndGetSocket({
+            userID,
+        });
+
+        const unknownUserID = datatype.uuid();
+
+        const requestBody: UserSearchMpeRoomsRequestBody = {
+            tmpAuthUserID: userID,
+            userID: unknownUserID,
+            searchQuery: '',
+            page: 1,
+        };
+        await supertest(BASE_URL)
+            .post('/user/search/mpe')
+            .send(requestBody)
+            .expect(404);
+    });
+
+    test("It should fail when the user that queries an other user's MPE rooms is unknown", async () => {
+        const otherUserID = datatype.uuid();
+        await createUserAndGetSocket({
+            userID: otherUserID,
+        });
+
+        const unknownUserID = datatype.uuid();
+
+        const requestBody: UserSearchMpeRoomsRequestBody = {
+            tmpAuthUserID: unknownUserID,
+            userID: otherUserID,
+            searchQuery: '',
+            page: 1,
+        };
+        await supertest(BASE_URL)
+            .post('/user/search/mpe')
+            .send(requestBody)
+            .expect(404);
+    });
+
+    test('Returns only public MPE rooms matching partial search query', async (assert) => {
+        const userID = datatype.uuid();
+        const otherUserID = datatype.uuid();
+        const otherUserMpeRooms: {
+            roomName: string;
+            roomID: string;
+            isOpen: true;
+        }[] = [
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Biolay Playlist',
+                isOpen: true,
+            },
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Hubert-Félix Thiéfaine Playlist',
+                isOpen: true,
+            },
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Muse Playlist',
+                isOpen: true,
+            },
+        ];
+        const firstOtherUserMpeRoom = otherUserMpeRooms[0];
+        await createUserAndGetSocket({
+            userID,
+        });
+        await createUserAndGetSocket({
+            userID: otherUserID,
+            mpeRoomIDToAssociate: otherUserMpeRooms,
+        });
+
+        const searchQuery = firstOtherUserMpeRoom.roomName.slice(0, 3);
+        const requestBody: UserSearchMpeRoomsRequestBody = {
+            tmpAuthUserID: userID,
+            userID: otherUserID,
+            searchQuery,
+            page: 1,
+        };
+        const { body } = await supertest(BASE_URL)
+            .post('/user/search/mpe')
+            .send(requestBody)
+            .expect('Content-Type', /json/)
+            .expect(200);
+        const parsedBody = UserSearchMpeRoomsResponseBody.parse(body);
+
+        assert.equal(parsedBody.data.length, 1);
+        assert.equal(
+            parsedBody.data[0].roomName,
+            firstOtherUserMpeRoom.roomName,
+        );
+    });
+
+    test('Returns only public MPE rooms matching case insensitive search query', async (assert) => {
+        const userID = datatype.uuid();
+        const otherUserID = datatype.uuid();
+        const otherUserMpeRooms: {
+            roomName: string;
+            roomID: string;
+            isOpen: true;
+        }[] = [
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Biolay Playlist',
+                isOpen: true,
+            },
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Hubert-Félix Thiéfaine Playlist',
+                isOpen: true,
+            },
+            {
+                roomID: datatype.uuid(),
+                roomName: 'Muse Playlist',
+                isOpen: true,
+            },
+        ];
+        const firstOtherUserMpeRoom = otherUserMpeRooms[0];
+        await createUserAndGetSocket({
+            userID,
+        });
+        await createUserAndGetSocket({
+            userID: otherUserID,
+            mpeRoomIDToAssociate: otherUserMpeRooms,
+        });
+
+        const searchQuery = firstOtherUserMpeRoom.roomName.toLowerCase();
+        const requestBody: UserSearchMpeRoomsRequestBody = {
+            tmpAuthUserID: userID,
+            userID: otherUserID,
+            searchQuery,
+            page: 1,
+        };
+        const { body } = await supertest(BASE_URL)
+            .post('/user/search/mpe')
+            .send(requestBody)
+            .expect('Content-Type', /json/)
+            .expect(200);
+        const parsedBody = UserSearchMpeRoomsResponseBody.parse(body);
+
+        assert.equal(parsedBody.data.length, 1);
+        assert.equal(
+            parsedBody.data[0].roomName,
+            firstOtherUserMpeRoom.roomName,
+        );
+    });
+
+    test('Page must be strictly positive', async () => {
+        const userID = datatype.uuid();
+        const otherUserID = datatype.uuid();
+        await createUserAndGetSocket({
+            userID,
+        });
+        await createUserAndGetSocket({
+            userID: otherUserID,
+        });
+
+        const requestBody: UserSearchMpeRoomsRequestBody = {
+            tmpAuthUserID: userID,
+            userID: otherUserID,
+            searchQuery: '',
+            page: 0,
+        };
+        await supertest(BASE_URL)
+            .post('/user/search/mpe')
+            .send(requestBody)
+            .expect(500);
+    });
+
+    test('Fails when user has set playlists setting visibility as PRIVATE', async () => {
+        const userID = datatype.uuid();
+        await User.create({
+            uuid: userID,
+            nickname: internet.userName(),
+        });
+        const otherUserID = datatype.uuid();
+        const privateVisibility = await getVisibilityDatabaseEntry('PRIVATE');
+        await User.create({
+            uuid: otherUserID,
+            nickname: internet.userName(),
+            playlistsVisibilitySettingUuid: privateVisibility.uuid,
+        });
+
+        const requestBody: UserSearchMpeRoomsRequestBody = {
+            tmpAuthUserID: userID,
+            userID: otherUserID,
+            searchQuery: '',
+            page: 1,
+        };
+        await supertest(BASE_URL)
+            .post('/user/search/mpe')
+            .send(requestBody)
+            .expect(403);
+    });
+
+    test('Fails when user has set playlists visibility setting as FOLLOWERS_ONLY, and requesting user does not follow her', async () => {
+        const userID = datatype.uuid();
+        await User.create({
+            uuid: userID,
+            nickname: internet.userName(),
+        });
+        const otherUserID = datatype.uuid();
+        const privateVisibility = await getVisibilityDatabaseEntry(
+            'FOLLOWERS_ONLY',
+        );
+        await User.create({
+            uuid: otherUserID,
+            nickname: internet.userName(),
+            playlistsVisibilitySettingUuid: privateVisibility.uuid,
+        });
+
+        const requestBody: UserSearchMpeRoomsRequestBody = {
+            tmpAuthUserID: userID,
+            userID: otherUserID,
+            searchQuery: '',
+            page: 1,
+        };
+        await supertest(BASE_URL)
+            .post('/user/search/mpe')
+            .send(requestBody)
+            .expect(403);
+    });
+
+    test("Returns user's MPE rooms who has set playlists visibility setting as FOLLOWERS_ONLY, and requesting user followers her", async (assert) => {
+        const userID = datatype.uuid();
+        const user = await User.create({
+            uuid: userID,
+            nickname: internet.userName(),
+        });
+        const otherUserID = datatype.uuid();
+        const privateVisibility = await getVisibilityDatabaseEntry(
+            'FOLLOWERS_ONLY',
+        );
+        const otherUser = await User.create({
+            uuid: otherUserID,
+            nickname: internet.userName(),
+            playlistsVisibilitySettingUuid: privateVisibility.uuid,
+        });
+
+        await user.related('following').save(otherUser);
+
+        const requestBody: UserSearchMpeRoomsRequestBody = {
+            tmpAuthUserID: userID,
+            userID: otherUserID,
+            searchQuery: '',
+            page: 1,
+        };
+        const { body } = await supertest(BASE_URL)
+            .post('/user/search/mpe')
+            .send(requestBody)
+            .expect(200);
+        const parsedBody = UserSearchMpeRoomsResponseBody.parse(body);
+
+        assert.equal(parsedBody.totalEntries, 0);
     });
 });
 

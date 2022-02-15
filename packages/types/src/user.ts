@@ -1,5 +1,6 @@
 import * as z from 'zod';
-import { StrictlyPositiveInteger } from './int';
+import { MpeRoomSummary } from './mpe';
+import { PositiveInteger, StrictlyPositiveInteger } from './int';
 
 const SharedUserProfileInformation = z.object({
     userID: z.string().uuid(),
@@ -74,3 +75,23 @@ export const UnfollowUserResponseBody = z.object({
     userProfileInformation: UserProfileInformation,
 });
 export type UnfollowUserResponseBody = z.infer<typeof UnfollowUserResponseBody>;
+
+export const UserSearchMpeRoomsRequestBody = z.object({
+    tmpAuthUserID: z.string().uuid(),
+    userID: z.string().uuid(), // FIXME: use authentication
+    searchQuery: z.string(),
+    page: StrictlyPositiveInteger,
+});
+export type UserSearchMpeRoomsRequestBody = z.infer<
+    typeof UserSearchMpeRoomsRequestBody
+>;
+
+export const UserSearchMpeRoomsResponseBody = z.object({
+    page: StrictlyPositiveInteger,
+    totalEntries: PositiveInteger,
+    hasMore: z.boolean(),
+    data: MpeRoomSummary.array(),
+});
+export type UserSearchMpeRoomsResponseBody = z.infer<
+    typeof UserSearchMpeRoomsResponseBody
+>;

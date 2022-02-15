@@ -25,6 +25,72 @@ import { getUserProfileInformation } from '../../services/UserProfileService';
 import { getFakeUserID } from '../../contexts/SocketContext';
 import { userInformationMachine } from './userInformationMachine';
 
+const BlankScreen: React.FC<UserMusicPlaylistEditorSearchScreenProps> = ({
+    navigation,
+}) => {
+    const insets = useSafeAreaInsets();
+
+    return (
+        <AppScreen>
+            <AppScreenHeader
+                title=""
+                insetTop={insets.top}
+                canGoBack
+                goBack={() => {
+                    navigation.goBack();
+                }}
+            />
+        </AppScreen>
+    );
+};
+
+const LoadingScreen: React.FC<UserMusicPlaylistEditorSearchScreenProps> = ({
+    navigation,
+}) => {
+    const insets = useSafeAreaInsets();
+
+    return (
+        <AppScreen>
+            <AppScreenHeader
+                title="Loading user's MPE rooms"
+                insetTop={insets.top}
+                canGoBack
+                goBack={() => {
+                    navigation.goBack();
+                }}
+            />
+
+            <AppScreenContainer testID="default-profile-page-screen">
+                <Text sx={{ color: 'white' }}>Loading...</Text>
+            </AppScreenContainer>
+        </AppScreen>
+    );
+};
+
+const NotFoundScreen: React.FC<UserMusicPlaylistEditorSearchScreenProps> = ({
+    navigation,
+}) => {
+    const insets = useSafeAreaInsets();
+
+    return (
+        <AppScreen>
+            <AppScreenHeader
+                title="User's MPE rooms"
+                insetTop={insets.top}
+                canGoBack
+                goBack={() => {
+                    navigation.goBack();
+                }}
+            />
+
+            <AppScreenContainer testID="default-profile-page-screen">
+                <Text>User not found</Text>
+                <Button title="Go back" onPress={() => navigation.goBack()} />
+            </AppScreenContainer>
+        </AppScreen>
+    );
+};
+
 interface PlaylistListItemProps {
     roomSummary: MpeRoomSummary;
     onPress: (roomSummary: MpeRoomSummary) => void;
@@ -35,6 +101,7 @@ const PlaylistListItem: React.FC<PlaylistListItemProps> = ({
     onPress,
 }) => {
     const { roomID, roomName } = roomSummary;
+
     return (
         <TouchableOpacity
             testID={`mpe-room-card-${roomID}`}
@@ -46,39 +113,6 @@ const PlaylistListItem: React.FC<PlaylistListItemProps> = ({
                 <Text sx={{ color: 'white' }}>{roomName}</Text>
             </View>
         </TouchableOpacity>
-    );
-};
-
-const LoadingScreen: React.FC<
-    UserMusicPlaylistEditorSearchScreenProps & { isLoading: boolean }
-> = ({ navigation, isLoading }) => {
-    const insets = useSafeAreaInsets();
-
-    return (
-        <AppScreen>
-            <AppScreenHeader
-                title="User's MPE rooms"
-                insetTop={insets.top}
-                canGoBack={true}
-                goBack={() => {
-                    navigation.goBack();
-                }}
-            />
-
-            <AppScreenContainer testID="default-profile-page-screen">
-                {isLoading === true ? (
-                    <Text>LOADING</Text>
-                ) : (
-                    <>
-                        <Text>User not found</Text>
-                        <Button
-                            title="Go back"
-                            onPress={() => navigation.goBack()}
-                        />
-                    </>
-                )}
-            </AppScreenContainer>
-        </AppScreen>
     );
 };
 
@@ -232,25 +266,32 @@ const UserMusicPlaylistEditorSearchScreen: React.FC<UserMusicPlaylistEditorSearc
                         });
 
                         sendBack({
-                            type: '__RETRIEVE_USER_PROFILE_INFORMATION_SUCCESS',
+                            type: "Succeeded to retrieve user's profile information",
                             userProfileInformation: response,
                         });
                     } catch (e) {
                         console.log('error occured');
                         sendBack({
-                            type: '__RETRIEVE_USER_PROFILE_INFORMATION_FAILURE',
+                            type: "Failed to retrieve user's profile information",
                         });
                     }
                 },
             },
         });
-        const isKnownUser = state.hasTag('known user');
-        const isUnknownUser = isKnownUser === false;
 
-        if (isUnknownUser === true) {
-            const isLoading = state.hasTag('loading');
+        const showBlankScreen = state.matches('Waiting');
+        if (showBlankScreen === true) {
+            return <BlankScreen {...props} />;
+        }
 
-            return <LoadingScreen {...props} isLoading={isLoading} />;
+        const showLoadingIndicator = state.matches('Show loading indicator');
+        if (showLoadingIndicator === true) {
+            return <LoadingScreen {...props} />;
+        }
+
+        const userIsUnknown = state.matches('Unknown user');
+        if (userIsUnknown === true) {
+            return <NotFoundScreen {...props} />;
         }
 
         const userProfileInformation = state.context.userProfileInformation;

@@ -188,7 +188,7 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
                             accessibilityLabel={`${userProfileInformation.userNickname} avatar`}
                             style={sx({
                                 width: 'xl',
-                                height: 'l',
+                                height: 'xl',
                                 borderRadius: 'full',
                             })}
                         />

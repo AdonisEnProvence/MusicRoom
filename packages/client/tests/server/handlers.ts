@@ -188,9 +188,9 @@ export const handlers = [
         return res(
             ctx.json({
                 ...user,
-                followersCounter: user.followersCounter || undefined,
-                followingCounter: user.followingCounter || undefined,
-                playlistsCounter: user.playlistsCounter || undefined,
+                followersCounter: user.followersCounter ?? undefined,
+                followingCounter: user.followingCounter ?? undefined,
+                playlistsCounter: user.playlistsCounter ?? undefined,
             }),
         );
     }),

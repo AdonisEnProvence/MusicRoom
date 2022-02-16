@@ -37,6 +37,18 @@ export const db = factory({
         isInvited: () => datatype.boolean(),
     },
 
+    userFollowers: {
+        uuid: primaryKey(() => datatype.uuid()),
+        userID: () => datatype.uuid(),
+        followers: manyOf('searchableUsers'),
+    },
+
+    userFollowing: {
+        uuid: primaryKey(() => datatype.uuid()),
+        userID: () => datatype.uuid(),
+        following: manyOf('searchableUsers'),
+    },
+
     searchableUsers: {
         userID: primaryKey(() => datatype.uuid()),
         nickname: () => internet.userName(),

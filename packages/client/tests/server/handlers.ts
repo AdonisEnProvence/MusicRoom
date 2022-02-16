@@ -11,6 +11,14 @@ import {
     GetUserProfileInformationResponseBody,
     ListAllMpeRoomsRequestBody,
     ListAllMpeRoomsResponseBody,
+    ListMyFollowersRequestBody,
+    ListMyFollowersResponseBody,
+    ListMyFollowingRequestBody,
+    ListMyFollowingResponseBody,
+    ListUserFollowersRequestBody,
+    ListUserFollowersResponseBody,
+    ListUserFollowingRequestBody,
+    ListUserFollowingResponseBody,
     MpeSearchMyRoomsRequestBody,
     MpeSearchMyRoomsResponseBody,
     MtvRoomSearchRequestBody,
@@ -424,6 +432,89 @@ export const handlers = [
                 data: paginatedRooms,
                 totalEntries: roomsMatching.length,
                 hasMore: roomsMatching.length > page * PAGE_SIZE,
+                page,
+            }),
+        );
+    }),
+
+    rest.post<
+        ListUserFollowersRequestBody,
+        Record<string, never>,
+        ListUserFollowersResponseBody
+    >(`${SERVER_ENDPOINT}/user/search/followers`, (req, res, ctx) => {
+        const PAGE_SIZE = 10;
+        const { page, searchQuery, userID } = req.body;
+
+        const userFollowers = db.userFollowers.findFirst({
+            where: {
+                userID: {
+                    equals: userID,
+                },
+            },
+        });
+
+        console.log({
+            userFollowers,
+        });
+
+        if (userFollowers === null || userFollowers.followers === undefined) {
+            return res(ctx.status(404));
+        }
+        const filteredUserFollowers = userFollowers.followers.filter((user) =>
+            user.nickname.toLowerCase().startsWith(searchQuery.toLowerCase()),
+        );
+
+        const paginatedFollowers = filteredUserFollowers.slice(
+            (page - 1) * PAGE_SIZE,
+            page * PAGE_SIZE,
+        );
+
+        console.log({ paginatedFollowers });
+        return res(
+            ctx.json({
+                data: paginatedFollowers,
+                totalEntries: filteredUserFollowers.length,
+                hasMore: filteredUserFollowers.length > page * PAGE_SIZE,
+                page,
+            }),
+        );
+    }),
+
+    rest.post<
+        ListUserFollowingRequestBody,
+        Record<string, never>,
+        ListUserFollowingResponseBody
+    >(`${SERVER_ENDPOINT}/user/search/following`, (req, res, ctx) => {
+        const PAGE_SIZE = 10;
+        const { page, searchQuery } = req.body;
+
+        const userFollowing = db.userFollowing.findFirst({
+            where: {
+                userID: {
+                    equals: req.body.userID,
+                },
+                following: {
+                    nickname: {
+                        in: [searchQuery],
+                    },
+                },
+            },
+        });
+
+        if (userFollowing === null || userFollowing.following === undefined) {
+            return res(ctx.status(404));
+        }
+
+        const paginatedFollowing = userFollowing.following.slice(
+            (page - 1) * PAGE_SIZE,
+            page * PAGE_SIZE,
+        );
+
+        return res(
+            ctx.json({
+                data: paginatedFollowing,
+                totalEntries: userFollowing.following.length,
+                hasMore: userFollowing.following.length > page * PAGE_SIZE,
                 page,
             }),
         );

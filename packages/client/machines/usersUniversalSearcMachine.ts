@@ -119,7 +119,9 @@ export function createUsersUniversalSearchMachine(): UsersUniversalSearchMachine
                             },
                         },
 
-                        errFetchingUsers: {},
+                        errFetchingUsers: {
+                            tags: 'errorFetchingUsers',
+                        },
                     },
 
                     on: {
@@ -255,8 +257,6 @@ export function createUserFollowersSearchMachine({
                             hasMore,
                         });
                     } catch (err) {
-                        console.error(err);
-
                         sendBack({
                             type: 'FAILED_FETCHING_USERS',
                         });
@@ -309,7 +309,3 @@ export function createUserFollowingSearchMachine({
         },
     });
 }
-
-// export const mpeRoomSearchMachine = createUsersUniversalSearchMachine({
-//     fetchUsers: fetchAllMpeRooms,
-// });

@@ -23,6 +23,8 @@ import { createUserFollowersSearchMachine } from '../../../machines/usersUnivers
 import UserListItem from '../../../components/User/UserListItem';
 import { IS_TEST } from '../../../constants/Env';
 import { createUserInformationMachine } from '../../../machines/userInformationMachine';
+import { getFakeUserID } from '../../../contexts/SocketContext';
+import { navigateFromRef } from '../../../navigation/RootNavigation';
 
 const NotFoundScreen: React.FC<UserFollowersSearchScreenProps> = ({
     navigation,
@@ -125,6 +127,7 @@ const UserFollowersScreen: React.FC<UserFollowersSearchScreenProps> = ({
         params: { userID: relatedUserID },
     },
 }) => {
+    const meUSerID = getFakeUserID();
     const insets = useSafeAreaInsets();
     const sx = useSx();
     const [screenOffsetY, setScreenOffsetY] = useState(0);
@@ -160,6 +163,10 @@ const UserFollowersScreen: React.FC<UserFollowersSearchScreenProps> = ({
 
     return (
         <AppScreenWithSearchBar
+            canGoBack
+            goBack={() => {
+                navigation.goBack();
+            }}
             title="Search for a follower"
             testID="search-user-followers-screen"
             searchInputPlaceholder="Search a follower..."
@@ -188,7 +195,7 @@ const UserFollowersScreen: React.FC<UserFollowersSearchScreenProps> = ({
                 }
                 renderItem={({ item: { nickname, userID }, index }) => {
                     const isLastItem = index === usersSummaries.length - 1;
-
+                    const isMe = userID === meUSerID;
                     return (
                         <View
                             sx={{
@@ -201,16 +208,23 @@ const UserFollowersScreen: React.FC<UserFollowersSearchScreenProps> = ({
                                     hasControlAndDelegationPermission: false,
                                     isCreator: false,
                                     isDelegationOwner: false,
-                                    isMe: false,
+                                    isMe,
                                     nickname,
                                     userID,
                                 }}
                                 disabled={false}
-                                onPress={() =>
-                                    navigation.navigate('UserProfile', {
-                                        userID: relatedUserID,
-                                    })
-                                }
+                                onPress={() => {
+                                    if (isMe) {
+                                        //why can't I use navigation.navigate ?
+                                        navigateFromRef('MyProfile', {
+                                            screen: 'MyProfileIndex',
+                                        });
+                                    } else {
+                                        navigation.navigate('UserProfile', {
+                                            userID,
+                                        });
+                                    }
+                                }}
                             />
                         </View>
                     );

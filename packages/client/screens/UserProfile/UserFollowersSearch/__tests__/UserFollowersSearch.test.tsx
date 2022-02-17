@@ -13,7 +13,11 @@ import invariant from 'tiny-invariant';
 import cases from 'jest-in-case';
 import { ContextFrom, EventFrom, State } from 'xstate';
 import { serverSocket } from '../../../../services/websockets';
-import { render, renderApp } from '../../../../tests/tests-utils';
+import {
+    render,
+    renderApp,
+    testGetFakeUserID,
+} from '../../../../tests/tests-utils';
 import { db, generateMtvWorklowState } from '../../../../tests/data';
 import { server } from '../../../../tests/server/test-server';
 import { SERVER_ENDPOINT } from '../../../../constants/Endpoints';
@@ -32,9 +36,7 @@ type SearchUserFollowerMachineState = State<
 >;
 
 const searchUserFollowerModel = createModel(
-    {
-        page: 1 as number,
-    },
+    {},
     {
         events: {
             'Make API respond user not found and render application':
@@ -43,19 +45,13 @@ const searchUserFollowerModel = createModel(
             'Make API respond forbidden exception and render application':
                 () => ({}),
             'Load more followers results': () => ({}),
-            'fill a search query and submit': () => ({}),
+            'fill searched user nickname query and submit': () => ({}),
+            'fill my nickname and submit': () => ({}),
             'cancel search bar': () => ({}),
             'press an other user card': () => ({}),
             'press my user card': () => ({}),
         },
     },
-);
-
-const assignIncrPage = searchUserFollowerModel.assign(
-    {
-        page: ({ page }) => page + 1,
-    },
-    'Load more followers results',
 );
 
 const searchUserFollowerMachine = searchUserFollowerModel.createMachine({
@@ -121,16 +117,11 @@ const searchUserFollowerMachine = searchUserFollowerModel.createMachine({
             },
             states: {
                 'User relations are viewable': {
-                    initial: 'check user card per page on screen',
+                    initial: 'first page is loaded on screen',
                     states: {
-                        'check user card per page on screen': {
+                        'first page is loaded on screen': {
                             meta: {
-                                test: async (
-                                    { screen }: TestingContext,
-                                    {
-                                        context: { page },
-                                    }: SearchUserFollowerMachineState,
-                                ) => {
+                                test: async ({ screen }: TestingContext) => {
                                     invariant(
                                         screen !== undefined,
                                         'Screen must have been rendered before being in this state',
@@ -148,7 +139,34 @@ const searchUserFollowerMachine = searchUserFollowerModel.createMachine({
                                                 followersFlatList,
                                             ).queryAllByTestId(/.*-user-card/);
                                         expect(userCards.length).toBe(
-                                            page * RESULT_PER_PAGE,
+                                            1 * RESULT_PER_PAGE,
+                                        );
+                                    });
+                                },
+                            },
+                        },
+
+                        'second page is loaded on screen': {
+                            meta: {
+                                test: async ({ screen }: TestingContext) => {
+                                    invariant(
+                                        screen !== undefined,
+                                        'Screen must have been rendered before being in this state',
+                                    );
+
+                                    await waitFor(() => {
+                                        const followersFlatList =
+                                            screen.getByTestId(
+                                                `user-followers-search-flat-list`,
+                                            );
+                                        expect(followersFlatList).toBeTruthy();
+
+                                        const userCards =
+                                            within(
+                                                followersFlatList,
+                                            ).queryAllByTestId(/.*-user-card/);
+                                        expect(userCards.length).toBe(
+                                            2 * RESULT_PER_PAGE,
                                         );
                                     });
                                 },
@@ -179,25 +197,69 @@ const searchUserFollowerMachine = searchUserFollowerModel.createMachine({
                                 },
                             },
                         },
+
+                        'pressed my user card': {
+                            meta: {
+                                test: async ({ screen }: TestingContext) => {
+                                    invariant(
+                                        screen !== undefined,
+                                        'Screen must have been rendered before being in this state',
+                                    );
+
+                                    await waitFor(() => {
+                                        expect(
+                                            screen.getByTestId(
+                                                'default-my-profile-page-screen',
+                                            ),
+                                        ).toBeTruthy();
+                                    });
+                                },
+                            },
+                        },
+
+                        'pressed an other user card': {
+                            meta: {
+                                test: async ({ screen }: TestingContext) => {
+                                    invariant(
+                                        screen !== undefined,
+                                        'Screen must have been rendered before being in this state',
+                                    );
+
+                                    await waitFor(() => {
+                                        expect(
+                                            screen.getByTestId(
+                                                'default-profile-page-screen',
+                                            ),
+                                        ).toBeTruthy();
+                                    });
+                                },
+                            },
+                        },
                     },
 
                     on: {
                         'Load more followers results': {
-                            target: '.check user card per page on screen',
-                            actions: assignIncrPage,
+                            target: '.second page is loaded on screen',
                         },
-                        'fill a search query and submit': {
+
+                        'fill searched user nickname query and submit': {
                             target: '.filtered users list',
-                            actions: searchUserFollowerModel.assign({
-                                page: () => 1,
-                            }),
+                        },
+
+                        'fill my nickname and submit': {
+                            target: '.filtered users list',
                         },
 
                         'cancel search bar': {
-                            target: '.check user card per page on screen',
-                            actions: searchUserFollowerModel.assign({
-                                page: () => 1,
-                            }),
+                            target: '.first page is loaded on screen',
+                        },
+
+                        'press my user card': {
+                            target: '.pressed my user card',
+                        },
+
+                        'press an other user card': {
+                            target: '.pressed an other user card',
                         },
                     },
                 },
@@ -233,6 +295,7 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
             context.meUserSummary;
         const { nickname: searchedUserNickname, userID: searchedUserID } =
             context.searchedUserSummary;
+
         const followers = [
             ...Array.from({ length: 21 }, () =>
                 db.searchableUsers.create({
@@ -244,24 +307,29 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
                 nickname: searchedUserNickname,
                 userID: searchedUserID,
             }),
+            db.searchableUsers.create({
+                nickname: meUserNickname,
+                userID: meUserID,
+            }),
         ];
 
+        const famousUserID = datatype.uuid();
         db.userProfileInformation.create({
-            userID: meUserID,
+            userID: famousUserID,
             following: false,
-            userNickname: meUserNickname,
+            userNickname: internet.userName(),
             followersCounter: followers.length,
             followingCounter: 0,
             playlistsCounter: undefined,
         });
 
         db.userFollowers.create({
-            userID: meUserID,
+            userID: famousUserID,
             followers,
         });
 
         const screen = await goToUserProfileThroughMusicTrackVoteRoom({
-            userID: meUserID,
+            userID: famousUserID,
         });
         await goToUserFollowersScreen({
             screen,
@@ -353,8 +421,11 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
 
         fireEvent.press(loadMoreButton);
     },
-    'fill a search query and submit': async (context) => {
-        const { searchedUserSummary, screen } = context;
+    'fill searched user nickname query and submit': async (context, e) => {
+        const {
+            screen,
+            searchedUserSummary: { nickname },
+        } = context;
         invariant(screen !== undefined, 'screen should be init');
 
         const searchFollowerTextField = (
@@ -362,10 +433,21 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
         ).slice(-1)[0];
         expect(searchFollowerTextField).toBeTruthy();
         fireEvent(searchFollowerTextField, 'focus');
-        fireEvent.changeText(
-            searchFollowerTextField,
-            searchedUserSummary.nickname,
-        );
+        fireEvent.changeText(searchFollowerTextField, nickname);
+        fireEvent(searchFollowerTextField, 'submitEditing');
+    },
+    'fill my nickname and submit': async ({
+        screen,
+        meUserSummary: { nickname },
+    }) => {
+        invariant(screen !== undefined, 'screen should be init');
+
+        const searchFollowerTextField = (
+            await screen.findAllByPlaceholderText(/search.*follower/i)
+        ).slice(-1)[0];
+        expect(searchFollowerTextField).toBeTruthy();
+        fireEvent(searchFollowerTextField, 'focus');
+        fireEvent.changeText(searchFollowerTextField, nickname);
         fireEvent(searchFollowerTextField, 'submitEditing');
     },
     'cancel search bar': (context) => {
@@ -382,85 +464,40 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
 
         fireEvent.press(cancelButton);
     },
-    'press user card': ({ screen }) => {
+    'press an other user card': ({
+        screen,
+        searchedUserSummary: { nickname },
+    }) => {
         invariant(screen !== undefined, 'screen should be init');
-        const userFollowersSearchContainer = screen.getByTestId(
-            `search-user-followers-screen`,
-        );
-        expect(userFollowersSearchContainer).toBeTruthy();
-        const cancelButton = within(userFollowersSearchContainer).getByText(
-            /cancel/i,
-        );
-        expect(cancelButton).toBeTruthy();
 
-        fireEvent.press(cancelButton);
+        const followersFlatList = screen.getByTestId(
+            `user-followers-search-flat-list`,
+        );
+        expect(followersFlatList).toBeTruthy();
+
+        const searchedUserCard = within(followersFlatList).getByText(nickname);
+        expect(searchedUserCard).toBeTruthy();
+        fireEvent.press(searchedUserCard);
+    },
+    'press my user card': ({ screen, meUserSummary: { nickname } }) => {
+        invariant(screen !== undefined, 'screen should be init');
+
+        const followersFlatList = screen.getByTestId(
+            `user-followers-search-flat-list`,
+        );
+        expect(followersFlatList).toBeTruthy();
+
+        const myUserCard = within(followersFlatList).getByText(nickname);
+        expect(myUserCard).toBeTruthy();
+        fireEvent.press(myUserCard);
     },
 });
-
-// cases<{
-//     events: EventFrom<typeof searchUserFollowerModel>[];
-//     target: any;
-// }>(
-//     'user followers search tests',
-//     async ({ events, target }) => {
-//         const userID = datatype.uuid();
-//         const plan = searchUserFollowersTestModel.getPlanFromEvents(events, {
-//             target,
-//         });
-
-//         await plan.test({
-//             meUserSummary: {
-//                 nickname: internet.userName(),
-//                 userID: datatype.uuid(),
-//             },
-//             searchedUserSummary: {
-//                 nickname: internet.userName(),
-//                 userID: datatype.uuid(),
-//             },
-//             screen: undefined,
-//         });
-//     },
-//     {
-//         // User found and relations are viewable
-//         'Make API respond user found and render application': {
-//             events: [
-//                 searchUserFollowerModel.events[
-//                     'Make API respond user found and render application'
-//                 ](),
-//             ],
-//             target: {
-//                 'User found': 'User relations are viewable',
-//             },
-//         },
-
-//         //User not found
-//         'Make API respond user not found and render application': {
-//             events: [
-//                 searchUserFollowerModel.events[
-//                     'Make API respond user not found and render application'
-//                 ](),
-//             ],
-//             target: 'User not found',
-//         },
-
-//         'Make API respond forbidden exception and render application': {
-//             events: [
-//                 searchUserFollowerModel.events[
-//                     'Make API respond forbidden exception and render application'
-//                 ](),
-//             ],
-//             target: {
-//                 'User found': 'User relations are forbidden',
-//             },
-//         },
-//     },
-// );
 
 cases<{
     events: EventFrom<typeof searchUserFollowerModel>[];
     target: any;
 }>(
-    'user followers deep search tests',
+    'user followers search tests',
     async ({ events, target }) => {
         const plan = searchUserFollowersTestModel.getPlanFromEvents(events, {
             target,
@@ -480,6 +517,66 @@ cases<{
     },
     {
         // User found and relations are viewable
+        'Make API respond user found and render application': {
+            events: [
+                searchUserFollowerModel.events[
+                    'Make API respond user found and render application'
+                ](),
+            ],
+            target: {
+                'User found': 'User relations are viewable',
+            },
+        },
+
+        //User not found
+        'Make API respond user not found and render application': {
+            events: [
+                searchUserFollowerModel.events[
+                    'Make API respond user not found and render application'
+                ](),
+            ],
+            target: 'User not found',
+        },
+
+        'Make API respond forbidden exception and render application': {
+            events: [
+                searchUserFollowerModel.events[
+                    'Make API respond forbidden exception and render application'
+                ](),
+            ],
+            target: {
+                'User found': 'User relations are forbidden',
+            },
+        },
+    },
+);
+
+cases<{
+    events: EventFrom<typeof searchUserFollowerModel>[];
+    target: any;
+}>(
+    'user followers deep search tests',
+    async ({ events, target }) => {
+        const plan = searchUserFollowersTestModel.getPlanFromEvents(events, {
+            target,
+        });
+        const meUserSummary = {
+            nickname: internet.userName(),
+            userID: testGetFakeUserID(),
+        };
+        const searchedUserSummary = {
+            nickname: internet.userName(),
+            userID: datatype.uuid(),
+        };
+
+        await plan.test({
+            meUserSummary,
+            searchedUserSummary,
+            screen: undefined,
+        });
+    },
+    {
+        // User found and relations are viewable
         'User found data viewable, load more filter and cancel filter': {
             events: [
                 searchUserFollowerModel.events[
@@ -487,14 +584,46 @@ cases<{
                 ](),
                 searchUserFollowerModel.events['Load more followers results'](),
                 searchUserFollowerModel.events[
-                    'fill a search query and submit'
+                    'fill searched user nickname query and submit'
                 ](),
                 searchUserFollowerModel.events['cancel search bar'](),
             ],
             target: {
                 'User found': {
                     'User relations are viewable':
-                        'check user card per page on screen',
+                        'first page is loaded on screen',
+                },
+            },
+        },
+
+        'User foud data viewable, user presses his own user card': {
+            events: [
+                searchUserFollowerModel.events[
+                    'Make API respond user found and render application'
+                ](),
+                searchUserFollowerModel.events['fill my nickname and submit'](),
+                searchUserFollowerModel.events['press my user card'](),
+            ],
+            target: {
+                'User found': {
+                    'User relations are viewable': 'pressed my user card',
+                },
+            },
+        },
+
+        'User foud data viewable, user presses other user card': {
+            events: [
+                searchUserFollowerModel.events[
+                    'Make API respond user found and render application'
+                ](),
+                searchUserFollowerModel.events[
+                    'fill searched user nickname query and submit'
+                ](),
+                searchUserFollowerModel.events['press an other user card'](),
+            ],
+            target: {
+                'User found': {
+                    'User relations are viewable': 'pressed an other user card',
                 },
             },
         },

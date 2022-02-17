@@ -1,6 +1,6 @@
 import {
-    ListUserFollowersRequestBody,
-    ListUserFollowersResponseBody,
+    GetUserProfileInformationRequestBody,
+    GetUserProfileInformationResponseBody,
     MtvRoomUsersListElement,
 } from '@musicroom/types';
 import { rest } from 'msw';
@@ -131,7 +131,7 @@ const searchUserFollowerMachine = searchUserFollowerModel.createMachine({
 
                             await waitFor(() => {
                                 const forbiddenLabel =
-                                    screen.getByText(/Forbidden/i);
+                                    screen.getByText(/followers.*forbidden/i);
                                 expect(forbiddenLabel).toBeTruthy();
                             });
                         },
@@ -155,6 +155,14 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
                 userID: datatype.uuid(),
             }),
         );
+        db.userProfileInformation.create({
+            userID,
+            following: false,
+            userNickname: internet.userName(),
+            followersCounter: followers.length,
+            followingCounter: 0,
+            playlistsCounter: undefined,
+        });
 
         db.userFollowers.create({
             userID,
@@ -164,44 +172,85 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
         const screen = await goToUserProfileThroughMusicTrackVoteRoom({
             userID,
         });
+        await goToUserFollowersScreen({
+            screen,
+            expectedFollowersCounter: followers.length,
+        });
         context.screen = screen;
     },
     'Make API respond user not found and render application': async (
         context,
     ) => {
-        server.use(
-            rest.post<
-                ListUserFollowersRequestBody,
-                Record<string, never>,
-                ListUserFollowersResponseBody
-            >(`${SERVER_ENDPOINT}/me/settings`, (req, res, ctx) => {
-                return res(ctx.status(404));
-            }),
-        );
-        //user exists route ?
         const userID = datatype.uuid();
+        db.userProfileInformation.create({
+            userID,
+            following: false,
+            userNickname: internet.userName(),
+            followersCounter: 1,
+            followingCounter: 0,
+            playlistsCounter: undefined,
+        });
+
         const screen = await goToUserProfileThroughMusicTrackVoteRoom({
             userID,
         });
+
+        //The following mock has to stay here we need the default one inside goToUserProfileThroughMusicTrackVoteRoom function
+        server.use(
+            rest.post<
+                GetUserProfileInformationRequestBody,
+                Record<string, never>,
+                GetUserProfileInformationResponseBody
+            >(
+                `${SERVER_ENDPOINT}/user/profile-information`,
+                (_req, res, ctx) => {
+                    return res(ctx.status(404));
+                },
+            ),
+        );
+        await goToUserFollowersScreen({ screen, expectedFollowersCounter: 1 });
         context.screen = screen;
     },
     'Make API respond forbidden exception and render application': async (
         context,
     ) => {
-        server.use(
-            rest.post<
-                ListUserFollowersRequestBody,
-                Record<string, never>,
-                ListUserFollowersResponseBody
-            >(`${SERVER_ENDPOINT}/me/settings`, (req, res, ctx) => {
-                return res(ctx.status(403));
-            }),
-        );
-        //user exists route ?
         const userID = datatype.uuid();
+        const userNickname = internet.userName();
+        db.userProfileInformation.create({
+            userID,
+            following: false,
+            userNickname,
+            followersCounter: 1,
+            followingCounter: 0,
+            playlistsCounter: undefined,
+        });
         const screen = await goToUserProfileThroughMusicTrackVoteRoom({
             userID,
         });
+
+        //The following mock has to stay here we need the default one inside goToUserProfileThroughMusicTrackVoteRoom function
+        server.use(
+            rest.post<
+                GetUserProfileInformationRequestBody,
+                Record<string, never>,
+                GetUserProfileInformationResponseBody
+            >(
+                `${SERVER_ENDPOINT}/user/profile-information`,
+                (_req, res, ctx) => {
+                    return res(
+                        ctx.json({
+                            userID,
+                            following: false,
+                            userNickname,
+                            followersCounter: undefined,
+                            followingCounter: undefined,
+                            playlistsCounter: undefined,
+                        }),
+                    );
+                },
+            ),
+        );
+        await goToUserFollowersScreen({ screen, expectedFollowersCounter: 1 });
         context.screen = screen;
     },
     'Load more followers results': ({ screen }) => {
@@ -230,9 +279,8 @@ cases<{
         });
     },
     {
-        //User found and relations are viewable
-        // IS THIS LINE THE TEST NAME ?
-        'Make API respond user found instantly and render application': {
+        // User found and relations are viewable
+        'Make API respond user found and render application': {
             events: [
                 searchUserFollowerModel.events[
                     'Make API respond user found and render application'
@@ -244,7 +292,7 @@ cases<{
         },
 
         //User not found
-        'Make API respond user not found instantly and render application': {
+        'Make API respond user not found and render application': {
             events: [
                 searchUserFollowerModel.events[
                     'Make API respond user not found and render application'
@@ -272,14 +320,6 @@ async function goToUserProfileThroughMusicTrackVoteRoom({
     userID: string;
 }): Promise<ReturnType<typeof render>> {
     const userNickname = internet.userName();
-    db.userProfileInformation.create({
-        userID,
-        following: false,
-        userNickname,
-        followersCounter: 1,
-        followingCounter: undefined,
-        playlistsCounter: undefined,
-    });
     const roomCreatorUserID = datatype.uuid();
     const initialState = generateMtvWorklowState({
         userType: 'CREATOR',
@@ -345,17 +385,24 @@ async function goToUserProfileThroughMusicTrackVoteRoom({
             `${userID}-profile-page-screen`,
         );
         expect(profileScreen).toBeTruthy();
-
-        const followersCounter = screen.getByText(/.*followers.*1/i);
-        expect(followersCounter).toBeTruthy();
     });
 
-    const followersCounter = screen.getByText(/.*followers.*1/i);
+    return screen;
+}
+
+async function goToUserFollowersScreen({
+    screen,
+    expectedFollowersCounter,
+}: {
+    screen: ReturnType<typeof render>;
+    expectedFollowersCounter: number;
+}): Promise<void> {
+    const followersCounter = screen.getByText(
+        new RegExp(`followers.*${expectedFollowersCounter}`),
+    );
     fireEvent.press(followersCounter);
 
     await waitFor(() => {
         expect(screen.getByTestId('search-user-followers-screen')).toBeTruthy();
     });
-
-    return screen;
 }

@@ -31,6 +31,8 @@ const searchUserFollowerModel = createModel(
             'Make API respond forbidden exception and render application':
                 () => ({}),
             'Load more followers results': () => ({}),
+            'fill a search query and submit': () => ({}),
+            'cancel search bar': () => ({}),
         },
     },
 );
@@ -98,25 +100,120 @@ const searchUserFollowerMachine = searchUserFollowerModel.createMachine({
             },
             states: {
                 'User relations are viewable': {
-                    meta: {
-                        test: async ({ screen }: TestingContext) => {
-                            invariant(
-                                screen !== undefined,
-                                'Screen must have been rendered before being in this state',
-                            );
-
-                            await waitFor(() => {
-                                const followersFlatList = screen.getByTestId(
-                                    `user-followers-search-flat-list`,
-                                );
-                                expect(followersFlatList).toBeTruthy();
-
-                                const userCards =
-                                    within(followersFlatList).queryAllByTestId(
-                                        /.*-user-card/,
+                    initial: 'first render',
+                    states: {
+                        'first render': {
+                            meta: {
+                                test: async ({ screen }: TestingContext) => {
+                                    invariant(
+                                        screen !== undefined,
+                                        'Screen must have been rendered before being in this state',
                                     );
-                                expect(userCards.length).toBe(10);
-                            });
+
+                                    await waitFor(() => {
+                                        const followersFlatList =
+                                            screen.getByTestId(
+                                                `user-followers-search-flat-list`,
+                                            );
+                                        expect(followersFlatList).toBeTruthy();
+
+                                        const userCards =
+                                            within(
+                                                followersFlatList,
+                                            ).queryAllByTestId(/.*-user-card/);
+                                        expect(userCards.length).toBe(10);
+                                    });
+                                },
+                            },
+                        },
+
+                        'loaded more users': {
+                            meta: {
+                                test: async ({ screen }: TestingContext) => {
+                                    invariant(
+                                        screen !== undefined,
+                                        'Screen must have been rendered before being in this state',
+                                    );
+
+                                    await waitFor(() => {
+                                        const followersFlatList =
+                                            screen.getByTestId(
+                                                `user-followers-search-flat-list`,
+                                            );
+                                        expect(followersFlatList).toBeTruthy();
+
+                                        const userCards =
+                                            within(
+                                                followersFlatList,
+                                            ).queryAllByTestId(/.*-user-card/);
+                                        expect(userCards.length).toBe(20);
+                                    });
+                                },
+                            },
+                        },
+
+                        'filtered users list': {
+                            meta: {
+                                test: async ({ screen }: TestingContext) => {
+                                    invariant(
+                                        screen !== undefined,
+                                        'Screen must have been rendered before being in this state',
+                                    );
+
+                                    await waitFor(() => {
+                                        const followersFlatList =
+                                            screen.getByTestId(
+                                                `user-followers-search-flat-list`,
+                                            );
+                                        expect(followersFlatList).toBeTruthy();
+
+                                        const userCards =
+                                            within(
+                                                followersFlatList,
+                                            ).queryAllByTestId(/.*-user-card/);
+                                        expect(userCards.length).toBe(1);
+                                    });
+                                },
+                            },
+                        },
+
+                        'canceled search input': {
+                            meta: {
+                                test: async ({ screen }: TestingContext) => {
+                                    invariant(
+                                        screen !== undefined,
+                                        'Screen must have been rendered before being in this state',
+                                    );
+
+                                    await waitFor(() => {
+                                        const followersFlatList =
+                                            screen.getByTestId(
+                                                `user-followers-search-flat-list`,
+                                            );
+                                        expect(followersFlatList).toBeTruthy();
+
+                                        const userCards =
+                                            within(
+                                                followersFlatList,
+                                            ).queryAllByTestId(/.*-user-card/);
+                                        expect(userCards.length).toBe(10);
+                                    });
+                                },
+                            },
+                        },
+                    },
+
+                    on: {
+                        'Load more followers results': {
+                            target: '.loaded more users',
+                        },
+
+                        'fill a search query and submit': {
+                            target: '.filtered users list',
+                        },
+
+                        'cancel search bar': {
+                            target: '.canceled search input',
                         },
                     },
                 },
@@ -149,12 +246,17 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
     'Make API respond user found and render application': async (context) => {
         //user exists route ?
         const userID = datatype.uuid();
-        const followers = Array.from({ length: 21 }, () =>
+        const tmp = Array.from({ length: 21 }, () =>
             db.searchableUsers.create({
                 nickname: internet.userName(),
                 userID: datatype.uuid(),
             }),
         );
+        const searchedFollower = db.searchableUsers.create({
+            nickname: 'searchQuery' + internet.userName(),
+            userID: datatype.uuid(),
+        });
+        const followers = [...tmp, searchedFollower];
         db.userProfileInformation.create({
             userID,
             following: false,
@@ -262,6 +364,30 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
 
         fireEvent.press(loadMoreButton);
     },
+    'fill a search query and submit': async ({ screen }) => {
+        invariant(screen !== undefined, 'screen should be init');
+
+        const searchFollowerTextField = (
+            await screen.findAllByPlaceholderText(/search.*follower/i)
+        ).slice(-1)[0];
+        expect(searchFollowerTextField).toBeTruthy();
+        fireEvent(searchFollowerTextField, 'focus');
+        fireEvent.changeText(searchFollowerTextField, 'searchQuery');
+        fireEvent(searchFollowerTextField, 'submitEditing');
+    },
+    'cancel search bar': ({ screen }) => {
+        invariant(screen !== undefined, 'screen should be init');
+        const userFollowersSearchContainer = screen.getByTestId(
+            `search-user-followers-screen`,
+        );
+        expect(userFollowersSearchContainer).toBeTruthy();
+        const cancelButton = within(userFollowersSearchContainer).getByText(
+            /cancel/i,
+        );
+        expect(cancelButton).toBeTruthy();
+
+        fireEvent.press(cancelButton);
+    },
 });
 
 cases<{
@@ -309,6 +435,42 @@ cases<{
             ],
             target: {
                 'User found': 'User relations are forbidden',
+            },
+        },
+    },
+);
+
+cases<{
+    events: EventFrom<typeof searchUserFollowerModel>[];
+    target: any;
+}>(
+    'user followers deep search tests',
+    async ({ events, target }) => {
+        const plan = searchUserFollowersTestModel.getPlanFromEvents(events, {
+            target,
+        });
+
+        await plan.test({
+            screen: undefined,
+        });
+    },
+    {
+        // User found and relations are viewable
+        'User found data viewable, load more filter and cancel filter': {
+            events: [
+                searchUserFollowerModel.events[
+                    'Make API respond user found and render application'
+                ](),
+                searchUserFollowerModel.events['Load more followers results'](),
+                searchUserFollowerModel.events[
+                    'fill a search query and submit'
+                ](),
+                searchUserFollowerModel.events['cancel search bar'](),
+            ],
+            target: {
+                'User found': {
+                    'User relations are viewable': 'canceled search input',
+                },
             },
         },
     },

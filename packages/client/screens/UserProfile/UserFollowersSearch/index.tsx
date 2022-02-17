@@ -120,6 +120,7 @@ const LoadingScreen: React.FC<UserFollowersSearchScreenProps> = ({
 };
 
 const UserFollowersScreen: React.FC<UserFollowersSearchScreenProps> = ({
+    navigation,
     route: {
         params: { userID: relatedUserID },
     },
@@ -168,7 +169,6 @@ const UserFollowersScreen: React.FC<UserFollowersSearchScreenProps> = ({
             searchQuery={searchQuery}
             sendToSearch={sendToSearch}
         >
-            <Typo>USER FOLLOWERS SCREEN</Typo>
             <FlatList
                 testID="user-followers-search-flat-list"
                 data={usersSummaries}
@@ -206,7 +206,11 @@ const UserFollowersScreen: React.FC<UserFollowersSearchScreenProps> = ({
                                     userID,
                                 }}
                                 disabled={false}
-                                onPress={() => console.log('user card pressed')}
+                                onPress={() =>
+                                    navigation.navigate('UserProfile', {
+                                        userID: relatedUserID,
+                                    })
+                                }
                             />
                         </View>
                     );

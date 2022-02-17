@@ -65,6 +65,7 @@ const otherUserMpeRoomsModel = createModel(
     {
         page: 1,
         searchQuery: '',
+        selectedMpeRoomID: undefined as string | undefined,
     },
     {
         events: {
@@ -79,6 +80,8 @@ const otherUserMpeRoomsModel = createModel(
             'Search by name': (args: { searchQuery: string }) => args,
             'Clear search query': () => ({}),
             'Cancel search query': () => ({}),
+            'Select MPE room to display': (args: { mpeRoomID: string }) => args,
+            'Go back': () => ({}),
         },
     },
 );
@@ -86,7 +89,7 @@ const otherUserMpeRoomsModel = createModel(
 type OtherUserMpeRoomsMachineState = StateFrom<typeof otherUserMpeRoomsMachine>;
 
 const otherUserMpeRoomsMachine =
-    /** @xstate-layout N4IgpgJg5mDOIC5QHkAuALMAnABAVVmxwFkAFAURwCUB7GgW1gDoDsByWHAByxoDMAlgBswAYmIBDANZgcAQVIBJHHwnCVAgHYQtUHBlkBXQrgnacUGvqvH2nLkIkBPIQNip4SEFxqwBqARpNRFAAD0QAWgBmADYAdiYADgBOOIAmGMS4gEZsqLzEgBoQJ0iYtKYABmSAFniAVnqYpprKqKiAXw7itExcVlwySloGZgGObl5BEXFpWQVlLDgfcy13M1QhJxwzCAsrVBsTCYdnV3dPUB8-AKCQkHCERJqk+pr2uMrEtLTE2LTiqUENlKhU0nFWql3n9folEl0egZ+iYSBRqHRGCxjvYpsIxAARMCObYLHBLWArQg7cyWaw4WxYE7E84ee7XfyBYJeR4RXJJFIguL1bI1DJRCEAkqIKLVJg1dK5SoxZLVHJpeoIkC9IgDVHDDFjbGTfh42YyeRKMlgVCGLCafSYekonSwCRCIQ0ADunAAbgIwJ7dDg+nqyQbqXtaYcnXZuMy3KyvOzblywpEhTEmOqaq1vvUleKooDpfKmKl6lE-pWYtkVdlNdrkUQhujRkwAMroL04D0SHSaPRaHQAYwkhywonbqAkWFQOC0qGwEmHAQHOEDGAdsgkXAcAlHKbZvg5d25iGSaWSTGyaRq9TSH2ycSi9+LCF+V5f5Zqf1SyXFDZIvgKItiMmKKJo6yaJs2ywF2gZrgyEwtrwoyTtOs7ztBS4rkGG7oFuOy7q4B6ckeNxkWeCD-pmMpPm0lRxM0uQxG+IrZEw5RPsKlTvE0KQxIBIa6qBBpMPibinE4QZIZwKFicQNBLKGqGMHSvYQKI5EnqmDyIE+MS0fUcTpJkwo3skb7gokVQ3jW+SJE+zxNEJOogWiYHMBJFLEjJRryWhAAyNB9jg9BKWA2mHlRIpCte-ypDW9TPJZUoIDWFTJM0yT1LUtRfBq3RakBIkeWJ3lSX5sYBYwk5gDOw4EQARtsmgSPQkVJse0VpsCNR8rU8rgskfyJMqrFpREaRKkw97PJk2TxM+bxxK5TaDGVbYVb5iH+WiqmwKIADCIgzjghANQRACOhjYECVzdZRvXZH8HHxPEvFNLxo1vlND6cYkuWgvmMSVllhWIsJ7n6ltkk7XoskqQax1mMORLnfVWCNTgN13VFT16e+aQgkwsQvvkl72ZU9S-YtNlZc+IpZP+uXpF0RWaDQEBwPcjbAc2m2YuMOImiI+Onr1ER3vUnFfrWMRKkUaUgjZGQZP+iTU0qFYQ8VUMCzDQsopzc58DQhjaOLumPDeFTymNoMZY0zm03EV7Jb8xMjRk2udEVfOlYbzAAGr+ghCN7ZQB3zpwFsSIYGBKQIABekBW-cPKipmOVRLUfxxFkjRFmlINyv1Bdg8qz7Pmt-MbUHHbwT2IX9oO2j7mOSnp1RjQJHCoo1HWgPfBNQLtJUpM-tNyqLZUvFpLXgetuBkHTtBWznfBVWMnJ+0Gt3vU1lelTZE0Qq5CNUSimxV6tOZs-GU0NaCf7JXQ8vXlw842-IXvbaKcpGqnBowaQPoTEUTQyzqjdikFUY0T43yiEwEyjRITGX-LkeEr99b1w-uJL+0ldrVT-piYKfZIA7HdEjUYYDHjE2fJxB895MjxH6mxQGs1qbilytlC8eRF7v08vgny38iE72oYwWh+l3iZWgSNZIcCFbZDYjeWaIpRS5RyvKE+AiDYfykQgCIBcJ7ZlzOqAsz5fqU04kxYxg9GjKiwV0IAA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QHkAuALMAnABAVVmxwFkAFAURwCUB7GgW1gDoDsByWHAByxoDMAlgBswAYmIBDANZgcAQVIBJHHwnCVAgHYQtUHBlkBXQrgnacUGvqvH2nLkIkBPIQNip4SEFxqwBqARpNRFAAD0QAWgBmADYAdiYADgBOOIAmGMS4gEZsqLzEgBoQJ0iYtKYABmSAFniAVnqYpprKqKiAXw7itExcVlwySloGZgGObl5BEXFpWQVlLDgfcy13M1QhJxwzCAsrVBsTCYdnV3dPUB8-AKCQkHCERJqk+pr2uMrEtLTE2LTiqUENlKhU0nFWql3n9folEl0egZ+iYSBRqHRGCxjvYpsIxAARMCObYLHBLWArQg7cyWaw4WxYE7E84ee7XfyBYJeR4RXJJFIguL1bI1DJRCEAkqIKLVJg1dK5SoxZLVHJpeoIkC9IgDVHDDFjbGTfh42YyeRKMlgVCGLCafSYekonSwCRCIQ0ADunAAbgIwJ7dDg+nqyQbqXtaYcnXZuMy3KyvOzblywpEhTEmOqaq1vvUleKooDpfKmKl6lE-pWYtkVdlNdrkUQhujRkwAMroL04D0SHSaPRaHQAYwkhywonbqAkWFQOC0qGwEmHAQHOEDGAdsgkXAcAlHKbZvg5d25iGSaWSTGyaRq9TSH2ycSi9+LCF+V5f5Zqf1SyXFDZIvgKItiMmKKJo6yaJs2ywF2gZrgyEwtrwoyTtOs7ztBS4rkGG7oFuOy7q4B6ckeNxkWeCD-pmMpPm0lRxM0uQxG+IrZEw5RPsKlTvE0KQxIBIa6qBBpMPibinE4QZIZwKFicQNBLKGqGMHSvYQKI5EnqmDyIE+MS0fUcTpJkwo3skb7gokVQ3jW+SJE+zxNEJOogWiYHMBJFLEjJRryWhAAyNB9jg9BKWA2mHlRIpCte-ypDW9TPJZUoIDWFTJM0yT1LUtRfBq3RakBIkeWJ3lSX5sYBYwk5gDOw4EQARtsmgSPQkVJse0VpsCNR8rU8rgskfyJMqrFpREaRKkw97PJk2TxM+bxxK5TaDGVbYVb5iH+WiqmwKIADCIgzjghANQRACOhjYECVzdZRvXZH8HHxPEvFNLxo1vlND6cYkuWgvmMSVllhWIsJ7n6ltkk7XoskqQax1mMORLnfVWCNTgN13VFT16e+aQgkwsQvvkl72ZU9S-YtNlZc+IpZP+uXpGtwHNptmLbc4VWMnJ+3I+2RJgCuSMMHSLpSfjp69equUA20UQPs0yXglZoNZskII5e8mSJNUNTs6VMPc3DvNrjVogAOJWE1y5SDLumPBk6RyiqI2VCCGTEzTaWilEWbtItvE1nEfyrZqmg0BAcD3I2HMbabhqxjwJoiE79w8ne9ScV+tYxEqRRpSCNk+8qlbU0qFYQ8VUOc8nWJENHc58DQhjaJnMU-HK4eGbEN6NM5tNxFeavfLW3yF80nRFQnJutpiABq-oIQje2UAd86cB3EiGBgSkCAAXpAXe9REoqZjlUS1BHWSNEWaUg3K-Xh2DyrPs+xvQ4vzCdt2GkgxDn3GOJSZ9CaNASHCUUNQ6yAynm+dolRSY-mmsqEOvE0jfwbr-JgEEoIwXOvBPmyFBajHAY8GsV4vZNCFLkEaURRRsSvK0cyIdjJNBrIJOeJUf6eXEubaSu1qpkMxIpZSNVODRg0hQ-Sd4r7qlHikFUY0vbMMDiZRokJjL-lyPCHh9ck64J5kI9eIjN5iWCn2SAOx3Ti0YLI98T5MqOTQcKd4i02KA04tNL42RGi1AfJHSGbkcH8JMSQgWFjyFdQorLQmIplZlkUSNZIKjC7ZDYjeHxF4XpfALIZfRIT1qhnCYIoMNVHF0SvEKHMz5QS3i0YgmUAMfjPn6heQss9imJ1KQaRxERw7IOzLmdUBZny-UppxJimj+6MJoV0LoQA */
     otherUserMpeRoomsModel.createMachine(
         {
             id: 'Other User MPE Rooms',
@@ -330,6 +333,48 @@ const otherUserMpeRoomsMachine =
                             actions: 'reset search query from context',
                             target: "#Other User MPE Rooms.Displaying user's MPE rooms",
                         },
+                        'Select MPE room to display': {
+                            actions: 'assign selected mpe room to context',
+                            target: '#Other User MPE Rooms.Displaying MPE room',
+                        },
+                    },
+                },
+                'Displaying MPE room': {
+                    meta: {
+                        test: async (
+                            { screen }: TestingContext,
+                            {
+                                context: { selectedMpeRoomID },
+                            }: OtherUserMpeRoomsMachineState,
+                        ) => {
+                            invariant(
+                                selectedMpeRoomID !== undefined,
+                                'A MPE room must have been selected before going to this state',
+                            );
+
+                            const mpeRoom = OTHER_USER_MPE_ROOMS.find(
+                                (mpeRoom) =>
+                                    mpeRoom.roomID === selectedMpeRoomID,
+                            );
+                            invariant(
+                                mpeRoom !== undefined,
+                                'The selected MPE room must exist in the MPE rooms',
+                            );
+
+                            await waitFor(() => {
+                                const mpeRoomScreen = screen.getByTestId(
+                                    `mpe-room-screen-${mpeRoom.roomID}`,
+                                );
+                                expect(mpeRoomScreen).toBeTruthy();
+                            });
+                        },
+                    },
+                    on: {
+                        'Go back': {
+                            description:
+                                'Currently this transition does not work on the application.',
+                            target: "#Other User MPE Rooms.Displaying user's MPE rooms",
+                        },
                     },
                 },
             },
@@ -383,6 +428,14 @@ const otherUserMpeRoomsMachine =
                 'reset search query from context': assign({
                     page: (_context) => 1,
                     searchQuery: (_context) => '',
+                }),
+
+                'assign selected mpe room to context': assign({
+                    selectedMpeRoomID: (_context, event) => {
+                        assertEventType(event, 'Select MPE room to display');
+
+                        return event.mpeRoomID;
+                    },
                 }),
             },
         },
@@ -541,6 +594,28 @@ const otherUserMpeRoomsTestModel = createTestModel<TestingContext>(
 
         fireEvent.press(cancelInputButton);
     },
+
+    'Select MPE room to display': async ({ screen }, e) => {
+        const event = e as EventFrom<
+            typeof otherUserMpeRoomsModel,
+            'Select MPE room to display'
+        >;
+
+        const mpeRoom = OTHER_USER_MPE_ROOMS.find(
+            ({ roomID }) => roomID === event.mpeRoomID,
+        );
+        invariant(
+            mpeRoom !== undefined,
+            'The selected MPE room must have been created first',
+        );
+
+        const mpeRoomCard = await withinOtherUserMpeRoomsScreen(
+            screen,
+        ).findByText(mpeRoom.roomName);
+        expect(mpeRoomCard).toBeTruthy();
+
+        fireEvent.press(mpeRoomCard);
+    },
 });
 
 cases<{
@@ -635,11 +710,13 @@ cases<{
 
 cases<{
     events: EventFrom<typeof otherUserMpeRoomsModel>[];
-    target: {
-        "Displaying user's MPE rooms":
-            | 'More MPE rooms to load'
-            | 'Loaded all MPE rooms';
-    };
+    target:
+        | {
+              "Displaying user's MPE rooms":
+                  | 'More MPE rooms to load'
+                  | 'Loaded all MPE rooms';
+          }
+        | 'Displaying MPE room';
 }>(
     "Fetching of user's MPE rooms",
     async ({ events, target }) => {
@@ -758,5 +835,19 @@ cases<{
                     "Displaying user's MPE rooms": 'Loaded all MPE rooms',
                 },
             },
+
+        'Goes to a fetched MPE room screen': {
+            events: [
+                {
+                    type: "Make API respond instantly and go to user's playlists",
+                },
+                { type: 'Start interacting with the application' },
+                {
+                    type: 'Select MPE room to display',
+                    mpeRoomID: OTHER_USER_MPE_ROOMS[0].roomID,
+                },
+            ],
+            target: 'Displaying MPE room',
+        },
     },
 );

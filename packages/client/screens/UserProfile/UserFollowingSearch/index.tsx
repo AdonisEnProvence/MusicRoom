@@ -151,14 +151,16 @@ const UserfollowingScreen: React.FC<UserFollowingSearchScreenProps> = ({
                                 disabled={false}
                                 onPress={() => {
                                     if (isMe) {
-                                        //why can't I use navigation.navigate ?
-                                        navigateFromRef('MyProfile', {
+                                        navigation.navigate('MyProfile', {
                                             screen: 'MyProfileIndex',
                                         });
                                     } else {
-                                        navigation.navigate('UserProfile', {
-                                            userID,
-                                        });
+                                        navigation.navigate(
+                                            'UserProfileIndex',
+                                            {
+                                                userID,
+                                            },
+                                        );
                                     }
                                 }}
                             />

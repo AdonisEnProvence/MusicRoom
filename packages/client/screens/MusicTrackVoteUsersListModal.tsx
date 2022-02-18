@@ -67,7 +67,7 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
 
                             const { userID } = event.pressedUser;
                             navigation.navigate('UserProfile', {
-                                screen: 'UserProfile',
+                                screen: 'UserProfileIndex',
                                 params: {
                                     userID,
                                 },

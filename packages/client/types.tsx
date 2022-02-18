@@ -104,7 +104,7 @@ export type MusicTrackVoteConstraintsDetailsParamList = {
 };
 
 export type UserProfileStackParamsList = {
-    UserProfile: UserProfileParams;
+    UserProfileIndex: UserProfileParams;
     UserMusicPlaylistEditorSearchScreen: UserProfileParams;
     UserFollowersSearch: UserFollowersSearchParams;
     UserFollowingSearch: UserFollowingSearchParams;
@@ -379,15 +379,21 @@ export type AlertScreenProps = {
     route: RouteProp<MainStackParamList, 'Alert'>;
 };
 
-export type UserProfileScreenProps = {
-    navigation: StackNavigationProp<UserProfileStackParamsList, 'UserProfile'>;
-    route: RouteProp<UserProfileStackParamsList, 'UserProfile'>;
+export type UserProfileIndexScreenProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'UserProfile'>,
+        StackNavigationProp<UserProfileStackParamsList, 'UserProfileIndex'>
+    >;
+    route: RouteProp<UserProfileStackParamsList, 'UserProfileIndex'>;
 };
 
 export type UserMusicPlaylistEditorSearchScreenProps = {
-    navigation: StackNavigationProp<
-        UserProfileStackParamsList,
-        'UserMusicPlaylistEditorSearchScreen'
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'UserProfile'>,
+        StackNavigationProp<
+            UserProfileStackParamsList,
+            'UserMusicPlaylistEditorSearchScreen'
+        >
     >;
     route: RouteProp<
         UserProfileStackParamsList,
@@ -396,17 +402,17 @@ export type UserMusicPlaylistEditorSearchScreenProps = {
 };
 
 export type UserFollowersSearchScreenProps = {
-    navigation: StackNavigationProp<
-        UserProfileStackParamsList,
-        'UserFollowersSearch'
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'UserProfile'>,
+        StackNavigationProp<UserProfileStackParamsList, 'UserFollowersSearch'>
     >;
     route: RouteProp<UserProfileStackParamsList, 'UserFollowersSearch'>;
 };
 
 export type UserFollowingSearchScreenProps = {
-    navigation: StackNavigationProp<
-        UserProfileStackParamsList,
-        'UserFollowingSearch'
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'UserProfile'>,
+        StackNavigationProp<UserProfileStackParamsList, 'UserFollowingSearch'>
     >;
     route: RouteProp<UserProfileStackParamsList, 'UserFollowingSearch'>;
 };

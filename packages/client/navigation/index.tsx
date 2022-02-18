@@ -23,7 +23,7 @@ import MusicTrackVoteUsersListModal from '../screens/MusicTrackVoteUsersListModa
 import MusicTrackVoteUsersSearchModal from '../screens/MusicTrackVoteUsersSearchModal';
 import SettingsScreen from '../screens/SettingsScreen';
 import SuggestTrackModal from '../screens/SuggestTrackModal';
-import UserProfileScreen from '../screens/UserProfile';
+import UserProfileIndexScreen from '../screens/UserProfile';
 import {
     MainStackParamList,
     MusicPlaylistEditorRoomsSearchParamList,
@@ -431,7 +431,7 @@ export const UserProfileNavigator: React.FC<ColorModeProps> = ({
 
     return (
         <UserProfileStack.Navigator
-            initialRouteName="UserProfile"
+            initialRouteName="UserProfileIndex"
             mode="modal"
             screenOptions={{
                 ...style,
@@ -440,13 +440,13 @@ export const UserProfileNavigator: React.FC<ColorModeProps> = ({
             }}
         >
             <UserProfileStack.Screen
-                name="UserProfile"
+                name="UserProfileIndex"
                 options={{
                     title: 'User Profile',
                     headerShown: false,
                     detachPreviousScreen: false,
                 }}
-                component={UserProfileScreen}
+                component={UserProfileIndexScreen}
             />
 
             <UserProfileStack.Screen

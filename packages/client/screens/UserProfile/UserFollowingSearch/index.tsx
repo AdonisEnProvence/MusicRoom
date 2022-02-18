@@ -1,60 +1,108 @@
-import { Text, useSx, View } from 'dripsy';
+import { Button, Text, useSx, View } from 'dripsy';
 import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActorRef } from 'xstate';
 import { useActor, useMachine } from '@xstate/react';
 import { FlatList, TouchableOpacity } from 'react-native';
 import { RefreshControl } from 'react-native-web-refresh-control';
-import { UserFollowingSearchScreenProps } from '../../../types';
-import { AppScreenWithSearchBar, Typo } from '../../../components/kit';
+import { UserProfileInformation } from '@musicroom/types';
+import invariant from 'tiny-invariant';
+import {
+    AppScreen,
+    AppScreenContainer,
+    AppScreenHeader,
+    AppScreenWithSearchBar,
+} from '../../../components/kit';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
 } from '../../../machines/appScreenHeaderWithSearchBarMachine';
-import { createUserFollowingSearchMachine } from '../../../machines/usersUniversalSearcMachine';
 import UserListItem from '../../../components/User/UserListItem';
 import { IS_TEST } from '../../../constants/Env';
+import { createUserInformationMachine } from '../../../machines/userInformationMachine';
+import { getFakeUserID } from '../../../contexts/SocketContext';
+import { navigateFromRef } from '../../../navigation/RootNavigation';
+import UserNotFoundScreen from '../kit/UserNotFound';
+import BlankScreen from '../kit/BlankScreen';
+import LoadingScreen from '../kit/LoadingScreen';
+import { createUserFollowingSearchMachine } from '../../../machines/usersUniversalSearcMachine';
+import { UserFollowingSearchScreenProps } from '../../../types';
 
-const UserFollowingSearchScreen: React.FC<UserFollowingSearchScreenProps> = ({
+const ForbiddenAccessToUserFollowingScreen: React.FC<
+    UserFollowingSearchScreenProps & {
+        userProfileInformation: UserProfileInformation;
+    }
+> = ({ navigation, userProfileInformation: { userNickname } }) => {
+    const insets = useSafeAreaInsets();
+
+    return (
+        <AppScreen>
+            <AppScreenHeader
+                title={`${userNickname}'s following`}
+                insetTop={insets.top}
+                canGoBack
+                goBack={() => {
+                    navigation.goBack();
+                }}
+            />
+
+            <AppScreenContainer testID="search-user-following-screen">
+                <Text sx={{ color: 'white', marginBottom: 'xl' }}>
+                    Access to user's following is forbidden
+                </Text>
+
+                <Button title="Go back" onPress={() => navigation.goBack()} />
+            </AppScreenContainer>
+        </AppScreen>
+    );
+};
+
+const UserfollowingScreen: React.FC<UserFollowingSearchScreenProps> = ({
     navigation,
-    route,
+    route: {
+        params: { userID: relatedUserID },
+    },
 }) => {
-    const { userID: relatedUserID } = route.params;
+    const meUSerID = getFakeUserID();
     const insets = useSafeAreaInsets();
     const sx = useSx();
     const [screenOffsetY, setScreenOffsetY] = useState(0);
     const initialNumberOfItemsToRender = IS_TEST ? Infinity : 10;
 
-    const [userFollowingSearchState, userFollowingSearchMachineSend] =
+    const [userfollowingSearchState, userfollowingSearchMachineSend] =
         useMachine(
             createUserFollowingSearchMachine({
                 userID: relatedUserID,
             }),
         );
-    const { searchQuery, usersSummaries } = userFollowingSearchState.context;
-    const hasMoreUsersToFetch = userFollowingSearchState.context.hasMore;
-    const isLoadingRooms = userFollowingSearchState.hasTag('fetching');
+    const { searchQuery, usersSummaries } = userfollowingSearchState.context;
+    const hasMoreUsersToFetch = userfollowingSearchState.context.hasMore;
+    const isFetching = userfollowingSearchState.hasTag('fetching');
     const searchBarActor: ActorRef<
         AppScreenHeaderWithSearchBarMachineEvent,
         AppScreenHeaderWithSearchBarMachineState
-    > = userFollowingSearchState.children.searchBarMachine;
+    > = userfollowingSearchState.children.searchBarMachine;
     const [searchState, sendToSearch] = useActor(searchBarActor);
     const showHeader = searchState.hasTag('showHeaderTitle');
 
     function handleLoadMore() {
-        userFollowingSearchMachineSend({
+        userfollowingSearchMachineSend({
             type: 'LOAD_MORE_ITEMS',
         });
     }
 
     function handleRefresh() {
-        userFollowingSearchMachineSend({
+        userfollowingSearchMachineSend({
             type: 'REFRESH',
         });
     }
 
     return (
         <AppScreenWithSearchBar
+            canGoBack
+            goBack={() => {
+                navigation.goBack();
+            }}
             title="Search for a following"
             testID="search-user-following-screen"
             searchInputPlaceholder="Search a following..."
@@ -64,7 +112,6 @@ const UserFollowingSearchScreen: React.FC<UserFollowingSearchScreenProps> = ({
             searchQuery={searchQuery}
             sendToSearch={sendToSearch}
         >
-            <Typo>USER Following SCREEN</Typo>
             <FlatList
                 testID="user-following-search-flat-list"
                 data={usersSummaries}
@@ -78,13 +125,13 @@ const UserFollowingSearchScreen: React.FC<UserFollowingSearchScreenProps> = ({
                 initialNumToRender={initialNumberOfItemsToRender}
                 refreshControl={
                     <RefreshControl
-                        refreshing={isLoadingRooms}
+                        refreshing={isFetching}
                         onRefresh={handleRefresh}
                     />
                 }
                 renderItem={({ item: { nickname, userID }, index }) => {
                     const isLastItem = index === usersSummaries.length - 1;
-
+                    const isMe = userID === meUSerID;
                     return (
                         <View
                             sx={{
@@ -97,12 +144,23 @@ const UserFollowingSearchScreen: React.FC<UserFollowingSearchScreenProps> = ({
                                     hasControlAndDelegationPermission: false,
                                     isCreator: false,
                                     isDelegationOwner: false,
-                                    isMe: false,
+                                    isMe,
                                     nickname,
                                     userID,
                                 }}
                                 disabled={false}
-                                onPress={() => console.log('user card pressed')}
+                                onPress={() => {
+                                    if (isMe) {
+                                        //why can't I use navigation.navigate ?
+                                        navigateFromRef('MyProfile', {
+                                            screen: 'MyProfileIndex',
+                                        });
+                                    } else {
+                                        navigation.navigate('UserProfile', {
+                                            userID,
+                                        });
+                                    }
+                                }}
                             />
                         </View>
                     );
@@ -153,6 +211,62 @@ const UserFollowingSearchScreen: React.FC<UserFollowingSearchScreenProps> = ({
             />
         </AppScreenWithSearchBar>
     );
+};
+
+const UserFollowingSearchScreen: React.FC<UserFollowingSearchScreenProps> = (
+    props,
+) => {
+    const {
+        route: {
+            params: { userID: relatedUserID },
+        },
+    } = props;
+
+    const [state] = useMachine(createUserInformationMachine(relatedUserID));
+
+    const showBlankScreen = state.matches('Waiting');
+    if (showBlankScreen === true) {
+        return <BlankScreen />;
+    }
+
+    const showLoadingIndicator = state.matches('Show loading indicator');
+    if (showLoadingIndicator === true) {
+        return (
+            <LoadingScreen
+                title="Loading user's following rooms"
+                testID="search-user-following-screen"
+            />
+        );
+    }
+
+    const userIsUnknown = state.matches('Unknown user');
+    if (userIsUnknown === true) {
+        return (
+            <UserNotFoundScreen
+                testID="search-user-following-screen"
+                title="User's following"
+            />
+        );
+    }
+
+    const userProfileInformation = state.context.userProfileInformation;
+    invariant(
+        userProfileInformation !== undefined,
+        'When the user is known, the user profile information must be defined',
+    );
+
+    const accessToUserRelationsIsDisallowed =
+        userProfileInformation.followingCounter === undefined;
+    if (accessToUserRelationsIsDisallowed === true) {
+        return (
+            <ForbiddenAccessToUserFollowingScreen
+                {...props}
+                userProfileInformation={userProfileInformation}
+            />
+        );
+    }
+
+    return <UserfollowingScreen {...props} />;
 };
 
 export default UserFollowingSearchScreen;

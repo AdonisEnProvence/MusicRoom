@@ -73,6 +73,11 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                                 },
                             });
                         },
+                        redirectToMyProfile: () => {
+                            navigation.navigate('MyProfile', {
+                                screen: 'MyProfileIndex',
+                            });
+                        },
                     },
                 }),
             [socket, navigation],
@@ -185,10 +190,16 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                             >
                                 <UserListItemWithThreeDots
                                     onPress={() => {
-                                        sendToUsersListMachine({
-                                            type: 'USER_CLICK_ON_USER_CARD',
-                                            pressedUser: item,
-                                        });
+                                        if (item.isMe) {
+                                            sendToUsersListMachine({
+                                                type: 'USER_CLICK_ON_HIS_USER_CARD',
+                                            });
+                                        } else {
+                                            sendToUsersListMachine({
+                                                type: 'USER_CLICK_ON_USER_CARD',
+                                                pressedUser: item,
+                                            });
+                                        }
                                     }}
                                     loading={false}
                                     hideThreeDots={

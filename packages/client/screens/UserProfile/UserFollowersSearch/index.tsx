@@ -23,7 +23,6 @@ import UserListItem from '../../../components/User/UserListItem';
 import { IS_TEST } from '../../../constants/Env';
 import { createUserInformationMachine } from '../../../machines/userInformationMachine';
 import { getFakeUserID } from '../../../contexts/SocketContext';
-import { navigateFromRef } from '../../../navigation/RootNavigation';
 import UserNotFoundScreen from '../kit/UserNotFound';
 import BlankScreen from '../kit/BlankScreen';
 import LoadingScreen from '../kit/LoadingScreen';
@@ -70,7 +69,7 @@ const UserFollowersScreen: React.FC<UserFollowersSearchScreenProps> = ({
     const initialNumberOfItemsToRender = IS_TEST ? Infinity : 10;
 
     const [userFollowersSearchState, userFollowersSearchMachineSend] =
-        useMachine(
+        useMachine(() =>
             createUserFollowersSearchMachine({
                 userID: relatedUserID,
             }),
@@ -224,7 +223,9 @@ const UserFollowersSearchScreen: React.FC<UserFollowersSearchScreenProps> = (
         },
     } = props;
 
-    const [state] = useMachine(createUserInformationMachine(relatedUserID));
+    const [state] = useMachine(() =>
+        createUserInformationMachine(relatedUserID),
+    );
 
     const showBlankScreen = state.matches('Waiting');
     if (showBlankScreen === true) {

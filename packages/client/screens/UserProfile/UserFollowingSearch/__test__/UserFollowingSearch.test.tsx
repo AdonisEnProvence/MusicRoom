@@ -30,7 +30,7 @@ interface TestingContext {
 
 const RESULT_PER_PAGE = 10;
 
-const searchUserFollowerModel = createModel(
+const searchUserFollowingModel = createModel(
     {},
     {
         events: {
@@ -39,7 +39,7 @@ const searchUserFollowerModel = createModel(
             'Make API respond user found and render application': () => ({}),
             'Make API respond forbidden exception and render application':
                 () => ({}),
-            'Load more followers results': () => ({}),
+            'Load more following results': () => ({}),
             'fill searched user nickname query and submit': () => ({}),
             'fill my nickname and submit': () => ({}),
             'cancel search bar': () => ({}),
@@ -49,8 +49,8 @@ const searchUserFollowerModel = createModel(
     },
 );
 
-const searchUserFollowerMachine = searchUserFollowerModel.createMachine({
-    id: 'User followers search engine',
+const searchUserFollowingMachine = searchUserFollowingModel.createMachine({
+    id: 'User following search engine',
     initial: 'Initializing',
     states: {
         Initializing: {
@@ -61,13 +61,13 @@ const searchUserFollowerMachine = searchUserFollowerModel.createMachine({
             },
             on: {
                 'Make API respond user not found and render application': {
-                    target: '#User followers search engine.User not found',
+                    target: '#User following search engine.User not found',
                 },
                 'Make API respond user found and render application': {
-                    target: '#User followers search engine.User found.User relations are viewable',
+                    target: '#User following search engine.User found.User relations are viewable',
                 },
                 'Make API respond forbidden exception and render application': {
-                    target: '#User followers search engine.User found.User relations are forbidden',
+                    target: '#User following search engine.User found.User relations are forbidden',
                 },
             },
         },
@@ -81,12 +81,12 @@ const searchUserFollowerMachine = searchUserFollowerModel.createMachine({
                     );
 
                     await waitFor(() => {
-                        const userFollowersSearchContainer = screen.getByTestId(
-                            `search-user-followers-screen`,
+                        const userfollowingSearchContainer = screen.getByTestId(
+                            `search-user-following-screen`,
                         );
-                        expect(userFollowersSearchContainer).toBeTruthy();
+                        expect(userfollowingSearchContainer).toBeTruthy();
                         const userNotFoundText = within(
-                            userFollowersSearchContainer,
+                            userfollowingSearchContainer,
                         ).getByText(/User.*not.*found/i);
                         expect(userNotFoundText).toBeTruthy();
                     });
@@ -103,10 +103,10 @@ const searchUserFollowerMachine = searchUserFollowerModel.createMachine({
                     );
 
                     await waitFor(() => {
-                        const userFollowersSearchContainer = screen.getByTestId(
-                            `search-user-followers-screen`,
+                        const userfollowingSearchContainer = screen.getByTestId(
+                            `search-user-following-screen`,
                         );
-                        expect(userFollowersSearchContainer).toBeTruthy();
+                        expect(userfollowingSearchContainer).toBeTruthy();
                     });
                 },
             },
@@ -123,15 +123,15 @@ const searchUserFollowerMachine = searchUserFollowerModel.createMachine({
                                     );
 
                                     await waitFor(() => {
-                                        const followersFlatList =
+                                        const followingFlatList =
                                             screen.getByTestId(
-                                                `user-followers-search-flat-list`,
+                                                `user-following-search-flat-list`,
                                             );
-                                        expect(followersFlatList).toBeTruthy();
+                                        expect(followingFlatList).toBeTruthy();
 
                                         const userCards =
                                             within(
-                                                followersFlatList,
+                                                followingFlatList,
                                             ).queryAllByTestId(/.*-user-card/);
                                         expect(userCards.length).toBe(
                                             1 * RESULT_PER_PAGE,
@@ -150,15 +150,15 @@ const searchUserFollowerMachine = searchUserFollowerModel.createMachine({
                                     );
 
                                     await waitFor(() => {
-                                        const followersFlatList =
+                                        const followingFlatList =
                                             screen.getByTestId(
-                                                `user-followers-search-flat-list`,
+                                                `user-following-search-flat-list`,
                                             );
-                                        expect(followersFlatList).toBeTruthy();
+                                        expect(followingFlatList).toBeTruthy();
 
                                         const userCards =
                                             within(
-                                                followersFlatList,
+                                                followingFlatList,
                                             ).queryAllByTestId(/.*-user-card/);
                                         expect(userCards.length).toBe(
                                             2 * RESULT_PER_PAGE,
@@ -177,15 +177,15 @@ const searchUserFollowerMachine = searchUserFollowerModel.createMachine({
                                     );
 
                                     await waitFor(() => {
-                                        const followersFlatList =
+                                        const followingFlatList =
                                             screen.getByTestId(
-                                                `user-followers-search-flat-list`,
+                                                `user-following-search-flat-list`,
                                             );
-                                        expect(followersFlatList).toBeTruthy();
+                                        expect(followingFlatList).toBeTruthy();
 
                                         const userCards =
                                             within(
-                                                followersFlatList,
+                                                followingFlatList,
                                             ).queryAllByTestId(/.*-user-card/);
                                         expect(userCards.length).toBe(1);
                                     });
@@ -233,7 +233,7 @@ const searchUserFollowerMachine = searchUserFollowerModel.createMachine({
                     },
 
                     on: {
-                        'Load more followers results': {
+                        'Load more following results': {
                             target: '.second page is loaded on screen',
                         },
 
@@ -269,7 +269,7 @@ const searchUserFollowerMachine = searchUserFollowerModel.createMachine({
 
                             await waitFor(() => {
                                 const forbiddenLabel =
-                                    screen.getByText(/followers.*forbidden/i);
+                                    screen.getByText(/following.*forbidden/i);
                                 expect(forbiddenLabel).toBeTruthy();
                             });
                         },
@@ -281,8 +281,8 @@ const searchUserFollowerMachine = searchUserFollowerModel.createMachine({
 });
 
 //User events
-const searchUserFollowersTestModel = createTestModel<TestingContext>(
-    searchUserFollowerMachine,
+const searchUserfollowingTestModel = createTestModel<TestingContext>(
+    searchUserFollowingMachine,
 ).withEvents({
     'Make API respond user found and render application': async (context) => {
         //user exists route ?
@@ -291,7 +291,7 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
         const { nickname: searchedUserNickname, userID: searchedUserID } =
             context.searchedUserSummary;
 
-        const followers = [
+        const following = [
             ...Array.from({ length: 21 }, () =>
                 db.searchableUsers.create({
                     nickname: internet.userName(),
@@ -313,22 +313,22 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
             userID: famousUserID,
             following: false,
             userNickname: internet.userName(),
-            followersCounter: followers.length,
-            followingCounter: 0,
+            followingCounter: following.length,
+            followersCounter: 0,
             playlistsCounter: undefined,
         });
 
-        db.userFollowers.create({
+        db.userFollowing.create({
             userID: famousUserID,
-            followers,
+            following,
         });
 
         const screen = await goToUserProfileThroughMusicTrackVoteRoom({
             userID: famousUserID,
         });
-        await goToUserFollowersScreen({
+        await goToUserfollowingScreen({
             screen,
-            expectedFollowersCounter: followers.length,
+            expectedFollowingCounter: following.length,
         });
         context.screen = screen;
     },
@@ -340,8 +340,8 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
             userID,
             following: false,
             userNickname,
-            followersCounter: 1,
-            followingCounter: 0,
+            followingCounter: 1,
+            followersCounter: 0,
             playlistsCounter: undefined,
         });
 
@@ -362,7 +362,7 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
                 },
             ),
         );
-        await goToUserFollowersScreen({ screen, expectedFollowersCounter: 1 });
+        await goToUserfollowingScreen({ screen, expectedFollowingCounter: 1 });
         context.screen = screen;
     },
     'Make API respond forbidden exception and render application': async (
@@ -373,8 +373,8 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
             userID,
             following: false,
             userNickname,
-            followersCounter: 1,
-            followingCounter: 0,
+            followingCounter: 1,
+            followersCounter: 0,
             playlistsCounter: undefined,
         });
         const screen = await goToUserProfileThroughMusicTrackVoteRoom({
@@ -395,18 +395,18 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
                             userID,
                             following: false,
                             userNickname,
-                            followersCounter: undefined,
                             followingCounter: undefined,
+                            followersCounter: undefined,
                             playlistsCounter: undefined,
                         }),
                     );
                 },
             ),
         );
-        await goToUserFollowersScreen({ screen, expectedFollowersCounter: 1 });
+        await goToUserfollowingScreen({ screen, expectedFollowingCounter: 1 });
         context.screen = screen;
     },
-    'Load more followers results': (context) => {
+    'Load more following results': (context) => {
         const { screen } = context;
         invariant(screen !== undefined, 'screen should be init');
 
@@ -423,13 +423,13 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
         } = context;
         invariant(screen !== undefined, 'screen should be init');
 
-        const searchFollowerTextField = (
-            await screen.findAllByPlaceholderText(/search.*follower/i)
+        const searchFollowingTextField = (
+            await screen.findAllByPlaceholderText(/search.*following/i)
         ).slice(-1)[0];
-        expect(searchFollowerTextField).toBeTruthy();
-        fireEvent(searchFollowerTextField, 'focus');
-        fireEvent.changeText(searchFollowerTextField, nickname);
-        fireEvent(searchFollowerTextField, 'submitEditing');
+        expect(searchFollowingTextField).toBeTruthy();
+        fireEvent(searchFollowingTextField, 'focus');
+        fireEvent.changeText(searchFollowingTextField, nickname);
+        fireEvent(searchFollowingTextField, 'submitEditing');
     },
     'fill my nickname and submit': async ({
         screen,
@@ -437,22 +437,22 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
     }) => {
         invariant(screen !== undefined, 'screen should be init');
 
-        const searchFollowerTextField = (
-            await screen.findAllByPlaceholderText(/search.*follower/i)
+        const searchFollowingTextField = (
+            await screen.findAllByPlaceholderText(/search.*following/i)
         ).slice(-1)[0];
-        expect(searchFollowerTextField).toBeTruthy();
-        fireEvent(searchFollowerTextField, 'focus');
-        fireEvent.changeText(searchFollowerTextField, nickname);
-        fireEvent(searchFollowerTextField, 'submitEditing');
+        expect(searchFollowingTextField).toBeTruthy();
+        fireEvent(searchFollowingTextField, 'focus');
+        fireEvent.changeText(searchFollowingTextField, nickname);
+        fireEvent(searchFollowingTextField, 'submitEditing');
     },
     'cancel search bar': (context) => {
         const { screen } = context;
         invariant(screen !== undefined, 'screen should be init');
-        const userFollowersSearchContainer = screen.getByTestId(
-            `search-user-followers-screen`,
+        const userfollowingSearchContainer = screen.getByTestId(
+            `search-user-following-screen`,
         );
-        expect(userFollowersSearchContainer).toBeTruthy();
-        const cancelButton = within(userFollowersSearchContainer).getByText(
+        expect(userfollowingSearchContainer).toBeTruthy();
+        const cancelButton = within(userfollowingSearchContainer).getByText(
             /cancel/i,
         );
         expect(cancelButton).toBeTruthy();
@@ -465,36 +465,36 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
     }) => {
         invariant(screen !== undefined, 'screen should be init');
 
-        const followersFlatList = screen.getByTestId(
-            `user-followers-search-flat-list`,
+        const followingFlatList = screen.getByTestId(
+            `user-following-search-flat-list`,
         );
-        expect(followersFlatList).toBeTruthy();
+        expect(followingFlatList).toBeTruthy();
 
-        const searchedUserCard = within(followersFlatList).getByText(nickname);
+        const searchedUserCard = within(followingFlatList).getByText(nickname);
         expect(searchedUserCard).toBeTruthy();
         fireEvent.press(searchedUserCard);
     },
     'press my user card': ({ screen, meUserSummary: { nickname } }) => {
         invariant(screen !== undefined, 'screen should be init');
 
-        const followersFlatList = screen.getByTestId(
-            `user-followers-search-flat-list`,
+        const followingFlatList = screen.getByTestId(
+            `user-following-search-flat-list`,
         );
-        expect(followersFlatList).toBeTruthy();
+        expect(followingFlatList).toBeTruthy();
 
-        const myUserCard = within(followersFlatList).getByText(nickname);
+        const myUserCard = within(followingFlatList).getByText(nickname);
         expect(myUserCard).toBeTruthy();
         fireEvent.press(myUserCard);
     },
 });
 
 cases<{
-    events: EventFrom<typeof searchUserFollowerModel>[];
+    events: EventFrom<typeof searchUserFollowingModel>[];
     target: any;
 }>(
-    'user followers search tests',
+    'user following search tests',
     async ({ events, target }) => {
-        const plan = searchUserFollowersTestModel.getPlanFromEvents(events, {
+        const plan = searchUserfollowingTestModel.getPlanFromEvents(events, {
             target,
         });
 
@@ -514,7 +514,7 @@ cases<{
         // User found and relations are viewable
         'Make API respond user found and render application': {
             events: [
-                searchUserFollowerModel.events[
+                searchUserFollowingModel.events[
                     'Make API respond user found and render application'
                 ](),
             ],
@@ -526,7 +526,7 @@ cases<{
         //User not found
         'Make API respond user not found and render application': {
             events: [
-                searchUserFollowerModel.events[
+                searchUserFollowingModel.events[
                     'Make API respond user not found and render application'
                 ](),
             ],
@@ -535,7 +535,7 @@ cases<{
 
         'Make API respond forbidden exception and render application': {
             events: [
-                searchUserFollowerModel.events[
+                searchUserFollowingModel.events[
                     'Make API respond forbidden exception and render application'
                 ](),
             ],
@@ -547,12 +547,12 @@ cases<{
 );
 
 cases<{
-    events: EventFrom<typeof searchUserFollowerModel>[];
+    events: EventFrom<typeof searchUserFollowingModel>[];
     target: any;
 }>(
-    'user followers deep search tests',
+    'user following deep search tests',
     async ({ events, target }) => {
-        const plan = searchUserFollowersTestModel.getPlanFromEvents(events, {
+        const plan = searchUserfollowingTestModel.getPlanFromEvents(events, {
             target,
         });
         const meUserSummary = {
@@ -574,14 +574,16 @@ cases<{
         // User found and relations are viewable
         'User found data viewable, load more filter and cancel filter': {
             events: [
-                searchUserFollowerModel.events[
+                searchUserFollowingModel.events[
                     'Make API respond user found and render application'
                 ](),
-                searchUserFollowerModel.events['Load more followers results'](),
-                searchUserFollowerModel.events[
+                searchUserFollowingModel.events[
+                    'Load more following results'
+                ](),
+                searchUserFollowingModel.events[
                     'fill searched user nickname query and submit'
                 ](),
-                searchUserFollowerModel.events['cancel search bar'](),
+                searchUserFollowingModel.events['cancel search bar'](),
             ],
             target: {
                 'User found': {
@@ -593,11 +595,13 @@ cases<{
 
         'User foud data viewable, user presses his own user card': {
             events: [
-                searchUserFollowerModel.events[
+                searchUserFollowingModel.events[
                     'Make API respond user found and render application'
                 ](),
-                searchUserFollowerModel.events['fill my nickname and submit'](),
-                searchUserFollowerModel.events['press my user card'](),
+                searchUserFollowingModel.events[
+                    'fill my nickname and submit'
+                ](),
+                searchUserFollowingModel.events['press my user card'](),
             ],
             target: {
                 'User found': {
@@ -608,13 +612,13 @@ cases<{
 
         'User foud data viewable, user presses other user card': {
             events: [
-                searchUserFollowerModel.events[
+                searchUserFollowingModel.events[
                     'Make API respond user found and render application'
                 ](),
-                searchUserFollowerModel.events[
+                searchUserFollowingModel.events[
                     'fill searched user nickname query and submit'
                 ](),
-                searchUserFollowerModel.events['press an other user card'](),
+                searchUserFollowingModel.events['press an other user card'](),
             ],
             target: {
                 'User found': {
@@ -701,19 +705,19 @@ async function goToUserProfileThroughMusicTrackVoteRoom({
     return screen;
 }
 
-async function goToUserFollowersScreen({
+async function goToUserfollowingScreen({
     screen,
-    expectedFollowersCounter,
+    expectedFollowingCounter,
 }: {
     screen: ReturnType<typeof render>;
-    expectedFollowersCounter: number;
+    expectedFollowingCounter: number;
 }): Promise<void> {
-    const followersCounter = screen.getByText(
-        new RegExp(`followers.*${expectedFollowersCounter}`),
+    const followingCounter = screen.getByText(
+        new RegExp(`following.*${expectedFollowingCounter}`),
     );
-    fireEvent.press(followersCounter);
+    fireEvent.press(followingCounter);
 
     await waitFor(() => {
-        expect(screen.getByTestId('search-user-followers-screen')).toBeTruthy();
+        expect(screen.getByTestId('search-user-following-screen')).toBeTruthy();
     });
 }

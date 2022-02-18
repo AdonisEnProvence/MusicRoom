@@ -449,10 +449,6 @@ export const handlers = [
             },
         });
 
-        console.log({
-            userFollowers,
-        });
-
         if (userFollowers === null || userFollowers.followers === undefined) {
             return res(ctx.status(404));
         }
@@ -489,11 +485,6 @@ export const handlers = [
                 userID: {
                     equals: req.body.userID,
                 },
-                following: {
-                    nickname: {
-                        in: [searchQuery],
-                    },
-                },
             },
         });
 
@@ -501,7 +492,11 @@ export const handlers = [
             return res(ctx.status(404));
         }
 
-        const paginatedFollowing = userFollowing.following.slice(
+        const filteredUserFollowing = userFollowing.following.filter((user) =>
+            user.nickname.toLowerCase().startsWith(searchQuery.toLowerCase()),
+        );
+
+        const paginatedFollowing = filteredUserFollowing.slice(
             (page - 1) * PAGE_SIZE,
             page * PAGE_SIZE,
         );
@@ -509,8 +504,8 @@ export const handlers = [
         return res(
             ctx.json({
                 data: paginatedFollowing,
-                totalEntries: userFollowing.following.length,
-                hasMore: userFollowing.following.length > page * PAGE_SIZE,
+                totalEntries: filteredUserFollowing.length,
+                hasMore: filteredUserFollowing.length > page * PAGE_SIZE,
                 page,
             }),
         );

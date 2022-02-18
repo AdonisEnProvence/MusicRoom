@@ -9,11 +9,11 @@ import {
     AppScreenHeader,
     SvgImage,
 } from '../../components/kit';
-import { UserProfileScreenProps } from '../../types';
+import { UserProfileIndexScreenProps } from '../../types';
 import { createUserProfileInformationMachine } from '../../machines/userProfileInformationMachine';
 import { generateUserAvatarUri } from '../../constants/users-avatar';
 
-type UserProfileContentProps = UserProfileScreenProps & {
+type UserProfileContentProps = UserProfileIndexScreenProps & {
     userID: string;
 };
 
@@ -118,14 +118,18 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
         {
             informationName: 'followers',
             onPress: () => {
-                console.log('followers section pressed');
+                navigation.navigate('UserFollowersSearch', {
+                    userID,
+                });
             },
             informationCounter: userProfileInformation.followersCounter,
         },
         {
             informationName: 'following',
             onPress: () => {
-                console.log('following section pressed');
+                navigation.navigate('UserFollowingSearch', {
+                    userID,
+                });
             },
             informationCounter: userProfileInformation.followingCounter,
         },
@@ -242,7 +246,7 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
 //To allow useInterpret to recompute a machine when userID comes to change
 //The key given to the UserProfileContent when changing will bring the componement to rerender
 //And then to rerun a useInterpret with the new userID
-const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
+const UserProfileIndexScreen: React.FC<UserProfileIndexScreenProps> = ({
     navigation,
     route,
 }) => {
@@ -261,4 +265,4 @@ const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
     );
 };
 
-export default UserProfileScreen;
+export default UserProfileIndexScreen;

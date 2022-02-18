@@ -10,7 +10,7 @@ export default class UserSeeder extends BaseSeeder {
     public async run(): Promise<void> {
         const uniqueKey = 'uuid';
 
-        await User.updateOrCreateMany(uniqueKey, [
+        const users = await User.updateOrCreateMany(uniqueKey, [
             {
                 uuid: 'f5ddbf01-cc01-4422-b347-67988342b558',
                 nickname: 'Web',
@@ -43,5 +43,12 @@ export default class UserSeeder extends BaseSeeder {
                 nickname: `A${internet.userName()}`,
             })),
         ]);
+
+        const famousUser = await User.create({
+            uuid: '7d21f121-bed5-4c20-9da5-94746bbc8c08',
+            nickname: 'Carole',
+        });
+
+        famousUser.related('followers').saveMany(users);
     }
 }

@@ -21,10 +21,8 @@ import {
 } from '../../machines/appScreenHeaderWithSearchBarMachine';
 import { createMpeRoomUniversalSearchMachine } from '../../machines/mpeRoomUniversalSearchMachine';
 import { IS_TEST } from '../../constants/Env';
-import { getUserProfileInformation } from '../../services/UserProfileService';
-import { getFakeUserID } from '../../contexts/SocketContext';
 import { fetchOtherUserMpeRooms } from '../../services/MpeService';
-import { userInformationMachine } from './userInformationMachine';
+import { createUserInformationMachine } from '../../machines/userInformationMachine';
 
 const BlankScreen: React.FC<UserMusicPlaylistEditorSearchScreenProps> = ({
     navigation,
@@ -309,28 +307,7 @@ const UserMusicPlaylistEditorSearchScreen: React.FC<UserMusicPlaylistEditorSearc
             },
         } = props;
 
-        const [state] = useMachine(userInformationMachine, {
-            services: {
-                "Fetch user's information": () => async (sendBack) => {
-                    try {
-                        const response = await getUserProfileInformation({
-                            tmpAuthUserID: getFakeUserID(),
-                            userID,
-                        });
-
-                        sendBack({
-                            type: "Succeeded to retrieve user's profile information",
-                            userProfileInformation: response,
-                        });
-                    } catch (e) {
-                        console.log('error occured');
-                        sendBack({
-                            type: "Failed to retrieve user's profile information",
-                        });
-                    }
-                },
-            },
-        });
+        const [state] = useMachine(() => createUserInformationMachine(userID));
 
         const showBlankScreen = state.matches('Waiting');
         if (showBlankScreen === true) {

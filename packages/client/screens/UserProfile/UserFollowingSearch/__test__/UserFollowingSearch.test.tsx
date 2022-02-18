@@ -192,44 +192,6 @@ const searchUserFollowingMachine = searchUserFollowingModel.createMachine({
                                 },
                             },
                         },
-
-                        'pressed my user card': {
-                            meta: {
-                                test: async ({ screen }: TestingContext) => {
-                                    invariant(
-                                        screen !== undefined,
-                                        'Screen must have been rendered before being in this state',
-                                    );
-
-                                    await waitFor(() => {
-                                        expect(
-                                            screen.getByTestId(
-                                                'default-my-profile-page-screen',
-                                            ),
-                                        ).toBeTruthy();
-                                    });
-                                },
-                            },
-                        },
-
-                        'pressed an other user card': {
-                            meta: {
-                                test: async ({ screen }: TestingContext) => {
-                                    invariant(
-                                        screen !== undefined,
-                                        'Screen must have been rendered before being in this state',
-                                    );
-
-                                    await waitFor(() => {
-                                        expect(
-                                            screen.getByTestId(
-                                                'default-profile-page-screen',
-                                            ),
-                                        ).toBeTruthy();
-                                    });
-                                },
-                            },
-                        },
                     },
 
                     on: {
@@ -250,11 +212,11 @@ const searchUserFollowingMachine = searchUserFollowingModel.createMachine({
                         },
 
                         'press my user card': {
-                            target: '.pressed my user card',
+                            target: '#User following search engine.pressed my user card',
                         },
 
                         'press an other user card': {
-                            target: '.pressed an other user card',
+                            target: '#User following search engine.pressed an other user card',
                         },
                     },
                 },
@@ -274,6 +236,42 @@ const searchUserFollowingMachine = searchUserFollowingModel.createMachine({
                             });
                         },
                     },
+                },
+            },
+        },
+
+        'pressed my user card': {
+            meta: {
+                test: async ({ screen }: TestingContext) => {
+                    invariant(
+                        screen !== undefined,
+                        'Screen must have been rendered before being in this state',
+                    );
+
+                    await waitFor(() => {
+                        expect(
+                            screen.getByTestId(
+                                'default-my-profile-page-screen',
+                            ),
+                        ).toBeTruthy();
+                    });
+                },
+            },
+        },
+
+        'pressed an other user card': {
+            meta: {
+                test: async ({ screen }: TestingContext) => {
+                    invariant(
+                        screen !== undefined,
+                        'Screen must have been rendered before being in this state',
+                    );
+
+                    await waitFor(() => {
+                        expect(
+                            screen.getByTestId('default-profile-page-screen'),
+                        ).toBeTruthy();
+                    });
                 },
             },
         },
@@ -406,12 +404,11 @@ const searchUserfollowingTestModel = createTestModel<TestingContext>(
         await goToUserfollowingScreen({ screen, expectedFollowingCounter: 1 });
         context.screen = screen;
     },
-    'Load more following results': (context) => {
+    'Load more following results': async (context) => {
         const { screen } = context;
         invariant(screen !== undefined, 'screen should be init');
 
-        screen.getByText(/load.*more/i);
-        const loadMoreButton = screen.getByText(/load.*more/i);
+        const loadMoreButton = await screen.findByText(/load.*more/i);
         expect(loadMoreButton).toBeTruthy();
 
         fireEvent.press(loadMoreButton);
@@ -490,7 +487,13 @@ const searchUserfollowingTestModel = createTestModel<TestingContext>(
 
 cases<{
     events: EventFrom<typeof searchUserFollowingModel>[];
-    target: any;
+    target:
+        | {
+              'User found':
+                  | 'User relations are viewable'
+                  | 'User relations are forbidden';
+          }
+        | 'User not found';
 }>(
     'user following search tests',
     async ({ events, target }) => {
@@ -548,7 +551,14 @@ cases<{
 
 cases<{
     events: EventFrom<typeof searchUserFollowingModel>[];
-    target: any;
+    target:
+        | {
+              'User found': {
+                  'User relations are viewable': 'first page is loaded on screen';
+              };
+          }
+        | 'pressed my user card'
+        | 'pressed an other user card';
 }>(
     'user following deep search tests',
     async ({ events, target }) => {
@@ -603,11 +613,7 @@ cases<{
                 ](),
                 searchUserFollowingModel.events['press my user card'](),
             ],
-            target: {
-                'User found': {
-                    'User relations are viewable': 'pressed my user card',
-                },
-            },
+            target: 'pressed my user card',
         },
 
         'User foud data viewable, user presses other user card': {
@@ -620,11 +626,7 @@ cases<{
                 ](),
                 searchUserFollowingModel.events['press an other user card'](),
             ],
-            target: {
-                'User found': {
-                    'User relations are viewable': 'pressed an other user card',
-                },
-            },
+            target: 'pressed an other user card',
         },
     },
 );

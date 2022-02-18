@@ -1,4 +1,4 @@
-import { drop, factory, primaryKey, nullable } from '@mswjs/data';
+import { drop, factory, primaryKey, nullable, manyOf } from '@mswjs/data';
 import {
     MpeRoomSummary,
     MpeWorkflowState,
@@ -49,6 +49,7 @@ export const db = factory({
         followersCounter: nullable(Number),
         followingCounter: nullable(Number),
         playlistsCounter: nullable(Number),
+        mpeRooms: manyOf('searchableMpeRooms'),
     },
 
     myProfileInformation: {

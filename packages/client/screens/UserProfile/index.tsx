@@ -132,7 +132,9 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
         {
             informationName: 'playlists',
             onPress: () => {
-                console.log('paylists section pressed');
+                navigation.navigate('UserMusicPlaylistEditorSearchScreen', {
+                    userID,
+                });
             },
             informationCounter: userProfileInformation.playlistsCounter,
         },
@@ -186,7 +188,7 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
                             accessibilityLabel={`${userProfileInformation.userNickname} avatar`}
                             style={sx({
                                 width: 'xl',
-                                height: 'l',
+                                height: 'xl',
                                 borderRadius: 'full',
                             })}
                         />

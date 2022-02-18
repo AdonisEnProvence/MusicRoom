@@ -108,7 +108,7 @@ const UserfollowingScreen: React.FC<UserFollowingSearchScreenProps> = ({
             showHeader={showHeader}
             screenOffsetY={showHeader === true ? 0 : screenOffsetY}
             setScreenOffsetY={setScreenOffsetY}
-            searchQuery={searchQuery}
+            searchQuery={searchState.context.searchQuery}
             sendToSearch={sendToSearch}
         >
             <FlatList

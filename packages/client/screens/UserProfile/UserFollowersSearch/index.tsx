@@ -74,7 +74,7 @@ const UserFollowersScreen: React.FC<UserFollowersSearchScreenProps> = ({
                 userID: relatedUserID,
             }),
         );
-    const { searchQuery, usersSummaries } = userFollowersSearchState.context;
+    const { usersSummaries } = userFollowersSearchState.context;
     const hasMoreUsersToFetch = userFollowersSearchState.context.hasMore;
     const isFetching = userFollowersSearchState.hasTag('fetching');
     const searchBarActor: ActorRef<
@@ -108,7 +108,7 @@ const UserFollowersScreen: React.FC<UserFollowersSearchScreenProps> = ({
             showHeader={showHeader}
             screenOffsetY={showHeader === true ? 0 : screenOffsetY}
             setScreenOffsetY={setScreenOffsetY}
-            searchQuery={searchQuery}
+            searchQuery={searchState.context.searchQuery}
             sendToSearch={sendToSearch}
         >
             <FlatList

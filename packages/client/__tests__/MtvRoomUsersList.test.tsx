@@ -259,3 +259,97 @@ test('Cancelling search input displays users without filtering', async () => {
     });
     expect(searchUserTextField).toHaveProp('value', '');
 });
+
+it(`After user pressed his user card, it should redirect him to my profile screen`, async () => {
+    const tracksList = [generateTrackMetadata(), generateTrackMetadata()];
+
+    const roomCreatorUserID = datatype.uuid();
+    const initialState: MtvWorkflowState = {
+        name: random.words(),
+        roomID: datatype.uuid(),
+        playing: false,
+        playingMode: MtvPlayingModes.Values.BROADCAST,
+        roomCreatorUserID,
+        isOpen: true,
+        isOpenOnlyInvitedUsersCanVote: false,
+        hasTimeAndPositionConstraints: false,
+        timeConstraintIsValid: null,
+        delegationOwnerUserID: null,
+        userRelatedInformation: {
+            hasControlAndDelegationPermission: true,
+            userFitsPositionConstraint: null,
+            emittingDeviceID: datatype.uuid(),
+            userID: roomCreatorUserID,
+            userHasBeenInvited: false,
+            tracksVotedFor: [],
+        },
+        usersLength: 1,
+        currentTrack: {
+            ...tracksList[0],
+            elapsed: 0,
+        },
+        tracks: tracksList.slice(1),
+        minimumScoreToBePlayed: 1,
+    };
+
+    const fakeUsersArray = getFakeUsersList({
+        directMode: false,
+        isMeIsCreator: true,
+    });
+
+    serverSocket.on('MTV_GET_CONTEXT', () => {
+        serverSocket.emit('MTV_RETRIEVE_CONTEXT', initialState);
+    });
+
+    serverSocket.on('MTV_GET_USERS_LIST', (cb) => {
+        cb(fakeUsersArray);
+    });
+
+    const screen = await renderApp();
+
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+    const musicPlayerMini = screen.getByTestId('music-player-mini');
+    expect(musicPlayerMini).toBeTruthy();
+
+    const miniPlayerTrackTitle = await within(musicPlayerMini).findByText(
+        new RegExp(`${tracksList[0].title}.*${tracksList[0].artistName}`),
+    );
+    expect(miniPlayerTrackTitle).toBeTruthy();
+
+    fireEvent.press(miniPlayerTrackTitle);
+
+    const musicPlayerFullScreen = await screen.findByA11yState({
+        expanded: true,
+    });
+    expect(musicPlayerFullScreen).toBeTruthy();
+    expect(
+        within(musicPlayerFullScreen).getByText(tracksList[0].title),
+    ).toBeTruthy();
+
+    const listenersButton = await screen.getByText(/listeners/i);
+    expect(listenersButton).toBeTruthy();
+
+    fireEvent.press(listenersButton);
+
+    await waitFor(() => {
+        const usersListScreen = screen.getByText(/users.*list/i);
+        expect(usersListScreen).toBeTruthy();
+    });
+
+    const meMtvRoomUsersListElement = fakeUsersArray[0];
+
+    const myUserListItem = screen.getByTestId(
+        `${meMtvRoomUsersListElement.nickname}-user-card`,
+    );
+    expect(myUserListItem).toBeTruthy();
+
+    fireEvent.press(myUserListItem);
+
+    await waitFor(() => {
+        const profileScreen = screen.getByTestId(
+            `default-my-profile-page-screen`,
+        );
+        expect(profileScreen).toBeTruthy();
+    });
+});

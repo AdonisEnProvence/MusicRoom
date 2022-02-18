@@ -780,7 +780,7 @@ describe('User list tests', () => {
             expect(usersListScreen).toBeTruthy();
         });
 
-        const pressedUser = fakeUsersArray[0];
+        const pressedUser = fakeUsersArray[1];
         db.userProfileInformation.create({
             following: true,
             userID: pressedUser.userID,

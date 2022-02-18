@@ -37,6 +37,13 @@ const roomUsersListModel = createModel(
             ) => ({
                 pressedUser,
             }),
+
+            USER_CLICK_ON_HIS_USER_CARD: () => ({}),
+        },
+
+        actions: {
+            redirectToUserProfile: () => ({}),
+            redirectToMyProfile: () => ({}),
         },
     },
 );
@@ -237,6 +244,10 @@ export const createRoomUsersListMachine = ({
 
             USER_CLICK_ON_USER_CARD: {
                 actions: 'redirectToUserProfile',
+            },
+
+            USER_CLICK_ON_HIS_USER_CARD: {
+                actions: 'redirectToMyProfile',
             },
         },
     });

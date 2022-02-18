@@ -13,7 +13,6 @@ import {
     AppScreenContainer,
     AppScreenHeader,
     AppScreenWithSearchBar,
-    Typo,
 } from '../../../components/kit';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
@@ -25,30 +24,9 @@ import { IS_TEST } from '../../../constants/Env';
 import { createUserInformationMachine } from '../../../machines/userInformationMachine';
 import { getFakeUserID } from '../../../contexts/SocketContext';
 import { navigateFromRef } from '../../../navigation/RootNavigation';
-
-const NotFoundScreen: React.FC<UserFollowersSearchScreenProps> = ({
-    navigation,
-}) => {
-    const insets = useSafeAreaInsets();
-
-    return (
-        <AppScreen>
-            <AppScreenHeader
-                title="User's followers"
-                insetTop={insets.top}
-                canGoBack
-                goBack={() => {
-                    navigation.goBack();
-                }}
-            />
-
-            <AppScreenContainer testID="search-user-followers-screen">
-                <Text>User not found</Text>
-                <Button title="Go back" onPress={() => navigation.goBack()} />
-            </AppScreenContainer>
-        </AppScreen>
-    );
-};
+import UserNotFoundScreen from '../kit/UserNotFound';
+import BlankScreen from '../kit/BlankScreen';
+import LoadingScreen from '../kit/LoadingScreen';
 
 const ForbiddenAccessToUserFollowersScreen: React.FC<
     UserFollowersSearchScreenProps & {
@@ -74,48 +52,6 @@ const ForbiddenAccessToUserFollowersScreen: React.FC<
                 </Text>
 
                 <Button title="Go back" onPress={() => navigation.goBack()} />
-            </AppScreenContainer>
-        </AppScreen>
-    );
-};
-
-const BlankScreen: React.FC<UserFollowersSearchScreenProps> = ({
-    navigation,
-}) => {
-    const insets = useSafeAreaInsets();
-
-    return (
-        <AppScreen>
-            <AppScreenHeader
-                title=""
-                insetTop={insets.top}
-                canGoBack
-                goBack={() => {
-                    navigation.goBack();
-                }}
-            />
-        </AppScreen>
-    );
-};
-
-const LoadingScreen: React.FC<UserFollowersSearchScreenProps> = ({
-    navigation,
-}) => {
-    const insets = useSafeAreaInsets();
-
-    return (
-        <AppScreen>
-            <AppScreenHeader
-                title="Loading user's followers rooms"
-                insetTop={insets.top}
-                canGoBack
-                goBack={() => {
-                    navigation.goBack();
-                }}
-            />
-
-            <AppScreenContainer testID="search-user-followers-screen">
-                <Text sx={{ color: 'white' }}>Loading...</Text>
             </AppScreenContainer>
         </AppScreen>
     );
@@ -290,17 +226,27 @@ const UserFollowersSearchScreen: React.FC<UserFollowersSearchScreenProps> = (
 
     const showBlankScreen = state.matches('Waiting');
     if (showBlankScreen === true) {
-        return <BlankScreen {...props} />;
+        return <BlankScreen />;
     }
 
     const showLoadingIndicator = state.matches('Show loading indicator');
     if (showLoadingIndicator === true) {
-        return <LoadingScreen {...props} />;
+        return (
+            <LoadingScreen
+                title="Loading user's followers rooms"
+                testID="search-user-followers-screen"
+            />
+        );
     }
 
     const userIsUnknown = state.matches('Unknown user');
     if (userIsUnknown === true) {
-        return <NotFoundScreen {...props} />;
+        return (
+            <UserNotFoundScreen
+                testID="search-user-followers-screen"
+                title="User's followers"
+            />
+        );
     }
 
     const userProfileInformation = state.context.userProfileInformation;

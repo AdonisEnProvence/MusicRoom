@@ -71,3 +71,55 @@ test('It should display my profile not found screen', async () => {
         });
     });
 });
+
+test('It should display my library after pressing playlists counter', async () => {
+    const userID = testGetFakeUserID();
+
+    db.myProfileInformation.create({
+        userID,
+        devicesCounter: 3,
+        playlistsCounter: 4,
+        followersCounter: 5,
+        followingCounter: 6,
+        userNickname: internet.userName(),
+    });
+
+    const screen = await renderApp();
+
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+    const myProfileButton = screen.getByTestId('open-my-profile-page-button');
+    expect(myProfileButton).toBeTruthy();
+
+    fireEvent.press(myProfileButton);
+
+    const playlistsCounter = await waitFor(() => {
+        expect(screen.getByTestId('my-profile-page-container')).toBeTruthy();
+
+        const devicesCounter = screen.getByText(/devices.*3/i);
+        expect(devicesCounter).toBeTruthy();
+
+        const playlistsCounter = screen.getByText(/playlists.*4/i);
+        expect(playlistsCounter).toBeTruthy();
+
+        const followersCounter = screen.getByText(/followers.*5/i);
+        expect(followersCounter).toBeTruthy();
+
+        const followingCounter = screen.getByText(/following.*6/i);
+        expect(followingCounter).toBeTruthy();
+
+        const avatar = screen.getByLabelText(/my.*avatar/i);
+        expect(avatar).toBeTruthy();
+
+        return playlistsCounter;
+    });
+
+    expect(playlistsCounter).toBeTruthy();
+
+    fireEvent.press(playlistsCounter);
+
+    await waitFor(() => {
+        expect(screen.getByTestId('library-mpe-rooms-list')).toBeTruthy();
+        expect(screen.queryByTestId('my-profile-page-container')).toBeNull();
+    });
+});

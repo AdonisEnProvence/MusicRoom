@@ -306,6 +306,15 @@ export const getCurrentPositionAsyncMocked =
         typeof getCurrentPositionAsync
     >;
 
+jest.mock('react-native-svg', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { View } = require('react-native');
+
+    return {
+        SvgUri: View,
+    };
+});
+
 // Set up MSW before all tests, close MSW after all tests and clear temporary listeners after each test.
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterAll(() => server.close());

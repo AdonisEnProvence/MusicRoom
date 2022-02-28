@@ -59,6 +59,8 @@ import MyDevicesScreen from '../screens/MyProfile/MyDevices';
 import UserMusicPlaylistEditorSearchScreen from '../screens/UserMusicPlaylistEditorSearchScreen';
 import UserFollowersSearchScreen from '../screens/UserProfile/UserFollowersSearch';
 import UserFollowingSearchScreen from '../screens/UserProfile/UserFollowingSearch';
+import MyFollowersSearchScreen from '../screens/MyProfile/MyFollowers';
+import MyFollowingSearchScreen from '../screens/MyProfile/MyFollowing';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
@@ -534,6 +536,24 @@ export const MyProfileNavigator: React.FC<ColorModeProps> = ({
                     headerShown: false,
                 }}
                 component={UpdateNicknameScreen}
+            />
+
+            <MyProfileStack.Screen
+                name="MyFollowers"
+                options={{
+                    title: 'My followers',
+                    headerShown: false,
+                }}
+                component={MyFollowersSearchScreen}
+            />
+
+            <MyProfileStack.Screen
+                name="MyFollowing"
+                options={{
+                    title: 'My following',
+                    headerShown: false,
+                }}
+                component={MyFollowingSearchScreen}
             />
         </MyProfileStack.Navigator>
     );

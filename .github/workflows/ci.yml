@@ -75,10 +75,13 @@ jobs:
                       ${{ runner.os }}-go-
 
             - name: Run Temporal tests 🧪
-              run: yarn run lerna run --scope @musicroom/temporal test
-
+              run: |
+                  cd packages/temporal
+                  yarn test
             - name: Run Server tests 🧪
-              run: yarn run lerna run --scope @musicroom/server test
+              run: |
+                  cd packages/server
+                  yarn test
               env:
                   REDIS_CONNECTION: 'local'
                   REDIS_HOST: '127.0.0.1'
@@ -97,7 +100,9 @@ jobs:
                   PORT: 3333
 
             - name: Run client tests 🧪
-              run: yarn run lerna run --scope @musicroom/client test
+              run: |
+                  cd packages/client
+                  yarn test
               env:
                   GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
                   GOOGLE_MAPS_JAVASCRIPT_API_KEY: ${{ secrets.GOOGLE_MAPS_JAVASCRIPT_API_KEY }}

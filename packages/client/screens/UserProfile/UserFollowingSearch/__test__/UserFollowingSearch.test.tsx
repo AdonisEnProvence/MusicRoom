@@ -504,7 +504,7 @@ cases<{
         await plan.test({
             meUserSummary: {
                 nickname: internet.userName(),
-                userID: datatype.uuid(),
+                userID: testGetFakeUserID(),
             },
             searchedUserSummary: {
                 nickname: internet.userName(),

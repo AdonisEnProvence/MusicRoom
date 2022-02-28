@@ -11,6 +11,9 @@ import {
     GetUserProfileInformationResponseBody,
     ListAllMpeRoomsRequestBody,
     ListAllMpeRoomsResponseBody,
+    ListMyFollowersRequestBody,
+    ListMyFollowersResponseBody,
+    ListMyFollowingRequestBody,
     ListUserFollowersRequestBody,
     ListUserFollowersResponseBody,
     ListUserFollowingRequestBody,
@@ -37,6 +40,7 @@ import { rest } from 'msw';
 import { SERVER_ENDPOINT } from '../../constants/Endpoints';
 import { SearchTracksAPIRawResponse } from '../../services/search-tracks';
 import { db } from '../data';
+import { testGetFakeUserID } from '../tests-utils';
 
 export const handlers = [
     rest.get<undefined, { query: string }, SearchTracksAPIRawResponse>(
@@ -473,6 +477,45 @@ export const handlers = [
     }),
 
     rest.post<
+        ListMyFollowersRequestBody,
+        Record<string, never>,
+        ListMyFollowersResponseBody
+    >(`${SERVER_ENDPOINT}/me/search/followers`, (req, res, ctx) => {
+        console.log('FOLLOWERS BIEN RECU');
+        const PAGE_SIZE = 10;
+        const { page, searchQuery, tmpAuthUserID } = req.body;
+
+        const userFollowers = db.userFollowers.findFirst({
+            where: {
+                userID: {
+                    equals: tmpAuthUserID,
+                },
+            },
+        });
+
+        if (userFollowers === null || userFollowers.followers === undefined) {
+            return res(ctx.status(404));
+        }
+        const filteredUserFollowers = userFollowers.followers.filter((user) =>
+            user.nickname.toLowerCase().startsWith(searchQuery.toLowerCase()),
+        );
+
+        const paginatedFollowers = filteredUserFollowers.slice(
+            (page - 1) * PAGE_SIZE,
+            page * PAGE_SIZE,
+        );
+
+        return res(
+            ctx.json({
+                data: paginatedFollowers,
+                totalEntries: filteredUserFollowers.length,
+                hasMore: filteredUserFollowers.length > page * PAGE_SIZE,
+                page,
+            }),
+        );
+    }),
+
+    rest.post<
         ListUserFollowingRequestBody,
         Record<string, never>,
         ListUserFollowingResponseBody
@@ -484,6 +527,45 @@ export const handlers = [
             where: {
                 userID: {
                     equals: req.body.userID,
+                },
+            },
+        });
+
+        if (userFollowing === null || userFollowing.following === undefined) {
+            return res(ctx.status(404));
+        }
+
+        const filteredUserFollowing = userFollowing.following.filter((user) =>
+            user.nickname.toLowerCase().startsWith(searchQuery.toLowerCase()),
+        );
+
+        const paginatedFollowing = filteredUserFollowing.slice(
+            (page - 1) * PAGE_SIZE,
+            page * PAGE_SIZE,
+        );
+
+        return res(
+            ctx.json({
+                data: paginatedFollowing,
+                totalEntries: filteredUserFollowing.length,
+                hasMore: filteredUserFollowing.length > page * PAGE_SIZE,
+                page,
+            }),
+        );
+    }),
+
+    rest.post<
+        ListMyFollowingRequestBody,
+        Record<string, never>,
+        ListMyFollowersResponseBody
+    >(`${SERVER_ENDPOINT}/me/search/following`, (req, res, ctx) => {
+        const PAGE_SIZE = 10;
+        const { page, searchQuery, tmpAuthUserID } = req.body;
+
+        const userFollowing = db.userFollowing.findFirst({
+            where: {
+                userID: {
+                    equals: tmpAuthUserID,
                 },
             },
         });

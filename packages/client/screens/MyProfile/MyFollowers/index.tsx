@@ -5,7 +5,6 @@ import { ActorRef } from 'xstate';
 import { useActor, useMachine } from '@xstate/react';
 import { FlatList, TouchableOpacity } from 'react-native';
 import { RefreshControl } from 'react-native-web-refresh-control';
-import invariant from 'tiny-invariant';
 import { MyFollowersScreenProps } from '../../../types';
 import { AppScreenWithSearchBar } from '../../../components/kit';
 import {
@@ -15,13 +14,8 @@ import {
 import { myFollowerSearchMachine } from '../../../machines/usersUniversalSearcMachine';
 import UserListItem from '../../../components/User/UserListItem';
 import { IS_TEST } from '../../../constants/Env';
-import { createUserInformationMachine } from '../../../machines/userInformationMachine';
-import { getFakeUserID } from '../../../contexts/SocketContext';
-import LoadingScreen from '../../UserProfile/kit/LoadingScreen';
-import BlankScreen from '../../UserProfile/kit/BlankScreen';
-import UserNotFoundScreen from '../../UserProfile/kit/UserNotFound';
 
-const MyFollowersScreen: React.FC<MyFollowersScreenProps> = ({
+const MyFollowersSearchScreen: React.FC<MyFollowersScreenProps> = ({
     navigation,
 }) => {
     const insets = useSafeAreaInsets();
@@ -162,45 +156,6 @@ const MyFollowersScreen: React.FC<MyFollowersScreenProps> = ({
             />
         </AppScreenWithSearchBar>
     );
-};
-
-const MyFollowersSearchScreen: React.FC<MyFollowersScreenProps> = (props) => {
-    const userID = getFakeUserID();
-
-    const [state] = useMachine(() => createUserInformationMachine(userID));
-
-    const showBlankScreen = state.matches('Waiting');
-    if (showBlankScreen === true) {
-        return <BlankScreen />;
-    }
-
-    const showLoadingIndicator = state.matches('Show loading indicator');
-    if (showLoadingIndicator === true) {
-        return (
-            <LoadingScreen
-                title="Loading my followers"
-                testID="search-my-followers-screen"
-            />
-        );
-    }
-
-    const userIsUnknown = state.matches('Unknown user');
-    if (userIsUnknown === true) {
-        return (
-            <UserNotFoundScreen
-                title="My followers"
-                testID="search-my-followers-screen"
-            />
-        );
-    }
-
-    const userProfileInformation = state.context.userProfileInformation;
-    invariant(
-        userProfileInformation !== undefined,
-        'When the user is known, the user profile information must be defined',
-    );
-
-    return <MyFollowersScreen {...props} />;
 };
 
 export default MyFollowersSearchScreen;

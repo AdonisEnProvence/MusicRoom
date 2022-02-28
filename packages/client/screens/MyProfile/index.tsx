@@ -80,6 +80,14 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
         navigation.navigate('MyDevices');
     }
 
+    function handleGoToMyFollowers() {
+        navigation.navigate('MyFollowers');
+    }
+
+    function handleGoToMyFollowing() {
+        navigation.navigate('MyFollowing');
+    }
+
     if (myProfileInformation === undefined) {
         return (
             <AppScreen>
@@ -112,16 +120,12 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
     const myProfileInformationSections: MyProfileInformationSectionProps[] = [
         {
             informationName: 'followers',
-            onPress: () => {
-                console.log('followers section pressed');
-            },
+            onPress: handleGoToMyFollowers,
             informationCounter: myProfileInformation.followersCounter,
         },
         {
             informationName: 'following',
-            onPress: () => {
-                console.log('following section pressed');
-            },
+            onPress: handleGoToMyFollowing,
             informationCounter: myProfileInformation.followingCounter,
         },
         {

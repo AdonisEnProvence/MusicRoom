@@ -481,7 +481,6 @@ export const handlers = [
         Record<string, never>,
         ListMyFollowersResponseBody
     >(`${SERVER_ENDPOINT}/me/search/followers`, (req, res, ctx) => {
-        console.log('FOLLOWERS BIEN RECU');
         const PAGE_SIZE = 10;
         const { page, searchQuery, tmpAuthUserID } = req.body;
 

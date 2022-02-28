@@ -7,6 +7,7 @@ import { createModel } from 'xstate/lib/model';
 import { getFakeUserID } from '../contexts/SocketContext';
 import {
     fetchMyFollowers,
+    fetchMyFollowing,
     fetchUserFollowers,
     fetchUserFollowing,
 } from '../services/UsersSearchService';
@@ -202,6 +203,43 @@ export const myFollowerSearchMachine =
                         //Later we will use the session cookie as auth
                         const userID = getFakeUserID();
                         const { data, page, hasMore } = await fetchMyFollowers({
+                            searchQuery,
+                            tmpAuthUserID: userID,
+                            page: nextPage,
+                        });
+
+                        sendBack({
+                            type: 'FETCHED_USERS',
+                            usersSummaries: data,
+                            page,
+                            hasMore,
+                        });
+                    } catch (err) {
+                        console.error(err);
+
+                        sendBack({
+                            type: 'FAILED_FETCHING_USERS',
+                        });
+                    }
+                },
+        },
+    });
+
+export const myFollowingSearchMachine =
+    createUsersUniversalSearchMachine().withConfig({
+        services: {
+            fetchUsers:
+                ({ searchQuery, nextPage }) =>
+                async (
+                    sendBack: Sender<
+                        EventFrom<typeof usersUniversalSearchModel>
+                    >,
+                ) => {
+                    try {
+                        //This is temporary
+                        //Later we will use the session cookie as auth
+                        const userID = getFakeUserID();
+                        const { data, page, hasMore } = await fetchMyFollowing({
                             searchQuery,
                             tmpAuthUserID: userID,
                             page: nextPage,

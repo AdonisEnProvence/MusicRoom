@@ -236,7 +236,7 @@ const UserFollowingSearchScreen: React.FC<UserFollowingSearchScreenProps> = (
     if (showLoadingIndicator === true) {
         return (
             <LoadingScreen
-                title="Loading user's following rooms"
+                title="Loading user's following"
                 testID="search-user-following-screen"
             />
         );

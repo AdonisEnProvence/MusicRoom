@@ -1,79 +1,36 @@
-import { Button, Text, useSx, View } from 'dripsy';
+import { Text, useSx, View } from 'dripsy';
 import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActorRef } from 'xstate';
 import { useActor, useMachine } from '@xstate/react';
 import { FlatList, TouchableOpacity } from 'react-native';
 import { RefreshControl } from 'react-native-web-refresh-control';
-import { UserProfileInformation } from '@musicroom/types';
 import invariant from 'tiny-invariant';
-import { UserFollowersSearchScreenProps } from '../../../types';
-import {
-    AppScreen,
-    AppScreenContainer,
-    AppScreenHeader,
-    AppScreenWithSearchBar,
-} from '../../../components/kit';
+import { MyFollowersScreenProps } from '../../../types';
+import { AppScreenWithSearchBar } from '../../../components/kit';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
     AppScreenHeaderWithSearchBarMachineState,
 } from '../../../machines/appScreenHeaderWithSearchBarMachine';
-import { createUserFollowersSearchMachine } from '../../../machines/usersUniversalSearcMachine';
+import { myFollowerSearchMachine } from '../../../machines/usersUniversalSearcMachine';
 import UserListItem from '../../../components/User/UserListItem';
 import { IS_TEST } from '../../../constants/Env';
 import { createUserInformationMachine } from '../../../machines/userInformationMachine';
 import { getFakeUserID } from '../../../contexts/SocketContext';
-import UserNotFoundScreen from '../kit/UserNotFound';
-import BlankScreen from '../kit/BlankScreen';
-import LoadingScreen from '../kit/LoadingScreen';
+import LoadingScreen from '../../UserProfile/kit/LoadingScreen';
+import BlankScreen from '../../UserProfile/kit/BlankScreen';
+import UserNotFoundScreen from '../../UserProfile/kit/UserNotFound';
 
-const ForbiddenAccessToUserFollowersScreen: React.FC<
-    UserFollowersSearchScreenProps & {
-        userProfileInformation: UserProfileInformation;
-    }
-> = ({ navigation, userProfileInformation: { userNickname } }) => {
-    const insets = useSafeAreaInsets();
-
-    return (
-        <AppScreen>
-            <AppScreenHeader
-                title={`${userNickname}'s followers`}
-                insetTop={insets.top}
-                canGoBack
-                goBack={() => {
-                    navigation.goBack();
-                }}
-            />
-
-            <AppScreenContainer testID="search-user-followers-screen">
-                <Text sx={{ color: 'white', marginBottom: 'xl' }}>
-                    Access to user's followers is forbidden
-                </Text>
-
-                <Button title="Go back" onPress={() => navigation.goBack()} />
-            </AppScreenContainer>
-        </AppScreen>
-    );
-};
-
-const UserFollowersScreen: React.FC<UserFollowersSearchScreenProps> = ({
+const MyFollowersScreen: React.FC<MyFollowersScreenProps> = ({
     navigation,
-    route: {
-        params: { userID: relatedUserID },
-    },
 }) => {
-    const meUSerID = getFakeUserID();
     const insets = useSafeAreaInsets();
     const sx = useSx();
     const [screenOffsetY, setScreenOffsetY] = useState(0);
     const initialNumberOfItemsToRender = IS_TEST ? Infinity : 10;
 
     const [userFollowersSearchState, userFollowersSearchMachineSend] =
-        useMachine(() =>
-            createUserFollowersSearchMachine({
-                userID: relatedUserID,
-            }),
-        );
+        useMachine(() => myFollowerSearchMachine);
     const { usersSummaries } = userFollowersSearchState.context;
     const hasMoreUsersToFetch = userFollowersSearchState.context.hasMore;
     const isFetching = userFollowersSearchState.hasTag('fetching');
@@ -103,7 +60,7 @@ const UserFollowersScreen: React.FC<UserFollowersSearchScreenProps> = ({
                 navigation.goBack();
             }}
             title="Search for a follower"
-            testID="search-user-followers-screen"
+            testID="search-my-followers-screen"
             searchInputPlaceholder="Search a follower..."
             showHeader={showHeader}
             screenOffsetY={showHeader === true ? 0 : screenOffsetY}
@@ -112,7 +69,7 @@ const UserFollowersScreen: React.FC<UserFollowersSearchScreenProps> = ({
             sendToSearch={sendToSearch}
         >
             <FlatList
-                testID="user-followers-search-flat-list"
+                testID="my-followers-search-flat-list"
                 data={usersSummaries}
                 // This is here that we ensure the Flat List will not show items
                 // on an unsafe area.
@@ -130,7 +87,6 @@ const UserFollowersScreen: React.FC<UserFollowersSearchScreenProps> = ({
                 }
                 renderItem={({ item: { nickname, userID }, index }) => {
                     const isLastItem = index === usersSummaries.length - 1;
-                    const isMe = userID === meUSerID;
                     return (
                         <View
                             sx={{
@@ -143,24 +99,18 @@ const UserFollowersScreen: React.FC<UserFollowersSearchScreenProps> = ({
                                     hasControlAndDelegationPermission: false,
                                     isCreator: false,
                                     isDelegationOwner: false,
-                                    isMe,
+                                    isMe: false,
                                     nickname,
                                     userID,
                                 }}
                                 disabled={false}
                                 onPress={() => {
-                                    if (isMe) {
-                                        navigation.navigate('MyProfile', {
-                                            screen: 'MyProfileIndex',
-                                        });
-                                    } else {
-                                        navigation.navigate(
-                                            'UserProfileIndex',
-                                            {
-                                                userID,
-                                            },
-                                        );
-                                    }
+                                    navigation.navigate('UserProfile', {
+                                        screen: 'UserProfileIndex',
+                                        params: {
+                                            userID,
+                                        },
+                                    });
                                 }}
                             />
                         </View>
@@ -214,18 +164,10 @@ const UserFollowersScreen: React.FC<UserFollowersSearchScreenProps> = ({
     );
 };
 
-const UserFollowersSearchScreen: React.FC<UserFollowersSearchScreenProps> = (
-    props,
-) => {
-    const {
-        route: {
-            params: { userID: relatedUserID },
-        },
-    } = props;
+const MyFollowersSearchScreen: React.FC<MyFollowersScreenProps> = (props) => {
+    const userID = getFakeUserID();
 
-    const [state] = useMachine(() =>
-        createUserInformationMachine(relatedUserID),
-    );
+    const [state] = useMachine(() => createUserInformationMachine(userID));
 
     const showBlankScreen = state.matches('Waiting');
     if (showBlankScreen === true) {
@@ -236,8 +178,8 @@ const UserFollowersSearchScreen: React.FC<UserFollowersSearchScreenProps> = (
     if (showLoadingIndicator === true) {
         return (
             <LoadingScreen
-                title="Loading user's followers"
-                testID="search-user-followers-screen"
+                title="Loading my followers"
+                testID="search-my-followers-screen"
             />
         );
     }
@@ -246,8 +188,8 @@ const UserFollowersSearchScreen: React.FC<UserFollowersSearchScreenProps> = (
     if (userIsUnknown === true) {
         return (
             <UserNotFoundScreen
-                testID="search-user-followers-screen"
-                title="User's followers"
+                title="My followers"
+                testID="search-my-followers-screen"
             />
         );
     }
@@ -258,18 +200,7 @@ const UserFollowersSearchScreen: React.FC<UserFollowersSearchScreenProps> = (
         'When the user is known, the user profile information must be defined',
     );
 
-    const accessToUserRelationsIsDisallowed =
-        userProfileInformation.followersCounter === undefined;
-    if (accessToUserRelationsIsDisallowed === true) {
-        return (
-            <ForbiddenAccessToUserFollowersScreen
-                {...props}
-                userProfileInformation={userProfileInformation}
-            />
-        );
-    }
-
-    return <UserFollowersScreen {...props} />;
+    return <MyFollowersScreen {...props} />;
 };
 
-export default UserFollowersSearchScreen;
+export default MyFollowersSearchScreen;

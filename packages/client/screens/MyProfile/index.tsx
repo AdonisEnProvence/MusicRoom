@@ -72,6 +72,18 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
         state.hasTag('userNotFound'),
     );
 
+    function handleGoToMyLibrary() {
+        navigation.navigate('Main', {
+            screen: 'Root',
+            params: {
+                screen: 'Library',
+                params: {
+                    screen: 'MpeRooms',
+                },
+            },
+        });
+    }
+
     function handleGoToMySettingsScreen() {
         navigation.navigate('MySettings');
     }
@@ -126,9 +138,7 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
         },
         {
             informationName: 'playlists',
-            onPress: () => {
-                console.log('paylists section pressed');
-            },
+            onPress: handleGoToMyLibrary,
             informationCounter: myProfileInformation.playlistsCounter,
         },
         {

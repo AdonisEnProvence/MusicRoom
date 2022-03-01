@@ -115,6 +115,8 @@ export type MyProfileStackParamsList = {
     MyDevices: undefined;
     MySettings: undefined;
     MySettingsUpdateNickname: undefined;
+    MyFollowers: undefined;
+    MyFollowing: undefined;
 };
 
 export type MusicPlaylistEditorCreationFormParamList = {
@@ -450,6 +452,22 @@ export type MyDevicesScreenProps = {
         StackNavigationProp<MyProfileStackParamsList, 'MyDevices'>
     >;
     route: RouteProp<MyProfileStackParamsList, 'MyDevices'>;
+};
+
+export type MyFollowersScreenProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'MyProfile'>,
+        StackNavigationProp<MyProfileStackParamsList, 'MyFollowers'>
+    >;
+    route: RouteProp<MyProfileStackParamsList, 'MyFollowers'>;
+};
+
+export type MyFollowingScreenProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'MyProfile'>,
+        StackNavigationProp<MyProfileStackParamsList, 'MyFollowing'>
+    >;
+    route: RouteProp<MyProfileStackParamsList, 'MyFollowing'>;
 };
 
 export type HomeTabProps = {

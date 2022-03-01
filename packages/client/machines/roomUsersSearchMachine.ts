@@ -2,7 +2,7 @@ import { UserSummary } from '@musicroom/types';
 import { send } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { getFakeUserID } from '../contexts/SocketContext';
-import { fetchFriends, fetchUsers } from '../services/UsersSearchService';
+import { fetchMyFollowing, fetchUsers } from '../services/UsersSearchService';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 
 const roomUsersSearchModel = createModel(
@@ -456,26 +456,27 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
         services: {
             fetchFriends:
                 ({ usersFriendsPage }) =>
-                (sendBack) => {
-                    console.log('fetch friends');
-
-                    async function handle() {
-                        if (usersFriendsPage > 4) {
-                            return;
-                        }
+                async (sendBack) => {
+                    try {
+                        const {
+                            data: friends,
+                            hasMore,
+                            page,
+                        } = await fetchMyFollowing({
+                            tmpAuthUserID: getFakeUserID(),
+                            searchQuery: '',
+                            page: usersFriendsPage,
+                        });
 
                         sendBack({
                             type: 'FETCHED_FRIENDS',
-                            friends: await fetchFriends({
-                                page: usersFriendsPage,
-                            }),
-                            hasMore: usersFriendsPage < 4,
-                            page: 1,
+                            friends,
+                            hasMore,
+                            page,
                         });
+                    } catch (err) {
+                        console.error('Failed to fetch following', err);
                     }
-
-                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                    setTimeout(handle, 100);
                 },
 
             fetchUsers:

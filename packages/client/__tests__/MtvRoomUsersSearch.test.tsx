@@ -8,7 +8,6 @@ import { internet } from 'faker';
 import { ContextFrom, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import * as z from 'zod';
-import { friends } from '../services/UsersSearchService';
 import { serverSocket } from '../services/websockets';
 import {
     db,
@@ -21,6 +20,7 @@ import {
     getFakeUsersList,
     render,
     renderApp,
+    testGetFakeUserID,
     waitFor,
     waitForElementToBeRemoved,
     within,
@@ -92,19 +92,13 @@ const fakeFriendsPagesCount = Math.floor(
     fakeFriends.length / FRIENDS_PAGE_LENGTH + 1,
 );
 
-const fakeUsers = [
-    ...generateArray({
-        minLength: 10,
-        maxLength: 19,
-        fill: () =>
-            generateUserSummary({ nickname: `A${internet.userName()}` }),
-    }),
-    ...generateArray({
-        minLength: 10,
-        maxLength: 19,
-        fill: generateUserSummary,
-    }),
-];
+const fakeUsers = generateArray({
+    minLength: 10,
+    maxLength: 19,
+    fill: () => generateUserSummary({ nickname: `A${internet.userName()}` }),
+});
+
+const fakeFriendsAndUsers = [...fakeFriends, ...fakeUsers];
 
 function filterUsersByNickname(
     users: UserSummary[],
@@ -396,7 +390,7 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                             }: MtvRoomUsersSearchMachineState,
                         ) => {
                             const filteredUsers = filterUsersByNickname(
-                                fakeUsers,
+                                fakeFriendsAndUsers,
                                 searchQuery,
                             );
                             const page = getPage(
@@ -418,7 +412,7 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                     always: {
                         cond: ({ searchQuery, usersPage }) => {
                             const filteredUsers = filterUsersByNickname(
-                                fakeUsers,
+                                fakeFriendsAndUsers,
                                 searchQuery,
                             );
                             const totalFetchedUsers =
@@ -461,11 +455,12 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                                         context: { invitedUserNickname },
                                     }: MtvRoomUsersSearchMachineState,
                                 ) => {
-                                    const invitedUser = fakeUsers.find(
-                                        ({ nickname: friendNickname }) =>
-                                            friendNickname ===
-                                            invitedUserNickname,
-                                    );
+                                    const invitedUser =
+                                        fakeFriendsAndUsers.find(
+                                            ({ nickname: friendNickname }) =>
+                                                friendNickname ===
+                                                invitedUserNickname,
+                                        );
                                     if (invitedUser === undefined) {
                                         throw new Error(
                                             `Could not find a user with nickname: ${invitedUserNickname}`,
@@ -516,11 +511,12 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                                         context: { invitedUserNickname },
                                     }: MtvRoomUsersSearchMachineState,
                                 ) => {
-                                    const invitedUser = fakeUsers.find(
-                                        ({ nickname: friendNickname }) =>
-                                            friendNickname ===
-                                            invitedUserNickname,
-                                    );
+                                    const invitedUser =
+                                        fakeFriendsAndUsers.find(
+                                            ({ nickname: friendNickname }) =>
+                                                friendNickname ===
+                                                invitedUserNickname,
+                                        );
                                     if (invitedUser === undefined) {
                                         throw new Error(
                                             `Could not find a user with nickname: ${invitedUserNickname}`,
@@ -551,7 +547,7 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                             }: MtvRoomUsersSearchMachineState,
                         ) => {
                             const filteredUsers = filterUsersByNickname(
-                                fakeUsers,
+                                fakeFriendsAndUsers,
                                 searchQuery,
                             );
                             const page = getPage(
@@ -690,8 +686,12 @@ describe('Display friends and search users', () => {
                         isMeIsCreator: true,
                     });
 
-                    friends.length = 0;
-                    friends.push(...fakeFriends);
+                    db.userFollowing.create({
+                        userID: testGetFakeUserID(),
+                        following: fakeFriends.map((friend) =>
+                            db.searchableUsers.create(friend),
+                        ),
+                    });
 
                     for (const fakeUser of fakeUsers) {
                         db.searchableUsers.create(fakeUser);
@@ -791,8 +791,12 @@ test('Clearing search input displays users without filtering', async () => {
     const friendNicknameToSearch = fakeFriends[0].nickname;
     const userNicknameToSearch = fakeUsers[0].nickname;
 
-    friends.length = 0;
-    friends.push(...fakeFriends);
+    db.userFollowing.create({
+        userID: testGetFakeUserID(),
+        following: fakeFriends.map((friend) =>
+            db.searchableUsers.create(friend),
+        ),
+    });
 
     for (const fakeUser of fakeUsers) {
         db.searchableUsers.create(fakeUser);
@@ -867,8 +871,12 @@ test('Cancelling search input displays users without filtering', async () => {
     const friendNicknameToSearch = fakeFriends[0].nickname;
     const userNicknameToSearch = fakeUsers[0].nickname;
 
-    friends.length = 0;
-    friends.push(...fakeFriends);
+    db.userFollowing.create({
+        userID: testGetFakeUserID(),
+        following: fakeFriends.map((friend) =>
+            db.searchableUsers.create(friend),
+        ),
+    });
 
     for (const fakeUser of fakeUsers) {
         db.searchableUsers.create(fakeUser);

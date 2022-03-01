@@ -80,16 +80,16 @@ interface TestingContext {
     creatorInviteUserMock: jest.Mock<void, [MtvRoomCreatorInviteUserArgs]>;
 }
 
-const FRIENDS_PAGE_LENGTH = 10;
+const FOLLOWING_PAGE_LENGTH = 10;
 const USERS_PAGE_LENGTH = 10;
 
-const fakeFriends = generateArray({
+const fakeFollowing = generateArray({
     minLength: 30,
     maxLength: 39,
     fill: generateUserSummary,
 });
-const fakeFriendsPagesCount = Math.floor(
-    fakeFriends.length / FRIENDS_PAGE_LENGTH + 1,
+const fakeFollowingPagesCount = Math.floor(
+    fakeFollowing.length / FOLLOWING_PAGE_LENGTH + 1,
 );
 
 const fakeUsers = generateArray({
@@ -98,7 +98,7 @@ const fakeUsers = generateArray({
     fill: () => generateUserSummary({ nickname: `A${internet.userName()}` }),
 });
 
-const fakeFriendsAndUsers = [...fakeFriends, ...fakeUsers];
+const fakeFollowingAndUsers = [...fakeFollowing, ...fakeUsers];
 
 function filterUsersByNickname(
     users: UserSummary[],
@@ -120,10 +120,10 @@ function getPage<Item>(
 const mtvRoomUsersSearchModel = createModel(
     {
         searchQuery: '',
-        friendsPage: 1,
+        followingPage: 1,
         usersPage: 1,
 
-        invitedFriendNickname: '',
+        invitedFollowingNickname: '',
         invitedUserNickname: '',
     },
     {
@@ -132,7 +132,7 @@ const mtvRoomUsersSearchModel = createModel(
 
             SEARCH_USERS_BY_NICKNAME: (nickname: string) => ({ nickname }),
 
-            INVITE_FRIEND: (nickname: string) => ({ nickname }),
+            INVITE_FOLLOWING: (nickname: string) => ({ nickname }),
 
             INVITE_USER: (nickname: string) => ({ nickname }),
         },
@@ -146,12 +146,12 @@ const SearchUsersByNicknameEvent = z
     .nonstrict();
 type SearchUsersByNicknameEvent = z.infer<typeof SearchUsersByNicknameEvent>;
 
-const InviteFriendEvent = z
+const InviteFollowingEvent = z
     .object({
         nickname: z.string(),
     })
     .nonstrict();
-type InviteFriendEvent = z.infer<typeof InviteFriendEvent>;
+type InviteFollowingEvent = z.infer<typeof InviteFollowingEvent>;
 
 const InviteUserEvent = z
     .object({
@@ -160,9 +160,9 @@ const InviteUserEvent = z
     .nonstrict();
 type InviteUserEvent = z.infer<typeof InviteUserEvent>;
 
-const incrementFriendsPageToContext = mtvRoomUsersSearchModel.assign(
+const incrementFollowingPageToContext = mtvRoomUsersSearchModel.assign(
     {
-        friendsPage: ({ friendsPage }) => friendsPage + 1,
+        followingPage: ({ followingPage }) => followingPage + 1,
     },
     'LOAD_MORE',
 );
@@ -181,11 +181,11 @@ const assignSearchQueryToContext = mtvRoomUsersSearchModel.assign(
     'SEARCH_USERS_BY_NICKNAME',
 );
 
-const assignInvitedFriendNicknameToContext = mtvRoomUsersSearchModel.assign(
+const assignInvitedFollowingNicknameToContext = mtvRoomUsersSearchModel.assign(
     {
-        invitedFriendNickname: (_, { nickname }) => nickname,
+        invitedFollowingNickname: (_, { nickname }) => nickname,
     },
-    'INVITE_FRIEND',
+    'INVITE_FOLLOWING',
 );
 
 const assignInvitedUserNicknameToContext = mtvRoomUsersSearchModel.assign(
@@ -200,10 +200,10 @@ type MtvRoomUsersSearchMachineState = StateFrom<
 >;
 
 const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
-    initial: 'friendsView',
+    initial: 'followingView',
 
     states: {
-        friendsView: {
+        followingView: {
             initial: 'fetching',
 
             states: {
@@ -212,13 +212,13 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                         test: async (
                             { screen }: TestingContext,
                             {
-                                context: { friendsPage },
+                                context: { followingPage },
                             }: MtvRoomUsersSearchMachineState,
                         ) => {
                             for (const { nickname } of getPage(
-                                fakeFriends,
-                                friendsPage,
-                                FRIENDS_PAGE_LENGTH,
+                                fakeFollowing,
+                                followingPage,
+                                FOLLOWING_PAGE_LENGTH,
                             )) {
                                 const userCard = await screen.findByTestId(
                                     `${nickname}-user-card`,
@@ -230,30 +230,30 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                     },
 
                     always: {
-                        cond: ({ friendsPage }) =>
-                            friendsPage === fakeFriendsPagesCount,
+                        cond: ({ followingPage }) =>
+                            followingPage === fakeFollowingPagesCount,
 
-                        target: 'fetchedAllFriends',
+                        target: 'fetchedAllFollowing',
                     },
 
                     on: {
                         LOAD_MORE: {
-                            actions: incrementFriendsPageToContext,
+                            actions: incrementFollowingPageToContext,
                         },
 
-                        INVITE_FRIEND: {
-                            target: 'invitedFriend',
+                        INVITE_FOLLOWING: {
+                            target: 'invitedFollowing',
 
-                            actions: assignInvitedFriendNicknameToContext,
+                            actions: assignInvitedFollowingNicknameToContext,
                         },
                     },
                 },
 
-                invitedFriend: {
-                    initial: 'firstFriendInvitation',
+                invitedFollowing: {
+                    initial: 'firstFollowingInvitation',
 
                     states: {
-                        firstFriendInvitation: {
+                        firstFollowingInvitation: {
                             meta: {
                                 test: async (
                                     {
@@ -261,17 +261,17 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                                         creatorInviteUserMock,
                                     }: TestingContext,
                                     {
-                                        context: { invitedFriendNickname },
+                                        context: { invitedFollowingNickname },
                                     }: MtvRoomUsersSearchMachineState,
                                 ) => {
-                                    const invitedFriend = fakeFriends.find(
-                                        ({ nickname: friendNickname }) =>
-                                            friendNickname ===
-                                            invitedFriendNickname,
+                                    const invitedFollowing = fakeFollowing.find(
+                                        ({ nickname: followingNickname }) =>
+                                            followingNickname ===
+                                            invitedFollowingNickname,
                                     );
-                                    if (invitedFriend === undefined) {
+                                    if (invitedFollowing === undefined) {
                                         throw new Error(
-                                            `Could not find a friend with nickname: ${invitedFriendNickname}`,
+                                            `Could not find a following with nickname: ${invitedFollowingNickname}`,
                                         );
                                     }
 
@@ -281,18 +281,21 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                                         ).toHaveBeenNthCalledWith<
                                             [MtvRoomCreatorInviteUserArgs]
                                         >(1, {
-                                            invitedUserID: invitedFriend.userID,
+                                            invitedUserID:
+                                                invitedFollowing.userID,
                                         });
                                     });
 
-                                    const friendCard = screen.getByTestId(
-                                        `${invitedFriendNickname}-user-card`,
+                                    const followingCard = screen.getByTestId(
+                                        `${invitedFollowingNickname}-user-card`,
                                     );
-                                    expect(friendCard).toBeTruthy();
+                                    expect(followingCard).toBeTruthy();
 
                                     await waitFor(() => {
                                         const invitedCheckMarkIcon =
-                                            within(friendCard).getByA11yLabel(
+                                            within(
+                                                followingCard,
+                                            ).getByA11yLabel(
                                                 /has.*been.*invited/i,
                                             );
                                         expect(
@@ -303,30 +306,30 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                             },
 
                             on: {
-                                INVITE_FRIEND: {
-                                    target: 'secondFriendInvitation',
+                                INVITE_FOLLOWING: {
+                                    target: 'secondFollowingInvitation',
                                 },
                             },
                         },
 
-                        secondFriendInvitation: {
+                        secondFollowingInvitation: {
                             type: 'final',
 
                             meta: {
                                 test: (
                                     { creatorInviteUserMock }: TestingContext,
                                     {
-                                        context: { invitedFriendNickname },
+                                        context: { invitedFollowingNickname },
                                     }: MtvRoomUsersSearchMachineState,
                                 ) => {
-                                    const invitedFriend = fakeFriends.find(
-                                        ({ nickname: friendNickname }) =>
-                                            friendNickname ===
-                                            invitedFriendNickname,
+                                    const invitedFollowing = fakeFollowing.find(
+                                        ({ nickname: followingNickname }) =>
+                                            followingNickname ===
+                                            invitedFollowingNickname,
                                     );
-                                    if (invitedFriend === undefined) {
+                                    if (invitedFollowing === undefined) {
                                         throw new Error(
-                                            `Could not find a friend with nickname: ${invitedFriendNickname}`,
+                                            `Could not find a following with nickname: ${invitedFollowingNickname}`,
                                         );
                                     }
 
@@ -335,7 +338,7 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                                     ).toHaveBeenNthCalledWith<
                                         [MtvRoomCreatorInviteUserArgs]
                                     >(1, {
-                                        invitedUserID: invitedFriend.userID,
+                                        invitedUserID: invitedFollowing.userID,
                                     });
                                 },
                             },
@@ -343,15 +346,15 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                     },
                 },
 
-                fetchedAllFriends: {
+                fetchedAllFollowing: {
                     type: 'final',
 
                     meta: {
                         test: async ({ screen }: TestingContext) => {
                             for (const { nickname } of getPage(
-                                fakeFriends,
-                                fakeFriendsPagesCount,
-                                FRIENDS_PAGE_LENGTH,
+                                fakeFollowing,
+                                fakeFollowingPagesCount,
+                                FOLLOWING_PAGE_LENGTH,
                             )) {
                                 const userCard = await screen.findByTestId(
                                     `${nickname}-user-card`,
@@ -390,7 +393,7 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                             }: MtvRoomUsersSearchMachineState,
                         ) => {
                             const filteredUsers = filterUsersByNickname(
-                                fakeFriendsAndUsers,
+                                fakeFollowingAndUsers,
                                 searchQuery,
                             );
                             const page = getPage(
@@ -412,7 +415,7 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                     always: {
                         cond: ({ searchQuery, usersPage }) => {
                             const filteredUsers = filterUsersByNickname(
-                                fakeFriendsAndUsers,
+                                fakeFollowingAndUsers,
                                 searchQuery,
                             );
                             const totalFetchedUsers =
@@ -456,9 +459,9 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                                     }: MtvRoomUsersSearchMachineState,
                                 ) => {
                                     const invitedUser =
-                                        fakeFriendsAndUsers.find(
-                                            ({ nickname: friendNickname }) =>
-                                                friendNickname ===
+                                        fakeFollowingAndUsers.find(
+                                            ({ nickname: followingNickname }) =>
+                                                followingNickname ===
                                                 invitedUserNickname,
                                         );
                                     if (invitedUser === undefined) {
@@ -512,9 +515,9 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                                     }: MtvRoomUsersSearchMachineState,
                                 ) => {
                                     const invitedUser =
-                                        fakeFriendsAndUsers.find(
-                                            ({ nickname: friendNickname }) =>
-                                                friendNickname ===
+                                        fakeFollowingAndUsers.find(
+                                            ({ nickname: followingNickname }) =>
+                                                followingNickname ===
                                                 invitedUserNickname,
                                         );
                                     if (invitedUser === undefined) {
@@ -547,7 +550,7 @@ const mtvRoomUsersSearchMachine = mtvRoomUsersSearchModel.createMachine({
                             }: MtvRoomUsersSearchMachineState,
                         ) => {
                             const filteredUsers = filterUsersByNickname(
-                                fakeFriendsAndUsers,
+                                fakeFollowingAndUsers,
                                 searchQuery,
                             );
                             const page = getPage(
@@ -606,9 +609,9 @@ const mtvRoomUsersSearchTestingModel = createTestingModel<
         ] as SearchUsersByNicknameEvent[],
     },
 
-    INVITE_FRIEND: {
+    INVITE_FOLLOWING: {
         exec: async ({ screen }, event) => {
-            const { nickname } = InviteFriendEvent.parse(event);
+            const { nickname } = InviteFollowingEvent.parse(event);
 
             const userCard = await screen.findByTestId(`${nickname}-user-card`);
             expect(userCard).toBeTruthy();
@@ -619,7 +622,7 @@ const mtvRoomUsersSearchTestingModel = createTestingModel<
 
         cases: [
             {
-                nickname: fakeFriends[0].nickname,
+                nickname: fakeFollowing[0].nickname,
             },
         ] as InviteUserEvent[],
     },
@@ -643,25 +646,25 @@ const mtvRoomUsersSearchTestingModel = createTestingModel<
     },
 });
 
-describe('Display friends and search users', () => {
+describe('Display following and search users', () => {
     const testPlans = mtvRoomUsersSearchTestingModel.getSimplePathPlansTo(
         (state) => {
-            const { friendsPage, invitedFriendNickname } = state.context;
+            const { followingPage, invitedFollowingNickname } = state.context;
 
             const invitedOneUser = state.matches({
                 usersView: { invitedUser: 'secondUserInvitation' },
             });
             if (invitedOneUser === true) {
-                const didNotLoadMoreFriends = friendsPage === 1;
-                const didNotInviteFriend = invitedFriendNickname === '';
+                const didNotLoadMoreFollowing = followingPage === 1;
+                const didNotInviteFollowing = invitedFollowingNickname === '';
 
-                return didNotLoadMoreFriends && didNotInviteFriend;
+                return didNotLoadMoreFollowing && didNotInviteFollowing;
             }
 
             /**
              * Go to final state of usersView after:
-             * - do not fetching more friends
-             * - fetching all friends
+             * - do not fetching more following
+             * - fetching all following
              */
             const displayedAllUsersForSearchQuery = state.matches({
                 usersView: 'fetchedAllUsersForSearchQuery',
@@ -669,7 +672,8 @@ describe('Display friends and search users', () => {
 
             return (
                 displayedAllUsersForSearchQuery === true &&
-                (friendsPage === 1 || friendsPage === fakeFriendsPagesCount)
+                (followingPage === 1 ||
+                    followingPage === fakeFollowingPagesCount)
             );
         },
     );
@@ -688,8 +692,8 @@ describe('Display friends and search users', () => {
 
                     db.userFollowing.create({
                         userID: testGetFakeUserID(),
-                        following: fakeFriends.map((friend) =>
-                            db.searchableUsers.create(friend),
+                        following: fakeFollowing.map((following) =>
+                            db.searchableUsers.create(following),
                         ),
                     });
 
@@ -788,13 +792,13 @@ test('Clearing search input displays users without filtering', async () => {
         directMode: false,
         isMeIsCreator: true,
     });
-    const friendNicknameToSearch = fakeFriends[0].nickname;
+    const followingNicknameToSearch = fakeFollowing[0].nickname;
     const userNicknameToSearch = fakeUsers[0].nickname;
 
     db.userFollowing.create({
         userID: testGetFakeUserID(),
-        following: fakeFriends.map((friend) =>
-            db.searchableUsers.create(friend),
+        following: fakeFollowing.map((following) =>
+            db.searchableUsers.create(following),
         ),
     });
 
@@ -818,20 +822,20 @@ test('Clearing search input displays users without filtering', async () => {
     expect(searchUsersInput).toBeTruthy();
 
     await waitFor(() => {
-        const friendCard = screen.getByTestId(
-            `${friendNicknameToSearch}-user-card`,
+        const followingCard = screen.getByTestId(
+            `${followingNicknameToSearch}-user-card`,
         );
-        expect(friendCard).toBeTruthy();
+        expect(followingCard).toBeTruthy();
     });
 
-    const waitForFriendCardToDisappearPromise = waitForElementToBeRemoved(() =>
-        screen.getByTestId(`${friendNicknameToSearch}-user-card`),
+    const waitForFollowingCardToDisappearPromise = waitForElementToBeRemoved(
+        () => screen.getByTestId(`${followingNicknameToSearch}-user-card`),
     );
 
     fireEvent(searchUsersInput, 'focus');
     fireEvent.changeText(searchUsersInput, userNicknameToSearch);
 
-    await waitForFriendCardToDisappearPromise;
+    await waitForFollowingCardToDisappearPromise;
 
     await waitFor(() => {
         const userCard = screen.getByTestId(
@@ -853,10 +857,10 @@ test('Clearing search input displays users without filtering', async () => {
     await waitForUserCardToDisappearPromise;
 
     await waitFor(() => {
-        const friendCard = screen.getByTestId(
-            `${friendNicknameToSearch}-user-card`,
+        const followingCard = screen.getByTestId(
+            `${followingNicknameToSearch}-user-card`,
         );
-        expect(friendCard).toBeTruthy();
+        expect(followingCard).toBeTruthy();
     });
 });
 
@@ -868,13 +872,13 @@ test('Cancelling search input displays users without filtering', async () => {
         directMode: false,
         isMeIsCreator: true,
     });
-    const friendNicknameToSearch = fakeFriends[0].nickname;
+    const followingNicknameToSearch = fakeFollowing[0].nickname;
     const userNicknameToSearch = fakeUsers[0].nickname;
 
     db.userFollowing.create({
         userID: testGetFakeUserID(),
-        following: fakeFriends.map((friend) =>
-            db.searchableUsers.create(friend),
+        following: fakeFollowing.map((following) =>
+            db.searchableUsers.create(following),
         ),
     });
 
@@ -898,20 +902,20 @@ test('Cancelling search input displays users without filtering', async () => {
     expect(searchUsersInput).toBeTruthy();
 
     await waitFor(() => {
-        const friendCard = screen.getByTestId(
-            `${friendNicknameToSearch}-user-card`,
+        const followingCard = screen.getByTestId(
+            `${followingNicknameToSearch}-user-card`,
         );
-        expect(friendCard).toBeTruthy();
+        expect(followingCard).toBeTruthy();
     });
 
-    const waitForFriendCardToDisappearPromise = waitForElementToBeRemoved(() =>
-        screen.getByTestId(`${friendNicknameToSearch}-user-card`),
+    const waitForFollowingCardToDisappearPromise = waitForElementToBeRemoved(
+        () => screen.getByTestId(`${followingNicknameToSearch}-user-card`),
     );
 
     fireEvent(searchUsersInput, 'focus');
     fireEvent.changeText(searchUsersInput, userNicknameToSearch);
 
-    await waitForFriendCardToDisappearPromise;
+    await waitForFollowingCardToDisappearPromise;
 
     await waitFor(() => {
         const userCard = screen.getByTestId(
@@ -932,9 +936,9 @@ test('Cancelling search input displays users without filtering', async () => {
     await waitForUserCardToDisappearPromise;
 
     await waitFor(() => {
-        const friendCard = screen.getByTestId(
-            `${friendNicknameToSearch}-user-card`,
+        const followingCard = screen.getByTestId(
+            `${followingNicknameToSearch}-user-card`,
         );
-        expect(friendCard).toBeTruthy();
+        expect(followingCard).toBeTruthy();
     });
 });

@@ -13,8 +13,8 @@ import {
 } from '../../components/kit';
 import { MyProfileScreenProps } from '../../types';
 import { getFakeUserID } from '../../contexts/SocketContext';
-import { createMyProfileInformationMachine } from '../../machines/myProfileInformationMachine';
 import { generateUserAvatarUri } from '../../constants/users-avatar';
+import { useGetMyProfileInformationFromCache } from '../../hooks/useMyProfileInformationFromCache';
 
 interface MyProfileInformationSectionProps {
     onPress: () => void;
@@ -59,18 +59,8 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
     const sx = useSx();
     const userID = getFakeUserID();
 
-    const userProfileInformationService = useInterpret(() =>
-        createMyProfileInformationMachine(),
-    );
-
-    const myProfileInformation = useSelector(
-        userProfileInformationService,
-        (state) => state.context.myProfileInformation,
-    );
-
-    const userNotFound = useSelector(userProfileInformationService, (state) =>
-        state.hasTag('userNotFound'),
-    );
+    const { myProfileInformation, userNotFound } =
+        useGetMyProfileInformationFromCache();
 
     function handleGoToMyLibrary() {
         navigation.navigate('Main', {

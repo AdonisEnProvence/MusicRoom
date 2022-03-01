@@ -1,8 +1,6 @@
 import { MyProfileInformation } from '@musicroom/types';
 import { ContextFrom, EventFrom, MachineOptions, StateMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { getFakeUserID } from '../contexts/SocketContext';
-import { getMyProfileInformation } from '../services/UsersSearchService';
 import { getMyProfileInformationMachineOptions } from './options/myProfileInformationMachineOptions copy';
 
 const myProfileInformationModel = createModel(
@@ -11,10 +9,10 @@ const myProfileInformationModel = createModel(
     },
     {
         events: {
-            __RETRIEVE_MY_PROFILE_INFORMATION_SUCCESS: (
+            RETRIEVE_MY_PROFILE_INFORMATION_SUCCESS: (
                 myProfileInformation: MyProfileInformation,
             ) => ({ myProfileInformation }),
-            __RETRIEVE_MY_PROFILE_INFORMATION_FAILURE: () => ({}),
+            RETRIEVE_MY_PROFILE_INFORMATION_FAILURE: () => ({}),
         },
         actions: {
             triggerFailureRetrieveMyProfileInformationToast: () => ({}),
@@ -24,10 +22,11 @@ const myProfileInformationModel = createModel(
 
 const assignUserMyProfileInformation = myProfileInformationModel.assign(
     {
-        myProfileInformation: (_context, { myProfileInformation }) =>
-            myProfileInformation,
+        myProfileInformation: (_context, { myProfileInformation }) => {
+            return myProfileInformation;
+        },
     },
-    '__RETRIEVE_MY_PROFILE_INFORMATION_SUCCESS',
+    'RETRIEVE_MY_PROFILE_INFORMATION_SUCCESS',
 );
 
 export type MyProfileInformationMachineContext = ContextFrom<
@@ -50,60 +49,32 @@ export function createMyProfileInformationMachine(): StateMachine<
     MyProfileInformationMachineEvents
 > {
     return myProfileInformationModel
-        .createMachine(
-            {
-                context: {
-                    myProfileInformation: undefined,
+        .createMachine({
+            context: {
+                myProfileInformation: undefined,
+            },
+            initial: 'idle',
+            states: {
+                idle: {},
+
+                userNotFound: {
+                    tags: 'userNotFound',
                 },
-                initial: 'retrieveMyProfileInformation',
-                states: {
-                    retrieveMyProfileInformation: {
-                        invoke: {
-                            src: 'retrieveMyProfileInformation',
-                        },
 
-                        on: {
-                            __RETRIEVE_MY_PROFILE_INFORMATION_SUCCESS: {
-                                actions: assignUserMyProfileInformation,
-                                target: 'userFound',
-                            },
+                userFound: {},
+            },
+            on: {
+                RETRIEVE_MY_PROFILE_INFORMATION_SUCCESS: {
+                    target: 'userFound',
+                    actions: [assignUserMyProfileInformation, 'updateCache'],
+                },
 
-                            __RETRIEVE_MY_PROFILE_INFORMATION_FAILURE: {
-                                target: 'userNotFound',
-                                actions:
-                                    myProfileInformationModel.actions.triggerFailureRetrieveMyProfileInformationToast(),
-                            },
-                        },
-                    },
-
-                    userNotFound: {
-                        tags: 'userNotFound',
-                    },
-
-                    userFound: {},
+                RETRIEVE_MY_PROFILE_INFORMATION_FAILURE: {
+                    target: 'userNotFound',
+                    actions:
+                        myProfileInformationModel.actions.triggerFailureRetrieveMyProfileInformationToast(),
                 },
             },
-            {
-                services: {
-                    retrieveMyProfileInformation: () => async (sendBack) => {
-                        try {
-                            const response = await getMyProfileInformation({
-                                tmpAuthUserID: getFakeUserID(),
-                            });
-
-                            sendBack({
-                                type: '__RETRIEVE_MY_PROFILE_INFORMATION_SUCCESS',
-                                myProfileInformation: response,
-                            });
-                        } catch (e) {
-                            console.log('error occured', e);
-                            sendBack({
-                                type: '__RETRIEVE_MY_PROFILE_INFORMATION_FAILURE',
-                            });
-                        }
-                    },
-                },
-            },
-        )
+        })
         .withConfig(getMyProfileInformationMachineOptions());
 }

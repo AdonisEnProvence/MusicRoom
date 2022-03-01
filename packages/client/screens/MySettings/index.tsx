@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Skeleton } from '@motify/skeleton';
+import { GetMySettingsResponseBody } from '@musicroom/types';
 import { useActor, useMachine } from '@xstate/react';
 import { ScrollView, Text, useSx, View } from 'dripsy';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from 'react-query';
 import invariant from 'tiny-invariant';
 import {
     AppScreen,
@@ -12,6 +14,8 @@ import {
     AppScreenHeader,
 } from '../../components/kit';
 import MtvRoomCreationFormOptionButton from '../../components/MtvRoomCreationForm/MtvRoomCreationFormOptionButton';
+import { useRefreshOnFocus } from '../../hooks/useRefreshOnFocus';
+import { getMySettings } from '../../services/UserSettingsService';
 import { MySettingsScreenProps } from '../../types';
 import {
     settingsMachine,
@@ -116,7 +120,26 @@ const VisibilitySetting: React.FC<VisibilitySettingProps> = ({
 const MySettingsScreen: React.FC<MySettingsScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const sx = useSx();
-    const [state] = useMachine(settingsMachine);
+    const [state, sendToSettingsMachine] = useMachine(settingsMachine);
+
+    const { data, status, refetch } = useQuery<
+        GetMySettingsResponseBody,
+        Error
+    >('myProfileSettings', getMySettings);
+    useRefreshOnFocus(refetch);
+
+    useEffect(() => {
+        if (status === 'success' && data) {
+            sendToSettingsMachine({
+                type: "successfully fetched user's settings",
+                mySettings: data,
+            });
+        } else if (status === 'error') {
+            sendToSettingsMachine({
+                type: "failed to fetch user's settings",
+            });
+        }
+    }, [data, status, sendToSettingsMachine]);
 
     const settingsState = useMemo(() => {
         if (state.hasTag("Errored fetching user's settings")) {

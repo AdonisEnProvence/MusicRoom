@@ -4,7 +4,6 @@ import { Button, useSx, View } from 'dripsy';
 import { TouchableOpacity } from 'react-native';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { internet } from 'faker';
 import Toast from 'react-native-toast-message';
 import {
     AppScreen,

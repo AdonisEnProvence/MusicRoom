@@ -232,6 +232,12 @@ const settingsModel = createModel(
             'Update Relations Visibility Setting': (
                 visibility: UserSettingVisibility,
             ) => ({ visibility }),
+
+            "successfully fetched user's settings": (
+                mySettings: GetMySettingsResponseBody,
+            ) => ({ mySettings }),
+
+            "failed to fetch user's settings": () => ({}),
         },
         actions: {
             "Assign user's settings to context": () => ({}),
@@ -271,23 +277,7 @@ export const settingsMachine =
                         'Fetching management': {
                             initial: "Requesting user's settings",
                             states: {
-                                "Requesting user's settings": {
-                                    invoke: {
-                                        src: "Fetch user's settings",
-                                        onDone: [
-                                            {
-                                                actions:
-                                                    "Assign user's settings to context",
-                                                target: "#Settings.Fetching user's settings.Fetching management.Received user's settings",
-                                            },
-                                        ],
-                                        onError: [
-                                            {
-                                                target: "#Settings.Fetching user's settings.Fetching management.Errored",
-                                            },
-                                        ],
-                                    },
-                                },
+                                "Requesting user's settings": {},
                                 "Received user's settings": {
                                     type: 'final',
                                 },
@@ -336,16 +326,19 @@ export const settingsMachine =
                     },
                 },
             },
+            on: {
+                "successfully fetched user's settings": {
+                    actions: "Assign user's settings to context",
+                    target: "#Settings.Fetching user's settings.Fetching management.Received user's settings",
+                },
+
+                "failed to fetch user's settings": {
+                    target: "#Settings.Fetching user's settings.Fetching management.Errored",
+                },
+            },
         },
         {
             services: {
-                "Fetch user's settings":
-                    async (): Promise<GetMySettingsResponseBody> => {
-                        const mySettings = await getMySettings();
-
-                        return mySettings;
-                    },
-
                 'Playlists Visibility Manager Machine': ({ mySettings }) => {
                     invariant(
                         mySettings !== undefined,
@@ -429,11 +422,13 @@ export const settingsMachine =
 
             actions: {
                 "Assign user's settings to context": assign({
-                    mySettings: (_context, e) => {
-                        const event =
-                            e as unknown as DoneInvokeEvent<GetMySettingsResponseBody>;
+                    mySettings: (_context, event) => {
+                        assertEventType(
+                            event,
+                            "successfully fetched user's settings",
+                        );
 
-                        return event.data;
+                        return event.mySettings;
                     },
                 }),
 

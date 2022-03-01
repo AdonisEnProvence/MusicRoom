@@ -74,6 +74,7 @@
     "react-native-web-webview": "^1.0.2",
     "react-native-webview": "11.2.3",
     "react-native-youtube-iframe": "^2.1.0",
+    "react-query": "^3.34.16",
     "react-youtube": "https://github.com/Devessier/react-youtube.git",
     "redaxios": "^0.4.1",
     "socket.io-client": "^4.1.2",

@@ -1,9 +1,13 @@
-import { useInterpret, useSelector } from '@xstate/react';
+import { useInterpret, useMachine, useSelector } from '@xstate/react';
 import { Button, Text, useSx, View } from 'dripsy';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
+import { useQuery } from 'react-query';
+import { MyProfileInformation } from '@musicroom/types';
+import Toast from 'react-native-toast-message';
+import { createMachine } from 'xstate';
 import {
     AppScreen,
     AppScreenContainer,
@@ -13,8 +17,9 @@ import {
 } from '../../components/kit';
 import { MyProfileScreenProps } from '../../types';
 import { getFakeUserID } from '../../contexts/SocketContext';
-import { createMyProfileInformationMachine } from '../../machines/myProfileInformationMachine';
 import { generateUserAvatarUri } from '../../constants/users-avatar';
+import { getMyProfileInformation } from '../../services/UsersSearchService';
+import { useRefreshOnFocus } from '../../hooks/useRefreshOnFocus';
 
 interface MyProfileInformationSectionProps {
     onPress: () => void;
@@ -59,18 +64,59 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
     const sx = useSx();
     const userID = getFakeUserID();
 
-    const userProfileInformationService = useInterpret(() =>
-        createMyProfileInformationMachine(),
+    const [state, sendToMachine] = useMachine(() =>
+        createMachine({
+            initial: 'loading',
+            states: {
+                loading: {},
+                userFound: {},
+
+                userNotFound: {
+                    tags: 'userNotFound',
+                },
+            },
+
+            on: {
+                USER_FOUND: {
+                    target: 'userFound',
+                },
+
+                USER_NOT_FOUND: {
+                    target: 'userNotFound',
+                    actions: () => {
+                        Toast.show({
+                            type: 'error',
+                            text1: 'User not found',
+                        });
+                    },
+                },
+            },
+        }),
+    );
+    const userNotFound = state.hasTag('userNotFound');
+
+    const {
+        data: myProfileInformation,
+        status,
+        refetch,
+    } = useQuery<MyProfileInformation, Error>('myProfileInformation', () =>
+        getMyProfileInformation({
+            tmpAuthUserID: getFakeUserID(),
+        }),
     );
 
-    const myProfileInformation = useSelector(
-        userProfileInformationService,
-        (state) => state.context.myProfileInformation,
-    );
+    useRefreshOnFocus(refetch);
 
-    const userNotFound = useSelector(userProfileInformationService, (state) =>
-        state.hasTag('userNotFound'),
-    );
+    useEffect(() => {
+        if (status === 'success' && myProfileInformation) {
+            sendToMachine({
+                type: 'USER_FOUND',
+                myProfileInformation,
+            });
+        } else if (status === 'error') {
+            sendToMachine('USER_NOT_FOUND');
+        }
+    }, [myProfileInformation, status, sendToMachine]);
 
     function handleGoToMyLibrary() {
         navigation.navigate('Main', {
@@ -100,7 +146,7 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
         navigation.navigate('MyFollowing');
     }
 
-    if (myProfileInformation === undefined) {
+    if (myProfileInformation === undefined || userNotFound) {
         return (
             <AppScreen>
                 <AppScreenHeader

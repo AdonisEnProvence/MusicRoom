@@ -7,14 +7,12 @@ import {
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import User from 'App/Models/User';
 import MpeRoom from 'App/Models/MpeRoom';
-import { datatype } from 'faker';
 import MpeRoomInvitation from 'App/Models/MpeRoomInvitation';
 import { fromMpeRoomsToMpeRoomSummaries } from '../Ws/MpeRoomsWsController';
 
 const MPE_ROOMS_SEARCH_LIMIT = 10;
 
 export default class MpeRoomsHttpController {
-    //TODO should list private with invitation etc etc and takes an userID
     public async listAllRooms({
         request,
     }: HttpContextContract): Promise<ListAllMpeRoomsResponseBody> {
@@ -90,11 +88,6 @@ export default class MpeRoomsHttpController {
                     column: 'mpe_rooms.is_open',
                     order: 'asc',
                 },
-                // FIXME: need to handle invitations
-                // {
-                //     column: 'invitationID',
-                //     order: 'asc',
-                // },
                 {
                     column: 'mpe_rooms.uuid',
                     order: 'asc',
@@ -107,7 +100,7 @@ export default class MpeRoomsHttpController {
         const hasMoreRoomsToLoad = mpeRoomsPagination.hasMorePages;
         const formattedMpeRooms = await fromMpeRoomsToMpeRoomSummaries({
             mpeRooms: mpeRoomsPagination.all(),
-            userID: datatype.uuid(), //TODO this is temporary we need to be refactor during mpe search engine implem
+            userID,
         });
 
         return {

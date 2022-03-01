@@ -14,6 +14,8 @@ test.afterEach(async ({ browser }) => {
     await closeAllContexts(browser);
 });
 
+// UserA creates a mpe room UserB joins and then UserA leaves
+//
 // UserA creates a mpe room and goes to created mpe room view
 // UserB joins the UserA created mpe room,
 // UserB should see the joined room view with enabled cta,
@@ -22,7 +24,7 @@ test.afterEach(async ({ browser }) => {
 // UserA ( creator ) leaves the mpe room, he should see the success toast and should be redirected to the library search view,
 // UserB should receive a FORCED_DISCONNECTION event. He should see a related forced disconnection toast and should be redirected on the library view
 // UserC should receive a FORCED_DISCONNECTION event. He should see a related forced disconnection toast and should not be redirect anywhere as he's viewing the home ( at least an other screen then the disconnected from mpe room view )
-test('Basic user leaves mpe room', async ({ browser }) => {
+test('Creator leaves mpe room', async ({ browser }) => {
     const { page: creatorUserA } = await setupPageAndSignUpUser({
         browser,
         knownSearches,

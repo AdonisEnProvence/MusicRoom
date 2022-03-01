@@ -24,7 +24,7 @@ const MyFollowingSearchScreen: React.FC<MyFollowingScreenProps> = ({
     const initialNumberOfItemsToRender = IS_TEST ? Infinity : 10;
 
     const [userFollowingSearchState, userFollowingSearchMachineSend] =
-        useMachine(() => myFollowingSearchMachine);
+        useMachine(myFollowingSearchMachine);
     const { usersSummaries } = userFollowingSearchState.context;
     const hasMoreUsersToFetch = userFollowingSearchState.context.hasMore;
     const isFetching = userFollowingSearchState.hasTag('fetching');

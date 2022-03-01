@@ -24,7 +24,7 @@ const MyFollowersSearchScreen: React.FC<MyFollowersScreenProps> = ({
     const initialNumberOfItemsToRender = IS_TEST ? Infinity : 10;
 
     const [userFollowersSearchState, userFollowersSearchMachineSend] =
-        useMachine(() => myFollowerSearchMachine);
+        useMachine(myFollowerSearchMachine);
     const { usersSummaries } = userFollowersSearchState.context;
     const hasMoreUsersToFetch = userFollowersSearchState.context.hasMore;
     const isFetching = userFollowersSearchState.hasTag('fetching');
@@ -111,47 +111,41 @@ const MyFollowersSearchScreen: React.FC<MyFollowersScreenProps> = ({
                     );
                 }}
                 keyExtractor={({ userID }) => userID}
-                ListEmptyComponent={() => {
-                    return (
-                        <Text sx={{ color: 'white' }}>
-                            This user doesnot have any followers
-                        </Text>
-                    );
-                }}
+                ListEmptyComponent={
+                    <Text sx={{ color: 'white' }}>
+                        This user doesnot have any followers
+                    </Text>
+                }
                 ListFooterComponent={
-                    hasMoreUsersToFetch === true
-                        ? () => {
-                              return (
-                                  <View
-                                      sx={{
-                                          flexDirection: 'row',
-                                          justifyContent: 'center',
-                                          alignItems: 'center',
-                                      }}
-                                  >
-                                      <TouchableOpacity
-                                          onPress={handleLoadMore}
-                                          style={sx({
-                                              borderRadius: 'full',
-                                              borderWidth: 2,
-                                              borderColor: 'secondary',
-                                              paddingX: 'l',
-                                              paddingY: 's',
-                                          })}
-                                      >
-                                          <Text
-                                              sx={{
-                                                  color: 'secondary',
-                                                  fontWeight: 'bold',
-                                              }}
-                                          >
-                                              Load more
-                                          </Text>
-                                      </TouchableOpacity>
-                                  </View>
-                              );
-                          }
-                        : undefined
+                    hasMoreUsersToFetch ? (
+                        <View
+                            sx={{
+                                flexDirection: 'row',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                            }}
+                        >
+                            <TouchableOpacity
+                                onPress={handleLoadMore}
+                                style={sx({
+                                    borderRadius: 'full',
+                                    borderWidth: 2,
+                                    borderColor: 'secondary',
+                                    paddingX: 'l',
+                                    paddingY: 's',
+                                })}
+                            >
+                                <Text
+                                    sx={{
+                                        color: 'secondary',
+                                        fontWeight: 'bold',
+                                    }}
+                                >
+                                    Load more
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    ) : null
                 }
             />
         </AppScreenWithSearchBar>

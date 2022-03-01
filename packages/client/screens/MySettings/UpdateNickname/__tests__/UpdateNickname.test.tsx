@@ -2,7 +2,6 @@ import { createModel } from 'xstate/lib/model';
 import { createModel as createTestModel } from '@xstate/test';
 import { EventFrom } from 'xstate';
 import Toast from 'react-native-toast-message';
-import { internet } from 'faker';
 import {
     UpdateNicknameRequestBody,
     UpdateNicknameResponseBody,

@@ -11,6 +11,7 @@ import { datatype } from 'faker';
 import React from 'react';
 import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { QueryClient, QueryClientProvider } from 'react-query';
 import invariant from 'tiny-invariant';
 import { AppContextProvider } from '../contexts/AppContext';
 import { SocketContextProvider } from '../contexts/SocketContext';
@@ -21,26 +22,37 @@ import { ServerSocket, serverSocket } from '../services/websockets';
 export type SizeTerms = 'xs' | 's' | 'm' | 'l' | 'xl';
 export type BackgroundTerms = 'primary' | 'seconday' | 'white' | 'text';
 
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            retry: false,
+            cacheTime: 0,
+        },
+    },
+});
+
 const AllTheProviders: React.FC = ({ children }) => {
     const { theme } = useTheme();
 
     return (
-        <DripsyProvider theme={theme}>
-            <SafeAreaProvider
-                initialMetrics={{
-                    frame: { x: 0, y: 0, width: 0, height: 0 },
-                    insets: { top: 0, left: 0, right: 0, bottom: 0 },
-                }}
-            >
-                <BottomSheetModalProvider>
-                    <SocketContextProvider>
-                        <AppContextProvider setDisplayModal={noop}>
-                            {children}
-                        </AppContextProvider>
-                    </SocketContextProvider>
-                </BottomSheetModalProvider>
-            </SafeAreaProvider>
-        </DripsyProvider>
+        <QueryClientProvider client={queryClient}>
+            <DripsyProvider theme={theme}>
+                <SafeAreaProvider
+                    initialMetrics={{
+                        frame: { x: 0, y: 0, width: 0, height: 0 },
+                        insets: { top: 0, left: 0, right: 0, bottom: 0 },
+                    }}
+                >
+                    <BottomSheetModalProvider>
+                        <SocketContextProvider>
+                            <AppContextProvider setDisplayModal={noop}>
+                                {children}
+                            </AppContextProvider>
+                        </SocketContextProvider>
+                    </BottomSheetModalProvider>
+                </SafeAreaProvider>
+            </DripsyProvider>
+        </QueryClientProvider>
     );
 };
 

@@ -258,6 +258,14 @@
     rev-hash "^3.0.0"
     source-map-support "^0.5.21"
 
+"@adonisjs/session@^6.1.4":
+  version "6.1.4"
+  resolved "https://registry.yarnpkg.com/@adonisjs/session/-/session-6.1.4.tgz#50258420eda2f4630195564003e44e33604a09f9"
+  integrity sha512-4XRQ/SFPVoF9mnGua1MagvZqYZXOG5OOwGatcDpBr1le+6nKP+uEl4IdU9sEk3URn5LBnOmPUAxQqQ6Ho+qpSw==
+  dependencies:
+    "@poppinss/utils" "^4.0.2"
+    fs-extra "^10.0.1"
+
 "@adonisjs/sink@^5.2.1":
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/@adonisjs/sink/-/sink-5.2.1.tgz#8adbea3f4a14e322919fe239a8725565c9761b31"
@@ -11144,6 +11152,15 @@ fs-extra@^10.0.0:
   version "10.0.0"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-10.0.0.tgz#9ff61b655dde53fb34a82df84bb214ce802e17c1"
   integrity sha512-C5owb14u9eJwizKGdchcDUQeFtlSHHthBk8pbX9Vc1PFZrLombudjDnNns88aYslCyF6IY5SUw3Roz6xShcEIQ==
+  dependencies:
+    graceful-fs "^4.2.0"
+    jsonfile "^6.0.1"
+    universalify "^2.0.0"
+
+fs-extra@^10.0.1:
+  version "10.0.1"
+  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-10.0.1.tgz#27de43b4320e833f6867cc044bfce29fdf0ef3b8"
+  integrity sha512-NbdoVMZso2Lsrn/QwLXOy6rm0ufY2zEOKCDzJR/0kBsb0E6qed0P3iYK+Ath3BfvXEeu4JhEtXLgILx5psUfag==
   dependencies:
     graceful-fs "^4.2.0"
     jsonfile "^6.0.1"

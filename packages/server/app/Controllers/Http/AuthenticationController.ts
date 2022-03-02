@@ -51,4 +51,11 @@ export default class AuthenticationController {
             }
         }
     }
+
+    public async me({ auth }: HttpContextContract): Promise<any> {
+        console.log({ user: auth.user });
+        return {
+            user: auth.user,
+        };
+    }
 }

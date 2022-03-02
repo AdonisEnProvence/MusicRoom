@@ -1,17 +1,16 @@
 import { SignUpResponseBody } from '@musicroom/types';
-import Hash from '@ioc:Adonis/Core/Hash';
 import User from 'App/Models/User';
 import { datatype, internet } from 'faker';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import * as z from 'zod';
+import { OpaqueTokenContract } from '@ioc:Adonis/Addons/Auth';
 
-const SignInRequestBody = z.object({
+export const SignInRequestBody = z.object({
     email: z.string().email(),
     password: z.string(),
     authenticationMode: z.enum(['web-auth', 'api-tokens']),
 });
-
-type SignInRequestBody = z.infer<typeof SignInRequestBody>;
+export type SignInRequestBody = z.infer<typeof SignInRequestBody>;
 
 export default class AuthenticationController {
     public async signUp(): Promise<SignUpResponseBody> {
@@ -29,7 +28,12 @@ export default class AuthenticationController {
         };
     }
 
-    public async signIn({ request, auth }: HttpContextContract): Promise<any> {
+    public async signIn({
+        request,
+        auth,
+    }: HttpContextContract): Promise<void | {
+        token: OpaqueTokenContract<User>;
+    }> {
         const { email, password, authenticationMode } = SignInRequestBody.parse(
             request.body(),
         );
@@ -40,12 +44,15 @@ export default class AuthenticationController {
 
                 return;
             }
+
             case 'api-tokens': {
                 const token = await auth.use('api').attempt(email, password);
+
                 return {
                     token,
                 };
             }
+
             default: {
                 throw new Error('unkown authentication mode encountered');
             }
@@ -53,7 +60,6 @@ export default class AuthenticationController {
     }
 
     public async me({ auth }: HttpContextContract): Promise<any> {
-        console.log({ user: auth.user });
         return {
             user: auth.user,
         };

@@ -6,4 +6,3 @@ coverage
 .DS_STORE
 .env
 tmp
-.env.testing

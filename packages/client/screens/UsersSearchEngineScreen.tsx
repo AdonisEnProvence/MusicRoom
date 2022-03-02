@@ -89,13 +89,13 @@ const UsersSearchEngineScreen: React.FC<UsersSearchEngineProps> = ({
         navigation.goBack();
     }
 
-    const displayFriends = state.hasTag('displayFriends');
+    const displayFollowing = state.hasTag('displayFollowing');
     const isLoading = state.hasTag('isLoading');
     const isLoadingMore = state.hasTag('isLoadingMore');
     const selectedUsers = state.context.selectedUsers;
     const usersToDisplay =
-        displayFriends === true
-            ? state.context.usersFriends
+        displayFollowing === true
+            ? state.context.usersFollowing
             : state.context.filteredUsers;
     const usersToDisplayWithDisabling = usersToDisplay.map((user) => {
         const hasAlreadyBeenInvited = selectedUsers.some(
@@ -109,8 +109,8 @@ const UsersSearchEngineScreen: React.FC<UsersSearchEngineProps> = ({
         };
     });
     const hasMoreUsersToFetch =
-        displayFriends === true
-            ? state.context.hasMoreUsersFriendsToFetch
+        displayFollowing === true
+            ? state.context.hasMoreUsersFollowingToFetch
             : state.context.hasMoreFilteredUsersToFetch;
     const showLoadMoreButton = hasMoreUsersToFetch === true;
 

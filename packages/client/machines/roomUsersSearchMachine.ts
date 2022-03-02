@@ -2,17 +2,17 @@ import { UserSummary } from '@musicroom/types';
 import { send } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { getFakeUserID } from '../contexts/SocketContext';
-import { fetchFriends, fetchUsers } from '../services/UsersSearchService';
+import { fetchMyFollowing, fetchUsers } from '../services/UsersSearchService';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 
 const roomUsersSearchModel = createModel(
     {
         usersToDisplay: [] as UserSummary[],
 
-        bufferUsersFriends: [] as UserSummary[],
-        usersFriends: [] as UserSummary[],
-        usersFriendsPage: 1,
-        hasMoreUsersFriendsToFetch: true,
+        bufferUsersFollowing: [] as UserSummary[],
+        usersFollowing: [] as UserSummary[],
+        usersFollowingPage: 1,
+        hasMoreUsersFollowingToFetch: true,
 
         bufferFilteredUsers: [] as UserSummary[],
         filteredUsers: [] as UserSummary[],
@@ -29,11 +29,11 @@ const roomUsersSearchModel = createModel(
             CLEAR_QUERY: () => ({}),
             CANCEL: () => ({}),
 
-            FETCHED_FRIENDS: (
-                friends: UserSummary[],
+            FETCHED_FOLLOWING: (
+                following: UserSummary[],
                 hasMore: boolean,
                 page: number,
-            ) => ({ friends, hasMore, page }),
+            ) => ({ following, hasMore, page }),
 
             FETCHED_USERS: (
                 users: UserSummary[],
@@ -57,34 +57,34 @@ const assignSearchQueryToContext = roomUsersSearchModel.assign(
     'UPDATE_SEARCH_QUERY',
 );
 
-const assignFirstFriendsToContext = roomUsersSearchModel.assign(
+const assignFirstFollowingToContext = roomUsersSearchModel.assign(
     {
-        usersFriends: ({ usersFriends }, { friends }) => [
-            ...usersFriends,
-            ...friends,
+        usersFollowing: ({ usersFollowing }, { following }) => [
+            ...usersFollowing,
+            ...following,
         ],
-        usersFriendsPage: ({ usersFriendsPage }) => usersFriendsPage + 1,
-        hasMoreUsersFriendsToFetch: (_, { hasMore }) => hasMore,
+        usersFollowingPage: ({ usersFollowingPage }) => usersFollowingPage + 1,
+        hasMoreUsersFollowingToFetch: (_, { hasMore }) => hasMore,
     },
-    'FETCHED_FRIENDS',
+    'FETCHED_FOLLOWING',
 );
 
-const assignFriendsToBufferOfContext = roomUsersSearchModel.assign(
+const assignFollowingToBufferOfContext = roomUsersSearchModel.assign(
     {
-        bufferUsersFriends: (_, { friends }) => friends,
-        usersFriendsPage: ({ usersFriendsPage }) => usersFriendsPage + 1,
-        hasMoreUsersFriendsToFetch: (_, { hasMore }) => hasMore,
+        bufferUsersFollowing: (_, { following }) => following,
+        usersFollowingPage: ({ usersFollowingPage }) => usersFollowingPage + 1,
+        hasMoreUsersFollowingToFetch: (_, { hasMore }) => hasMore,
     },
-    'FETCHED_FRIENDS',
+    'FETCHED_FOLLOWING',
 );
 
-const flushFriendsBuffer = roomUsersSearchModel.assign(
+const flushFollowingBuffer = roomUsersSearchModel.assign(
     {
-        usersFriends: ({ usersFriends, bufferUsersFriends }) => [
-            ...usersFriends,
-            ...bufferUsersFriends,
+        usersFollowing: ({ usersFollowing, bufferUsersFollowing }) => [
+            ...usersFollowing,
+            ...bufferUsersFollowing,
         ],
-        bufferUsersFriends: () => [],
+        bufferUsersFollowing: () => [],
     },
     undefined,
 );
@@ -176,37 +176,37 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                     },
 
                     display: {
-                        initial: 'displayFriends',
+                        initial: 'displayFollowing',
 
                         states: {
-                            displayFriends: {
-                                tags: 'displayFriends',
+                            displayFollowing: {
+                                tags: 'displayFollowing',
 
-                                initial: 'fetchFirstFriends',
+                                initial: 'fetchFirstFollowing',
 
                                 states: {
                                     hist: {
                                         type: 'history',
                                     },
 
-                                    fetchFirstFriends: {
+                                    fetchFirstFollowing: {
                                         tags: 'isLoading',
 
                                         invoke: {
-                                            src: 'fetchFriends',
+                                            src: 'fetchFollowing',
                                         },
 
                                         on: {
-                                            FETCHED_FRIENDS: {
-                                                target: 'debounceFirstFriendsFetching',
+                                            FETCHED_FOLLOWING: {
+                                                target: 'debounceFirstFollowingFetching',
 
                                                 actions:
-                                                    assignFirstFriendsToContext,
+                                                    assignFirstFollowingToContext,
                                             },
                                         },
                                     },
 
-                                    debounceFirstFriendsFetching: {
+                                    debounceFirstFollowingFetching: {
                                         tags: 'isLoading',
 
                                         after: {
@@ -224,28 +224,28 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                                                 on: {
                                                     FETCH_MORE: {
                                                         cond: ({
-                                                            hasMoreUsersFriendsToFetch,
+                                                            hasMoreUsersFollowingToFetch,
                                                         }) =>
-                                                            hasMoreUsersFriendsToFetch,
+                                                            hasMoreUsersFollowingToFetch,
 
-                                                        target: 'fetchingMoreFriends',
+                                                        target: 'fetchingMoreFollowing',
                                                     },
                                                 },
                                             },
 
-                                            fetchingMoreFriends: {
+                                            fetchingMoreFollowing: {
                                                 tags: 'isLoadingMore',
 
                                                 invoke: {
-                                                    src: 'fetchFriends',
+                                                    src: 'fetchFollowing',
                                                 },
 
                                                 on: {
-                                                    FETCHED_FRIENDS: {
+                                                    FETCHED_FOLLOWING: {
                                                         target: 'debouncing',
 
                                                         actions:
-                                                            assignFriendsToBufferOfContext,
+                                                            assignFollowingToBufferOfContext,
                                                     },
                                                 },
                                             },
@@ -262,7 +262,7 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                                                  * The second one must be handled in an exit action.
                                                  * So we use an exit action.
                                                  */
-                                                exit: flushFriendsBuffer,
+                                                exit: flushFollowingBuffer,
 
                                                 after: {
                                                     500: {
@@ -410,7 +410,7 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                                 return isSearchQueryEmpty;
                             },
 
-                            target: '.display.displayFriends.hist',
+                            target: '.display.displayFollowing.hist',
 
                             internal: false,
 
@@ -430,7 +430,7 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                     ],
 
                     CLEAR_QUERY: {
-                        target: '.display.displayFriends.hist',
+                        target: '.display.displayFollowing.hist',
 
                         internal: false,
 
@@ -440,7 +440,7 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                     },
 
                     CANCEL: {
-                        target: '.display.displayFriends.hist',
+                        target: '.display.displayFollowing.hist',
 
                         internal: false,
 
@@ -454,28 +454,29 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
     },
     {
         services: {
-            fetchFriends:
-                ({ usersFriendsPage }) =>
-                (sendBack) => {
-                    console.log('fetch friends');
-
-                    async function handle() {
-                        if (usersFriendsPage > 4) {
-                            return;
-                        }
+            fetchFollowing:
+                ({ usersFollowingPage }) =>
+                async (sendBack) => {
+                    try {
+                        const {
+                            data: following,
+                            hasMore,
+                            page,
+                        } = await fetchMyFollowing({
+                            tmpAuthUserID: getFakeUserID(),
+                            searchQuery: '',
+                            page: usersFollowingPage,
+                        });
 
                         sendBack({
-                            type: 'FETCHED_FRIENDS',
-                            friends: await fetchFriends({
-                                page: usersFriendsPage,
-                            }),
-                            hasMore: usersFriendsPage < 4,
-                            page: 1,
+                            type: 'FETCHED_FOLLOWING',
+                            following,
+                            hasMore,
+                            page,
                         });
+                    } catch (err) {
+                        console.error('Failed to fetch following', err);
                     }
-
-                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                    setTimeout(handle, 100);
                 },
 
             fetchUsers:

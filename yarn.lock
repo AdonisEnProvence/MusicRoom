@@ -52,6 +52,15 @@
     picomatch "^2.3.1"
     slash "^3.0.0"
 
+"@adonisjs/auth@^8.0.11":
+  version "8.0.11"
+  resolved "https://registry.yarnpkg.com/@adonisjs/auth/-/auth-8.0.11.tgz#1d51521ad952afaae29c6dc5097911f8664d06f1"
+  integrity sha512-sFD9/t65zLUcBthjyPBk5Bl2U8vOtPvB5dmtFOpyLwqcwv1uoKzLMh/wrmsMR0vhZAwHxcAXyfuYNPtTsvBOjw==
+  dependencies:
+    "@poppinss/hooks" "^5.0.2"
+    "@poppinss/utils" "^4.0.2"
+    luxon "^2.3.1"
+
 "@adonisjs/bodyparser@^8.0.1":
   version "8.0.2"
   resolved "https://registry.yarnpkg.com/@adonisjs/bodyparser/-/bodyparser-8.0.2.tgz#565b8d165c081f6db75cffc65ec365decd1fe1f7"
@@ -4145,6 +4154,11 @@
   resolved "https://registry.yarnpkg.com/@poppinss/hooks/-/hooks-3.0.5.tgz#ae491fc11500bc9cb7e24f6b637704e7d9868505"
   integrity sha512-kazQstmIPq4n7/qjk5ms9SEiXtLEJ+EMZXxyXTupTVq7URFIUeULgXFv/F3vheLPCSzfByu/L2iO7M457RjszQ==
 
+"@poppinss/hooks@^5.0.2":
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/@poppinss/hooks/-/hooks-5.0.2.tgz#b425630eec5501dce639cd43b895094a792e50c3"
+  integrity sha512-e5WuQ90qC/NHepIVAGQxReCjZMwICw3AHHcvZQmZA3wiUI6eiYpYw/uScotCoo5ti8Mhtbmvrv4QUeMk5n16ag==
+
 "@poppinss/manager@^4.0.4":
   version "4.0.4"
   resolved "https://registry.yarnpkg.com/@poppinss/manager/-/manager-4.0.4.tgz#7e71aedbc8e3a32cc5eb53adc78cf861240d0082"
@@ -4233,6 +4247,28 @@
     "@types/bytes" "^3.1.1"
     "@types/he" "^1.1.2"
     bytes "^3.1.1"
+    change-case "^4.1.2"
+    cuid "^2.1.8"
+    flattie "^1.1.0"
+    fs-readdir-recursive "^1.1.0"
+    he "^1.2.0"
+    kind-of "^6.0.3"
+    lodash "^4.17.21"
+    ms "^2.1.3"
+    pluralize "^8.0.0"
+    require-all "^3.0.0"
+    resolve-from "^5.0.0"
+    slugify "^1.6.5"
+    truncatise "0.0.8"
+
+"@poppinss/utils@^4.0.2":
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/@poppinss/utils/-/utils-4.0.2.tgz#61f1ce0b4a5335f9111562fd7e94f29a80d3f9ea"
+  integrity sha512-+X/8xTyLuwN0KVC+/L5ky7e5/4QwFPjspyOEye2iAQ21E7xkbCAT3f23S6VTKgyksy/zMm8hWBDtwdb35zmhVA==
+  dependencies:
+    "@types/bytes" "^3.1.1"
+    "@types/he" "^1.1.2"
+    bytes "^3.1.2"
     change-case "^4.1.2"
     cuid "^2.1.8"
     flattie "^1.1.0"
@@ -7182,7 +7218,7 @@ bytes@3.1.0, bytes@^3.1.0:
   resolved "https://registry.yarnpkg.com/bytes/-/bytes-3.1.0.tgz#f6cf7933a360e0588fa9fde85651cdc7f805d1f6"
   integrity sha512-zauLjrfCG+xvoyaqLoV8bLVXXNGC4JqlxFCutSDWA6fJrTo2ZuvLYTqZ7aHBLZSMOopbzwv8f+wZcVzfVTI2Dg==
 
-bytes@^3.1.1:
+bytes@^3.1.1, bytes@^3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/bytes/-/bytes-3.1.2.tgz#8b0beeb98605adf1b128fa4386403c009e0221a5"
   integrity sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg==
@@ -15125,6 +15161,11 @@ luxon@^2.0.1, luxon@^2.1.1:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/luxon/-/luxon-2.3.0.tgz#bf16a7e642513c2a20a6230a6a41b0ab446d0045"
   integrity sha512-gv6jZCV+gGIrVKhO90yrsn8qXPKD8HYZJtrUDSfEbow8Tkw84T9OnCyJhWvnJIaIF/tBuiAjZuQHUt1LddX2mg==
+
+luxon@^2.3.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/luxon/-/luxon-2.3.1.tgz#f276b1b53fd9a740a60e666a541a7f6dbed4155a"
+  integrity sha512-I8vnjOmhXsMSlNMZlMkSOvgrxKJl0uOsEzdGgGNZuZPaS9KlefpE9KV95QFftlJSC+1UyCC9/I69R02cz/zcCA==
 
 macroable@^5.1.4:
   version "5.1.4"

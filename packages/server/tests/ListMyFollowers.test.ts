@@ -40,6 +40,8 @@ test.group('List my followers tests group', (group) => {
         const meUser = await User.create({
             uuid: meUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const users = await User.createMany(
@@ -47,6 +49,8 @@ test.group('List my followers tests group', (group) => {
                 fill: () => ({
                     uuid: datatype.uuid(),
                     nickname: internet.userName(),
+                    email: internet.email(),
+                    password: internet.password(),
                 }),
                 minLength: 22,
                 maxLength: 30,
@@ -155,6 +159,8 @@ test.group('List my followers tests group', (group) => {
         const meUser = await User.create({
             uuid: meUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const searchQuery = datatype.string(1);
@@ -165,6 +171,8 @@ test.group('List my followers tests group', (group) => {
                     nickname: `${
                         index % 2 === 0 ? searchQuery : ''
                     }${internet.userName()}`,
+                    email: internet.email(),
+                    password: internet.password(),
                 }),
                 minLength: 20,
                 maxLength: 20,

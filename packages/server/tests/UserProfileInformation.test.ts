@@ -30,10 +30,14 @@ test.group('Users Profile information tests', (group) => {
         await User.create({
             uuid: userID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         const searchedUser = await User.create({
             uuid: searchedUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const { body: rawBody } = await supertest(BASE_URL)
@@ -60,10 +64,14 @@ test.group('Users Profile information tests', (group) => {
         const searchingUser = await User.create({
             uuid: userID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         const searchedUser = await User.create({
             uuid: searchedUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         await searchedUser.related('followers').save(searchingUser);
 
@@ -89,6 +97,8 @@ test.group('Users Profile information tests', (group) => {
         await User.create({
             uuid: searchedUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         await supertest(BASE_URL)
@@ -106,6 +116,8 @@ test.group('Users Profile information tests', (group) => {
         await User.create({
             uuid: userID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         await supertest(BASE_URL)
@@ -122,6 +134,8 @@ test.group('Users Profile information tests', (group) => {
         await User.create({
             uuid: userID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         await supertest(BASE_URL)
@@ -138,12 +152,16 @@ test.group('Users Profile information tests', (group) => {
         await User.create({
             uuid: userID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const searchedUserID = datatype.uuid();
         const searchedUser = await User.create({
             uuid: searchedUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         const privateVisibility = await getVisibilityDatabaseEntry(
             UserSettingVisibility.Values.PRIVATE,
@@ -175,12 +193,16 @@ test.group('Users Profile information tests', (group) => {
         await User.create({
             uuid: userID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const searchedUserID = datatype.uuid();
         const searchedUser = await User.create({
             uuid: searchedUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         const privateVisibility = await getVisibilityDatabaseEntry(
             UserSettingVisibility.Values.PRIVATE,
@@ -212,12 +234,16 @@ test.group('Users Profile information tests', (group) => {
         await User.create({
             uuid: userID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const searchedUserID = datatype.uuid();
         const searchedUser = await User.create({
             uuid: searchedUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         const followerOnlyVisibility = await getVisibilityDatabaseEntry(
             UserSettingVisibility.Values.FOLLOWERS_ONLY,
@@ -252,12 +278,16 @@ test.group('Users Profile information tests', (group) => {
         const searchingUser = await User.create({
             uuid: userID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const searchedUserID = datatype.uuid();
         const searchedUser = await User.create({
             uuid: searchedUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const followerOnlyVisibility = await getVisibilityDatabaseEntry(

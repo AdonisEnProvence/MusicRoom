@@ -90,6 +90,8 @@ test.group('Users Profile information tests', (group) => {
         await User.create({
             uuid: userID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         await supertest(BASE_URL)

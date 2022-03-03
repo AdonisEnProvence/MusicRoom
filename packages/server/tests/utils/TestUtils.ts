@@ -14,7 +14,7 @@ import MtvRoom from 'App/Models/MtvRoom';
 import SettingVisibility from 'App/Models/SettingVisibility';
 import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
-import { unique, datatype, random, name } from 'faker';
+import { unique, datatype, random, name, internet } from 'faker';
 import sinon from 'sinon';
 import { io, Socket } from 'socket.io-client';
 import {
@@ -351,6 +351,8 @@ export function initTestUtils(): TestUtilsReturnedValue {
         const createdUser = await User.create({
             uuid: userID,
             nickname: userNickname ?? unique(() => random.word()),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         if (mtvRoomIDToAssociate !== undefined) {

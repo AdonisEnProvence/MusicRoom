@@ -13,7 +13,7 @@ import {
 } from '@musicroom/types';
 import SettingVisibility from 'App/Models/SettingVisibility';
 import User from 'App/Models/User';
-import { datatype, random } from 'faker';
+import { datatype, random, internet } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
@@ -50,6 +50,8 @@ test.group('User settings', (group) => {
             nickname: random.word(),
             playlistsVisibilitySettingUuid: privateVisibilitySetting.uuid,
             relationsVisibilitySettingUuid: followersOnlyVisibilitySetting.uuid,
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const requestBody: GetMySettingsRequestBody = {
@@ -78,6 +80,8 @@ test.group('User settings', (group) => {
         await User.create({
             uuid: userID,
             nickname: random.word(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const requestBody: GetMySettingsRequestBody = {
@@ -94,6 +98,8 @@ test.group('User settings', (group) => {
         const user = await User.create({
             uuid: userID,
             nickname: random.word(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         await user.load('playlistsVisibilitySetting');
@@ -115,6 +121,8 @@ test.group('User settings', (group) => {
         const user = await User.create({
             uuid: userID,
             nickname: random.word(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const requestBody: UpdatePlaylistsVisibilityRequestBody = {
@@ -145,6 +153,8 @@ test.group('User settings', (group) => {
         const user = await User.create({
             uuid: userID,
             nickname: random.word(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const requestBody: UpdatePlaylistsVisibilityRequestBody = {
@@ -176,6 +186,8 @@ test.group('User settings', (group) => {
         const user = await User.create({
             uuid: userID,
             nickname: random.word(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const requestBody: UpdatePlaylistsVisibilityRequestBody = {
@@ -207,6 +219,8 @@ test.group('User settings', (group) => {
         const user = await User.create({
             uuid: userID,
             nickname: random.word(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const requestBody: UpdateRelationsVisibilityRequestBody = {
@@ -237,6 +251,8 @@ test.group('User settings', (group) => {
         const user = await User.create({
             uuid: userID,
             nickname: random.word(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const requestBody: UpdateRelationsVisibilityRequestBody = {
@@ -268,6 +284,8 @@ test.group('User settings', (group) => {
         const user = await User.create({
             uuid: userID,
             nickname: random.word(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const requestBody: UpdateRelationsVisibilityRequestBody = {
@@ -300,6 +318,8 @@ test.group('User settings', (group) => {
         const user = await User.create({
             uuid: userID,
             nickname: userNickname,
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const requestBody: UpdateNicknameRequestBody = {
@@ -329,11 +349,15 @@ test.group('User settings', (group) => {
         await User.create({
             uuid: userID,
             nickname: userNickname,
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const randomUser = await User.create({
             uuid: datatype.uuid(),
             nickname: random.word(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const requestBody: UpdateNicknameRequestBody = {
@@ -364,6 +388,8 @@ test.group('User settings', (group) => {
         const user = await User.create({
             uuid: userID,
             nickname: userNickname,
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const requestBody: UpdateNicknameRequestBody = {
@@ -386,6 +412,8 @@ test.group('User settings', (group) => {
         const user = await User.create({
             uuid: userID,
             nickname: userNickname,
+            email: internet.email(),
+            password: internet.password(),
         });
         const newNickname = random.words();
 

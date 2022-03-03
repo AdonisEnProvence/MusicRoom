@@ -586,6 +586,8 @@ test.group("Other user's MPE Rooms Search", (group) => {
         await User.create({
             uuid: userID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         const otherUserID = datatype.uuid();
         const privateVisibility = await getVisibilityDatabaseEntry('PRIVATE');
@@ -593,6 +595,8 @@ test.group("Other user's MPE Rooms Search", (group) => {
             uuid: otherUserID,
             nickname: internet.userName(),
             playlistsVisibilitySettingUuid: privateVisibility.uuid,
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const requestBody: UserSearchMpeRoomsRequestBody = {
@@ -612,6 +616,8 @@ test.group("Other user's MPE Rooms Search", (group) => {
         await User.create({
             uuid: userID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         const otherUserID = datatype.uuid();
         const privateVisibility = await getVisibilityDatabaseEntry(
@@ -621,6 +627,8 @@ test.group("Other user's MPE Rooms Search", (group) => {
             uuid: otherUserID,
             nickname: internet.userName(),
             playlistsVisibilitySettingUuid: privateVisibility.uuid,
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const requestBody: UserSearchMpeRoomsRequestBody = {
@@ -640,6 +648,8 @@ test.group("Other user's MPE Rooms Search", (group) => {
         const user = await User.create({
             uuid: userID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         const otherUserID = datatype.uuid();
         const privateVisibility = await getVisibilityDatabaseEntry(
@@ -649,6 +659,8 @@ test.group("Other user's MPE Rooms Search", (group) => {
             uuid: otherUserID,
             nickname: internet.userName(),
             playlistsVisibilitySettingUuid: privateVisibility.uuid,
+            email: internet.email(),
+            password: internet.password(),
         });
 
         await user.related('following').save(otherUser);

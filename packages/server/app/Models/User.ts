@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import {
     BaseModel,
     beforeCreate,
+    beforeSave,
     BelongsTo,
     belongsTo,
     column,
@@ -12,6 +13,7 @@ import {
 } from '@ioc:Adonis/Lucid/Orm';
 import { DateTime } from 'luxon';
 import { UserSettingVisibility } from '@musicroom/types';
+import Hash from '@ioc:Adonis/Core/Hash';
 import Device from './Device';
 import MtvRoom from './MtvRoom';
 import MpeRoom from './MpeRoom';
@@ -116,6 +118,24 @@ export default class User extends BaseModel {
         pivotRelatedForeignKey: 'following_user_uuid',
     })
     public followers: ManyToMany<typeof User>;
+
+    //Authentication
+    @column()
+    public email: string;
+
+    @column({ serializeAs: null })
+    public password: string;
+
+    @column()
+    public rememberMeToken?: string;
+
+    @beforeSave()
+    public static async hashPassword(user: User): Promise<void> {
+        if (user.$dirty.password) {
+            user.password = await Hash.make(user.password);
+        }
+    }
+    ///
 
     @column.dateTime({ autoCreate: true })
     public createdAt: DateTime;

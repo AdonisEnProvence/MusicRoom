@@ -42,10 +42,14 @@ test.group('List user following tests group', (group) => {
         const searchedUser = await User.create({
             uuid: searchedUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         await User.create({
             uuid: requestingUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const users = await User.createMany(
@@ -53,6 +57,8 @@ test.group('List user following tests group', (group) => {
                 fill: () => ({
                     uuid: datatype.uuid(),
                     nickname: internet.userName(),
+                    email: internet.email(),
+                    password: internet.password(),
                 }),
                 minLength: 22,
                 maxLength: 30,
@@ -162,10 +168,14 @@ test.group('List user following tests group', (group) => {
         const searchedUser = await User.create({
             uuid: searchedUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         await User.create({
             uuid: requestingUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const searchQuery = datatype.string(1);
@@ -176,6 +186,8 @@ test.group('List user following tests group', (group) => {
                     nickname: `${
                         index % 2 === 0 ? searchQuery : ''
                     }${internet.userName()}`,
+                    email: internet.email(),
+                    password: internet.password(),
                 }),
                 minLength: 20,
                 maxLength: 20,
@@ -265,6 +277,8 @@ test.group('List user following tests group', (group) => {
         await User.create({
             uuid: searchedUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         await supertest(BASE_URL)
@@ -284,6 +298,8 @@ test.group('List user following tests group', (group) => {
         await User.create({
             uuid: requestingUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         await supertest(BASE_URL)
@@ -303,10 +319,14 @@ test.group('List user following tests group', (group) => {
         await User.create({
             uuid: requestingUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         const searchedUser = await User.create({
             uuid: searchedUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const privateVisibility = await getVisibilityDatabaseEntry('PRIVATE');
@@ -331,10 +351,14 @@ test.group('List user following tests group', (group) => {
         await User.create({
             uuid: requestingUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         const searchedUser = await User.create({
             uuid: searchedUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const followingOnlyVisibility = await getVisibilityDatabaseEntry(
@@ -361,10 +385,14 @@ test.group('List user following tests group', (group) => {
         const requestingUser = await User.create({
             uuid: requestingUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         const searchedUser = await User.create({
             uuid: searchedUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const followingOnlyVisibility = await getVisibilityDatabaseEntry(

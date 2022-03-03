@@ -30,6 +30,8 @@ test.group('Users Search Engine', (group) => {
         const user = await User.create({
             uuid: userID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         await supertest(BASE_URL)
@@ -47,6 +49,8 @@ test.group('Users Search Engine', (group) => {
         await User.create({
             uuid: userID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         await supertest(BASE_URL)
@@ -64,6 +68,8 @@ test.group('Users Search Engine', (group) => {
         await User.create({
             uuid: userID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         await supertest(BASE_URL)
@@ -80,6 +86,8 @@ test.group('Users Search Engine', (group) => {
         await User.create({
             uuid: userID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const usersCount = datatype.number({
@@ -90,6 +98,8 @@ test.group('Users Search Engine', (group) => {
             generateArray(usersCount, () => ({
                 uuid: datatype.uuid(),
                 nickname: internet.userName(),
+                email: internet.email(),
+                password: internet.password(),
             })),
         );
         const firstUserNicknameFirstCharacter = users[0].nickname.charAt(0);
@@ -135,6 +145,8 @@ test.group('Users Search Engine', (group) => {
         const user = await User.create({
             uuid: userID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const { body: pageBodyRaw } = await supertest(BASE_URL)

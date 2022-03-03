@@ -29,10 +29,14 @@ test.group('AuthenticationController', (group) => {
             password: userUnhashedPassword,
             authenticationMode: 'web-auth',
         };
-        await request
+        const response = await request
             .post('/authentication/sign-in')
             .send(signInRequestBody)
             .expect(200);
+
+        const responseSetCookies = response.header['set-cookie'];
+        assert.isDefined(responseSetCookies);
+        assert.isTrue(responseSetCookies.length > 0);
 
         const getMeResponseBody = await request
             .get('/authentication/me')
@@ -42,6 +46,7 @@ test.group('AuthenticationController', (group) => {
         assert.equal(getMeResponseBody.body.user.nickname, user.nickname);
         assert.equal(getMeResponseBody.body.user.email, user.email);
         assert.equal(getMeResponseBody.body.user.uuid, user.uuid);
+        assert.isUndefined(getMeResponseBody.body.user.password);
     });
 
     test('Retrieves information of users logged in with api guard', async (assert) => {
@@ -78,5 +83,6 @@ test.group('AuthenticationController', (group) => {
         assert.equal(getMeResponseBody.body.user.nickname, user.nickname);
         assert.equal(getMeResponseBody.body.user.email, user.email);
         assert.equal(getMeResponseBody.body.user.uuid, user.uuid);
+        assert.isUndefined(getMeResponseBody.body.user.password);
     });
 });

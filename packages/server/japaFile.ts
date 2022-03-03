@@ -34,7 +34,7 @@ faker.seed(42);
  * Configure test runner
  */
 configure({
-    files: ['**/AuthenticationController.test.ts'],
+    files: ['**/*.test.ts'],
     before: [rollbackMigrations, runMigrations, startHttpServer],
     after: [rollbackMigrations],
     timeout: 5_000,

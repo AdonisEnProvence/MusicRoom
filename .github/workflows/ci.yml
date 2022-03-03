@@ -98,6 +98,7 @@ jobs:
                   PG_PASSWORD: yourpassword
                   PG_DB_NAME: lucid
                   PORT: 3333
+                  SESSION_DRIVER: cookie
 
             - name: Run client tests 🧪
               run: |

@@ -76,6 +76,7 @@ export default class UserSettingsController {
 
     public async updateNickname({
         request,
+        response,
     }: HttpContextContract): Promise<UpdateNicknameResponseBody> {
         const rawBody = request.body();
         const { tmpAuthUserID, nickname } =
@@ -97,6 +98,7 @@ export default class UserSettingsController {
                 status: 'SUCCESS',
             };
         } catch (err: unknown) {
+            response.status(400);
             return {
                 status: 'UNAVAILABLE_NICKNAME',
             };

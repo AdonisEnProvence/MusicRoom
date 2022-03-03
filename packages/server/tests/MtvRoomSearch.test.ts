@@ -54,10 +54,14 @@ test.group('MtvRoom Search Engine', (group) => {
         await User.create({
             uuid: creatorUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         await User.create({
             uuid: userID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const roomsCount = datatype.number({
@@ -118,6 +122,8 @@ test.group('MtvRoom Search Engine', (group) => {
         await User.create({
             uuid: creatorUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         const rooms = await MtvRoom.createMany(
             generateArray(
@@ -162,6 +168,8 @@ test.group('MtvRoom Search Engine', (group) => {
         const creator = await User.create({
             uuid: datatype.uuid(),
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         await MtvRoom.create({
             uuid: datatype.uuid(),
@@ -388,6 +396,8 @@ test.group('MtvRoom Search Engine', (group) => {
         const creator = await User.firstOrCreate({
             uuid: 'f5ddbf01-cc01-4422-b347-67988342b558',
             nickname: 'Web',
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const getFakeRoom = (

@@ -33,10 +33,14 @@ test.group('Users Profile information tests', (group) => {
         const followingUser = await User.create({
             uuid: followingUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         const followedUser = await User.create({
             uuid: followedUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const { body: rawBody } = await supertest(BASE_URL)
@@ -81,6 +85,8 @@ test.group('Users Profile information tests', (group) => {
         await User.create({
             uuid: followingUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         await supertest(BASE_URL)
@@ -99,6 +105,8 @@ test.group('Users Profile information tests', (group) => {
         await User.create({
             uuid: followedUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         await supertest(BASE_URL)
@@ -115,6 +123,8 @@ test.group('Users Profile information tests', (group) => {
         await User.create({
             uuid: followedUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         await supertest(BASE_URL)
@@ -132,10 +142,14 @@ test.group('Users Profile information tests', (group) => {
         const followingUser = await User.create({
             uuid: followingUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         const followedUser = await User.create({
             uuid: followedUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
 
         const { body: rawBody } = await supertest(BASE_URL)
@@ -188,10 +202,14 @@ test.group('Users Profile information tests', (group) => {
         const followingUser = await User.create({
             uuid: followingUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         const followedUser = await User.create({
             uuid: followedUserID,
             nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
         });
         const followerOnlyVisibility = await getVisibilityDatabaseEntry(
             UserSettingVisibility.Values.FOLLOWERS_ONLY,

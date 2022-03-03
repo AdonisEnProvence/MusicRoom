@@ -20,6 +20,8 @@ export default class AuthenticationController {
         await User.create({
             uuid: userID,
             nickname: userNickname,
+            email: internet.email(),
+            password: internet.password(),
         });
 
         return {

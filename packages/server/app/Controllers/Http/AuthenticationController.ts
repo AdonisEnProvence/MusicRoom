@@ -12,83 +12,88 @@ export const SignInRequestBody = z.object({
 });
 export type SignInRequestBody = z.infer<typeof SignInRequestBody>;
 
+const passwordStrengthRegex = new RegExp(
+    /^(?=.*[A-Z].*[A-Z])(?=.*[!#$:@+%&'*+/\\=?^_`{|}~-])(?=.*[0-9].*[0-9])(?=.*[a-z].*[a-z].*[a-z]).{8,}$/,
+);
+
 export default class AuthenticationController {
     public async signUp({
         request,
         response,
         auth,
     }: HttpContextContract): Promise<SignUpResponseBody> {
-        const { authenticationMode, email, password, userNickname } =
-            SignUpRequestBody.parse(request.body());
+        try {
+            const { authenticationMode, email, password, userNickname } =
+                SignUpRequestBody.parse(request.body());
 
-        const userWithGivenNickname = await User.findBy(
-            'nickname',
-            userNickname,
-        );
-        console.log({ userWithGivenNickname });
-        if (userWithGivenNickname) {
-            response.status(400);
-            return {
-                status: 'SAME_NICKNAME',
-            };
-        }
+            const userWithGivenNickname = await User.findBy(
+                'nickname',
+                userNickname,
+            );
 
-        const emailIsValid = true;
-        const emailIsInvalid = !emailIsValid;
-        if (emailIsInvalid) {
-            return {
-                status: 'BAD_EMAIL',
-            };
-        }
-
-        const userWithGivenEmail = await User.findBy('email', email);
-        console.log({ userWithGivenEmail });
-        if (userWithGivenEmail) {
-            response.status(400);
-            return {
-                status: 'SAME_EMAIL',
-            };
-        }
-
-        const passwordIsStrong = true;
-        const passwordIsNotString = !passwordIsStrong;
-        console.log({ passwordIsNotString });
-        if (passwordIsNotString) {
-            response.status(400);
-            return {
-                status: 'WEAK_PASSWORD',
-            };
-        }
-
-        await User.create({
-            nickname: userNickname,
-            email: email,
-            password,
-        });
-
-        switch (authenticationMode) {
-            case 'api': {
-                const { token } = await auth
-                    .use('api')
-                    .attempt(email, password);
-
+            if (userWithGivenNickname) {
+                response.status(400);
                 return {
-                    token,
-                    status: 'SUCCESS',
+                    status: 'UNAVAILABLE_NICKNAME',
                 };
             }
-            case 'web': {
-                await auth.use('web').attempt(email, password);
 
+            const userWithGivenEmail = await User.findBy('email', email);
+            if (userWithGivenEmail) {
+                response.status(400);
                 return {
-                    status: 'SUCCESS',
+                    status: 'UNAVAILABLE_EMAIL',
                 };
             }
-            default: {
-                throw new Error(
-                    `unknown authentication mode encountered ${authenticationMode}`,
-                );
+
+            const passwordIsStrong = passwordStrengthRegex.test(password);
+            const passwordIsNotStrong = !passwordIsStrong;
+            if (passwordIsNotStrong) {
+                response.status(400);
+                return {
+                    status: 'WEAK_PASSWORD',
+                };
             }
+
+            await User.create({
+                nickname: userNickname,
+                email: email,
+                password,
+            });
+
+            switch (authenticationMode) {
+                case 'api': {
+                    const { token } = await auth
+                        .use('api')
+                        .attempt(email, password);
+
+                    return {
+                        token,
+                        status: 'SUCCESS',
+                    };
+                }
+                case 'web': {
+                    await auth.use('web').attempt(email, password);
+
+                    return {
+                        status: 'SUCCESS',
+                    };
+                }
+                default: {
+                    throw new Error(
+                        `unknown authentication mode encountered ${authenticationMode}`,
+                    );
+                }
+            }
+        } catch (e) {
+            console.log(e);
+
+            // if zod fails here we consider it as bad email edge case
+            // as the authenticationMode should not be settable by the user
+            response.status(400);
+            return {
+                status: 'INVALID_EMAIL',
+            };
         }
     }
 

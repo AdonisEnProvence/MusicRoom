@@ -6,10 +6,10 @@ export type AuthenticationModeValues = z.infer<typeof AuthenticationModeValues>;
 export const SignUpResponseBody = z.object({
     token: z.string().optional(),
     status: z.enum([
-        'SAME_NICKNAME',
+        'UNAVAILABLE_EMAIL',
         'SUCCESS',
-        'SAME_EMAIL',
-        'BAD_EMAIL',
+        'UNAVAILABLE_NICKNAME',
+        'INVALID_EMAIL',
         'WEAK_PASSWORD',
     ]),
 });

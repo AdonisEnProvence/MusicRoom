@@ -109,6 +109,15 @@ export const TEST_USER_ROUTES_GROUP_PREFIX = '/user';
 export const TEST_AUTHENTICATION_GROUP_PREFIX = '/authentication';
 export const TEST_MY_PROFILE_ROUTES_GROUP_PREFIX = '/me';
 
+const TEST_STRONG_PASSWORD: string[] = [':net66LTW', 'RN4k`d8he9k.'];
+export function generateStrongPassword(): string {
+    return TEST_STRONG_PASSWORD[
+        datatype.number({
+            max: TEST_STRONG_PASSWORD.length - 1,
+        })
+    ];
+}
+
 interface TestUtilsReturnedValue {
     initSocketConnection: () => void;
     disconnectEveryRemainingSocketConnection: () => Promise<void>;

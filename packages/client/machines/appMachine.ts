@@ -1,5 +1,13 @@
-import { ContextFrom, EventFrom, forwardTo, StateMachine } from 'xstate';
+import invariant from 'tiny-invariant';
+import {
+    ContextFrom,
+    EventFrom,
+    forwardTo,
+    Interpreter,
+    StateMachine,
+} from 'xstate';
 import { SocketClient } from '../contexts/SocketContext';
+import { getMe, sendSignIn } from '../services/AuthenticationService';
 import { appModel } from './appModel';
 import { createAppMusicPlayerMachine } from './appMusicPlayerMachine';
 import { createAppMusicPlaylistsMachine } from './appMusicPlaylistsMachine';
@@ -16,7 +24,13 @@ interface CreateAppMachineArgs {
     appMusicPlaylistsMachineOptions: AppMusicPlaylistsOptions;
 }
 
-export const createAppMachine = ({
+export type AppMachineInterpreter = Interpreter<
+    ContextFrom<typeof appModel>,
+    any,
+    EventFrom<typeof appModel>
+>;
+
+export function createAppMachine({
     socket,
     locationPollingTickDelay,
     musicPlayerMachineOptions,
@@ -26,102 +40,194 @@ export const createAppMachine = ({
     ContextFrom<typeof appModel>,
     any,
     EventFrom<typeof appModel>
-> => {
-    return appModel.createMachine({
-        initial: 'waitingForServerToAcknowledgeSocketConnection',
+> {
+    return appModel.createMachine(
+        {
+            id: 'app',
 
-        states: {
-            waitingForServerToAcknowledgeSocketConnection: {
-                tags: 'showApplicationLoader',
+            initial: 'fetchingInitialUserAuthenticationState',
 
-                initial: 'fetching',
+            states: {
+                fetchingInitialUserAuthenticationState: {
+                    tags: 'showApplicationLoader',
 
-                states: {
-                    fetching: {
-                        after: {
-                            500: {
-                                target: 'deboucing',
-                            },
+                    invoke: {
+                        src: 'fetchUser',
+
+                        onDone: {
+                            target: 'waitingForServerToAcknowledgeSocketConnection',
                         },
 
-                        invoke: {
-                            id: 'fetchAcknowledgementStatus',
+                        onError: {
+                            target: 'waitingForUserAuthentication',
+                        },
+                    },
+                },
 
-                            src: () => (sendBack) => {
-                                socket.emit(
-                                    'GET_HAS_ACKNOWLEDGED_CONNECTION',
-                                    () => {
-                                        sendBack(
-                                            appModel.events.ACKNOWLEDGE_SOCKET_CONNECTION(),
-                                        );
+                waitingForUserAuthentication: {
+                    tags: 'userIsUnauthenticated',
+
+                    type: 'parallel',
+
+                    states: {
+                        signingIn: {
+                            initial: 'waitingForCredentials',
+
+                            states: {
+                                waitingForCredentials: {
+                                    on: {
+                                        SIGN_IN: {
+                                            target: 'submitingCredentials',
+
+                                            actions: appModel.assign({
+                                                email: (_, event) =>
+                                                    event.email,
+                                                password: (_, event) =>
+                                                    event.password,
+                                            }),
+                                        },
                                     },
-                                );
-                            },
-                        },
-                    },
+                                },
 
-                    deboucing: {
-                        after: {
-                            500: {
-                                target: 'fetching',
+                                submitingCredentials: {
+                                    invoke: {
+                                        src: 'signIn',
+
+                                        onDone: {
+                                            target: '#app.waitingForServerToAcknowledgeSocketConnection',
+                                        },
+
+                                        onError: {
+                                            target: 'waitingForCredentials',
+
+                                            // actions: 'showSignInError',
+                                        },
+                                    },
+                                },
                             },
                         },
                     },
                 },
 
-                on: {
-                    ACKNOWLEDGE_SOCKET_CONNECTION: {
-                        target: 'childMachineProxy',
+                waitingForServerToAcknowledgeSocketConnection: {
+                    tags: ['showApplicationLoader', 'userIsAuthenticated'],
+
+                    initial: 'fetching',
+
+                    states: {
+                        fetching: {
+                            after: {
+                                500: {
+                                    target: 'deboucing',
+                                },
+                            },
+
+                            invoke: {
+                                id: 'fetchAcknowledgementStatus',
+
+                                src: () => (sendBack) => {
+                                    socket.emit(
+                                        'GET_HAS_ACKNOWLEDGED_CONNECTION',
+                                        () => {
+                                            sendBack(
+                                                appModel.events.ACKNOWLEDGE_SOCKET_CONNECTION(),
+                                            );
+                                        },
+                                    );
+                                },
+                            },
+                        },
+
+                        deboucing: {
+                            after: {
+                                500: {
+                                    target: 'fetching',
+                                },
+                            },
+                        },
+                    },
+
+                    on: {
+                        ACKNOWLEDGE_SOCKET_CONNECTION: {
+                            target: 'childMachineProxy',
+                        },
                     },
                 },
-            },
 
-            childMachineProxy: {
-                invoke: [
-                    {
-                        id: 'appUserMachine',
+                childMachineProxy: {
+                    tags: 'userIsAuthenticated',
 
-                        src: createUserMachine({
-                            locationPollingTickDelay,
-                            socket,
-                        }).withConfig(userMachineOptions),
-                    },
+                    invoke: [
+                        {
+                            id: 'appUserMachine',
 
-                    {
-                        id: 'appMusicPlayerMachine',
+                            src: createUserMachine({
+                                locationPollingTickDelay,
+                                socket,
+                            }).withConfig(userMachineOptions),
+                        },
 
-                        src: createAppMusicPlayerMachine({ socket }).withConfig(
-                            musicPlayerMachineOptions,
-                        ),
-                    },
+                        {
+                            id: 'appMusicPlayerMachine',
 
-                    {
-                        id: 'appMusicPlaylistsMachine',
+                            src: createAppMusicPlayerMachine({
+                                socket,
+                            }).withConfig(musicPlayerMachineOptions),
+                        },
 
-                        src: createAppMusicPlaylistsMachine({
-                            socket,
-                        }).withConfig(appMusicPlaylistsMachineOptions),
-                    },
-                ],
+                        {
+                            id: 'appMusicPlaylistsMachine',
 
-                on: {
-                    REQUEST_LOCATION_PERMISSION: {
-                        actions: forwardTo('appUserMachine'),
-                    },
+                            src: createAppMusicPlaylistsMachine({
+                                socket,
+                            }).withConfig(appMusicPlaylistsMachineOptions),
+                        },
+                    ],
 
-                    JOIN_ROOM: {
-                        actions: forwardTo('appMusicPlayerMachine'),
-                    },
+                    on: {
+                        REQUEST_LOCATION_PERMISSION: {
+                            actions: forwardTo('appUserMachine'),
+                        },
 
-                    __ENTER_MPE_EXPORT_TO_MTV: {
-                        actions: forwardTo('appMusicPlayerMachine'),
-                    },
+                        JOIN_ROOM: {
+                            actions: forwardTo('appMusicPlayerMachine'),
+                        },
 
-                    __EXIT_MPE_EXPORT_TO_MTV: {
-                        actions: forwardTo('appMusicPlayerMachine'),
+                        __ENTER_MPE_EXPORT_TO_MTV: {
+                            actions: forwardTo('appMusicPlayerMachine'),
+                        },
+
+                        __EXIT_MPE_EXPORT_TO_MTV: {
+                            actions: forwardTo('appMusicPlayerMachine'),
+                        },
                     },
                 },
             },
         },
-    });
-};
+        {
+            services: {
+                fetchUser: async () => {
+                    const me = await getMe();
+
+                    return me;
+                },
+
+                signIn: async ({ email, password }) => {
+                    invariant(
+                        email !== undefined,
+                        'Email must have been set before signing in',
+                    );
+                    invariant(
+                        password !== undefined,
+                        'Email must have been set before signing in',
+                    );
+
+                    await sendSignIn({
+                        email,
+                        password,
+                    });
+                },
+            },
+        },
+    );
+}

@@ -8,6 +8,40 @@ import redaxios from 'redaxios';
 import urlcat from 'urlcat';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
 
+export async function getMe(): Promise<{ uuid: string; nickname: string }> {
+    const url = urlcat(SERVER_ENDPOINT, '/authentication/me');
+
+    const rawResponse = await redaxios.get(url, {
+        withCredentials: true,
+    });
+
+    return rawResponse.data;
+}
+
+interface SendSignInArgs {
+    email: string;
+    password: string;
+}
+
+export async function sendSignIn({
+    email,
+    password,
+}: SendSignInArgs): Promise<void> {
+    const url = urlcat(SERVER_ENDPOINT, '/authentication/sign-in');
+
+    await redaxios.post(
+        url,
+        {
+            email,
+            password,
+            authenticationMode: 'web-auth',
+        },
+        {
+            withCredentials: true,
+        },
+    );
+}
+
 type sendApiTokensSignUpArgs = Omit<SignUpRequestBody, 'authenticationMode'>;
 
 export async function sendApiTokenSignUp({

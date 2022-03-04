@@ -1,8 +1,9 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import {
+    ApiTokensSuccessfullSignUpResponseBody,
     SignUpRequestBody,
     SignUpResponseBody,
-    SignUpSuccessfullResponseBody,
+    WebAuthSuccessfullSignUpResponseBody,
 } from '@musicroom/types';
 import { internet, random } from 'faker';
 import test from 'japa';
@@ -42,11 +43,9 @@ test.group('Authentication sign up tests group', (group) => {
 
         const {
             status,
-            token,
             userSummary: { nickname, userID },
-        } = SignUpSuccessfullResponseBody.parse(rawBody);
+        } = WebAuthSuccessfullSignUpResponseBody.parse(rawBody);
         assert.equal(status, 'SUCCESS');
-        assert.isUndefined(token);
         assert.isDefined(userID);
         assert.equal(nickname, userNickname);
 
@@ -80,7 +79,7 @@ test.group('Authentication sign up tests group', (group) => {
             status,
             token,
             userSummary: { nickname, userID },
-        } = SignUpSuccessfullResponseBody.parse(rawBody);
+        } = ApiTokensSuccessfullSignUpResponseBody.parse(rawBody);
         assert.equal(status, 'SUCCESS');
         assert.isDefined(token);
         assert.isDefined(userID);

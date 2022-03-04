@@ -14,7 +14,7 @@ import {
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import { useUserContext } from '../hooks/userHooks';
 import { HomeTabHomeScreenScreenProps } from '../types';
-import { sendSignUp } from '../services/AuthenticationService';
+import { sendWebAuthSignUp } from '../services/AuthenticationService';
 
 const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
@@ -115,8 +115,7 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                     onPress={async () => {
                         const {
                             userSummary: { nickname: userNickname, userID },
-                        } = await sendSignUp({
-                            authenticationMode: 'web',
+                        } = await sendWebAuthSignUp({
                             email: internet.email(),
                             password: 'p@a55wORd.',
                             userNickname: internet.userName(),

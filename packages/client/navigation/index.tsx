@@ -79,11 +79,17 @@ const Navigation: React.FC<ColorModeProps> = ({
     toggleColorScheme,
     colorScheme,
 }) => {
+    const { applicationState } = useAppContext();
+
     useEffect(() => {
         return () => {
             isReadyRef.current = false;
         };
     }, []);
+
+    if (applicationState === 'SHOW_APPLICATION_LOADER') {
+        return <SplashScreen />;
+    }
 
     return (
         <NavigationContainer
@@ -134,15 +140,11 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
     const style = navigationStyle(colorScheme);
     const { applicationState } = useAppContext();
 
-    if (applicationState === 'SHOW_APPLICATION_LOADER') {
-        return <SplashScreen />;
-    }
-
     return (
         <RootStack.Navigator
-            // initialRouteName={
-            //     applicationState === 'UNAUTHENTICATED' ? 'SigningIn' : 'Main'
-            // }
+            initialRouteName={
+                applicationState === 'UNAUTHENTICATED' ? 'SigningIn' : 'Main'
+            }
             mode="modal"
             //Why animationEnabled ?
             //See https://stackoverflow.com/questions/63171131/when-rendering-iframes-with-html-android-crashes-while-navigating-back-to-s
@@ -699,7 +701,10 @@ const MainNavigator: React.FC<ColorModeProps> = ({
     const style = navigationStyle(colorScheme);
 
     return (
-        <MainStack.Navigator screenOptions={{ ...style, headerShown: false }}>
+        <MainStack.Navigator
+            initialRouteName="Root"
+            screenOptions={{ ...style, headerShown: false }}
+        >
             <MainStack.Screen name="Root" component={BottomTabNavigator} />
 
             <MainStack.Screen

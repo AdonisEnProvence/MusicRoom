@@ -1,17 +1,31 @@
 import { SafeAreaView, Text, useSx, View } from 'dripsy';
-import React, { useState } from 'react';
+import React from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { TouchableOpacity } from 'react-native';
+import * as z from 'zod';
 import { AppScreen, TextField } from '../components/kit';
 import { useAppContext } from '../contexts/AppContext';
 import { SigningInScreenProps } from '../types';
 
+interface SigningInFormFieldValues {
+    email: string;
+    password: string;
+}
+
 const SigningInScreen: React.FC<SigningInScreenProps> = () => {
     const sx = useSx();
     const { appService } = useAppContext();
-    const [email, setEmail] = useState('devessier@devessier.fr');
-    const [password, setPassword] = useState('devessierBgDu13');
+    const {
+        control,
+        handleSubmit,
+        setError,
+        formState: { errors },
+    } = useForm<SigningInFormFieldValues>();
 
-    function handleSigningInSubmit() {
+    function handleSigningInSubmit({
+        email,
+        password,
+    }: SigningInFormFieldValues) {
         appService.send({
             type: 'SIGN_IN',
             email,
@@ -75,16 +89,54 @@ const SigningInScreen: React.FC<SigningInScreenProps> = () => {
                                     Nickname
                                 </Text>
 
-                                <TextField
-                                    value={email}
-                                    onChangeText={setEmail}
-                                    placeholder="Email"
-                                    placeholderTextColor="#fff"
-                                    sx={{
-                                        borderWidth: 1,
-                                        borderColor: 'greyLighter',
+                                <Controller
+                                    control={control}
+                                    name="email"
+                                    defaultValue="devessier@devessier.fr"
+                                    rules={{
+                                        required: {
+                                            value: true,
+                                            message: 'This field is required',
+                                        },
+                                        validate: {
+                                            isValidEmail: (email) => {
+                                                return (
+                                                    z
+                                                        .string()
+                                                        .email()
+                                                        .check(email) ||
+                                                    'Not a well formed email address'
+                                                );
+                                            },
+                                        },
+                                    }}
+                                    render={({
+                                        field: { onChange, onBlur, value },
+                                    }) => {
+                                        return (
+                                            <TextField
+                                                value={value}
+                                                onBlur={onBlur}
+                                                onChangeText={onChange}
+                                                placeholder="Email"
+                                                placeholderTextColor="#fff"
+                                                sx={{
+                                                    borderWidth: 1,
+                                                    borderColor: 'greyLighter',
+                                                }}
+                                            />
+                                        );
                                     }}
                                 />
+
+                                {errors.email?.message && (
+                                    <Text
+                                        accessibilityRole="alert"
+                                        sx={{ color: 'red', marginTop: 's' }}
+                                    >
+                                        {errors.email.message}
+                                    </Text>
+                                )}
                             </View>
 
                             <View sx={{ marginBottom: 'xl' }}>
@@ -100,20 +152,47 @@ const SigningInScreen: React.FC<SigningInScreenProps> = () => {
                                     Nickname
                                 </Text>
 
-                                <TextField
-                                    value={password}
-                                    onChangeText={setPassword}
-                                    placeholder="Password"
-                                    placeholderTextColor="#fff"
-                                    sx={{
-                                        borderWidth: 1,
-                                        borderColor: 'greyLighter',
+                                <Controller
+                                    control={control}
+                                    name="password"
+                                    defaultValue="devessierBgDu13"
+                                    rules={{
+                                        required: {
+                                            value: true,
+                                            message: 'This field is required',
+                                        },
+                                    }}
+                                    render={({
+                                        field: { onChange, onBlur, value },
+                                    }) => {
+                                        return (
+                                            <TextField
+                                                value={value}
+                                                onBlur={onBlur}
+                                                onChangeText={onChange}
+                                                placeholder="Password"
+                                                placeholderTextColor="#fff"
+                                                sx={{
+                                                    borderWidth: 1,
+                                                    borderColor: 'greyLighter',
+                                                }}
+                                            />
+                                        );
                                     }}
                                 />
+
+                                {errors.password?.message && (
+                                    <Text
+                                        accessibilityRole="alert"
+                                        sx={{ color: 'red', marginTop: 's' }}
+                                    >
+                                        {errors.password.message}
+                                    </Text>
+                                )}
                             </View>
 
                             <TouchableOpacity
-                                onPress={handleSigningInSubmit}
+                                onPress={handleSubmit(handleSigningInSubmit)}
                                 style={sx({
                                     paddingX: 's',
                                     paddingY: 'm',

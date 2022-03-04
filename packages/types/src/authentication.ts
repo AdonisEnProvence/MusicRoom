@@ -29,7 +29,7 @@ export type SignUpResponseBody = z.infer<typeof SignUpResponseBody>;
 export const SignUpRequestBody = z.object({
     userNickname: z.string(),
     password: z.string(),
-    email: z.string().email(),
+    email: z.string().email({ message: 'INVALID_EMAIL' }),
     authenticationMode: AuthenticationModeValues,
 });
 

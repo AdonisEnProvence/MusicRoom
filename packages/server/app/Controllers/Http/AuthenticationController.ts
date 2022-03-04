@@ -25,85 +25,90 @@ export default class AuthenticationController {
         response,
         auth,
     }: HttpContextContract): Promise<SignUpResponseBody> {
-        try {
-            const { authenticationMode, email, password, userNickname } =
-                SignUpRequestBody.parse(request.body());
+        const safeParseResult = SignUpRequestBody.safeParse(request.body());
 
-            const userWithGivenNickname = await User.findBy(
-                'nickname',
-                userNickname,
+        if (!safeParseResult.success) {
+            const parsedEmailIsInvalid = safeParseResult.error.errors.find(
+                (error) => error.message === 'INVALID_EMAIL',
             );
-
-            if (userWithGivenNickname) {
+            if (parsedEmailIsInvalid) {
                 response.status(400);
                 return {
-                    status: 'UNAVAILABLE_NICKNAME',
+                    status: 'INVALID_EMAIL',
                 };
             }
 
-            const userWithGivenEmail = await User.findBy('email', email);
-            if (userWithGivenEmail) {
-                response.status(400);
-                return {
-                    status: 'UNAVAILABLE_EMAIL',
-                };
-            }
+            throw safeParseResult.error;
+        }
 
-            const passwordIsStrong = passwordStrengthRegex.test(password);
-            const passwordIsNotStrong = !passwordIsStrong;
-            if (passwordIsNotStrong) {
-                response.status(400);
-                return {
-                    status: 'WEAK_PASSWORD',
-                };
-            }
+        const { authenticationMode, email, password, userNickname } =
+            safeParseResult.data;
 
-            const { nickname, uuid: userID } = await User.create({
-                nickname: userNickname,
-                email: email,
-                password,
-            });
+        const userWithGivenNickname = await User.findBy(
+            'nickname',
+            userNickname,
+        );
 
-            const userSummary: UserSummary = {
-                nickname,
-                userID,
-            };
-
-            switch (authenticationMode) {
-                case 'api': {
-                    const { token } = await auth
-                        .use('api')
-                        .attempt(email, password);
-
-                    return {
-                        token,
-                        userSummary,
-                        status: 'SUCCESS',
-                    };
-                }
-                case 'web': {
-                    await auth.use('web').attempt(email, password);
-
-                    return {
-                        userSummary,
-                        status: 'SUCCESS',
-                    };
-                }
-                default: {
-                    throw new Error(
-                        `unknown authentication mode encountered ${authenticationMode}`,
-                    );
-                }
-            }
-        } catch (e) {
-            console.log(e);
-
-            // if zod fails here we consider it as bad email edge case
-            // as the authenticationMode should not be settable by the user
+        if (userWithGivenNickname) {
             response.status(400);
             return {
-                status: 'INVALID_EMAIL',
+                status: 'UNAVAILABLE_NICKNAME',
             };
+        }
+
+        const userWithGivenEmail = await User.findBy('email', email);
+        if (userWithGivenEmail) {
+            response.status(400);
+            return {
+                status: 'UNAVAILABLE_EMAIL',
+            };
+        }
+
+        const passwordIsStrong = passwordStrengthRegex.test(password);
+        const passwordIsNotStrong = !passwordIsStrong;
+        if (passwordIsNotStrong) {
+            response.status(400);
+            return {
+                status: 'WEAK_PASSWORD',
+            };
+        }
+
+        const { nickname, uuid: userID } = await User.create({
+            nickname: userNickname,
+            email: email,
+            password,
+        });
+
+        const userSummary: UserSummary = {
+            nickname,
+            userID,
+        };
+
+        switch (authenticationMode) {
+            case 'api': {
+                const { token } = await auth
+                    .use('api')
+                    .attempt(email, password);
+
+                return {
+                    token,
+                    userSummary,
+                    status: 'SUCCESS',
+                };
+            }
+            case 'web': {
+                await auth.use('web').attempt(email, password);
+
+                return {
+                    userSummary,
+                    status: 'SUCCESS',
+                };
+            }
+            default: {
+                throw new Error(
+                    `unknown authentication mode encountered ${authenticationMode}`,
+                );
+            }
         }
     }
 

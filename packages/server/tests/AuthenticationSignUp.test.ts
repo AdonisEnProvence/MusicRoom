@@ -137,6 +137,22 @@ test.group('Authentication sign up tests group', (group) => {
         assert.equal(status, 'INVALID_EMAIL');
     });
 
+    test('It should send back 500 error as payload is partially empty', async () => {
+        const request = supertest.agent(BASE_URL);
+        const userNickname = internet.userName();
+        const password = internet.password();
+
+        await request
+            .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-up'))
+            .send({
+                authenticationMode: 'api',
+                email: undefined,
+                password,
+                userNickname,
+            })
+            .expect(500);
+    });
+
     test('It should fail to sign up as given username is taken', async (assert) => {
         const userNickname = internet.userName();
 

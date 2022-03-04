@@ -5,7 +5,7 @@ import {
     UserSummary,
 } from '@musicroom/types';
 import User from 'App/Models/User';
-import { datatype, internet } from 'faker';
+import { datatype, internet, unique } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
@@ -41,13 +41,13 @@ test.group('List user followers tests group', (group) => {
         const searchedUserID = datatype.uuid();
         const searchedUser = await User.create({
             uuid: searchedUserID,
-            nickname: internet.userName(),
+            nickname: unique(() => internet.userName()),
             email: internet.email(),
             password: internet.password(),
         });
         await User.create({
             uuid: requestingUserID,
-            nickname: internet.userName(),
+            nickname: unique(() => internet.userName()),
             email: internet.email(),
             password: internet.password(),
         });
@@ -56,7 +56,7 @@ test.group('List user followers tests group', (group) => {
             generateArray({
                 fill: () => ({
                     uuid: datatype.uuid(),
-                    nickname: internet.userName(),
+                    nickname: unique(() => internet.userName()),
                     email: internet.email(),
                     password: internet.password(),
                 }),
@@ -167,13 +167,13 @@ test.group('List user followers tests group', (group) => {
         const searchedUserID = datatype.uuid();
         const searchedUser = await User.create({
             uuid: searchedUserID,
-            nickname: internet.userName(),
+            nickname: unique(() => internet.userName()),
             email: internet.email(),
             password: internet.password(),
         });
         await User.create({
             uuid: requestingUserID,
-            nickname: internet.userName(),
+            nickname: unique(() => internet.userName()),
             email: internet.email(),
             password: internet.password(),
         });
@@ -183,9 +183,9 @@ test.group('List user followers tests group', (group) => {
             generateArray({
                 fill: (index) => ({
                     uuid: datatype.uuid(),
-                    nickname: `${
-                        index % 2 === 0 ? searchQuery : ''
-                    }${internet.userName()}`,
+                    nickname: `${index % 2 === 0 ? searchQuery : ''}${unique(
+                        () => internet.userName(),
+                    )}`,
                     email: internet.email(),
                     password: internet.password(),
                 }),
@@ -227,15 +227,8 @@ test.group('List user followers tests group', (group) => {
                         .toLowerCase()
                         .startsWith(searchQuery.toLowerCase()),
                 )
-                .sort((a, b) => {
-                    if (a.nickname.toLowerCase() < b.nickname.toLowerCase()) {
-                        return -1;
-                    }
-                    if (a.nickname.toLowerCase() > b.nickname.toLowerCase()) {
-                        return 1;
-                    }
-                    return 0;
-                });
+                //see https://jiangsc.me/2021/05/09/Postgres-JavaScript-and-sorting/
+                .sort((a, b) => a.nickname.localeCompare(b.nickname));
         ///
 
         const { body: pageBodyRaw } = await supertest(BASE_URL)
@@ -276,7 +269,7 @@ test.group('List user followers tests group', (group) => {
         const searchedUserID = datatype.uuid();
         await User.create({
             uuid: searchedUserID,
-            nickname: internet.userName(),
+            nickname: unique(() => internet.userName()),
             email: internet.email(),
             password: internet.password(),
         });
@@ -297,7 +290,7 @@ test.group('List user followers tests group', (group) => {
         const searchedUserID = datatype.uuid();
         await User.create({
             uuid: requestingUserID,
-            nickname: internet.userName(),
+            nickname: unique(() => internet.userName()),
             email: internet.email(),
             password: internet.password(),
         });
@@ -318,13 +311,13 @@ test.group('List user followers tests group', (group) => {
         const searchedUserID = datatype.uuid();
         await User.create({
             uuid: requestingUserID,
-            nickname: internet.userName(),
+            nickname: unique(() => internet.userName()),
             email: internet.email(),
             password: internet.password(),
         });
         const searchedUser = await User.create({
             uuid: searchedUserID,
-            nickname: internet.userName(),
+            nickname: unique(() => internet.userName()),
             email: internet.email(),
             password: internet.password(),
         });
@@ -350,13 +343,13 @@ test.group('List user followers tests group', (group) => {
         const searchedUserID = datatype.uuid();
         await User.create({
             uuid: requestingUserID,
-            nickname: internet.userName(),
+            nickname: unique(() => internet.userName()),
             email: internet.email(),
             password: internet.password(),
         });
         const searchedUser = await User.create({
             uuid: searchedUserID,
-            nickname: internet.userName(),
+            nickname: unique(() => internet.userName()),
             email: internet.email(),
             password: internet.password(),
         });
@@ -384,13 +377,13 @@ test.group('List user followers tests group', (group) => {
         const searchedUserID = datatype.uuid();
         const requestingUser = await User.create({
             uuid: requestingUserID,
-            nickname: internet.userName(),
+            nickname: unique(() => internet.userName()),
             email: internet.email(),
             password: internet.password(),
         });
         const searchedUser = await User.create({
             uuid: searchedUserID,
-            nickname: internet.userName(),
+            nickname: unique(() => internet.userName()),
             email: internet.email(),
             password: internet.password(),
         });

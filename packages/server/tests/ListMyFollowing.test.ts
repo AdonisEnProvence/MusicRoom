@@ -212,15 +212,8 @@ test.group('List my following tests group', (group) => {
                         .toLowerCase()
                         .startsWith(searchQuery.toLowerCase()),
                 )
-                .sort((a, b) => {
-                    if (a.nickname.toLowerCase() < b.nickname.toLowerCase()) {
-                        return -1;
-                    }
-                    if (a.nickname.toLowerCase() > b.nickname.toLowerCase()) {
-                        return 1;
-                    }
-                    return 0;
-                });
+                //see https://jiangsc.me/2021/05/09/Postgres-JavaScript-and-sorting/
+                .sort((a, b) => a.nickname.localeCompare(b.nickname));
         ///
 
         const { body: pageBodyRaw } = await supertest(BASE_URL)

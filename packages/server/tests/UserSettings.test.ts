@@ -367,7 +367,7 @@ test.group('User settings', (group) => {
         const { body: rawResponseBody } = await supertest(BASE_URL)
             .post('/me/nickname')
             .send(requestBody)
-            .expect(200)
+            .expect(400)
             .expect('Content-Type', /json/);
         const responseBody = UpdateNicknameResponseBody.parse(rawResponseBody);
 

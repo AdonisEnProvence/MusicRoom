@@ -113,7 +113,9 @@ export async function performSignUp(page: Page): Promise<void> {
 
     await expect(
         page.locator(`text="Signed up successfully"`).last(),
-    ).toBeVisible();
+    ).toBeVisible({
+        timeout: 30_000,
+    });
 
     await page.reload();
 }

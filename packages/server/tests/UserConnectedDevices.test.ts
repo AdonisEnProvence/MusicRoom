@@ -3,7 +3,11 @@ import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import Device from '../app/Models/Device';
-import { initTestUtils, sleep } from './utils/TestUtils';
+import {
+    createSpyOnClientSocketEvent,
+    initTestUtils,
+    sleep,
+} from './utils/TestUtils';
 
 test.group(
     `User Controller tests, connected devices alerts and info fetching`,
@@ -14,6 +18,7 @@ test.group(
             disconnectEveryRemainingSocketConnection,
             disconnectSocket,
             initSocketConnection,
+            waitFor,
         } = initTestUtils();
 
         group.beforeEach(async () => {
@@ -29,29 +34,23 @@ test.group(
 
         test('It should send to every user socket instance the CONNECTED_DEVICES_UPDATE socket event on device co/dc', async (assert) => {
             const userID = datatype.uuid();
-            const socketA = {
-                socket: await createUserAndGetSocket({ userID }),
-                receivedEvents: [] as string[],
-            };
+            const socketA = await createUserAndGetSocket({ userID });
 
-            socketA.socket.once('CONNECTED_DEVICES_UPDATE', (devices) => {
-                assert.equal(2, devices.length);
-                socketA.receivedEvents.push('CONNECTED_DEVICES_UPDATE');
+            const socketAConnectedDevicesSpy = createSpyOnClientSocketEvent(
+                socketA,
+                'CONNECTED_DEVICES_UPDATE',
+            );
+
+            const socketB = await createSocketConnection({ userID });
+            await waitFor(() => {
+                assert.isTrue(socketAConnectedDevicesSpy.calledOnce);
             });
 
-            const socketB = {
-                socket: await createSocketConnection({ userID }),
-                receivedEvents: [] as string[],
-            };
+            await disconnectSocket(socketB);
 
-            socketA.socket.once('CONNECTED_DEVICES_UPDATE', (devices) => {
-                assert.equal(1, devices.length);
-                socketA.receivedEvents.push('CONNECTED_DEVICES_UPDATE');
+            await waitFor(() => {
+                assert.isTrue(socketAConnectedDevicesSpy.calledTwice);
             });
-
-            await disconnectSocket(socketB.socket);
-
-            assert.equal(2, socketA.receivedEvents.length);
         });
 
         test('It should send back the user connected device list', async (assert) => {

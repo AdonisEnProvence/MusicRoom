@@ -47,7 +47,9 @@ export type SignUpResponseBody = z.infer<typeof SignUpResponseBody>;
 export const SignUpRequestBody = z.object({
     userNickname: z.string(),
     password: z.string(),
-    email: z.string().email({ message: 'INVALID_EMAIL' }),
+    email: z.string().email({ message: 'INVALID_EMAIL' }).max(255, {
+        message: 'INVALID_EMAIL',
+    }),
     authenticationMode: AuthenticationModeValues,
 });
 

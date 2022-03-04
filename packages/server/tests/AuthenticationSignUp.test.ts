@@ -136,6 +136,26 @@ test.group('Authentication sign up tests group', (group) => {
         assert.equal(status, 'INVALID_EMAIL');
     });
 
+    test('It should fail to sign up as given email is too long', async (assert) => {
+        const request = supertest.agent(BASE_URL);
+        const email = `${'email'.repeat(100)}${internet.email()}`;
+        const userNickname = internet.userName();
+        const password = internet.password();
+
+        const { body: rawBody } = await request
+            .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-up'))
+            .send({
+                authenticationMode: 'api',
+                email,
+                password,
+                userNickname,
+            } as SignUpRequestBody)
+            .expect(400);
+
+        const { status } = SignUpResponseBody.parse(rawBody);
+        assert.equal(status, 'INVALID_EMAIL');
+    });
+
     test('It should send back 500 error as payload is partially empty', async () => {
         const request = supertest.agent(BASE_URL);
         const userNickname = internet.userName();

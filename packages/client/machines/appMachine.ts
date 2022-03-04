@@ -95,6 +95,8 @@ export function createAppMachine({
 
                                         onDone: {
                                             target: '#app.waitingForServerToAcknowledgeSocketConnection',
+
+                                            actions: 'reconnectSocket',
                                         },
 
                                         onError: {
@@ -226,6 +228,13 @@ export function createAppMachine({
                         email,
                         password,
                     });
+                },
+            },
+
+            actions: {
+                reconnectSocket: () => {
+                    socket.disconnect();
+                    socket.connect();
                 },
             },
         },

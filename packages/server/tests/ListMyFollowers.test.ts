@@ -5,7 +5,7 @@ import {
     UserSummary,
 } from '@musicroom/types';
 import User from 'App/Models/User';
-import { datatype, internet } from 'faker';
+import { datatype, internet, random, unique } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
@@ -39,7 +39,7 @@ test.group('List my followers tests group', (group) => {
         const meUserID = datatype.uuid();
         const meUser = await User.create({
             uuid: meUserID,
-            nickname: internet.userName(),
+            nickname: unique(() => internet.userName()),
             email: internet.email(),
             password: internet.password(),
         });
@@ -48,7 +48,7 @@ test.group('List my followers tests group', (group) => {
             generateArray({
                 fill: () => ({
                     uuid: datatype.uuid(),
-                    nickname: internet.userName(),
+                    nickname: unique(() => internet.userName()),
                     email: internet.email(),
                     password: internet.password(),
                 }),
@@ -158,19 +158,19 @@ test.group('List my followers tests group', (group) => {
         const meUserID = datatype.uuid();
         const meUser = await User.create({
             uuid: meUserID,
-            nickname: internet.userName(),
+            nickname: unique(() => internet.userName()),
             email: internet.email(),
             password: internet.password(),
         });
 
-        const searchQuery = datatype.string(1);
+        const searchQuery = random.word()[0];
         const users = await User.createMany(
             generateArray({
                 fill: (index) => ({
                     uuid: datatype.uuid(),
-                    nickname: `${
-                        index % 2 === 0 ? searchQuery : ''
-                    }${internet.userName()}`,
+                    nickname: `${index % 2 === 0 ? searchQuery : ''}${unique(
+                        () => internet.userName(),
+                    )}`,
                     email: internet.email(),
                     password: internet.password(),
                 }),

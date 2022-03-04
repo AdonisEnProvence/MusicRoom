@@ -1,5 +1,9 @@
 import Database from '@ioc:Adonis/Lucid/Database';
-import { SignUpRequestBody, SignUpResponseBody } from '@musicroom/types';
+import {
+    SignUpRequestBody,
+    SignUpResponseBody,
+    SignUpSuccessfullResponseBody,
+} from '@musicroom/types';
 import { internet, random } from 'faker';
 import test from 'japa';
 import supertest from 'supertest';
@@ -35,9 +39,15 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(200);
 
-        const { status, token } = SignUpResponseBody.parse(rawBody);
+        const {
+            status,
+            token,
+            userSummary: { nickname, userID },
+        } = SignUpSuccessfullResponseBody.parse(rawBody);
         assert.equal(status, 'SUCCESS');
         assert.isUndefined(token);
+        assert.isDefined(userID);
+        assert.equal(nickname, userNickname);
 
         const getMeResponseBody = await request
             .get('/authentication/me')
@@ -65,9 +75,15 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(200);
 
-        const { status, token } = SignUpResponseBody.parse(rawBody);
+        const {
+            status,
+            token,
+            userSummary: { nickname, userID },
+        } = SignUpSuccessfullResponseBody.parse(rawBody);
         assert.equal(status, 'SUCCESS');
         assert.isDefined(token);
+        assert.isDefined(userID);
+        assert.equal(nickname, userNickname);
 
         const getMeResponseBody = await request
             .get('/authentication/me')
@@ -96,9 +112,8 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(400);
 
-        const { status, token } = SignUpResponseBody.parse(rawBody);
+        const { status } = SignUpResponseBody.parse(rawBody);
         assert.equal(status, 'WEAK_PASSWORD');
-        assert.isUndefined(token);
     });
 
     test('It should fail to sign up as given email is invalid', async (assert) => {
@@ -117,10 +132,8 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(400);
 
-        const { status, token } = SignUpResponseBody.parse(rawBody);
+        const { status } = SignUpResponseBody.parse(rawBody);
         assert.equal(status, 'INVALID_EMAIL');
-
-        assert.isUndefined(token);
     });
 
     test('It should fail to sign up as given username is taken', async (assert) => {
@@ -150,9 +163,8 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(400);
 
-        const { status, token } = SignUpResponseBody.parse(rawBody);
+        const { status } = SignUpResponseBody.parse(rawBody);
         assert.equal(status, 'UNAVAILABLE_NICKNAME');
-        assert.isUndefined(token);
     });
 
     test('It should fail to sign up as user with given email is already in base', async (assert) => {
@@ -182,8 +194,7 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(400);
 
-        const { status, token } = SignUpResponseBody.parse(rawBody);
+        const { status } = SignUpResponseBody.parse(rawBody);
         assert.equal(status, 'UNAVAILABLE_EMAIL');
-        assert.isUndefined(token);
     });
 });

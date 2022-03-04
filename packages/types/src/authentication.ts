@@ -1,18 +1,29 @@
 import * as z from 'zod';
+import { UserSummary } from '.';
 
 export const AuthenticationModeValues = z.enum(['web', 'api']);
 export type AuthenticationModeValues = z.infer<typeof AuthenticationModeValues>;
 
-export const SignUpResponseBody = z.object({
+export const SignUpSuccessfullResponseBody = z.object({
     token: z.string().optional(),
-    status: z.enum([
-        'UNAVAILABLE_EMAIL',
-        'SUCCESS',
-        'UNAVAILABLE_NICKNAME',
-        'INVALID_EMAIL',
-        'WEAK_PASSWORD',
-    ]),
+    userSummary: UserSummary,
+    status: z.literal('SUCCESS'),
 });
+
+export type SignUpSuccessfullResponseBody = z.infer<
+    typeof SignUpSuccessfullResponseBody
+>;
+
+export const SignUpResponseBody = z
+    .object({
+        status: z.enum([
+            'UNAVAILABLE_EMAIL',
+            'UNAVAILABLE_NICKNAME',
+            'INVALID_EMAIL',
+            'WEAK_PASSWORD',
+        ]),
+    })
+    .or(SignUpSuccessfullResponseBody);
 export type SignUpResponseBody = z.infer<typeof SignUpResponseBody>;
 
 export const SignUpRequestBody = z.object({

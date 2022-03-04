@@ -1,9 +1,12 @@
-import { SignUpResponseBody } from '@musicroom/types';
+import {
+    SignUpResponseBody,
+    UserSummary,
+    SignUpRequestBody,
+} from '@musicroom/types';
 import User from 'App/Models/User';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import * as z from 'zod';
 import { OpaqueTokenContract } from '@ioc:Adonis/Addons/Auth';
-import { SignUpRequestBody } from '@musicroom/types/src/authentication';
 
 export const SignInRequestBody = z.object({
     email: z.string().email(),
@@ -55,11 +58,16 @@ export default class AuthenticationController {
                 };
             }
 
-            await User.create({
+            const { nickname, uuid: userID } = await User.create({
                 nickname: userNickname,
                 email: email,
                 password,
             });
+
+            const userSummary: UserSummary = {
+                nickname,
+                userID,
+            };
 
             switch (authenticationMode) {
                 case 'api': {
@@ -69,6 +77,7 @@ export default class AuthenticationController {
 
                     return {
                         token,
+                        userSummary,
                         status: 'SUCCESS',
                     };
                 }
@@ -76,6 +85,7 @@ export default class AuthenticationController {
                     await auth.use('web').attempt(email, password);
 
                     return {
+                        userSummary,
                         status: 'SUCCESS',
                     };
                 }

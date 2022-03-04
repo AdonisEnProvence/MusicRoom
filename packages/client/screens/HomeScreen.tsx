@@ -5,6 +5,7 @@ import { TouchableOpacity } from 'react-native';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+import { internet } from 'faker';
 import {
     AppScreen,
     AppScreenContainer,
@@ -112,7 +113,15 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                     testID="sign-up-button"
                     title="signUp"
                     onPress={async () => {
-                        const { userID, userNickname } = await sendSignUp();
+                        const {
+                            userSummary: { nickname: userNickname, userID },
+                        } = await sendSignUp({
+                            authenticationMode: 'web',
+                            email: internet.email(),
+                            password: 'p@a55wORd.',
+                            userNickname: internet.userName(),
+                        });
+
                         Toast.show({
                             type: 'success',
                             text1: 'Signed up successfully',

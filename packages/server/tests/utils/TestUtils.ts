@@ -118,6 +118,15 @@ export function generateStrongPassword(): string {
     ];
 }
 
+const TEST_WEAK_PASSWORD: string[] = ['bestpasswor@1', 'abcqwerty', 'ABCWE'];
+export function generateWeakPassword(): string {
+    return TEST_WEAK_PASSWORD[
+        datatype.number({
+            max: TEST_WEAK_PASSWORD.length - 1,
+        })
+    ];
+}
+
 interface TestUtilsReturnedValue {
     initSocketConnection: () => void;
     disconnectEveryRemainingSocketConnection: () => Promise<void>;

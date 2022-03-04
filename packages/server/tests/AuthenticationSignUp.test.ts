@@ -11,6 +11,7 @@ import urlcat from 'urlcat';
 import {
     BASE_URL,
     generateStrongPassword,
+    generateWeakPassword,
     TEST_AUTHENTICATION_GROUP_PREFIX,
 } from './utils/TestUtils';
 
@@ -100,7 +101,7 @@ test.group('Authentication sign up tests group', (group) => {
         const request = supertest.agent(BASE_URL);
         const email = internet.email();
         const userNickname = internet.userName();
-        const password = internet.password();
+        const password = generateWeakPassword();
 
         const { body: rawBody } = await request
             .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-up'))

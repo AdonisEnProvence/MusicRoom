@@ -43,7 +43,7 @@ export type SignUpFailureReasons = z.infer<typeof SignUpFailureReasons>;
 
 export const SignUpFailureResponseBody = z.object({
     status: z.literal('FAILURE'),
-    signFailureReasons: SignUpFailureReasons.array(),
+    signUpFailureReasonCollection: SignUpFailureReasons.array(),
 });
 
 export type SignUpFailureResponseBody = z.infer<

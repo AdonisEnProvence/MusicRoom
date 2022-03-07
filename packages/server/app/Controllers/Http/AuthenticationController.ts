@@ -66,7 +66,7 @@ export default class AuthenticationController {
             response.status(400);
             return {
                 status: 'FAILURE',
-                signFailureReasons: errors,
+                signUpFailureReasonCollection: errors,
             };
         }
         console.log('COULD NOT FIND ANY ERRORS');

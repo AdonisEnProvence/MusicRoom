@@ -154,6 +154,8 @@ export type MainStackParamList = {
     Settings: undefined;
 
     Alert: AlertParams;
+
+    SignUpFormScreen: undefined;
 };
 
 interface AlertParams {
@@ -384,6 +386,14 @@ export type AlertScreenProps = {
         StackNavigationProp<MainStackParamList, 'Alert'>
     >;
     route: RouteProp<MainStackParamList, 'Alert'>;
+};
+
+export type SignUpFormScreenProps = {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<RootStackParamList, 'Main'>,
+        StackNavigationProp<MainStackParamList, 'SignUpFormScreen'>
+    >;
+    route: RouteProp<MainStackParamList, 'SignUpFormScreen'>;
 };
 
 export type UserProfileIndexScreenProps = {

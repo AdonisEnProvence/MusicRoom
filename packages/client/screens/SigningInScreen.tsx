@@ -3,6 +3,7 @@ import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { TouchableOpacity } from 'react-native';
 import * as z from 'zod';
+import { useSelector } from '@xstate/react';
 import { AppScreen, TextField } from '../components/kit';
 import { useAppContext } from '../contexts/AppContext';
 import { SigningInScreenProps } from '../types';
@@ -18,9 +19,15 @@ const SigningInScreen: React.FC<SigningInScreenProps> = () => {
     const {
         control,
         handleSubmit,
-        setError,
         formState: { errors },
     } = useForm<SigningInFormFieldValues>();
+    const erredSubmittingCredentials = useSelector(
+        appService,
+        (state) =>
+            state.matches(
+                'waitingForUserAuthentication.signingIn.erredSubmittingCredentials',
+            ) === true,
+    );
 
     function handleSigningInSubmit({
         email,
@@ -75,6 +82,20 @@ const SigningInScreen: React.FC<SigningInScreenProps> = () => {
                             >
                                 Welcome back Popol!
                             </Text>
+
+                            {erredSubmittingCredentials && (
+                                <View
+                                    testID="signing-in-screen-server-error"
+                                    sx={{ marginBottom: 'xl' }}
+                                >
+                                    <Text
+                                        accessibilityRole="alert"
+                                        sx={{ color: 'red' }}
+                                    >
+                                        Credentials are invalid
+                                    </Text>
+                                </View>
+                            )}
 
                             <View
                                 testID="signing-in-screen-email-field"

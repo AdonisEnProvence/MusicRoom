@@ -368,9 +368,67 @@ const authenticationModelMachine =
                         'Rendering server error': {
                             initial: 'Idle',
                             states: {
-                                Idle: {},
-                                'Display error': {},
+                                Idle: {
+                                    meta: {
+                                        test: async ({
+                                            screen,
+                                        }: TestingContext) => {
+                                            invariant(
+                                                screen !== undefined,
+                                                'Screen must have been rendered',
+                                            );
+
+                                            await waitFor(() => {
+                                                expect(
+                                                    screen.queryByTestId(
+                                                        'signing-in-screen-server-error',
+                                                    ),
+                                                ).toBeNull();
+                                            });
+                                        },
+                                    },
+                                },
+                                'Display error': {
+                                    meta: {
+                                        test: async ({
+                                            screen,
+                                        }: TestingContext) => {
+                                            invariant(
+                                                screen !== undefined,
+                                                'Screen must have been rendered',
+                                            );
+
+                                            await waitFor(() => {
+                                                expect(
+                                                    within(
+                                                        screen.getByTestId(
+                                                            'signing-in-screen-server-error',
+                                                        ),
+                                                    ).getByRole('alert'),
+                                                ).toBeTruthy();
+                                            });
+                                        },
+                                    },
+                                },
                                 'Submitted successfully': {
+                                    meta: {
+                                        test: async ({
+                                            screen,
+                                        }: TestingContext) => {
+                                            invariant(
+                                                screen !== undefined,
+                                                'Screen must have been rendered',
+                                            );
+
+                                            await waitFor(() => {
+                                                expect(
+                                                    screen.queryByTestId(
+                                                        'signing-in-screen-server-error',
+                                                    ),
+                                                ).toBeNull();
+                                            });
+                                        },
+                                    },
                                     type: 'final',
                                 },
                             },

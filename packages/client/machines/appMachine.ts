@@ -74,38 +74,44 @@ export function createAppMachine({
                             initial: 'waitingForCredentials',
 
                             states: {
-                                waitingForCredentials: {
-                                    on: {
-                                        SIGN_IN: {
-                                            target: 'submitingCredentials',
-
-                                            actions: appModel.assign({
-                                                email: (_, event) =>
-                                                    event.email,
-                                                password: (_, event) =>
-                                                    event.password,
-                                            }),
-                                        },
-                                    },
-                                },
+                                waitingForCredentials: {},
 
                                 submitingCredentials: {
                                     invoke: {
                                         src: 'signIn',
 
                                         onDone: {
-                                            target: '#app.waitingForServerToAcknowledgeSocketConnection',
-
-                                            actions: 'reconnectSocket',
+                                            target: 'successfullySubmittedCredentials',
                                         },
 
                                         onError: {
-                                            target: 'waitingForCredentials',
-
-                                            // actions: 'showSignInError',
+                                            target: 'erredSubmittingCredentials',
                                         },
                                     },
                                 },
+
+                                successfullySubmittedCredentials: {
+                                    type: 'final',
+                                },
+
+                                erredSubmittingCredentials: {},
+                            },
+
+                            on: {
+                                SIGN_IN: {
+                                    target: 'signingIn.submitingCredentials',
+
+                                    actions: appModel.assign({
+                                        email: (_, event) => event.email,
+                                        password: (_, event) => event.password,
+                                    }),
+                                },
+                            },
+
+                            onDone: {
+                                target: '#app.waitingForServerToAcknowledgeSocketConnection',
+
+                                actions: 'reconnectSocket',
                             },
                         },
                     },

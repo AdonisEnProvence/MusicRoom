@@ -1,9 +1,12 @@
 import {
     ApiTokensSuccessfullSignUpResponseBody,
+    SignUpFailureReasons,
     SignUpRequestBody,
+    SignUpResponseBody,
     SignUpSuccessfullResponseBody,
     WebAuthSuccessfullSignUpResponseBody,
 } from '@musicroom/types';
+import { Platform } from 'react-native';
 import redaxios from 'redaxios';
 import urlcat from 'urlcat';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
@@ -42,6 +45,18 @@ export async function sendSignIn({
     );
 }
 
+export class SignUpError extends Error {
+    public signUpFailReason: SignUpFailureReasons;
+
+    constructor(signUpFailReason: SignUpFailureReasons) {
+        super();
+
+        this.signUpFailReason = signUpFailReason;
+        // Set the prototype explicitly.
+        Object.setPrototypeOf(this, SignUpError.prototype);
+    }
+}
+
 type sendApiTokensSignUpArgs = Omit<SignUpRequestBody, 'authenticationMode'>;
 
 export async function sendApiTokenSignUp({
@@ -51,14 +66,27 @@ export async function sendApiTokenSignUp({
 }: sendApiTokensSignUpArgs): Promise<ApiTokensSuccessfullSignUpResponseBody> {
     const url = urlcat(SERVER_ENDPOINT, '/authentication/sign-up');
 
-    const rawResponse = await redaxios.post(url, {
-        authenticationMode: 'api',
-        email,
-        password,
-        userNickname,
-    } as SignUpRequestBody);
-    //readaxios will throw an error how http code 400 catch
-    return ApiTokensSuccessfullSignUpResponseBody.parse(rawResponse.data);
+    const rawResponse = await redaxios.post(
+        url,
+        {
+            authenticationMode: 'api',
+            email,
+            password,
+            userNickname,
+        } as SignUpRequestBody,
+        {
+            validateStatus: () => false,
+        },
+    );
+    const parsedResponseBody = SignUpResponseBody.parse(rawResponse.data);
+
+    const signUpFailed = parsedResponseBody.status !== 'SUCCESS';
+    if (signUpFailed) {
+        throw new SignUpError(parsedResponseBody.status);
+    }
+
+    //useless parse below for type only
+    return ApiTokensSuccessfullSignUpResponseBody.parse(parsedResponseBody);
 }
 
 type sendWebAuthSignUpArgs = Omit<SignUpRequestBody, 'authenticationMode'>;
@@ -67,15 +95,41 @@ export async function sendWebAuthSignUp({
     email,
     password,
     userNickname,
-}: sendWebAuthSignUpArgs): Promise<SignUpSuccessfullResponseBody> {
+}: sendWebAuthSignUpArgs): Promise<WebAuthSuccessfullSignUpResponseBody> {
     const url = urlcat(SERVER_ENDPOINT, '/authentication/sign-up');
 
-    const rawResponse = await redaxios.post(url, {
-        authenticationMode: 'web',
-        email,
-        password,
-        userNickname,
-    } as SignUpRequestBody);
-    //readaxios will throw an error how http code 400 catch
-    return WebAuthSuccessfullSignUpResponseBody.parse(rawResponse.data);
+    const rawResponse = await redaxios.post(
+        url,
+        {
+            authenticationMode: 'web',
+            email,
+            password,
+            userNickname,
+        } as SignUpRequestBody,
+        {
+            validateStatus: () => false,
+        },
+    );
+    const parsedResponseBody = SignUpResponseBody.parse(rawResponse.data);
+
+    const signUpFailed = parsedResponseBody.status !== 'SUCCESS';
+    if (signUpFailed) {
+        throw new SignUpError(parsedResponseBody.status);
+    }
+
+    //useless parse below for type only
+    return WebAuthSuccessfullSignUpResponseBody.parse(parsedResponseBody);
+}
+
+export async function sendSignUp(
+    body: SignUpRequestBody,
+): Promise<SignUpResponseBody> {
+    const isWebBrowser = Platform.OS === 'web';
+
+    if (isWebBrowser) {
+        return await sendWebAuthSignUp(body);
+    }
+
+    return await sendApiTokenSignUp(body);
+    //TODO handle token
 }

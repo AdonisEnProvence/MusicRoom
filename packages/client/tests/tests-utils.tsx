@@ -81,6 +81,8 @@ export function render(
 export async function renderApp(
     options?: RenderOptions,
 ): Promise<RenderAPI & { serverSocket: ServerSocket }> {
+    localStorage.setItem('token', 'token');
+
     const screen = render(
         <Navigation colorScheme="dark" toggleColorScheme={noop} />,
         options,
@@ -88,6 +90,38 @@ export async function renderApp(
 
     await waitFor(() => {
         expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+    });
+
+    return screen;
+}
+
+export async function renderAuthenticatedApp(
+    options?: RenderOptions,
+): Promise<RenderAPI & { serverSocket: ServerSocket }> {
+    const screen = render(
+        <Navigation colorScheme="dark" toggleColorScheme={noop} />,
+        options,
+    );
+
+    await waitFor(() => {
+        expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+    });
+
+    return screen;
+}
+
+export async function renderUnauthenticatedApp(
+    options?: RenderOptions,
+): Promise<RenderAPI & { serverSocket: ServerSocket }> {
+    const screen = render(
+        <Navigation colorScheme="dark" toggleColorScheme={noop} />,
+        options,
+    );
+
+    await waitFor(() => {
+        expect(
+            screen.getAllByText(/welcome.*back/i).length,
+        ).toBeGreaterThanOrEqual(1);
     });
 
     return screen;

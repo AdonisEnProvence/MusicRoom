@@ -76,7 +76,10 @@ const SigningInScreen: React.FC<SigningInScreenProps> = () => {
                                 Welcome back Popol!
                             </Text>
 
-                            <View sx={{ marginBottom: 'xl' }}>
+                            <View
+                                testID="signing-in-screen-email-field"
+                                sx={{ marginBottom: 'xl' }}
+                            >
                                 <Text
                                     sx={{
                                         color: 'greyLighter',
@@ -139,7 +142,10 @@ const SigningInScreen: React.FC<SigningInScreenProps> = () => {
                                 )}
                             </View>
 
-                            <View sx={{ marginBottom: 'xl' }}>
+                            <View
+                                testID="signing-in-screen-password-field"
+                                sx={{ marginBottom: 'xl' }}
+                            >
                                 <Text
                                     sx={{
                                         color: 'greyLighter',
@@ -149,7 +155,7 @@ const SigningInScreen: React.FC<SigningInScreenProps> = () => {
                                         marginBottom: 'm',
                                     }}
                                 >
-                                    Nickname
+                                    Password
                                 </Text>
 
                                 <Controller

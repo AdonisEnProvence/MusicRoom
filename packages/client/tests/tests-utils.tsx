@@ -73,6 +73,10 @@ export function render(
     };
 }
 
+export function authenticateUser(): void {
+    localStorage.setItem('token', 'token');
+}
+
 /**
  * Renders the application <Navigation /> component.
  * It renders asynchronously the first screen.
@@ -81,7 +85,7 @@ export function render(
 export async function renderApp(
     options?: RenderOptions,
 ): Promise<RenderAPI & { serverSocket: ServerSocket }> {
-    localStorage.setItem('token', 'token');
+    authenticateUser();
 
     const screen = render(
         <Navigation colorScheme="dark" toggleColorScheme={noop} />,

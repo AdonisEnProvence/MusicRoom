@@ -1,11 +1,12 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import {
     ApiTokensSuccessfullSignUpResponseBody,
+    SignUpFailureResponseBody,
     SignUpRequestBody,
-    SignUpResponseBody,
     WebAuthSuccessfullSignUpResponseBody,
 } from '@musicroom/types';
-import { internet, random } from 'faker';
+import User from 'App/Models/User';
+import { datatype, internet, random } from 'faker';
 import test from 'japa';
 import supertest from 'supertest';
 import urlcat from 'urlcat';
@@ -112,15 +113,18 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(400);
 
-        const { status } = SignUpResponseBody.parse(rawBody);
-        assert.equal(status, 'WEAK_PASSWORD');
+        const { status, signFailureReasons } =
+            SignUpFailureResponseBody.parse(rawBody);
+        assert.equal(status, 'FAILURE');
+        assert.isDefined(signFailureReasons);
+        assert.include(signFailureReasons, 'WEAK_PASSWORD');
     });
 
     test('It should fail to sign up as given email is invalid', async (assert) => {
         const request = supertest.agent(BASE_URL);
         const email = internet.email().replace('@', random.word());
         const userNickname = internet.userName();
-        const password = internet.password();
+        const password = generateStrongPassword();
 
         const { body: rawBody } = await request
             .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-up'))
@@ -132,15 +136,18 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(400);
 
-        const { status } = SignUpResponseBody.parse(rawBody);
-        assert.equal(status, 'INVALID_EMAIL');
+        const { status, signFailureReasons } =
+            SignUpFailureResponseBody.parse(rawBody);
+        assert.equal(status, 'FAILURE');
+        assert.isDefined(signFailureReasons);
+        assert.include(signFailureReasons, 'INVALID_EMAIL');
     });
 
     test('It should fail to sign up as given email is too long', async (assert) => {
         const request = supertest.agent(BASE_URL);
         const email = `${'email'.repeat(100)}${internet.email()}`;
         const userNickname = internet.userName();
-        const password = internet.password();
+        const password = generateStrongPassword();
 
         const { body: rawBody } = await request
             .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-up'))
@@ -152,14 +159,17 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(400);
 
-        const { status } = SignUpResponseBody.parse(rawBody);
-        assert.equal(status, 'INVALID_EMAIL');
+        const { status, signFailureReasons } =
+            SignUpFailureResponseBody.parse(rawBody);
+        assert.equal(status, 'FAILURE');
+        assert.isDefined(signFailureReasons);
+        assert.include(signFailureReasons, 'INVALID_EMAIL');
     });
 
     test('It should send back 500 error as payload is partially empty', async () => {
         const request = supertest.agent(BASE_URL);
         const userNickname = internet.userName();
-        const password = internet.password();
+        const password = generateStrongPassword();
 
         await request
             .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-up'))
@@ -187,7 +197,7 @@ test.group('Authentication sign up tests group', (group) => {
 
         const request = supertest.agent(BASE_URL);
         const email = internet.email();
-        const password = internet.password();
+        const password = generateStrongPassword();
 
         const { body: rawBody } = await request
             .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-up'))
@@ -199,8 +209,11 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(400);
 
-        const { status } = SignUpResponseBody.parse(rawBody);
-        assert.equal(status, 'UNAVAILABLE_NICKNAME');
+        const { status, signFailureReasons } =
+            SignUpFailureResponseBody.parse(rawBody);
+        assert.equal(status, 'FAILURE');
+        assert.isDefined(signFailureReasons);
+        assert.include(signFailureReasons, 'UNAVAILABLE_NICKNAME');
     });
 
     test('It should fail to sign up as user with given email is already in base', async (assert) => {
@@ -230,7 +243,50 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(400);
 
-        const { status } = SignUpResponseBody.parse(rawBody);
-        assert.equal(status, 'UNAVAILABLE_EMAIL');
+        const { status, signFailureReasons } =
+            SignUpFailureResponseBody.parse(rawBody);
+        assert.equal(status, 'FAILURE');
+        assert.isDefined(signFailureReasons);
+        assert.include(signFailureReasons, 'UNAVAILABLE_EMAIL');
+    });
+
+    test('It should fail to sign up raising every possibles errors', async (assert) => {
+        const email = internet.email().replace('@', random.word());
+        const userNickname = internet.userName();
+
+        // Indeed we're saving a bad formatted email directly in database
+        // To cover corresponding exception for the following sign up
+        await User.create({
+            email,
+            nickname: userNickname,
+            password: 'nevermind',
+            uuid: datatype.uuid(),
+        });
+
+        const request = supertest.agent(BASE_URL);
+        const password = generateWeakPassword();
+
+        const { body: rawBody } = await request
+            .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-up'))
+            .send({
+                authenticationMode: 'api',
+                email,
+                password,
+                userNickname,
+            } as SignUpRequestBody)
+            .expect(400);
+
+        const { status, signFailureReasons } =
+            SignUpFailureResponseBody.parse(rawBody);
+        assert.equal(status, 'FAILURE');
+        assert.isDefined(signFailureReasons);
+        assert.equal(signFailureReasons.length, 4);
+
+        assert.deepEqual(signFailureReasons, [
+            'INVALID_EMAIL',
+            'UNAVAILABLE_NICKNAME',
+            'UNAVAILABLE_EMAIL',
+            'WEAK_PASSWORD',
+        ]);
     });
 });

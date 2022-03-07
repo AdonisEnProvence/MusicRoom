@@ -48,7 +48,6 @@ export default class AuthenticationController {
             errors.push('UNAVAILABLE_NICKNAME');
         }
 
-        // Should we not check for related given email if it's already invalid ?
         const userWithGivenEmail = await User.findBy('email', email);
         if (userWithGivenEmail) {
             errors.push('UNAVAILABLE_EMAIL');

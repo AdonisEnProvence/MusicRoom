@@ -2,6 +2,7 @@ import {
     SignUpResponseBody,
     UserSummary,
     SignUpRequestBody,
+    SignUpFailureReasons,
 } from '@musicroom/types';
 import User from 'App/Models/User';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
@@ -30,53 +31,45 @@ export default class AuthenticationController {
         response,
         auth,
     }: HttpContextContract): Promise<SignUpResponseBody> {
-        const safeParseResult = SignUpRequestBody.safeParse(request.body());
-
-        if (!safeParseResult.success) {
-            const parsedEmailIsInvalid = safeParseResult.error.errors.find(
-                (error) => error.message === 'INVALID_EMAIL',
-            );
-            if (parsedEmailIsInvalid) {
-                response.status(400);
-                return {
-                    status: 'INVALID_EMAIL',
-                };
-            }
-
-            throw safeParseResult.error;
-        }
-
         const { authenticationMode, email, password, userNickname } =
-            safeParseResult.data;
+            SignUpRequestBody.parse(request.body());
+        const errors: SignUpFailureReasons[] = [];
+
+        const emailIsInvalid = !z.string().email().max(255).check(email);
+        if (emailIsInvalid) {
+            errors.push('INVALID_EMAIL');
+        }
 
         const userWithGivenNickname = await User.findBy(
             'nickname',
             userNickname,
         );
-
         if (userWithGivenNickname) {
-            response.status(400);
-            return {
-                status: 'UNAVAILABLE_NICKNAME',
-            };
+            errors.push('UNAVAILABLE_NICKNAME');
         }
 
         const userWithGivenEmail = await User.findBy('email', email);
         if (userWithGivenEmail) {
-            response.status(400);
-            return {
-                status: 'UNAVAILABLE_EMAIL',
-            };
+            errors.push('UNAVAILABLE_EMAIL');
         }
 
         const passwordIsStrong = passwordStrengthRegex.test(password);
         const passwordIsNotStrong = !passwordIsStrong;
         if (passwordIsNotStrong) {
+            errors.push('WEAK_PASSWORD');
+        }
+
+        const signUpFailed = errors.length > 0;
+        if (signUpFailed) {
+            console.log(errors);
+
             response.status(400);
             return {
-                status: 'WEAK_PASSWORD',
+                status: 'FAILURE',
+                signFailureReasons: errors,
             };
         }
+        console.log('COULD NOT FIND ANY ERRORS');
 
         const { nickname, uuid: userID } = await User.create({
             nickname: userNickname,

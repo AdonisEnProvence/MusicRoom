@@ -32,24 +32,34 @@ export type SignUpSuccessfullResponseBody = z.infer<
     typeof SignUpSuccessfullResponseBody
 >;
 
-export const SignUpResponseBody = z
-    .object({
-        status: z.enum([
-            'UNAVAILABLE_EMAIL',
-            'UNAVAILABLE_NICKNAME',
-            'INVALID_EMAIL',
-            'WEAK_PASSWORD',
-        ]),
-    })
-    .or(SignUpSuccessfullResponseBody);
+export const SignUpFailureReasons = z.enum([
+    'UNAVAILABLE_NICKNAME',
+    'UNAVAILABLE_EMAIL',
+    'INVALID_EMAIL',
+    'WEAK_PASSWORD',
+]);
+
+export type SignUpFailureReasons = z.infer<typeof SignUpFailureReasons>;
+
+export const SignUpFailureResponseBody = z.object({
+    status: z.literal('FAILURE'),
+    signFailureReasons: SignUpFailureReasons.array(),
+});
+
+export type SignUpFailureResponseBody = z.infer<
+    typeof SignUpFailureResponseBody
+>;
+
+export const SignUpResponseBody = SignUpFailureResponseBody.or(
+    SignUpSuccessfullResponseBody,
+);
+
 export type SignUpResponseBody = z.infer<typeof SignUpResponseBody>;
 
 export const SignUpRequestBody = z.object({
     userNickname: z.string(),
     password: z.string(),
-    email: z.string().email({ message: 'INVALID_EMAIL' }).max(255, {
-        message: 'INVALID_EMAIL',
-    }),
+    email: z.string(),
     authenticationMode: AuthenticationModeValues,
 });
 

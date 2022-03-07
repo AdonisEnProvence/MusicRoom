@@ -8,10 +8,7 @@ import { useMachine } from '@xstate/react';
 import Toast from 'react-native-toast-message';
 import { assertEventType } from '../../machines/utils';
 import { AppScreen, TextField } from '../../components/kit';
-import {
-    sendWebAuthSignUp,
-    SignUpError,
-} from '../../services/AuthenticationService';
+import { sendSignUp, SignUpError } from '../../services/AuthenticationService';
 import { SignUpFormScreenProps } from '../../types';
 
 export interface AuthenticationSignUpFormFormFieldValues {
@@ -25,7 +22,10 @@ const passwordStrengthRegex = new RegExp(
 );
 
 type UpdateNicknameMachineEvent =
-    | { type: 'Validated form'; body: AuthenticationSignUpFormFormFieldValues }
+    | {
+          type: 'Validated sign up form';
+          body: AuthenticationSignUpFormFormFieldValues;
+      }
     | { type: 'Signed up successfully' }
     | { type: 'Nickname unavailable' }
     | { type: 'Email unavailable' }
@@ -33,49 +33,59 @@ type UpdateNicknameMachineEvent =
     | { type: 'Weak password' }
     | { type: 'Unknown error' };
 
-const updateNicknameMachine =
+const signUpMachine =
     /** @xstate-layout N4IgpgJg5mDOIC5QFUAOECGAXMACAdgJYDGA1vhgLZgB0AYmFsQBaH5S4CusYATgOSxcPLFjZRYAYggB7fLTYA3GaVppMOAiXJVaDJq3ZceAoSLHtYCJTOLZCcgNoAGALqJQqGbEJi5HkAAPRAA2ZwAmGgAWAA5nAE4Y+IBGKNSAVmSYgBoQAE9QmIBmGhCYgHYQ9PS0mPSw5IBfRtz1bDwiMgpqekYWcWM+QWFGCwlJPl4ZXhpUABtsADNpyho2zU6dHv1+o24hs1HxKxs7P3wXdyQQLx9zgOCESpiaROciorjwmPCQkPLcgUEEkSvUYnFPuVylEos1Wuh2louroaABJCBzMCSABqGDmhA0kFwy14lACt18DnwD0QNWcNGS8T+UWhyXS8Q5RUBiHi9I5zgq5VS4SKUQF6ThIHWHW03VoAGUwPgIANNnLcFgZCNeIo+JJpRAkVs8LBOMRiHBYItOHM5kDPN5Kf5ro9PlEaOUmezwvEiiEotVuQg2e6heFMvFyuzkkURZLpUa5TRFcrVbLdBqtSZdbx9SZhsROLxeEqsIndOTHfcXYg3R6vfEfX6A+kgz70jQKoz-clvrEffGERt0z0UyqjGqM5rtTn9fhyDIAO74XCTaaVu5UmkIOueqqN33+wP5RBijtFZK95xhKKJdLhkKDwnl0dK8ccSfUTMzvUAORHeCcBQigYIQCwAEaYhuTrUjWO4xKGDZNkerYnggmShukzgwp6YbhHGLRSkOMrIj0AAiYDgTIQHEAM+ymLgbAkpQ9hyMSfSGFAkiBLAWDtDQGCLDgMxFM4zjQdWoCPOUMQhNE4QBuGNSXopQYwiUzjQvy-wfGUBGEfgMgQHAAQJp+egcXR+aHKIxwSVucGih2ISJN8vY+vhsRBryJSyf6nr3lEnypE+iLmTQACixbTIxK70cM5jHOxBjiPZzpSTyUSRGG-ZJLyUbhEGUKRM47lih8WXpFCoXDqRtDolB1wUpJQSIOUPoeuUolVOUmm8oyQaxuUNCiZG-zpKKmn4TVJHGsmb5pnV37ZnwaWwRlCBZd58Q0NeZRJGUUbpAhsKEWZAE0BRVE0VZByxcxrEroslnsGt26VO6bpFFV16Mj8hVoTUkT4Qhnrhsk-oJDNL5gG9cFZEGyTDRyHJJFEZQZBDzTNEAA */
     createMachine<Record<string, never>, UpdateNicknameMachineEvent>({
-        id: 'Update nickname',
-        initial: 'idle',
+        id: 'Sign up',
+        initial: 'Idle',
         states: {
-            idle: {},
-
-            "Error in user's settings fetching": {
-                type: 'final',
+            Idle: {
+                on: {
+                    'Validated sign up form': {
+                        target: '#Sign up.Sending sign up to server',
+                    },
+                },
             },
+
             "Debouncing user's information fetching": {
                 after: {
                     '300': {
-                        target: '#Update nickname.Idle',
+                        target: '#Sign up.Idle',
                     },
                 },
             },
-            Idle: {
-                on: {
-                    'Validated form': {
-                        target: '#Update nickname.Sending sign up to server',
-                    },
-                },
-            },
+
             'Sending sign up to server': {
                 invoke: {
                     src: 'Send sign up to server',
                 },
-                on: {
-                    'Signed up successfully': {
-                        actions: ['Trigger sucess toast', 'Reset forms errors'],
-                        target: '#Update nickname.Idle',
-                    },
-                    'Unknown error': {
-                        actions: 'Set error state to unknown',
-                        target: '#Update nickname.Idle',
-                    },
-                    'Nickname unavailable': {
-                        actions: 'Set error state to nickname unavailable',
-                        target: '#Update nickname.Idle',
-                    },
-                },
+            },
+        },
+
+        on: {
+            'Signed up successfully': {
+                actions: ['Trigger sucess toast', 'Reset forms errors'],
+                target: '#Sign up.Idle',
+            },
+            'Nickname unavailable': {
+                actions: 'Set error state to nickname unavailable',
+                target: '#Sign up.Idle',
+            },
+            'Email unavailable': {
+                actions: 'Set error state to email unavailable',
+                target: '#Sign up.Idle',
+            },
+            'Email invalid': {
+                actions: 'Set error state to email is invalid',
+                target: '#Sign up.Idle',
+            },
+            'Weak password': {
+                actions: 'Set error state to password is weak',
+                target: '#Sign up.Idle',
+            },
+            'Unknown error': {
+                actions: ['Trigger unknown error toast'],
+                target: '#Sign up.Idle',
             },
         },
     });
@@ -92,33 +102,20 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
 
     const sx = useSx();
     // const { appService } = useAppContext();
-    function handleSigningInSubmit({
-        email,
-        password,
-        userNickname,
-    }: AuthenticationSignUpFormFormFieldValues) {
-        // appService.send({
-        //     type: 'SIGN_IN',
-        //     email,
-        //     password,
-        // });
-    }
 
-    const [state, send] = useMachine(updateNicknameMachine, {
+    const [state, send] = useMachine(signUpMachine, {
         services: {
             'Send sign up to server': (_context, event) => async (sendBack) => {
-                assertEventType(event, 'Validated form');
+                assertEventType(event, 'Validated sign up form');
 
                 try {
-                    const { status } = await sendWebAuthSignUp(event.body);
+                    await sendSignUp(event.body);
 
                     sendBack({
                         type: 'Signed up successfully',
                     });
                 } catch (error) {
-                    const isNotSignUpError = !(error instanceof SignUpError);
-
-                    if (isNotSignUpError) {
+                    if (!(error instanceof SignUpError)) {
                         console.error(error);
                         sendBack({
                             type: 'Unknown error',
@@ -126,38 +123,42 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                         return;
                     }
 
-                    switch (error.signUpFailReason) {
-                        case 'INVALID_EMAIL': {
-                            sendBack({
-                                type: 'Email invalid',
-                            });
-                            return;
-                        }
-                        case 'UNAVAILABLE_EMAIL': {
-                            sendBack({
-                                type: 'Email unavailable',
-                            });
-                            return;
-                        }
-                        case 'UNAVAILABLE_NICKNAME': {
-                            sendBack({
-                                type: 'Nickname unavailable',
-                            });
-                            return;
-                        }
-                        case 'WEAK_PASSWORD': {
-                            sendBack({
-                                type: 'Weak password',
-                            });
-                            return;
-                        }
-                        default: {
-                            sendBack({
-                                type: 'Unknown error',
-                            });
-                            return;
-                        }
-                    }
+                    error.signUpFailReasonCollection.forEach(
+                        (signUpFailReason) => {
+                            switch (signUpFailReason) {
+                                case 'INVALID_EMAIL': {
+                                    sendBack({
+                                        type: 'Email invalid',
+                                    });
+                                    return;
+                                }
+                                case 'UNAVAILABLE_EMAIL': {
+                                    sendBack({
+                                        type: 'Email unavailable',
+                                    });
+                                    return;
+                                }
+                                case 'UNAVAILABLE_NICKNAME': {
+                                    sendBack({
+                                        type: 'Nickname unavailable',
+                                    });
+                                    return;
+                                }
+                                case 'WEAK_PASSWORD': {
+                                    sendBack({
+                                        type: 'Weak password',
+                                    });
+                                    return;
+                                }
+                                default: {
+                                    sendBack({
+                                        type: 'Unknown error',
+                                    });
+                                    return;
+                                }
+                            }
+                        },
+                    );
                 }
             },
         },
@@ -173,10 +174,24 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                 navigation.goBack();
             },
 
-            'Set error state to unknown': () => {
-                setError('userNickname', {
+            'Trigger unknown error toast': () => {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Something went wrong please try again later',
+                });
+            },
+
+            'Set error state to password is weak': () => {
+                setError('password', {
                     type: 'server error',
-                    message: 'An error occured',
+                    message: 'Password is to weak',
+                });
+            },
+
+            'Set error state to email is invalid': () => {
+                setError('email', {
+                    type: 'server error',
+                    message: 'Email is not valid',
                 });
             },
 
@@ -188,13 +203,28 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
             },
 
             'Set error state to email unavailable': () => {
-                setError('userNickname', {
+                setError('email', {
                     type: 'server error',
-                    message: 'Nickname is unavailable',
+                    message: 'Email is unavailable',
                 });
             },
         },
     });
+
+    function handleSigningInSubmit({
+        email,
+        password,
+        userNickname,
+    }: AuthenticationSignUpFormFormFieldValues) {
+        send({
+            type: 'Validated sign up form',
+            body: {
+                userNickname,
+                email,
+                password,
+            },
+        });
+    }
 
     return (
         <AppScreen>
@@ -281,7 +311,7 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     }}
                                 />
 
-                                {errors.email?.message && (
+                                {errors.userNickname?.message && (
                                     <Text
                                         accessibilityRole="alert"
                                         sx={{
@@ -289,7 +319,7 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                             marginTop: 's',
                                         }}
                                     >
-                                        {errors.email.message}
+                                        {errors.userNickname.message}
                                     </Text>
                                 )}
                             </View>
@@ -440,7 +470,7 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                         fontWeight: 'bold',
                                     }}
                                 >
-                                    Log in
+                                    Sign Up
                                 </Text>
                             </TouchableOpacity>
                         </View>

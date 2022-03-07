@@ -3,7 +3,6 @@ import {
     SignUpFailureReasons,
     SignUpRequestBody,
     SignUpResponseBody,
-    SignUpSuccessfullResponseBody,
     WebAuthSuccessfullSignUpResponseBody,
 } from '@musicroom/types';
 import { Platform } from 'react-native';
@@ -46,24 +45,24 @@ export async function sendSignIn({
 }
 
 export class SignUpError extends Error {
-    public signUpFailReason: SignUpFailureReasons;
+    public signUpFailReasonCollection: SignUpFailureReasons[];
 
-    constructor(signUpFailReason: SignUpFailureReasons) {
+    constructor(signUpFailReasonCollection: SignUpFailureReasons[]) {
         super();
 
-        this.signUpFailReason = signUpFailReason;
+        this.signUpFailReasonCollection = signUpFailReasonCollection;
         // Set the prototype explicitly.
         Object.setPrototypeOf(this, SignUpError.prototype);
     }
 }
 
-type sendApiTokensSignUpArgs = Omit<SignUpRequestBody, 'authenticationMode'>;
+type sendSignUpArgs = Omit<SignUpRequestBody, 'authenticationMode'>;
 
 export async function sendApiTokenSignUp({
     email,
     password,
     userNickname,
-}: sendApiTokensSignUpArgs): Promise<ApiTokensSuccessfullSignUpResponseBody> {
+}: sendSignUpArgs): Promise<ApiTokensSuccessfullSignUpResponseBody> {
     const url = urlcat(SERVER_ENDPOINT, '/authentication/sign-up');
 
     const rawResponse = await redaxios.post(
@@ -75,27 +74,25 @@ export async function sendApiTokenSignUp({
             userNickname,
         } as SignUpRequestBody,
         {
-            validateStatus: () => false,
+            validateStatus: () => true,
         },
     );
+    //Error 500 will raise an error indirectly via below zod parsing
     const parsedResponseBody = SignUpResponseBody.parse(rawResponse.data);
 
-    const signUpFailed = parsedResponseBody.status !== 'SUCCESS';
-    if (signUpFailed) {
-        throw new SignUpError(parsedResponseBody.status);
+    if (parsedResponseBody.status === 'FAILURE') {
+        throw new SignUpError(parsedResponseBody.signUpFailureReasonCollection);
     }
 
     //useless parse below for type only
     return ApiTokensSuccessfullSignUpResponseBody.parse(parsedResponseBody);
 }
 
-type sendWebAuthSignUpArgs = Omit<SignUpRequestBody, 'authenticationMode'>;
-
 export async function sendWebAuthSignUp({
     email,
     password,
     userNickname,
-}: sendWebAuthSignUpArgs): Promise<WebAuthSuccessfullSignUpResponseBody> {
+}: sendSignUpArgs): Promise<WebAuthSuccessfullSignUpResponseBody> {
     const url = urlcat(SERVER_ENDPOINT, '/authentication/sign-up');
 
     const rawResponse = await redaxios.post(
@@ -107,14 +104,14 @@ export async function sendWebAuthSignUp({
             userNickname,
         } as SignUpRequestBody,
         {
-            validateStatus: () => false,
+            validateStatus: () => true,
         },
     );
+    //Error 500 will raise an error indirectly via below zod parsing
     const parsedResponseBody = SignUpResponseBody.parse(rawResponse.data);
 
-    const signUpFailed = parsedResponseBody.status !== 'SUCCESS';
-    if (signUpFailed) {
-        throw new SignUpError(parsedResponseBody.status);
+    if (parsedResponseBody.status === 'FAILURE') {
+        throw new SignUpError(parsedResponseBody.signUpFailureReasonCollection);
     }
 
     //useless parse below for type only
@@ -122,14 +119,14 @@ export async function sendWebAuthSignUp({
 }
 
 export async function sendSignUp(
-    body: SignUpRequestBody,
+    args: sendSignUpArgs,
 ): Promise<SignUpResponseBody> {
     const isWebBrowser = Platform.OS === 'web';
 
     if (isWebBrowser) {
-        return await sendWebAuthSignUp(body);
+        return await sendWebAuthSignUp(args);
     }
 
-    return await sendApiTokenSignUp(body);
+    return await sendApiTokenSignUp(args);
     //TODO handle token
 }

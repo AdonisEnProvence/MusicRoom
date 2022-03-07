@@ -4,6 +4,7 @@ import invariant from 'tiny-invariant';
 import { createMachine, assign, EventFrom } from 'xstate';
 import * as z from 'zod';
 import { assertEventType } from '../machines/utils';
+import { db, generateAuthenticationUser } from '../tests/data';
 import {
     render,
     renderAuthenticatedApp,
@@ -17,10 +18,7 @@ interface TestingContext {
     screen?: ReturnType<typeof render>;
 }
 
-const user = {
-    email: 'baptou@gmail.fr',
-    password: 'azerty',
-};
+const existingUser = generateAuthenticationUser();
 
 const authenticationModelMachine =
     /** @xstate-layout N4IgpgJg5mDOIC5QEECuAXAFmAduglgMYCGBA9jgAQC2ZEYANgHQCSO+BxD+AXqfhQDEAWWIBrMJVSwwAJ0rEM2PEVKQFOCJVm5684gAcD3EuRyJQBsrA4DzSEAA9EAZgCsATiYBGAOy+XADYAJhcAFmCwgAZAqN8AGhAAT0QAWl8fDw8ADm9ctzdfDxCPMIBfMsS0LFwCUzsaOkZWdk5uPjMRcUlpOSkcRRqVU3ViTW1dPsNjVTMLECsbOYdnBFTvYK9stxcPfzco7Oywo8DElIRgtzCmaPCXbJcnk+Ds4IqqpVrZhtp6ZgASpNZPgcFBKDYoOwwRDCDpcEwAGL4BjcGFwyDfLiwJEotHggBm+EYEBxyNRoPBYGoxBRggAyqgAEbUDgQ-BQymUUGUAlkWTUeaLWwUearDYZQJhaI7QJZQJPQIJZKIbwKyVhNzZXxRHZhKW+cqVEDVZR1fgURr-JhAzRyLmQ6Hg2AYhHk-GUDH0FTY3EUmFEklkvFc6m0hiCAAqSQMkktjq5PLDKN5xIYECF1hF9lAq2CCtu2TlxyLeVKURc51VHjcwSYO0icsi3iiGyNnyG5rMVuatr0Do5Tth8Jwfo9XqxDGD-sJadJY65BmIsFgAHd+RAGczWeh2ZyYTy+QLM0s7GLVcE663ihtgq2XN5a5WVZdXoEmKVpVE74FPC53saprfPUlp-L2wIDvuzquqO7pchOPpTguAZztOHpLiu66yJu0axpQ8aDomVAYWuG6piSJ7ZuelxSkw37ftkpRuLESq+GcL5XOEPhRKU3gttsORKh8JpfMMFpUGBgIQTCCYyTByHgghbRoVygbprAggQBQYBMLA6BqEwQFid2kk2tJzqEXJI4KZ6OjespNlqaSlHLLmiBvFETChL4eTfpeBzBMqFzeB4FZMLsBQ8WEGy5GqwlGV2vxNFJdogjJlnQdZcHonZk4qShQZdBIe5DjyOgAI6oHAu4EuGLlnisiBsTckRsaFYQ6p+7HBZenkeH4mr+NquqtvFomJaByVmalkFDi61l9vaMlyAAbn0ciyPyW4smysngoe-KCg4wquU4rith+WShaEWrbC2bhVgghTeB+ngHN40RvL4bhjZ2PyTdai1pRZUHDmAuCadpun6egOkJf9ElTUDs0OjB9Wio1CDXeFupHJ4RyGg9HG6kwgSPlKjHPJENYVMaOBNPADjwyBiPWmwthcLw4nozmZ0INFTBsUcmxsW4fhXGEj1eIc2QMWELitgaBS-WaCM9il-YwpgZDUJI83g7zJ0NW5CAthsTC5McgRyrEl7uI9qS-oLsVxJspQ1gqKvAeJ6vTZrINzfJ2WKbliH5bOQY2cmzAsBADBgDz1GhC4XkVpE+ZShLaqPeT2Sk5FPG9b+H1e8ZSWA+ZJWo1lIY5ZiYeOahUc0iiLQrZzEBMAAoi3DDcrAlDUgY6AXJYWanasYQ5HRrZxJ10S6jWOeGtLHguAEHihIc-4AR2qss77yPpaD+turXIf1w5wfkepzfhm3Hfd73-fcjg7fcBmx3j8bfNT243H+HcNFIs1tJYvjVLLbirx-D9UCI8EIpcJqs3AjNY+gca4zlspffAvpr5OXDoPXuD8P6J0xh1F6LZAHXDyNbKUOdYgZD4neB8+Y4gtkCIgtWpkj4B2rgbGySkcFITwU3a+0cmAADUO6kJNqEF6+YghvH-B9GIOcp5eFAR9IoMRfwcMAuNLhSNK57TBmfTBgjcHnxvvOMRvcZF8xbCnKUMogjykVEFVU0UbhKieK2K4uoFbthEn9A+3DjEZVMbBKxFjhFWPwTZEiWFO6x3jvYvMwQXqMQ2GqAI+pvpvEepePwr0gFxDFmvPRe9vYmSMag3hVl+HXxiQQ+J19EkbmIfgTuAAFZcpFsIvyHiPNJiATgvSiK2fUPiHxKm6ogUItEdhaM8GWMmQTmY+zCXUquDSzHjlDlfOJoirHtOwp0z+Y9TwYxNoNGeH1rYBBmWxQpmwXrXBGrsBWZNDScNCbU-2OzMqNOiQcoRLTjmYNOZ3KRJCv5XN5nmEKr01TMV2HkQKSpCkfTzsUfMRR5b4u8L8zZ-ylr1KBXs+CoLLGYNaScvpSSRlYzzteMmvVvAPifIUmIKc9h+DiNKGsexiU1Irtskxp8onmOpbE2lqEmWGjoiFNld4OWPlCDncIL04GRGuJ4L8JwRXlxQQCiVQcQXYJpfHLQ+CmWbzzoTY4+p2pTzAcFWWecHz9SAVKBUOwjUAxNWSwFkSBEysZpcqimMDhKpvOyzll45mmy0R+DOfEOWF31AG5BGtg1moWsY1a61ZCbVkKwOOCc4VRpNt9esGTor7EcWTR6zFPLhH1NKIWkQizZsPuEk+8keEQiLfIDa-ImAABF8CwGMMQJIg8S38jtXxW4MRDieGttcXw2RHpwM8hk-IDxGKb3zL2rZpqImSr9nmkdC7S1MEZDtdAsMtCwFQIQQgcBYAElQKiUeCxv7XL5kK8KWQihZEfIAnd4D6L1i+WqXUtYGFntJcDENV6h0yFkGtUdi7ZBMrFnWj6fhvpNu8I9Dq-93Dr1yK8UoZNlb6JCSSsVF6B0jiZfmWNKr7zqvzBR784USh+FyDEQmlTgn7xY4wJl6wdgWx2Hsb6MsThFgdhyh1PkcjSmAUEH6tMgA */
@@ -438,13 +436,13 @@ const authenticationModelMachine =
                     signingInEmail,
                     signingInPassword,
                 }) => {
-                    const isUnknownUser = user.email !== signingInEmail;
+                    const isUnknownUser = existingUser.email !== signingInEmail;
                     if (isUnknownUser === true) {
                         return true;
                     }
 
                     const isInvalidPassword =
-                        user.password !== signingInPassword;
+                        existingUser.password !== signingInPassword;
                     return isInvalidPassword === true;
                 },
             },
@@ -561,6 +559,8 @@ cases<{
 }>(
     'Authentication',
     async ({ target, events }) => {
+        db.authenticationUser.create(existingUser);
+
         const plan = authenticationModel.getPlanFromEvents(events, { target });
 
         await plan.test({
@@ -639,11 +639,11 @@ cases<{
                 },
                 {
                     type: 'Type on signing in email field',
-                    email: 'baptou@gmail.fr',
+                    email: existingUser.email,
                 },
                 {
                     type: 'Type on signing in password field',
-                    password: 'azerty',
+                    password: existingUser.password,
                 },
                 {
                     type: 'Submit signing in form',

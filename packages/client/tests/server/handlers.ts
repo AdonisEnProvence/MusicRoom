@@ -628,12 +628,18 @@ export const handlers = [
         },
         never
     >(`${SERVER_ENDPOINT}/authentication/sign-in`, (req, res, ctx) => {
-        const isUnknownUser = req.body.email !== 'baptou@gmail.fr';
-        if (isUnknownUser === true) {
+        const user = db.authenticationUser.findFirst({
+            where: {
+                email: {
+                    equals: req.body.email,
+                },
+            },
+        });
+        if (user === null) {
             return res(ctx.status(404));
         }
 
-        const isInvalidPassword = req.body.password !== 'azerty';
+        const isInvalidPassword = req.body.password !== user.password;
         if (isInvalidPassword === true) {
             return res(ctx.status(404));
         }

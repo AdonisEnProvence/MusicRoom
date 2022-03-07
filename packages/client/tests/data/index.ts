@@ -76,6 +76,12 @@ export const db = factory({
         relationsVisibilitySetting: () =>
             UserSettingVisibility.enum.PUBLIC as UserSettingVisibility,
     },
+
+    authenticationUser: {
+        uuid: primaryKey(() => datatype.uuid()),
+        email: () => internet.email(),
+        password: () => internet.password(),
+    },
 });
 
 export function generateTrackMetadata(
@@ -346,6 +352,15 @@ export function generateLocationObject(
         },
 
         ...overrides,
+    };
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export function generateAuthenticationUser() {
+    return {
+        uuid: datatype.uuid(),
+        email: internet.email(),
+        password: internet.password(),
     };
 }
 

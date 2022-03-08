@@ -21,7 +21,7 @@ interface TestingContext {
 const existingUser = generateAuthenticationUser();
 
 const authenticationModelMachine =
-    /** @xstate-layout N4IgpgJg5mDOIC5QEECuAXAFmAduglgMYCGBA9jgAQC2ZEYANgHQCSO+BxD+AXqfhQDEAWWIBrMJVSwwAJ0rEM2PEVKQFOCJVm5684gAcD3EuRyJQBsrA4DzSEAA9EAZgCsATiYBGAOy+XADYAJhcAFmCwgAZAqN8AGhAAT0QAWl8fDw8ADm9ctzdfDxCPMIBfMsS0LFwCUzsaOkZWdk5uPjMRcUlpOSkcRRqVU3ViTW1dPsNjVTMLECsbOYdnBFTvYK9stxcPfzco7Oywo8DElIRgtzCmaPCXbJcnk+Ds4IqqpVrZhtp6ZgASpNZPgcFBKDYoOwwRDCDpcEwAGL4BjcGFwyDfLiwJEotHggBm+EYEBxyNRoPBYGoxBRggAyqgAEbUDgQ-BQymUUGUAlkWTUeaLWwUearDYZQJhaI7QJZQJPQIJZKIbwKyVhNzZXxRHZhKW+cqVEDVZR1fgURr-JhAzRyLmQ6Hg2AYhHk-GUDH0FTY3EUmFEklkvFc6m0hiCAAqSQMkktjq5PLDKN5xIYECF1hF9lAq2CCtu2TlxyLeVKURc51VHjcwSYO0icsi3iiGyNnyG5rMVuatr0Do5Tth8Jwfo9XqxDGD-sJadJY65BmIsFgAHd+RAGczWeh2ZyYTy+QLM0s7GLVcE663ihtgq2XN5a5WVZdXoEmKVpVE74FPC53saprfPUlp-L2wIDvuzquqO7pchOPpTguAZztOHpLiu66yJu0axpQ8aDomVAYWuG6piSJ7ZuelxSkw37ftkpRuLESq+GcL5XOEPhRKU3gttsORKh8JpfMMFpUGBgIQTCCYyTByHgghbRoVygbprAggQBQYBMLA6BqEwQFid2kk2tJzqEXJI4KZ6OjespNlqaSlHLLmiBvFETChL4eTfpeBzBMqFzeB4FZMLsBQ8WEGy5GqwlGV2vxNFJdogjJlnQdZcHonZk4qShQZdBIe5DjyOgAI6oHAu4EuGLlnisiBsTckRsaFYQ6p+7HBZenkeH4mr+NquqtvFomJaByVmalkFDi61l9vaMlyAAbn0ciyPyW4smysngoe-KCg4wquU4rith+WShaEWrbC2bhVgghTeB+ngHN40RvL4bhjZ2PyTdai1pRZUHDmAuCadpun6egOkJf9ElTUDs0OjB9Wio1CDXeFupHJ4RyGg9HG6kwgSPlKjHPJENYVMaOBNPADjwyBiPWmwthcLw4nozmZ0INFTBsUcmxsW4fhXGEj1eIc2QMWELitgaBS-WaCM9il-YwpgZDUJI83g7zJ0NW5CAthsTC5McgRyrEl7uI9qS-oLsVxJspQ1gqKvAeJ6vTZrINzfJ2WKbliH5bOQY2cmzAsBADBgDz1GhC4XkVpE+ZShLaqPeT2Sk5FPG9b+H1e8ZSWA+ZJWo1lIY5ZiYeOahUc0iiLQrZzEBMAAoi3DDcrAlDUgY6AXJYWanasYQ5HRrZxJ10S6jWOeGtLHguAEHihIc-4AR2qss77yPpaD+turXIf1w5wfkepzfhm3Hfd73-fcjg7fcBmx3j8bfNT243H+HcNFIs1tJYvjVLLbirx-D9UCI8EIpcJqs3AjNY+gca4zlspffAvpr5OXDoPXuD8P6J0xh1F6LZAHXDyNbKUOdYgZD4neB8+Y4gtkCIgtWpkj4B2rgbGySkcFITwU3a+0cmAADUO6kJNqEF6+YghvH-B9GIOcp5eFAR9IoMRfwcMAuNLhSNK57TBmfTBgjcHnxvvOMRvcZF8xbCnKUMogjykVEFVU0UbhKieK2K4uoFbthEn9A+3DjEZVMbBKxFjhFWPwTZEiWFO6x3jvYvMwQXqMQ2GqAI+pvpvEepePwr0gFxDFmvPRe9vYmSMag3hVl+HXxiQQ+J19EkbmIfgTuAAFZcpFsIvyHiPNJiATgvSiK2fUPiHxKm6ogUItEdhaM8GWMmQTmY+zCXUquDSzHjlDlfOJoirHtOwp0z+Y9TwYxNoNGeH1rYBBmWxQpmwXrXBGrsBWZNDScNCbU-2OzMqNOiQcoRLTjmYNOZ3KRJCv5XN5nmEKr01TMV2HkQKSpCkfTzsUfMRR5b4u8L8zZ-ylr1KBXs+CoLLGYNaScvpSSRlYzzteMmvVvAPifIUmIKc9h+DiNKGsexiU1Irtskxp8onmOpbE2lqEmWGjoiFNld4OWPlCDncIL04GRGuJ4L8JwRXlxQQCiVQcQXYJpfHLQ+CmWbzzoTY4+p2pTzAcFWWecHz9SAVKBUOwjUAxNWSwFkSBEysZpcqimMDhKpvOyzll45mmy0R+DOfEOWF31AG5BGtg1moWsY1a61ZCbVkKwOOCc4VRpNt9esGTor7EcWTR6zFPLhH1NKIWkQizZsPuEk+8keEQiLfIDa-ImAABF8CwGMMQJIg8S38jtXxW4MRDieGttcXw2RHpwM8hk-IDxGKb3zL2rZpqImSr9nmkdC7S1MEZDtdAsMtCwFQIQQgcBYAElQKiUeCxv7XL5kK8KWQihZEfIAnd4D6L1i+WqXUtYGFntJcDENV6h0yFkGtUdi7ZBMrFnWj6fhvpNu8I9Dq-93Dr1yK8UoZNlb6JCSSsVF6B0jiZfmWNKr7zqvzBR784USh+FyDEQmlTgn7xY4wJl6wdgWx2Hsb6MsThFgdhyh1PkcjSmAUEH6tMgA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QEECuAXAFmAduglgMYCGBA9jgAQC2ZEYANgHQCSO+BxD+AXqfhQDEAWWIBrMJVSwwAJ0rEM2PEVKQFOCJVm5684gAcD3EuRyJQBsrA4DzSEAA9EAZgCsATiYBGAOy+XADYAJhcAFmCwgAZAqN8AGhAAT0QAWl8fDw8ADm9ctzdfDxCPMIBfMsS0LFwCUzsaOkZWdk5uPjMRcUlpOSkcRRqVU3ViTW1dPsNjVTMLECsbOYdnBFTvYK9stxcPfzco7Oywo8DElIRgtzCmaPCXbJcnk+Ds4IqqpVrZhtp6ZgASpNZPgcFBKDYoOwwRDCDpcEwAGL4BjcGFwyDfLiwJEotHggBm+EYEBxyNRoPBYGoxBRggAyqgAEbUDgQ-BQymUUGUAlkWTUeaLWwUearbzeFxMB5RYKBMIeGK7bIec6IbxuR5MKIPDzBXy5bJRNwhD4garKOr8CiNf5MIGaORcyHQ8GwDEI8n4ygY+gqbG4ikwokksl4rnU2kMQQAFSSBkkNpdXJ5kZRvOJDAgQusIvsoFWHm8gSYgV2cV1gVikrVCGLcqYvjCmsCbjlRzybjNFu+9Rtf2aDr0zo5rth8Jwge9vqxDDDQcJmdJU65BmIsFgAHd+RAGczWeh2ZyYTy+QKc0s7GL1Q3JWFYr4q9lH7LgrXgvq3EwTa9coFn74OzlJU5pfMM1pUAOgLAiOx5uh6k5elyM7+nOK7Bku87emuG7brIu5xgmlBJqOKZUDhW47hmJIXnm14IB4bjeKWAQqh4Ty-oE3jvu42TfmELiPsceq7O8IE9uBZi2oOMEwsmckIeh4IoW0WFciGWawIIEAUGATCwOgahMBJVpSVB9qyW6pEKROSk+jofqqXZGmkrRywFuquxSjkvGbAaeSAbWeStkwxxMfKvjFhqoTdmBpm-E00GOiCcnWfBtlIeiDmzmpGGhl0EhHmOPI6AAjqgcCHgSUZuVeKyeVk2oHOxxSBAE-hBQJX7eBW7Emi4kSvLFQzxf2iUWclsFju6tlDk6clyAAbn0ciyPye4smy8ngqe-KCg4wruU4rhRMxWRZLKvHbD1bi1oUZ2eAc3jRG8gHDZaPxjXac0pVZcHjmAuDabp+mGegekmZ9kHjT9U3OghtWivVDGytKxpHJ4RxNrdySIMExqlhq8oqs8kSMRUIE4E08AOJDfbQ3abC2FwvAQYj+bHQgYTMUJbx7K2fhXGEtZeIcRqvAJp0RQU729hB0lJcOMKYGQ1CSDNgMc4ddUeXWp3BKFeT3oExSvu4tapCF-k9b4mylIxZay5JCXfZZRXwxl4ZZZiqG5YuoZ2WmzAsBADBgOz9E9cxxY5Bq7gmqUrydVWoWAa1JyvsBnwjVDCsTUrf3TYpmXKdlvvOZhgc0iiLSLSzEBMAAotXDDcrAlDUgY6AXJYuZHassQlu4kVvFECrRIcQXylEpb-veYQL7KbxO6NDMyZNqX-Rrnpe6XPtOSX1GaVXUa1-XTct233I4HX3DZgdfc65zsRfm1LhRHES8qs2QUj427HvzLFxXwxos6gRzvTPOsNN5F09guey+98ABkPi5P2HcW5nzvhHZGmpmJvw-iA38pQcYXCJhkNqacFTeHticFeudzLQMLh7TWdkVJILQigyuh8g5MAAGr12wbrTU3UFR7E2BKE0ZxcZ1iNCWW2VxGKeEOGEXwdDIEMLdttAGO94FsOQbvI+y5uEt0EZzfwPgTb5HjibCI2QgoPGYhjKWzVCFiWzh9dRMNNFpW0YhAxeiOEGNQXZCieEG4hzDqY1Y2xvz4weO4CUEoYgkLxsWGeS8iw5GuDkZsaj5YaI3kwmyLDD4BLQcEw+oSdyYPwA3AACuuSi+Er6d27lExAJo8EgICJLB42x3ybBntEJsgy2q5DyWZLxhT3bFJ0dOMuB8glcIMVU-CNT7690vEjIRgkWIVl6RjAZfhbjFmbN00orYuziTivQqZBcZnpRKf4hZ7DynLPgashu-CsEPy2RzVYhQpThEOMECUjE-AuHfCcZiC9v6vTvG9a5ED8l3PmkUx5czkIvP0fAipKzGlhPaQgLisSdSPCYok5J744hfjJRIseA0JQTJduve5Wjt5+N0diwJuLMJEt2W2MlCTKWtnsYcUKpRjR6ifAUK57i5aTNdtM9lxdnmIJxWHLQqCiXFmuBY64sqYgmx2EFI4WwBKRCEqC7YzKvqsrRQ83xrDuU002XRZGkpSXxIpUkgWQVQhfkVC4Hq+NIgfyOLateisHUqtmpopaK1ZBrVkKwUO4dfnut1oBWJz0-CAR6kEbi0iTQz3CPPFR-5IjZECJGqB3it6KUYRCBN8hVr8iYAAEXwLAYwxAkgdyTfyIlRYYUxEOJ4Ks1wDS1n-DPa1cczV6jlLWgpbKfEcvzjGltA7k1MEZJtdA4MtCwFQIQQgcBYAElQKiHuCxH7bM5oxLwuw9jnQ1P4B4QVZQzx2DENJBQ5RxBXai36jqN1NpkLIZarbB2yCJUxHN3N9gFq4rWFRX53CCUEpKYoeoF7AaVWuhtE4iXrCGUULixMjgkwVGh1GQRfwaj8J0gjjBSNx1CjsPYgExYnGrRbSUfF-D40lAEahxxVEUyAA */
     createMachine(
         {
             context: {
@@ -665,6 +665,42 @@ cases<{
                 },
             ],
         },
+        'Displays an error when the filled email is empty': {
+            target: {
+                'Rendering signing screen': {
+                    'Filling credentials': {
+                        'Filling fields': {
+                            'Filling email': {
+                                Invalid: 'Email is empty',
+                            },
+                            'Filling password': 'Valid',
+                        },
+                    },
+                    'Rendering server error': 'Idle',
+                },
+            },
+            /**
+             * Type on signing in password field must be before Type on signing in email field,
+             * otherwise the machine is not able to handle Type on signing in email field event.
+             * I do not understand why.
+             */
+            events: [
+                {
+                    type: 'Make user unauthenticated and render application',
+                },
+                {
+                    type: 'Type on signing in password field',
+                    password: existingUser.password,
+                },
+                {
+                    type: 'Type on signing in email field',
+                    email: '',
+                },
+                {
+                    type: 'Submit signing in form',
+                },
+            ],
+        },
         'Displays an error when the filled email is invalid': {
             target: {
                 'Rendering signing screen': {
@@ -689,7 +725,38 @@ cases<{
                 },
                 {
                     type: 'Type on signing in password field',
-                    password: 'azerty',
+                    password: existingUser.password,
+                },
+                {
+                    type: 'Submit signing in form',
+                },
+            ],
+        },
+        'Displays an error when the filled password is empty': {
+            target: {
+                'Rendering signing screen': {
+                    'Filling credentials': {
+                        'Filling fields': {
+                            'Filling email': 'Valid',
+                            'Filling password': {
+                                Invalid: 'Password is empty',
+                            },
+                        },
+                    },
+                    'Rendering server error': 'Idle',
+                },
+            },
+            events: [
+                {
+                    type: 'Make user unauthenticated and render application',
+                },
+                {
+                    type: 'Type on signing in email field',
+                    email: existingUser.email,
+                },
+                {
+                    type: 'Type on signing in password field',
+                    password: '',
                 },
                 {
                     type: 'Submit signing in form',

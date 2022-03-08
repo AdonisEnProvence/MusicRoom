@@ -1,5 +1,6 @@
-import { internet } from 'faker';
+import { internet, random } from 'faker';
 import Toast from 'react-native-toast-message';
+import { db } from '../../../tests/data';
 import {
     fireEvent,
     renderApp,
@@ -7,6 +8,7 @@ import {
     Queries,
     within,
     generateStrongPassword,
+    generateWeakPassword,
 } from '../../../tests/tests-utils';
 
 test('It sign up selected user credentials', async () => {
@@ -68,5 +70,68 @@ test('It sign up selected user credentials', async () => {
             type: 'success',
             text1: 'Signed up successfully',
         });
+    });
+});
+
+test('It should fail to sign up selected user credentials', async () => {
+    const email = internet.email().replace('@', random.word());
+    const password = generateWeakPassword();
+
+    const screen = await renderApp();
+
+    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+
+    const goToSignUpFormScreenButton = screen.getByTestId(
+        'go-to-sign-up-button',
+    );
+    expect(goToSignUpFormScreenButton).toBeTruthy();
+
+    fireEvent.press(goToSignUpFormScreenButton);
+
+    const signUpFormScreenContainer = await waitFor(() => {
+        const tmp = screen.getByTestId('sign-up-form-screen-container');
+        expect(tmp).toBeTruthy();
+        return tmp;
+    });
+
+    const withinSignUpFormScreenContainer = (): Queries =>
+        within(signUpFormScreenContainer);
+
+    //don't fill username
+
+    //fill email
+    const emailTextField = withinSignUpFormScreenContainer().getByTestId(
+        'sign-up-email-text-field',
+    );
+    expect(emailTextField).toBeTruthy();
+    fireEvent.changeText(emailTextField, email);
+
+    //fill password
+    const passwordTextField = withinSignUpFormScreenContainer().getByTestId(
+        'sign-up-password-text-field',
+    );
+    expect(passwordTextField).toBeTruthy();
+    fireEvent.changeText(passwordTextField, password);
+
+    //submit
+    const submitSignUpFormButton =
+        withinSignUpFormScreenContainer().getByTestId(
+            'submit-sign-up-form-button',
+        );
+    expect(submitSignUpFormButton).toBeTruthy();
+    fireEvent.press(submitSignUpFormButton);
+
+    await waitFor(() => {
+        expect(
+            withinSignUpFormScreenContainer().getByText(
+                /.*email.*not.*valid.*/i,
+            ),
+        ).toBeTruthy();
+        expect(
+            withinSignUpFormScreenContainer().getByText(/.*password.*weak.*/i),
+        ).toBeTruthy();
+        expect(
+            withinSignUpFormScreenContainer().getByText(/.*field.*required.*/i),
+        ).toBeTruthy();
     });
 });

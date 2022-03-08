@@ -100,7 +100,7 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
     const sx = useSx();
     // const { appService } = useAppContext();
 
-    const [state, send] = useMachine(signUpMachine, {
+    const [_state, send] = useMachine(signUpMachine, {
         services: {
             'Send sign up to server': (_context, event) => async (sendBack) => {
                 assertEventType(event, 'Validated sign up form');
@@ -345,12 +345,14 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                         },
                                         validate: {
                                             isValidEmail: (email) => {
+                                                const emailIsValid = z
+                                                    .string()
+                                                    .max(255)
+                                                    .email()
+                                                    .check(email);
                                                 return (
-                                                    z
-                                                        .string()
-                                                        .email()
-                                                        .check(email) ||
-                                                    'Not a well formed email address'
+                                                    emailIsValid ||
+                                                    'Email is not valid'
                                                 );
                                             },
                                         },

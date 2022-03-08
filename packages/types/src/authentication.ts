@@ -64,3 +64,10 @@ export const SignUpRequestBody = z.object({
 });
 
 export type SignUpRequestBody = z.infer<typeof SignUpRequestBody>;
+
+// Inspired by https://stackoverflow.com/questions/5142103/regex-to-validate-password-strength
+// Password has to have 2 caps letter one special char 2 digits and 3 lowercase char and minimal length has to be 8
+// Valid password examples: ':net66LTW', 'RN4k`d8he9k.'
+// Invalid password examples: 'bestpasswor@1', 'abcqwerty', 'ABCWE'
+export const passwordStrengthRegex =
+    /^(?=.*[A-Z].*[A-Z])(?=.*[!#$:@+%&'*+/\\=?^_`{|}~-])(?=.*[0-9].*[0-9])(?=.*[a-z].*[a-z].*[a-z]).{8,}$/;

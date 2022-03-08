@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import { UserSummary } from '.';
+import { UserSummary } from './search-users';
 
 export const AuthenticationModeValues = z.enum(['web', 'api']);
 export type AuthenticationModeValues = z.infer<typeof AuthenticationModeValues>;

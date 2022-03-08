@@ -144,15 +144,23 @@ const authenticationModelMachine =
 
                                                                     await waitFor(
                                                                         () => {
-                                                                            expect(
+                                                                            const emailIsEmptyAlert =
                                                                                 within(
                                                                                     screen.getByTestId(
                                                                                         'signing-in-screen-email-field',
                                                                                     ),
-                                                                                ).getByText(
-                                                                                    /field.*required/i,
-                                                                                ),
+                                                                                ).getByRole(
+                                                                                    'alert',
+                                                                                );
+                                                                            expect(
+                                                                                emailIsEmptyAlert,
                                                                             ).toBeTruthy();
+
+                                                                            expect(
+                                                                                emailIsEmptyAlert,
+                                                                            ).toHaveTextContent(
+                                                                                'This field is required',
+                                                                            );
                                                                         },
                                                                     );
                                                                 },
@@ -171,15 +179,23 @@ const authenticationModelMachine =
 
                                                                     await waitFor(
                                                                         () => {
-                                                                            expect(
+                                                                            const emailIsInvalidAlert =
                                                                                 within(
                                                                                     screen.getByTestId(
                                                                                         'signing-in-screen-email-field',
                                                                                     ),
-                                                                                ).getByText(
-                                                                                    /not.*well.*formed.*email.*address/i,
-                                                                                ),
+                                                                                ).getByRole(
+                                                                                    'alert',
+                                                                                );
+                                                                            expect(
+                                                                                emailIsInvalidAlert,
                                                                             ).toBeTruthy();
+
+                                                                            expect(
+                                                                                emailIsInvalidAlert,
+                                                                            ).toHaveTextContent(
+                                                                                'Not a well formed email address',
+                                                                            );
                                                                         },
                                                                     );
                                                                 },
@@ -285,15 +301,23 @@ const authenticationModelMachine =
 
                                                                     await waitFor(
                                                                         () => {
-                                                                            expect(
+                                                                            const passwordIsEmptyAlert =
                                                                                 within(
                                                                                     screen.getByTestId(
                                                                                         'signing-in-screen-password-field',
                                                                                     ),
-                                                                                ).getByText(
-                                                                                    /field.*required/i,
-                                                                                ),
+                                                                                ).getByRole(
+                                                                                    'alert',
+                                                                                );
+                                                                            expect(
+                                                                                passwordIsEmptyAlert,
                                                                             ).toBeTruthy();
+
+                                                                            expect(
+                                                                                passwordIsEmptyAlert,
+                                                                            ).toHaveTextContent(
+                                                                                'This field is required',
+                                                                            );
                                                                         },
                                                                     );
                                                                 },
@@ -399,13 +423,20 @@ const authenticationModelMachine =
                                             );
 
                                             await waitFor(() => {
+                                                const serverErrorAlert = within(
+                                                    screen.getByTestId(
+                                                        'signing-in-screen-server-error',
+                                                    ),
+                                                ).getByRole('alert');
                                                 expect(
-                                                    within(
-                                                        screen.getByTestId(
-                                                            'signing-in-screen-server-error',
-                                                        ),
-                                                    ).getByRole('alert'),
+                                                    serverErrorAlert,
                                                 ).toBeTruthy();
+
+                                                expect(
+                                                    serverErrorAlert,
+                                                ).toHaveTextContent(
+                                                    'Credentials are invalid',
+                                                );
                                             });
                                         },
                                     },

@@ -22,9 +22,13 @@ import {
     MpeSearchMyRoomsResponseBody,
     MtvRoomSearchRequestBody,
     MtvRoomSearchResponse,
+    passwordStrengthRegex,
     PlaceAutocompleteResponse,
     SearchUsersRequestBody,
     SearchUsersResponseBody,
+    SignUpFailureReasons,
+    SignUpRequestBody,
+    SignUpResponseBody,
     TrackMetadata,
     UnfollowUserRequestBody,
     UnfollowUserResponseBody,
@@ -37,10 +41,10 @@ import {
 } from '@musicroom/types';
 import { datatype } from 'faker';
 import { rest } from 'msw';
+import * as z from 'zod';
 import { SERVER_ENDPOINT } from '../../constants/Endpoints';
 import { SearchTracksAPIRawResponse } from '../../services/search-tracks';
 import { db } from '../data';
-import { testGetFakeUserID } from '../tests-utils';
 
 export const handlers = [
     rest.get<undefined, { query: string }, SearchTracksAPIRawResponse>(
@@ -591,6 +595,78 @@ export const handlers = [
             }),
         );
     }),
+
+    rest.post<SignUpRequestBody, Record<string, never>, SignUpResponseBody>(
+        `${SERVER_ENDPOINT}/authentication/sign-up`,
+        (req, res, ctx) => {
+            const signUpFailureReasonCollection: SignUpFailureReasons[] = [];
+            const { authenticationMode, email, password, userNickname } =
+                req.body;
+
+            if (!z.string().max(255).email().check(email)) {
+                signUpFailureReasonCollection.push('INVALID_EMAIL');
+            }
+
+            const userWithSameNickname = db.authUser.findFirst({
+                where: {
+                    nickname: {
+                        equals: userNickname,
+                    },
+                },
+            });
+            if (userWithSameNickname) {
+                signUpFailureReasonCollection.push('UNAVAILABLE_NICKNAME');
+            }
+
+            const userWithSameEmail = db.authUser.findFirst({
+                where: {
+                    email: {
+                        equals: email,
+                    },
+                },
+            });
+            if (userWithSameEmail) {
+                signUpFailureReasonCollection.push('UNAVAILABLE_EMAIL');
+            }
+
+            if (!passwordStrengthRegex.test(password)) {
+                signUpFailureReasonCollection.push('WEAK_PASSWORD');
+            }
+
+            if (signUpFailureReasonCollection.length > 0) {
+                return res(
+                    ctx.status(400),
+                    ctx.json({
+                        signUpFailureReasonCollection,
+                        status: 'FAILURE',
+                    }),
+                );
+            }
+
+            const userID = datatype.uuid();
+            db.authUser.create({
+                userID,
+                email,
+                password,
+                nickname: userNickname,
+            });
+
+            const isApiTokenAuthentication = authenticationMode === 'api';
+            return res(
+                ctx.status(200),
+                ctx.json({
+                    status: 'SUCCESS',
+                    userSummary: {
+                        nickname: userNickname,
+                        userID,
+                    },
+                    token: isApiTokenAuthentication
+                        ? datatype.uuid()
+                        : undefined,
+                }),
+            );
+        },
+    ),
 
     rest.get(
         'https://avatars.dicebear.com/api/big-smile/:seed.svg',

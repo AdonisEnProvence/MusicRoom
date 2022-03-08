@@ -31,6 +31,24 @@ const queryClient = new QueryClient({
     },
 });
 
+const TEST_STRONG_PASSWORD: string[] = [':net66LTW', 'RN4k`d8he9k.'];
+export function generateStrongPassword(): string {
+    return TEST_STRONG_PASSWORD[
+        datatype.number({
+            max: TEST_STRONG_PASSWORD.length - 1,
+        })
+    ];
+}
+
+const TEST_WEAK_PASSWORD: string[] = ['bestpasswor@1', 'abcqwerty', 'ABCWE'];
+export function generateWeakPassword(): string {
+    return TEST_WEAK_PASSWORD[
+        datatype.number({
+            max: TEST_WEAK_PASSWORD.length - 1,
+        })
+    ];
+}
+
 const AllTheProviders: React.FC = ({ children }) => {
     const { theme } = useTheme();
 

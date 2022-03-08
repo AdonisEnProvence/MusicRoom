@@ -6,6 +6,7 @@ import * as z from 'zod';
 import { createMachine } from 'xstate';
 import { useMachine } from '@xstate/react';
 import Toast from 'react-native-toast-message';
+import { passwordStrengthRegex } from '@musicroom/types';
 import { assertEventType } from '../../machines/utils';
 import { AppScreen, TextField } from '../../components/kit';
 import { sendSignUp, SignUpError } from '../../services/AuthenticationService';
@@ -16,10 +17,6 @@ export interface AuthenticationSignUpFormFormFieldValues {
     password: string;
     email: string;
 }
-
-const passwordStrengthRegex = new RegExp(
-    /^(?=.*[A-Z].*[A-Z])(?=.*[!#$:@+%&'*+/\\=?^_`{|}~-])(?=.*[0-9].*[0-9])(?=.*[a-z].*[a-z].*[a-z]).{8,}$/,
-);
 
 type UpdateNicknameMachineEvent =
     | {
@@ -216,6 +213,7 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
         password,
         userNickname,
     }: AuthenticationSignUpFormFormFieldValues) {
+        console.log('submiting ');
         send({
             type: 'Validated sign up form',
             body: {
@@ -227,7 +225,7 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
     }
 
     return (
-        <AppScreen>
+        <AppScreen testID="sign-up-form-screen-container">
             <SafeAreaView sx={{ flex: 1 }}>
                 <Text
                     sx={{
@@ -285,7 +283,6 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                 <Controller
                                     control={control}
                                     name="userNickname"
-                                    defaultValue="prastoin"
                                     rules={{
                                         required: {
                                             value: true,
@@ -297,10 +294,11 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     }) => {
                                         return (
                                             <TextField
+                                                testID="sign-up-nickname-text-field"
                                                 value={value}
                                                 onBlur={onBlur}
                                                 onChangeText={onChange}
-                                                placeholder="Your Nickname"
+                                                placeholder="Your nickname"
                                                 placeholderTextColor="#fff"
                                                 sx={{
                                                     borderWidth: 1,
@@ -340,7 +338,6 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                 <Controller
                                     control={control}
                                     name="email"
-                                    defaultValue="devessier@devessier.fr"
                                     rules={{
                                         required: {
                                             value: true,
@@ -363,10 +360,13 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     }) => {
                                         return (
                                             <TextField
+                                                testID="sign-up-email-text-field"
                                                 value={value}
                                                 onBlur={onBlur}
+                                                keyboardType={'email-address'}
                                                 onChangeText={onChange}
-                                                placeholder="Email"
+                                                autoCompleteType={'email'}
+                                                placeholder="Your email"
                                                 placeholderTextColor="#fff"
                                                 sx={{
                                                     borderWidth: 1,
@@ -406,7 +406,6 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                 <Controller
                                     control={control}
                                     name="password"
-                                    defaultValue="devessierBgDu13"
                                     rules={{
                                         required: {
                                             value: true,
@@ -427,10 +426,13 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     }) => {
                                         return (
                                             <TextField
+                                                testID="sign-up-password-text-field"
+                                                autoCompleteType={'password'}
+                                                secureTextEntry={true}
                                                 value={value}
                                                 onBlur={onBlur}
                                                 onChangeText={onChange}
-                                                placeholder="Password"
+                                                placeholder="Your password"
                                                 placeholderTextColor="#fff"
                                                 sx={{
                                                     borderWidth: 1,
@@ -456,6 +458,7 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
 
                             <TouchableOpacity
                                 onPress={handleSubmit(handleSigningInSubmit)}
+                                testID="submit-sign-up-form-button"
                                 style={sx({
                                     paddingX: 's',
                                     paddingY: 'm',

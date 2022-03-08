@@ -7,7 +7,7 @@ import { assertEventType } from '../machines/utils';
 import { db, generateAuthenticationUser } from '../tests/data';
 import {
     render,
-    renderAuthenticatedApp,
+    renderApp,
     renderUnauthenticatedApp,
     waitFor,
     within,
@@ -573,7 +573,7 @@ const authenticationModel = createModel<TestingContext>(
     'Make user authenticated and render application': async (context) => {
         localStorage.setItem('token', 'token');
 
-        context.screen = await renderAuthenticatedApp();
+        context.screen = await renderApp();
     },
 
     'Submit signing in form': async ({ screen }) => {

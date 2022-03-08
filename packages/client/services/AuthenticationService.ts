@@ -1,6 +1,10 @@
 import {
     ApiTokensSuccessfullSignUpResponseBody,
     SignUpFailureReasons,
+    SignInRequestBody,
+    SignInResponseBody,
+    SignInSuccessfulApiTokensResponseBody,
+    SignInSuccessfulWebAuthResponseBody,
     SignUpRequestBody,
     SignUpResponseBody,
     WebAuthSuccessfullSignUpResponseBody,
@@ -25,23 +29,57 @@ interface SendSignInArgs {
     password: string;
 }
 
-export async function sendSignIn({
+export function sendSignIn({
     email,
     password,
-}: SendSignInArgs): Promise<void> {
-    const url = urlcat(SERVER_ENDPOINT, '/authentication/sign-in');
+}: SendSignInArgs): Promise<SignInResponseBody> {
+    if (Platform.OS === 'web') {
+        return sendSignInWeb({ email, password });
+    }
 
-    await redaxios.post(
-        url,
-        {
-            email,
-            password,
-            authenticationMode: 'web-auth',
-        },
-        {
-            withCredentials: true,
-        },
+    return sendSignInApi({ email, password });
+}
+
+async function sendSignInWeb({
+    email,
+    password,
+}: SendSignInArgs): Promise<SignInSuccessfulWebAuthResponseBody> {
+    const url = urlcat(SERVER_ENDPOINT, '/authentication/sign-in');
+    const body: SignInRequestBody = {
+        email,
+        password,
+        authenticationMode: 'web',
+    };
+
+    const response = await redaxios.post(url, body, {
+        withCredentials: true,
+    });
+    const parsedResponse = SignInSuccessfulWebAuthResponseBody.parse(
+        response.data,
     );
+
+    return parsedResponse;
+}
+
+async function sendSignInApi({
+    email,
+    password,
+}: SendSignInArgs): Promise<SignInSuccessfulApiTokensResponseBody> {
+    const url = urlcat(SERVER_ENDPOINT, '/authentication/sign-in');
+    const body: SignInRequestBody = {
+        email,
+        password,
+        authenticationMode: 'api',
+    };
+
+    const response = await redaxios.post(url, body);
+    const parsedResponse = SignInSuccessfulApiTokensResponseBody.parse(
+        response.data,
+    );
+
+    console.log('store token', parsedResponse.token);
+
+    return parsedResponse;
 }
 
 export class SignUpError extends Error {

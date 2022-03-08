@@ -29,6 +29,8 @@ import {
     SignUpFailureReasons,
     SignUpRequestBody,
     SignUpResponseBody,
+    SignInRequestBody,
+    SignInResponseBody,
     TrackMetadata,
     UnfollowUserRequestBody,
     UnfollowUserResponseBody,
@@ -697,31 +699,38 @@ export const handlers = [
         },
     ),
 
-    rest.post<
-        {
-            email: string;
-            password: string;
-        },
-        never
-    >(`${SERVER_ENDPOINT}/authentication/sign-in`, (req, res, ctx) => {
-        const user = db.authenticationUser.findFirst({
-            where: {
-                email: {
-                    equals: req.body.email,
+    rest.post<SignInRequestBody, never, SignInResponseBody>(
+        `${SERVER_ENDPOINT}/authentication/sign-in`,
+        (req, res, ctx) => {
+            const user = db.authenticationUser.findFirst({
+                where: {
+                    email: {
+                        equals: req.body.email,
+                    },
                 },
-            },
-        });
-        if (user === null) {
-            return res(ctx.status(404));
-        }
+            });
+            if (user === null) {
+                return res(ctx.status(404));
+            }
 
-        const isInvalidPassword = req.body.password !== user.password;
-        if (isInvalidPassword === true) {
-            return res(ctx.status(404));
-        }
+            const isInvalidPassword = req.body.password !== user.password;
+            if (isInvalidPassword === true) {
+                return res(ctx.status(404));
+            }
 
-        localStorage.setItem('token', 'token');
+            localStorage.setItem('token', 'token');
 
-        return res(ctx.status(200));
-    }),
+            return res(
+                ctx.status(200),
+                ctx.json({
+                    status: 'SUCCESS',
+                    token: '',
+                    userSummary: {
+                        nickname: '',
+                        userID: user.uuid,
+                    },
+                }),
+            );
+        },
+    ),
 ];

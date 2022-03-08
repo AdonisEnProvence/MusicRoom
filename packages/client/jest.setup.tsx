@@ -330,6 +330,7 @@ beforeEach(() => {
     serverSocket.on('GET_HAS_ACKNOWLEDGED_CONNECTION', (onAcknowledged) => {
         onAcknowledged();
     });
+    localStorage.clear();
 });
 
 // jest.spyOn(console, 'warn').mockImplementation();

@@ -61,6 +61,7 @@ import UserFollowersSearchScreen from '../screens/UserProfile/UserFollowersSearc
 import UserFollowingSearchScreen from '../screens/UserProfile/UserFollowingSearch';
 import MyFollowersSearchScreen from '../screens/MyProfile/MyFollowers';
 import MyFollowingSearchScreen from '../screens/MyProfile/MyFollowing';
+import SigningInScreen from '../screens/SigningInScreen';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
@@ -78,11 +79,17 @@ const Navigation: React.FC<ColorModeProps> = ({
     toggleColorScheme,
     colorScheme,
 }) => {
+    const { applicationState } = useAppContext();
+
     useEffect(() => {
         return () => {
             isReadyRef.current = false;
         };
     }, []);
+
+    if (applicationState === 'SHOW_APPLICATION_LOADER') {
+        return <SplashScreen />;
+    }
 
     return (
         <NavigationContainer
@@ -133,102 +140,144 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
     const style = navigationStyle(colorScheme);
     const { applicationState } = useAppContext();
 
-    if (applicationState === 'SHOW_APPLICATION_LOADER') {
-        return <SplashScreen />;
-    }
-
     return (
         <RootStack.Navigator
-            initialRouteName="Main"
+            initialRouteName={
+                applicationState === 'UNAUTHENTICATED' ? 'SigningIn' : 'Main'
+            }
             mode="modal"
             //Why animationEnabled ?
             //See https://stackoverflow.com/questions/63171131/when-rendering-iframes-with-html-android-crashes-while-navigating-back-to-s
             screenOptions={{ ...style, animationEnabled: false }}
         >
-            <RootStack.Screen
-                name="Main"
-                component={MainNavigator}
-                options={{ headerShown: false }}
-            />
+            {applicationState === 'UNAUTHENTICATED' ? (
+                <>
+                    <RootStack.Screen
+                        name="SigningIn"
+                        component={SigningInScreen}
+                        options={{ headerShown: false }}
+                    />
+                </>
+            ) : (
+                <>
+                    <RootStack.Screen
+                        name="Main"
+                        component={MainNavigator}
+                        options={{ headerShown: false }}
+                    />
 
-            <RootStack.Screen
-                name="SuggestTrack"
-                component={SuggestTrackNavigator}
-                options={{ headerShown: false, detachPreviousScreen: false }}
-            />
+                    <RootStack.Screen
+                        name="SuggestTrack"
+                        component={SuggestTrackNavigator}
+                        options={{
+                            headerShown: false,
+                            detachPreviousScreen: false,
+                        }}
+                    />
 
-            <RootStack.Screen
-                name="MusicTrackVoteUsersList"
-                component={MusicTrackVoteUsersListNavigator}
-                //Should stay
-                options={{ headerShown: false, detachPreviousScreen: false }}
-            />
+                    <RootStack.Screen
+                        name="MusicTrackVoteUsersList"
+                        component={MusicTrackVoteUsersListNavigator}
+                        //Should stay
+                        options={{
+                            headerShown: false,
+                            detachPreviousScreen: false,
+                        }}
+                    />
 
-            <RootStack.Screen
-                name="MusicTrackVoteCreationForm"
-                component={MusicTrackVoteCreationFormNavigator}
-                options={{ headerShown: false, detachPreviousScreen: false }}
-            />
+                    <RootStack.Screen
+                        name="MusicTrackVoteCreationForm"
+                        component={MusicTrackVoteCreationFormNavigator}
+                        options={{
+                            headerShown: false,
+                            detachPreviousScreen: false,
+                        }}
+                    />
 
-            <RootStack.Screen
-                name="MusicTrackVoteChat"
-                component={MusicTrackVoteChatNavigator}
-                options={{ headerShown: false, detachPreviousScreen: false }}
-            />
+                    <RootStack.Screen
+                        name="MusicTrackVoteChat"
+                        component={MusicTrackVoteChatNavigator}
+                        options={{
+                            headerShown: false,
+                            detachPreviousScreen: false,
+                        }}
+                    />
 
-            <RootStack.Screen
-                name="MusicTrackVoteConstraintsDetails"
-                component={MusicTrackVoteConstraintsDetailsNavigator}
-                options={{ headerShown: false, detachPreviousScreen: false }}
-            />
+                    <RootStack.Screen
+                        name="MusicTrackVoteConstraintsDetails"
+                        component={MusicTrackVoteConstraintsDetailsNavigator}
+                        options={{
+                            headerShown: false,
+                            detachPreviousScreen: false,
+                        }}
+                    />
 
-            <RootStack.Screen
-                name="MusicTrackVoteUsersSearch"
-                component={MusicTrackVoteUsersSearchNavigator}
-                options={{ headerShown: false, detachPreviousScreen: false }}
-            />
+                    <RootStack.Screen
+                        name="MusicTrackVoteUsersSearch"
+                        component={MusicTrackVoteUsersSearchNavigator}
+                        options={{
+                            headerShown: false,
+                            detachPreviousScreen: false,
+                        }}
+                    />
 
-            <RootStack.Screen
-                name="MusicPlaylistEditorUsersSearch"
-                component={MusicPlaylistEditorUsersSearchNavigator}
-                options={{ headerShown: false, detachPreviousScreen: false }}
-            />
+                    <RootStack.Screen
+                        name="MusicPlaylistEditorUsersSearch"
+                        component={MusicPlaylistEditorUsersSearchNavigator}
+                        options={{
+                            headerShown: false,
+                            detachPreviousScreen: false,
+                        }}
+                    />
 
-            <RootStack.Screen
-                name="MusicPlaylistEditorRoomsSearch"
-                component={MusicPlaylistEditorRoomsSearchNavigator}
-                options={{ headerShown: false, detachPreviousScreen: false }}
-            />
+                    <RootStack.Screen
+                        name="MusicPlaylistEditorRoomsSearch"
+                        component={MusicPlaylistEditorRoomsSearchNavigator}
+                        options={{
+                            headerShown: false,
+                            detachPreviousScreen: false,
+                        }}
+                    />
 
-            <RootStack.Screen
-                name="UserProfile"
-                options={{
-                    headerShown: false,
-                    detachPreviousScreen: false,
-                }}
-                component={UserProfileNavigator}
-            />
+                    <RootStack.Screen
+                        name="UserProfile"
+                        options={{
+                            headerShown: false,
+                            detachPreviousScreen: false,
+                        }}
+                        component={UserProfileNavigator}
+                    />
 
-            <RootStack.Screen
-                name="MyProfile"
-                options={{
-                    headerShown: false,
-                    detachPreviousScreen: false,
-                }}
-                component={MyProfileNavigator}
-            />
+                    <RootStack.Screen
+                        name="MyProfile"
+                        options={{
+                            headerShown: false,
+                            detachPreviousScreen: false,
+                        }}
+                        component={MyProfileNavigator}
+                    />
 
-            <RootStack.Screen
-                name="MusicPlaylistEditorCreationForm"
-                component={MusicPlaylistEditorCreationFormNavigator}
-                options={{ headerShown: false, detachPreviousScreen: false }}
-            />
+                    <RootStack.Screen
+                        name="MusicPlaylistEditorCreationForm"
+                        component={MusicPlaylistEditorCreationFormNavigator}
+                        options={{
+                            headerShown: false,
+                            detachPreviousScreen: false,
+                        }}
+                    />
 
-            <RootStack.Screen
-                name="MusicPlaylistEditorExportToMtvCreationForm"
-                component={MusicPlaylistEditorExportToMtvCreationFormNavigator}
-                options={{ headerShown: false, detachPreviousScreen: false }}
-            />
+                    <RootStack.Screen
+                        name="MusicPlaylistEditorExportToMtvCreationForm"
+                        component={
+                            MusicPlaylistEditorExportToMtvCreationFormNavigator
+                        }
+                        options={{
+                            headerShown: false,
+                            detachPreviousScreen: false,
+                        }}
+                    />
+                </>
+            )}
         </RootStack.Navigator>
     );
 };
@@ -652,7 +701,10 @@ const MainNavigator: React.FC<ColorModeProps> = ({
     const style = navigationStyle(colorScheme);
 
     return (
-        <MainStack.Navigator screenOptions={{ ...style, headerShown: false }}>
+        <MainStack.Navigator
+            initialRouteName="Root"
+            screenOptions={{ ...style, headerShown: false }}
+        >
             <MainStack.Screen name="Root" component={BottomTabNavigator} />
 
             <MainStack.Screen

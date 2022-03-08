@@ -73,12 +73,31 @@ export function render(
     };
 }
 
+export function authenticateUser(): void {
+    localStorage.setItem('token', 'token');
+}
+
 /**
- * Renders the application <Navigation /> component.
- * It renders asynchronously the first screen.
- * This function waits for the home screen to be rendered before returning.
+ * Renders the application for a logged in user.
  */
 export async function renderApp(
+    options?: RenderOptions,
+): Promise<RenderAPI & { serverSocket: ServerSocket }> {
+    authenticateUser();
+
+    const screen = render(
+        <Navigation colorScheme="dark" toggleColorScheme={noop} />,
+        options,
+    );
+
+    await waitFor(() => {
+        expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+    });
+
+    return screen;
+}
+
+export async function renderUnauthenticatedApp(
     options?: RenderOptions,
 ): Promise<RenderAPI & { serverSocket: ServerSocket }> {
     const screen = render(
@@ -87,7 +106,9 @@ export async function renderApp(
     );
 
     await waitFor(() => {
-        expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+        expect(
+            screen.getAllByText(/welcome.*back/i).length,
+        ).toBeGreaterThanOrEqual(1);
     });
 
     return screen;

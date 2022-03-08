@@ -7,7 +7,10 @@ import {
     MusicPlayerFullScreenProps,
     useMusicPlayerToggleFullScreen,
 } from '../hooks/musicPlayerToggle';
-import { createAppMachine } from '../machines/appMachine';
+import {
+    AppMachineInterpreter,
+    createAppMachine,
+} from '../machines/appMachine';
 import {
     AppMusicPlayerMachineActorRef,
     AppMusicPlayerMachineEvent,
@@ -38,6 +41,7 @@ export interface MusicPlayerContextValue extends MusicPlayerFullScreenProps {
 }
 
 interface AppContextValue {
+    appService: AppMachineInterpreter;
     applicationState: ApplicationState;
     musicPlayerContext: {
         appMusicPlayerMachineActorRef:
@@ -120,6 +124,9 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
     );
     const appService = useInterpret(appMachine, { devTools: true });
 
+    const userIsUnauthenticated = useSelector(appService, (state) =>
+        state.hasTag('userIsUnauthenticated'),
+    );
     const hasShowApplicationLoaderTag = useSelector(appService, (state) =>
         state.hasTag('showApplicationLoader'),
     );
@@ -141,6 +148,10 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
     );
 
     const applicationState: ApplicationState = useMemo((): ApplicationState => {
+        if (userIsUnauthenticated === true) {
+            return 'UNAUTHENTICATED';
+        }
+
         const shouldShowSplashScreen =
             hasShowApplicationLoaderTag ||
             appMusicPlayerMachineActorRef === undefined ||
@@ -153,6 +164,7 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
 
         return 'AUTHENTICATED';
     }, [
+        userIsUnauthenticated,
         hasShowApplicationLoaderTag,
         appMusicPlayerMachineActorRef,
         appUserMachineActorRef,
@@ -162,6 +174,7 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
     return (
         <AppContext.Provider
             value={{
+                appService,
                 applicationState,
                 appUserMachineActorRef,
                 musicPlayerContext: {

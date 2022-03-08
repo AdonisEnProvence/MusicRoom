@@ -43,6 +43,10 @@ const socket = {
         CLIENT_TO_SERVER_EVENTS[event] = [];
     },
 
+    connect(): void {
+        return undefined;
+    },
+
     disconnect(): void {
         return undefined;
     },

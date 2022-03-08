@@ -608,4 +608,44 @@ export const handlers = [
             );
         },
     ),
+
+    rest.get<never, never>(
+        `${SERVER_ENDPOINT}/authentication/me`,
+        (_req, res, ctx) => {
+            const authenticationToken = localStorage.getItem('token');
+            if (authenticationToken === null) {
+                return res(ctx.status(403));
+            }
+
+            return res(ctx.json({ user: { uuid: 'yolo' } }));
+        },
+    ),
+
+    rest.post<
+        {
+            email: string;
+            password: string;
+        },
+        never
+    >(`${SERVER_ENDPOINT}/authentication/sign-in`, (req, res, ctx) => {
+        const user = db.authenticationUser.findFirst({
+            where: {
+                email: {
+                    equals: req.body.email,
+                },
+            },
+        });
+        if (user === null) {
+            return res(ctx.status(404));
+        }
+
+        const isInvalidPassword = req.body.password !== user.password;
+        if (isInvalidPassword === true) {
+            return res(ctx.status(404));
+        }
+
+        localStorage.setItem('token', 'token');
+
+        return res(ctx.status(200));
+    }),
 ];

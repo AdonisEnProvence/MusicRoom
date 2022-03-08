@@ -9,9 +9,12 @@ import {
     NavigatorScreenParams,
     RouteProp,
 } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { StackNavigationProp, StackScreenProps } from '@react-navigation/stack';
 
-export type ApplicationState = 'SHOW_APPLICATION_LOADER' | 'AUTHENTICATED';
+export type ApplicationState =
+    | 'SHOW_APPLICATION_LOADER'
+    | 'AUTHENTICATED'
+    | 'UNAUTHENTICATED';
 
 export type NavigateFromRefParams = RootStackParamList;
 
@@ -67,6 +70,8 @@ export type RootStackParamList = {
 
     MusicPlaylistEditorCreationForm: NavigatorScreenParams<MusicPlaylistEditorCreationFormParamList>;
     MusicPlaylistEditorExportToMtvCreationForm: NavigatorScreenParams<MusicTrackVoteCreationFormParamList>;
+
+    SigningIn: undefined;
 };
 
 export type SuggestTrackStackParamList = {
@@ -573,3 +578,8 @@ export type MpeTabMpeSearchTracksScreenProps = {
     >;
     route: RouteProp<MpeRoomParamsList, 'SearchTracks'>;
 };
+
+export type SigningInScreenProps = StackScreenProps<
+    RootStackParamList,
+    'SigningIn'
+>;

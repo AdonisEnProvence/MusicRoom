@@ -4,6 +4,53 @@ import { UserSummary } from '.';
 export const AuthenticationModeValues = z.enum(['web', 'api']);
 export type AuthenticationModeValues = z.infer<typeof AuthenticationModeValues>;
 
+export const SignInRequestBody = z.object({
+    email: z.string().email(),
+    password: z.string(),
+    authenticationMode: AuthenticationModeValues,
+});
+export type SignInRequestBody = z.infer<typeof SignInRequestBody>;
+
+export const SignInSuccessfulWebAuthResponseBody = z.object({
+    userSummary: UserSummary,
+    status: z.literal('SUCCESS'),
+});
+export type SignInSuccessfulWebAuthResponseBody = z.infer<
+    typeof SignInSuccessfulWebAuthResponseBody
+>;
+
+export const SignInSuccessfulApiTokensResponseBody = z.object({
+    token: z.string(),
+    userSummary: UserSummary,
+    status: z.literal('SUCCESS'),
+});
+export type SignInSuccessfulApiTokensResponseBody = z.infer<
+    typeof SignInSuccessfulApiTokensResponseBody
+>;
+
+export const SignInFailureResponseBody = z.object({
+    status: z.literal('INVALID_CREDENTIALS'),
+});
+export type SignInFailureResponseBody = z.infer<
+    typeof SignInFailureResponseBody
+>;
+
+export const SignInSuccessfulResponseBody = z.union([
+    SignInSuccessfulWebAuthResponseBody,
+    SignInSuccessfulApiTokensResponseBody,
+]);
+export type SignInSuccessfulResponseBody = z.infer<
+    typeof SignInSuccessfulResponseBody
+>;
+
+export const SignInResponseBody = z.union([
+    SignInSuccessfulResponseBody,
+    SignInFailureResponseBody,
+]);
+export type SignInResponseBody = z.infer<typeof SignInResponseBody>;
+
+export type SignInResponseBodyStatus = SignInResponseBody['status'];
+
 export const WebAuthSuccessfullSignUpResponseBody = z.object({
     userSummary: UserSummary,
     status: z.literal('SUCCESS'),

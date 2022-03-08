@@ -1,9 +1,14 @@
 import Database from '@ioc:Adonis/Lucid/Database';
+import {
+    SignInFailureResponseBody,
+    SignInRequestBody,
+    SignInSuccessfulApiTokensResponseBody,
+    SignInSuccessfulWebAuthResponseBody,
+} from '@musicroom/types';
 import User from 'App/Models/User';
 import test from 'japa';
 import supertest from 'supertest';
 import { BASE_URL } from '../../../tests/utils/TestUtils';
-import { SignInRequestBody } from './AuthenticationController';
 
 test.group('AuthenticationController', (group) => {
     group.beforeEach(async () => {
@@ -27,14 +32,27 @@ test.group('AuthenticationController', (group) => {
         const signInRequestBody: SignInRequestBody = {
             email: user.email,
             password: userUnhashedPassword,
-            authenticationMode: 'web-auth',
+            authenticationMode: 'web',
         };
-        const response = await request
+        const signInResponse = await request
             .post('/authentication/sign-in')
             .send(signInRequestBody)
             .expect(200);
+        const parsedSignInResponse = SignInSuccessfulWebAuthResponseBody.parse(
+            signInResponse.body,
+        );
+        assert.deepStrictEqual<SignInSuccessfulWebAuthResponseBody>(
+            parsedSignInResponse,
+            {
+                status: 'SUCCESS',
+                userSummary: {
+                    nickname: user.nickname,
+                    userID: user.uuid,
+                },
+            },
+        );
 
-        const responseSetCookies = response.header['set-cookie'];
+        const responseSetCookies = signInResponse.header['set-cookie'];
         assert.isDefined(responseSetCookies);
         assert.isTrue(responseSetCookies.length > 0);
 
@@ -62,21 +80,30 @@ test.group('AuthenticationController', (group) => {
         const signInRequestBody: SignInRequestBody = {
             email: user.email,
             password: userUnhashedPassword,
-            authenticationMode: 'api-tokens',
+            authenticationMode: 'api',
         };
         const signInResponse = await request
             .post('/authentication/sign-in')
             .send(signInRequestBody)
             .expect(200);
-        const authToken = signInResponse.body.token;
-        assert.equal(authToken.type, 'bearer');
-        assert.isString(authToken.token);
-
-        console.log('sent token', `bearer ${authToken.token}`);
+        const parsedSignInResponse =
+            SignInSuccessfulApiTokensResponseBody.parse(signInResponse.body);
+        assert.deepStrictEqual<SignInSuccessfulApiTokensResponseBody>(
+            parsedSignInResponse,
+            {
+                status: 'SUCCESS',
+                token: parsedSignInResponse.token,
+                userSummary: {
+                    nickname: user.nickname,
+                    userID: user.uuid,
+                },
+            },
+        );
+        const authToken = parsedSignInResponse.token;
 
         const getMeResponseBody = await request
             .get('/authentication/me')
-            .set('Authorization', `bearer ${authToken.token}`)
+            .set('Authorization', `bearer ${authToken}`)
             .expect(200)
             .expect('Content-Type', /json/);
 
@@ -84,5 +111,111 @@ test.group('AuthenticationController', (group) => {
         assert.equal(getMeResponseBody.body.user.email, user.email);
         assert.equal(getMeResponseBody.body.user.uuid, user.uuid);
         assert.isUndefined(getMeResponseBody.body.user.password);
+    });
+
+    test('Returns an error when provided email is unknown for web auth', async (assert) => {
+        const request = supertest.agent(BASE_URL);
+
+        const signInRequestBody: SignInRequestBody = {
+            email: 'invalid-email@gmail.com',
+            password: 'azerty',
+            authenticationMode: 'web',
+        };
+        const signInResponse = await request
+            .post('/authentication/sign-in')
+            .send(signInRequestBody)
+            .expect(403);
+        const parsedSignInResponse = SignInFailureResponseBody.parse(
+            signInResponse.body,
+        );
+        assert.deepStrictEqual<SignInFailureResponseBody>(
+            parsedSignInResponse,
+            {
+                status: 'INVALID_CREDENTIALS',
+            },
+        );
+    });
+
+    test("Returns an error when provided password does not match user's password for web auth", async (assert) => {
+        const request = supertest.agent(BASE_URL);
+
+        const userUnhashedPassword = "Popol l'est gentil";
+        const user = await User.create({
+            nickname: 'Popol',
+            email: 'gentil-popol@gmail.com',
+            password: userUnhashedPassword,
+        });
+
+        const signInRequestBody: SignInRequestBody = {
+            email: user.email,
+            password: 'invalid password',
+            authenticationMode: 'web',
+        };
+        const signInResponse = await request
+            .post('/authentication/sign-in')
+            .send(signInRequestBody)
+            .expect(403);
+        const parsedSignInResponse = SignInFailureResponseBody.parse(
+            signInResponse.body,
+        );
+        assert.deepStrictEqual<SignInFailureResponseBody>(
+            parsedSignInResponse,
+            {
+                status: 'INVALID_CREDENTIALS',
+            },
+        );
+    });
+
+    test('Returns an error when provided email is unknown for api auth', async (assert) => {
+        const request = supertest.agent(BASE_URL);
+
+        const signInRequestBody: SignInRequestBody = {
+            email: 'invalid-email@gmail.com',
+            password: 'azerty',
+            authenticationMode: 'api',
+        };
+        const signInResponse = await request
+            .post('/authentication/sign-in')
+            .send(signInRequestBody)
+            .expect(403);
+        const parsedSignInResponse = SignInFailureResponseBody.parse(
+            signInResponse.body,
+        );
+        assert.deepStrictEqual<SignInFailureResponseBody>(
+            parsedSignInResponse,
+            {
+                status: 'INVALID_CREDENTIALS',
+            },
+        );
+    });
+
+    test("Returns an error when provided password does not match user's password for api auth", async (assert) => {
+        const request = supertest.agent(BASE_URL);
+
+        const userUnhashedPassword = "Popol l'est gentil";
+        const user = await User.create({
+            nickname: 'Popol',
+            email: 'gentil-popol@gmail.com',
+            password: userUnhashedPassword,
+        });
+
+        const signInRequestBody: SignInRequestBody = {
+            email: user.email,
+            password: 'invalid password',
+            authenticationMode: 'api',
+        };
+        const signInResponse = await request
+            .post('/authentication/sign-in')
+            .send(signInRequestBody)
+            .expect(403);
+        const parsedSignInResponse = SignInFailureResponseBody.parse(
+            signInResponse.body,
+        );
+        assert.deepStrictEqual<SignInFailureResponseBody>(
+            parsedSignInResponse,
+            {
+                status: 'INVALID_CREDENTIALS',
+            },
+        );
     });
 });

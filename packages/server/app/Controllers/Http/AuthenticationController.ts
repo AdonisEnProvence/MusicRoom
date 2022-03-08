@@ -4,18 +4,12 @@ import {
     SignUpRequestBody,
     SignUpFailureReasons,
     passwordStrengthRegex,
+    SignInResponseBody,
+    SignInRequestBody,
 } from '@musicroom/types';
 import User from 'App/Models/User';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import * as z from 'zod';
-import { OpaqueTokenContract } from '@ioc:Adonis/Addons/Auth';
-
-export const SignInRequestBody = z.object({
-    email: z.string().email(),
-    password: z.string(),
-    authenticationMode: z.enum(['web-auth', 'api-tokens']),
-});
-export type SignInRequestBody = z.infer<typeof SignInRequestBody>;
 
 export default class AuthenticationController {
     public async signUp({
@@ -104,27 +98,63 @@ export default class AuthenticationController {
 
     public async signIn({
         request,
+        response,
         auth,
-    }: HttpContextContract): Promise<void | {
-        token: OpaqueTokenContract<User>;
-    }> {
+    }: HttpContextContract): Promise<SignInResponseBody> {
         const { email, password, authenticationMode } = SignInRequestBody.parse(
             request.body(),
         );
 
-        switch (authenticationMode) {
-            case 'web-auth': {
-                await auth.use('web').attempt(email, password);
+        const userWithGivenEmail = await User.findBy('email', email);
+        if (userWithGivenEmail === null) {
+            response.status(403);
 
-                return;
+            return {
+                status: 'INVALID_CREDENTIALS',
+            };
+        }
+
+        const userSummary: UserSummary = {
+            nickname: userWithGivenEmail.nickname,
+            userID: userWithGivenEmail.uuid,
+        };
+
+        switch (authenticationMode) {
+            case 'web': {
+                try {
+                    await auth.use('web').attempt(email, password);
+
+                    return {
+                        status: 'SUCCESS',
+                        userSummary: userSummary,
+                    };
+                } catch (err: unknown) {
+                    response.status(403);
+
+                    return {
+                        status: 'INVALID_CREDENTIALS',
+                    };
+                }
             }
 
-            case 'api-tokens': {
-                const token = await auth.use('api').attempt(email, password);
+            case 'api': {
+                try {
+                    const { token } = await auth
+                        .use('api')
+                        .attempt(email, password);
 
-                return {
-                    token,
-                };
+                    return {
+                        status: 'SUCCESS',
+                        token,
+                        userSummary: userSummary,
+                    };
+                } catch (err: unknown) {
+                    response.status(403);
+
+                    return {
+                        status: 'INVALID_CREDENTIALS',
+                    };
+                }
             }
 
             default: {

@@ -144,6 +144,8 @@ const SigningInScreen: React.FC<SigningInScreenProps> = () => {
                                                 onChangeText={onChange}
                                                 placeholder="Email"
                                                 placeholderTextColor="#fff"
+                                                keyboardType="email-address"
+                                                autoCompleteType="email"
                                                 sx={{
                                                     borderWidth: 1,
                                                     borderColor: 'greyLighter',
@@ -199,6 +201,8 @@ const SigningInScreen: React.FC<SigningInScreenProps> = () => {
                                                 onChangeText={onChange}
                                                 placeholder="Password"
                                                 placeholderTextColor="#fff"
+                                                secureTextEntry
+                                                autoCompleteType="password"
                                                 sx={{
                                                     borderWidth: 1,
                                                     borderColor: 'greyLighter',

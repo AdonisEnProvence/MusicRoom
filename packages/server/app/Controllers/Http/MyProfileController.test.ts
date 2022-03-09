@@ -1,7 +1,8 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import {
-    GetMyProfileInformationRequestBody,
     GetMyProfileInformationResponseBody,
+    SignInRequestBody,
+    SignInSuccessfulWebAuthResponseBody,
 } from '@musicroom/types';
 import User from 'App/Models/User';
 import { datatype, internet } from 'faker';
@@ -13,11 +14,36 @@ import {
     BASE_URL,
     initTestUtils,
     TEST_MY_PROFILE_ROUTES_GROUP_PREFIX,
-} from './utils/TestUtils';
+} from '../../../tests/utils/TestUtils';
 
-test.group('Users Profile information tests', (group) => {
+async function createUserAndAuthenticate(
+    request: supertest.SuperAgentTest,
+): Promise<User> {
+    const userID = datatype.uuid();
+    const userUnhashedPassword = internet.password();
+    const user = await User.create({
+        uuid: userID,
+        nickname: internet.userName(),
+        email: internet.email(),
+        password: userUnhashedPassword,
+    });
+
+    const signInRequestBody: SignInRequestBody = {
+        email: user.email,
+        password: userUnhashedPassword,
+        authenticationMode: 'web',
+    };
+    const signInResponse = await request
+        .post('/authentication/sign-in')
+        .send(signInRequestBody)
+        .expect(200);
+    SignInSuccessfulWebAuthResponseBody.parse(signInResponse.body);
+
+    return user;
+}
+
+test.group('MyProfileController', (group) => {
     const {
-        createUserAndGetSocket,
         createSocketConnection,
         initSocketConnection,
         disconnectEveryRemainingSocketConnection,
@@ -34,27 +60,24 @@ test.group('Users Profile information tests', (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
-    test('It should retrieve my profile information', async (assert) => {
-        const userID = datatype.uuid();
-        const userNickname = internet.userName();
-        await createUserAndGetSocket({
-            userNickname,
-            userID,
+    test('Retrieves profile information of the current authenticated user', async (assert) => {
+        const request = supertest.agent(BASE_URL);
+
+        const user = await createUserAndAuthenticate(request);
+        await createSocketConnection({
+            userID: user.uuid,
         });
         await createSocketConnection({
-            userID,
+            userID: user.uuid,
         });
 
-        const { body: rawBody } = await supertest(BASE_URL)
-            .post(
+        const { body: rawBody } = await request
+            .get(
                 urlcat(
                     TEST_MY_PROFILE_ROUTES_GROUP_PREFIX,
                     'profile-information',
                 ),
             )
-            .send({
-                tmpAuthUserID: userID,
-            } as GetMyProfileInformationRequestBody)
             .expect(200);
 
         const parsedBody = GetMyProfileInformationResponseBody.parse(rawBody);
@@ -63,47 +86,37 @@ test.group('Users Profile information tests', (group) => {
             followersCounter: 0,
             followingCounter: 0,
             playlistsCounter: 0,
-            userID,
-            userNickname,
+            userID: user.uuid,
+            userNickname: user.nickname,
         };
         assert.deepEqual(parsedBody, expectedBody);
     });
 
-    test('It should send back user not found', async () => {
-        const userID = datatype.uuid();
+    test('Returns a 401 error when the current user is unauthenticated', async () => {
+        const request = supertest.agent(BASE_URL);
 
-        await supertest(BASE_URL)
-            .post(
+        await request
+            .get(
                 urlcat(
                     TEST_MY_PROFILE_ROUTES_GROUP_PREFIX,
                     'profile-information',
                 ),
             )
-            .send({
-                tmpAuthUserID: userID,
-            } as GetMyProfileInformationRequestBody)
-            .expect(404);
+            .expect(401);
     });
 
-    test('It should send back error as no user devices are up', async () => {
-        const userID = datatype.uuid();
-        await User.create({
-            uuid: userID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
+    test('Sends back a 500 error as current user has no active device', async () => {
+        const request = supertest.agent(BASE_URL);
 
-        await supertest(BASE_URL)
-            .post(
+        await createUserAndAuthenticate(request);
+
+        await request
+            .get(
                 urlcat(
                     TEST_MY_PROFILE_ROUTES_GROUP_PREFIX,
                     'profile-information',
                 ),
             )
-            .send({
-                tmpAuthUserID: userID,
-            } as GetMyProfileInformationRequestBody)
             .expect(500);
     });
 });

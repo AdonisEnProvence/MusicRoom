@@ -179,10 +179,10 @@ Route.group(() => {
 
 export const MY_PROFILE_ROUTES_GROUP_PREFIX = '/me';
 Route.group(() => {
-    Route.post(
+    Route.get(
         '/profile-information',
         'MyProfileController.getMyProfileInformation',
-    );
+    ).middleware('every-auth');
 
     Route.post('/settings', 'UserSettingsController.getMySettings');
 

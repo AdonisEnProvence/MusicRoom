@@ -1,21 +1,17 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
-import {
-    GetMyProfileInformationRequestBody,
-    GetMyProfileInformationResponseBody,
-} from '@musicroom/types';
-import User from 'App/Models/User';
+import { GetMyProfileInformationResponseBody } from '@musicroom/types';
 import invariant from 'tiny-invariant';
 
 export default class MyProfileController {
     public async getMyProfileInformation({
-        request,
+        auth,
     }: HttpContextContract): Promise<GetMyProfileInformationResponseBody> {
-        const rawBody = request.body();
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            'User must be authenticated to get her profile information',
+        );
 
-        const { tmpAuthUserID } =
-            GetMyProfileInformationRequestBody.parse(rawBody);
-
-        const user = await User.findOrFail(tmpAuthUserID);
         const { nickname: userNickname } = user;
 
         //After this user model column are erased

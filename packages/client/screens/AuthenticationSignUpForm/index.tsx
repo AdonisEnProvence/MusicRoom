@@ -181,7 +181,7 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
             'Set error state to password is weak': () => {
                 setError('password', {
                     type: 'server error',
-                    message: 'Password is to weak',
+                    message: 'Password is too weak',
                 });
             },
 

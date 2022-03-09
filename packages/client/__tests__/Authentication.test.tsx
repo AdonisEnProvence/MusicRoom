@@ -22,7 +22,7 @@ interface TestingContext {
 const existingUser = generateAuthenticationUser();
 
 const authenticationModelMachine =
-    /** @xstate-layout N4IgpgJg5mDOIC5QEECuAXAFmAduglgMYCGBA9jgAQC2ZEYANgHQCSO+BxD+AXqfhQDEAWWIBrMJVSwwAJ0rEM2PEVKQFOCJVm5684gAcD3EuRyJQBsrA4DzSEAA9EAZgCsATiYBGAOy+XADYAJhcAFmCwgAZAqN8AGhAAT0QAWl8fDw8ADm9ctzdfDxCPMIBfMsS0LFwCUzsaOkZWdk5uPjMRcUlpOSkcRRqVU3ViTW1dPsNjVTMLECsbOYdnBFTvYK9stxcPfzco7Oywo8DElIRgtzCmaPCXbJcnk+Ds4IqqpVrZhtp6ZgASpNZPgcFBKDYoOwwRDCDpcEwAGL4BjcGFwyDfLiwJEotHggBm+EYEBxyNRoPBYGoxBRggAyqgAEbUDgQ-BQymUUGUAlkWTUeaLWwUearbzeFxMB5RYKBMIeGK7bIec6IbxuR5MKIPDzBXy5bJRNwhD4garKOr8CiNf5MIGaORcyHQ8GwDEI8n4ygY+gqbG4ikwokksl4rnU2kMQQAFSSBkkNpdXJ5kZRvOJDAgQusIvsoFWHm8gSYgV2cV1gVikrVCGLcqYvjCmsCbjlRzybjNFu+9Rtf2aDr0zo5rth8Jwge9vqxDDDQcJmdJU65BmIsFgAHd+RAGczWeh2ZyYTy+QKc0s7GL1Q3JWFYr4q9lH7LgrXgvq3EwTa9coFn74OzlJU5pfMM1pUAOgLAiOx5uh6k5elyM7+nOK7Bku87emuG7brIu5xgmlBJqOKZUDhW47hmJIXnm14IB4bjeKWAQqh4Ty-oE3jvu42TfmELiPsceq7O8IE9uBZi2oOMEwsmckIeh4IoW0WFciGWawIIEAUGATCwOgahMBJVpSVB9qyW6pEKROSk+jofqqXZGmkrRywFuquxSjkvGbAaeSAbWeStkwxxMfKvjFhqoTdmBpm-E00GOiCcnWfBtlIeiDmzmpGGhl0EhHmOPI6AAjqgcCHgSUZuVeKyeVk2oHOxxSBAE-hBQJX7eBW7Emi4kSvLFQzxf2iUWclsFju6tlDk6clyAAbn0ciyPye4smy8ngqe-KCg4wruU4rhRMxWRZLKvHbD1bi1oUZ2eAc3jRG8gHDZaPxjXac0pVZcHjmAuDabp+mGegekmZ9kHjT9U3OghtWivVDGytKxpHJ4RxNrdySIMExqlhq8oqs8kSMe9vYQdJSXDql-0zYDOCCAAqjI8gGDoG7qFAZCUOgvMulIBi8ntAO4Ij+bHWsGyhfKrwBMWKoBGcuOXP+Jaar4H743sGpduJcVQ9TE2039Y6oMLDOeuGWWYqhuXgr08jsIQYgDNQYAbQeBB0+bwtnvtli5kdqzNnxz2CQqxp+M92S1i4EpREwcqPnqAlGmEj4U5JCXfZZRVchbYuITbynZfbdlO5QLtu8QHuxvGiZUNtQtSGz1dELXHvUVmEv0RjtwDVW7YPkE8fPUnBRBGEEStjqgTZ6N0N55NvuF5bimZWXdtOUSC5t30FF4bujKbegPtm+vIvngdwd1R5CACUnRTZK2Ov-pKxa1hEirSuF2w6kVG9A2I0jbmVhmvGERcrYl33ipfAAY97eirkfHcDciIkX+kXFB65KL4R7tmW+l4kYP22CWPY2M4iamKPqb+QQvz6m8IqHq0RSjeEXmAmG+cW7QM3qXeyO8EFoSQYXduaZoyn29nDKB-s9p92RjPYI2o2rPT8H1HYxR47yi2JqTY-4rgBEiBwvsy8ZKr0vjI4udl4GIP4VXcR6Cm4F0sfYmk6YXLyIfkWJR8oHiPGCEwzY8cAheCEuEDYuwmJ5GMVTcB3C0qtxgdY8uqlgY4D0gZIykMTHGwgRYx2G8Mr8JsXOTxUtJRGlLMaIsTE4ihGuMEw4jYNT3ieAaIIVwKggRwE0eADhsmxPGmwWwXBeAQTKaHZiQk3h7FbH4K4YRaxeEOEaV4T9iyZwKDEsyXDzGUEwGQbuMCJnqlOkow095AjFFfO4WsqQQr+R6lrLICp+rbNzmY02zj0qM2SYIgMW8CEO0oOI1gEAGBgBOXWU6Pgrn5HcCaUorxOpVlCoBVqJxXzAU+KAnJcS9ktySYCkpwKXLAtBWwRaoyIBMAAKJuIYNyWAILqAGHQBcIOxDJarFiCWdwkU3hRAVNEQ4QV5RJyfPeGe0RXhiRxR9PFuyvmEr4XAlJQjSWYTshSnAVLuA0vpVGJl3JdXUqhbEL8bUXBRDiLKI4pQcYXBjnxIoTwlRcV8MabFoFcWDJXsqhJRLinqoBfwsl2qGUtD1fgQhnK6LI01MxK1NrPW-gdUFE0GQrmRQKIqa1Yd3lfU+fNfJVjiUhrQoC8NgLQUADUzVEPjQ-TU3UFR7E2BKE0KsnVGhLFrK4jFPCHEzoW0xNMS3fLLcG-5law1aprQyqF-hYU5A1Aiq5EQ46qwqWdIVrYig-2fNkUduT4n01VdOCtmrQx2VQfhMFEKoXbG-PjB47gJSJ1bO+YsSc7VFhyNcHIzYT34oDeeopaqZ3Xs0re3Bx8o3UqYAABTg1RfAzLqRso5QsO+JCpYmiTZ6gIT8-GOrxpsJO0QmwUbarkEDSqJ0qog5eqDzl538LvTSylDa40h0QDsLNRH7g6gxu+AJGQBJcXxjsY0yt6P+sY4Gi9yEr1sZvYCzjTB636qhYUKU4RDgBKYUxAI74TjMRniqF4kVwjAPlZTHZCnfqTqDZBxyGq1MwY06h-C5rmJthE++j9MQyOXCoU1R8EoE7+BOPJ4tzmmO-PLaxqtmEoWCRfYFqJn7QuSiaexZ4pRZPhTi+OhLSnmMqZS3idQZKoXFmuLC64BQDhVkYi4IK9rQoCUiEJAJ2xSsm0U+BpL073PYnq1KALb7ss9TmUFepTBihMLyDa0odmfUKr9fF6RPyER5IhEtFasg1qyAfZCxtfGECARfao-YPUgjcVViaJO4QpWZ30ScBeICtuOZ25Avbk4Dts2WvIVa-ImAABF0PGGIEkEFJ3+RQqLBZmIhxPBVmuAaWs-4k79bXfavUcpBvA4q784HR2weI7O5Ijg4MtCwFQIQQgcBYAElQKibDh175S0Yl4XYexzoan8A8IKspJ7Wq4hatsD4SdnumopCnshQcI9O7p-zASwh+EAg9ri38buCQGv4OImPiguDlwSsn4tLs89WOsSjRQpcnCOCTBU39UbRCYVEdiACiMW7A37KdbmcqV3bjXd2ekWDgou7x23iBf6XLbSca4uxFmq2tU8aU-hvHsTlA8f3w3A+uZY+N2d+8q7h7rnpbTMb6vPuLANQobZjgSnjl5ZO4VPA9VKObn7DmPlld24k5TttS-Aor53CPCH9VMAAHKT6r8azD7L6s2tu8qWpngmyqnT8FRsmd2I5pta8fW9mc5FsHwD4flXR8h8BRP12U-uMz-n4-xf6H+jECpSiYgTJH027w3FDXzbElAAxuj2Dd3T1eClEikP0eEAjtQL3KywUKVG2DwrnvzDwXw9mn1rwAO5UQEfHXzAOqW33HklEbEfAeCbGbD3W+zPyXlPUtxQKDxLzvzsSwLfw9l0yURAI33ALINVk2BOFuBiFiAEkYhlSQKH14Rv23jHyYBESgXbk0yj3-1j0APjylGJlmV4m9zEO-k10JgVGfEOByH-GkKv1kLQLYIriUMdhUJ8xpRr1jRwy5XoieVuFAIJx1H1FyG-gx2lFmXqSuD8G9QGT+0v1LWsOtnQN3g4MPicNwJpRQ1wjQww1ZRX3wI8I1EoKYiAWqRnnCDoUYlLC71AMiCNF8EsOiNQNiNsPiPL0cLSPvWfxjWQycONU3DAHEHq1yPuwKM8CKLTwuBnj1FLGtSNAGgM3oM237wvyG2QKLxH3kJD3sIPnZiSLaNcO500IYimR10GNKAEhGMQB6x8SPWNGoPuhqMnRiNgQaI83WJwRaJ2NwwIIQDajyK909SGJOO-g2C8F8VowKDzzlTmPPzHUWJkLqIeKqwUOeLEUjTUJjzcKbSliKCW1fieFfkiBtVbFC0ewyB93-DaRBN7wYM4ScxhNYPhLWISLB0jRcKhSlR8DEI2Hxl8KOHd3xluEfCrEbz6gpIhMYNA0LyvmLzpLsIZJZSjGSLpQZSX0yK53ePokamNweAiEzhxJiGCXlCCMukF29yuFPxFKpP+1qNpNv2lKaJWmRNNRn0NXTA-1BGjTePcORkaiYlyGiBCDWTIXjjCmTjyHbCYhlEEluJ4VhL+QRJlJ1TdIVKNQ-1QAGG-wYF-3ULRKux6glUilCBCEjn-FfnjlzyWznkFU8FKEjISXuJjPpNtMZLlO2KXS-G9Inj9OOADPTyuQszyHYg2B2H-GKGrJYMlOtMaOQSRJqmyITX8zyHbI-E7JNHjh2CUWKHahOEiWFRHOWLkIETHyhX1G-HnN9MXOTzLHfGfC-C6gE1lHKOFIiIH2hKsOjPpBrNkQFAhH3Dp3UEZ2Z1Z3Z050mxnjKJyAunMK1gSHT2OBLGOH8CLPxhnkKB3IlIRhnIfimxPJiDPLIWRSENWVuF8Wd2LHa1KyhXWB2FCg0X2BWWd27TSAqUbDbC+xzJiBsy6TKCAA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QEECuAXAFmAduglgMYCGBA9jgAQC2ZEYANgHQCSO+BxD+AXqfhQDEAWWIBrMJVSwwAJ0rEM2PEVKQFOCJVm5684gAcD3EuRyJQBsrA4DzSEAA9EAZgCsATiYBGAOy+XADYAJhcAFmCwgAZAqN8AGhAAT0QAWl8fDw8ADm9ctzdfDxCPMIBfMsS0LFwCUzsaOkZWdk5uPjMRcUlpOSkcRRqVU3ViTW1dPsNjVTMLECsbOYdnBFTvYK9stxcPfzco7Oywo8DElIRgtzCmaPCXbJcnk+Ds4IqqpVrZhtp6ZgASpNZPgcFBKDYoOwwRDCDpcEwAGL4BjcGFwyDfLiwJEotHggBm+EYEBxyNRoPBYGoxBRggAyqgAEbUDgQ-BQymUUGUAlkWTUeaLWwUearbzeFxMB5RYKBMIeGK7bIec6IbxuR5MKIPDzBXy5bJRNwhD4garKOr8CiNf5MIGaORcyHQ8GwDEI8n4ygY+gqbG4ikwokksl4rnU2kMQQAFSSBkkNpdXJ5kZRvOJDAgQusIvsoFWHm8gSYgV2cV1gVikrVCGLcqYvjCmsCbjlRzybjNFu+9Rtf2aDr0zo5rth8Jwge9vqxDDDQcJmdJU65BmIsFgAHd+RAGczWeh2ZyYTy+QKc0s7GL1Q3JWFYr4q9lH7LgrXgvq3EwTa9coFn74OzlJU5pfMM1pUAOgLAiOx5uh6k5elyM7+nOK7Bku87emuG7brIu5xgmlBJqOKZUDhW47hmJIXnm14IB4bjeKWAQqh4Ty-oE3jvu42TfmELiPsceq7O8IE9uBZi2oOMEwsmckIeh4IoW0WFciGWawIIEAUGATCwOgahMBJVpSVB9qyW6pEKROSk+jofqqXZGmkrRywFuquxSjkvGbAaeSAbWeStkwxxMfKvjFhqoTdmBpm-E00GOiCcnWfBtlIeiDmzmpGGhl0EhHmOPI6AAjqgcCHgSUZuVeKyeVk2oHOxxSBAE-hBQJX7eBW7Emi4kSvLFQzxf2iUWclsFju6tlDk6clyAAbn0ciyPye4smy8ngqe-KCg4wruU4rhRMxWRZLKvHbD1bi1oUZ2eAc3jRG8gHDZaPxjXac0pVZcHjmAuDabp+mGegekmZ9kHjT9U3OghtWivVDGytKxpHJ4RxNrdySIMExqlhq8oqs8kSMe9vYQdJSXDql-0zYDOCCAACjoG6UEyGDoDa3OUFAZCULzLpSAYAO4Ij+bHWsGyhfKrwBMWKoBGcuOXP+Jaar4H743sGpduJcVQ9TE2039Y6oKLDOeuGWWYqhuXgr08jsIQYgDNQYAbQeBB0+botnvtli5kdqzNnxz2CQqxp+M92S1i4EpREwcqPnqAlGmEj4U5JCXfZZRVchbYuITbynZfbdlO5QLtu8QHuxvGiZUNtItSDIztELXHvUVmEv0RjtwDVW7YPkE8fPUnBRBGEEStjqgTZ6N0N55NvuF5bimZWXdtOVvbd9BReG7oym3oD7Zvr7ye198jAlJ0U2Stjr-6SsWtYRIq0rhdsOqKm9BsjSNuZWGa8YRFytiXBc9kd74ADHvKuh8dwNyIiRf6RcEHrkovhHu2YDrBzqh5BA2wSx7GxnETUxR9TvyCF+fU3hFQ9WiKUbwi8gEw3zi3cBm9S7QMcrAtC8D26UDTNGE+3s4ZgP9tfPBl4kaEJnsEbUbVnp+D6jsYo8d5RbE1Jsf8VwAiRFYX2ZeMlV4X0kcXOyKl+EO33vIERyCm4FwsVXEROCb6EKLIo+UDxHjBHoZseOAQvBCXCBsXYTE8hGKpsAjhaVW4QKseXVSwMcB6QMkZSGxjjYgPMY7DeGUeHWOxB4qWkojSlmNEWJicRQjXCCYcRsGp7xPANEEK4FQQI4CaPABwWSYnjTYLYLgvAIKlNDsxISbw9itj8FcMItYvCHCNK8O+xZM4FGiWZdhZjKCYDIN3CB4z1SnUUYae8gRiivncLWVIIV-I9S1lkBU-Utm51MabZx6VGZJJgXAnhLlbEiNYBABgYBjl1lOj4S5+R3AmlKK8TqVZQqAVaicV8wFPiAOybE3ZLdEl72KQIgFmE7LArYItEZEAmAAFEaTpnwLAYR1ADDoAuEHWRktVixBLO4SKbwogKmiIcIK8ok5PnvDPaIrwxJYo+jinZnz8XcKgUS2xgKyX0uYBSqltKtXciZaCSl3BcEcrosjWIX42ouCiHEWURxSg4wuDHPiRQnhKi4r4Y0mLQLYoGSvJV8SCVFOSTY5ypK97kpwMa-ApqFj4LkVLTUzFrW2q9b+R1QUTQZEuVrI4mwZUsIAfK-1Hz5p5MsYS0N-yoEasjVqpgAA1KlELNTdQVHsTYEoTQq2dUaEsWsriMU8IcTObyvplt+l8ytIa-nEtrRGnhIiIX+GhTkDUcLLkRDjqrcpZ1BVllCBna4Pr+nbIDeW6dwbVXVvnd6OtPDEH4RBWCiF2xvz4weO4CUidWzvmLEne1RYcjXByM2cdJiaaXuVYUm9c71WLqgU+6lOqTVMGZpgo+BrmWsvZfGzl9ETQpq9QEO+vinV402EnaITYqNtVyBBnJcT6YqunLehDoY7LIZaDGuNh0CFJsEixCsZGMbvn8RkLq7EvUagVr4RjuLA0sdg2x+D4bON72482k1raAjShev4+hTEAjvhOMxGeKoXiRXCP-OVlNz2Tokd862cG+E1vvYh7CmGdwQq4h+nUjxIm-oo5cchTVaMGllIqBexb7PvKg1OmDPyq1qb3oCiFQm2wBe-T+mIIXJSNPYgNHIrwYjHGyApxV0Gg2seQuxqc6h0syPNYQ4s1xoXXAKAcKsjEXBBQdaFASkQhL+O2JVi9iWasqbq-BiFkp-NfqCz1WZQU6lMGKHkGIH5H55fG450BznJy5IhEtFasg1qyBfeC5rIdECAQ-So-YPUgjcVViaJO4RJWZz0ScGLdmc4ToS05yxx327LXsed-kTAAAijLjDECSMIyHsgIVFnMzEQ4ngqzXANLWf8SdRsbodXqOUe2gcHZBxw07EOLtMDERwcGWhYCoEIIQOAsACSoFRHh-jibCyeGlFkIoWRZOsSCrKSeNquKWrbA+MnJtqvKZ+aD6nSOLutuYm2R7gFntcXfvdwSTxlv-kzh4eXoOpuMwhesajRRpcnCOCTBU79UbRDyBt2U6c9jm+Y37GdrmcqVyETXd2ekWCguu2a27KNbhVg7Sca4uwFmqxtU8aU-gvHsTlA8H3eL4lcOm7bNzd7C7B87qHptLabsCfFO+4sA1ChtmOBKeOXlk7hU8D1UoLhc9Kb99e1TxfbFVxD3XMP0bdUADly9j+w9SXDc3bUPeVDUzwTZVQp+Co2U3gkNS2tePrf7S8mN57QQU5Ls6h9B76KPj2PGp8z+7oy-oxBKUomIEyV91e+cnMnv4lfN0ewzuKerwUokU0mjwgE9qveiu-etWRegegiN+j+4+vGK6Gs-+IGgB6+4882-g8ozYUQewjEOoMBk2Z+-ug+iBPCI+KBraiiWuABVSOBqsmwJwtwMQysBoxm8msWAOkGCu5BcBhe28V+SB8g3G4eX+UeNeiA7EpYJwMyvERBMQvaiAEQz0hMCoz4hwOQ-4ZBwOBeF+AeFc4hlAWmVeMhP+kKkmko1SMoA0-k78WOguj4dSVwfgp6hsCqE2hh5+LmVBphNBQikhE+aGGGuEVEz+8+bKc2GojYOuf8VSM84Q1CjEpYnedhkQRovBR+bCvhFORhARM2YhwRB83mz6qGsa6GFRWgz+m4YA4gcRX4T2SRngKRyeFwM8eopYNqRoA04QMQBhhR-hkCgRu8ZREhtR9+Om3+XKchkyiRdq7RAknR6hA03iz40m-gpGf2vqJaDm5OFaRRYxJR1BUCGCkR+EvmGQrRyxpQqx78GwXgPiuQRBEQNGwxxxoxvypRFxQi5KEeK6XgehTwj8kQtqrYIWL2GQ7Ej8jwgk9GOwXx06Jxvx5x3oriDa2msaEKkqPgqhGw+MOov4Lu+Mtwj4VYDefUPefBx+imsBl8A+ZxQR-xK0DaVR1KdKUYc+LKsRcx9EjU-gAWHxAQMoahCAiJNw5YoQxBRBVwh++xcWgOghfhlBLJExbJ9iHJYR1R3JDKhqupfGCa8xDEXgTEuQ0QIQqyxC8cYUyceQ7YTEDhuRSp-BJ+feTJ8BohGJpe7JUYMxep+qz+qAAwb+DAH+0h+GLWZSS+yioQIQkc-4j88cWe62c8AqngpQKJnCPxKWfxmJAJOpaBApyM92FpE81p5WJomiRYtwAUmcrExwAQOZ+eeZl+vpYCRZNUpZhCTE34eQlZ22CeEp7gA06Z4Bkow2cQrZFBzJCB9sEK+oA5lpW2Np-U74z4X4XU72ZY-gxYs5whPy9IbZV8AoEI+4DO6gzOrO7OnO3Oc2n2GROQF0ehWsCQKexwJYzZUy+MM8hQh5XpE4GWK5Q565IQO6FwpWiikqDw3RsoU8ZO1uG6oU6i+wyyDuEp6wDwjYbY6Kz0w5TwnSZQQAA */
     createMachine(
         {
             context: {
@@ -49,7 +49,7 @@ const authenticationModelMachine =
                           password: string;
                       }
                     | {
-                          type: 'User pressed go to sign up form screen';
+                          type: 'Press button to go to sign up screen';
                       }
                     | {
                           type: 'Submitting signing up form';
@@ -512,7 +512,7 @@ const authenticationModelMachine =
                         },
                     },
                     on: {
-                        'User pressed go to sign up form screen': {
+                        'Press button to go to sign up screen': {
                             target: '#Authentication model.Rendering signing up screen',
                         },
                     },
@@ -520,6 +520,7 @@ const authenticationModelMachine =
                         target: '#Authentication model.Rendering home screen',
                     },
                 },
+                //here
                 'Rendering signing up screen': {
                     initial: 'Filling credentials',
                     states: {
@@ -529,15 +530,128 @@ const authenticationModelMachine =
                                 'Filling user nickname': {
                                     initial: 'Idle',
                                     states: {
-                                        Idle: {},
+                                        Idle: {
+                                            meta: {
+                                                test: async ({
+                                                    screen,
+                                                }: TestingContext) => {
+                                                    invariant(
+                                                        screen !== undefined,
+                                                        'Screen must have been rendered',
+                                                    );
+
+                                                    await waitFor(() => {
+                                                        expect(
+                                                            within(
+                                                                screen.getByTestId(
+                                                                    'sign-up-nickname-text-field',
+                                                                ),
+                                                            ).queryByRole(
+                                                                'alert',
+                                                            ),
+                                                        ).toBeNull();
+                                                    });
+                                                },
+                                            },
+                                        },
                                         Valid: {
                                             type: 'final',
+                                            meta: {
+                                                test: async ({
+                                                    screen,
+                                                }: TestingContext) => {
+                                                    invariant(
+                                                        screen !== undefined,
+                                                        'Screen must have been rendered',
+                                                    );
+
+                                                    await waitFor(() => {
+                                                        expect(
+                                                            within(
+                                                                screen.getByTestId(
+                                                                    'sign-up-nickname-text-field',
+                                                                ),
+                                                            ).queryByRole(
+                                                                'alert',
+                                                            ),
+                                                        ).toBeNull();
+                                                    });
+                                                },
+                                            },
                                         },
                                         Invalid: {
                                             initial: 'Nickname is empty',
                                             states: {
-                                                'Nickname is empty': {},
-                                                'Nickname is unavailable': {},
+                                                'Nickname is empty': {
+                                                    meta: {
+                                                        test: async ({
+                                                            screen,
+                                                        }: TestingContext) => {
+                                                            invariant(
+                                                                screen !==
+                                                                    undefined,
+                                                                'Screen must have been rendered',
+                                                            );
+
+                                                            await waitFor(
+                                                                () => {
+                                                                    const nicknameIsEmptyAlert =
+                                                                        within(
+                                                                            screen.getByTestId(
+                                                                                'sign-up-nickname-text-field',
+                                                                            ),
+                                                                        ).getByRole(
+                                                                            'alert',
+                                                                        );
+                                                                    expect(
+                                                                        nicknameIsEmptyAlert,
+                                                                    ).toBeTruthy();
+
+                                                                    expect(
+                                                                        nicknameIsEmptyAlert,
+                                                                    ).toHaveTextContent(
+                                                                        'This field is required',
+                                                                    );
+                                                                },
+                                                            );
+                                                        },
+                                                    },
+                                                },
+                                                'Nickname is unavailable': {
+                                                    meta: {
+                                                        test: async ({
+                                                            screen,
+                                                        }: TestingContext) => {
+                                                            invariant(
+                                                                screen !==
+                                                                    undefined,
+                                                                'Screen must have been rendered',
+                                                            );
+
+                                                            await waitFor(
+                                                                () => {
+                                                                    const nicknameIsEmptyAlert =
+                                                                        within(
+                                                                            screen.getByTestId(
+                                                                                'sign-up-nickname-text-field',
+                                                                            ),
+                                                                        ).getByRole(
+                                                                            'alert',
+                                                                        );
+                                                                    expect(
+                                                                        nicknameIsEmptyAlert,
+                                                                    ).toBeTruthy();
+
+                                                                    expect(
+                                                                        nicknameIsEmptyAlert,
+                                                                    ).toHaveTextContent(
+                                                                        'Nickname is unavailable',
+                                                                    );
+                                                                },
+                                                            );
+                                                        },
+                                                    },
+                                                },
                                             },
                                         },
                                     },
@@ -563,18 +677,131 @@ const authenticationModelMachine =
                                             },
                                     },
                                 },
-                                'filling user password': {
+                                'Filling user password': {
                                     initial: 'Idle',
                                     states: {
-                                        Idle: {},
+                                        Idle: {
+                                            meta: {
+                                                test: async ({
+                                                    screen,
+                                                }: TestingContext) => {
+                                                    invariant(
+                                                        screen !== undefined,
+                                                        'Screen must have been rendered',
+                                                    );
+
+                                                    await waitFor(() => {
+                                                        expect(
+                                                            within(
+                                                                screen.getByTestId(
+                                                                    'sign-up-password-text-field',
+                                                                ),
+                                                            ).queryByRole(
+                                                                'alert',
+                                                            ),
+                                                        ).toBeNull();
+                                                    });
+                                                },
+                                            },
+                                        },
                                         Valid: {
                                             type: 'final',
+                                            meta: {
+                                                test: async ({
+                                                    screen,
+                                                }: TestingContext) => {
+                                                    invariant(
+                                                        screen !== undefined,
+                                                        'Screen must have been rendered',
+                                                    );
+
+                                                    await waitFor(() => {
+                                                        expect(
+                                                            within(
+                                                                screen.getByTestId(
+                                                                    'sign-up-password-text-field',
+                                                                ),
+                                                            ).queryByRole(
+                                                                'alert',
+                                                            ),
+                                                        ).toBeNull();
+                                                    });
+                                                },
+                                            },
                                         },
                                         Invalid: {
                                             initial: 'Password is empty',
                                             states: {
-                                                'Password is empty': {},
-                                                'Password is weak': {},
+                                                'Password is empty': {
+                                                    meta: {
+                                                        test: async ({
+                                                            screen,
+                                                        }: TestingContext) => {
+                                                            invariant(
+                                                                screen !==
+                                                                    undefined,
+                                                                'Screen must have been rendered',
+                                                            );
+
+                                                            await waitFor(
+                                                                () => {
+                                                                    const nicknameIsEmptyAlert =
+                                                                        within(
+                                                                            screen.getByTestId(
+                                                                                'sign-up-password-text-field',
+                                                                            ),
+                                                                        ).getByRole(
+                                                                            'alert',
+                                                                        );
+                                                                    expect(
+                                                                        nicknameIsEmptyAlert,
+                                                                    ).toBeTruthy();
+
+                                                                    expect(
+                                                                        nicknameIsEmptyAlert,
+                                                                    ).toHaveTextContent(
+                                                                        'This field is required',
+                                                                    );
+                                                                },
+                                                            );
+                                                        },
+                                                    },
+                                                },
+                                                'Password is weak': {
+                                                    meta: {
+                                                        test: async ({
+                                                            screen,
+                                                        }: TestingContext) => {
+                                                            invariant(
+                                                                screen !==
+                                                                    undefined,
+                                                                'Screen must have been rendered',
+                                                            );
+
+                                                            await waitFor(
+                                                                () => {
+                                                                    const nicknameIsEmptyAlert =
+                                                                        within(
+                                                                            screen.getByTestId(
+                                                                                'sign-up-password-text-field',
+                                                                            ),
+                                                                        ).getByRole(
+                                                                            'alert',
+                                                                        );
+                                                                    expect(
+                                                                        nicknameIsEmptyAlert,
+                                                                    ).toBeTruthy();
+
+                                                                    expect(
+                                                                        nicknameIsEmptyAlert,
+                                                                    ).toHaveTextContent(
+                                                                        'Password is too weak',
+                                                                    );
+                                                                },
+                                                            );
+                                                        },
+                                                    },
+                                                },
                                             },
                                         },
                                     },
@@ -582,37 +809,184 @@ const authenticationModelMachine =
                                         'Submitting signing up form': [
                                             {
                                                 cond: 'Password field is empty',
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.filling user password.Invalid.Password is empty',
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user password.Invalid.Password is empty',
                                             },
                                             {
                                                 cond: 'Password is weak',
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.filling user password.Invalid.Password is weak',
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user password.Invalid.Password is weak',
                                             },
                                             {
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.filling user password.Valid',
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user password.Valid',
                                             },
                                         ],
                                         'Type on signing up user password field':
                                             {
                                                 actions:
                                                     'Assign signing up typed user password to context',
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.filling user password',
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user password',
                                             },
                                     },
                                 },
-                                'filling user email': {
+                                'Filling user email': {
                                     initial: 'Idle',
                                     states: {
-                                        Idle: {},
+                                        Idle: {
+                                            meta: {
+                                                test: async ({
+                                                    screen,
+                                                }: TestingContext) => {
+                                                    invariant(
+                                                        screen !== undefined,
+                                                        'Screen must have been rendered',
+                                                    );
+
+                                                    await waitFor(() => {
+                                                        expect(
+                                                            within(
+                                                                screen.getByTestId(
+                                                                    'sign-up-email-text-field',
+                                                                ),
+                                                            ).queryByRole(
+                                                                'alert',
+                                                            ),
+                                                        ).toBeNull();
+                                                    });
+                                                },
+                                            },
+                                        },
                                         Valid: {
                                             type: 'final',
+                                            meta: {
+                                                test: async ({
+                                                    screen,
+                                                }: TestingContext) => {
+                                                    invariant(
+                                                        screen !== undefined,
+                                                        'Screen must have been rendered',
+                                                    );
+
+                                                    await waitFor(() => {
+                                                        expect(
+                                                            within(
+                                                                screen.getByTestId(
+                                                                    'sign-up-email-text-field',
+                                                                ),
+                                                            ).queryByRole(
+                                                                'alert',
+                                                            ),
+                                                        ).toBeNull();
+                                                    });
+                                                },
+                                            },
                                         },
                                         Invalid: {
                                             initial: 'Email is empty',
                                             states: {
-                                                'Email is empty': {},
-                                                'Email is invalid': {},
-                                                'Email is unavailable': {},
+                                                'Email is empty': {
+                                                    meta: {
+                                                        test: async ({
+                                                            screen,
+                                                        }: TestingContext) => {
+                                                            invariant(
+                                                                screen !==
+                                                                    undefined,
+                                                                'Screen must have been rendered',
+                                                            );
+
+                                                            await waitFor(
+                                                                () => {
+                                                                    const nicknameIsEmptyAlert =
+                                                                        within(
+                                                                            screen.getByTestId(
+                                                                                'sign-up-email-text-field',
+                                                                            ),
+                                                                        ).getByRole(
+                                                                            'alert',
+                                                                        );
+                                                                    expect(
+                                                                        nicknameIsEmptyAlert,
+                                                                    ).toBeTruthy();
+
+                                                                    expect(
+                                                                        nicknameIsEmptyAlert,
+                                                                    ).toHaveTextContent(
+                                                                        'This field is required',
+                                                                    );
+                                                                },
+                                                            );
+                                                        },
+                                                    },
+                                                },
+                                                'Email is invalid': {
+                                                    meta: {
+                                                        test: async ({
+                                                            screen,
+                                                        }: TestingContext) => {
+                                                            invariant(
+                                                                screen !==
+                                                                    undefined,
+                                                                'Screen must have been rendered',
+                                                            );
+
+                                                            await waitFor(
+                                                                () => {
+                                                                    const nicknameIsEmptyAlert =
+                                                                        within(
+                                                                            screen.getByTestId(
+                                                                                'sign-up-email-text-field',
+                                                                            ),
+                                                                        ).getByRole(
+                                                                            'alert',
+                                                                        );
+                                                                    expect(
+                                                                        nicknameIsEmptyAlert,
+                                                                    ).toBeTruthy();
+
+                                                                    expect(
+                                                                        nicknameIsEmptyAlert,
+                                                                    ).toHaveTextContent(
+                                                                        'Email is not valid',
+                                                                    );
+                                                                },
+                                                            );
+                                                        },
+                                                    },
+                                                },
+                                                'Email is unavailable': {
+                                                    meta: {
+                                                        test: async ({
+                                                            screen,
+                                                        }: TestingContext) => {
+                                                            invariant(
+                                                                screen !==
+                                                                    undefined,
+                                                                'Screen must have been rendered',
+                                                            );
+
+                                                            await waitFor(
+                                                                () => {
+                                                                    const nicknameIsEmptyAlert =
+                                                                        within(
+                                                                            screen.getByTestId(
+                                                                                'sign-up-email-text-field',
+                                                                            ),
+                                                                        ).getByRole(
+                                                                            'alert',
+                                                                        );
+                                                                    expect(
+                                                                        nicknameIsEmptyAlert,
+                                                                    ).toBeTruthy();
+
+                                                                    expect(
+                                                                        nicknameIsEmptyAlert,
+                                                                    ).toHaveTextContent(
+                                                                        'Email is unavailable',
+                                                                    );
+                                                                },
+                                                            );
+                                                        },
+                                                    },
+                                                },
                                             },
                                         },
                                     },
@@ -620,24 +994,24 @@ const authenticationModelMachine =
                                         'Submitting signing up form': [
                                             {
                                                 cond: 'Email field is empty',
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.filling user email.Invalid.Email is empty',
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user email.Invalid.Email is empty',
                                             },
                                             {
                                                 cond: 'Email is invalid',
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.filling user email.Invalid.Email is invalid',
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user email.Invalid.Email is invalid',
                                             },
                                             {
                                                 cond: 'Email is unavailable',
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.filling user email.Invalid.Email is unavailable',
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user email.Invalid.Email is unavailable',
                                             },
                                             {
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.filling user email.Valid',
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user email.Valid',
                                             },
                                         ],
                                         'Type on signing up user email field': {
                                             actions:
                                                 'Assign signing up typed user email to context',
-                                            target: '#Authentication model.Rendering signing up screen.Filling credentials.filling user email',
+                                            target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user email',
                                         },
                                     },
                                 },
@@ -648,6 +1022,7 @@ const authenticationModelMachine =
                         },
                         'Signing up form submitted successfully': {
                             type: 'final',
+                            //meta check redirection to home
                         },
                     },
                 },

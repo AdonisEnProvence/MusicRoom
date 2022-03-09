@@ -607,7 +607,7 @@ export const handlers = [
                 signUpFailureReasonCollection.push('INVALID_EMAIL');
             }
 
-            const userWithSameNickname = db.authUser.findFirst({
+            const userWithSameNickname = db.authenticationUser.findFirst({
                 where: {
                     nickname: {
                         equals: userNickname,
@@ -618,7 +618,7 @@ export const handlers = [
                 signUpFailureReasonCollection.push('UNAVAILABLE_NICKNAME');
             }
 
-            const userWithSameEmail = db.authUser.findFirst({
+            const userWithSameEmail = db.authenticationUser.findFirst({
                 where: {
                     email: {
                         equals: email,
@@ -644,8 +644,8 @@ export const handlers = [
             }
 
             const userID = datatype.uuid();
-            db.authUser.create({
-                userID,
+            db.authenticationUser.create({
+                uuid: userID,
                 email,
                 password,
                 nickname: userNickname,

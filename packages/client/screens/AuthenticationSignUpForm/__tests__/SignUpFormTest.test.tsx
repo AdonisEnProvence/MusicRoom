@@ -1,9 +1,7 @@
 import { internet, random } from 'faker';
 import Toast from 'react-native-toast-message';
-import { db } from '../../../tests/data';
 import {
     fireEvent,
-    renderApp,
     waitFor,
     Queries,
     within,
@@ -34,23 +32,26 @@ test('It sign up selected user credentials', async () => {
         within(signUpFormScreenContainer);
 
     //fill username
-    const userNameTextField = withinSignUpFormScreenContainer().getByTestId(
-        'sign-up-nickname-text-field',
-    );
+    const userNameTextField =
+        await withinSignUpFormScreenContainer().findByPlaceholderText(
+            /.*nickname.*/i,
+        );
     expect(userNameTextField).toBeTruthy();
     fireEvent.changeText(userNameTextField, userNickname);
 
     //fill email
-    const emailTextField = withinSignUpFormScreenContainer().getByTestId(
-        'sign-up-email-text-field',
-    );
+    const emailTextField =
+        await withinSignUpFormScreenContainer().findByPlaceholderText(
+            /.*email.*/i,
+        );
     expect(emailTextField).toBeTruthy();
     fireEvent.changeText(emailTextField, email);
 
     //fill password
-    const passwordTextField = withinSignUpFormScreenContainer().getByTestId(
-        'sign-up-password-text-field',
-    );
+    const passwordTextField =
+        await withinSignUpFormScreenContainer().findByPlaceholderText(
+            /.*password.*/i,
+        );
     expect(passwordTextField).toBeTruthy();
     fireEvent.changeText(passwordTextField, password);
 
@@ -93,16 +94,18 @@ test('It should fail to sign up selected user credentials', async () => {
     //don't fill username
 
     //fill email
-    const emailTextField = withinSignUpFormScreenContainer().getByTestId(
-        'sign-up-email-text-field',
-    );
+    const emailTextField =
+        await withinSignUpFormScreenContainer().findByPlaceholderText(
+            /.*email.*/i,
+        );
     expect(emailTextField).toBeTruthy();
     fireEvent.changeText(emailTextField, email);
 
     //fill password
-    const passwordTextField = withinSignUpFormScreenContainer().getByTestId(
-        'sign-up-password-text-field',
-    );
+    const passwordTextField =
+        await withinSignUpFormScreenContainer().findByPlaceholderText(
+            /.*password.*/i,
+        );
     expect(passwordTextField).toBeTruthy();
     fireEvent.changeText(passwordTextField, password);
 

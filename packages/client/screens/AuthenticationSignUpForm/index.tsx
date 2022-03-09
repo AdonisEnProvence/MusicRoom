@@ -266,8 +266,10 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                             >
                                 To party sign up !
                             </Text>
-
-                            <View sx={{ marginBottom: 'xl' }}>
+                            <View
+                                testID="sign-up-nickname-text-field"
+                                sx={{ marginBottom: 'xl' }}
+                            >
                                 <Text
                                     sx={{
                                         color: 'greyLighter',
@@ -294,7 +296,6 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     }) => {
                                         return (
                                             <TextField
-                                                testID="sign-up-nickname-text-field"
                                                 value={value}
                                                 onBlur={onBlur}
                                                 onChangeText={onChange}
@@ -321,8 +322,10 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     </Text>
                                 )}
                             </View>
-
-                            <View sx={{ marginBottom: 'xl' }}>
+                            <View
+                                testID="sign-up-email-text-field"
+                                sx={{ marginBottom: 'xl' }}
+                            >
                                 <Text
                                     sx={{
                                         color: 'greyLighter',
@@ -362,7 +365,6 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     }) => {
                                         return (
                                             <TextField
-                                                testID="sign-up-email-text-field"
                                                 value={value}
                                                 onBlur={onBlur}
                                                 keyboardType={'email-address'}
@@ -392,7 +394,10 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                 )}
                             </View>
 
-                            <View sx={{ marginBottom: 'xl' }}>
+                            <View
+                                testID="sign-up-password-text-field"
+                                sx={{ marginBottom: 'xl' }}
+                            >
                                 <Text
                                     sx={{
                                         color: 'greyLighter',
@@ -428,7 +433,6 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     }) => {
                                         return (
                                             <TextField
-                                                testID="sign-up-password-text-field"
                                                 autoCompleteType={'password'}
                                                 secureTextEntry={true}
                                                 value={value}
@@ -457,7 +461,6 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     </Text>
                                 )}
                             </View>
-
                             <TouchableOpacity
                                 onPress={handleSubmit(handleSigningInSubmit)}
                                 testID="submit-sign-up-form-button"

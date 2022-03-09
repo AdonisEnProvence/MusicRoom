@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { passwordStrengthRegex } from '@musicroom/types';
 import { createModel } from '@xstate/test';
+import { internet, random } from 'faker';
 import cases from 'jest-in-case';
 import invariant from 'tiny-invariant';
 import { createMachine, assign, EventFrom } from 'xstate';
@@ -14,6 +15,8 @@ import {
     waitFor,
     within,
     fireEvent,
+    generateStrongPassword,
+    generateWeakPassword,
 } from '../tests/tests-utils';
 
 interface TestingContext {
@@ -541,9 +544,6 @@ const authenticationModelMachine =
                                 await screen.findByTestId(
                                     'sign-up-form-screen-container',
                                 );
-                            console.log('ouiouioui', {
-                                signUpFormScreenContainer,
-                            });
                             expect(signUpFormScreenContainer).toBeTruthy();
                         },
                     },
@@ -654,7 +654,7 @@ const authenticationModelMachine =
 
                                                             await waitFor(
                                                                 () => {
-                                                                    const nicknameIsEmptyAlert =
+                                                                    const nicknameIsUnavailableAlert =
                                                                         within(
                                                                             screen.getByTestId(
                                                                                 'sign-up-nickname-text-field',
@@ -663,11 +663,11 @@ const authenticationModelMachine =
                                                                             'alert',
                                                                         );
                                                                     expect(
-                                                                        nicknameIsEmptyAlert,
+                                                                        nicknameIsUnavailableAlert,
                                                                     ).toBeTruthy();
 
                                                                     expect(
-                                                                        nicknameIsEmptyAlert,
+                                                                        nicknameIsUnavailableAlert,
                                                                     ).toHaveTextContent(
                                                                         'Nickname is unavailable',
                                                                     );
@@ -768,7 +768,7 @@ const authenticationModelMachine =
 
                                                             await waitFor(
                                                                 () => {
-                                                                    const nicknameIsEmptyAlert =
+                                                                    const passwordIsEmptyAlert =
                                                                         within(
                                                                             screen.getByTestId(
                                                                                 'sign-up-password-text-field',
@@ -777,11 +777,11 @@ const authenticationModelMachine =
                                                                             'alert',
                                                                         );
                                                                     expect(
-                                                                        nicknameIsEmptyAlert,
+                                                                        passwordIsEmptyAlert,
                                                                     ).toBeTruthy();
 
                                                                     expect(
-                                                                        nicknameIsEmptyAlert,
+                                                                        passwordIsEmptyAlert,
                                                                     ).toHaveTextContent(
                                                                         'This field is required',
                                                                     );
@@ -803,7 +803,7 @@ const authenticationModelMachine =
 
                                                             await waitFor(
                                                                 () => {
-                                                                    const nicknameIsEmptyAlert =
+                                                                    const passwordIsWeakAlert =
                                                                         within(
                                                                             screen.getByTestId(
                                                                                 'sign-up-password-text-field',
@@ -812,11 +812,11 @@ const authenticationModelMachine =
                                                                             'alert',
                                                                         );
                                                                     expect(
-                                                                        nicknameIsEmptyAlert,
+                                                                        passwordIsWeakAlert,
                                                                     ).toBeTruthy();
 
                                                                     expect(
-                                                                        nicknameIsEmptyAlert,
+                                                                        passwordIsWeakAlert,
                                                                     ).toHaveTextContent(
                                                                         'Password is too weak',
                                                                     );
@@ -917,7 +917,7 @@ const authenticationModelMachine =
 
                                                             await waitFor(
                                                                 () => {
-                                                                    const nicknameIsEmptyAlert =
+                                                                    const emailIsEmptyAlert =
                                                                         within(
                                                                             screen.getByTestId(
                                                                                 'sign-up-email-text-field',
@@ -926,11 +926,11 @@ const authenticationModelMachine =
                                                                             'alert',
                                                                         );
                                                                     expect(
-                                                                        nicknameIsEmptyAlert,
+                                                                        emailIsEmptyAlert,
                                                                     ).toBeTruthy();
 
                                                                     expect(
-                                                                        nicknameIsEmptyAlert,
+                                                                        emailIsEmptyAlert,
                                                                     ).toHaveTextContent(
                                                                         'This field is required',
                                                                     );
@@ -952,7 +952,7 @@ const authenticationModelMachine =
 
                                                             await waitFor(
                                                                 () => {
-                                                                    const nicknameIsEmptyAlert =
+                                                                    const emailIsInvalidAlert =
                                                                         within(
                                                                             screen.getByTestId(
                                                                                 'sign-up-email-text-field',
@@ -961,11 +961,11 @@ const authenticationModelMachine =
                                                                             'alert',
                                                                         );
                                                                     expect(
-                                                                        nicknameIsEmptyAlert,
+                                                                        emailIsInvalidAlert,
                                                                     ).toBeTruthy();
 
                                                                     expect(
-                                                                        nicknameIsEmptyAlert,
+                                                                        emailIsInvalidAlert,
                                                                     ).toHaveTextContent(
                                                                         'Email is not valid',
                                                                     );
@@ -987,7 +987,7 @@ const authenticationModelMachine =
 
                                                             await waitFor(
                                                                 () => {
-                                                                    const nicknameIsEmptyAlert =
+                                                                    const emailIsUnavailableAlert =
                                                                         within(
                                                                             screen.getByTestId(
                                                                                 'sign-up-email-text-field',
@@ -996,11 +996,11 @@ const authenticationModelMachine =
                                                                             'alert',
                                                                         );
                                                                     expect(
-                                                                        nicknameIsEmptyAlert,
+                                                                        emailIsUnavailableAlert,
                                                                     ).toBeTruthy();
 
                                                                     expect(
-                                                                        nicknameIsEmptyAlert,
+                                                                        emailIsUnavailableAlert,
                                                                     ).toHaveTextContent(
                                                                         'Email is unavailable',
                                                                     );
@@ -1039,10 +1039,11 @@ const authenticationModelMachine =
                                 },
                             },
                             onDone: {
-                                target: '#Authentication model.Rendering signing up screen.Signing up form submitted successfully',
+                                target: '#Authentication model.Rendering signing up screen.Sign up form submitted successfully',
                             },
                         },
-                        'Signing up form submitted successfully': {
+
+                        'Sign up form submitted successfully': {
                             type: 'final',
                             //meta check redirection to home
                         },
@@ -1089,16 +1090,21 @@ const authenticationModelMachine =
                 },
 
                 'Sign up password field is empty': ({ signUpPassword }) => {
-                    return signUpPassword !== '';
+                    return (
+                        signUpPassword === '' || signUpPassword === undefined
+                    );
                 },
                 'Sign up password field is weak': ({ signUpPassword }) => {
-                    return passwordStrengthRegex.test(signUpPassword);
+                    return !passwordStrengthRegex.test(signUpPassword);
                 },
                 'Sign up email field is empty': ({ signUpEmail }) => {
-                    return signUpEmail === '';
+                    return signUpEmail === '' || signUpEmail === undefined;
                 },
                 'Sign up email is invalid': ({ signUpEmail }) => {
-                    return z.string().max(255).email().check(signUpEmail);
+                    const isSignUpEmailInvalid =
+                        z.string().max(255).email().check(signUpEmail) ===
+                        false;
+                    return isSignUpEmailInvalid;
                 },
                 //Not sure about the following
                 'Sign up email is unavailable': ({ signUpEmail }) => {
@@ -1116,7 +1122,9 @@ const authenticationModelMachine =
                     return false;
                 },
                 'Sign up nickname field is empty': ({ signUpNickname }) => {
-                    return signUpNickname !== '';
+                    return (
+                        signUpNickname === '' || signUpNickname === undefined
+                    );
                 },
                 'Sign up nickname field is unavailable': ({
                     signUpNickname,
@@ -1326,214 +1334,248 @@ const authenticationModel = createModel<TestingContext>(
 
 //Signing in tests
 // Should we separate jest in case definition into specific files ?
-// cases<{
-//     target:
-//         | 'Rendering signing screen'
-//         | {
-//               'Rendering signing screen': {
-//                   'Filling credentials':
-//                       | {
-//                             'Filling fields': {
-//                                 'Filling email':
-//                                     | 'Idle'
-//                                     | {
-//                                           Invalid:
-//                                               | 'Email is empty'
-//                                               | 'Email is invalid';
-//                                       }
-//                                     | 'Valid';
-//                                 'Filling password':
-//                                     | 'Idle'
-//                                     | {
-//                                           Invalid: 'Password is empty';
-//                                       }
-//                                     | 'Valid';
-//                             };
-//                         }
-//                       | 'Filled fields';
-//                   'Rendering server error':
-//                       | 'Idle'
-//                       | 'Display error'
-//                       | 'Submitted successfully';
-//               };
-//           }
-//         | 'Rendering home screen';
-//     events: EventFrom<typeof authenticationModelMachine>[];
-// }>(
-//     'Authentication',
-//     async ({ target, events }) => {
-//         db.authenticationUser.create(existingUser);
+cases<{
+    target:
+        | 'Rendering signing screen'
+        | {
+              'Rendering signing screen': {
+                  'Filling credentials':
+                      | {
+                            'Filling fields': {
+                                'Filling email':
+                                    | 'Idle'
+                                    | {
+                                          Invalid:
+                                              | 'Email is empty'
+                                              | 'Email is invalid';
+                                      }
+                                    | 'Valid';
+                                'Filling password':
+                                    | 'Idle'
+                                    | {
+                                          Invalid: 'Password is empty';
+                                      }
+                                    | 'Valid';
+                            };
+                        }
+                      | 'Filled fields';
+                  'Rendering server error':
+                      | 'Idle'
+                      | 'Display error'
+                      | 'Submitted successfully';
+              };
+          }
+        | 'Rendering home screen';
+    events: EventFrom<typeof authenticationModelMachine>[];
+}>(
+    'Authentication',
+    async ({ target, events }) => {
+        db.authenticationUser.create(existingUser);
 
-//         const plan = authenticationModel.getPlanFromEvents(events, { target });
+        const plan = authenticationModel.getPlanFromEvents(events, { target });
 
-//         await plan.test({
-//             screen: undefined,
-//         });
-//     },
-//     {
-//         'Renders signing in screen if user is not authenticated': {
-//             target: 'Rendering signing screen',
-//             events: [
-//                 {
-//                     type: 'Make user unauthenticated and render application',
-//                 },
-//             ],
-//         },
-//         'Displays an error when the filled email is empty': {
-//             target: {
-//                 'Rendering signing screen': {
-//                     'Filling credentials': {
-//                         'Filling fields': {
-//                             'Filling email': {
-//                                 Invalid: 'Email is empty',
-//                             },
-//                             'Filling password': 'Valid',
-//                         },
-//                     },
-//                     'Rendering server error': 'Idle',
-//                 },
-//             },
-//             /**
-//              * Type on signing in password field must be before Type on signing in email field,
-//              * otherwise the machine is not able to handle Type on signing in email field event.
-//              * I do not understand why.
-//              */
-//             events: [
-//                 {
-//                     type: 'Make user unauthenticated and render application',
-//                 },
-//                 {
-//                     type: 'Type on signing in password field',
-//                     password: existingUser.password,
-//                 },
-//                 {
-//                     type: 'Type on signing in email field',
-//                     email: '',
-//                 },
-//                 {
-//                     type: 'Submit signing in form',
-//                 },
-//             ],
-//         },
-//         'Displays an error when the filled email is invalid': {
-//             target: {
-//                 'Rendering signing screen': {
-//                     'Filling credentials': {
-//                         'Filling fields': {
-//                             'Filling email': {
-//                                 Invalid: 'Email is invalid',
-//                             },
-//                             'Filling password': 'Valid',
-//                         },
-//                     },
-//                     'Rendering server error': 'Idle',
-//                 },
-//             },
-//             events: [
-//                 {
-//                     type: 'Make user unauthenticated and render application',
-//                 },
-//                 {
-//                     type: 'Type on signing in email field',
-//                     email: '-- invalid email --',
-//                 },
-//                 {
-//                     type: 'Type on signing in password field',
-//                     password: existingUser.password,
-//                 },
-//                 {
-//                     type: 'Submit signing in form',
-//                 },
-//             ],
-//         },
-//         'Displays an error when the filled password is empty': {
-//             target: {
-//                 'Rendering signing screen': {
-//                     'Filling credentials': {
-//                         'Filling fields': {
-//                             'Filling email': 'Valid',
-//                             'Filling password': {
-//                                 Invalid: 'Password is empty',
-//                             },
-//                         },
-//                     },
-//                     'Rendering server error': 'Idle',
-//                 },
-//             },
-//             events: [
-//                 {
-//                     type: 'Make user unauthenticated and render application',
-//                 },
-//                 {
-//                     type: 'Type on signing in email field',
-//                     email: existingUser.email,
-//                 },
-//                 {
-//                     type: 'Type on signing in password field',
-//                     password: '',
-//                 },
-//                 {
-//                     type: 'Submit signing in form',
-//                 },
-//             ],
-//         },
-//         'Fails to sign in user when provided credentials do not exist': {
-//             target: {
-//                 'Rendering signing screen': {
-//                     'Filling credentials': 'Filled fields',
-//                     'Rendering server error': 'Display error',
-//                 },
-//             },
-//             events: [
-//                 {
-//                     type: 'Make user unauthenticated and render application',
-//                 },
-//                 {
-//                     type: 'Type on signing in email field',
-//                     email: 'not-existing@gmail.com',
-//                 },
-//                 {
-//                     type: 'Type on signing in password field',
-//                     password: 'not existing',
-//                 },
-//                 {
-//                     type: 'Submit signing in form',
-//                 },
-//             ],
-//         },
-//         'Signs in with valid credentials': {
-//             target: 'Rendering home screen',
-//             events: [
-//                 {
-//                     type: 'Make user unauthenticated and render application',
-//                 },
-//                 {
-//                     type: 'Type on signing in email field',
-//                     email: existingUser.email,
-//                 },
-//                 {
-//                     type: 'Type on signing in password field',
-//                     password: existingUser.password,
-//                 },
-//                 {
-//                     type: 'Submit signing in form',
-//                 },
-//             ],
-//         },
-//         'Redirects to home screen if user is already authenticated': {
-//             target: 'Rendering home screen',
-//             events: [
-//                 {
-//                     type: 'Make user authenticated and render application',
-//                 },
-//             ],
-//         },
-//     },
-// );
+        await plan.test({
+            screen: undefined,
+        });
+    },
+    {
+        'Renders signing in screen if user is not authenticated': {
+            target: 'Rendering signing screen',
+            events: [
+                {
+                    type: 'Make user unauthenticated and render application',
+                },
+            ],
+        },
+        'Displays an error when the filled email is empty': {
+            target: {
+                'Rendering signing screen': {
+                    'Filling credentials': {
+                        'Filling fields': {
+                            'Filling email': {
+                                Invalid: 'Email is empty',
+                            },
+                            'Filling password': 'Valid',
+                        },
+                    },
+                    'Rendering server error': 'Idle',
+                },
+            },
+            /**
+             * Type on signing in password field must be before Type on signing in email field,
+             * otherwise the machine is not able to handle Type on signing in email field event.
+             * I do not understand why.
+             */
+            events: [
+                {
+                    type: 'Make user unauthenticated and render application',
+                },
+                {
+                    type: 'Type on signing in password field',
+                    password: existingUser.password,
+                },
+                {
+                    type: 'Type on signing in email field',
+                    email: '',
+                },
+                {
+                    type: 'Submit signing in form',
+                },
+            ],
+        },
+        'Displays an error when the filled email is invalid': {
+            target: {
+                'Rendering signing screen': {
+                    'Filling credentials': {
+                        'Filling fields': {
+                            'Filling email': {
+                                Invalid: 'Email is invalid',
+                            },
+                            'Filling password': 'Valid',
+                        },
+                    },
+                    'Rendering server error': 'Idle',
+                },
+            },
+            events: [
+                {
+                    type: 'Make user unauthenticated and render application',
+                },
+                {
+                    type: 'Type on signing in email field',
+                    email: '-- invalid email --',
+                },
+                {
+                    type: 'Type on signing in password field',
+                    password: existingUser.password,
+                },
+                {
+                    type: 'Submit signing in form',
+                },
+            ],
+        },
+        'Displays an error when the filled password is empty': {
+            target: {
+                'Rendering signing screen': {
+                    'Filling credentials': {
+                        'Filling fields': {
+                            'Filling email': 'Valid',
+                            'Filling password': {
+                                Invalid: 'Password is empty',
+                            },
+                        },
+                    },
+                    'Rendering server error': 'Idle',
+                },
+            },
+            events: [
+                {
+                    type: 'Make user unauthenticated and render application',
+                },
+                {
+                    type: 'Type on signing in email field',
+                    email: existingUser.email,
+                },
+                {
+                    type: 'Type on signing in password field',
+                    password: '',
+                },
+                {
+                    type: 'Submit signing in form',
+                },
+            ],
+        },
+        'Fails to sign in user when provided credentials do not exist': {
+            target: {
+                'Rendering signing screen': {
+                    'Filling credentials': 'Filled fields',
+                    'Rendering server error': 'Display error',
+                },
+            },
+            events: [
+                {
+                    type: 'Make user unauthenticated and render application',
+                },
+                {
+                    type: 'Type on signing in email field',
+                    email: 'not-existing@gmail.com',
+                },
+                {
+                    type: 'Type on signing in password field',
+                    password: 'not existing',
+                },
+                {
+                    type: 'Submit signing in form',
+                },
+            ],
+        },
+        'Signs in with valid credentials': {
+            target: 'Rendering home screen',
+            events: [
+                {
+                    type: 'Make user unauthenticated and render application',
+                },
+                {
+                    type: 'Type on signing in email field',
+                    email: existingUser.email,
+                },
+                {
+                    type: 'Type on signing in password field',
+                    password: existingUser.password,
+                },
+                {
+                    type: 'Submit signing in form',
+                },
+            ],
+        },
+        'Redirects to home screen if user is already authenticated': {
+            target: 'Rendering home screen',
+            events: [
+                {
+                    type: 'Make user authenticated and render application',
+                },
+            ],
+        },
+    },
+);
 
 //Sign up tests
 cases<{
-    target: 'Rendering signing up screen';
+    target:
+        | 'Rendering signing up screen'
+        | {
+              'Rendering signing up screen':
+                  | {
+                        'Filling credentials': {
+                            'Filling user nickname':
+                                | 'Idle'
+                                | {
+                                      Invalid:
+                                          | 'Nickname is empty'
+                                          | 'Nickname is unavailable';
+                                  }
+                                | 'Valid';
+                            'Filling user email':
+                                | 'Idle'
+                                | {
+                                      Invalid:
+                                          | 'Email is empty'
+                                          | 'Email is unavailable'
+                                          | 'Email is invalid';
+                                  }
+                                | 'Valid';
+                            'Filling user password':
+                                | 'Idle'
+                                | {
+                                      Invalid:
+                                          | 'Password is empty'
+                                          | 'Password is weak';
+                                  }
+                                | 'Valid';
+                        };
+                    }
+                  | 'Sign up form submitted successfully';
+          };
     events: EventFrom<typeof authenticationModelMachine>[];
 }>(
     'Authentication',
@@ -1555,6 +1597,174 @@ cases<{
                 },
                 {
                     type: 'Press button to go to sign up screen',
+                },
+            ],
+        },
+        'Fail to sign up as every fields are empty': {
+            target: {
+                'Rendering signing up screen': {
+                    'Filling credentials': {
+                        'Filling user nickname': {
+                            Invalid: 'Nickname is empty',
+                        },
+                        'Filling user email': {
+                            Invalid: 'Email is empty',
+                        },
+                        'Filling user password': {
+                            Invalid: 'Password is empty',
+                        },
+                    },
+                },
+            },
+            events: [
+                {
+                    type: 'Make user unauthenticated and render application',
+                },
+                {
+                    type: 'Press button to go to sign up screen',
+                },
+                {
+                    type: 'Submit sign up form',
+                },
+            ],
+        },
+        'Fail to sign up as both email and nickname are unavailable': {
+            target: {
+                'Rendering signing up screen': {
+                    'Filling credentials': {
+                        'Filling user email': {
+                            Invalid: 'Email is unavailable',
+                        },
+                        'Filling user nickname': {
+                            Invalid: 'Nickname is unavailable',
+                        },
+                        'Filling user password': 'Valid',
+                    },
+                },
+            },
+            events: [
+                {
+                    type: 'Make user unauthenticated and render application',
+                },
+                {
+                    type: 'Press button to go to sign up screen',
+                },
+                {
+                    type: 'Type on sign up user password field',
+                    password: generateStrongPassword(),
+                },
+                {
+                    type: 'Type on sign up user email field',
+                    email: existingUser.email,
+                },
+                {
+                    type: 'Type on sign up user nickname field',
+                    nickname: existingUser.nickname,
+                },
+                {
+                    type: 'Submit sign up form',
+                },
+            ],
+        },
+        'Fail to sign up as password is too weak': {
+            target: {
+                'Rendering signing up screen': {
+                    'Filling credentials': {
+                        'Filling user email': 'Valid',
+                        'Filling user nickname': 'Valid',
+                        'Filling user password': {
+                            Invalid: 'Password is weak',
+                        },
+                    },
+                },
+            },
+            events: [
+                {
+                    type: 'Make user unauthenticated and render application',
+                },
+                {
+                    type: 'Press button to go to sign up screen',
+                },
+                {
+                    type: 'Type on sign up user password field',
+                    password: generateWeakPassword(),
+                },
+                {
+                    type: 'Type on sign up user email field',
+                    email: internet.email(),
+                },
+                {
+                    type: 'Type on sign up user nickname field',
+                    nickname: internet.userName(),
+                },
+                {
+                    type: 'Submit sign up form',
+                },
+            ],
+        },
+        'Fail to sign up as email is invalid': {
+            target: {
+                'Rendering signing up screen': {
+                    'Filling credentials': {
+                        'Filling user email': {
+                            Invalid: 'Email is invalid',
+                        },
+                        'Filling user nickname': 'Valid',
+                        'Filling user password': 'Valid',
+                    },
+                },
+            },
+            events: [
+                {
+                    type: 'Make user unauthenticated and render application',
+                },
+                {
+                    type: 'Press button to go to sign up screen',
+                },
+                {
+                    type: 'Type on sign up user password field',
+                    password: generateStrongPassword(),
+                },
+                {
+                    type: 'Type on sign up user email field',
+                    email: internet.email().replace('@', random.word()),
+                },
+                {
+                    type: 'Type on sign up user nickname field',
+                    nickname: internet.userName(),
+                },
+                {
+                    type: 'Submit sign up form',
+                },
+            ],
+        },
+        //TODO unkown error
+        'Signed up successfully': {
+            target: {
+                'Rendering signing up screen':
+                    'Sign up form submitted successfully',
+            },
+            events: [
+                {
+                    type: 'Make user unauthenticated and render application',
+                },
+                {
+                    type: 'Press button to go to sign up screen',
+                },
+                {
+                    type: 'Type on sign up user password field',
+                    password: generateStrongPassword(),
+                },
+                {
+                    type: 'Type on sign up user email field',
+                    email: internet.email(),
+                },
+                {
+                    type: 'Type on sign up user nickname field',
+                    nickname: internet.userName(),
+                },
+                {
+                    type: 'Submit sign up form',
                 },
             ],
         },

@@ -689,8 +689,8 @@ export const handlers = [
 
     rest.get<never, never>(
         `${SERVER_ENDPOINT}/authentication/me`,
-        (_req, res, ctx) => {
-            const authenticationToken = localStorage.getItem('token');
+        (req, res, ctx) => {
+            const authenticationToken = req.headers.get('authorization');
             if (authenticationToken === null) {
                 return res(ctx.status(403));
             }
@@ -718,13 +718,11 @@ export const handlers = [
                 return res(ctx.status(404));
             }
 
-            localStorage.setItem('token', 'token');
-
             return res(
                 ctx.status(200),
                 ctx.json({
                     status: 'SUCCESS',
-                    token: '',
+                    token: 'token',
                     userSummary: {
                         nickname: '',
                         userID: user.uuid,

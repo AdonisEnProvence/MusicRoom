@@ -333,8 +333,6 @@ beforeEach(async () => {
     });
 
     await AsyncStorage.clear();
-    // TODO: Remove
-    localStorage.clear();
 });
 
 // jest.spyOn(console, 'warn').mockImplementation();

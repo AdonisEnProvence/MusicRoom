@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import invariant from 'tiny-invariant';
 import {
     ContextFrom,
@@ -8,6 +9,7 @@ import {
 } from 'xstate';
 import { SocketClient } from '../contexts/SocketContext';
 import { getMe, sendSignIn } from '../services/AuthenticationService';
+import { request } from '../services/http';
 import { appModel } from './appModel';
 import { createAppMusicPlayerMachine } from './appMusicPlayerMachine';
 import { createAppMusicPlaylistsMachine } from './appMusicPlaylistsMachine';
@@ -45,9 +47,25 @@ export function createAppMachine({
         {
             id: 'app',
 
-            initial: 'fetchingInitialUserAuthenticationState',
+            initial: 'loadingAuthenticationTokenFromAsyncStorage',
 
             states: {
+                loadingAuthenticationTokenFromAsyncStorage: {
+                    always: {
+                        cond: 'isOnWeb',
+
+                        target: 'fetchingInitialUserAuthenticationState',
+                    },
+
+                    invoke: {
+                        src: 'loadAuthenticationTokenFromAsyncStorage',
+
+                        onDone: {
+                            target: 'fetchingInitialUserAuthenticationState',
+                        },
+                    },
+                },
+
                 fetchingInitialUserAuthenticationState: {
                     tags: 'showApplicationLoader',
 
@@ -235,6 +253,10 @@ export function createAppMachine({
                         password,
                     });
                 },
+
+                loadAuthenticationTokenFromAsyncStorage: async () => {
+                    await request.loadToken();
+                },
             },
 
             actions: {
@@ -242,6 +264,10 @@ export function createAppMachine({
                     socket.disconnect();
                     socket.connect();
                 },
+            },
+
+            guards: {
+                isOnWeb: () => Platform.OS === 'web',
             },
         },
     );

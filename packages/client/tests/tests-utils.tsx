@@ -1,5 +1,6 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { MtvRoomUsersListElement } from '@musicroom/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
     render as rtlRender,
     RenderAPI,
@@ -91,8 +92,8 @@ export function render(
     };
 }
 
-export function authenticateUser(): void {
-    localStorage.setItem('token', 'token');
+export async function authenticateUser(): Promise<void> {
+    await AsyncStorage.setItem('auth-token', 'token');
 }
 
 /**
@@ -101,7 +102,7 @@ export function authenticateUser(): void {
 export async function renderApp(
     options?: RenderOptions,
 ): Promise<RenderAPI & { serverSocket: ServerSocket }> {
-    authenticateUser();
+    await authenticateUser();
 
     const screen = render(
         <Navigation colorScheme="dark" toggleColorScheme={noop} />,

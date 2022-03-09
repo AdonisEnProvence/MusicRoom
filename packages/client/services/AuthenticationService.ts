@@ -71,7 +71,7 @@ async function sendSignInApi({
         response.data,
     );
 
-    console.log('store token', parsedResponse.token);
+    await request.persistToken(parsedResponse.token);
 
     return parsedResponse;
 }

@@ -22,7 +22,7 @@ interface TestingContext {
 const existingUser = generateAuthenticationUser();
 
 const authenticationModelMachine =
-    /** @xstate-layout N4IgpgJg5mDOIC5QEECuAXAFmAduglgMYCGBA9jgAQC2ZEYANgHQCSO+BxD+AXqfhQDEAWWIBrMJVSwwAJ0rEM2PEVKQFOCJVm5684gAcD3EuRyJQBsrA4DzSEAA9EAZgCsATiYBGAOy+XADYAJhcAFmCwgAZAqN8AGhAAT0QAWl8fDw8ADm9ctzdfDxCPMIBfMsS0LFwCUzsaOkZWdk5uPjMRcUlpOSkcRRqVU3ViTW1dPsNjVTMLECsbOYdnBFTvYK9stxcPfzco7Oywo8DElIRgtzCmaPCXbJcnk+Ds4IqqpVrZhtp6ZgASpNZPgcFBKDYoOwwRDCDpcEwAGL4BjcGFwyDfLiwJEotHggBm+EYEBxyNRoPBYGoxBRggAyqgAEbUDgQ-BQymUUGUAlkWTUeaLWwUearbzeFxMB5RYKBMIeGK7bIec6IbxuR5MKIPDzBXy5bJRNwhD4garKOr8CiNf5MIGaORcyHQ8GwDEI8n4ygY+gqbG4ikwokksl4rnU2kMQQAFSSBkkNpdXJ5kZRvOJDAgQusIvsoFWHm8gSYgV2cV1gVikrVCGLcqYvjCmsCbjlRzybjNFu+9Rtf2aDr0zo5rth8Jwge9vqxDDDQcJmdJU65BmIsFgAHd+RAGczWeh2ZyYTy+QKc0s7GL1Q3JWFYr4q9lH7LgrXgvq3EwTa9coFn74OzlJU5pfMM1pUAOgLAiOx5uh6k5elyM7+nOK7Bku87emuG7brIu5xgmlBJqOKZUDhW47hmJIXnm14IB4bjeKWAQqh4Ty-oE3jvu42TfmELiPsceq7O8IE9uBZi2oOMEwsmckIeh4IoW0WFciGWawIIEAUGATCwOgahMBJVpSVB9qyW6pEKROSk+jofqqXZGmkrRywFuquxSjkvGbAaeSAbWeStkwxxMfKvjFhqoTdmBpm-E00GOiCcnWfBtlIeiDmzmpGGhl0EhHmOPI6AAjqgcCHgSUZuVeKyeVk2oHOxxSBAE-hBQJX7eBW7Emi4kSvLFQzxf2iUWclsFju6tlDk6clyAAbn0ciyPye4smy8ngqe-KCg4wruU4rhRMxWRZLKvHbD1bi1oUZ2eAc3jRG8gHDZaPxjXac0pVZcHjmAuDabp+mGegekmZ9kHjT9U3OghtWivVDGytKxpHJ4RxNrdySIMExqlhq8oqs8kSMRUIE4E08AOJDfbQ3abC2FwvAQYj+bHQgYTMUJbx7K2fhXGEtZeIcRqvAJp0RQU729hB0lJcOMKYGQ1CSDNgMc4ddUeXWp3BKFeT3oExSvu4tapCF-k9b4mylIxZay5JCXfZZRXwxl4ZZZiqG5YuoZ2WmzAsBADBgOz9E9cxxY5Bq7gmqUrydVWoWAa1JyvsBnwjVDCsTUrf3TYpmXKdlvvOZhgc0iiLSLSzEBMAAotXDDcrAlDUgY6AXJYuZHassQlu4kVvFECrRIcQXylEpb-veYQL7KbxO6NDMyZNqX-Rrnpe6XPtOSX1GaVXUa1-XTct233I4HX3DZgdfc65zsRfm1LhRHES8qs2QUj427HvzLFxXwxos6gRzvTPOsNN5F09guey+98ABkPi5P2HcW5nzvhHZGmpmJvw-iA38pQcYXCJhkNqacFTeHticFeudzLQMLh7TWdkVJILQigyuh8g5MAAGr12wbrTU3UFR7E2BKE0ZxcZ1iNCWW2VxGKeEOGEXwdDIEMLdttAGO94FsOQbvI+y5uEt0EZzfwPgTb5HjibCI2QgoPGYhjKWzVCFiWzh9dRMNNFpW0YhAxeiOEGNQXZCieEG4hzDqY1Y2xvz4weO4CUEoYgkLxsWGeS8iw5GuDkZsaj5YaI3kwmyLDD4BLQcEw+oSdyYPwA3AACuuSi+Er6d27lExAJo8EgICJLB42x3ybBntEJsgy2q5DyWZLxhT3bFJ0dOMuB8glcIMVU-CNT7690vEjIRgkWIVl6RjAZfhbjFmbN00orYuziTivQqZBcZnpRKf4hZ7DynLPgashu-CsEPy2RzVYhQpThEOMECUjE-AuHfCcZiC9v6vTvG9a5ED8l3PmkUx5czkIvP0fAipKzGlhPaQgLisSdSPCYok5J744hfjJRIseA0JQTJduve5Wjt5+N0diwJuLMJEt2W2MlCTKWtnsYcUKpRjR6ifAUK57i5aTNdtM9lxdnmIJxWHLQqCiXFmuBY64sqYgmx2EFI4WwBKRCEqC7YzKvqsrRQ83xrDuU002XRZGkpSXxIpUkgWQVQhfkVC4Hq+NIgfyOLateisHUqtmpopaK1ZBrVkKwUO4dfnut1oBWJz0-CAR6kEbi0iTQz3CPPFR-5IjZECJGqB3it6KUYRCBN8hVr8iYAAEXwLAYwxAkgdyTfyIlRYYUxEOJ4Ks1wDS1n-DPa1cczV6jlLWgpbKfEcvzjGltA7k1MEZJtdA4MtCwFQIQQgcBYAElQKiHuCxH7bM5oxLwuw9jnQ1P4B4QVZQzx2DENJBQ5RxBXai36jqN1NpkLIZarbB2yCJUxHN3N9gFq4rWFRX53CCUEpKYoeoF7AaVWuhtE4iXrCGUULixMjgkwVGh1GQRfwaj8J0gjjBSNx1CjsPYgExYnGrRbSUfF-D40lAEahxxVEUyAA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QEECuAXAFmAduglgMYCGBA9jgAQC2ZEYANgHQCSO+BxD+AXqfhQDEAWWIBrMJVSwwAJ0rEM2PEVKQFOCJVm5684gAcD3EuRyJQBsrA4DzSEAA9EAZgCsATiYBGAOy+XADYAJhcAFmCwgAZAqN8AGhAAT0QAWl8fDw8ADm9ctzdfDxCPMIBfMsS0LFwCUzsaOkZWdk5uPjMRcUlpOSkcRRqVU3ViTW1dPsNjVTMLECsbOYdnBFTvYK9stxcPfzco7Oywo8DElIRgtzCmaPCXbJcnk+Ds4IqqpVrZhtp6ZgASpNZPgcFBKDYoOwwRDCDpcEwAGL4BjcGFwyDfLiwJEotHggBm+EYEBxyNRoPBYGoxBRggAyqgAEbUDgQ-BQymUUGUAlkWTUeaLWwUearbzeFxMB5RYKBMIeGK7bIec6IbxuR5MKIPDzBXy5bJRNwhD4garKOr8CiNf5MIGaORcyHQ8GwDEI8n4ygY+gqbG4ikwokksl4rnU2kMQQAFSSBkkNpdXJ5kZRvOJDAgQusIvsoFWHm8gSYgV2cV1gVikrVCGLcqYvjCmsCbjlRzybjNFu+9Rtf2aDr0zo5rth8Jwge9vqxDDDQcJmdJU65BmIsFgAHd+RAGczWeh2ZyYTy+QKc0s7GL1Q3JWFYr4q9lH7LgrXgvq3EwTa9coFn74OzlJU5pfMM1pUAOgLAiOx5uh6k5elyM7+nOK7Bku87emuG7brIu5xgmlBJqOKZUDhW47hmJIXnm14IB4bjeKWAQqh4Ty-oE3jvu42TfmELiPsceq7O8IE9uBZi2oOMEwsmckIeh4IoW0WFciGWawIIEAUGATCwOgahMBJVpSVB9qyW6pEKROSk+jofqqXZGmkrRywFuquxSjkvGbAaeSAbWeStkwxxMfKvjFhqoTdmBpm-E00GOiCcnWfBtlIeiDmzmpGGhl0EhHmOPI6AAjqgcCHgSUZuVeKyeVk2oHOxxSBAE-hBQJX7eBW7Emi4kSvLFQzxf2iUWclsFju6tlDk6clyAAbn0ciyPye4smy8ngqe-KCg4wruU4rhRMxWRZLKvHbD1bi1oUZ2eAc3jRG8gHDZaPxjXac0pVZcHjmAuDabp+mGegekmZ9kHjT9U3OghtWivVDGytKxpHJ4RxNrdySIMExqlhq8oqs8kSMe9vYQdJSXDql-0zYDOCCAAqjI8gGDoG7qFAZCUOgvMulIBi8ntAO4Ij+bHWsGyhfKrwBMWKoBGcuOXP+Jaar4H743sGpduJcVQ9TE2039Y6oMLDOeuGWWYqhuXgr08jsIQYgDNQYAbQeBB0+bwtnvtli5kdqzNnxz2CQqxp+M92S1i4EpREwcqPnqAlGmEj4U5JCXfZZRVchbYuITbynZfbdlO5QLtu8QHuxvGiZUNtQtSGz1dELXHvUVmEv0RjtwDVW7YPkE8fPUnBRBGEEStjqgTZ6N0N55NvuF5bimZWXdtOUSC5t30FF4bujKbegPtm+vIvngdwd1R5CACUnRTZK2Ov-pKxa1hEirSuF2w6kVG9A2I0jbmVhmvGERcrYl33ipfAAY97eirkfHcDciIkX+kXFB65KL4R7tmW+l4kYP22CWPY2M4iamKPqb+QQvz6m8IqHq0RSjeEXmAmG+cW7QM3qXeyO8EFoSQYXduaZoyn29nDKB-s9p92RjPYI2o2rPT8H1HYxR47yi2JqTY-4rgBEiBwvsy8ZKr0vjI4udl4GIP4VXcR6Cm4F0sfYmk6YXLyIfkWJR8oHiPGCEwzY8cAheCEuEDYuwmJ5GMVTcB3C0qtxgdY8uqlgY4D0gZIykMTHGwgRYx2G8Mr8JsXOTxUtJRGlLMaIsTE4ihGuMEw4jYNT3ieAaIIVwKggRwE0eADhsmxPGmwWwXBeAQTKaHZiQk3h7FbH4K4YRaxeEOEaV4T9iyZwKDEsyXDzGUEwGQbuMCJnqlOkow095AjFFfO4WsqQQr+R6lrLICp+rbNzmY02zj0qM2SYIgMW8CEO0oOI1gEAGBgBOXWU6Pgrn5HcCaUorxOpVlCoBVqJxXzAU+KAnJcS9ktySYCkpwKXLAtBWwRaoyIBMAAKJuIYNyWAILqAGHQBcIOxDJarFiCWdwkU3hRAVNEQ4QV5RJyfPeGe0RXhiRxR9PFuyvmEr4XAlJQjSWYTshSnAVLuA0vpVGJl3JdXUqhbEL8bUXBRDiLKI4pQcYXBjnxIoTwlRcV8MabFoFcWDJXsqhJRLinqoBfwsl2qGUtD1fgQhnK6LI01MxK1NrPW-gdUFE0GQrmRQKIqa1Yd3lfU+fNfJVjiUhrQoC8NgLQUADUzVEPjQ-TU3UFR7E2BKE0KsnVGhLFrK4jFPCHEzoW0xNMS3fLLcG-5law1aprQyqF-hYU5A1Aiq5EQ46qwqWdIVrYig-2fNkUduT4n01VdOCtmrQx2VQfhMFEKoXbG-PjB47gJSJ1bO+YsSc7VFhyNcHIzYT34oDeeopaqZ3Xs0re3Bx8o3UqYAABTg1RfAzLqRso5QsO+JCpYmiTZ6gIT8-GOrxpsJO0QmwUbarkEDSqJ0qog5eqDzl538LvTSylDa40h0QDsLNRH7g6gxu+AJGQBJcXxjsY0yt6P+sY4Gi9yEr1sZvYCzjTB636qhYUKU4RDgBKYUxAI74TjMRniqF4kVwjAPlZTHZCnfqTqDZBxyGq1MwY06h-C5rmJthE++j9MQyOXCoU1R8EoE7+BOPJ4tzmmO-PLaxqtmEoWCRfYFqJn7QuSiaexZ4pRZPhTi+OhLSnmMqZS3idQZKoXFmuLC64BQDhVkYi4IK9rQoCUiEJAJ2xSsm0U+BpL073PYnq1KALb7ss9TmUFepTBihMLyDa0odmfUKr9fF6RPyER5IhEtFasg1qyAfZCxtfGECARfao-YPUgjcVViaJO4QpWZ30ScBeICtuOZ25Avbk4Dts2WvIVa-ImAABF0PGGIEkEFJ3+RQqLBZmIhxPBVmuAaWs-4k79bXfavUcpBvA4q784HR2weI7O5Ijg4MtCwFQIQQgcBYAElQKibDh175S0Yl4XYexzoan8A8IKspJ7Wq4hatsD4SdnumopCnshQcI9O7p-zASwh+EAg9ri38buCQGv4OImPiguDlwSsn4tLs89WOsSjRQpcnCOCTBU39UbRCYVEdiACiMW7A37KdbmcqV3bjXd2ekWDgou7x23iBf6XLbSca4uxFmq2tU8aU-hvHsTlA8f3w3A+uZY+N2d+8q7h7rnpbTMb6vPuLANQobZjgSnjl5ZO4VPA9VKObn7DmPlld24k5TttS-Aor53CPCH9VMAAHKT6r8azD7L6s2tu8qWpngmyqnT8FRsmd2I5pta8fW9mc5FsHwD4flXR8h8BRP12U-uMz-n4-xf6H+jECpSiYgTJH027w3FDXzbElAAxuj2Dd3T1eClEikP0eEAjtQL3KywUKVG2DwrnvzDwXw9mn1rwAO5UQEfHXzAOqW33HklEbEfAeCbGbD3W+zPyXlPUtxQKDxLzvzsSwLfw9l0yURAI33ALINVk2BOFuBiFiAEkYhlSQKH14Rv23jHyYBESgXbk0yj3-1j0APjylGJlmV4m9zEO-k10JgVGfEOByH-GkKv1kLQLYIriUMdhUJ8xpRr1jRwy5XoieVuFAIJx1H1FyG-gx2lFmXqSuD8G9QGT+0v1LWsOtnQN3g4MPicNwJpRQ1wjQww1ZRX3wI8I1EoKYiAWqRnnCDoUYlLC71AMiCNF8EsOiNQNiNsPiPL0cLSPvWfxjWQycONU3DAHEHq1yPuwKM8CKLTwuBnj1FLGtSNAGgM3oM237wvyG2QKLxH3kJD3sIPnZiSLaNcO500IYimR10GNKAEhGMQB6x8SPWNGoPuhqMnRiNgQaI83WJwRaJ2NwwIIQDajyK909SGJOO-g2C8F8VowKDzzlTmPPzHUWJkLqIeKqwUOeLEUjTUJjzcKbSliKCW1fieFfkiBtVbFC0ewyB93-DaRBN7wYM4ScxhNYPhLWISLB0jRcKhSlR8DEI2Hxl8KOHd3xluEfCrEbz6gpIhMYNA0LyvmLzpLsIZJZSjGSLpQZSX0yK53ePokamNweAiEzhxJiGCXlCCMukF29yuFPxFKpP+1qNpNv2lKaJWmRNNRn0NXTA-1BGjTePcORkaiYlyGiBCDWTIXjjCmTjyHbCYhlEEluJ4VhL+QRJlJ1TdIVKNQ-1QAGG-wYF-3ULRKux6glUilCBCEjn-FfnjlzyWznkFU8FKEjISXuJjPpNtMZLlO2KXS-G9Inj9OOADPTyuQszyHYg2B2H-GKGrJYMlOtMaOQSRJqmyITX8zyHbI-E7JNHjh2CUWKHahOEiWFRHOWLkIETHyhX1G-HnN9MXOTzLHfGfC-C6gE1lHKOFIiIH2hKsOjPpBrNkQFAhH3Dp3UEZ2Z1Z3Z050mxnjKJyAunMK1gSHT2OBLGOH8CLPxhnkKB3IlIRhnIfimxPJiDPLIWRSENWVuF8Wd2LHa1KyhXWB2FCg0X2BWWd27TSAqUbDbC+xzJiBsy6TKCAA */
     createMachine(
         {
             context: {
@@ -47,6 +47,24 @@ const authenticationModelMachine =
                     | {
                           type: 'Type on signing in password field';
                           password: string;
+                      }
+                    | {
+                          type: 'User pressed go to sign up form screen';
+                      }
+                    | {
+                          type: 'Submitting signing up form';
+                      }
+                    | {
+                          type: 'Type on signing up user nickname field';
+                          nickname: string;
+                      }
+                    | {
+                          type: 'Type on signing up user password field';
+                          password: string;
+                      }
+                    | {
+                          type: 'Type on signing up user email field';
+                          email: string;
                       },
             },
             id: 'Authentication model',
@@ -493,8 +511,144 @@ const authenticationModelMachine =
                             },
                         },
                     },
+                    on: {
+                        'User pressed go to sign up form screen': {
+                            target: '#Authentication model.Rendering signing up screen',
+                        },
+                    },
                     onDone: {
                         target: '#Authentication model.Rendering home screen',
+                    },
+                },
+                'Rendering signing up screen': {
+                    initial: 'Filling credentials',
+                    states: {
+                        'Filling credentials': {
+                            type: 'parallel',
+                            states: {
+                                'Filling user nickname': {
+                                    initial: 'Idle',
+                                    states: {
+                                        Idle: {},
+                                        Valid: {
+                                            type: 'final',
+                                        },
+                                        Invalid: {
+                                            initial: 'Nickname is empty',
+                                            states: {
+                                                'Nickname is empty': {},
+                                                'Nickname is unavailable': {},
+                                            },
+                                        },
+                                    },
+                                    on: {
+                                        'Submitting signing up form': [
+                                            {
+                                                cond: 'Nickname filed is empty',
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user nickname.Invalid.Nickname is empty',
+                                            },
+                                            {
+                                                cond: 'Nickname is unavailable',
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user nickname.Invalid.Nickname is unavailable',
+                                            },
+                                            {
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user nickname.Valid',
+                                            },
+                                        ],
+                                        'Type on signing up user nickname field':
+                                            {
+                                                actions:
+                                                    'Assign signing up typed user nickname to context',
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user nickname',
+                                            },
+                                    },
+                                },
+                                'filling user password': {
+                                    initial: 'Idle',
+                                    states: {
+                                        Idle: {},
+                                        Valid: {
+                                            type: 'final',
+                                        },
+                                        Invalid: {
+                                            initial: 'Password is empty',
+                                            states: {
+                                                'Password is empty': {},
+                                                'Password is weak': {},
+                                            },
+                                        },
+                                    },
+                                    on: {
+                                        'Submitting signing up form': [
+                                            {
+                                                cond: 'Password field is empty',
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.filling user password.Invalid.Password is empty',
+                                            },
+                                            {
+                                                cond: 'Password is weak',
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.filling user password.Invalid.Password is weak',
+                                            },
+                                            {
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.filling user password.Valid',
+                                            },
+                                        ],
+                                        'Type on signing up user password field':
+                                            {
+                                                actions:
+                                                    'Assign signing up typed user password to context',
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.filling user password',
+                                            },
+                                    },
+                                },
+                                'filling user email': {
+                                    initial: 'Idle',
+                                    states: {
+                                        Idle: {},
+                                        Valid: {
+                                            type: 'final',
+                                        },
+                                        Invalid: {
+                                            initial: 'Email is empty',
+                                            states: {
+                                                'Email is empty': {},
+                                                'Email is invalid': {},
+                                                'Email is unavailable': {},
+                                            },
+                                        },
+                                    },
+                                    on: {
+                                        'Submitting signing up form': [
+                                            {
+                                                cond: 'Email field is empty',
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.filling user email.Invalid.Email is empty',
+                                            },
+                                            {
+                                                cond: 'Email is invalid',
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.filling user email.Invalid.Email is invalid',
+                                            },
+                                            {
+                                                cond: 'Email is unavailable',
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.filling user email.Invalid.Email is unavailable',
+                                            },
+                                            {
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.filling user email.Valid',
+                                            },
+                                        ],
+                                        'Type on signing up user email field': {
+                                            actions:
+                                                'Assign signing up typed user email to context',
+                                            target: '#Authentication model.Rendering signing up screen.Filling credentials.filling user email',
+                                        },
+                                    },
+                                },
+                            },
+                            onDone: {
+                                target: '#Authentication model.Rendering signing up screen.Signing up form submitted successfully',
+                            },
+                        },
+                        'Signing up form submitted successfully': {
+                            type: 'final',
+                        },
                     },
                 },
             },

@@ -10,14 +10,10 @@ import {
     WebAuthSuccessfullSignUpResponseBody,
 } from '@musicroom/types';
 import { Platform } from 'react-native';
-import redaxios from 'redaxios';
-import urlcat from 'urlcat';
-import { SERVER_ENDPOINT } from '../constants/Endpoints';
+import { request } from './http';
 
 export async function getMe(): Promise<{ uuid: string; nickname: string }> {
-    const url = urlcat(SERVER_ENDPOINT, '/authentication/me');
-
-    const rawResponse = await redaxios.get(url, {
+    const rawResponse = await request.get('/authentication/me', {
         withCredentials: true,
     });
 
@@ -44,14 +40,13 @@ async function sendSignInWeb({
     email,
     password,
 }: SendSignInArgs): Promise<SignInSuccessfulWebAuthResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/authentication/sign-in');
     const body: SignInRequestBody = {
         email,
         password,
         authenticationMode: 'web',
     };
 
-    const response = await redaxios.post(url, body, {
+    const response = await request.post('/authentication/sign-in', body, {
         withCredentials: true,
     });
     const parsedResponse = SignInSuccessfulWebAuthResponseBody.parse(
@@ -65,14 +60,13 @@ async function sendSignInApi({
     email,
     password,
 }: SendSignInArgs): Promise<SignInSuccessfulApiTokensResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/authentication/sign-in');
     const body: SignInRequestBody = {
         email,
         password,
         authenticationMode: 'api',
     };
 
-    const response = await redaxios.post(url, body);
+    const response = await request.post('/authentication/sign-in', body);
     const parsedResponse = SignInSuccessfulApiTokensResponseBody.parse(
         response.data,
     );
@@ -101,10 +95,8 @@ export async function sendApiTokenSignUp({
     password,
     userNickname,
 }: sendSignUpArgs): Promise<ApiTokensSuccessfullSignUpResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/authentication/sign-up');
-
-    const rawResponse = await redaxios.post(
-        url,
+    const rawResponse = await request.post(
+        '/authentication/sign-up',
         {
             authenticationMode: 'api',
             email,
@@ -131,10 +123,8 @@ export async function sendWebAuthSignUp({
     password,
     userNickname,
 }: sendSignUpArgs): Promise<WebAuthSuccessfullSignUpResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/authentication/sign-up');
-
-    const rawResponse = await redaxios.post(
-        url,
+    const rawResponse = await request.post(
+        '/authentication/sign-up',
         {
             authenticationMode: 'web',
             email,

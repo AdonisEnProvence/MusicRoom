@@ -6,16 +6,13 @@ import {
     UnfollowUserRequestBody,
     UnfollowUserResponseBody,
 } from '@musicroom/types';
-import redaxios from 'redaxios';
-import urlcat from 'urlcat';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
+import { request } from './http';
 
 export async function sendFollowUser(
     body: FollowUserRequestBody,
 ): Promise<FollowUserResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/user/follow');
-
-    const rawResponse = await redaxios.post(url, body);
+    const rawResponse = await request.post('/user/follow', body);
     const parsedBody = FollowUserResponseBody.parse(rawResponse.data);
 
     return parsedBody;
@@ -24,9 +21,7 @@ export async function sendFollowUser(
 export async function sendUnfollowUser(
     body: UnfollowUserRequestBody,
 ): Promise<UnfollowUserResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/user/unfollow');
-
-    const rawResponse = await redaxios.post(url, body);
+    const rawResponse = await request.post('/user/unfollow', body);
     const parsedBody = UnfollowUserResponseBody.parse(rawResponse.data);
 
     return parsedBody;
@@ -35,9 +30,7 @@ export async function sendUnfollowUser(
 export async function getUserProfileInformation(
     body: GetUserProfileInformationRequestBody,
 ): Promise<GetUserProfileInformationResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/user/profile-information');
-
-    const rawResponse = await redaxios.post(url, body);
+    const rawResponse = await request.post('/user/profile-information', body);
     const parsedBody = GetUserProfileInformationResponseBody.parse(
         rawResponse.data,
     );

@@ -4,7 +4,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { TouchableOpacity } from 'react-native';
 import * as z from 'zod';
 import { createMachine } from 'xstate';
-import { useMachine } from '@xstate/react';
+import { useInterpret } from '@xstate/react';
 import Toast from 'react-native-toast-message';
 import { passwordStrengthRegex } from '@musicroom/types';
 import { assertEventType } from '../../machines/utils';
@@ -100,7 +100,7 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
     const sx = useSx();
     // const { appService } = useAppContext();
 
-    const [_state, send] = useMachine(signUpMachine, {
+    const { send } = useInterpret(signUpMachine, {
         services: {
             'Send sign up to server': (_context, event) => async (sendBack) => {
                 assertEventType(event, 'Validated sign up form');

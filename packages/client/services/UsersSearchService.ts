@@ -1,5 +1,4 @@
 import {
-    GetMyProfileInformationRequestBody,
     GetMyProfileInformationResponseBody,
     ListMyFollowersRequestBody,
     ListMyFollowersResponseBody,
@@ -23,10 +22,8 @@ export async function fetchUsers(
     return parsedResponse;
 }
 
-export async function getMyProfileInformation(
-    body: GetMyProfileInformationRequestBody,
-): Promise<GetMyProfileInformationResponseBody> {
-    const rawResponse = await request.post('/me/profile-information', body);
+export async function getMyProfileInformation(): Promise<GetMyProfileInformationResponseBody> {
+    const rawResponse = await request.get('/me/profile-information');
     const parsedBody = GetMyProfileInformationResponseBody.parse(
         rawResponse.data,
     );

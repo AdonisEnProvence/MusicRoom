@@ -100,9 +100,7 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
         status,
         refetch,
     } = useQuery<MyProfileInformation, Error>('myProfileInformation', () =>
-        getMyProfileInformation({
-            tmpAuthUserID: getFakeUserID(),
-        }),
+        getMyProfileInformation(),
     );
 
     useRefreshOnFocus(refetch);

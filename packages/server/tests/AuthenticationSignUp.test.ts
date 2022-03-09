@@ -113,11 +113,11 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(400);
 
-        const { status, signFailureReasons } =
+        const { status, signUpFailureReasonCollection } =
             SignUpFailureResponseBody.parse(rawBody);
         assert.equal(status, 'FAILURE');
-        assert.isDefined(signFailureReasons);
-        assert.include(signFailureReasons, 'WEAK_PASSWORD');
+        assert.isDefined(signUpFailureReasonCollection);
+        assert.include(signUpFailureReasonCollection, 'WEAK_PASSWORD');
     });
 
     test('It should fail to sign up as given email is invalid', async (assert) => {
@@ -136,11 +136,11 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(400);
 
-        const { status, signFailureReasons } =
+        const { status, signUpFailureReasonCollection } =
             SignUpFailureResponseBody.parse(rawBody);
         assert.equal(status, 'FAILURE');
-        assert.isDefined(signFailureReasons);
-        assert.include(signFailureReasons, 'INVALID_EMAIL');
+        assert.isDefined(signUpFailureReasonCollection);
+        assert.include(signUpFailureReasonCollection, 'INVALID_EMAIL');
     });
 
     test('It should fail to sign up as given email is too long', async (assert) => {
@@ -159,11 +159,11 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(400);
 
-        const { status, signFailureReasons } =
+        const { status, signUpFailureReasonCollection } =
             SignUpFailureResponseBody.parse(rawBody);
         assert.equal(status, 'FAILURE');
-        assert.isDefined(signFailureReasons);
-        assert.include(signFailureReasons, 'INVALID_EMAIL');
+        assert.isDefined(signUpFailureReasonCollection);
+        assert.include(signUpFailureReasonCollection, 'INVALID_EMAIL');
     });
 
     test('It should send back 500 error as payload is partially empty', async () => {
@@ -209,11 +209,11 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(400);
 
-        const { status, signFailureReasons } =
+        const { status, signUpFailureReasonCollection } =
             SignUpFailureResponseBody.parse(rawBody);
         assert.equal(status, 'FAILURE');
-        assert.isDefined(signFailureReasons);
-        assert.include(signFailureReasons, 'UNAVAILABLE_NICKNAME');
+        assert.isDefined(signUpFailureReasonCollection);
+        assert.include(signUpFailureReasonCollection, 'UNAVAILABLE_NICKNAME');
     });
 
     test('It should fail to sign up as user with given email is already in base', async (assert) => {
@@ -243,11 +243,11 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(400);
 
-        const { status, signFailureReasons } =
+        const { status, signUpFailureReasonCollection } =
             SignUpFailureResponseBody.parse(rawBody);
         assert.equal(status, 'FAILURE');
-        assert.isDefined(signFailureReasons);
-        assert.include(signFailureReasons, 'UNAVAILABLE_EMAIL');
+        assert.isDefined(signUpFailureReasonCollection);
+        assert.include(signUpFailureReasonCollection, 'UNAVAILABLE_EMAIL');
     });
 
     test('It should fail to sign up raising every possibles errors', async (assert) => {
@@ -276,13 +276,13 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(400);
 
-        const { status, signFailureReasons } =
+        const { status, signUpFailureReasonCollection } =
             SignUpFailureResponseBody.parse(rawBody);
         assert.equal(status, 'FAILURE');
-        assert.isDefined(signFailureReasons);
-        assert.equal(signFailureReasons.length, 4);
+        assert.isDefined(signUpFailureReasonCollection);
+        assert.equal(signUpFailureReasonCollection.length, 4);
 
-        assert.deepEqual(signFailureReasons, [
+        assert.deepEqual(signUpFailureReasonCollection, [
             'INVALID_EMAIL',
             'UNAVAILABLE_NICKNAME',
             'UNAVAILABLE_EMAIL',

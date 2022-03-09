@@ -62,6 +62,7 @@ import UserFollowingSearchScreen from '../screens/UserProfile/UserFollowingSearc
 import MyFollowersSearchScreen from '../screens/MyProfile/MyFollowers';
 import MyFollowingSearchScreen from '../screens/MyProfile/MyFollowing';
 import SigningInScreen from '../screens/SigningInScreen';
+import AuthenticationSignUpFormScreen from '../screens/AuthenticationSignUpForm';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
@@ -720,6 +721,12 @@ const MainNavigator: React.FC<ColorModeProps> = ({
             />
 
             <MainStack.Screen name="Alert" component={AlertScreen} />
+
+            <MainStack.Screen
+                name="SignUpFormScreen"
+                component={AuthenticationSignUpFormScreen}
+                options={{ headerShown: false }}
+            />
         </MainStack.Navigator>
     );
 };

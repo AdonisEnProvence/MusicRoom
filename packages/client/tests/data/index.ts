@@ -81,6 +81,7 @@ export const db = factory({
         uuid: primaryKey(() => datatype.uuid()),
         email: () => internet.email(),
         password: () => internet.password(),
+        nickname: () => internet.userName(),
     },
 });
 
@@ -361,6 +362,7 @@ export function generateAuthenticationUser() {
         uuid: datatype.uuid(),
         email: internet.email(),
         password: internet.password(),
+        nickname: internet.userName(),
     };
 }
 

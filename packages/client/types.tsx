@@ -72,6 +72,8 @@ export type RootStackParamList = {
     MusicPlaylistEditorExportToMtvCreationForm: NavigatorScreenParams<MusicTrackVoteCreationFormParamList>;
 
     SigningIn: undefined;
+
+    SignUpFormScreen: undefined;
 };
 
 export type SuggestTrackStackParamList = {

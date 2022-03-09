@@ -13,7 +13,7 @@ interface SigningInFormFieldValues {
     password: string;
 }
 
-const SigningInScreen: React.FC<SigningInScreenProps> = () => {
+const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
     const sx = useSx();
     const { appService } = useAppContext();
     const {
@@ -38,6 +38,10 @@ const SigningInScreen: React.FC<SigningInScreenProps> = () => {
             email,
             password,
         });
+    }
+
+    function handleGoToSignUpFormScreen() {
+        navigation.navigate('SignUpFormScreen');
     }
 
     return (
@@ -239,6 +243,24 @@ const SigningInScreen: React.FC<SigningInScreenProps> = () => {
                                     }}
                                 >
                                     Log in
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={handleGoToSignUpFormScreen}
+                                style={sx({
+                                    paddingX: 's',
+                                    paddingY: 'm',
+                                })}
+                            >
+                                <Text
+                                    sx={{
+                                        color: 'white',
+                                        textAlign: 'center',
+                                        fontSize: 's',
+                                    }}
+                                >
+                                    Or sign up ?
                                 </Text>
                             </TouchableOpacity>
                         </View>

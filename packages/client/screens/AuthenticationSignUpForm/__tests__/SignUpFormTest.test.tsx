@@ -9,6 +9,7 @@ import {
     within,
     generateStrongPassword,
     generateWeakPassword,
+    renderUnauthenticatedApp,
 } from '../../../tests/tests-utils';
 
 test('It sign up selected user credentials', async () => {
@@ -16,16 +17,12 @@ test('It sign up selected user credentials', async () => {
     const email = internet.email();
     const password = generateStrongPassword();
 
-    const screen = await renderApp();
+    const screen = await renderUnauthenticatedApp();
 
-    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+    const goToSignUpFormButton = await screen.findByText(/.*or.*sign.*up.*/i);
+    expect(goToSignUpFormButton).toBeTruthy();
 
-    const goToSignUpFormScreenButton = screen.getByTestId(
-        'go-to-sign-up-button',
-    );
-    expect(goToSignUpFormScreenButton).toBeTruthy();
-
-    fireEvent.press(goToSignUpFormScreenButton);
+    fireEvent.press(goToSignUpFormButton);
 
     const signUpFormScreenContainer = await waitFor(() => {
         const tmp = screen.getByTestId('sign-up-form-screen-container');
@@ -77,16 +74,12 @@ test('It should fail to sign up selected user credentials', async () => {
     const email = internet.email().replace('@', random.word());
     const password = generateWeakPassword();
 
-    const screen = await renderApp();
+    const screen = await renderUnauthenticatedApp();
 
-    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
+    const goToSignUpFormButton = await screen.findByText(/.*or.*sign.*up.*/i);
+    expect(goToSignUpFormButton).toBeTruthy();
 
-    const goToSignUpFormScreenButton = screen.getByTestId(
-        'go-to-sign-up-button',
-    );
-    expect(goToSignUpFormScreenButton).toBeTruthy();
-
-    fireEvent.press(goToSignUpFormScreenButton);
+    fireEvent.press(goToSignUpFormButton);
 
     const signUpFormScreenContainer = await waitFor(() => {
         const tmp = screen.getByTestId('sign-up-form-screen-container');

@@ -110,14 +110,6 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                 />
 
                 <Button
-                    title="Go to sign up"
-                    testID="go-to-sign-up-button"
-                    onPress={() => {
-                        navigation.navigate('SignUpFormScreen');
-                    }}
-                />
-
-                <Button
                     testID="sign-up-button"
                     title="signUp"
                     onPress={async () => {

@@ -1,5 +1,4 @@
 import {
-    GetMyProfileInformationRequestBody,
     GetMyProfileInformationResponseBody,
     ListMyFollowersRequestBody,
     ListMyFollowersResponseBody,
@@ -12,27 +11,19 @@ import {
     SearchUsersRequestBody,
     SearchUsersResponseBody,
 } from '@musicroom/types';
-import urlcat from 'urlcat';
-import redaxios from 'redaxios';
-import { SERVER_ENDPOINT } from '../constants/Endpoints';
+import { request } from './http';
 
 export async function fetchUsers(
     body: SearchUsersRequestBody,
 ): Promise<SearchUsersResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/search/users');
-
-    const rawResponse = await redaxios.post(url, body);
+    const rawResponse = await request.post('/search/users', body);
     const parsedResponse = SearchUsersResponseBody.parse(rawResponse.data);
 
     return parsedResponse;
 }
 
-export async function getMyProfileInformation(
-    body: GetMyProfileInformationRequestBody,
-): Promise<GetMyProfileInformationResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/me/profile-information');
-
-    const rawResponse = await redaxios.post(url, body);
+export async function getMyProfileInformation(): Promise<GetMyProfileInformationResponseBody> {
+    const rawResponse = await request.get('/me/profile-information');
     const parsedBody = GetMyProfileInformationResponseBody.parse(
         rawResponse.data,
     );
@@ -43,9 +34,7 @@ export async function getMyProfileInformation(
 export async function fetchMyFollowers(
     body: ListMyFollowersRequestBody,
 ): Promise<ListMyFollowersResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/me/search/followers');
-
-    const rawResponse = await redaxios.post(url, body);
+    const rawResponse = await request.post('/me/search/followers', body);
     const parsedBody = ListMyFollowersResponseBody.parse(rawResponse.data);
 
     return parsedBody;
@@ -54,9 +43,7 @@ export async function fetchMyFollowers(
 export async function fetchMyFollowing(
     body: ListMyFollowingRequestBody,
 ): Promise<ListMyFollowingResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/me/search/following');
-
-    const rawResponse = await redaxios.post(url, body);
+    const rawResponse = await request.post('/me/search/following', body);
     const parsedBody = ListMyFollowingResponseBody.parse(rawResponse.data);
 
     return parsedBody;
@@ -65,9 +52,7 @@ export async function fetchMyFollowing(
 export async function fetchUserFollowers(
     body: ListUserFollowersRequestBody,
 ): Promise<ListUserFollowersResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/user/search/followers');
-
-    const rawResponse = await redaxios.post(url, body);
+    const rawResponse = await request.post('/user/search/followers', body);
     const parsedBody = ListUserFollowersResponseBody.parse(rawResponse.data);
 
     return parsedBody;
@@ -76,9 +61,7 @@ export async function fetchUserFollowers(
 export async function fetchUserFollowing(
     body: ListUserFollowingRequestBody,
 ): Promise<ListUserFollowingResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/user/search/following');
-
-    const rawResponse = await redaxios.post(url, body);
+    const rawResponse = await request.post('/user/search/following', body);
     const parsedBody = ListUserFollowingResponseBody.parse(rawResponse.data);
 
     return parsedBody;

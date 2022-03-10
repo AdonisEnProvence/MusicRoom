@@ -6,9 +6,7 @@ import {
     UserSearchMpeRoomsRequestBody,
     UserSearchMpeRoomsResponseBody,
 } from '@musicroom/types';
-import urlcat from 'urlcat';
-import redaxios from 'redaxios';
-import { SERVER_ENDPOINT } from '../constants/Endpoints';
+import { request } from './http';
 
 interface FetchLibraryMpeRoomsArgs {
     userID: string;
@@ -21,14 +19,13 @@ export async function fetchLibraryMpeRooms({
     searchQuery,
     page,
 }: FetchLibraryMpeRoomsArgs): Promise<MpeSearchMyRoomsResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/mpe/search/my-rooms');
     const body: MpeSearchMyRoomsRequestBody = {
         userID,
         searchQuery,
         page,
     };
 
-    const rawResponse = await redaxios.post(url, body);
+    const rawResponse = await request.post('/mpe/search/my-rooms', body);
     const parsedResponse = MpeSearchMyRoomsResponseBody.parse(rawResponse.data);
 
     return parsedResponse;
@@ -45,14 +42,13 @@ export async function fetchAllMpeRooms({
     page,
     userID,
 }: FetchAllMpeRoomsArgs): Promise<ListAllMpeRoomsResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/mpe/search/all-rooms');
     const body: ListAllMpeRoomsRequestBody = {
         searchQuery,
         page,
         userID,
     };
 
-    const rawResponse = await redaxios.post(url, body);
+    const rawResponse = await request.post('/mpe/search/all-rooms', body);
     const parsedResponse = ListAllMpeRoomsResponseBody.parse(rawResponse.data);
 
     return parsedResponse;
@@ -71,7 +67,6 @@ export async function fetchOtherUserMpeRooms({
     tmpAuthUserID,
     userID,
 }: FetchOtherUserMpeRoomsArgs): Promise<UserSearchMpeRoomsResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/user/search/mpe');
     const body: UserSearchMpeRoomsRequestBody = {
         searchQuery,
         page,
@@ -79,7 +74,7 @@ export async function fetchOtherUserMpeRooms({
         userID,
     };
 
-    const rawResponse = await redaxios.post(url, body);
+    const rawResponse = await request.post('/user/search/mpe', body);
     const parsedResponse = UserSearchMpeRoomsResponseBody.parse(
         rawResponse.data,
     );

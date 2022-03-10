@@ -24,7 +24,6 @@ import {
     renderApp,
     waitFor,
     within,
-    testGetFakeUserID,
     noop,
 } from '../../../tests/tests-utils';
 import { server } from '../../../tests/server/test-server';
@@ -636,11 +635,6 @@ cases<{
 }>(
     "Initial fetching of user's information",
     async ({ events, target }) => {
-        const userID = testGetFakeUserID();
-        db.myProfileInformation.create({
-            userID,
-        });
-
         const otherUser = db.userProfileInformation.create({
             userID: OTHER_USER_ID,
             following: false,
@@ -723,11 +717,6 @@ cases<{
 }>(
     "Fetching of user's MPE rooms",
     async ({ events, target }) => {
-        const userID = testGetFakeUserID();
-        db.myProfileInformation.create({
-            userID,
-        });
-
         const otherUser = db.userProfileInformation.create({
             userID: OTHER_USER_ID,
             following: false,

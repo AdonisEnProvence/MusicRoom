@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import invariant from 'tiny-invariant';
 import {
     ContextFrom,
@@ -7,7 +8,9 @@ import {
     StateMachine,
 } from 'xstate';
 import { SocketClient } from '../contexts/SocketContext';
-import { getMe, sendSignIn } from '../services/AuthenticationService';
+import { sendSignIn } from '../services/AuthenticationService';
+import { request } from '../services/http';
+import { getMyProfileInformation } from '../services/UsersSearchService';
 import { appModel } from './appModel';
 import { createAppMusicPlayerMachine } from './appMusicPlayerMachine';
 import { createAppMusicPlaylistsMachine } from './appMusicPlaylistsMachine';
@@ -45,9 +48,27 @@ export function createAppMachine({
         {
             id: 'app',
 
-            initial: 'fetchingInitialUserAuthenticationState',
+            initial: 'loadingAuthenticationTokenFromAsyncStorage',
 
             states: {
+                loadingAuthenticationTokenFromAsyncStorage: {
+                    tags: 'showApplicationLoader',
+
+                    always: {
+                        cond: 'isOnWeb',
+
+                        target: 'fetchingInitialUserAuthenticationState',
+                    },
+
+                    invoke: {
+                        src: 'loadAuthenticationTokenFromAsyncStorage',
+
+                        onDone: {
+                            target: 'fetchingInitialUserAuthenticationState',
+                        },
+                    },
+                },
+
                 fetchingInitialUserAuthenticationState: {
                     tags: 'showApplicationLoader',
 
@@ -215,7 +236,7 @@ export function createAppMachine({
         {
             services: {
                 fetchUser: async () => {
-                    const me = await getMe();
+                    const me = await getMyProfileInformation();
 
                     return me;
                 },
@@ -235,6 +256,10 @@ export function createAppMachine({
                         password,
                     });
                 },
+
+                loadAuthenticationTokenFromAsyncStorage: async () => {
+                    await request.loadToken();
+                },
             },
 
             actions: {
@@ -242,6 +267,10 @@ export function createAppMachine({
                     socket.disconnect();
                     socket.connect();
                 },
+            },
+
+            guards: {
+                isOnWeb: () => Platform.OS === 'web',
             },
         },
     );

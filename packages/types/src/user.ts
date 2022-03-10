@@ -42,13 +42,6 @@ export const MyProfileInformation = SharedUserProfileInformation.extend({
 });
 export type MyProfileInformation = z.infer<typeof MyProfileInformation>;
 
-export const GetMyProfileInformationRequestBody = z.object({
-    tmpAuthUserID: z.string().uuid(),
-});
-export type GetMyProfileInformationRequestBody = z.infer<
-    typeof GetMyProfileInformationRequestBody
->;
-
 export const GetMyProfileInformationResponseBody = MyProfileInformation;
 export type GetMyProfileInformationResponseBody = z.infer<
     typeof GetMyProfileInformationResponseBody

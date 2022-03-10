@@ -13,6 +13,7 @@ import {
     YoutubeIframeRef,
 } from 'react-native-youtube-iframe';
 import faker from 'faker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { cleanup, serverSocket } from './services/websockets';
 import { dropDatabase } from './tests/data';
 import { server } from './tests/server/test-server';
@@ -324,13 +325,14 @@ afterEach(() => {
     jest.clearAllMocks();
 });
 
-beforeEach(() => {
+beforeEach(async () => {
     cleanup();
     dropDatabase();
     serverSocket.on('GET_HAS_ACKNOWLEDGED_CONNECTION', (onAcknowledged) => {
         onAcknowledged();
     });
-    localStorage.clear();
+
+    await AsyncStorage.clear();
 });
 
 // jest.spyOn(console, 'warn').mockImplementation();

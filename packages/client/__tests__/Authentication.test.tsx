@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createModel } from '@xstate/test';
 import cases from 'jest-in-case';
 import invariant from 'tiny-invariant';
@@ -571,7 +572,7 @@ const authenticationModel = createModel<TestingContext>(
     },
 
     'Make user authenticated and render application': async (context) => {
-        localStorage.setItem('token', 'token');
+        await AsyncStorage.setItem('auth-token', 'token');
 
         context.screen = await renderApp();
     },

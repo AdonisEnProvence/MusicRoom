@@ -1,47 +1,69 @@
 import {
     ApiTokensSuccessfullSignUpResponseBody,
     SignUpFailureReasons,
+    SignInRequestBody,
+    SignInResponseBody,
+    SignInSuccessfulApiTokensResponseBody,
+    SignInSuccessfulWebAuthResponseBody,
     SignUpRequestBody,
     SignUpResponseBody,
     WebAuthSuccessfullSignUpResponseBody,
 } from '@musicroom/types';
 import { Platform } from 'react-native';
-import redaxios from 'redaxios';
-import urlcat from 'urlcat';
-import { SERVER_ENDPOINT } from '../constants/Endpoints';
-
-export async function getMe(): Promise<{ uuid: string; nickname: string }> {
-    const url = urlcat(SERVER_ENDPOINT, '/authentication/me');
-
-    const rawResponse = await redaxios.get(url, {
-        withCredentials: true,
-    });
-
-    return rawResponse.data;
-}
+import { request } from './http';
 
 interface SendSignInArgs {
     email: string;
     password: string;
 }
 
-export async function sendSignIn({
+export function sendSignIn({
     email,
     password,
-}: SendSignInArgs): Promise<void> {
-    const url = urlcat(SERVER_ENDPOINT, '/authentication/sign-in');
+}: SendSignInArgs): Promise<SignInResponseBody> {
+    if (Platform.OS === 'web') {
+        return sendSignInWeb({ email, password });
+    }
 
-    await redaxios.post(
-        url,
-        {
-            email,
-            password,
-            authenticationMode: 'web-auth',
-        },
-        {
-            withCredentials: true,
-        },
+    return sendSignInApi({ email, password });
+}
+
+async function sendSignInWeb({
+    email,
+    password,
+}: SendSignInArgs): Promise<SignInSuccessfulWebAuthResponseBody> {
+    const body: SignInRequestBody = {
+        email,
+        password,
+        authenticationMode: 'web',
+    };
+
+    const response = await request.post('/authentication/sign-in', body);
+    const parsedResponse = SignInSuccessfulWebAuthResponseBody.parse(
+        response.data,
     );
+
+    return parsedResponse;
+}
+
+async function sendSignInApi({
+    email,
+    password,
+}: SendSignInArgs): Promise<SignInSuccessfulApiTokensResponseBody> {
+    const body: SignInRequestBody = {
+        email,
+        password,
+        authenticationMode: 'api',
+    };
+
+    const response = await request.post('/authentication/sign-in', body);
+    const parsedResponse = SignInSuccessfulApiTokensResponseBody.parse(
+        response.data,
+    );
+
+    await request.persistToken(parsedResponse.token);
+
+    return parsedResponse;
 }
 
 export class SignUpError extends Error {
@@ -63,10 +85,8 @@ export async function sendApiTokenSignUp({
     password,
     userNickname,
 }: sendSignUpArgs): Promise<ApiTokensSuccessfullSignUpResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/authentication/sign-up');
-
-    const rawResponse = await redaxios.post(
-        url,
+    const rawResponse = await request.post(
+        '/authentication/sign-up',
         {
             authenticationMode: 'api',
             email,
@@ -93,10 +113,8 @@ export async function sendWebAuthSignUp({
     password,
     userNickname,
 }: sendSignUpArgs): Promise<WebAuthSuccessfullSignUpResponseBody> {
-    const url = urlcat(SERVER_ENDPOINT, '/authentication/sign-up');
-
-    const rawResponse = await redaxios.post(
-        url,
+    const rawResponse = await request.post(
+        '/authentication/sign-up',
         {
             authenticationMode: 'web',
             email,

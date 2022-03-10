@@ -7,10 +7,9 @@ import {
     renderApp,
     fireEvent,
     waitFor,
-    testGetFakeUserID,
     render,
 } from '../../../../tests/tests-utils';
-import { db, generateArray, generateUserDevice } from '../../../../tests/data';
+import { generateArray, generateUserDevice } from '../../../../tests/data';
 import { assertEventType } from '../../../../machines/utils';
 import { serverSocket } from '../../../../services/websockets';
 
@@ -250,12 +249,6 @@ describe('My Devices', () => {
         describe(plan.description, () => {
             plan.paths.forEach((path) => {
                 it(path.description, async () => {
-                    const userID = testGetFakeUserID();
-
-                    db.myProfileInformation.create({
-                        userID,
-                    });
-
                     await path.test({
                         screen: undefined,
                     });

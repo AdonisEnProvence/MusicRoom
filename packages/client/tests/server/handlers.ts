@@ -3,7 +3,6 @@ import { join } from 'path';
 import {
     FollowUserRequestBody,
     FollowUserResponseBody,
-    GetMyProfileInformationRequestBody,
     GetMyProfileInformationResponseBody,
     GetMySettingsRequestBody,
     GetMySettingsResponseBody,
@@ -29,6 +28,8 @@ import {
     SignUpFailureReasons,
     SignUpRequestBody,
     SignUpResponseBody,
+    SignInRequestBody,
+    SignInResponseBody,
     TrackMetadata,
     UnfollowUserRequestBody,
     UnfollowUserResponseBody,
@@ -40,11 +41,44 @@ import {
     UserSearchMpeRoomsResponseBody,
 } from '@musicroom/types';
 import { datatype } from 'faker';
-import { rest } from 'msw';
+import {
+    DefaultRequestBody,
+    PathParams,
+    ResponseResolver,
+    rest,
+    RestContext,
+    RestRequest,
+} from 'msw';
 import * as z from 'zod';
 import { SERVER_ENDPOINT } from '../../constants/Endpoints';
 import { SearchTracksAPIRawResponse } from '../../services/search-tracks';
 import { db } from '../data';
+import { testGetFakeUserID } from '../tests-utils';
+
+function withAuthentication<
+    RequestBody extends DefaultRequestBody,
+    Params extends PathParams,
+    ResponseBody extends DefaultRequestBody,
+>(
+    handler: ResponseResolver<
+        RestRequest<RequestBody, Params>,
+        RestContext,
+        ResponseBody
+    >,
+): ResponseResolver<
+    RestRequest<RequestBody, Params>,
+    RestContext,
+    ResponseBody
+> {
+    return (req, res, ctx) => {
+        const authenticationToken = req.headers.get('authorization');
+        if (authenticationToken === null) {
+            return res(ctx.status(401));
+        }
+
+        return handler(req, res, ctx);
+    };
+}
 
 export const handlers = [
     rest.get<undefined, { query: string }, SearchTracksAPIRawResponse>(
@@ -219,36 +253,32 @@ export const handlers = [
         );
     }),
 
-    rest.post<
-        GetMyProfileInformationRequestBody,
-        Record<string, never>,
-        GetMyProfileInformationResponseBody
-    >(`${SERVER_ENDPOINT}/me/profile-information`, async (req, res, ctx) => {
-        const { tmpAuthUserID } = req.body;
-
-        const user = db.myProfileInformation.findFirst({
-            where: {
-                userID: {
-                    equals: tmpAuthUserID,
+    rest.get<never, never, GetMyProfileInformationResponseBody>(
+        `${SERVER_ENDPOINT}/me/profile-information`,
+        withAuthentication(async (_req, res, ctx) => {
+            const user = db.myProfileInformation.findFirst({
+                where: {
+                    userID: {
+                        equals: testGetFakeUserID(),
+                    },
                 },
-            },
-        });
+            });
+            if (user === null) {
+                return res(ctx.status(404));
+            }
 
-        if (user === null) {
-            return res(ctx.status(404));
-        }
-
-        return res(
-            ctx.json({
-                userID: user.userID,
-                userNickname: user.userNickname,
-                playlistsCounter: user.playlistsCounter,
-                followersCounter: user.followersCounter,
-                followingCounter: user.followingCounter,
-                devicesCounter: user.devicesCounter,
-            }),
-        );
-    }),
+            return res(
+                ctx.json({
+                    userID: user.userID,
+                    userNickname: user.userNickname,
+                    playlistsCounter: user.playlistsCounter,
+                    followersCounter: user.followersCounter,
+                    followingCounter: user.followingCounter,
+                    devicesCounter: user.devicesCounter,
+                }),
+            );
+        }),
+    ),
 
     rest.post<
         FollowUserRequestBody,
@@ -685,43 +715,36 @@ export const handlers = [
         },
     ),
 
-    rest.get<never, never>(
-        `${SERVER_ENDPOINT}/authentication/me`,
-        (_req, res, ctx) => {
-            const authenticationToken = localStorage.getItem('token');
-            if (authenticationToken === null) {
-                return res(ctx.status(403));
+    rest.post<SignInRequestBody, never, SignInResponseBody>(
+        `${SERVER_ENDPOINT}/authentication/sign-in`,
+        (req, res, ctx) => {
+            const user = db.authenticationUser.findFirst({
+                where: {
+                    email: {
+                        equals: req.body.email,
+                    },
+                },
+            });
+            if (user === null) {
+                return res(ctx.status(404));
             }
 
-            return res(ctx.json({ user: { uuid: 'yolo' } }));
+            const isInvalidPassword = req.body.password !== user.password;
+            if (isInvalidPassword === true) {
+                return res(ctx.status(404));
+            }
+
+            return res(
+                ctx.status(200),
+                ctx.json({
+                    status: 'SUCCESS',
+                    token: 'token',
+                    userSummary: {
+                        nickname: '',
+                        userID: user.uuid,
+                    },
+                }),
+            );
         },
     ),
-
-    rest.post<
-        {
-            email: string;
-            password: string;
-        },
-        never
-    >(`${SERVER_ENDPOINT}/authentication/sign-in`, (req, res, ctx) => {
-        const user = db.authenticationUser.findFirst({
-            where: {
-                email: {
-                    equals: req.body.email,
-                },
-            },
-        });
-        if (user === null) {
-            return res(ctx.status(404));
-        }
-
-        const isInvalidPassword = req.body.password !== user.password;
-        if (isInvalidPassword === true) {
-            return res(ctx.status(404));
-        }
-
-        localStorage.setItem('token', 'token');
-
-        return res(ctx.status(200));
-    }),
 ];

@@ -3,7 +3,7 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { DripsyProvider, Text, View } from 'dripsy';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
-import { ImageBackground } from 'react-native';
+import { ImageBackground, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { AppContextProvider } from './contexts/AppContext';
@@ -84,7 +84,10 @@ const App: React.FC = () => {
                         </BottomSheetModalProvider>
                     </SafeAreaProvider>
                 </DripsyProvider>
-                <ReactQueryDevtools initialIsOpen={false} />
+
+                {Platform.OS === 'web' ? (
+                    <ReactQueryDevtools initialIsOpen={false} />
+                ) : null}
             </QueryClientProvider>
         );
     }

@@ -1,5 +1,6 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { MtvRoomUsersListElement } from '@musicroom/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
     render as rtlRender,
     RenderAPI,
@@ -18,6 +19,7 @@ import { SocketContextProvider } from '../contexts/SocketContext';
 import { useTheme } from '../hooks/useTheme';
 import Navigation from '../navigation';
 import { ServerSocket, serverSocket } from '../services/websockets';
+import { db } from './data';
 
 export type SizeTerms = 'xs' | 's' | 'm' | 'l' | 'xl';
 export type BackgroundTerms = 'primary' | 'seconday' | 'white' | 'text';
@@ -91,8 +93,24 @@ export function render(
     };
 }
 
-export function authenticateUser(): void {
-    localStorage.setItem('token', 'token');
+export async function authenticateUser(): Promise<void> {
+    await AsyncStorage.setItem('auth-token', 'token');
+
+    const currentUserID = testGetFakeUserID();
+    const currentUserAlreadyExists = db.myProfileInformation.findFirst({
+        where: {
+            userID: {
+                equals: currentUserID,
+            },
+        },
+    });
+    if (currentUserAlreadyExists !== null) {
+        return;
+    }
+
+    db.myProfileInformation.create({
+        userID: currentUserID,
+    });
 }
 
 /**
@@ -101,7 +119,7 @@ export function authenticateUser(): void {
 export async function renderApp(
     options?: RenderOptions,
 ): Promise<RenderAPI & { serverSocket: ServerSocket }> {
-    authenticateUser();
+    await authenticateUser();
 
     const screen = render(
         <Navigation colorScheme="dark" toggleColorScheme={noop} />,

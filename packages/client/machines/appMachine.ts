@@ -52,6 +52,8 @@ export function createAppMachine({
 
             states: {
                 loadingAuthenticationTokenFromAsyncStorage: {
+                    tags: 'showApplicationLoader',
+
                     always: {
                         cond: 'isOnWeb',
 

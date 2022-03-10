@@ -1039,13 +1039,8 @@ const authenticationModelMachine =
                                 },
                             },
                             onDone: {
-                                target: '#Authentication model.Rendering signing up screen.Sign up form submitted successfully',
+                                target: '#Authentication model.Rendering home screen',
                             },
-                        },
-
-                        'Sign up form submitted successfully': {
-                            type: 'final',
-                            //meta check redirection to home
                         },
                     },
                 },
@@ -1543,38 +1538,37 @@ cases<{
 cases<{
     target:
         | 'Rendering signing up screen'
+        | 'Rendering home screen'
         | {
-              'Rendering signing up screen':
-                  | {
-                        'Filling credentials': {
-                            'Filling user nickname':
-                                | 'Idle'
-                                | {
-                                      Invalid:
-                                          | 'Nickname is empty'
-                                          | 'Nickname is unavailable';
-                                  }
-                                | 'Valid';
-                            'Filling user email':
-                                | 'Idle'
-                                | {
-                                      Invalid:
-                                          | 'Email is empty'
-                                          | 'Email is unavailable'
-                                          | 'Email is invalid';
-                                  }
-                                | 'Valid';
-                            'Filling user password':
-                                | 'Idle'
-                                | {
-                                      Invalid:
-                                          | 'Password is empty'
-                                          | 'Password is weak';
-                                  }
-                                | 'Valid';
-                        };
-                    }
-                  | 'Sign up form submitted successfully';
+              'Rendering signing up screen': {
+                  'Filling credentials': {
+                      'Filling user nickname':
+                          | 'Idle'
+                          | {
+                                Invalid:
+                                    | 'Nickname is empty'
+                                    | 'Nickname is unavailable';
+                            }
+                          | 'Valid';
+                      'Filling user email':
+                          | 'Idle'
+                          | {
+                                Invalid:
+                                    | 'Email is empty'
+                                    | 'Email is unavailable'
+                                    | 'Email is invalid';
+                            }
+                          | 'Valid';
+                      'Filling user password':
+                          | 'Idle'
+                          | {
+                                Invalid:
+                                    | 'Password is empty'
+                                    | 'Password is weak';
+                            }
+                          | 'Valid';
+                  };
+              };
           };
     events: EventFrom<typeof authenticationModelMachine>[];
 }>(
@@ -1740,10 +1734,7 @@ cases<{
         },
         //TODO unkown error
         'Signed up successfully': {
-            target: {
-                'Rendering signing up screen':
-                    'Sign up form submitted successfully',
-            },
+            target: 'Rendering home screen',
             events: [
                 {
                     type: 'Make user unauthenticated and render application',

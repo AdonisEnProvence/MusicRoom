@@ -1,13 +1,21 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { passwordStrengthRegex } from '@musicroom/types';
+import {
+    passwordStrengthRegex,
+    SignUpRequestBody,
+    SignUpResponseBody,
+} from '@musicroom/types';
 import { createModel } from '@xstate/test';
 import { internet, random } from 'faker';
 import cases from 'jest-in-case';
+import { rest } from 'msw';
+import Toast from 'react-native-toast-message';
 import invariant from 'tiny-invariant';
 import { createMachine, assign, EventFrom } from 'xstate';
 import * as z from 'zod';
+import { SERVER_ENDPOINT } from '../constants/Endpoints';
 import { assertEventType } from '../machines/utils';
 import { db, generateAuthenticationUser } from '../tests/data';
+import { server } from '../tests/server/test-server';
 import {
     render,
     renderApp,
@@ -36,6 +44,7 @@ const authenticationModelMachine =
                 signUpEmail: '',
                 signUpNickname: '',
                 signUpPassword: '',
+                isSignUpRequestGoingToThrowUnknownError: false,
             },
             schema: {
                 context: {} as {
@@ -45,6 +54,7 @@ const authenticationModelMachine =
                     signUpNickname: string;
                     signUpEmail: string;
                     signUpPassword: string;
+                    isSignUpRequestGoingToThrowUnknownError: boolean;
                 },
                 events: {} as
                     | { type: 'Make user authenticated and render application' }
@@ -75,6 +85,9 @@ const authenticationModelMachine =
                     | {
                           type: 'Type on sign up user email field';
                           email: string;
+                      }
+                    | {
+                          type: 'Make sign up request throw unknown error';
                       },
             },
             id: 'Authentication model',
@@ -1037,7 +1050,103 @@ const authenticationModelMachine =
                                         },
                                     },
                                 },
+
+                                'Lookup for unknown server error': {
+                                    initial: 'Idle',
+                                    states: {
+                                        Idle: {
+                                            meta: {
+                                                test: async ({
+                                                    screen,
+                                                }: TestingContext) => {
+                                                    invariant(
+                                                        screen !== undefined,
+                                                        'Screen must have been rendered',
+                                                    );
+
+                                                    await waitFor(() => {
+                                                        expect(
+                                                            Toast.show,
+                                                        ).not.toHaveBeenCalledWith(
+                                                            {
+                                                                type: 'error',
+                                                                text1: 'Something went wrong please try again later',
+                                                            },
+                                                        );
+                                                    });
+                                                },
+                                            },
+                                        },
+
+                                        Invalid: {
+                                            meta: {
+                                                test: async ({
+                                                    screen,
+                                                }: TestingContext) => {
+                                                    invariant(
+                                                        screen !== undefined,
+                                                        'Screen must have been rendered',
+                                                    );
+
+                                                    await waitFor(() => {
+                                                        expect(
+                                                            Toast.show,
+                                                        ).toHaveBeenCalledWith({
+                                                            type: 'error',
+                                                            text1: 'Something went wrong please try again later',
+                                                        });
+                                                    });
+                                                },
+                                            },
+                                        },
+
+                                        Valid: {
+                                            type: 'final',
+                                            meta: {
+                                                test: async ({
+                                                    screen,
+                                                }: TestingContext) => {
+                                                    invariant(
+                                                        screen !== undefined,
+                                                        'Screen must have been rendered',
+                                                    );
+
+                                                    await waitFor(() => {
+                                                        expect(
+                                                            Toast.show,
+                                                        ).not.toHaveBeenCalledWith(
+                                                            {
+                                                                type: 'error',
+                                                                text1: 'Something went wrong please try again later',
+                                                            },
+                                                        );
+                                                    });
+                                                },
+                                            },
+                                        },
+                                    },
+
+                                    on: {
+                                        'Submit sign up form': [
+                                            {
+                                                cond: 'Sign up server should throw unkwown error',
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Lookup for unknown server error.Invalid',
+                                            },
+                                            {
+                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Lookup for unknown server error.Valid',
+                                            },
+                                        ],
+                                    },
+                                },
                             },
+
+                            on: {
+                                'Make sign up request throw unknown error': {
+                                    actions:
+                                        'Assign sign up request will throw an unknown error to context',
+                                },
+                            },
+
                             onDone: {
                                 target: '#Authentication model.Rendering home screen',
                             },
@@ -1121,6 +1230,11 @@ const authenticationModelMachine =
                         signUpNickname === '' || signUpNickname === undefined
                     );
                 },
+                'Sign up server should throw unkwown error': ({
+                    isSignUpRequestGoingToThrowUnknownError,
+                }) => {
+                    return isSignUpRequestGoingToThrowUnknownError;
+                },
                 'Sign up nickname field is unavailable': ({
                     signUpNickname,
                 }) => {
@@ -1163,6 +1277,11 @@ const authenticationModelMachine =
                 'Assign signing in request will fail to context': assign({
                     isSigningInRequestGoingToFail: (_context) => true,
                 }),
+                'Assign sign up request will throw an unknown error to context':
+                    assign({
+                        isSignUpRequestGoingToThrowUnknownError: (_context) =>
+                            true,
+                    }),
                 'Assign sign up typed user nickname to context': assign({
                     signUpNickname: (_context, event) => {
                         assertEventType(
@@ -1323,6 +1442,17 @@ const authenticationModel = createModel<TestingContext>(
         expect(passwordField).toBeTruthy();
 
         fireEvent.changeText(passwordField, event.password);
+    },
+    'Make sign up request throw unknown error': () => {
+        server.use(
+            rest.post<
+                SignUpRequestBody,
+                Record<string, never>,
+                SignUpResponseBody
+            >(`${SERVER_ENDPOINT}/authentication/sign-up`, (_req, res, ctx) => {
+                return res(ctx.status(500));
+            }),
+        );
     },
     ///
 });
@@ -1567,6 +1697,10 @@ cases<{
                                     | 'Password is weak';
                             }
                           | 'Valid';
+                      'Lookup for unknown server error':
+                          | 'Idle'
+                          | 'Invalid'
+                          | 'Valid';
                   };
               };
           };
@@ -1607,6 +1741,7 @@ cases<{
                         'Filling user password': {
                             Invalid: 'Password is empty',
                         },
+                        'Lookup for unknown server error': 'Valid',
                     },
                 },
             },
@@ -1633,6 +1768,7 @@ cases<{
                             Invalid: 'Nickname is unavailable',
                         },
                         'Filling user password': 'Valid',
+                        'Lookup for unknown server error': 'Valid',
                     },
                 },
             },
@@ -1669,6 +1805,7 @@ cases<{
                         'Filling user password': {
                             Invalid: 'Password is weak',
                         },
+                        'Lookup for unknown server error': 'Valid',
                     },
                 },
             },
@@ -1705,6 +1842,7 @@ cases<{
                         },
                         'Filling user nickname': 'Valid',
                         'Filling user password': 'Valid',
+                        'Lookup for unknown server error': 'Valid',
                     },
                 },
             },
@@ -1732,7 +1870,44 @@ cases<{
                 },
             ],
         },
-        //TODO unkown error
+        'Sign up failed due to unknown error': {
+            target: {
+                'Rendering signing up screen': {
+                    'Filling credentials': {
+                        'Filling user email': 'Valid',
+                        'Filling user nickname': 'Valid',
+                        'Filling user password': 'Valid',
+                        'Lookup for unknown server error': 'Invalid',
+                    },
+                },
+            },
+            events: [
+                {
+                    type: 'Make user unauthenticated and render application',
+                },
+                {
+                    type: 'Press button to go to sign up screen',
+                },
+                {
+                    type: 'Type on sign up user password field',
+                    password: generateStrongPassword(),
+                },
+                {
+                    type: 'Type on sign up user email field',
+                    email: internet.email(),
+                },
+                {
+                    type: 'Type on sign up user nickname field',
+                    nickname: internet.userName(),
+                },
+                {
+                    type: 'Make sign up request throw unknown error',
+                },
+                {
+                    type: 'Submit sign up form',
+                },
+            ],
+        },
         'Signed up successfully': {
             target: 'Rendering home screen',
             events: [

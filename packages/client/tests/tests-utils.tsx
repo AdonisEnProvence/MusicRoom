@@ -19,6 +19,7 @@ import { SocketContextProvider } from '../contexts/SocketContext';
 import { useTheme } from '../hooks/useTheme';
 import Navigation from '../navigation';
 import { ServerSocket, serverSocket } from '../services/websockets';
+import { db } from './data';
 
 export type SizeTerms = 'xs' | 's' | 'm' | 'l' | 'xl';
 export type BackgroundTerms = 'primary' | 'seconday' | 'white' | 'text';
@@ -94,6 +95,22 @@ export function render(
 
 export async function authenticateUser(): Promise<void> {
     await AsyncStorage.setItem('auth-token', 'token');
+
+    const currentUserID = testGetFakeUserID();
+    const currentUserAlreadyExists = db.myProfileInformation.findFirst({
+        where: {
+            userID: {
+                equals: currentUserID,
+            },
+        },
+    });
+    if (currentUserAlreadyExists !== null) {
+        return;
+    }
+
+    db.myProfileInformation.create({
+        userID: currentUserID,
+    });
 }
 
 /**

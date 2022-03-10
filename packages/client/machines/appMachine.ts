@@ -8,8 +8,9 @@ import {
     StateMachine,
 } from 'xstate';
 import { SocketClient } from '../contexts/SocketContext';
-import { getMe, sendSignIn } from '../services/AuthenticationService';
+import { sendSignIn } from '../services/AuthenticationService';
 import { request } from '../services/http';
+import { getMyProfileInformation } from '../services/UsersSearchService';
 import { appModel } from './appModel';
 import { createAppMusicPlayerMachine } from './appMusicPlayerMachine';
 import { createAppMusicPlaylistsMachine } from './appMusicPlaylistsMachine';
@@ -233,7 +234,7 @@ export function createAppMachine({
         {
             services: {
                 fetchUser: async () => {
-                    const me = await getMe();
+                    const me = await getMyProfileInformation();
 
                     return me;
                 },

@@ -12,14 +12,6 @@ import {
 import { Platform } from 'react-native';
 import { request } from './http';
 
-export async function getMe(): Promise<{ uuid: string; nickname: string }> {
-    const rawResponse = await request.get('/authentication/me', {
-        withCredentials: true,
-    });
-
-    return rawResponse.data;
-}
-
 interface SendSignInArgs {
     email: string;
     password: string;

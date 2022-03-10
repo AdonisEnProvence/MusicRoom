@@ -53,6 +53,7 @@ import * as z from 'zod';
 import { SERVER_ENDPOINT } from '../../constants/Endpoints';
 import { SearchTracksAPIRawResponse } from '../../services/search-tracks';
 import { db } from '../data';
+import { testGetFakeUserID } from '../tests-utils';
 
 function withAuthentication<
     RequestBody extends DefaultRequestBody,
@@ -256,7 +257,11 @@ export const handlers = [
         `${SERVER_ENDPOINT}/me/profile-information`,
         withAuthentication(async (_req, res, ctx) => {
             const user = db.myProfileInformation.findFirst({
-                where: {},
+                where: {
+                    userID: {
+                        equals: testGetFakeUserID(),
+                    },
+                },
             });
             if (user === null) {
                 return res(ctx.status(404));
@@ -710,12 +715,12 @@ export const handlers = [
         },
     ),
 
-    rest.get<never, never>(
-        `${SERVER_ENDPOINT}/authentication/me`,
-        withAuthentication((_req, res, ctx) => {
-            return res(ctx.json({ user: { uuid: 'yolo' } }));
-        }),
-    ),
+    // rest.get<never, never>(
+    //     `${SERVER_ENDPOINT}/authentication/me`,
+    //     withAuthentication((_req, res, ctx) => {
+    //         return res(ctx.json({ user: { uuid: 'yolo' } }));
+    //     }),
+    // ),
 
     rest.post<SignInRequestBody, never, SignInResponseBody>(
         `${SERVER_ENDPOINT}/authentication/sign-in`,

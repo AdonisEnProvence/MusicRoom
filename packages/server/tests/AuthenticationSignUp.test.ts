@@ -1,6 +1,7 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import {
     ApiTokensSuccessfullSignUpResponseBody,
+    GetMyProfileInformationResponseBody,
     SignUpFailureResponseBody,
     SignUpRequestBody,
     WebAuthSuccessfullSignUpResponseBody,
@@ -14,15 +15,24 @@ import {
     BASE_URL,
     generateStrongPassword,
     generateWeakPassword,
+    initTestUtils,
     TEST_AUTHENTICATION_GROUP_PREFIX,
 } from './utils/TestUtils';
 
 test.group('Authentication sign up tests group', (group) => {
+    const {
+        createSocketConnection,
+        initSocketConnection,
+        disconnectEveryRemainingSocketConnection,
+    } = initTestUtils();
+
     group.beforeEach(async () => {
+        initSocketConnection();
         await Database.beginGlobalTransaction();
     });
 
     group.afterEach(async () => {
+        await disconnectEveryRemainingSocketConnection();
         await Database.rollbackGlobalTransaction();
     });
 
@@ -50,14 +60,25 @@ test.group('Authentication sign up tests group', (group) => {
         assert.isDefined(userID);
         assert.equal(nickname, userNickname);
 
-        const getMeResponseBody = await request
-            .get('/authentication/me')
+        /**
+         * /me/profile-information throws an error when called
+         * for an user that has no connected device.
+         */
+        await createSocketConnection({
+            userID,
+        });
+
+        const getMyProfileRawResponse = await request
+            .get('/me/profile-information')
             .expect(200)
             .expect('Content-Type', /json/);
+        const getMyProfileParsedBody =
+            GetMyProfileInformationResponseBody.parse(
+                getMyProfileRawResponse.body,
+            );
 
-        assert.equal(getMeResponseBody.body.user.nickname, userNickname);
-        assert.equal(getMeResponseBody.body.user.email, email);
-        assert.isUndefined(getMeResponseBody.body.user.password);
+        assert.equal(getMyProfileParsedBody.userNickname, nickname);
+        assert.equal(getMyProfileParsedBody.userID, userID);
     });
 
     test('It should sign up user with web auth using given credentials', async (assert) => {
@@ -86,15 +107,26 @@ test.group('Authentication sign up tests group', (group) => {
         assert.isDefined(userID);
         assert.equal(nickname, userNickname);
 
-        const getMeResponseBody = await request
-            .get('/authentication/me')
+        /**
+         * /me/profile-information throws an error when called
+         * for an user that has no connected device.
+         */
+        await createSocketConnection({
+            userID,
+        });
+
+        const getMyProfileRawResponse = await request
+            .get('/me/profile-information')
             .set('Authorization', `bearer ${token}`)
             .expect(200)
             .expect('Content-Type', /json/);
+        const getMyProfileParsedBody =
+            GetMyProfileInformationResponseBody.parse(
+                getMyProfileRawResponse.body,
+            );
 
-        assert.equal(getMeResponseBody.body.user.nickname, userNickname);
-        assert.equal(getMeResponseBody.body.user.email, email);
-        assert.isUndefined(getMeResponseBody.body.user.password);
+        assert.equal(getMyProfileParsedBody.userNickname, nickname);
+        assert.equal(getMyProfileParsedBody.userID, userID);
     });
 
     test('It should fail to sign up as given password is weak', async (assert) => {

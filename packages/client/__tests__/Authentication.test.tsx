@@ -72,6 +72,9 @@ const authenticationModelMachine =
                           type: 'Press button to go to sign up screen';
                       }
                     | {
+                          type: 'Press button to go to sign in screen';
+                      }
+                    | {
                           type: 'Submit sign up form';
                       }
                     | {
@@ -1152,6 +1155,12 @@ const authenticationModelMachine =
                             },
                         },
                     },
+
+                    on: {
+                        'Press button to go to sign in screen': {
+                            target: '#Authentication model.Rendering signing screen',
+                        },
+                    },
                 },
             },
         },
@@ -1669,6 +1678,7 @@ cases<{
     target:
         | 'Rendering signing up screen'
         | 'Rendering home screen'
+        | 'Rendering signing screen'
         | {
               'Rendering signing up screen': {
                   'Filling credentials': {
@@ -1931,6 +1941,20 @@ cases<{
                 },
                 {
                     type: 'Submit sign up form',
+                },
+            ],
+        },
+        'It should go to sign up screen and then go back to sign in screen': {
+            target: 'Rendering signing screen',
+            events: [
+                {
+                    type: 'Make user unauthenticated and render application',
+                },
+                {
+                    type: 'Press button to go to sign up screen',
+                },
+                {
+                    type: 'Press button to go to sign in screen',
                 },
             ],
         },

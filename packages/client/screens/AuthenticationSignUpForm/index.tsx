@@ -234,6 +234,10 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
         });
     }
 
+    function handleGoToSignInFormScreen() {
+        navigation.navigate('SigningIn');
+    }
+
     return (
         <AppScreen testID="sign-up-form-screen-container">
             <SafeAreaView sx={{ flex: 1 }}>
@@ -489,6 +493,24 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     }}
                                 >
                                     Sign Up
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={handleGoToSignInFormScreen}
+                                style={sx({
+                                    paddingX: 's',
+                                    paddingY: 'm',
+                                })}
+                            >
+                                <Text
+                                    sx={{
+                                        color: 'white',
+                                        textAlign: 'center',
+                                        fontSize: 's',
+                                    }}
+                                >
+                                    Or sign in ?
                                 </Text>
                             </TouchableOpacity>
                         </View>

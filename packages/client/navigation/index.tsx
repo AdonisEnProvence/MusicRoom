@@ -158,6 +158,11 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
                         component={SigningInScreen}
                         options={{ headerShown: false }}
                     />
+                    <RootStack.Screen
+                        name="SignUpFormScreen"
+                        component={AuthenticationSignUpFormScreen}
+                        options={{ headerShown: false }}
+                    />
                 </>
             ) : (
                 <>
@@ -721,12 +726,6 @@ const MainNavigator: React.FC<ColorModeProps> = ({
             />
 
             <MainStack.Screen name="Alert" component={AlertScreen} />
-
-            <MainStack.Screen
-                name="SignUpFormScreen"
-                component={AuthenticationSignUpFormScreen}
-                options={{ headerShown: false }}
-            />
         </MainStack.Navigator>
     );
 };

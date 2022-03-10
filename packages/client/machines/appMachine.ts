@@ -135,6 +135,29 @@ export function createAppMachine({
                                 actions: 'reconnectSocket',
                             },
                         },
+
+                        SigningUp: {
+                            initial: 'waitingForSignUpFormSubmitSuccess',
+                            states: {
+                                waitingForSignUpFormSubmitSuccess: {
+                                    on: {
+                                        SIGNED_UP_SUCCESSFULLY: {
+                                            target: 'successfullySubmittedSignUpCredentials',
+                                        },
+                                    },
+                                },
+
+                                successfullySubmittedSignUpCredentials: {
+                                    type: 'final',
+                                },
+                            },
+
+                            onDone: {
+                                target: '#app.waitingForServerToAcknowledgeSocketConnection',
+
+                                actions: 'reconnectSocket',
+                            },
+                        },
                     },
                 },
 

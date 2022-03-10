@@ -11,6 +11,7 @@ import { assertEventType } from '../../machines/utils';
 import { AppScreen, TextField } from '../../components/kit';
 import { sendSignUp, SignUpError } from '../../services/AuthenticationService';
 import { SignUpFormScreenProps } from '../../types';
+import { useAppContext } from '../../contexts/AppContext';
 
 export interface AuthenticationSignUpFormFormFieldValues {
     userNickname: string;
@@ -61,7 +62,10 @@ const signUpMachine =
 
         on: {
             'Signed up successfully': {
-                actions: ['Trigger sucess toast', 'Reset forms errors'],
+                actions: [
+                    'Trigger sucess toast',
+                    'Forward sign up success to appMachine',
+                ],
                 target: '#Sign up.Idle',
             },
             'Nickname unavailable': {
@@ -98,8 +102,8 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
     } = useForm<AuthenticationSignUpFormFormFieldValues>();
 
     const sx = useSx();
-    // const { appService } = useAppContext();
 
+    const { appService } = useAppContext();
     const { send } = useInterpret(signUpMachine, {
         services: {
             'Send sign up to server': (_context, event) => async (sendBack) => {
@@ -160,6 +164,12 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
             },
         },
         actions: {
+            'Forward sign up success to appMachine': () => {
+                appService.send({
+                    type: 'SIGNED_UP_SUCCESSFULLY',
+                });
+            },
+
             'Trigger sucess toast': () => {
                 Toast.show({
                     type: 'success',
@@ -181,7 +191,7 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
             'Set error state to password is weak': () => {
                 setError('password', {
                     type: 'server error',
-                    message: 'Password is to weak',
+                    message: 'Password is too weak',
                 });
             },
 
@@ -222,6 +232,10 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                 password,
             },
         });
+    }
+
+    function handleGoToSignInFormScreen() {
+        navigation.navigate('SigningIn');
     }
 
     return (
@@ -266,8 +280,10 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                             >
                                 To party sign up !
                             </Text>
-
-                            <View sx={{ marginBottom: 'xl' }}>
+                            <View
+                                testID="sign-up-nickname-text-field"
+                                sx={{ marginBottom: 'xl' }}
+                            >
                                 <Text
                                     sx={{
                                         color: 'greyLighter',
@@ -294,7 +310,6 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     }) => {
                                         return (
                                             <TextField
-                                                testID="sign-up-nickname-text-field"
                                                 value={value}
                                                 onBlur={onBlur}
                                                 onChangeText={onChange}
@@ -321,8 +336,10 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     </Text>
                                 )}
                             </View>
-
-                            <View sx={{ marginBottom: 'xl' }}>
+                            <View
+                                testID="sign-up-email-text-field"
+                                sx={{ marginBottom: 'xl' }}
+                            >
                                 <Text
                                     sx={{
                                         color: 'greyLighter',
@@ -362,7 +379,6 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     }) => {
                                         return (
                                             <TextField
-                                                testID="sign-up-email-text-field"
                                                 value={value}
                                                 onBlur={onBlur}
                                                 keyboardType={'email-address'}
@@ -392,7 +408,10 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                 )}
                             </View>
 
-                            <View sx={{ marginBottom: 'xl' }}>
+                            <View
+                                testID="sign-up-password-text-field"
+                                sx={{ marginBottom: 'xl' }}
+                            >
                                 <Text
                                     sx={{
                                         color: 'greyLighter',
@@ -428,7 +447,6 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     }) => {
                                         return (
                                             <TextField
-                                                testID="sign-up-password-text-field"
                                                 autoCompleteType={'password'}
                                                 secureTextEntry={true}
                                                 value={value}
@@ -457,7 +475,6 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     </Text>
                                 )}
                             </View>
-
                             <TouchableOpacity
                                 onPress={handleSubmit(handleSigningInSubmit)}
                                 testID="submit-sign-up-form-button"
@@ -476,6 +493,24 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     }}
                                 >
                                     Sign Up
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={handleGoToSignInFormScreen}
+                                style={sx({
+                                    paddingX: 's',
+                                    paddingY: 'm',
+                                })}
+                            >
+                                <Text
+                                    sx={{
+                                        color: 'white',
+                                        textAlign: 'center',
+                                        fontSize: 's',
+                                    }}
+                                >
+                                    Or sign in ?
                                 </Text>
                             </TouchableOpacity>
                         </View>

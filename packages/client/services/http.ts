@@ -28,12 +28,15 @@ type Requester = typeof redaxios & {
 /**
  * Creates a custom instance of redaxios that implements methods
  * to handle authentication by opaque tokens.
+ *
+ * This function must not be used outside of tests.
  */
 export function createRequester(): Requester {
     const TOKEN_STORAGE_KEY = 'auth-token';
 
     const request: Requester = redaxios.create({
         baseURL: SERVER_ENDPOINT,
+        withCredentials: true,
     });
 
     function setRequestAuthorizationHeader(token: string) {

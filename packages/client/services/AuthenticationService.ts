@@ -38,9 +38,7 @@ async function sendSignInWeb({
         authenticationMode: 'web',
     };
 
-    const response = await request.post('/authentication/sign-in', body, {
-        withCredentials: true,
-    });
+    const response = await request.post('/authentication/sign-in', body);
     const parsedResponse = SignInSuccessfulWebAuthResponseBody.parse(
         response.data,
     );

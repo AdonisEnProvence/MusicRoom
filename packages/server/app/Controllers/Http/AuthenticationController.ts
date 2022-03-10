@@ -162,10 +162,4 @@ export default class AuthenticationController {
             }
         }
     }
-
-    public async me({ auth }: HttpContextContract): Promise<any> {
-        return {
-            user: auth.user,
-        };
-    }
 }

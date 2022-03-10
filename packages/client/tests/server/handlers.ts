@@ -715,13 +715,6 @@ export const handlers = [
         },
     ),
 
-    // rest.get<never, never>(
-    //     `${SERVER_ENDPOINT}/authentication/me`,
-    //     withAuthentication((_req, res, ctx) => {
-    //         return res(ctx.json({ user: { uuid: 'yolo' } }));
-    //     }),
-    // ),
-
     rest.post<SignInRequestBody, never, SignInResponseBody>(
         `${SERVER_ENDPOINT}/authentication/sign-in`,
         (req, res, ctx) => {

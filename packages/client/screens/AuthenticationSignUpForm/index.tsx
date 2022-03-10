@@ -11,6 +11,7 @@ import { assertEventType } from '../../machines/utils';
 import { AppScreen, TextField } from '../../components/kit';
 import { sendSignUp, SignUpError } from '../../services/AuthenticationService';
 import { SignUpFormScreenProps } from '../../types';
+import { useAppContext } from '../../contexts/AppContext';
 
 export interface AuthenticationSignUpFormFormFieldValues {
     userNickname: string;
@@ -61,7 +62,10 @@ const signUpMachine =
 
         on: {
             'Signed up successfully': {
-                actions: ['Trigger sucess toast', 'Reset forms errors'],
+                actions: [
+                    'Trigger sucess toast',
+                    'Forward sign up success to appMachine',
+                ],
                 target: '#Sign up.Idle',
             },
             'Nickname unavailable': {
@@ -98,8 +102,8 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
     } = useForm<AuthenticationSignUpFormFormFieldValues>();
 
     const sx = useSx();
-    // const { appService } = useAppContext();
 
+    const { appService } = useAppContext();
     const { send } = useInterpret(signUpMachine, {
         services: {
             'Send sign up to server': (_context, event) => async (sendBack) => {
@@ -160,6 +164,12 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
             },
         },
         actions: {
+            'Forward sign up success to appMachine': () => {
+                appService.send({
+                    type: 'SIGNED_UP_SUCCESSFULLY',
+                });
+            },
+
             'Trigger sucess toast': () => {
                 Toast.show({
                     type: 'success',

@@ -27,5 +27,6 @@
         "./tests",
         "./e2e",
         "./playwright.config.ts",
+        "./__mocks__"
     ]
 }

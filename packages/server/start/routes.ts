@@ -25,7 +25,9 @@ Route.get(
     'TracksSearchesController.searchTrackName',
 ).middleware('every-auth');
 
-Route.post('/search/rooms', 'MtvRoomsHttpController.fetchMtvRooms');
+Route.post('/search/rooms', 'MtvRoomsHttpController.fetchMtvRooms').middleware(
+    'every-auth',
+);
 
 Route.post('/search/users', 'SearchUsersController.searchUsers');
 

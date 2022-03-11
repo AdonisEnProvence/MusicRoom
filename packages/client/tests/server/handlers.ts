@@ -133,28 +133,31 @@ export const handlers = [
         MtvRoomSearchRequestBody,
         Record<string, never>,
         MtvRoomSearchResponse
-    >(`${SERVER_ENDPOINT}/search/rooms`, (req, res, ctx) => {
-        const PAGE_SIZE = 10;
-        const { page, searchQuery } = req.body;
+    >(
+        `${SERVER_ENDPOINT}/search/rooms`,
+        withAuthentication((req, res, ctx) => {
+            const PAGE_SIZE = 10;
+            const { page, searchQuery } = req.body;
 
-        const allRooms = db.searchableRooms.getAll();
-        const roomsMatching = allRooms.filter(({ roomName }) =>
-            roomName.startsWith(searchQuery),
-        );
-        const paginatedRooms = roomsMatching.slice(
-            (page - 1) * PAGE_SIZE,
-            page * PAGE_SIZE,
-        );
+            const allRooms = db.searchableRooms.getAll();
+            const roomsMatching = allRooms.filter(({ roomName }) =>
+                roomName.startsWith(searchQuery),
+            );
+            const paginatedRooms = roomsMatching.slice(
+                (page - 1) * PAGE_SIZE,
+                page * PAGE_SIZE,
+            );
 
-        return res(
-            ctx.json({
-                data: paginatedRooms,
-                totalEntries: roomsMatching.length,
-                hasMore: roomsMatching.length > page * PAGE_SIZE,
-                page,
-            }),
-        );
-    }),
+            return res(
+                ctx.json({
+                    data: paginatedRooms,
+                    totalEntries: roomsMatching.length,
+                    hasMore: roomsMatching.length > page * PAGE_SIZE,
+                    page,
+                }),
+            );
+        }),
+    ),
 
     rest.post<
         SearchUsersRequestBody,

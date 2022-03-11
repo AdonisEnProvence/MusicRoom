@@ -9,18 +9,15 @@ import {
 import { request } from './http';
 
 interface FetchLibraryMpeRoomsArgs {
-    userID: string;
     searchQuery: string;
     page: number;
 }
 
 export async function fetchLibraryMpeRooms({
-    userID,
     searchQuery,
     page,
 }: FetchLibraryMpeRoomsArgs): Promise<MpeSearchMyRoomsResponseBody> {
     const body: MpeSearchMyRoomsRequestBody = {
-        userID,
         searchQuery,
         page,
     };

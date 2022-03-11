@@ -5,9 +5,9 @@ import {
     MpeSearchMyRoomsResponseBody,
 } from '@musicroom/types';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
-import User from 'App/Models/User';
 import MpeRoom from 'App/Models/MpeRoom';
 import MpeRoomInvitation from 'App/Models/MpeRoomInvitation';
+import invariant from 'tiny-invariant';
 import { fromMpeRoomsToMpeRoomSummaries } from '../Ws/MpeRoomsWsController';
 
 const MPE_ROOMS_SEARCH_LIMIT = 10;
@@ -71,14 +71,18 @@ export default class MpeRoomsHttpController {
 
     public async listMyRooms({
         request,
+        auth,
     }: HttpContextContract): Promise<MpeSearchMyRoomsResponseBody> {
-        const rawBody = request.body();
-        //TODO The userID raw in the request body is temporary
-        //Later it will be a session cookie to avoid any security issues
-        const { userID, searchQuery, page } =
-            MpeSearchMyRoomsRequestBody.parse(rawBody);
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            'User must be logged in to list their own Mpe rooms',
+        );
 
-        const user = await User.findOrFail(userID);
+        const { searchQuery, page } = MpeSearchMyRoomsRequestBody.parse(
+            request.body(),
+        );
+
         const mpeRoomsPagination = await user
             .related('mpeRooms')
             .query()
@@ -100,7 +104,7 @@ export default class MpeRoomsHttpController {
         const hasMoreRoomsToLoad = mpeRoomsPagination.hasMorePages;
         const formattedMpeRooms = await fromMpeRoomsToMpeRoomSummaries({
             mpeRooms: mpeRoomsPagination.all(),
-            userID,
+            userID: user.uuid,
         });
 
         return {

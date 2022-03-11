@@ -35,7 +35,10 @@ Route.post('/search/users', 'SearchUsersController.searchUsers').middleware(
 
 Route.get('/proxy-places-api/*', 'PlacesApisController.proxyPlacesAPIRequest');
 
-Route.post('/mpe/search/my-rooms', 'MpeRoomsHttpController.listMyRooms');
+Route.post(
+    '/mpe/search/my-rooms',
+    'MpeRoomsHttpController.listMyRooms',
+).middleware('every-auth');
 
 Route.post('/mpe/search/all-rooms', 'MpeRoomsHttpController.listAllRooms');
 

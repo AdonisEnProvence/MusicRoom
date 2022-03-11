@@ -3,7 +3,7 @@ import redaxios from 'redaxios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
 
-export const SHOULD_USE_TOKEN_AUTH = Platform.OS === 'web';
+export const SHOULD_USE_TOKEN_AUTH = Platform.OS !== 'web';
 
 type Requester = typeof redaxios & {
     /**

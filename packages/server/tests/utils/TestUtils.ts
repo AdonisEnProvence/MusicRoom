@@ -136,6 +136,15 @@ interface AssociateMtvRoomToUserArgs {
     roomName?: string;
 }
 
+interface AssociateMpeRoomListToUserArgs {
+    user: User;
+    mpeRoomList: {
+        roomName?: string;
+        roomID: string;
+        isOpen?: boolean;
+    }[];
+}
+
 interface TestUtilsReturnedValue {
     initSocketConnection: () => void;
     disconnectEveryRemainingSocketConnection: () => Promise<void>;
@@ -158,6 +167,9 @@ interface TestUtilsReturnedValue {
     ) => Promise<User>;
     createRequest: () => supertest.SuperAgentTest;
     associateMtvRoomToUser: (args: AssociateMtvRoomToUserArgs) => Promise<void>;
+    associateMpeRoomListToUser: (
+        args: AssociateMpeRoomListToUserArgs,
+    ) => Promise<void>;
     spy: typeof spy;
 }
 
@@ -396,26 +408,10 @@ export function initTestUtils(): TestUtilsReturnedValue {
         }
 
         if (mpeRoomIDToAssociate !== undefined) {
-            await Promise.all(
-                mpeRoomIDToAssociate.map(
-                    async ({ roomID, roomName: mpeRoomName, isOpen }) => {
-                        let mpeRoomToAssociate = await MpeRoom.find(roomID);
-                        if (mpeRoomToAssociate === null) {
-                            console.log('CREATING MPE ROOM FROM TEST UTILS');
-                            mpeRoomToAssociate = await MpeRoom.create({
-                                uuid: roomID,
-                                isOpen: isOpen ?? true,
-                                runID: datatype.uuid(),
-                                name: mpeRoomName ?? random.words(2),
-                                creatorID: createdUser.uuid,
-                            });
-                        }
-                        await createdUser
-                            .related('mpeRooms')
-                            .save(mpeRoomToAssociate);
-                    },
-                ),
-            );
+            await associateMpeRoomListToUser({
+                user: createdUser,
+                mpeRoomList: mpeRoomIDToAssociate,
+            });
         }
     }
 
@@ -648,6 +644,32 @@ export function initTestUtils(): TestUtilsReturnedValue {
         await user.related('mtvRoom').associate(mtvRoomToAssociate);
     }
 
+    async function associateMpeRoomListToUser({
+        user,
+        mpeRoomList,
+    }: AssociateMpeRoomListToUserArgs): Promise<void> {
+        await Promise.all(
+            mpeRoomList.map(
+                async ({ roomID, roomName: mpeRoomName, isOpen }) => {
+                    const mpeRoomToAssociate = await MpeRoom.firstOrCreate(
+                        {
+                            uuid: roomID,
+                        },
+                        {
+                            uuid: roomID,
+                            isOpen: isOpen ?? true,
+                            runID: datatype.uuid(),
+                            name: mpeRoomName ?? random.words(2),
+                            creatorID: user.uuid,
+                        },
+                    );
+
+                    await user.related('mpeRooms').save(mpeRoomToAssociate);
+                },
+            ),
+        );
+    }
+
     return {
         createSocketConnection,
         createUserAndGetSocket,
@@ -659,6 +681,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
         createUserAndAuthenticate,
         createRequest,
         associateMtvRoomToUser,
+        associateMpeRoomListToUser,
         spy,
     };
 }

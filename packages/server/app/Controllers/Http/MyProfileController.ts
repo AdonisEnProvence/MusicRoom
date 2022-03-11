@@ -21,13 +21,10 @@ export default class MyProfileController {
             .loadCount('mpeRooms')
             .loadCount('devices');
 
-        const devicesCounter = Number(user.$extras.devices_count);
-        invariant(devicesCounter > 0, 'user has no related devices');
-
         return {
             userID: user.uuid,
             userNickname,
-            devicesCounter,
+            devicesCounter: Number(user.$extras.devices_count),
             followersCounter: Number(user.$extras.followers_count),
             followingCounter: Number(user.$extras.following_count),
             playlistsCounter: Number(user.$extras.mpeRooms_count),

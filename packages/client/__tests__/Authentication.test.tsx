@@ -34,7 +34,7 @@ interface TestingContext {
 const existingUser = generateAuthenticationUser();
 
 const authenticationModelMachine =
-    /** @xstate-layout N4IgpgJg5mDOIC5QEECuAXAFmAduglgMYCGBA9jgAQC2ZEYANgHQCSO+BxD+AXqfhQDEAWWIBrMJVSwwAJ0rEM2PEVKQFOCJVm5684gAcD3EuRyJQBsrA4DzSEAA9EAZgCsATiYBGAOy+XADYAJhcAFmCwgAZAqN8AGhAAT0QAWl8fDw8ADm9ctzdfDxCPMIBfMsS0LFwCUzsaOkZWdk5uPjMRcUlpOSkcRRqVU3ViTW1dPsNjVTMLECsbOYdnBFTvYK9stxcPfzco7Oywo8DElIRgtzCmaPCXbJcnk+Ds4IqqpVrZhtp6ZgASpNZPgcFBKDYoOwwRDCDpcEwAGL4BjcGFwyDfLiwJEotHggBm+EYEBxyNRoPBYGoxBRggAyqgAEbUDgQ-BQymUUGUAlkWTUeaLWwUearbzeFxMB5RYKBMIeGK7bIec6IbxuR5MKIPDzBXy5bJRNwhD4garKOr8CiNf5MIGaORcyHQ8GwDEI8n4ygY+gqbG4ikwokksl4rnU2kMQQAFSSBkkNpdXJ5kZRvOJDAgQusIvsoFWHm8gSYgV2cV1gVikrVCGLcqYvjCmsCbjlRzybjNFu+9Rtf2aDr0zo5rth8Jwge9vqxDDDQcJmdJU65BmIsFgAHd+RAGczWeh2ZyYTy+QKc0s7GL1Q3JWFYr4q9lH7LgrXgvq3EwTa9coFn74OzlJU5pfMM1pUAOgLAiOx5uh6k5elyM7+nOK7Bku87emuG7brIu5xgmlBJqOKZUDhW47hmJIXnm14IB4bjeKWAQqh4Ty-oE3jvu42TfmELiPsceq7O8IE9uBZi2oOMEwsmckIeh4IoW0WFciGWawIIEAUGATCwOgahMBJVpSVB9qyW6pEKROSk+jofqqXZGmkrRywFuquxSjkvGbAaeSAbWeStkwxxMfKvjFhqoTdmBpm-E00GOiCcnWfBtlIeiDmzmpGGhl0EhHmOPI6AAjqgcCHgSUZuVeKyeVk2oHOxxSBAE-hBQJX7eBW7Emi4kSvLFQzxf2iUWclsFju6tlDk6clyAAbn0ciyPye4smy8ngqe-KCg4wruU4rhRMxWRZLKvHbD1bi1oUZ2eAc3jRG8gHDZaPxjXac0pVZcHjmAuDabp+mGegekmZ9kHjT9U3OghtWivVDGytKxpHJ4RxNrdySIMExqlhq8oqs8kSMe9vYQdJSXDql-0zYDOCCAACjoG6UEyGDoDa3OUFAZCULzLpSAYAO4Ij+bHWsGyhfKrwBMWKoBGcuOXP+Jaar4H743sGpduJcVQ9TE2039Y6oKLDOeuGWWYqhuXgr08jsIQYgDNQYAbQeBB0+botnvtli5kdqzNnxz2CQqxp+M92S1i4EpREwcqPnqAlGmEj4U5JCXfZZRVchbYuITbynZfbdlO5QLtu8QHuxvGiZUNtItSDIztELXHvUVmEv0RjtwDVW7YPkE8fPUnBRBGEEStjqgTZ6N0N55NvuF5bimZWXdtOVvbd9BReG7oym3oD7Zvr7ye198jAlJ0U2Stjr-6SsWtYRIq0rhdsOqKm9BsjSNuZWGa8YRFytiXBc9kd74ADHvKuh8dwNyIiRf6RcEHrkovhHu2YDrBzqh5BA2wSx7GxnETUxR9TvyCF+fU3hFQ9WiKUbwi8gEw3zi3cBm9S7QMcrAtC8D26UDTNGE+3s4ZgP9tfPBl4kaEJnsEbUbVnp+D6jsYo8d5RbE1Jsf8VwAiRFYX2ZeMlV4X0kcXOyKl+EO33vIERyCm4FwsVXEROCb6EKLIo+UDxHjBHoZseOAQvBCXCBsXYTE8hGKpsAjhaVW4QKseXVSwMcB6QMkZSGxjjYgPMY7DeGUeHWOxB4qWkojSlmNEWJicRQjXCCYcRsGp7xPANEEK4FQQI4CaPABwWSYnjTYLYLgvAIKlNDsxISbw9itj8FcMItYvCHCNK8O+xZM4FGiWZdhZjKCYDIN3CB4z1SnUUYae8gRiivncLWVIIV-I9S1lkBU-Utm51MabZx6VGZJJgXAnhLlbEiNYBABgYBjl1lOj4S5+R3AmlKK8TqVZQqAVaicV8wFPiAOybE3ZLdEl72KQIgFmE7LArYItEZEAmAAFEaTpnwLAYR1ADDoAuEHWRktVixBLO4SKbwogKmiIcIK8ok5PnvDPaIrwxJYo+jinZnz8XcKgUS2xgKyX0uYBSqltKtXciZaCSl3BcEcrosjWIX42ouCiHEWURxSg4wuDHPiRQnhKi4r4Y0mLQLYoGSvJV8SCVFOSTY5ypK97kpwMa-ApqFj4LkVLTUzFrW2q9b+R1QUTQZEuVrI4mwZUsIAfK-1Hz5p5MsYS0N-yoEasjVqpgAA1KlELNTdQVHsTYEoTQq2dUaEsWsriMU8IcTObyvplt+l8ytIa-nEtrRGnhIiIX+GhTkDUcLLkRDjqrcpZ1BVllCBna4Pr+nbIDeW6dwbVXVvnd6OtPDEH4RBWCiF2xvz4weO4CUidWzvmLEne1RYcjXByM2cdJiaaXuVYUm9c71WLqgU+6lOqTVMGZpgo+BrmWsvZfGzl9ETQpq9QEO+vinV402EnaITYqNtVyBBnJcT6YqunLehDoY7LIZaDGuNh0CFJsEixCsZGMbvn8RkLq7EvUagVr4RjuLA0sdg2x+D4bON72482k1raAjShev4+hTEAjvhOMxGeKoXiRXCP-OVlNz2Tokd862cG+E1vvYh7CmGdwQq4h+nUjxIm-oo5cchTVaMGllIqBexb7PvKg1OmDPyq1qb3oCiFQm2wBe-T+mIIXJSNPYgNHIrwYjHGyApxV0Gg2seQuxqc6h0syPNYQ4s1xoXXAKAcKsjEXBBQdaFASkQhL+O2JVi9iWasqbq-BiFkp-NfqCz1WZQU6lMGKHkGIH5H55fG450BznJy5IhEtFasg1qyBfeC5rIdECAQ-So-YPUgjcVViaJO4RJWZz0ScGLdmc4ToS05yxx327LXsed-kTAAAijLjDECSMIyHsgIVFnMzEQ4ngqzXANLWf8SdRsbodXqOUe2gcHZBxw07EOLtMDERwcGWhYCoEIIQOAsACSoFRHh-jibCyeGlFkIoWRZOsSCrKSeNquKWrbA+MnJtqvKZ+aD6nSOLutuYm2R7gFntcXfvdwSTxlv-kzh4eXoOpuMwhesajRRpcnCOCTBU79UbRDyBt2U6c9jm+Y37GdrmcqVyETXd2ekWCguu2a27KNbhVg7Sca4uwFmqxtU8aU-gvHsTlA8H3eL4lcOm7bNzd7C7B87qHptLabsCfFO+4sA1ChtmOBKeOXlk7hU8D1UoLhc9Kb99e1TxfbFVxD3XMP0bdUADly9j+w9SXDc3bUPeVDUzwTZVQp+Co2U3gkNS2tePrf7S8mN57QQU5Ls6h9B76KPj2PGp8z+7oy-oxBKUomIEyV91e+cnMnv4lfN0ewzuKerwUokU0mjwgE9qveiu-etWRegegiN+j+4+vGK6Gs-+IGgB6+4882-g8ozYUQewjEOoMBk2Z+-ug+iBPCI+KBraiiWuABVSOBqsmwJwtwMQysBoxm8msWAOkGCu5BcBhe28V+SB8g3G4eX+UeNeiA7EpYJwMyvERBMQvaiAEQz0hMCoz4hwOQ-4ZBwOBeF+AeFc4hlAWmVeMhP+kKkmko1SMoA0-k78WOguj4dSVwfgp6hsCqE2hh5+LmVBphNBQikhE+aGGGuEVEz+8+bKc2GojYOuf8VSM84Q1CjEpYnedhkQRovBR+bCvhFORhARM2YhwRB83mz6qGsa6GFRWgz+m4YA4gcRX4T2SRngKRyeFwM8eopYNqRoA04QMQBhhR-hkCgRu8ZREhtR9+Om3+XKchkyiRdq7RAknR6hA03iz40m-gpGf2vqJaDm5OFaRRYxJR1BUCGCkR+EvmGQrRyxpQqx78GwXgPiuQRBEQNGwxxxoxvypRFxQi5KEeK6XgehTwj8kQtqrYIWL2GQ7Ej8jwgk9GOwXx06Jxvx5x3oriDa2msaEKkqPgqhGw+MOov4Lu+Mtwj4VYDefUPefBx+imsBl8A+ZxQR-xK0DaVR1KdKUYc+LKsRcx9EjU-gAWHxAQMoahCAiJNw5YoQxBRBVwh++xcWgOghfhlBLJExbJ9iHJYR1R3JDKhqupfGCa8xDEXgTEuQ0QIQqyxC8cYUyceQ7YTEDhuRSp-BJ+feTJ8BohGJpe7JUYMxep+qz+qAAwb+DAH+0h+GLWZSS+yioQIQkc-4j88cWe62c8AqngpQKJnCPxKWfxmJAJOpaBApyM92FpE81p5WJomiRYtwAUmcrExwAQOZ+eeZl+vpYCRZNUpZhCTE34eQlZ22CeEp7gA06Z4Bkow2cQrZFBzJCB9sEK+oA5lpW2Np-U74z4X4XU72ZY-gxYs5whPy9IbZV8AoEI+4DO6gzOrO7OnO3Oc2n2GROQF0ehWsCQKexwJYzZUy+MM8hQh5XpE4GWK5Q565IQO6FwpWiikqDw3RsoU8ZO1uG6oU6i+wyyDuEp6wDwjYbY6Kz0w5TwnSZQQAA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QEECuAXAFmAduglgMYCGBA9jgAQC2ZEYANgHQCSO+BxD+AXqfhQDEAWWIBrMJVSwwAJ0rEM2PEVKQFOCJVm5684gAcD3EuRyJQBsrA4DzSEAA9EARgAMAVhdMPbgEwAbACcfv4eAYFBADQgAJ6IQW5MQYkAHAEALB4eqRkA7JkBAL5FMWhYuASmdjR0jKzsnNx8ZiLiktJyUjiKFSqm6sSa2rpdhsaqZhYgVjZTDs4I7l4+-sGhfuGRMfEIAMype0wuB3l+QWcZex5+eRklZUqVkzW09MwASqOy+DhQlDYoOw-gDCDpcEwAGL4BjcEFgyDPLiwKEwuH-ABm+EYEBR0Nhv3+YGoxBhggAyqgAEbUDgA-BAwmUX6UDFkWTUaazWwUaaLFwRPw+a5uIJ7DIZFweO5+HaIPLpJh5PYBPZuZV7FwXW4PEDlZRVfgUWrvJhfTRyJmA4H-WAIiH49GUBH0FTI1EEkFYnF4tFM4mkhiCAAqsQMkmN1qZLIDMNZ2IYEC51h59lA-Lu3g8WVSQVS2QFqTyHjlS3c3kFuZy6QCeRcqV1+ue1WNb3q5r0VoZNtB4JwHqdLqRDF9nsxCdxA6ZBmIsFgAHd2RAKdTaeh6YyQSy2Rzk3M7HzXAEBcl3AEPEEAqq8kEXKWXFcAkw3OKxW5RSrAvdSnqnv0jVQbafN8Xabra9r9o6TJDm6I5Tl6E6jk6M5zousjLqG4aUJG3bRlQKELku8Y4nuqaHksZxBEwhwPtkj5uAEor3gEhzHCk2qJAqF4Nj+Tb-mYJrtiBIJRiJEHwf8MFNEhTLeomsCCBAFBgEwsDoGoTB8YaAlAWawm2rhYl9hJzo6K60kmXJuKkfM6aIH45xJKkzkeOKD57OKAT3i4fgZEw4peCED5asEPGPH02mvHUwEWj8ImGeBxlQfCZnDjJCE+m0Egbj2LI6AAjqgcDrhigY2QeCyuMq3iSvmaqSuEt55KWewFP5HmNeKoSpG46SNn+kWttFemxaBPZ2sZHaWiJcgAG5dHIsjsiuNJ0qJ-zbuynIONytlOFVLFKkEGR+C4dyubVJZxPZ6p5Ewx4CpeNzSm4J39RFLxDaaU1xQZYG9mAuCKcpqnqegKlaZ9gHDT9Y1WhB5W8pVSzqi1dZ+RknjHuEta1Xs70GlDgkxZ28X-RNgM4IIAAKOhzpQVIYOgxrM5QUBkJQrPWlIBgA7giNpvtZYZFRqTuO+go3OcpYi1RGTBG4Z23p4LgPgTzYAcTI2k39PaoLzFMOn6KWIrB6X-J08jsIQYg9NQYArWuOU86yW0C+Rp3NddSxFndmQebceznEWtbq-xUXffpOVMvrfOQcbkmpWbJmW5Q1u28Q9shmGEZUNzsep+nduSFZ7vIwcRwChEda5mKqS+aWp0hD45y3g5ao5JkYeDdDkejWTesG+JyWJ6bFkj1IMjyARaHLpSq3rvnvM7ttlgpntiybEcr23L4ext5j-iNzcT7HadOQqrmHnFLxA1E7psMDzHQ9JQnplj-g7oT6nM9LtnWE4SBC7H+s5CLoWIomMudl9hiyYCdHIWp9770vF7XYfhcjeHrkWK4kR-bfnCoTFsvchL911s-OOJkpKfzgt-KelBYxBnnk7Jertdw7XXhVaBgQKzZHqrkCUrkrq7FVgcZIvhMYSnfGdN6t8PpEK1o-MhIJY6G3jmOd+5lqHm0ngtEkZJMK52dgXOhDCIFJnYfuJG0D94eHupjU6NZpG5nvNmI4fhNQFAlEWF6eRu73xhlHdaLtVGUKThZAAMmQMgYhY47m6LbMg8485zQWrIJashHZrW7C7FeUChZqizHcVUuNeruNSC1M6T5fLqlVnkV6Cpzx+PkQ-QJCVgnDzflQ5EwMcAqTUhpSGzSAmkOjsol+lNQkf2RHk-kqNvatQVMcW45wryeBFjkJpmsWkjKCSojp6iukjiypIFhBUipqU5pgJa854k4ESVQRa7IZmIFalRL8NcBFamcqWOpfl67qgcnXNYYVfxyK2cMnWoyLbjKBrTOAsAGZMxZhzdmnMObcxZKo55KMVi+EiBsLYwR7x5lSHA86QdXlBAvPjXUdz6DwAcIM8Fpo2C2C4LwAC2KQ73TFmcBBVKQjRHmW1Q4tcDinXVPvTZOkIXTX+JgMg9s47YvcKgxAmNVTURFqrW4kp6yh1kYQ5lJDIVBJCRPQ52irLaIYawCADAwAqrOKS0UJ0zitSuCdLy3s6x3XOvkcIF57HSojiauVUKKEWrCVoyyiETK2rYLNdlEAmAAFE9EMGZAi4kBh0C7DXpYwW-IUhClzBKquGR0h7FLLmUl9ZJSK2qrcBUIavpht+hG81nTo1fzfta+NGaGhJu4Cm9NgYs3MhwMO-A5iC1kWRl8qiKRfZlquCgmt5w2KakVhcLwzkQVMplX3U1bSu0HJ7TQvtcaJ4JqncmlVT1kh5jyAqEIa7aw-PCEwDY+rAi9QvK24hJNw1mv2YOC9Vrr1v1tQANXvRY+d0CzqBGONmd1L7fLuOrd7TIpLizy1VuLEI4RAMKNaeTMD0EIOxp9AOsqCGN6uG4sKXwYoJRShlKWcIRwCgevPCdCUt5SPbJPRR1+56pmXvUf2iev90J2odU6k8CoHLSkzOqMU94VR3Vesgi4qoPK5GE7KjtoHxPgck5B2jsnQGzyHcmpg1NbNEXwNm6gub80zA4VYoWWpizUWIwxSpqsQguJOPdJuVbrgXiCMZ49IHT2UZNpo3t0moPqLkymxN8G52MaWFSzBgXjwFBC7Kb2D5Mb3W3eEd8rkdVxfbXDIyEyo2WZo-JEymWmBwZHUpv5XrDjhB8h5O85Xg7PlcgxY6HlPCeAa8B0ziXzNUbaxPGTb9MsqovEKZW55LzXlvPeU628IjuE2BEdIyp5vawS2Jlr3bVtXp9Ftw6u2LxXleaN3YIskgYdyIkPMDFgg3wIRrI9jWn7NaNhJlLUmHVaGtdi3y9Zv1ngiGEZU3kUMStcoHFZVxruKM7Ul0esOGW5c4b57Mfk3v7c+y1F8-k3X1MOIxCUhPyPjXEkTqe815CPNkApx1DHKf8km0qMtL7cyMV6uU72oRVb3V6qqVx7rToc52UtiZPOUn87SeyJgAARVzxhiCxHofrwX2WR0aLSkj5BEv-C1ucuxoR9lNh+Wej5QTqpQgg9BUa8HC2muJW14E3XFv0lG5NwwM3keDcAFUcAJKSQCCPAv7cpEd+gkl-CpSN2uFmAUJwxYFa+Rr0TXPJrh9kHz+PgvjewFN+bjPIufOb1arYhUTvc+u8bvWLMblaxb3yK1Cvt2q9h52eny3TAmEcHBloWAqBCCEHhRiVAsJPO7VF-ZTGVF0f-YcgqO4aqECbByGIvMvkTq7t8YasHobg+Q9DxCHXtfUnpK2wxCXIQpeXnfG+XKxCCfGKxfTzClHFnv1B3DjbWfyUVf0Fh33b1cErSFFfWbWl0ALlzQTVH8i8BvEG0I1x3H0W3+j2WW2SzShTjoSLkzhUhYHtWFwpxQP2E1U8DrnWTFBL2w2ER6lJXPECFrH3krRL1IJD3aUoNJ2oNoS6DoPtm6xyy80LXIhVG8BC3rlcipXgSpXvGVAP2PCLAclO1eXEJf0kPuxhxkLfkLiIAzgUOtxnSYAADk7Di4J0c081sUrxSVrgZR-BeMbxvVhE8wqJRRVZsxsZeoCgzCECLDocLMycaC5C3D6D7MR0XDUilVXNuhiAk0YRiAqRFM28i1EAPt8D-DbgDtgjXAQgkhxZrhjp65JQHJYiI0KDLDEjrD1FbCbZi50iZ1vD94KiToAjqj7xcg7p3BBUXxasHI-A2jdkYU1Eujk5ZCrYsjmDlDENfNNNyt+N7o6x3wX0Xwrw1YH9YCgMbsyDB5I0Hskj1jKAutGDiiWDSj9gX1jhxQJZ8wXxMNG4sg7oCtepbwixdNFi2kOiEiVsHibC6EusetBiSjVD-MtQBEshjoGoMgC9nJkgZdQhaspQVQITyDljJlYSej4TnN5NHCU0nNUIXM3MPNvDGI4FVQQgsFNR6xeD7JVRfDcwFR3A1Qm0STbiz1Vjx44Suhni70Mj6SwEtAcj5wwBxAWShQd0PUg5jotQhU0FGp-Jn1VZcgXczpRTyFxSYTuinQQEGSaTZSkS3jyJik2T950F0EuTDgATLw4Fep6w6wREhMLie4yNNdSS7irC1ipTp5qTZ1ti8tAVnw3U94D53wytcDGdLw0gUFK1zxoCA9H84DriJCoSVjLTIzKTdFAwhdsVWoqlBUOMhta57wpsr8OoHF0F8gzSxlwyJSY1HjYMlDkD3iPV8Dr4RQncIjmz3w8T8xD58xGIQguzoUeyyzJSKz+dB1aS00M0PD3MvDkTkZzx6jggBRqltQj4xtchv0LxlhXo-i8wlz4jSyqDyzrSTFNz7TR0dycjfhp1YyhynTjxkgc8ZcfIFy3clhrg3FZYpFlQ5jHySzySrSY53yqytyx04wcjUAeh8jY8iitiALDyshjgTyIh98zgLzhETohQzzghrhK0qUFigz-F4sbjzSSdbdXyULKyYQBj-zvN3jTsSLbwyLRQKK0zXBTpvBAh64NRaxixYtmKhlWLiyyTWsKS3yeKGB7c-ZeFXp+EshrhSxbxbELheMBQbxNgjMlLjV4D2i1L7jqDIlolYl2Rbl7k08P89co8XiCKBLyIsgkh9LhSL4Tgg5sT5lVVv0RZBSPURZ8wEKHKIyIkokYll43LsKU9kkvL68+LsUzh0DGJ-ZkEpRbgWot5qIqi8wbhRQNkbKg8izzDEL1KnLUrXL5BMq7lU9edP8DdET+KVDkYvFjhojK0d1fJBEGdRErL8x3AJQJV-dD0n9Gq4jmrHLk5nK0rWF3LuqZ8v8DyuFPjpR5ZtNMZ64DhG4qU3EWItRVZwj8g8ylrCyedISkrezpkDrfMiVvZcgdtLt3FllOJFq75lKIdVrliVUshSxVRMFg425+Mht5suUeSKIn0UgEFNhn1aySgSggA */
     createMachine(
         {
             context: {
@@ -458,31 +458,71 @@ const authenticationModelMachine =
                                     },
                                 },
                                 'Display error': {
-                                    meta: {
-                                        test: async ({
-                                            screen,
-                                        }: TestingContext) => {
-                                            invariant(
-                                                screen !== undefined,
-                                                'Screen must have been rendered',
-                                            );
+                                    initial: 'Invalid credentials',
+                                    states: {
+                                        'Invalid credentials': {
+                                            meta: {
+                                                test: async ({
+                                                    screen,
+                                                }: TestingContext) => {
+                                                    invariant(
+                                                        screen !== undefined,
+                                                        'Screen must have been rendered',
+                                                    );
 
-                                            await waitFor(() => {
-                                                const serverErrorAlert = within(
-                                                    screen.getByTestId(
-                                                        'signing-in-screen-server-error',
-                                                    ),
-                                                ).getByRole('alert');
-                                                expect(
-                                                    serverErrorAlert,
-                                                ).toBeTruthy();
+                                                    await waitFor(() => {
+                                                        const serverErrorAlert =
+                                                            within(
+                                                                screen.getByTestId(
+                                                                    'signing-in-screen-server-error',
+                                                                ),
+                                                            ).getByRole(
+                                                                'alert',
+                                                            );
+                                                        expect(
+                                                            serverErrorAlert,
+                                                        ).toBeTruthy();
 
-                                                expect(
-                                                    serverErrorAlert,
-                                                ).toHaveTextContent(
-                                                    'Credentials are invalid',
-                                                );
-                                            });
+                                                        expect(
+                                                            serverErrorAlert,
+                                                        ).toHaveTextContent(
+                                                            'Credentials are invalid',
+                                                        );
+                                                    });
+                                                },
+                                            },
+                                        },
+                                        'Unknown server error': {
+                                            meta: {
+                                                test: async ({
+                                                    screen,
+                                                }: TestingContext) => {
+                                                    invariant(
+                                                        screen !== undefined,
+                                                        'Screen must have been rendered',
+                                                    );
+
+                                                    await waitFor(() => {
+                                                        const serverErrorAlert =
+                                                            within(
+                                                                screen.getByTestId(
+                                                                    'signing-in-screen-server-error',
+                                                                ),
+                                                            ).getByRole(
+                                                                'alert',
+                                                            );
+                                                        expect(
+                                                            serverErrorAlert,
+                                                        ).toBeTruthy();
+
+                                                        expect(
+                                                            serverErrorAlert,
+                                                        ).toHaveTextContent(
+                                                            'An unknown error occured, please try again later',
+                                                        );
+                                                    });
+                                                },
+                                            },
                                         },
                                     },
                                 },
@@ -523,12 +563,12 @@ const authenticationModelMachine =
                                         target: '#Authentication model.Rendering signing screen.Rendering server error.Idle',
                                     },
                                     {
-                                        cond: 'Server returns an error for signing in request',
-                                        target: '#Authentication model.Rendering signing screen.Rendering server error.Display error',
+                                        cond: 'Credentials are invalid',
+                                        target: '#Authentication model.Rendering signing screen.Rendering server error.Display error.Invalid credentials',
                                     },
                                     {
-                                        cond: 'Credentials are invalid',
-                                        target: '#Authentication model.Rendering signing screen.Rendering server error.Display error',
+                                        cond: 'Server returns an error for signing in request',
+                                        target: '#Authentication model.Rendering signing screen.Rendering server error.Display error.Unknown server error',
                                     },
                                     {
                                         target: '#Authentication model.Rendering signing screen.Rendering server error.Submitted successfully',
@@ -546,7 +586,6 @@ const authenticationModelMachine =
                         target: '#Authentication model.Rendering home screen',
                     },
                 },
-                //here
                 'Rendering signing up screen': {
                     initial: 'Filling credentials',
                     meta: {
@@ -1053,7 +1092,6 @@ const authenticationModelMachine =
                                         },
                                     },
                                 },
-
                                 'Lookup for unknown server error': {
                                     initial: 'Idle',
                                     states: {
@@ -1102,7 +1140,6 @@ const authenticationModelMachine =
                                                 },
                                             },
                                         },
-
                                         Valid: {
                                             type: 'final',
                                             meta: {
@@ -1128,7 +1165,6 @@ const authenticationModelMachine =
                                             },
                                         },
                                     },
-
                                     on: {
                                         'Submit sign up form': [
                                             {
@@ -1142,20 +1178,18 @@ const authenticationModelMachine =
                                     },
                                 },
                             },
-
                             on: {
                                 'Make sign up request throw unknown error': {
                                     actions:
                                         'Assign sign up request will throw an unknown error to context',
+                                    target: '#Authentication model.Rendering signing up screen.Filling credentials',
                                 },
                             },
-
                             onDone: {
                                 target: '#Authentication model.Rendering home screen',
                             },
                         },
                     },
-
                     on: {
                         'Press button to go to sign in screen': {
                             target: '#Authentication model.Rendering signing screen',
@@ -1384,6 +1418,17 @@ const authenticationModel = createModel<TestingContext>(
 
         fireEvent.changeText(passwordField, event.password);
     },
+
+    'Make signing in request fail': () => {
+        server.use(
+            rest.post(
+                `${SERVER_ENDPOINT}/authentication/sign-in`,
+                (_req, res, ctx) => {
+                    return res(ctx.status(500));
+                },
+            ),
+        );
+    },
     ///
 
     //Sign up
@@ -1495,7 +1540,11 @@ cases<{
                       | 'Filled fields';
                   'Rendering server error':
                       | 'Idle'
-                      | 'Display error'
+                      | {
+                            'Display error':
+                                | 'Invalid credentials'
+                                | 'Unknown server error';
+                        }
                       | 'Submitted successfully';
               };
           }
@@ -1623,7 +1672,9 @@ cases<{
             target: {
                 'Rendering signing screen': {
                     'Filling credentials': 'Filled fields',
-                    'Rendering server error': 'Display error',
+                    'Rendering server error': {
+                        'Display error': 'Invalid credentials',
+                    },
                 },
             },
             events: [
@@ -1637,6 +1688,35 @@ cases<{
                 {
                     type: 'Type on signing in password field',
                     password: 'not existing',
+                },
+                {
+                    type: 'Submit signing in form',
+                },
+            ],
+        },
+        'Displays an error when signing in request failed unexpectedly': {
+            target: {
+                'Rendering signing screen': {
+                    'Filling credentials': 'Filled fields',
+                    'Rendering server error': {
+                        'Display error': 'Unknown server error',
+                    },
+                },
+            },
+            events: [
+                {
+                    type: 'Make user unauthenticated and render application',
+                },
+                {
+                    type: 'Make signing in request fail',
+                },
+                {
+                    type: 'Type on signing in email field',
+                    email: existingUser.email,
+                },
+                {
+                    type: 'Type on signing in password field',
+                    password: existingUser.password,
                 },
                 {
                     type: 'Submit signing in form',

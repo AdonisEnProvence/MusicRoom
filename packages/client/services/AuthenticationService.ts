@@ -8,6 +8,7 @@ import {
     SignUpRequestBody,
     SignUpResponseBody,
     WebAuthSuccessfullSignUpResponseBody,
+    SignInFailureResponseBody,
 } from '@musicroom/types';
 import { Platform } from 'react-native';
 import { request } from './http';
@@ -31,17 +32,23 @@ export function sendSignIn({
 async function sendSignInWeb({
     email,
     password,
-}: SendSignInArgs): Promise<SignInSuccessfulWebAuthResponseBody> {
+}: SendSignInArgs): Promise<SignInResponseBody> {
     const body: SignInRequestBody = {
         email,
         password,
         authenticationMode: 'web',
     };
 
-    const response = await request.post('/authentication/sign-in', body);
-    const parsedResponse = SignInSuccessfulWebAuthResponseBody.parse(
-        response.data,
-    );
+    const response = await request.post('/authentication/sign-in', body, {
+        validateStatus: (status) => status >= 200 && status <= 499,
+    });
+    const responseBody = response.data;
+    if (SignInFailureResponseBody.check(responseBody)) {
+        return responseBody;
+    }
+
+    const parsedResponse =
+        SignInSuccessfulWebAuthResponseBody.parse(responseBody);
 
     return parsedResponse;
 }
@@ -49,17 +56,23 @@ async function sendSignInWeb({
 async function sendSignInApi({
     email,
     password,
-}: SendSignInArgs): Promise<SignInSuccessfulApiTokensResponseBody> {
+}: SendSignInArgs): Promise<SignInResponseBody> {
     const body: SignInRequestBody = {
         email,
         password,
         authenticationMode: 'api',
     };
 
-    const response = await request.post('/authentication/sign-in', body);
-    const parsedResponse = SignInSuccessfulApiTokensResponseBody.parse(
-        response.data,
-    );
+    const response = await request.post('/authentication/sign-in', body, {
+        validateStatus: (status) => status >= 200 && status <= 499,
+    });
+    const responseBody = response.data;
+    if (SignInFailureResponseBody.check(responseBody)) {
+        return responseBody;
+    }
+
+    const parsedResponse =
+        SignInSuccessfulApiTokensResponseBody.parse(responseBody);
 
     await request.persistToken(parsedResponse.token);
 

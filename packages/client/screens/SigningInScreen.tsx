@@ -21,12 +21,15 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
         handleSubmit,
         formState: { errors },
     } = useForm<SigningInFormFieldValues>();
-    const erredSubmittingCredentials = useSelector(
+    const credentialsAreInvalid = useSelector(
+        appService,
+        (state) => state.hasTag('signingInCredentialsAreInvalid') === true,
+    );
+    const unknownErrorOccured = useSelector(
         appService,
         (state) =>
-            state.matches(
-                'waitingForUserAuthentication.signingIn.erredSubmittingCredentials',
-            ) === true,
+            state.hasTag('unknownErrorOccuredDuringSubmittingSigningInForm') ===
+            true,
     );
 
     function handleSigningInSubmit({
@@ -87,7 +90,8 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
                                 Welcome back Popol!
                             </Text>
 
-                            {erredSubmittingCredentials && (
+                            {credentialsAreInvalid === true ||
+                            unknownErrorOccured === true ? (
                                 <View
                                     testID="signing-in-screen-server-error"
                                     sx={{ marginBottom: 'xl' }}
@@ -96,10 +100,12 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
                                         accessibilityRole="alert"
                                         sx={{ color: 'red' }}
                                     >
-                                        Credentials are invalid
+                                        {credentialsAreInvalid === true
+                                            ? 'Credentials are invalid'
+                                            : 'An unknown error occured, please try again later'}
                                     </Text>
                                 </View>
-                            )}
+                            ) : null}
 
                             <View
                                 testID="signing-in-screen-email-field"

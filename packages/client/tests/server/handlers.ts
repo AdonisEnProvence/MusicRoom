@@ -726,12 +726,22 @@ export const handlers = [
                 },
             });
             if (user === null) {
-                return res(ctx.status(404));
+                return res(
+                    ctx.status(401),
+                    ctx.json({
+                        status: 'INVALID_CREDENTIALS',
+                    }),
+                );
             }
 
             const isInvalidPassword = req.body.password !== user.password;
             if (isInvalidPassword === true) {
-                return res(ctx.status(404));
+                return res(
+                    ctx.status(401),
+                    ctx.json({
+                        status: 'INVALID_CREDENTIALS',
+                    }),
+                );
             }
 
             return res(

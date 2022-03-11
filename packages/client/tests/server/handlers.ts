@@ -83,7 +83,7 @@ function withAuthentication<
 export const handlers = [
     rest.get<undefined, { query: string }, SearchTracksAPIRawResponse>(
         `${SERVER_ENDPOINT}/search/track/:query`,
-        (req, res, ctx) => {
+        withAuthentication((req, res, ctx) => {
             const { query } = req.params;
 
             const tracks = db.searchableTracks.findMany({
@@ -95,7 +95,7 @@ export const handlers = [
             });
 
             return res(ctx.json(tracks as TrackMetadata[] | undefined));
-        },
+        }),
     ),
 
     rest.get<undefined, { input: string }, PlaceAutocompleteResponse>(

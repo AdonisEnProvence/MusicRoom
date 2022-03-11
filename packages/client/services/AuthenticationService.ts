@@ -10,8 +10,7 @@ import {
     WebAuthSuccessfullSignUpResponseBody,
     SignInFailureResponseBody,
 } from '@musicroom/types';
-import { Platform } from 'react-native';
-import { request } from './http';
+import { request, SHOULD_USE_TOKEN_AUTH } from './http';
 
 interface SendSignInArgs {
     email: string;
@@ -22,11 +21,10 @@ export function sendSignIn({
     email,
     password,
 }: SendSignInArgs): Promise<SignInResponseBody> {
-    if (Platform.OS === 'web') {
-        return sendSignInWeb({ email, password });
+    if (SHOULD_USE_TOKEN_AUTH) {
+        return sendSignInApi({ email, password });
     }
-
-    return sendSignInApi({ email, password });
+    return sendSignInWeb({ email, password });
 }
 
 async function sendSignInWeb({
@@ -117,8 +115,12 @@ export async function sendApiTokenSignUp({
         throw new SignUpError(parsedResponseBody.signUpFailureReasonCollection);
     }
 
-    //useless parse below for type only
-    return ApiTokensSuccessfullSignUpResponseBody.parse(parsedResponseBody);
+    const apiTokenSuccessSignUpReponseBody =
+        ApiTokensSuccessfullSignUpResponseBody.parse(parsedResponseBody);
+
+    await request.persistToken(apiTokenSuccessSignUpReponseBody.token);
+
+    return apiTokenSuccessSignUpReponseBody;
 }
 
 export async function sendWebAuthSignUp({
@@ -152,12 +154,9 @@ export async function sendWebAuthSignUp({
 export async function sendSignUp(
     args: sendSignUpArgs,
 ): Promise<SignUpResponseBody> {
-    const isWebBrowser = Platform.OS === 'web';
-
-    if (isWebBrowser) {
-        return await sendWebAuthSignUp(args);
+    if (SHOULD_USE_TOKEN_AUTH) {
+        return await sendApiTokenSignUp(args);
     }
 
-    return await sendApiTokenSignUp(args);
-    //TODO handle token
+    return await sendWebAuthSignUp(args);
 }

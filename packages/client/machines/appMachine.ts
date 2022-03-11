@@ -11,7 +11,7 @@ import {
 } from 'xstate';
 import { SocketClient } from '../contexts/SocketContext';
 import { sendSignIn } from '../services/AuthenticationService';
-import { request } from '../services/http';
+import { request, SHOULD_USE_TOKEN_AUTH } from '../services/http';
 import { getMyProfileInformation } from '../services/UsersSearchService';
 import { appModel } from './appModel';
 import { createAppMusicPlayerMachine } from './appMusicPlayerMachine';
@@ -57,7 +57,7 @@ export function createAppMachine({
                     tags: 'showApplicationLoader',
 
                     always: {
-                        cond: 'isOnWeb',
+                        cond: 'shouldUseWebAuth',
 
                         target: 'fetchingInitialUserAuthenticationState',
                     },
@@ -79,6 +79,7 @@ export function createAppMachine({
 
                         onDone: {
                             target: 'waitingForServerToAcknowledgeSocketConnection',
+                            actions: 'reconnectSocket',
                         },
 
                         onError: {
@@ -304,20 +305,25 @@ export function createAppMachine({
             },
 
             actions: {
-                reconnectSocket: () => {
+                //TODO refactor as a service
+                reconnectSocket: async (_context) => {
+                    if (SHOULD_USE_TOKEN_AUTH) {
+                        socket.auth = {
+                            Authorization: `Bearer ${await request.GetToken()}`,
+                        };
+                    }
                     socket.disconnect();
                     socket.connect();
                 },
             },
 
             guards: {
-                isOnWeb: () => Platform.OS === 'web',
-
                 submittedSigningInCredentialsAreInvalid: (_context, e) => {
                     const event = e as DoneInvokeEvent<SignInResponseBody>;
 
                     return event.data.status === 'INVALID_CREDENTIALS';
                 },
+                shouldUseWebAuth: () => !SHOULD_USE_TOKEN_AUTH,
             },
         },
     );

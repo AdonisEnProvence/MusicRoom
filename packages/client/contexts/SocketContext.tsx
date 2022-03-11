@@ -29,6 +29,8 @@ export function useSocket(): SocketClient {
 
         return io(SERVER_ENDPOINT, {
             query,
+            withCredentials: true,
+            autoConnect: false,
         });
     }, []);
 
@@ -64,7 +66,7 @@ export function useSocketContext(): SocketClient {
     const context = useContext(SocketContext);
     if (context === undefined) {
         throw new Error(
-            'useUserContext must be used within a UserContextProvider',
+            'useSocketContext must be used within a UseSocketContextProvider',
         );
     }
 

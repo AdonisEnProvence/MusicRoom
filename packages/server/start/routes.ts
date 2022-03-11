@@ -20,9 +20,14 @@
 // import Redis from '@ioc:Adonis/Addons/Redis';
 import Route from '@ioc:Adonis/Core/Route';
 
-Route.get('/search/track/:query', 'TracksSearchesController.searchTrackName');
+Route.get(
+    '/search/track/:query',
+    'TracksSearchesController.searchTrackName',
+).middleware('every-auth');
 
-Route.post('/search/rooms', 'MtvRoomsHttpController.fetchMtvRooms');
+Route.post('/search/rooms', 'MtvRoomsHttpController.fetchMtvRooms').middleware(
+    'every-auth',
+);
 
 Route.post('/search/users', 'SearchUsersController.searchUsers');
 

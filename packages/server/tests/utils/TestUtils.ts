@@ -7,6 +7,8 @@ import {
     TrackMetadata,
     MpeWorkflowStateWithUserRelatedInformation,
     UserSettingVisibility,
+    SignInRequestBody,
+    SignInSuccessfulWebAuthResponseBody,
 } from '@musicroom/types';
 import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import MpeRoom from 'App/Models/MpeRoom';
@@ -17,6 +19,7 @@ import SocketLifecycle from 'App/Services/SocketLifecycle';
 import { unique, datatype, random, name, internet } from 'faker';
 import sinon from 'sinon';
 import { io, Socket } from 'socket.io-client';
+import supertest from 'supertest';
 import {
     createMachine,
     interpret,
@@ -127,6 +130,12 @@ export function generateWeakPassword(): string {
     ];
 }
 
+interface AssociateMtvRoomToUserArgs {
+    user: User;
+    mtvRoomID: string;
+    roomName?: string;
+}
+
 interface TestUtilsReturnedValue {
     initSocketConnection: () => void;
     disconnectEveryRemainingSocketConnection: () => Promise<void>;
@@ -144,6 +153,11 @@ interface TestUtilsReturnedValue {
         expect: () => ExpectReturn | Promise<ExpectReturn>,
         timeout?: number,
     ) => Promise<ExpectReturn>;
+    createUserAndAuthenticate: (
+        request: supertest.SuperAgentTest,
+    ) => Promise<User>;
+    createRequest: () => supertest.SuperAgentTest;
+    associateMtvRoomToUser: (args: AssociateMtvRoomToUserArgs) => Promise<void>;
     spy: typeof spy;
 }
 
@@ -374,17 +388,11 @@ export function initTestUtils(): TestUtilsReturnedValue {
         });
 
         if (mtvRoomIDToAssociate !== undefined) {
-            let mtvRoomToAssociate = await MtvRoom.find(mtvRoomIDToAssociate);
-
-            if (mtvRoomToAssociate === null) {
-                mtvRoomToAssociate = await MtvRoom.create({
-                    uuid: mtvRoomIDToAssociate,
-                    runID: datatype.uuid(),
-                    name: roomName ?? random.words(2),
-                    creatorID: createdUser.uuid,
-                });
-            }
-            await createdUser.related('mtvRoom').associate(mtvRoomToAssociate);
+            await associateMtvRoomToUser({
+                user: createdUser,
+                mtvRoomID: mtvRoomIDToAssociate,
+                roomName,
+            });
         }
 
         if (mpeRoomIDToAssociate !== undefined) {
@@ -592,6 +600,54 @@ export function initTestUtils(): TestUtilsReturnedValue {
         }
     }
 
+    async function createUserAndAuthenticate(
+        request: supertest.SuperAgentTest,
+    ): Promise<User> {
+        const userID = datatype.uuid();
+        const userUnhashedPassword = internet.password();
+        const user = await User.create({
+            uuid: userID,
+            nickname: internet.userName(),
+            email: internet.email(),
+            password: userUnhashedPassword,
+        });
+
+        const signInRequestBody: SignInRequestBody = {
+            email: user.email,
+            password: userUnhashedPassword,
+            authenticationMode: 'web',
+        };
+        const signInResponse = await request
+            .post('/authentication/sign-in')
+            .send(signInRequestBody)
+            .expect(200);
+        SignInSuccessfulWebAuthResponseBody.parse(signInResponse.body);
+
+        return user;
+    }
+
+    function createRequest() {
+        return supertest.agent(BASE_URL);
+    }
+
+    async function associateMtvRoomToUser({
+        user,
+        mtvRoomID,
+        roomName,
+    }: AssociateMtvRoomToUserArgs): Promise<void> {
+        let mtvRoomToAssociate = await MtvRoom.find(mtvRoomID);
+
+        if (mtvRoomToAssociate === null) {
+            mtvRoomToAssociate = await MtvRoom.create({
+                uuid: mtvRoomID,
+                runID: datatype.uuid(),
+                name: roomName ?? random.words(2),
+                creatorID: user.uuid,
+            });
+        }
+        await user.related('mtvRoom').associate(mtvRoomToAssociate);
+    }
+
     return {
         createSocketConnection,
         createUserAndGetSocket,
@@ -600,6 +656,9 @@ export function initTestUtils(): TestUtilsReturnedValue {
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         waitFor,
+        createUserAndAuthenticate,
+        createRequest,
+        associateMtvRoomToUser,
         spy,
     };
 }

@@ -4,7 +4,6 @@ import { MtvRoomSummary } from './mtv';
 
 export const MtvRoomSearchRequestBody = z.object({
     searchQuery: z.string(),
-    userID: z.string(),
     page: StrictlyPositiveInteger,
 });
 export type MtvRoomSearchRequestBody = z.infer<typeof MtvRoomSearchRequestBody>;

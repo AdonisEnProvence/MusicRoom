@@ -1,52 +1,20 @@
 import Database from '@ioc:Adonis/Lucid/Database';
-import {
-    GetMyProfileInformationResponseBody,
-    SignInRequestBody,
-    SignInSuccessfulWebAuthResponseBody,
-} from '@musicroom/types';
-import User from 'App/Models/User';
-import { datatype, internet } from 'faker';
+import { GetMyProfileInformationResponseBody } from '@musicroom/types';
 import test from 'japa';
 import sinon from 'sinon';
-import supertest from 'supertest';
 import urlcat from 'urlcat';
 import {
-    BASE_URL,
     initTestUtils,
     TEST_MY_PROFILE_ROUTES_GROUP_PREFIX,
 } from '../../../tests/utils/TestUtils';
-
-async function createUserAndAuthenticate(
-    request: supertest.SuperAgentTest,
-): Promise<User> {
-    const userID = datatype.uuid();
-    const userUnhashedPassword = internet.password();
-    const user = await User.create({
-        uuid: userID,
-        nickname: internet.userName(),
-        email: internet.email(),
-        password: userUnhashedPassword,
-    });
-
-    const signInRequestBody: SignInRequestBody = {
-        email: user.email,
-        password: userUnhashedPassword,
-        authenticationMode: 'web',
-    };
-    const signInResponse = await request
-        .post('/authentication/sign-in')
-        .send(signInRequestBody)
-        .expect(200);
-    SignInSuccessfulWebAuthResponseBody.parse(signInResponse.body);
-
-    return user;
-}
 
 test.group('MyProfileController', (group) => {
     const {
         createSocketConnection,
         initSocketConnection,
         disconnectEveryRemainingSocketConnection,
+        createUserAndAuthenticate,
+        createRequest,
     } = initTestUtils();
 
     group.beforeEach(async () => {
@@ -61,7 +29,7 @@ test.group('MyProfileController', (group) => {
     });
 
     test('Retrieves profile information of the current authenticated user', async (assert) => {
-        const request = supertest.agent(BASE_URL);
+        const request = createRequest();
 
         const user = await createUserAndAuthenticate(request);
         await createSocketConnection({
@@ -93,7 +61,7 @@ test.group('MyProfileController', (group) => {
     });
 
     test('Returns a 401 error when the current user is unauthenticated', async () => {
-        const request = supertest.agent(BASE_URL);
+        const request = createRequest();
 
         await request
             .get(
@@ -106,7 +74,7 @@ test.group('MyProfileController', (group) => {
     });
 
     test('Sends back a 500 error as current user has no active device', async () => {
-        const request = supertest.agent(BASE_URL);
+        const request = createRequest();
 
         await createUserAndAuthenticate(request);
 

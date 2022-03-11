@@ -9,8 +9,7 @@ import MtvRoomInvitation from 'App/Models/MtvRoomInvitation';
 import User from 'App/Models/User';
 import { datatype, internet, random } from 'faker';
 import test from 'japa';
-import supertest from 'supertest';
-import { BASE_URL, initTestUtils } from './utils/TestUtils';
+import { initTestUtils } from '../../../tests/utils/TestUtils';
 
 function generateArray<Item>(
     length: number,
@@ -24,6 +23,10 @@ test.group('MtvRoom Search Engine', (group) => {
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         createUserAndGetSocket,
+        createUserAndAuthenticate,
+        createSocketConnection,
+        createRequest,
+        associateMtvRoomToUser,
     } = initTestUtils();
 
     group.beforeEach(async () => {
@@ -36,29 +39,37 @@ test.group('MtvRoom Search Engine', (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
+    test('Requires authentication', async () => {
+        const request = createRequest();
+
+        const body: MtvRoomSearchRequestBody = {
+            page: 0,
+            searchQuery: '',
+        };
+        await request.post('/search/rooms').send(body).expect(401);
+    });
+
     test('Page must be strictly positive', async () => {
-        await supertest(BASE_URL)
-            .post('/search/rooms')
-            .send({
-                page: 0,
-                searchQuery: '',
-            } as MtvRoomSearchRequestBody)
-            .expect(500);
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
+        const body: MtvRoomSearchRequestBody = {
+            page: 0,
+            searchQuery: '',
+        };
+        await request.post('/search/rooms').send(body).expect(500);
     });
 
     test('Rooms are paginated', async (assert) => {
         const PAGE_MAX_LENGTH = 10;
-        const userID = datatype.uuid();
-        const creatorUserID = datatype.uuid();
+        const request = createRequest();
 
+        await createUserAndAuthenticate(request);
+
+        const creatorUserID = datatype.uuid();
         await User.create({
             uuid: creatorUserID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
-        await User.create({
-            uuid: userID,
             nickname: internet.userName(),
             email: internet.email(),
             password: internet.password(),
@@ -79,15 +90,13 @@ test.group('MtvRoom Search Engine', (group) => {
             })),
         );
 
-        console.log((await MtvRoom.all()).length);
-
-        const { body: firstPageBodyRaw } = await supertest(BASE_URL)
+        const firstPageRequestBody: MtvRoomSearchRequestBody = {
+            page: 1,
+            searchQuery: '',
+        };
+        const { body: firstPageBodyRaw } = await request
             .post('/search/rooms')
-            .send({
-                page: 1,
-                searchQuery: '',
-                userID,
-            } as MtvRoomSearchRequestBody)
+            .send(firstPageRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
         const firstPageBodyParsed =
@@ -97,13 +106,13 @@ test.group('MtvRoom Search Engine', (group) => {
         assert.equal(firstPageBodyParsed.totalEntries, roomsCount);
         assert.equal(firstPageBodyParsed.data.length, PAGE_MAX_LENGTH);
 
-        const { body: secondPageBodyRaw } = await supertest(BASE_URL)
+        const secondPageRequestBody: MtvRoomSearchRequestBody = {
+            page: 2,
+            searchQuery: '',
+        };
+        const { body: secondPageBodyRaw } = await request
             .post('/search/rooms')
-            .send({
-                page: 2,
-                searchQuery: '',
-                userID,
-            } as MtvRoomSearchRequestBody)
+            .send(secondPageRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
         const secondPageBodyParsed =
@@ -118,6 +127,10 @@ test.group('MtvRoom Search Engine', (group) => {
     });
 
     test('Rooms are paginated and filtered', async (assert) => {
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
         const creatorUserID = datatype.uuid();
         await User.create({
             uuid: creatorUserID,
@@ -148,13 +161,13 @@ test.group('MtvRoom Search Engine', (group) => {
         const roomsCount =
             publicRoomsWithNameFirstCharacterEqualToFirstRoom.length;
 
-        const { body: pageBodyRaw } = await supertest(BASE_URL)
+        const pageRequestBody: MtvRoomSearchRequestBody = {
+            page: 1,
+            searchQuery: firstRoomNameFirstCharacter,
+        };
+        const { body: pageBodyRaw } = await request
             .post('/search/rooms')
-            .send({
-                page: 1,
-                searchQuery: firstRoomNameFirstCharacter,
-                userID: datatype.uuid(),
-            } as MtvRoomSearchRequestBody)
+            .send(pageRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
         const pageBodyParsed = MtvRoomSearchResponse.parse(pageBodyRaw);
@@ -164,6 +177,10 @@ test.group('MtvRoom Search Engine', (group) => {
     });
 
     test('Returns empty data if page is out of bound', async (assert) => {
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
         const PAGE_OUT_OF_BOUND = 100;
         const creator = await User.create({
             uuid: datatype.uuid(),
@@ -179,13 +196,13 @@ test.group('MtvRoom Search Engine', (group) => {
             isOpen: true,
         });
 
-        const { body: pageBodyRaw } = await supertest(BASE_URL)
+        const pageRequestBody: MtvRoomSearchRequestBody = {
+            page: PAGE_OUT_OF_BOUND,
+            searchQuery: '',
+        };
+        const { body: pageBodyRaw } = await request
             .post('/search/rooms')
-            .send({
-                page: PAGE_OUT_OF_BOUND,
-                searchQuery: '',
-                userID: datatype.uuid(),
-            } as MtvRoomSearchRequestBody)
+            .send(pageRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
         const pageBodyParsed = MtvRoomSearchResponse.parse(pageBodyRaw);
@@ -198,14 +215,16 @@ test.group('MtvRoom Search Engine', (group) => {
 
     test('Rooms should be ordered by private room first, public but invited room in second and then some public rooms', async (assert) => {
         const PAGE_MAX_LENGTH = 10;
-        const userID = datatype.uuid();
-        const creatorUserID = datatype.uuid();
+        const request = createRequest();
 
+        const user = await createUserAndAuthenticate(request);
+        await createSocketConnection({
+            userID: user.uuid,
+        });
+
+        const creatorUserID = datatype.uuid();
         await createUserAndGetSocket({
             userID: creatorUserID,
-        });
-        await createUserAndGetSocket({
-            userID,
         });
 
         let roomsCount = datatype.number({
@@ -235,7 +254,7 @@ test.group('MtvRoom Search Engine', (group) => {
                     runID: datatype.uuid(),
                     name: random.words(2),
                     //Adding some complexity to the query
-                    creatorID: isIndexZero ? userID : creatorUserID,
+                    creatorID: isIndexZero ? user.uuid : creatorUserID,
                     isOpen: isIndexEven,
                 };
             }),
@@ -245,7 +264,7 @@ test.group('MtvRoom Search Engine', (group) => {
         const publicRoom = rooms[10];
         const firstInvitationForPublicRoom = await MtvRoomInvitation.create({
             mtvRoomID: publicRoom.uuid,
-            invitedUserID: userID,
+            invitedUserID: user.uuid,
             invitingUserID: creatorUserID,
             uuid: datatype.uuid(),
         });
@@ -257,7 +276,7 @@ test.group('MtvRoom Search Engine', (group) => {
         const privateRoom = rooms[7];
         const firstInvitationForPrivateRoom = await MtvRoomInvitation.create({
             mtvRoomID: privateRoom.uuid,
-            invitedUserID: userID,
+            invitedUserID: user.uuid,
             invitingUserID: creatorUserID,
             uuid: datatype.uuid(),
         });
@@ -269,7 +288,7 @@ test.group('MtvRoom Search Engine', (group) => {
         const secondPrivateRoom = rooms[11];
         const secondInvitationForPrivateRoom = await MtvRoomInvitation.create({
             mtvRoomID: secondPrivateRoom.uuid,
-            invitedUserID: userID,
+            invitedUserID: user.uuid,
             invitingUserID: creatorUserID,
             uuid: datatype.uuid(),
         });
@@ -279,13 +298,13 @@ test.group('MtvRoom Search Engine', (group) => {
         privateRoomWithInvitationCount++;
         ///
 
-        const { body: firstPageBodyRaw } = await supertest(BASE_URL)
+        const firstPageRequestBody: MtvRoomSearchRequestBody = {
+            page: 1,
+            searchQuery: '',
+        };
+        const { body: firstPageBodyRaw } = await request
             .post('/search/rooms')
-            .send({
-                page: 1,
-                searchQuery: '',
-                userID,
-            } as MtvRoomSearchRequestBody)
+            .send(firstPageRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
         const firstPageBodyParsed =
@@ -338,16 +357,21 @@ test.group('MtvRoom Search Engine', (group) => {
     });
 
     test("It should not list the user's current room", async (assert) => {
-        const userID = datatype.uuid();
-        const mtvRoomIDToAssociate = datatype.uuid();
-        const creatorUserID = datatype.uuid();
+        const request = createRequest();
 
+        const user = await createUserAndAuthenticate(request);
+        const mtvRoomIDToAssociate = datatype.uuid();
+        await createSocketConnection({
+            userID: user.uuid,
+        });
+        await associateMtvRoomToUser({
+            user,
+            mtvRoomID: mtvRoomIDToAssociate,
+        });
+
+        const creatorUserID = datatype.uuid();
         await createUserAndGetSocket({
             userID: creatorUserID,
-        });
-        await createUserAndGetSocket({
-            userID,
-            mtvRoomIDToAssociate,
         });
 
         const roomsCount = datatype.number({
@@ -367,13 +391,13 @@ test.group('MtvRoom Search Engine', (group) => {
             (room) => room.isOpen,
         ).length;
 
-        const { body: pageBodyRaw } = await supertest(BASE_URL)
+        const pageRequestBody: MtvRoomSearchRequestBody = {
+            page: 1,
+            searchQuery: '',
+        };
+        const { body: pageBodyRaw } = await request
             .post('/search/rooms')
-            .send({
-                page: 1,
-                searchQuery: '',
-                userID,
-            } as MtvRoomSearchRequestBody)
+            .send(pageRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
         const pageBodyParsed = MtvRoomSearchResponse.parse(pageBodyRaw);
@@ -388,9 +412,11 @@ test.group('MtvRoom Search Engine', (group) => {
     });
 
     test('It should not duplicate any result even after a lot of page', async (assert) => {
-        const userID = datatype.uuid();
-        await createUserAndGetSocket({
-            userID,
+        const request = createRequest();
+
+        const user = await createUserAndAuthenticate(request);
+        await createSocketConnection({
+            userID: user.uuid,
         });
 
         const creator = await User.firstOrCreate({
@@ -431,13 +457,13 @@ test.group('MtvRoom Search Engine', (group) => {
         }: {
             page: number;
         }): Promise<MtvRoomSearchResponse> => {
-            const { body: pageBodyRaw } = await supertest(BASE_URL)
+            const pageRequestBody: MtvRoomSearchRequestBody = {
+                page,
+                searchQuery: '',
+            };
+            const { body: pageBodyRaw } = await request
                 .post('/search/rooms')
-                .send({
-                    page,
-                    searchQuery: '',
-                    userID,
-                } as MtvRoomSearchRequestBody)
+                .send(pageRequestBody)
                 .expect('Content-Type', /json/)
                 .expect(200);
             return MtvRoomSearchResponse.parse(pageBodyRaw);

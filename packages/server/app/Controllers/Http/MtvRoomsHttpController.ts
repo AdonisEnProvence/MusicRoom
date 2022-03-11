@@ -8,6 +8,7 @@ import {
 import MtvRoom from 'App/Models/MtvRoom';
 import MtvRoomInvitation from 'App/Models/MtvRoomInvitation';
 import User from 'App/Models/User';
+import invariant from 'tiny-invariant';
 import * as z from 'zod';
 
 const MTV_ROOMS_SEARCH_LIMIT = 10;
@@ -24,14 +25,18 @@ type FetchMtvRoomsRawPaginationEntry = z.infer<
 export default class MtvRoomsHttpController {
     public async fetchMtvRooms({
         request,
+        auth,
     }: HttpContextContract): Promise<MtvRoomSearchResponse> {
-        const rawBody = request.body();
-        //TODO The userID raw in the request body is temporary
-        //Later it will be a session cookie to avoid any security issues
-        const { searchQuery, page, userID } =
-            MtvRoomSearchRequestBody.parse(rawBody);
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            'User must be authenticated to fetch MTV rooms',
+        );
 
-        //TODO we should verify that user is existing don't we ?
+        const { searchQuery, page } = MtvRoomSearchRequestBody.parse(
+            request.body(),
+        );
+
         const roomsPagination =
             await Database.query<FetchMtvRoomsRawPaginationEntry>()
                 .select('*')
@@ -45,7 +50,7 @@ export default class MtvRoomsHttpController {
                             MtvRoomInvitation.query()
                                 .where(
                                     'mtv_room_invitations.invited_user_id',
-                                    userID,
+                                    user.uuid,
                                 )
                                 .whereColumn(
                                     'mtv_room_invitations.inviting_user_id',
@@ -64,7 +69,7 @@ export default class MtvRoomsHttpController {
                         )
                         .where('name', 'ilike', `${searchQuery}%`)
                         .andWhereDoesntHave('members', (userQuery) => {
-                            return userQuery.where('uuid', userID);
+                            return userQuery.where('uuid', user.uuid);
                         })
                         .as('derivated_table'),
                 )

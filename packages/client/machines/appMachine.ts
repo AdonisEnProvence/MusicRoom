@@ -1,7 +1,9 @@
+import { SignInResponseBody } from '@musicroom/types';
 import { Platform } from 'react-native';
 import invariant from 'tiny-invariant';
 import {
     ContextFrom,
+    DoneInvokeEvent,
     EventFrom,
     forwardTo,
     Interpreter,
@@ -101,12 +103,19 @@ export function createAppMachine({
                                     invoke: {
                                         src: 'signIn',
 
-                                        onDone: {
-                                            target: 'successfullySubmittedCredentials',
-                                        },
+                                        onDone: [
+                                            {
+                                                cond: 'submittedSigningInCredentialsAreInvalid',
+
+                                                target: 'credentialsAreInvalid',
+                                            },
+                                            {
+                                                target: 'successfullySubmittedCredentials',
+                                            },
+                                        ],
 
                                         onError: {
-                                            target: 'erredSubmittingCredentials',
+                                            target: 'unknownErrorOccuredDuringSubmitting',
                                         },
                                     },
                                 },
@@ -115,7 +124,13 @@ export function createAppMachine({
                                     type: 'final',
                                 },
 
-                                erredSubmittingCredentials: {},
+                                credentialsAreInvalid: {
+                                    tags: 'signingInCredentialsAreInvalid',
+                                },
+
+                                unknownErrorOccuredDuringSubmitting: {
+                                    tags: 'unknownErrorOccuredDuringSubmittingSigningInForm',
+                                },
                             },
 
                             on: {
@@ -264,7 +279,10 @@ export function createAppMachine({
                     return me;
                 },
 
-                signIn: async ({ email, password }) => {
+                signIn: async ({
+                    email,
+                    password,
+                }): Promise<SignInResponseBody> => {
                     invariant(
                         email !== undefined,
                         'Email must have been set before signing in',
@@ -274,7 +292,7 @@ export function createAppMachine({
                         'Email must have been set before signing in',
                     );
 
-                    await sendSignIn({
+                    return await sendSignIn({
                         email,
                         password,
                     });
@@ -294,6 +312,12 @@ export function createAppMachine({
 
             guards: {
                 isOnWeb: () => Platform.OS === 'web',
+
+                submittedSigningInCredentialsAreInvalid: (_context, e) => {
+                    const event = e as DoneInvokeEvent<SignInResponseBody>;
+
+                    return event.data.status === 'INVALID_CREDENTIALS';
+                },
             },
         },
     );

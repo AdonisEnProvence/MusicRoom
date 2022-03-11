@@ -20,7 +20,6 @@ export type PaginatedUserSummariesSearchResult = z.infer<
 
 export const SearchUsersRequestBody = z.object({
     searchQuery: z.string().nonempty(),
-    userID: z.string().uuid(),
     page: StrictlyPositiveInteger,
 });
 export type SearchUsersRequestBody = z.infer<typeof SearchUsersRequestBody>;

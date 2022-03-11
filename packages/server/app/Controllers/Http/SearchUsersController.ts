@@ -16,6 +16,7 @@ import {
 import ForbiddenException from 'App/Exceptions/ForbiddenException';
 import User from 'App/Models/User';
 import UserService from 'App/Services/UserService';
+import invariant from 'tiny-invariant';
 
 const SEARCH_USERS_LIMIT = 10;
 
@@ -129,22 +130,27 @@ async function throwErrorIfRequestingUserCanNotAccessRelatedUserRelationsVisibil
 export default class SearchUsersController {
     public async searchUsers({
         request,
+        auth,
     }: HttpContextContract): Promise<SearchUsersResponseBody> {
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            'User must be authenticated to search users',
+        );
+
         const rawBody = request.body();
-        //FIXME AUTH Given userID is TMP
-        const { searchQuery, page, userID } =
-            SearchUsersRequestBody.parse(rawBody);
+        const { searchQuery, page } = SearchUsersRequestBody.parse(rawBody);
 
         const usersPagination = await User.query()
-            .whereNot('uuid', userID)
+            .whereNot('uuid', user.uuid)
             .andWhere('nickname', 'ilike', `${searchQuery}%`)
             .orderBy('nickname', 'asc')
             .paginate(page, SEARCH_USERS_LIMIT);
         const totalUsersToLoad = usersPagination.total;
         const hasMoreUsersToLoad = usersPagination.hasMorePages;
-        const formattedUsers = usersPagination.all().map((user) => ({
-            userID: user.uuid,
-            nickname: user.nickname,
+        const formattedUsers = usersPagination.all().map((paginatedUser) => ({
+            userID: paginatedUser.uuid,
+            nickname: paginatedUser.nickname,
         }));
 
         return {

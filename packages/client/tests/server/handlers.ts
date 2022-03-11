@@ -163,32 +163,35 @@ export const handlers = [
         SearchUsersRequestBody,
         Record<string, never>,
         SearchUsersResponseBody
-    >(`${SERVER_ENDPOINT}/search/users`, (req, res, ctx) => {
-        const PAGE_SIZE = 10;
-        const { page, searchQuery } = req.body;
+    >(
+        `${SERVER_ENDPOINT}/search/users`,
+        withAuthentication((req, res, ctx) => {
+            const PAGE_SIZE = 10;
+            const { page, searchQuery } = req.body;
 
-        if (searchQuery === '') {
-            return res(ctx.status(400));
-        }
+            if (searchQuery === '') {
+                return res(ctx.status(400));
+            }
 
-        const allUsers = db.searchableUsers.getAll();
-        const usersMatching = allUsers.filter(({ nickname }) =>
-            nickname.toLowerCase().startsWith(searchQuery.toLowerCase()),
-        );
-        const paginatedUsers = usersMatching.slice(
-            (page - 1) * PAGE_SIZE,
-            page * PAGE_SIZE,
-        );
+            const allUsers = db.searchableUsers.getAll();
+            const usersMatching = allUsers.filter(({ nickname }) =>
+                nickname.toLowerCase().startsWith(searchQuery.toLowerCase()),
+            );
+            const paginatedUsers = usersMatching.slice(
+                (page - 1) * PAGE_SIZE,
+                page * PAGE_SIZE,
+            );
 
-        return res(
-            ctx.json({
-                data: paginatedUsers,
-                totalEntries: usersMatching.length,
-                hasMore: usersMatching.length > page * PAGE_SIZE,
-                page,
-            }),
-        );
-    }),
+            return res(
+                ctx.json({
+                    data: paginatedUsers,
+                    totalEntries: usersMatching.length,
+                    hasMore: usersMatching.length > page * PAGE_SIZE,
+                    page,
+                }),
+            );
+        }),
+    ),
 
     rest.post<
         ListAllMpeRoomsRequestBody,

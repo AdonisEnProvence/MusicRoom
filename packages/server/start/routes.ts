@@ -29,9 +29,9 @@ Route.post('/search/rooms', 'MtvRoomsHttpController.fetchMtvRooms').middleware(
     'every-auth',
 );
 
-Route.post('/search/users', 'SearchUsersController.searchUsers');
-
-Route.get('/ping', () => console.log('pong'));
+Route.post('/search/users', 'SearchUsersController.searchUsers').middleware(
+    'every-auth',
+);
 
 Route.get('/proxy-places-api/*', 'PlacesApisController.proxyPlacesAPIRequest');
 

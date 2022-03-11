@@ -40,7 +40,10 @@ Route.post(
     'MpeRoomsHttpController.listMyRooms',
 ).middleware('every-auth');
 
-Route.post('/mpe/search/all-rooms', 'MpeRoomsHttpController.listAllRooms');
+Route.post(
+    '/mpe/search/all-rooms',
+    'MpeRoomsHttpController.listAllRooms',
+).middleware('every-auth');
 
 export const USER_ROUTES_GROUP_PREFIX = '/user';
 Route.group(() => {

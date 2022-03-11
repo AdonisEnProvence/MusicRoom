@@ -15,8 +15,15 @@ const MPE_ROOMS_SEARCH_LIMIT = 10;
 export default class MpeRoomsHttpController {
     public async listAllRooms({
         request,
+        auth,
     }: HttpContextContract): Promise<ListAllMpeRoomsResponseBody> {
-        const { searchQuery, page, userID } = ListAllMpeRoomsRequestBody.parse(
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            'User must be logged in to list all Mpe rooms',
+        );
+
+        const { searchQuery, page } = ListAllMpeRoomsRequestBody.parse(
             request.body(),
         );
 
@@ -26,7 +33,7 @@ export default class MpeRoomsHttpController {
                 MpeRoomInvitation.query()
                     .count('*')
                     .as('invitations_count')
-                    .where('mpe_room_invitations.invited_user_id', userID)
+                    .where('mpe_room_invitations.invited_user_id', user.uuid)
                     .andWhereColumn(
                         'mpe_room_invitations.mpe_room_id',
                         'mpe_rooms.uuid',
@@ -35,7 +42,7 @@ export default class MpeRoomsHttpController {
             ])
             .where('name', 'ilike', `${searchQuery}%`)
             .andWhereDoesntHave('members', (membersQuery) => {
-                return membersQuery.where('user_uuid', userID);
+                return membersQuery.where('user_uuid', user.uuid);
             })
             .orderBy([
                 {
@@ -58,7 +65,7 @@ export default class MpeRoomsHttpController {
         const hasMoreRoomsToLoad = allMpeRoomsPagination.hasMorePages;
         const formattedMpeRooms = await fromMpeRoomsToMpeRoomSummaries({
             mpeRooms: allMpeRoomsPagination.all(),
-            userID,
+            userID: user.uuid,
         });
 
         return {

@@ -21,6 +21,7 @@ import { unique, datatype, random, name, internet } from 'faker';
 import sinon from 'sinon';
 import { io, Socket } from 'socket.io-client';
 import supertest from 'supertest';
+import invariant from 'tiny-invariant';
 import urlcat from 'urlcat';
 import {
     createMachine,
@@ -29,6 +30,22 @@ import {
     assign,
     DoneInvokeEvent,
 } from 'xstate';
+
+/**
+ * Token is stored using it's prefix inside the socke auth instance
+ * We want to retrieve it without it
+ */
+export function getSocketApiAuthToken(socket: TypedTestSocket): string {
+    const token: string | undefined = socket.auth['Authorization'];
+    console.log({ token });
+
+    //TODO see to dump typescript, it's a pain to type overload each time
+    invariant(token !== null || token !== undefined, 'token should be defined');
+    invariant(token?.startsWith('Bearer '), 'token should be defined');
+
+    //TODO should remove as
+    return token?.split(' ')[1] as string;
+}
 
 /**
  * Adapted from https://github.com/ai/nanospy/blob/main/index.js.

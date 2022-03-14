@@ -20,11 +20,8 @@ import {
 } from './utils/TestUtils';
 
 test.group('Authentication sign up tests group', (group) => {
-    const {
-        createSocketConnection,
-        initSocketConnection,
-        disconnectEveryRemainingSocketConnection,
-    } = initTestUtils();
+    const { initSocketConnection, disconnectEveryRemainingSocketConnection } =
+        initTestUtils();
 
     group.beforeEach(async () => {
         initSocketConnection();
@@ -60,14 +57,6 @@ test.group('Authentication sign up tests group', (group) => {
         assert.isDefined(userID);
         assert.equal(nickname, userNickname);
 
-        /**
-         * /me/profile-information throws an error when called
-         * for an user that has no connected device.
-         */
-        await createSocketConnection({
-            userID,
-        });
-
         const getMyProfileRawResponse = await request
             .get('/me/profile-information')
             .expect(200)
@@ -81,7 +70,7 @@ test.group('Authentication sign up tests group', (group) => {
         assert.equal(getMyProfileParsedBody.userID, userID);
     });
 
-    test('It should sign up user with web auth using given credentials', async (assert) => {
+    test('It should sign up user with api token auth using given credentials', async (assert) => {
         const request = supertest.agent(BASE_URL);
         const email = internet.email();
         const userNickname = internet.userName();
@@ -106,14 +95,6 @@ test.group('Authentication sign up tests group', (group) => {
         assert.isDefined(token);
         assert.isDefined(userID);
         assert.equal(nickname, userNickname);
-
-        /**
-         * /me/profile-information throws an error when called
-         * for an user that has no connected device.
-         */
-        await createSocketConnection({
-            userID,
-        });
 
         const getMyProfileRawResponse = await request
             .get('/me/profile-information')

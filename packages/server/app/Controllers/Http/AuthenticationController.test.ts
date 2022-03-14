@@ -12,11 +12,8 @@ import supertest from 'supertest';
 import { BASE_URL, initTestUtils } from '../../../tests/utils/TestUtils';
 
 test.group('AuthenticationController', (group) => {
-    const {
-        createSocketConnection,
-        initSocketConnection,
-        disconnectEveryRemainingSocketConnection,
-    } = initTestUtils();
+    const { initSocketConnection, disconnectEveryRemainingSocketConnection } =
+        initTestUtils();
 
     group.beforeEach(async () => {
         initSocketConnection();
@@ -60,14 +57,6 @@ test.group('AuthenticationController', (group) => {
                 },
             },
         );
-
-        /**
-         * /me/profile-information throws an error when called
-         * for an user that has no connected device.
-         */
-        await createSocketConnection({
-            userID: user.uuid,
-        });
 
         const responseSetCookies = signInResponse.header['set-cookie'];
         assert.isDefined(responseSetCookies);
@@ -119,14 +108,6 @@ test.group('AuthenticationController', (group) => {
             },
         );
         const authToken = parsedSignInResponse.token;
-
-        /**
-         * /me/profile-information throws an error when called
-         * for an user that has no connected device.
-         */
-        await createSocketConnection({
-            userID: user.uuid,
-        });
 
         const getMyProfileRawResponse = await request
             .get('/me/profile-information')

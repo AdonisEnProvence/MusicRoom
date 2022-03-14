@@ -1,9 +1,13 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import { GetMyProfileInformationResponseBody } from '@musicroom/types';
+import { datatype, internet } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
+import supertest from 'supertest';
 import urlcat from 'urlcat';
 import {
+    BASE_URL,
+    getSocketApiAuthToken,
     initTestUtils,
     TEST_MY_PROFILE_ROUTES_GROUP_PREFIX,
 } from '../../../tests/utils/TestUtils';
@@ -11,9 +15,9 @@ import {
 test.group('MyProfileController', (group) => {
     const {
         createSocketConnection,
+        createAuthenticatedUserAndGetSocket,
         initSocketConnection,
         disconnectEveryRemainingSocketConnection,
-        createUserAndAuthenticate,
         createRequest,
     } = initTestUtils();
 
@@ -29,33 +33,42 @@ test.group('MyProfileController', (group) => {
     });
 
     test('Retrieves profile information of the current authenticated user', async (assert) => {
-        const request = createRequest();
+        const userID = datatype.uuid();
+        const userNickname = internet.userName();
+        const socket = await createAuthenticatedUserAndGetSocket({
+            userNickname,
+            userID,
+        });
+        const token = getSocketApiAuthToken(socket);
 
-        const user = await createUserAndAuthenticate(request);
         await createSocketConnection({
-            userID: user.uuid,
+            userID,
+            token,
         });
         await createSocketConnection({
-            userID: user.uuid,
+            userID,
+            token,
         });
 
-        const { body: rawBody } = await request
+        console.log('de novueau', { token });
+        const { body: rawBody } = await supertest(BASE_URL)
             .get(
                 urlcat(
                     TEST_MY_PROFILE_ROUTES_GROUP_PREFIX,
                     'profile-information',
                 ),
             )
+            .set('Authorization', `Bearer ${token}`)
             .expect(200);
 
         const parsedBody = GetMyProfileInformationResponseBody.parse(rawBody);
         const expectedBody: GetMyProfileInformationResponseBody = {
-            devicesCounter: 2,
+            devicesCounter: 3,
             followersCounter: 0,
             followingCounter: 0,
             playlistsCounter: 0,
-            userID: user.uuid,
-            userNickname: user.nickname,
+            userID,
+            userNickname,
         };
         assert.deepEqual(parsedBody, expectedBody);
     });
@@ -71,20 +84,5 @@ test.group('MyProfileController', (group) => {
                 ),
             )
             .expect(401);
-    });
-
-    test('Sends back a 500 error as current user has no active device', async () => {
-        const request = createRequest();
-
-        await createUserAndAuthenticate(request);
-
-        await request
-            .get(
-                urlcat(
-                    TEST_MY_PROFILE_ROUTES_GROUP_PREFIX,
-                    'profile-information',
-                ),
-            )
-            .expect(500);
     });
 });

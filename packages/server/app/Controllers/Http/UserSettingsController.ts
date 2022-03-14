@@ -64,12 +64,17 @@ export default class UserSettingsController {
 
     public async updateRelationsVisibility({
         request,
+        auth,
     }: HttpContextContract): Promise<UpdateRelationsVisibilityResponseBody> {
-        const rawBody = request.body();
-        const { tmpAuthUserID, visibility } =
-            UpdateRelationsVisibilityRequestBody.parse(rawBody);
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            'User must be logged in to update her relations visibility setting',
+        );
 
-        const user = await User.findOrFail(tmpAuthUserID);
+        const { visibility } = UpdateRelationsVisibilityRequestBody.parse(
+            request.body(),
+        );
         const settingVisibility = await SettingVisibility.findByOrFail(
             'name',
             visibility,

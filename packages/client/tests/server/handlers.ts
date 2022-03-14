@@ -436,26 +436,29 @@ export const handlers = [
 
     rest.post<
         UpdateRelationsVisibilityRequestBody,
-        Record<string, never>,
+        never,
         UpdateRelationsVisibilityResponseBody
-    >(`${SERVER_ENDPOINT}/me/relations-visibility`, (req, res, ctx) => {
-        db.myProfileInformation.update({
-            where: {
-                userID: {
-                    equals: req.body.tmpAuthUserID,
+    >(
+        `${SERVER_ENDPOINT}/me/relations-visibility`,
+        withAuthentication((req, res, ctx) => {
+            db.myProfileInformation.update({
+                where: {
+                    userID: {
+                        equals: testGetFakeUserID(),
+                    },
                 },
-            },
-            data: {
-                relationsVisibilitySetting: req.body.visibility,
-            },
-        });
+                data: {
+                    relationsVisibilitySetting: req.body.visibility,
+                },
+            });
 
-        return res(
-            ctx.json({
-                status: 'SUCCESS',
-            }),
-        );
-    }),
+            return res(
+                ctx.json({
+                    status: 'SUCCESS',
+                }),
+            );
+        }),
+    ),
 
     rest.post<
         UserSearchMpeRoomsRequestBody,

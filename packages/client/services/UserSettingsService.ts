@@ -45,10 +45,8 @@ export async function setUserRelationsSettingVisibility({
     visibility,
 }: SetUserRelationsSettingVisibilityArgs): Promise<UpdateRelationsVisibilityResponseBody> {
     const body: UpdateRelationsVisibilityRequestBody = {
-        tmpAuthUserID: getFakeUserID(),
         visibility,
     };
-
     const rawResponse = await request.post('/me/relations-visibility', body);
     const parsedResponse = UpdateRelationsVisibilityResponseBody.parse(
         rawResponse.data,

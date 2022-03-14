@@ -197,21 +197,28 @@ test.group('User settings', (group) => {
         );
     });
 
-    test(`Can set relations visibility to 'PUBLIC'`, async (assert) => {
-        const userID = datatype.uuid();
-        const user = await User.create({
-            uuid: userID,
-            nickname: random.word(),
-            email: internet.email(),
-            password: internet.password(),
-        });
+    test('Returns Authorization error when the user is not authenticated', async () => {
+        const request = createRequest();
 
         const requestBody: UpdateRelationsVisibilityRequestBody = {
-            tmpAuthUserID: userID,
+            visibility: 'PUBLIC',
+        };
+        await request
+            .post('/me/relations-visibility')
+            .send(requestBody)
+            .expect(401);
+    });
+
+    test(`Can set relations visibility to 'PUBLIC'`, async (assert) => {
+        const request = createRequest();
+
+        const user = await createUserAndAuthenticate(request);
+
+        const requestBody: UpdateRelationsVisibilityRequestBody = {
             visibility: 'PUBLIC',
         };
 
-        const { body: rawResponseBody } = await supertest(BASE_URL)
+        const { body: rawResponseBody } = await request
             .post('/me/relations-visibility')
             .send(requestBody)
             .expect(200)
@@ -230,20 +237,15 @@ test.group('User settings', (group) => {
     });
 
     test(`Can set relations visibility to 'PRIVATE'`, async (assert) => {
-        const userID = datatype.uuid();
-        const user = await User.create({
-            uuid: userID,
-            nickname: random.word(),
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
+
+        const user = await createUserAndAuthenticate(request);
 
         const requestBody: UpdateRelationsVisibilityRequestBody = {
-            tmpAuthUserID: userID,
             visibility: 'PRIVATE',
         };
 
-        const { body: rawResponseBody } = await supertest(BASE_URL)
+        const { body: rawResponseBody } = await request
             .post('/me/relations-visibility')
             .send(requestBody)
             .expect(200)
@@ -263,20 +265,15 @@ test.group('User settings', (group) => {
     });
 
     test(`Can set relations visibility to 'FOLLOWERS_ONLY'`, async (assert) => {
-        const userID = datatype.uuid();
-        const user = await User.create({
-            uuid: userID,
-            nickname: random.word(),
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
+
+        const user = await createUserAndAuthenticate(request);
 
         const requestBody: UpdateRelationsVisibilityRequestBody = {
-            tmpAuthUserID: userID,
             visibility: 'FOLLOWERS_ONLY',
         };
 
-        const { body: rawResponseBody } = await supertest(BASE_URL)
+        const { body: rawResponseBody } = await request
             .post('/me/relations-visibility')
             .send(requestBody)
             .expect(200)

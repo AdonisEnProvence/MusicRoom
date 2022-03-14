@@ -1,7 +1,6 @@
 import { UserSummary } from '@musicroom/types';
 import { send } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { getFakeUserID } from '../contexts/SocketContext';
 import { fetchMyFollowing, fetchUsers } from '../services/UsersSearchService';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 
@@ -463,7 +462,6 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                             hasMore,
                             page,
                         } = await fetchMyFollowing({
-                            tmpAuthUserID: getFakeUserID(),
                             searchQuery: '',
                             page: usersFollowingPage,
                         });

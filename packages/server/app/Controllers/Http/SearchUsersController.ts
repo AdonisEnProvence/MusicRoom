@@ -211,16 +211,22 @@ export default class SearchUsersController {
 
     public async listMyFollowing({
         request,
+        auth,
     }: HttpContextContract): Promise<ListMyFollowingResponseBody> {
-        const rawBody = request.body();
-        const { page, searchQuery, tmpAuthUserID } =
-            ListMyFollowingRequestBody.parse(rawBody);
-        await User.findOrFail(tmpAuthUserID);
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            'User must be authenticated to list her following',
+        );
+
+        const { page, searchQuery } = ListMyFollowingRequestBody.parse(
+            request.body(),
+        );
 
         return await listUserFollowing({
             page,
             searchQuery,
-            userID: tmpAuthUserID,
+            userID: user.uuid,
         });
     }
 

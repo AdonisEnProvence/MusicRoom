@@ -74,7 +74,10 @@ Route.group(() => {
         '/search/followers',
         'SearchUsersController.listMyFollowers',
     ).middleware('every-auth');
-    Route.post('/search/following', 'SearchUsersController.listMyFollowing');
+    Route.post(
+        '/search/following',
+        'SearchUsersController.listMyFollowing',
+    ).middleware('every-auth');
 }).prefix(MY_PROFILE_ROUTES_GROUP_PREFIX);
 
 export const USER_ROUTES_GROUP_PREFIX = '/user';

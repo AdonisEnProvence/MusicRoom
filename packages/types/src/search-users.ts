@@ -64,7 +64,6 @@ export type ListUserFollowingResponseBody = z.infer<
 export const ListMyFollowingRequestBody = z.object({
     searchQuery: z.string(),
     page: StrictlyPositiveInteger,
-    tmpAuthUserID: z.string().uuid(),
 });
 
 export type ListMyFollowingRequestBody = z.infer<

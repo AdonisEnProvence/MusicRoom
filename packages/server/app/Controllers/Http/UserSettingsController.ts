@@ -9,7 +9,6 @@ import {
     GetMySettingsResponseBody,
 } from '@musicroom/types';
 import SettingVisibility from 'App/Models/SettingVisibility';
-import User from 'App/Models/User';
 import invariant from 'tiny-invariant';
 
 export default class UserSettingsController {

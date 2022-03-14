@@ -26,6 +26,10 @@ test.group('My MPE Rooms Search', (group) => {
         createUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
+        createRequest,
+        createUserAndAuthenticate,
+        createSocketConnection,
+        associateMpeRoomListToUser,
     } = initTestUtils();
 
     group.beforeEach(async () => {
@@ -39,8 +43,22 @@ test.group('My MPE Rooms Search', (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
+    test('Requires authentication', async () => {
+        const request = createRequest();
+
+        const requestBody: MpeSearchMyRoomsRequestBody = {
+            searchQuery: '',
+            page: 1,
+        };
+        await request
+            .post('/mpe/search/my-rooms')
+            .send(requestBody)
+            .expect(401);
+    });
+
     test('It should send back mpe room user has joined only', async (assert) => {
-        const userID = datatype.uuid();
+        const request = createRequest();
+
         const mpeRooms = generateArray({
             fill: () => ({
                 roomName: lorem.sentence(),
@@ -58,22 +76,22 @@ test.group('My MPE Rooms Search', (group) => {
             maxLength: 10,
         });
 
+        const user = await createUserAndAuthenticate(request);
+        await associateMpeRoomListToUser({
+            user,
+            mpeRoomList: mpeRooms,
+        });
+
         await createUserAndGetSocket({
             userID: datatype.uuid(),
             mpeRoomIDToAssociate: otherMpeRooms,
         });
 
-        await createUserAndGetSocket({
-            userID,
-            mpeRoomIDToAssociate: mpeRooms,
-        });
-
         const requestBody: MpeSearchMyRoomsRequestBody = {
-            userID,
             searchQuery: '',
             page: 1,
         };
-        const { body } = await supertest(BASE_URL)
+        const { body } = await request
             .post('/mpe/search/my-rooms')
             .send(requestBody)
             .expect('Content-Type', /json/)
@@ -83,50 +101,9 @@ test.group('My MPE Rooms Search', (group) => {
         assert.equal(parsedBody.data.length, mpeRooms.length);
     });
 
-    test('It should fail to search not existing user mpe rooms', async () => {
-        const userID = datatype.uuid();
-        const mpeRooms = generateArray({
-            fill: () => ({
-                roomName: lorem.sentence(),
-                roomID: datatype.uuid(),
-            }),
-            minLength: 3,
-            maxLength: 10,
-        });
-        const otherMpeRooms = generateArray({
-            fill: () => ({
-                roomName: lorem.sentence(),
-                roomID: datatype.uuid(),
-            }),
-            minLength: 3,
-            maxLength: 10,
-        });
-
-        await createUserAndGetSocket({
-            userID: datatype.uuid(),
-            mpeRoomIDToAssociate: otherMpeRooms,
-        });
-
-        await createUserAndGetSocket({
-            userID,
-            mpeRoomIDToAssociate: mpeRooms,
-        });
-
-        const unknownUserID = datatype.uuid();
-
-        const requestBody: MpeSearchMyRoomsRequestBody = {
-            userID: unknownUserID,
-            searchQuery: '',
-            page: 1,
-        };
-        await supertest(BASE_URL)
-            .post('/mpe/search/my-rooms')
-            .send(requestBody)
-            .expect(404);
-    });
-
     test('Returns only rooms matching partial search query', async (assert) => {
-        const userID = datatype.uuid();
+        const request = createRequest();
+
         const mpeRooms: {
             roomName: string;
             roomID: string;
@@ -146,18 +123,18 @@ test.group('My MPE Rooms Search', (group) => {
         ];
         const firstMpeRoom = mpeRooms[0];
 
-        await createUserAndGetSocket({
-            userID,
-            mpeRoomIDToAssociate: mpeRooms,
+        const user = await createUserAndAuthenticate(request);
+        await associateMpeRoomListToUser({
+            user,
+            mpeRoomList: mpeRooms,
         });
 
         const searchQuery = firstMpeRoom.roomName.slice(0, 3);
         const requestBody: MpeSearchMyRoomsRequestBody = {
-            userID,
             searchQuery,
             page: 1,
         };
-        const { body } = await supertest(BASE_URL)
+        const { body } = await request
             .post('/mpe/search/my-rooms')
             .send(requestBody)
             .expect('Content-Type', /json/)
@@ -169,7 +146,8 @@ test.group('My MPE Rooms Search', (group) => {
     });
 
     test('Returns only rooms matching case insensitive search query', async (assert) => {
-        const userID = datatype.uuid();
+        const request = createRequest();
+
         const mpeRooms: {
             roomName: string;
             roomID: string;
@@ -189,18 +167,18 @@ test.group('My MPE Rooms Search', (group) => {
         ];
         const firstMpeRoom = mpeRooms[0];
 
-        await createUserAndGetSocket({
-            userID,
-            mpeRoomIDToAssociate: mpeRooms,
+        const user = await createUserAndAuthenticate(request);
+        await associateMpeRoomListToUser({
+            user,
+            mpeRoomList: mpeRooms,
         });
 
         const searchQuery = firstMpeRoom.roomName.toLowerCase();
         const requestBody: MpeSearchMyRoomsRequestBody = {
-            userID,
             searchQuery,
             page: 1,
         };
-        const { body } = await supertest(BASE_URL)
+        const { body } = await request
             .post('/mpe/search/my-rooms')
             .send(requestBody)
             .expect('Content-Type', /json/)
@@ -212,20 +190,24 @@ test.group('My MPE Rooms Search', (group) => {
     });
 
     test('Page must be strictly positive', async () => {
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
         const requestBody: MpeSearchMyRoomsRequestBody = {
-            userID: datatype.uuid(),
             searchQuery: '',
             page: 0,
         };
-        await supertest(BASE_URL)
+        await request
             .post('/mpe/search/my-rooms')
             .send(requestBody)
             .expect(500);
     });
 
     test('Rooms are paginated', async (assert) => {
+        const request = createRequest();
+
         const PAGE_MAX_LENGTH = 10;
-        const userID = datatype.uuid();
         const mpeRooms = generateArray({
             fill: () => ({
                 roomName: lorem.sentence(),
@@ -236,9 +218,13 @@ test.group('My MPE Rooms Search', (group) => {
         });
         const totalRoomsCount = mpeRooms.length;
 
-        await createUserAndGetSocket({
-            userID: userID,
-            mpeRoomIDToAssociate: mpeRooms,
+        const user = await createUserAndAuthenticate(request);
+        await createSocketConnection({
+            userID: user.uuid,
+        });
+        await associateMpeRoomListToUser({
+            user,
+            mpeRoomList: mpeRooms,
         });
 
         let page = 1;
@@ -246,12 +232,11 @@ test.group('My MPE Rooms Search', (group) => {
         let totalFetchedEntries = 0;
         while (hasMore === true) {
             const requestBody: MpeSearchMyRoomsRequestBody = {
-                userID,
                 searchQuery: '',
                 page,
             };
 
-            const { body: pageBodyRaw } = await supertest(BASE_URL)
+            const { body: pageBodyRaw } = await request
                 .post('/mpe/search/my-rooms')
                 .send(requestBody)
                 .expect('Content-Type', /json/)
@@ -271,11 +256,10 @@ test.group('My MPE Rooms Search', (group) => {
         assert.equal(totalFetchedEntries, totalRoomsCount);
 
         const extraRequestBody: MpeSearchMyRoomsRequestBody = {
-            userID,
             searchQuery: '',
             page,
         };
-        const { body: extraPageBodyRaw } = await supertest(BASE_URL)
+        const { body: extraPageBodyRaw } = await request
             .post('/mpe/search/my-rooms')
             .send(extraRequestBody)
             .expect('Content-Type', /json/)
@@ -686,6 +670,9 @@ test.group('All MPE Rooms Search', (group) => {
         createUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
+        createRequest,
+        createUserAndAuthenticate,
+        associateMpeRoomListToUser,
     } = initTestUtils();
 
     group.beforeEach(async () => {
@@ -699,8 +686,22 @@ test.group('All MPE Rooms Search', (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
+    test('Requires authentication', async () => {
+        const request = createRequest();
+
+        const requestBody: ListAllMpeRoomsRequestBody = {
+            searchQuery: '',
+            page: 1,
+        };
+        await request
+            .post('/mpe/search/all-rooms')
+            .send(requestBody)
+            .expect(401);
+    });
+
     test('Does not return rooms user is member of', async (assert) => {
-        const userID = datatype.uuid();
+        const request = createRequest();
+
         const mpeRooms = generateArray({
             fill: () => ({
                 roomName: lorem.sentence(),
@@ -710,17 +711,17 @@ test.group('All MPE Rooms Search', (group) => {
             maxLength: 9,
         });
 
-        await createUserAndGetSocket({
-            userID,
-            mpeRoomIDToAssociate: mpeRooms,
+        const user = await createUserAndAuthenticate(request);
+        await associateMpeRoomListToUser({
+            user,
+            mpeRoomList: mpeRooms,
         });
 
         const requestBody: ListAllMpeRoomsRequestBody = {
-            userID,
             searchQuery: '',
             page: 1,
         };
-        const { body } = await supertest(BASE_URL)
+        const { body } = await request
             .post('/mpe/search/all-rooms')
             .send(requestBody)
             .expect('Content-Type', /json/)
@@ -734,7 +735,8 @@ test.group('All MPE Rooms Search', (group) => {
     });
 
     test('Returns only rooms matching partial search query', async (assert) => {
-        const userID = datatype.uuid();
+        const request = createRequest();
+
         const mpeRooms: {
             roomName: string;
             roomID: string;
@@ -759,17 +761,14 @@ test.group('All MPE Rooms Search', (group) => {
             mpeRoomIDToAssociate: mpeRooms,
         });
 
-        await createUserAndGetSocket({
-            userID,
-        });
+        await createUserAndAuthenticate(request);
 
         const searchQuery = firstMpeRoom.roomName.slice(0, 3);
         const requestBody: ListAllMpeRoomsRequestBody = {
-            userID,
             searchQuery,
             page: 1,
         };
-        const { body } = await supertest(BASE_URL)
+        const { body } = await request
             .post('/mpe/search/all-rooms')
             .send(requestBody)
             .expect('Content-Type', /json/)
@@ -781,7 +780,8 @@ test.group('All MPE Rooms Search', (group) => {
     });
 
     test('Returns only rooms matching case insensitive search query', async (assert) => {
-        const userID = datatype.uuid();
+        const request = createRequest();
+
         const mpeRooms: {
             roomName: string;
             roomID: string;
@@ -806,17 +806,14 @@ test.group('All MPE Rooms Search', (group) => {
             mpeRoomIDToAssociate: mpeRooms,
         });
 
-        await createUserAndGetSocket({
-            userID,
-        });
+        await createUserAndAuthenticate(request);
 
         const searchQuery = firstMpeRoom.roomName.toLowerCase();
         const requestBody: ListAllMpeRoomsRequestBody = {
-            userID,
             searchQuery,
             page: 1,
         };
-        const { body } = await supertest(BASE_URL)
+        const { body } = await request
             .post('/mpe/search/all-rooms')
             .send(requestBody)
             .expect('Content-Type', /json/)
@@ -828,13 +825,15 @@ test.group('All MPE Rooms Search', (group) => {
     });
 
     test('Page must be strictly positive', async () => {
-        const userID = datatype.uuid();
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
         const requestBody: ListAllMpeRoomsRequestBody = {
-            userID,
             searchQuery: '',
             page: 0,
         };
-        await supertest(BASE_URL)
+        await request
             .post('/mpe/search/all-rooms')
             .send(requestBody)
             .expect(500);
@@ -842,7 +841,7 @@ test.group('All MPE Rooms Search', (group) => {
 
     test('All rooms are paginated', async (assert) => {
         const PAGE_MAX_LENGTH = 10;
-        const userID = datatype.uuid();
+        const request = createRequest();
 
         const mpeRooms = generateArray({
             fill: () => ({
@@ -859,20 +858,17 @@ test.group('All MPE Rooms Search', (group) => {
             mpeRoomIDToAssociate: mpeRooms,
         });
 
-        await createUserAndGetSocket({
-            userID,
-        });
+        await createUserAndAuthenticate(request);
 
         let page = 1;
         let hasMore = true;
         let totalFetchedEntries = 0;
         while (hasMore === true) {
             const requestBody: ListAllMpeRoomsRequestBody = {
-                userID,
                 searchQuery: '',
                 page,
             };
-            const { body: pageBodyRaw } = await supertest(BASE_URL)
+            const { body: pageBodyRaw } = await request
                 .post('/mpe/search/all-rooms')
                 .send(requestBody)
                 .expect('Content-Type', /json/)
@@ -892,11 +888,10 @@ test.group('All MPE Rooms Search', (group) => {
         assert.equal(totalFetchedEntries, totalRoomsCount);
 
         const extraRequestBody: ListAllMpeRoomsRequestBody = {
-            userID,
             searchQuery: '',
             page,
         };
-        const { body: extraPageBodyRaw } = await supertest(BASE_URL)
+        const { body: extraPageBodyRaw } = await request
             .post('/mpe/search/all-rooms')
             .send(extraRequestBody)
             .expect('Content-Type', /json/)
@@ -911,17 +906,16 @@ test.group('All MPE Rooms Search', (group) => {
     });
 
     test('Rooms should be ordered by private room first, public but invited room in second and then some public rooms', async (assert) => {
+        const request = createRequest();
+
         const PAGE_MAX_LENGTH = 10;
-        const userID = datatype.uuid();
         const inviterUserID = datatype.uuid();
 
         await createUserAndGetSocket({
             userID: inviterUserID,
         });
 
-        await createUserAndGetSocket({
-            userID,
-        });
+        const user = await createUserAndAuthenticate(request);
 
         const privateMpeRoomsWithInvitation = await MpeRoom.createMany(
             generateArray({
@@ -939,7 +933,7 @@ test.group('All MPE Rooms Search', (group) => {
         for (const room of privateMpeRoomsWithInvitation) {
             await room.related('invitations').create({
                 invitingUserID: inviterUserID,
-                invitedUserID: userID,
+                invitedUserID: user.uuid,
             });
         }
 
@@ -959,7 +953,7 @@ test.group('All MPE Rooms Search', (group) => {
         for (const room of openMpeRoomsWithInvitation) {
             await room.related('invitations').create({
                 invitingUserID: inviterUserID,
-                invitedUserID: userID,
+                invitedUserID: user.uuid,
             });
         }
 
@@ -989,11 +983,10 @@ test.group('All MPE Rooms Search', (group) => {
         const fetchedRoomsIDs: string[] = [];
         while (hasMore === true) {
             const requestBody: ListAllMpeRoomsRequestBody = {
-                userID,
                 searchQuery: '',
                 page,
             };
-            const { body: pageBodyRaw } = await supertest(BASE_URL)
+            const { body: pageBodyRaw } = await request
                 .post('/mpe/search/all-rooms')
                 .send(requestBody)
                 .expect('Content-Type', /json/)
@@ -1018,11 +1011,10 @@ test.group('All MPE Rooms Search', (group) => {
         );
 
         const extraRequestBody: ListAllMpeRoomsRequestBody = {
-            userID,
             searchQuery: '',
             page,
         };
-        const { body: extraPageBodyRaw } = await supertest(BASE_URL)
+        const { body: extraPageBodyRaw } = await request
             .post('/mpe/search/all-rooms')
             .send(extraRequestBody)
             .expect('Content-Type', /json/)

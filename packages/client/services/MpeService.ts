@@ -9,18 +9,15 @@ import {
 import { request } from './http';
 
 interface FetchLibraryMpeRoomsArgs {
-    userID: string;
     searchQuery: string;
     page: number;
 }
 
 export async function fetchLibraryMpeRooms({
-    userID,
     searchQuery,
     page,
 }: FetchLibraryMpeRoomsArgs): Promise<MpeSearchMyRoomsResponseBody> {
     const body: MpeSearchMyRoomsRequestBody = {
-        userID,
         searchQuery,
         page,
     };
@@ -34,18 +31,15 @@ export async function fetchLibraryMpeRooms({
 interface FetchAllMpeRoomsArgs {
     searchQuery: string;
     page: number;
-    userID: string;
 }
 
 export async function fetchAllMpeRooms({
     searchQuery,
     page,
-    userID,
 }: FetchAllMpeRoomsArgs): Promise<ListAllMpeRoomsResponseBody> {
     const body: ListAllMpeRoomsRequestBody = {
         searchQuery,
         page,
-        userID,
     };
 
     const rawResponse = await request.post('/mpe/search/all-rooms', body);

@@ -3,7 +3,6 @@ import { PositiveInteger, StrictlyPositiveInteger } from './int';
 import { MpeRoomSummary } from './mpe';
 
 export const MpeSearchMyRoomsRequestBody = z.object({
-    userID: z.string().uuid(), // FIXME: use authentication
     searchQuery: z.string(),
     page: StrictlyPositiveInteger,
 });
@@ -22,7 +21,6 @@ export type MpeSearchMyRoomsResponseBody = z.infer<
 >;
 
 export const ListAllMpeRoomsRequestBody = z.object({
-    userID: z.string().uuid(), // FIXME: use authentication
     searchQuery: z.string(),
     page: StrictlyPositiveInteger,
 });

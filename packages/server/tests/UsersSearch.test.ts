@@ -7,8 +7,7 @@ import {
 import User from 'App/Models/User';
 import { datatype, internet } from 'faker';
 import test from 'japa';
-import supertest from 'supertest';
-import { BASE_URL, sortBy } from './utils/TestUtils';
+import { initTestUtils, sortBy } from './utils/TestUtils';
 
 function generateArray<Item>(length: number, fill: () => Item): Item[] {
     return Array.from({ length }).map(() => fill());
@@ -17,6 +16,8 @@ function generateArray<Item>(length: number, fill: () => Item): Item[] {
 const PAGE_MAX_LENGTH = 10;
 
 test.group('Users Search Engine', (group) => {
+    const { createRequest, createUserAndAuthenticate } = initTestUtils();
+
     group.beforeEach(async () => {
         await Database.beginGlobalTransaction();
     });
@@ -25,70 +26,44 @@ test.group('Users Search Engine', (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
-    test('Page must be strictly positive', async () => {
-        const userID = datatype.uuid();
-        const user = await User.create({
-            uuid: userID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
+    test('Requires authentication', async () => {
+        const request = createRequest();
 
-        await supertest(BASE_URL)
-            .post('/search/users')
-            .send({
-                page: 0,
-                searchQuery: user.nickname,
-                userID,
-            } as SearchUsersRequestBody)
-            .expect(500);
+        const body: SearchUsersRequestBody = {
+            page: 1,
+            searchQuery: 'a',
+        };
+        await request.post('/search/users').send(body).expect(401);
+    });
+
+    test('Page must be strictly positive', async () => {
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
+        const body: SearchUsersRequestBody = {
+            page: 0,
+            searchQuery: 'a',
+        };
+        await request.post('/search/users').send(body).expect(500);
     });
 
     test('Returns an error when search query is empty', async () => {
-        const userID = datatype.uuid();
-        await User.create({
-            uuid: userID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
 
-        await supertest(BASE_URL)
-            .post('/search/users')
-            .send({
-                page: 1,
-                searchQuery: '',
-                userID,
-            } as SearchUsersRequestBody)
-            .expect(500);
-    });
+        await createUserAndAuthenticate(request);
 
-    test('Returns an error when userID is empty', async () => {
-        const userID = datatype.uuid();
-        await User.create({
-            uuid: userID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
-
-        await supertest(BASE_URL)
-            .post('/search/users')
-            .send({
-                page: 1,
-                searchQuery: '',
-            } as SearchUsersRequestBody)
-            .expect(500);
+        const body: SearchUsersRequestBody = {
+            page: 1,
+            searchQuery: '',
+        };
+        await request.post('/search/users').send(body).expect(500);
     });
 
     test('Users are paginated and filtered', async (assert) => {
-        const userID = datatype.uuid();
-        await User.create({
-            uuid: userID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
 
         const usersCount = datatype.number({
             min: 11,
@@ -117,13 +92,13 @@ test.group('Users Search Engine', (group) => {
         const filteredUsersCount =
             usersWithNicknameFirstCharacterEqualToFirstUser.length;
 
-        const { body: pageBodyRaw } = await supertest(BASE_URL)
+        const body: SearchUsersRequestBody = {
+            page: 1,
+            searchQuery: firstUserNicknameFirstCharacter,
+        };
+        const { body: pageBodyRaw } = await request
             .post('/search/users')
-            .send({
-                page: 1,
-                searchQuery: firstUserNicknameFirstCharacter,
-                userID,
-            } as SearchUsersRequestBody)
+            .send(body)
             .expect('Content-Type', /json/)
             .expect(200);
         const pageBodyParsed = SearchUsersResponseBody.parse(pageBodyRaw);
@@ -141,21 +116,17 @@ test.group('Users Search Engine', (group) => {
 
     test('Returns empty data if page is out of bound, also expect user to do not find himself in totalEntries', async (assert) => {
         const PAGE_OUT_OF_BOUND = 100;
-        const userID = datatype.uuid();
-        const user = await User.create({
-            uuid: userID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
 
-        const { body: pageBodyRaw } = await supertest(BASE_URL)
+        const user = await createUserAndAuthenticate(request);
+
+        const body: SearchUsersRequestBody = {
+            page: PAGE_OUT_OF_BOUND,
+            searchQuery: user.nickname,
+        };
+        const { body: pageBodyRaw } = await request
             .post('/search/users')
-            .send({
-                page: PAGE_OUT_OF_BOUND,
-                searchQuery: user.nickname,
-                userID,
-            } as SearchUsersRequestBody)
+            .send(body)
             .expect('Content-Type', /json/)
             .expect(200);
         const pageBodyParsed = SearchUsersResponseBody.parse(pageBodyRaw);

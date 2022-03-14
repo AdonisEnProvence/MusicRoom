@@ -14,6 +14,7 @@ import supertest from 'supertest';
 import {
     BASE_URL,
     getDefaultMtvRoomCreateRoomArgs,
+    getSocketApiAuthToken,
     initTestUtils,
     sleep,
 } from './utils/TestUtils';
@@ -91,6 +92,7 @@ test.group(
                 }),
                 receivedEvents: [] as string[],
             };
+            const token = getSocketApiAuthToken(socket.socket);
 
             const deviceA = await Device.findBy('socket_id', socket.socket.id);
             assert.isNotNull(deviceA);
@@ -101,7 +103,7 @@ test.group(
             await deviceA.save();
 
             const socketB = {
-                socket: await createSocketConnection({ userID }),
+                socket: await createSocketConnection({ userID, token }),
                 receivedEvents: [] as string[],
             };
 
@@ -241,8 +243,10 @@ test.group(
                 socket: await createAuthenticatedUserAndGetSocket({ userID }),
                 receivedEvents: [] as string[],
             };
+            const token = getSocketApiAuthToken(socket.socket);
+
             const socketB = {
-                socket: await createSocketConnection({ userID }),
+                socket: await createSocketConnection({ userID, token }),
                 receivedEvents: [] as string[],
             };
             const deviceB = await Device.findBy('socket_id', socketB.socket.id);

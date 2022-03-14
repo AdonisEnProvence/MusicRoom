@@ -1,6 +1,5 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import {
-    AllServerToClientEvents,
     MtvWorkflowState,
     MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
@@ -16,13 +15,13 @@ import {
     BASE_URL,
     createSpyOnClientSocketEvent,
     getDefaultMtvRoomCreateRoomArgs,
+    getSocketApiAuthToken,
     initTestUtils,
     MtvServerToTemporalControllerLeaveWorkflowStub,
-    sleep,
 } from './utils/TestUtils';
 
 test.group(
-    `User leave mtv room dwd
+    `User leave mtv room
     by joining,
     all user devices disconnection,
     by creating a new room,
@@ -35,7 +34,6 @@ test.group(
             disconnectSocket,
             initSocketConnection,
             waitFor,
-            spy,
         } = initTestUtils();
 
         group.beforeEach(async () => {
@@ -133,18 +131,19 @@ test.group(
                 });
 
             /**
-             * Mocking a mtvRoom in the databse
+             * Mocking a mtvRoom in the database
              */
 
             //CREATOR
-            const socket = {
-                socket: await createAuthenticatedUserAndGetSocket({
-                    userID: userAID,
-                    mtvRoomIDToAssociate,
-                }),
-                socketB: await createSocketConnection({ userID: userAID }),
-                receivedEvents: [] as string[],
-            };
+            const creatorSocket = await createAuthenticatedUserAndGetSocket({
+                userID: userAID,
+                mtvRoomIDToAssociate,
+            });
+            const creatorToken = getSocketApiAuthToken(creatorSocket);
+            const creatorSocketB = await createSocketConnection({
+                userID: userAID,
+                token: creatorToken,
+            });
 
             //ROOM TO JOIN CREATOR
             await createAuthenticatedUserAndGetSocket({
@@ -153,58 +152,61 @@ test.group(
             });
 
             //USER B
-            const socketB = {
-                socket: await createAuthenticatedUserAndGetSocket({
-                    userID: userBID,
-                    mtvRoomIDToAssociate,
-                }),
-                receivedEvents: [] as string[],
-            };
+            const userBSocket = await createAuthenticatedUserAndGetSocket({
+                userID: userBID,
+                mtvRoomIDToAssociate,
+            });
 
             //USER C
-            const socketC = {
-                socket: await createAuthenticatedUserAndGetSocket({
-                    userID: userCID,
-                    mtvRoomIDToAssociate,
-                }),
-                socketB: await createSocketConnection({ userID: userCID }),
-                receivedEvents: [] as string[],
-            };
+            const userCSocket = await createAuthenticatedUserAndGetSocket({
+                userID: userCID,
+                mtvRoomIDToAssociate,
+            });
+            const userCToken = getSocketApiAuthToken(userCSocket);
+            const userCSocketB = await createSocketConnection({
+                userID: userCID,
+                token: userCToken,
+            });
 
             //CREATOR
-            socket.socket.once('MTV_USER_LENGTH_UPDATE', () => {
-                socket.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
-            });
-
-            socket.socketB.once('MTV_USER_LENGTH_UPDATE', () => {
-                socket.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
-            });
-
-            //USER B
-            socketB.socket.once('MTV_USER_LENGTH_UPDATE', () => {
-                socketB.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
-            });
-
-            //USER C
-            const socketCSocketMtvSpy = createSpyOnClientSocketEvent(
-                socketC.socket,
-                'MTV_JOIN_ROOM_CALLBACK',
-            );
-
-            const socketCSocketBMtvSpy = createSpyOnClientSocketEvent(
-                socketC.socketB,
-                'MTV_JOIN_ROOM_CALLBACK',
-            );
-
-            const socketCSocketUserLengthUpdateSpy =
+            const creatorSocketUserLengthUpdateSpy =
                 createSpyOnClientSocketEvent(
-                    socketC.socket,
+                    creatorSocket,
                     'MTV_USER_LENGTH_UPDATE',
                 );
 
-            const socketCSocketBUserLengthUpdateSpy =
+            const creatorSocketBUserLengthUpdateSpy =
                 createSpyOnClientSocketEvent(
-                    socketC.socketB,
+                    creatorSocketB,
+                    'MTV_USER_LENGTH_UPDATE',
+                );
+
+            //USER B
+            const userBSocketUserLengthUpdateSpy = createSpyOnClientSocketEvent(
+                userBSocket,
+                'MTV_USER_LENGTH_UPDATE',
+            );
+
+            //USER C
+            const userCSocketJoinRoomCallbackSpy = createSpyOnClientSocketEvent(
+                userCSocket,
+                'MTV_JOIN_ROOM_CALLBACK',
+            );
+
+            const userCSocketBJoinRoomCallbackSpy =
+                createSpyOnClientSocketEvent(
+                    userCSocketB,
+                    'MTV_JOIN_ROOM_CALLBACK',
+                );
+
+            const userCSocketUserLengthUpdateSpy = createSpyOnClientSocketEvent(
+                userCSocket,
+                'MTV_USER_LENGTH_UPDATE',
+            );
+
+            const userCSocketBUserLengthUpdateSpy =
+                createSpyOnClientSocketEvent(
+                    userCSocketB,
                     'MTV_USER_LENGTH_UPDATE',
                 );
 
@@ -213,25 +215,29 @@ test.group(
              * Expect B and socket to receive USER_LENGTH_UDPATE
              * server socket event
              */
-            socketC.socket.emit('MTV_JOIN_ROOM', {
+            userCSocket.emit('MTV_JOIN_ROOM', {
                 roomID: mtvRoomToJoinID,
             });
 
             await waitFor(async () => {
-                assert.equal(socket.receivedEvents.length, 2);
-                assert.equal(socketB.receivedEvents.length, 1);
-                assert.isTrue(socketCSocketMtvSpy.calledOnce);
-                assert.isTrue(socketCSocketBMtvSpy.calledOnce);
-                assert.isTrue(socketCSocketUserLengthUpdateSpy.notCalled);
-                assert.isTrue(socketCSocketBUserLengthUpdateSpy.notCalled);
+                //Creator
+                assert.isTrue(creatorSocketUserLengthUpdateSpy.calledOnce);
+                assert.isTrue(creatorSocketBUserLengthUpdateSpy.calledOnce);
+                //UserB
+                assert.isTrue(userBSocketUserLengthUpdateSpy.calledOnce);
+                //UserC
+                assert.isTrue(userCSocketJoinRoomCallbackSpy.calledOnce);
+                assert.isTrue(userCSocketBJoinRoomCallbackSpy.calledOnce);
+                assert.isTrue(userCSocketUserLengthUpdateSpy.notCalled);
+                assert.isTrue(userCSocketBUserLengthUpdateSpy.notCalled);
             });
 
             let connectedSocketsToRoom =
                 await SocketLifecycle.getConnectedSocketToRoom(
                     mtvRoomIDToAssociate,
                 );
-            assert.isFalse(connectedSocketsToRoom.has(socketC.socket.id));
-            assert.isFalse(connectedSocketsToRoom.has(socketC.socketB.id));
+            assert.isFalse(connectedSocketsToRoom.has(userCSocket.id));
+            assert.isFalse(connectedSocketsToRoom.has(userCSocketB.id));
 
             const leavingUser = await User.findOrFail(userCID);
             await leavingUser.load('mtvRoom');
@@ -243,39 +249,48 @@ test.group(
              */
 
             //CREATOR
-            socket.socket.once('MTV_FORCED_DISCONNECTION', () => {
-                assert.isTrue(false);
-            });
-
-            socket.socketB.once('MTV_FORCED_DISCONNECTION', () => {
-                assert.isTrue(false);
-            });
+            const creatorSocketForcedDisconnectionSpy =
+                createSpyOnClientSocketEvent(
+                    creatorSocket,
+                    'MTV_FORCED_DISCONNECTION',
+                );
+            const creatorSocketBForcedDisconnectionSpy =
+                createSpyOnClientSocketEvent(
+                    creatorSocketB,
+                    'MTV_FORCED_DISCONNECTION',
+                );
 
             //USER B
-            socketB.socket.once('MTV_USER_LENGTH_UPDATE', () => {
-                assert.isTrue(false);
-            });
 
-            socketB.socket.once('MTV_FORCED_DISCONNECTION', () => {
-                socketB.receivedEvents.push('MTV_FORCED_DISCONNECTION');
-            });
+            //call userBSocketUserLengthUpdateSpy.once
+
+            const userBSocketForcedDisconnectionSpy =
+                createSpyOnClientSocketEvent(
+                    userBSocket,
+                    'MTV_FORCED_DISCONNECTION',
+                );
+
             /**
              * Creator joins the room
              */
-            socket.socket.emit('MTV_JOIN_ROOM', { roomID: mtvRoomToJoinID });
-            await sleep();
+            creatorSocket.emit('MTV_JOIN_ROOM', { roomID: mtvRoomToJoinID });
 
-            assert.equal(socketB.receivedEvents.length, 2);
-            assert.isTrue(
-                socketB.receivedEvents.includes('MTV_FORCED_DISCONNECTION'),
-            );
+            await waitFor(() => {
+                //UserB
+                assert.isTrue(userBSocketUserLengthUpdateSpy.calledOnce);
+                assert.isTrue(userBSocketForcedDisconnectionSpy.calledOnce);
+
+                //Creator
+                assert.isTrue(creatorSocketForcedDisconnectionSpy.notCalled);
+                assert.isTrue(creatorSocketBForcedDisconnectionSpy.notCalled);
+            });
 
             connectedSocketsToRoom =
                 await SocketLifecycle.getConnectedSocketToRoom(
                     mtvRoomIDToAssociate,
                 );
-            assert.isFalse(connectedSocketsToRoom.has(socket.socket.id));
-            assert.isFalse(connectedSocketsToRoom.has(socket.socketB.id));
+            assert.isFalse(connectedSocketsToRoom.has(creatorSocket.id));
+            assert.isFalse(connectedSocketsToRoom.has(creatorSocketB.id));
 
             const leavingCreator = await User.findOrFail(userCID);
             await leavingCreator.load('mtvRoom');
@@ -372,14 +387,15 @@ test.group(
              */
 
             //CREATOR
-            const socket = {
-                socket: await createAuthenticatedUserAndGetSocket({
-                    userID: userAID,
-                    mtvRoomIDToAssociate,
-                }),
-                socketB: await createSocketConnection({ userID: userAID }),
-                receivedEvents: [] as string[],
-            };
+            const creatorSocket = await createAuthenticatedUserAndGetSocket({
+                userID: userAID,
+                mtvRoomIDToAssociate,
+            });
+            const creatorToken = getSocketApiAuthToken(creatorSocket);
+            const creatorSocketB = await createSocketConnection({
+                userID: userAID,
+                token: creatorToken,
+            });
 
             //ROOM TO JOIN CREATOR
             await createAuthenticatedUserAndGetSocket({
@@ -388,72 +404,83 @@ test.group(
             });
 
             //USER B
-            const socketB = {
-                socket: await createAuthenticatedUserAndGetSocket({
-                    userID: userBID,
-                    mtvRoomIDToAssociate,
-                }),
-                receivedEvents: [] as string[],
-            };
+            const userBSocket = await createAuthenticatedUserAndGetSocket({
+                userID: userBID,
+                mtvRoomIDToAssociate,
+            });
 
             //USER C
-            const socketC = {
-                socket: await createAuthenticatedUserAndGetSocket({
-                    userID: userCID,
-                    mtvRoomIDToAssociate,
-                }),
-                socketB: await createSocketConnection({ userID: userCID }),
-                receivedEvents: [] as string[],
-            };
+            const userCSocket = await createAuthenticatedUserAndGetSocket({
+                userID: userCID,
+                mtvRoomIDToAssociate,
+            });
+            const userCToken = getSocketApiAuthToken(userCSocket);
+            const userCSocketB = await createSocketConnection({
+                userID: userCID,
+                token: userCToken,
+            });
 
             //CREATOR
-            socket.socket.once('MTV_USER_LENGTH_UPDATE', () => {
-                socket.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
-            });
+            const creatorSocketUserLengthUpdateSpy =
+                createSpyOnClientSocketEvent(
+                    creatorSocket,
+                    'MTV_USER_LENGTH_UPDATE',
+                );
 
-            socket.socketB.once('MTV_USER_LENGTH_UPDATE', () => {
-                socket.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
-            });
+            const creatorSocketBUserLengthUpdateSpy =
+                createSpyOnClientSocketEvent(
+                    creatorSocketB,
+                    'MTV_USER_LENGTH_UPDATE',
+                );
 
             //USER B
-            socketB.socket.once('MTV_USER_LENGTH_UPDATE', () => {
-                socketB.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
-            });
+            const userBSocketUserLengthUpdateSpy = createSpyOnClientSocketEvent(
+                userBSocket,
+                'MTV_USER_LENGTH_UPDATE',
+            );
 
             //USER C
-            socketC.socket.once('MTV_USER_LENGTH_UPDATE', () => {
-                /**
-                 * This is the disconnecting one, in this way it should not receive
-                 * any event
-                 */
-                assert.isTrue(false);
-            });
+            /**
+             * This is the disconnecting one, in this way it should not receive
+             * any event
+             */
 
-            socketC.socketB.once('MTV_USER_LENGTH_UPDATE', () => {
-                /**
-                 * This is the disconnecting one, in this way it should not receive
-                 * any event
-                 */
-                assert.isTrue(false);
-            });
+            const userCSocketUserLengthUpdateSpy = createSpyOnClientSocketEvent(
+                userCSocket,
+                'MTV_USER_LENGTH_UPDATE',
+            );
+
+            const userCSocketBUserLengthUpdateSpy =
+                createSpyOnClientSocketEvent(
+                    userCSocketB,
+                    'MTV_USER_LENGTH_UPDATE',
+                );
 
             /**
              * Emit join_room with socket C
              * Expect B and socket to receive USER_LENGTH_UDPATE
              * server socket event
              */
-            await disconnectSocket(socketC.socket);
-            await disconnectSocket(socketC.socketB);
+            await disconnectSocket(userCSocket);
+            await disconnectSocket(userCSocketB);
 
-            assert.equal(socket.receivedEvents.length, 2);
-            assert.equal(socketB.receivedEvents.length, 1);
+            await waitFor(() => {
+                //Creator
+                assert.isTrue(creatorSocketUserLengthUpdateSpy.calledOnce);
+                assert.isTrue(creatorSocketBUserLengthUpdateSpy.calledOnce);
+                //UserB
+                assert.isTrue(userBSocketUserLengthUpdateSpy.calledOnce);
+                //UserC
+                assert.isTrue(userCSocketUserLengthUpdateSpy.notCalled);
+                assert.isTrue(userCSocketBUserLengthUpdateSpy.notCalled);
+            });
 
             let connectedSocketsToRoom =
                 await SocketLifecycle.getConnectedSocketToRoom(
                     mtvRoomIDToAssociate,
                 );
-            assert.isFalse(connectedSocketsToRoom.has(socketC.socket.id));
-            assert.isFalse(connectedSocketsToRoom.has(socketC.socketB.id));
+            assert.isFalse(connectedSocketsToRoom.has(userCSocket.id));
+            assert.isFalse(connectedSocketsToRoom.has(userCSocketB.id));
 
             const leavingUser = await User.findOrFail(userCID);
             await leavingUser.load('mtvRoom');
@@ -465,39 +492,47 @@ test.group(
              */
 
             //CREATOR
-            socket.socket.once('MTV_FORCED_DISCONNECTION', () => {
-                assert.isTrue(false);
-            });
-
-            socket.socketB.once('MTV_FORCED_DISCONNECTION', () => {
-                assert.isTrue(false);
-            });
+            const creatorSocketForcedDisconnectionSpy =
+                createSpyOnClientSocketEvent(
+                    creatorSocket,
+                    'MTV_FORCED_DISCONNECTION',
+                );
+            const creatorSocketBForcedDisconnectionSpy =
+                createSpyOnClientSocketEvent(
+                    creatorSocket,
+                    'MTV_FORCED_DISCONNECTION',
+                );
 
             //USER B
-            socketB.socket.once('MTV_USER_LENGTH_UPDATE', () => {
-                assert.isTrue(false);
-            });
+            //called userlength user b socket still called one time
 
-            socketB.socket.once('MTV_FORCED_DISCONNECTION', () => {
-                socketB.receivedEvents.push('MTV_FORCED_DISCONNECTION');
-            });
+            const userBSocketForcedDisconnectionSpy =
+                createSpyOnClientSocketEvent(
+                    userBSocket,
+                    'MTV_FORCED_DISCONNECTION',
+                );
             /**
              * Creator joins the room
              */
-            await disconnectSocket(socket.socket);
-            await disconnectSocket(socket.socketB);
+            await disconnectSocket(creatorSocket);
+            await disconnectSocket(creatorSocketB);
 
-            assert.equal(socketB.receivedEvents.length, 2);
-            assert.isTrue(
-                socketB.receivedEvents.includes('MTV_FORCED_DISCONNECTION'),
-            );
+            await waitFor(() => {
+                //Creator
+                assert.isTrue(creatorSocketBForcedDisconnectionSpy.notCalled);
+                assert.isTrue(creatorSocketForcedDisconnectionSpy.notCalled);
+
+                //UserB
+                assert.isTrue(userBSocketUserLengthUpdateSpy.calledOnce);
+                assert.isTrue(userBSocketForcedDisconnectionSpy.calledOnce);
+            });
 
             connectedSocketsToRoom =
                 await SocketLifecycle.getConnectedSocketToRoom(
                     mtvRoomIDToAssociate,
                 );
-            assert.isFalse(connectedSocketsToRoom.has(socket.socket.id));
-            assert.isFalse(connectedSocketsToRoom.has(socket.socketB.id));
+            assert.isFalse(connectedSocketsToRoom.has(creatorSocket.id));
+            assert.isFalse(connectedSocketsToRoom.has(creatorSocketB.id));
 
             const leavingCreator = await User.findOrFail(userCID);
             await leavingCreator.load('mtvRoom');
@@ -602,72 +637,79 @@ test.group(
              */
 
             //CREATOR
-            const socket = {
-                socket: await createAuthenticatedUserAndGetSocket({
-                    userID: userAID,
-                    mtvRoomIDToAssociate,
-                }),
-                socketB: await createSocketConnection({ userID: userAID }),
-                receivedEvents: [] as string[],
-            };
+            const creatorSocket = await createAuthenticatedUserAndGetSocket({
+                userID: userAID,
+                mtvRoomIDToAssociate,
+            });
+            const creatorToken = getSocketApiAuthToken(creatorSocket);
+            const creatorSocketB = await createSocketConnection({
+                userID: userAID,
+                token: creatorToken,
+            });
 
             //USER B
-            const socketB = {
-                socket: await createAuthenticatedUserAndGetSocket({
-                    userID: userBID,
-                    mtvRoomIDToAssociate,
-                }),
-                receivedEvents: [] as string[],
-            };
+            const userBSocket = await createAuthenticatedUserAndGetSocket({
+                userID: userBID,
+                mtvRoomIDToAssociate,
+            });
 
             //USER C
-            const socketC = {
-                socket: await createAuthenticatedUserAndGetSocket({
-                    userID: userCID,
-                    mtvRoomIDToAssociate,
-                }),
-                socketB: await createSocketConnection({ userID: userCID }),
-                receivedEvents: [] as string[],
-            };
+            const userCSocket = await createAuthenticatedUserAndGetSocket({
+                userID: userCID,
+                mtvRoomIDToAssociate,
+            });
+            const userCToken = getSocketApiAuthToken(userCSocket);
+            const userCSocketB = await createSocketConnection({
+                userID: userCID,
+                token: userCToken,
+            });
 
             //CREATOR
-            socket.socket.once('MTV_USER_LENGTH_UPDATE', () => {
-                socket.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
-            });
+            const creatorSocketUserLengthUpdateSpy =
+                createSpyOnClientSocketEvent(
+                    creatorSocket,
+                    'MTV_USER_LENGTH_UPDATE',
+                );
 
-            socket.socketB.once('MTV_USER_LENGTH_UPDATE', () => {
-                socket.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
-            });
+            const creatorSocketBUserLengthUpdateSpy =
+                createSpyOnClientSocketEvent(
+                    creatorSocketB,
+                    'MTV_USER_LENGTH_UPDATE',
+                );
 
             //USER B
-            socketB.socket.once('MTV_USER_LENGTH_UPDATE', () => {
-                socketB.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
-            });
+            const userBSocketUserLengthUpdateSpy = createSpyOnClientSocketEvent(
+                userBSocket,
+                'MTV_USER_LENGTH_UPDATE',
+            );
 
             //USER C
-            socketC.socket.once('MTV_USER_LENGTH_UPDATE', () => {
-                /**
-                 * This is the disconnecting one, in this way it should not receive
-                 * any event
-                 */
-                assert.isTrue(false);
-            });
+            /**
+             * This is the disconnecting one, in this way it should not receive
+             * any event
+             */
 
-            socketC.socketB.once('MTV_USER_LENGTH_UPDATE', () => {
-                /**
-                 * This is the disconnecting one, in this way it should not receive
-                 * any event
-                 */
-                assert.isTrue(false);
-            });
+            const userCSocketUserLengthUpdateSpy = createSpyOnClientSocketEvent(
+                userCSocket,
+                'MTV_USER_LENGTH_UPDATE',
+            );
 
-            socketC.socket.once('MTV_CREATE_ROOM_SYNCHED_CALLBACK', () => {
-                socketC.receivedEvents.push('MTV_CREATE_ROOM_SYNCHED_CALLBACK');
-            });
+            const userCSocketBUserLengthUpdateSpy =
+                createSpyOnClientSocketEvent(
+                    userCSocketB,
+                    'MTV_USER_LENGTH_UPDATE',
+                );
 
-            socketC.socketB.once('MTV_CREATE_ROOM_SYNCHED_CALLBACK', () => {
-                socketC.receivedEvents.push('MTV_CREATE_ROOM_SYNCHED_CALLBACK');
-            });
+            const userCSocketMtvRoomSyncCallbackSpy =
+                createSpyOnClientSocketEvent(
+                    userCSocket,
+                    'MTV_CREATE_ROOM_SYNCHED_CALLBACK',
+                );
+            const userCSocketBMtvRoomSyncCallbackSpy =
+                createSpyOnClientSocketEvent(
+                    userCSocketB,
+                    'MTV_CREATE_ROOM_SYNCHED_CALLBACK',
+                );
 
             /**
              * Emit join_room with socket C
@@ -675,25 +717,27 @@ test.group(
              * server socket event
              */
             const settings = getDefaultMtvRoomCreateRoomArgs();
-            socketC.socket.emit('MTV_CREATE_ROOM', settings);
-            await sleep();
-            await sleep();
+            userCSocket.emit('MTV_CREATE_ROOM', settings);
 
-            assert.equal(socket.receivedEvents.length, 2);
-            assert.equal(socketB.receivedEvents.length, 1);
-            assert.equal(socketC.receivedEvents.length, 2);
-            assert.isTrue(
-                socketC.receivedEvents.includes(
-                    'MTV_CREATE_ROOM_SYNCHED_CALLBACK',
-                ),
-            );
+            await waitFor(() => {
+                //Creator
+                assert.isTrue(creatorSocketUserLengthUpdateSpy.calledOnce);
+                assert.isTrue(creatorSocketBUserLengthUpdateSpy.calledOnce);
+                //UserB
+                assert.isTrue(userBSocketUserLengthUpdateSpy.calledOnce);
+                //UserC
+                assert.isTrue(userCSocketUserLengthUpdateSpy.notCalled);
+                assert.isTrue(userCSocketBUserLengthUpdateSpy.notCalled);
+                assert.isTrue(userCSocketMtvRoomSyncCallbackSpy.calledOnce);
+                assert.isTrue(userCSocketBMtvRoomSyncCallbackSpy.calledOnce);
+            });
 
             let connectedSocketsToRoom =
                 await SocketLifecycle.getConnectedSocketToRoom(
                     mtvRoomIDToAssociate,
                 );
-            assert.isFalse(connectedSocketsToRoom.has(socketC.socket.id));
-            assert.isFalse(connectedSocketsToRoom.has(socketC.socketB.id));
+            assert.isFalse(connectedSocketsToRoom.has(userCSocket.id));
+            assert.isFalse(connectedSocketsToRoom.has(userCSocketB.id));
 
             const leavingUser = await User.findOrFail(userCID);
             await leavingUser.load('mtvRoom');
@@ -705,56 +749,58 @@ test.group(
              */
 
             //CREATOR
-            socket.socket.once('MTV_FORCED_DISCONNECTION', () => {
-                assert.isTrue(false);
-            });
+            const creatorSocketForcedDisconnectionSpy =
+                createSpyOnClientSocketEvent(
+                    creatorSocket,
+                    'MTV_FORCED_DISCONNECTION',
+                );
+            const creatorSocketBForcedDisconnectionSpy =
+                createSpyOnClientSocketEvent(
+                    creatorSocket,
+                    'MTV_FORCED_DISCONNECTION',
+                );
 
-            socket.socketB.once('MTV_FORCED_DISCONNECTION', () => {
-                assert.isTrue(false);
-            });
-
-            socket.socket.once('MTV_CREATE_ROOM_SYNCHED_CALLBACK', () => {
-                socket.receivedEvents.push('MTV_CREATE_ROOM_SYNCHED_CALLBACK');
-            });
-
-            socket.socketB.once('MTV_CREATE_ROOM_SYNCHED_CALLBACK', () => {
-                socket.receivedEvents.push('MTV_CREATE_ROOM_SYNCHED_CALLBACK');
-            });
+            const creatorSocketMtvRoomSyncCallbackSpy =
+                createSpyOnClientSocketEvent(
+                    creatorSocket,
+                    'MTV_CREATE_ROOM_SYNCHED_CALLBACK',
+                );
+            const creatorSocketBMtvRoomSyncCallbackSpy =
+                createSpyOnClientSocketEvent(
+                    creatorSocketB,
+                    'MTV_CREATE_ROOM_SYNCHED_CALLBACK',
+                );
 
             //USER B
-            socketB.socket.once('MTV_USER_LENGTH_UPDATE', () => {
-                assert.isTrue(false);
-            });
-
-            socketB.socket.once('MTV_FORCED_DISCONNECTION', () => {
-                socketB.receivedEvents.push('MTV_FORCED_DISCONNECTION');
-            });
+            const userBSocketForcedDisconnectionSpy =
+                createSpyOnClientSocketEvent(
+                    userBSocket,
+                    'MTV_FORCED_DISCONNECTION',
+                );
 
             /**
              * Creator joins the room
              */
             const secondRoomSettings = getDefaultMtvRoomCreateRoomArgs();
-            socket.socket.emit('MTV_CREATE_ROOM', secondRoomSettings);
+            creatorSocket.emit('MTV_CREATE_ROOM', secondRoomSettings);
 
-            await sleep();
-
-            assert.equal(socketB.receivedEvents.length, 2);
-            assert.isTrue(
-                socketB.receivedEvents.includes('MTV_FORCED_DISCONNECTION'),
-            );
-            assert.equal(socket.receivedEvents.length, 4);
-            assert.isTrue(
-                socket.receivedEvents.includes(
-                    'MTV_CREATE_ROOM_SYNCHED_CALLBACK',
-                ),
-            );
+            await waitFor(() => {
+                //Creator
+                assert.isTrue(creatorSocketForcedDisconnectionSpy.notCalled);
+                assert.isTrue(creatorSocketBForcedDisconnectionSpy.notCalled);
+                assert.isTrue(creatorSocketMtvRoomSyncCallbackSpy.calledOnce);
+                assert.isTrue(creatorSocketBMtvRoomSyncCallbackSpy.calledOnce);
+                //UserB
+                assert.isTrue(userBSocketUserLengthUpdateSpy.calledOnce);
+                assert.isTrue(userBSocketForcedDisconnectionSpy.calledOnce);
+            });
 
             connectedSocketsToRoom =
                 await SocketLifecycle.getConnectedSocketToRoom(
                     mtvRoomIDToAssociate,
                 );
-            assert.isFalse(connectedSocketsToRoom.has(socket.socket.id));
-            assert.isFalse(connectedSocketsToRoom.has(socket.socketB.id));
+            assert.isFalse(connectedSocketsToRoom.has(creatorSocket.id));
+            assert.isFalse(connectedSocketsToRoom.has(creatorSocketB.id));
 
             const leavingCreator = await User.findOrFail(userCID);
             await leavingCreator.load('mtvRoom');
@@ -766,7 +812,7 @@ test.group(
         test(`It should make a user leave the room after he emits a MTV_LEAVE_ROOM client socket event dw 
         leaving user devices should not receive any leavedMtvRoom related socket event
         If the creator does the same it should send MTV_FORCED_DISCONNECTION to every remaining users in the room`, async (assert) => {
-            const userID = datatype.uuid();
+            const userAID = datatype.uuid();
             const userBID = datatype.uuid();
             const userCID = datatype.uuid();
 
@@ -786,7 +832,7 @@ test.group(
                         name: random.word(),
                         playing: false,
                         playingMode: 'BROADCAST',
-                        roomCreatorUserID: userID,
+                        roomCreatorUserID: userAID,
                         roomID: workflowID,
                         tracks: null,
                         userRelatedInformation: null,
@@ -804,85 +850,86 @@ test.group(
              * Mocking a mtvRoom in the databse
              */
             const mtvRoomIDToAssociate = datatype.uuid();
-            const userA = {
-                socketA: await createAuthenticatedUserAndGetSocket({
-                    userID,
-                    mtvRoomIDToAssociate,
-                }),
-                socketB: await createSocketConnection({ userID }),
-                receivedEvents: [] as string[],
-            };
-
-            const userB = {
-                socketA: await createAuthenticatedUserAndGetSocket({
-                    userID: userBID,
-                    mtvRoomIDToAssociate,
-                }),
-                receivedEvents: [] as string[],
-            };
-
-            const userC = {
-                socketA: await createAuthenticatedUserAndGetSocket({
-                    userID: userCID,
-                    mtvRoomIDToAssociate,
-                }),
-                socketB: await createSocketConnection({ userID: userCID }),
-                receivedEvents: [] as string[],
-            };
-
-            // CREATOR //
-            userA.socketA.once('MTV_USER_LENGTH_UPDATE', () => {
-                userA.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
+            //CREATOR
+            const creatorSocket = await createAuthenticatedUserAndGetSocket({
+                userID: userAID,
+                mtvRoomIDToAssociate,
+            });
+            const creatorToken = getSocketApiAuthToken(creatorSocket);
+            const creatorSocketB = await createSocketConnection({
+                userID: userAID,
+                token: creatorToken,
             });
 
-            userA.socketB.once('MTV_USER_LENGTH_UPDATE', () => {
-                userA.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
+            //USER B
+            const userBSocket = await createAuthenticatedUserAndGetSocket({
+                userID: userBID,
+                mtvRoomIDToAssociate,
             });
 
-            // USER B
-            userB.socketA.once('MTV_USER_LENGTH_UPDATE', () => {
-                userB.receivedEvents.push('MTV_USER_LENGTH_UPDATE');
+            //USER C
+            const userCSocket = await createAuthenticatedUserAndGetSocket({
+                userID: userCID,
+                mtvRoomIDToAssociate,
             });
+            const userCToken = getSocketApiAuthToken(userCSocket);
+            const userCSocketB = await createSocketConnection({
+                userID: userCID,
+                token: userCToken,
+            });
+
+            //CREATOR
+            const creatorSocketUserLengthUpdateSpy =
+                createSpyOnClientSocketEvent(
+                    creatorSocket,
+                    'MTV_USER_LENGTH_UPDATE',
+                );
+
+            const creatorSocketBUserLengthUpdateSpy =
+                createSpyOnClientSocketEvent(
+                    creatorSocketB,
+                    'MTV_USER_LENGTH_UPDATE',
+                );
+
+            //USER B
+            const userBSocketUserLengthUpdateSpy = createSpyOnClientSocketEvent(
+                userBSocket,
+                'MTV_USER_LENGTH_UPDATE',
+            );
 
             // USER C
-            const userCSocketALeaveRoomCallbackSpy =
-                spy<AllServerToClientEvents['MTV_LEAVE_ROOM_CALLBACK']>();
+            const userCSocketLeaveRoomCallbackSpy =
+                createSpyOnClientSocketEvent(
+                    userCSocket,
+                    'MTV_LEAVE_ROOM_CALLBACK',
+                );
             const userCSocketBLeaveRoomCallbackSpy =
-                spy<AllServerToClientEvents['MTV_LEAVE_ROOM_CALLBACK']>();
-            userC.socketA.once('MTV_USER_LENGTH_UPDATE', () => {
-                /**
-                 * This is the disconnecting one, in this way it should not receive
-                 * any event
-                 */
-                assert.isTrue(false);
-            });
-            userC.socketB.once('MTV_USER_LENGTH_UPDATE', () => {
-                /**
-                 * This is the disconnecting one, in this way it should not receive
-                 * any event
-                 */
-                assert.isTrue(false);
-            });
-            userC.socketA.on(
-                'MTV_LEAVE_ROOM_CALLBACK',
-                userCSocketALeaveRoomCallbackSpy,
+                createSpyOnClientSocketEvent(
+                    userCSocketB,
+                    'MTV_LEAVE_ROOM_CALLBACK',
+                );
+            const userCSocketUserLengthUpdateSpy = createSpyOnClientSocketEvent(
+                userCSocket,
+                'MTV_USER_LENGTH_UPDATE',
             );
-            userC.socketB.on(
-                'MTV_LEAVE_ROOM_CALLBACK',
-                userCSocketBLeaveRoomCallbackSpy,
-            );
+
+            const userCSocketBUserLengthUpdateSpy =
+                createSpyOnClientSocketEvent(
+                    userCSocketB,
+                    'MTV_USER_LENGTH_UPDATE',
+                );
 
             /**
              * Emit leave_room with socket C
              * Expect B and socket to receive USER_LENGTH_UDPATE
              * server socket event
              */
-            userC.socketA.emit('MTV_LEAVE_ROOM');
+            userCSocket.emit('MTV_LEAVE_ROOM');
 
             // Wait for user C's devices to have been told
             // to clear the room.
             await waitFor(() => {
-                assert.equal(userCSocketALeaveRoomCallbackSpy.callCount, 1);
+                assert.equal(userCSocketLeaveRoomCallbackSpy.callCount, 1);
                 assert.equal(userCSocketBLeaveRoomCallbackSpy.callCount, 1);
             });
 
@@ -891,14 +938,20 @@ test.group(
                 await SocketLifecycle.getConnectedSocketToRoom(
                     mtvRoomIDToAssociate,
                 );
-            assert.isFalse(connectedSocketsToRoom.has(userC.socketA.id));
-            assert.isFalse(connectedSocketsToRoom.has(userC.socketB.id));
+            assert.isFalse(connectedSocketsToRoom.has(userCSocket.id));
+            assert.isFalse(connectedSocketsToRoom.has(userCSocketB.id));
 
             // Wait for remaining users to have been notified
             // about users list length update.
             await waitFor(() => {
-                assert.equal(userA.receivedEvents.length, 2);
-                assert.equal(userB.receivedEvents.length, 1);
+                //Creator
+                assert.isTrue(creatorSocketUserLengthUpdateSpy.calledOnce);
+                assert.isTrue(creatorSocketBUserLengthUpdateSpy.calledOnce);
+                //UserB
+                assert.isTrue(userBSocketUserLengthUpdateSpy.calledOnce);
+                //UserC
+                assert.isTrue(userCSocketUserLengthUpdateSpy.notCalled);
+                assert.isTrue(userCSocketBUserLengthUpdateSpy.notCalled);
             });
 
             const leavingUser = await User.findOrFail(userCID);
@@ -912,36 +965,44 @@ test.group(
              */
 
             //CREATOR
-            userA.socketA.once('MTV_FORCED_DISCONNECTION', () => {
-                assert.isTrue(false);
-            });
-
-            userA.socketA.once('MTV_FORCED_DISCONNECTION', () => {
-                assert.isTrue(false);
-            });
+            const creatorSocketForcedDisconnectionSpy =
+                createSpyOnClientSocketEvent(
+                    creatorSocket,
+                    'MTV_FORCED_DISCONNECTION',
+                );
+            const creatorSocketBForcedDisconnectionSpy =
+                createSpyOnClientSocketEvent(
+                    creatorSocket,
+                    'MTV_FORCED_DISCONNECTION',
+                );
 
             //USER B
-            userB.socketA.once('MTV_FORCED_DISCONNECTION', () => {
-                userB.receivedEvents.push('MTV_FORCED_DISCONNECTION');
-            });
+            const userBSocketForcedDisconnectionSpy =
+                createSpyOnClientSocketEvent(
+                    userBSocket,
+                    'MTV_FORCED_DISCONNECTION',
+                );
 
             /**
              * Creator leaves the room
              */
-            userA.socketA.emit('MTV_LEAVE_ROOM');
-            await sleep();
+            creatorSocket.emit('MTV_LEAVE_ROOM');
 
-            assert.equal(userB.receivedEvents.length, 2);
-            assert.isTrue(
-                userB.receivedEvents.includes('MTV_FORCED_DISCONNECTION'),
-            );
+            await waitFor(() => {
+                //Creator
+                assert.isTrue(creatorSocketForcedDisconnectionSpy.notCalled);
+                assert.isTrue(creatorSocketBForcedDisconnectionSpy.notCalled);
+                //UserB
+                assert.isTrue(userBSocketUserLengthUpdateSpy.calledOnce);
+                assert.isTrue(userBSocketForcedDisconnectionSpy.calledOnce);
+            });
 
             connectedSocketsToRoom =
                 await SocketLifecycle.getConnectedSocketToRoom(
                     mtvRoomIDToAssociate,
                 );
-            assert.isFalse(connectedSocketsToRoom.has(userA.socketA.id));
-            assert.isFalse(connectedSocketsToRoom.has(userA.socketB.id));
+            assert.isFalse(connectedSocketsToRoom.has(creatorSocket.id));
+            assert.isFalse(connectedSocketsToRoom.has(creatorSocketB.id));
 
             const leavingCreator = await User.findOrFail(userCID);
             await leavingCreator.load('mtvRoom');

@@ -8,7 +8,12 @@ import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
-import { BASE_URL, initTestUtils, sleep } from './utils/TestUtils';
+import {
+    BASE_URL,
+    createSpyOnClientSocketEvent,
+    getSocketApiAuthToken,
+    initTestUtils,
+} from './utils/TestUtils';
 
 test.group(`User service socket handler tests`, (group) => {
     const {
@@ -16,6 +21,7 @@ test.group(`User service socket handler tests`, (group) => {
         disconnectEveryRemainingSocketConnection,
         createSocketConnection,
         initSocketConnection,
+        waitFor,
     } = initTestUtils();
 
     group.beforeEach(async () => {
@@ -85,68 +91,95 @@ test.group(`User service socket handler tests`, (group) => {
                 return;
             });
 
-        const creatorSocket = {
-            socket: await createAuthenticatedUserAndGetSocket({
-                userID: creatorUserID,
-                mtvRoomIDToAssociate: roomID,
-            }),
-            socketB: await createSocketConnection({ userID: creatorUserID }),
-            receivedEvents: [] as string[],
-        };
-
-        const userBSocket = {
-            socket: await createAuthenticatedUserAndGetSocket({
-                userID: userBID,
-                mtvRoomIDToAssociate: roomID,
-            }),
-            socketB: await createSocketConnection({ userID: userBID }),
-            receivedEvents: [] as string[],
-        };
-
-        const userCSocket = {
-            socket: await createAuthenticatedUserAndGetSocket({
-                userID: userCID,
-                mtvRoomIDToAssociate: roomID,
-            }),
-            socketB: await createSocketConnection({ userID: userCID }),
-            receivedEvents: [] as string[],
-        };
-
-        creatorSocket.socket.once('MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK', () =>
-            creatorSocket.receivedEvents.push(
-                'MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK',
-            ),
-        );
-
-        creatorSocket.socketB.once('MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK', () =>
-            creatorSocket.receivedEvents.push(
-                'MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK',
-            ),
-        );
-
-        const members = [creatorSocket, userBSocket, userCSocket];
-        members.forEach((socket) => {
-            socket.socket.once('MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', () =>
-                socket.receivedEvents.push(
-                    'MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
-                ),
-            );
-
-            socket.socketB.once('MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE', () =>
-                socket.receivedEvents.push(
-                    'MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
-                ),
-            );
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
+            userID: creatorUserID,
+            mtvRoomIDToAssociate: roomID,
+        });
+        const creatorToken = getSocketApiAuthToken(creatorSocket);
+        const creatorSocketB = await createSocketConnection({
+            userID: creatorUserID,
+            token: creatorToken,
         });
 
-        creatorSocket.socket.emit('MTV_VOTE_FOR_TRACK', {
+        const userBSocket = await createAuthenticatedUserAndGetSocket({
+            userID: userBID,
+            mtvRoomIDToAssociate: roomID,
+        });
+        const userBToken = getSocketApiAuthToken(userBSocket);
+        const userBSocketB = await createSocketConnection({
+            userID: userBID,
+            token: userBToken,
+        });
+
+        const userCSocket = await createAuthenticatedUserAndGetSocket({
+            userID: userCID,
+            mtvRoomIDToAssociate: roomID,
+        });
+        const userCToken = getSocketApiAuthToken(userCSocket);
+        const userCSocketB = await createSocketConnection({
+            userID: userCID,
+            token: userCToken,
+        });
+
+        const creatorSocketVoteOrSuggestCallbackSpy =
+            createSpyOnClientSocketEvent(
+                creatorSocket,
+                'MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK',
+            );
+        const creatorSocketBVoteOrSuggestCallbackSpy =
+            createSpyOnClientSocketEvent(
+                creatorSocketB,
+                'MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK',
+            );
+
+        const creatorSocketListUpdate = createSpyOnClientSocketEvent(
+            creatorSocket,
+            'MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
+        );
+
+        const creatorSocketBListUpdate = createSpyOnClientSocketEvent(
+            creatorSocketB,
+            'MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
+        );
+
+        const userBSocketListUpdate = createSpyOnClientSocketEvent(
+            userBSocket,
+            'MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
+        );
+
+        const userBSocketBListUpdate = createSpyOnClientSocketEvent(
+            userBSocketB,
+            'MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
+        );
+
+        const userCSocketListUpdate = createSpyOnClientSocketEvent(
+            userCSocket,
+            'MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
+        );
+
+        const userCSocketBListUpdate = createSpyOnClientSocketEvent(
+            userCSocketB,
+            'MTV_VOTE_OR_SUGGEST_TRACKS_LIST_UPDATE',
+        );
+
+        creatorSocket.emit('MTV_VOTE_FOR_TRACK', {
             trackID: datatype.uuid(),
         });
-        await sleep();
-        await sleep();
 
-        assert.equal(creatorSocket.receivedEvents.length, 4);
-        assert.equal(userBSocket.receivedEvents.length, 2);
-        assert.equal(userCSocket.receivedEvents.length, 2);
+        await waitFor(() => {
+            //Creator
+            assert.isTrue(creatorSocketVoteOrSuggestCallbackSpy.calledOnce);
+            assert.isTrue(creatorSocketBVoteOrSuggestCallbackSpy.calledOnce);
+            assert.isTrue(creatorSocketListUpdate.calledOnce);
+            assert.isTrue(creatorSocketBListUpdate.calledOnce);
+
+            //UserB
+            assert.isTrue(userBSocketListUpdate.calledOnce);
+            assert.isTrue(userBSocketBListUpdate.calledOnce);
+
+            //UserC
+            assert.isTrue(userCSocketListUpdate.calledOnce);
+            assert.isTrue(userCSocketBListUpdate.calledOnce);
+        });
     });
 });

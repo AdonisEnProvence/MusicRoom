@@ -23,7 +23,7 @@ test.group(
     (group) => {
         const {
             createSocketConnection,
-            createUserAndGetSocket,
+            createAuthenticatedUserAndGetSocket,
             disconnectEveryRemainingSocketConnection,
             disconnectSocket,
             initSocketConnection,
@@ -85,7 +85,7 @@ test.group(
 
             const mtvRoomIDToAssociate = datatype.uuid();
             const socket = {
-                socket: await createUserAndGetSocket({
+                socket: await createAuthenticatedUserAndGetSocket({
                     userID,
                     mtvRoomIDToAssociate,
                 }),
@@ -238,7 +238,7 @@ test.group(
                 });
 
             const socket = {
-                socket: await createUserAndGetSocket({ userID }),
+                socket: await createAuthenticatedUserAndGetSocket({ userID }),
                 receivedEvents: [] as string[],
             };
             const socketB = {
@@ -311,11 +311,11 @@ test.group(
                 });
 
             const socket = {
-                socket: await createUserAndGetSocket({ userID }),
+                socket: await createAuthenticatedUserAndGetSocket({ userID }),
                 receivedEvents: [] as string[],
             };
             const socketB = {
-                socket: await createUserAndGetSocket({
+                socket: await createAuthenticatedUserAndGetSocket({
                     userID: secondUserID,
                 }),
                 receivedEvents: [] as string[],
@@ -390,7 +390,7 @@ test.group(
                 });
             /** ***** */
 
-            const socket = await createUserAndGetSocket({
+            const socket = await createAuthenticatedUserAndGetSocket({
                 userID: creatorUserID,
             });
 
@@ -460,15 +460,17 @@ test.group(
 
             /** ***** */
 
-            await createUserAndGetSocket({
+            await createAuthenticatedUserAndGetSocket({
                 userID: creatorUserID,
                 mtvRoomIDToAssociate,
             });
 
             let callbackHasBeenCalled = false;
-            const joiningUserSocket = await createUserAndGetSocket({
-                userID: joiningUserID,
-            });
+            const joiningUserSocket = await createAuthenticatedUserAndGetSocket(
+                {
+                    userID: joiningUserID,
+                },
+            );
 
             const joiningUserDevice = await Device.findBy(
                 'socket_id',

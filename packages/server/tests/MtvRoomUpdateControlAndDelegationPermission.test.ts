@@ -7,7 +7,7 @@ import { initTestUtils, sleep } from './utils/TestUtils';
 
 test.group(`Updating Control and Delegation permission`, (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
     } = initTestUtils();
@@ -28,11 +28,11 @@ test.group(`Updating Control and Delegation permission`, (group) => {
         const randomUserID = datatype.uuid();
         const mtvRoomID = datatype.uuid();
 
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mtvRoomIDToAssociate: mtvRoomID,
         });
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: randomUserID,
             mtvRoomIDToAssociate: mtvRoomID,
         });
@@ -63,11 +63,11 @@ test.group(`Updating Control and Delegation permission`, (group) => {
         const randomUserID = datatype.uuid();
         const mtvRoomID = datatype.uuid();
 
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mtvRoomIDToAssociate: mtvRoomID,
         });
-        const randomUserSocket = await createUserAndGetSocket({
+        const randomUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: randomUserID,
             mtvRoomIDToAssociate: mtvRoomID,
         });

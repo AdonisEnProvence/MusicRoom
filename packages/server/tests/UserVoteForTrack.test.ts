@@ -12,7 +12,7 @@ import { BASE_URL, initTestUtils, sleep } from './utils/TestUtils';
 
 test.group(`User service socket handler tests`, (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         createSocketConnection,
         initSocketConnection,
@@ -86,7 +86,7 @@ test.group(`User service socket handler tests`, (group) => {
             });
 
         const creatorSocket = {
-            socket: await createUserAndGetSocket({
+            socket: await createAuthenticatedUserAndGetSocket({
                 userID: creatorUserID,
                 mtvRoomIDToAssociate: roomID,
             }),
@@ -95,7 +95,7 @@ test.group(`User service socket handler tests`, (group) => {
         };
 
         const userBSocket = {
-            socket: await createUserAndGetSocket({
+            socket: await createAuthenticatedUserAndGetSocket({
                 userID: userBID,
                 mtvRoomIDToAssociate: roomID,
             }),
@@ -104,7 +104,7 @@ test.group(`User service socket handler tests`, (group) => {
         };
 
         const userCSocket = {
-            socket: await createUserAndGetSocket({
+            socket: await createAuthenticatedUserAndGetSocket({
                 userID: userCID,
                 mtvRoomIDToAssociate: roomID,
             }),

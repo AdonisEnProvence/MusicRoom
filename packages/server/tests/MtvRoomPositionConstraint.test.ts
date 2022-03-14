@@ -19,7 +19,7 @@ test.group(
     `MtvRoom creation with position and time constraints but here testin only position ftm and device position udpate`,
     (group) => {
         const {
-            createUserAndGetSocket,
+            createAuthenticatedUserAndGetSocket,
             disconnectEveryRemainingSocketConnection,
             initSocketConnection,
             createSocketConnection,
@@ -117,7 +117,9 @@ test.group(
             /** ***** */
 
             const userID = datatype.uuid();
-            const socket = await createUserAndGetSocket({ userID });
+            const socket = await createAuthenticatedUserAndGetSocket({
+                userID,
+            });
 
             socket.emit('MTV_CREATE_ROOM', settings);
             await sleep();
@@ -139,7 +141,7 @@ test.group(
             let userPositionFitsTheGivenRadius: undefined | boolean;
 
             const userID = datatype.uuid();
-            await createUserAndGetSocket({
+            await createAuthenticatedUserAndGetSocket({
                 userID,
                 mtvRoomIDToAssociate: roomID,
             });

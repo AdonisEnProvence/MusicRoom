@@ -23,7 +23,7 @@ import {
 test.group('Rooms life cycle', (group) => {
     const {
         createSocketConnection,
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         disconnectSocket,
         initSocketConnection,
@@ -42,7 +42,7 @@ test.group('Rooms life cycle', (group) => {
 
     test('On user socket connection, it should register his device in db, on disconnection removes it from db', async (assert) => {
         const userID = datatype.uuid();
-        const socket = await createUserAndGetSocket({ userID });
+        const socket = await createAuthenticatedUserAndGetSocket({ userID });
 
         /**
          * Check if only 1 device for given userID is well registered in database
@@ -62,7 +62,7 @@ test.group('Rooms life cycle', (group) => {
 
     test('User creates a room, receives acknowledgement, on user disconnection, it should removes the room from database', async (assert) => {
         const userID = datatype.uuid();
-        const socket = await createUserAndGetSocket({ userID });
+        const socket = await createAuthenticatedUserAndGetSocket({ userID });
         const receivedEvents: string[] = [];
 
         socket.once('MTV_CREATE_ROOM_SYNCHED_CALLBACK', () => {
@@ -158,14 +158,14 @@ test.group('Rooms life cycle', (group) => {
         console.log(userIDS);
         const userA = {
             userID: userIDS[0],
-            socket: await createUserAndGetSocket({
+            socket: await createAuthenticatedUserAndGetSocket({
                 userID: userIDS[0],
             }),
             receivedEvents: [] as string[],
         };
         const userB = {
             userID: userIDS[1],
-            socket: await createUserAndGetSocket({
+            socket: await createAuthenticatedUserAndGetSocket({
                 userID: userIDS[1],
             }),
             receivedEvents: [] as string[],
@@ -296,7 +296,7 @@ test.group('Rooms life cycle', (group) => {
 
         const mtvRoomIDToAssociate = datatype.uuid();
         const user = {
-            socketA: await createUserAndGetSocket({
+            socketA: await createAuthenticatedUserAndGetSocket({
                 userID,
                 mtvRoomIDToAssociate,
             }),

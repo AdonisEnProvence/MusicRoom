@@ -23,7 +23,7 @@ import {
 
 test.group('MPE Export to MTV', (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         waitFor,
@@ -43,7 +43,7 @@ test.group('MPE Export to MTV', (group) => {
     test('Exporting a MPE room creates a MTV room', async (assert) => {
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
-        const userASocket1 = await createUserAndGetSocket({
+        const userASocket1 = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [
                 {
@@ -178,7 +178,7 @@ test.group('MPE Export to MTV', (group) => {
 
     test('Only users that have joined a MPE room can export it into a MTV room', async (assert) => {
         const roomID = datatype.uuid();
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: datatype.uuid(),
             mpeRoomIDToAssociate: [
                 {
@@ -186,7 +186,7 @@ test.group('MPE Export to MTV', (group) => {
                 },
             ],
         });
-        const userBSocket1 = await createUserAndGetSocket({
+        const userBSocket1 = await createAuthenticatedUserAndGetSocket({
             userID: datatype.uuid(),
             mpeRoomIDToAssociate: [],
         });

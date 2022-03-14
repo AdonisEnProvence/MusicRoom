@@ -8,7 +8,7 @@ import { BASE_URL, initTestUtils } from './utils/TestUtils';
 
 test.group(`Mtv room time constraint test group`, (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         waitFor,
@@ -47,11 +47,11 @@ test.group(`Mtv room time constraint test group`, (group) => {
             minimumScoreToBePlayed: 1,
         };
 
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mtvRoomIDToAssociate: mtvRoomID,
         });
-        const userBSocket = await createUserAndGetSocket({
+        const userBSocket = await createAuthenticatedUserAndGetSocket({
             userID: randomUserID,
             mtvRoomIDToAssociate: mtvRoomID,
         });

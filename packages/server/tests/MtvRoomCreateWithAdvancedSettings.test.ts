@@ -13,7 +13,7 @@ import {
 
 test.group(`MtvRoom create room with advanced settings`, (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
     } = initTestUtils();
@@ -32,7 +32,7 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
     test('It should fail to create mtv room with corrupted settings', async (assert) => {
         const userID = datatype.uuid();
 
-        const socket = await createUserAndGetSocket({
+        const socket = await createAuthenticatedUserAndGetSocket({
             userID,
         });
 
@@ -89,7 +89,7 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
 
     test('A public room is persisted correctly in database', async (assert) => {
         const userID = datatype.uuid();
-        const socket = await createUserAndGetSocket({
+        const socket = await createAuthenticatedUserAndGetSocket({
             userID,
         });
         const settings = getDefaultMtvRoomCreateRoomArgs({
@@ -147,7 +147,7 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
 
     test('A private room is persisted correctly in database', async (assert) => {
         const userID = datatype.uuid();
-        const socket = await createUserAndGetSocket({
+        const socket = await createAuthenticatedUserAndGetSocket({
             userID,
         });
         const settings = getDefaultMtvRoomCreateRoomArgs({

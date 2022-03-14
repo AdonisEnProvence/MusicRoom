@@ -18,7 +18,7 @@ import {
 
 test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         createSocketConnection,
@@ -93,7 +93,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         /**
          * User connects two devices then create a room from one
          */
-        const socketA = await createUserAndGetSocket({ userID });
+        const socketA = await createAuthenticatedUserAndGetSocket({ userID });
         const socketB = await createSocketConnection({ userID });
         assert.equal((await Device.all()).length, 2);
         const settings = getDefaultMtvRoomCreateRoomArgs({
@@ -116,7 +116,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
     test('New user socket connection should join previously joined/created room', async (assert) => {
         const creatorUserID = datatype.uuid();
         const roomName = random.word();
-        const socketA = await createUserAndGetSocket({
+        const socketA = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
         });
         let userCouldEmitAnExclusiveRoomSignal = false;
@@ -309,7 +309,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         /**
          * Fisrt creatorUser creates a room
          */
-        const creatorUser = await createUserAndGetSocket({
+        const creatorUser = await createAuthenticatedUserAndGetSocket({
             userID: creatorID,
         });
         const creatorReceivedEvents: string[] = [];
@@ -331,7 +331,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
 
         const receivedEvents: string[] = [];
         const joiningUser = {
-            socketA: await createUserAndGetSocket({ userID }),
+            socketA: await createAuthenticatedUserAndGetSocket({ userID }),
             socketB: await createSocketConnection({ userID }),
         };
         Object.values(joiningUser).forEach((socket, i) =>
@@ -357,7 +357,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
 
     test('It should handle a temporal onCreate error, by removing any entry from pg', async (assert) => {
         const userID = datatype.uuid();
-        const socket = await createUserAndGetSocket({ userID });
+        const socket = await createAuthenticatedUserAndGetSocket({ userID });
         let roomID: undefined | string;
         const receivedEvents: string[] = [];
         socket.once('MTV_CREATE_ROOM_CALLBACK', () => {
@@ -413,13 +413,13 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         const roomName = random.word();
         const creatorUserID = datatype.uuid();
 
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: datatype.uuid(),
             mtvRoomIDToAssociate: roomID,
             roomName,
         });
 
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
         });
 

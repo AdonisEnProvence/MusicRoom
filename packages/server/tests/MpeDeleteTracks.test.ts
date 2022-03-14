@@ -16,7 +16,7 @@ import {
 
 test.group('MPE Delete Tracks', (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         createSocketConnection,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
@@ -37,7 +37,7 @@ test.group('MPE Delete Tracks', (group) => {
     test('Sends acknowledgement to the user if deleting tracks succeeded', async (assert) => {
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
-        const userASocket1 = await createUserAndGetSocket({
+        const userASocket1 = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [
                 {
@@ -113,7 +113,7 @@ test.group('MPE Delete Tracks', (group) => {
     test("Sends updated tracks list to other user's devices if deleting tracks succeeded", async (assert) => {
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
-        const userASocket1 = await createUserAndGetSocket({
+        const userASocket1 = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [
                 {
@@ -183,7 +183,7 @@ test.group('MPE Delete Tracks', (group) => {
     test('Sends updated tracks list to all other users if deleting tracks succeeded', async (assert) => {
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
-        const userASocket1 = await createUserAndGetSocket({
+        const userASocket1 = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [
                 {
@@ -191,7 +191,7 @@ test.group('MPE Delete Tracks', (group) => {
                 },
             ],
         });
-        const userBSocket1 = await createUserAndGetSocket({
+        const userBSocket1 = await createAuthenticatedUserAndGetSocket({
             userID: datatype.uuid(),
             mpeRoomIDToAssociate: [
                 {

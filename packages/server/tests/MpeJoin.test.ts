@@ -16,7 +16,7 @@ import {
 
 test.group(`join mpe room group test`, (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         createSocketConnection,
@@ -44,7 +44,7 @@ test.group(`join mpe room group test`, (group) => {
         });
 
         //Creator
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [{ roomID: mpeRoomIDToAssociate }],
         });
@@ -54,7 +54,7 @@ test.group(`join mpe room group test`, (group) => {
         ///
 
         //Joiner
-        const joiningUserSocket = await createUserAndGetSocket({
+        const joiningUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: joiningUserID,
         });
 
@@ -165,7 +165,7 @@ test.group(`join mpe room group test`, (group) => {
         const mpeRoomIDToAssociate = datatype.uuid();
 
         //Creator
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [{ roomID: mpeRoomIDToAssociate }],
         });

@@ -22,11 +22,11 @@ test.group('MtvRoom Search Engine', (group) => {
     const {
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
-        createUserAndGetSocket,
         createUserAndAuthenticate,
         createSocketConnection,
         createRequest,
         associateMtvRoomToUser,
+        createAuthenticatedUserAndGetSocket,
     } = initTestUtils();
 
     group.beforeEach(async () => {

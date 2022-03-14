@@ -9,7 +9,7 @@ import { initTestUtils, sleep } from './utils/TestUtils';
 
 test.group(`MtvRoom get users list test group`, (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
     } = initTestUtils();
@@ -28,7 +28,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
     test('It should return users list with avatar and nickame', async (assert) => {
         const userID = datatype.uuid();
         const roomID = datatype.uuid();
-        const socket = await createUserAndGetSocket({
+        const socket = await createAuthenticatedUserAndGetSocket({
             userID,
             mtvRoomIDToAssociate: roomID,
         });
@@ -67,7 +67,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
         const userID = datatype.uuid();
         const roomID = datatype.uuid();
 
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID,
             mtvRoomIDToAssociate: roomID,
         });
@@ -104,7 +104,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
         const userID = datatype.uuid();
         const roomID = datatype.uuid();
 
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID,
             mtvRoomIDToAssociate: roomID,
         });

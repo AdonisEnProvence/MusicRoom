@@ -7,7 +7,7 @@ import { createSpyOnClientSocketEvent, initTestUtils } from './utils/TestUtils';
 
 test.group(`user receives MpeRoom invitation tests group`, (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         createSocketConnection,
@@ -29,7 +29,7 @@ test.group(`user receives MpeRoom invitation tests group`, (group) => {
         const invitedUserID = datatype.uuid();
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [
                 {
@@ -37,7 +37,7 @@ test.group(`user receives MpeRoom invitation tests group`, (group) => {
                 },
             ],
         });
-        const invitedUserSocket = await createUserAndGetSocket({
+        const invitedUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: invitedUserID,
         });
         const invitedUserSocketB = await createSocketConnection({

@@ -17,7 +17,7 @@ import {
 
 test.group('MPE leave room tests group', (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         waitFor,
@@ -43,7 +43,7 @@ test.group('MPE leave room tests group', (group) => {
             roomName: random.words(3),
         };
         const roomID = mpeRoomToAssociate.roomID;
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [mpeRoomToAssociate],
         });
@@ -51,7 +51,7 @@ test.group('MPE leave room tests group', (group) => {
             userID: creatorUserID,
         });
 
-        const joiningUserSocket = await createUserAndGetSocket({
+        const joiningUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: joiningUserID,
             mpeRoomIDToAssociate: [mpeRoomToAssociate],
         });
@@ -215,7 +215,7 @@ test.group('MPE leave room tests group', (group) => {
             roomName: random.words(3),
         };
         const roomID = mpeRoomToAssociate.roomID;
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [mpeRoomToAssociate],
         });
@@ -223,7 +223,7 @@ test.group('MPE leave room tests group', (group) => {
             userID: creatorUserID,
         });
 
-        const joiningUserSocket = await createUserAndGetSocket({
+        const joiningUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: joiningUserID,
             mpeRoomIDToAssociate: [mpeRoomToAssociate],
         });

@@ -23,7 +23,7 @@ import {
 
 test.group('My MPE Rooms Search', (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         createRequest,
@@ -276,7 +276,7 @@ test.group('My MPE Rooms Search', (group) => {
 
 test.group("Other user's MPE Rooms Search", (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
     } = initTestUtils();
@@ -314,10 +314,10 @@ test.group("Other user's MPE Rooms Search", (group) => {
             minLength: 11,
             maxLength: 22,
         });
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID,
         });
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: otherUserID,
             mpeRoomIDToAssociate: [
                 ...otherUserPrivateRooms,
@@ -397,7 +397,7 @@ test.group("Other user's MPE Rooms Search", (group) => {
 
     test('It should fail when querying the MPE rooms of an unknown user', async () => {
         const userID = datatype.uuid();
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID,
         });
 
@@ -417,7 +417,7 @@ test.group("Other user's MPE Rooms Search", (group) => {
 
     test("It should fail when the user that queries an other user's MPE rooms is unknown", async () => {
         const otherUserID = datatype.uuid();
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: otherUserID,
         });
 
@@ -460,10 +460,10 @@ test.group("Other user's MPE Rooms Search", (group) => {
             },
         ];
         const firstOtherUserMpeRoom = otherUserMpeRooms[0];
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID,
         });
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: otherUserID,
             mpeRoomIDToAssociate: otherUserMpeRooms,
         });
@@ -514,10 +514,10 @@ test.group("Other user's MPE Rooms Search", (group) => {
             },
         ];
         const firstOtherUserMpeRoom = otherUserMpeRooms[0];
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID,
         });
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: otherUserID,
             mpeRoomIDToAssociate: otherUserMpeRooms,
         });
@@ -546,10 +546,10 @@ test.group("Other user's MPE Rooms Search", (group) => {
     test('Page must be strictly positive', async () => {
         const userID = datatype.uuid();
         const otherUserID = datatype.uuid();
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID,
         });
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: otherUserID,
         });
 
@@ -667,7 +667,7 @@ test.group("Other user's MPE Rooms Search", (group) => {
 
 test.group('All MPE Rooms Search', (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         createRequest,
@@ -756,7 +756,7 @@ test.group('All MPE Rooms Search', (group) => {
         ];
         const firstMpeRoom = mpeRooms[0];
 
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: datatype.uuid(),
             mpeRoomIDToAssociate: mpeRooms,
         });
@@ -801,7 +801,7 @@ test.group('All MPE Rooms Search', (group) => {
         ];
         const firstMpeRoom = mpeRooms[0];
 
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: datatype.uuid(),
             mpeRoomIDToAssociate: mpeRooms,
         });
@@ -853,7 +853,7 @@ test.group('All MPE Rooms Search', (group) => {
         });
         const totalRoomsCount = mpeRooms.length;
 
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: datatype.uuid(),
             mpeRoomIDToAssociate: mpeRooms,
         });
@@ -911,7 +911,7 @@ test.group('All MPE Rooms Search', (group) => {
         const PAGE_MAX_LENGTH = 10;
         const inviterUserID = datatype.uuid();
 
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: inviterUserID,
         });
 

@@ -5,7 +5,7 @@ import { initTestUtils, waitForTimeout } from './utils/TestUtils';
 
 test.group('MtvRoom Chat', (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         waitFor,
@@ -26,11 +26,11 @@ test.group('MtvRoom Chat', (group) => {
         const receiverUserID = datatype.uuid();
         const mtvRoomID = datatype.uuid();
 
-        const senderSocket = await createUserAndGetSocket({
+        const senderSocket = await createAuthenticatedUserAndGetSocket({
             userID: senderUserID,
             mtvRoomIDToAssociate: mtvRoomID,
         });
-        const receiverSocket = await createUserAndGetSocket({
+        const receiverSocket = await createAuthenticatedUserAndGetSocket({
             userID: receiverUserID,
             mtvRoomIDToAssociate: mtvRoomID,
         });
@@ -55,11 +55,11 @@ test.group('MtvRoom Chat', (group) => {
         const receiverUserID = datatype.uuid();
         const mtvRoomID = datatype.uuid();
 
-        const senderSocket = await createUserAndGetSocket({
+        const senderSocket = await createAuthenticatedUserAndGetSocket({
             userID: senderUserID,
             mtvRoomIDToAssociate: mtvRoomID,
         });
-        const receiverSocket = await createUserAndGetSocket({
+        const receiverSocket = await createAuthenticatedUserAndGetSocket({
             userID: receiverUserID,
             mtvRoomIDToAssociate: mtvRoomID,
         });
@@ -83,7 +83,7 @@ test.group('MtvRoom Chat', (group) => {
         const senderUserID = datatype.uuid();
         const mtvRoomID = datatype.uuid();
 
-        const senderSocket = await createUserAndGetSocket({
+        const senderSocket = await createAuthenticatedUserAndGetSocket({
             userID: senderUserID,
             mtvRoomIDToAssociate: mtvRoomID,
         });
@@ -108,11 +108,11 @@ test.group('MtvRoom Chat', (group) => {
         const otherUserID = datatype.uuid();
         const mtvRoomID = datatype.uuid();
 
-        const senderSocket = await createUserAndGetSocket({
+        const senderSocket = await createAuthenticatedUserAndGetSocket({
             userID: senderUserID,
             mtvRoomIDToAssociate: mtvRoomID,
         });
-        const otherUserSocket = await createUserAndGetSocket({
+        const otherUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: otherUserID,
         });
 
@@ -136,11 +136,11 @@ test.group('MtvRoom Chat', (group) => {
         const receiverUserID = datatype.uuid();
         const mtvRoomID = datatype.uuid();
 
-        const senderSocket = await createUserAndGetSocket({
+        const senderSocket = await createAuthenticatedUserAndGetSocket({
             userID: senderUserID,
             mtvRoomIDToAssociate: mtvRoomID,
         });
-        const receiverSocket = await createUserAndGetSocket({
+        const receiverSocket = await createAuthenticatedUserAndGetSocket({
             userID: receiverUserID,
             mtvRoomIDToAssociate: mtvRoomID,
         });
@@ -165,11 +165,11 @@ test.group('MtvRoom Chat', (group) => {
         const receiverUserID = datatype.uuid();
         const mtvRoomID = datatype.uuid();
 
-        const senderSocket = await createUserAndGetSocket({
+        const senderSocket = await createAuthenticatedUserAndGetSocket({
             userID: senderUserID,
             mtvRoomIDToAssociate: mtvRoomID,
         });
-        const receiverSocket = await createUserAndGetSocket({
+        const receiverSocket = await createAuthenticatedUserAndGetSocket({
             userID: receiverUserID,
             mtvRoomIDToAssociate: mtvRoomID,
         });

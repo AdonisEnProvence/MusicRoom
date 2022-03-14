@@ -30,7 +30,7 @@ test.group(
     (group) => {
         const {
             createSocketConnection,
-            createUserAndGetSocket,
+            createAuthenticatedUserAndGetSocket,
             disconnectEveryRemainingSocketConnection,
             disconnectSocket,
             initSocketConnection,
@@ -138,7 +138,7 @@ test.group(
 
             //CREATOR
             const socket = {
-                socket: await createUserAndGetSocket({
+                socket: await createAuthenticatedUserAndGetSocket({
                     userID: userAID,
                     mtvRoomIDToAssociate,
                 }),
@@ -147,14 +147,14 @@ test.group(
             };
 
             //ROOM TO JOIN CREATOR
-            await createUserAndGetSocket({
+            await createAuthenticatedUserAndGetSocket({
                 userID: roomToJoinCreatorID,
                 mtvRoomIDToAssociate: mtvRoomToJoinID,
             });
 
             //USER B
             const socketB = {
-                socket: await createUserAndGetSocket({
+                socket: await createAuthenticatedUserAndGetSocket({
                     userID: userBID,
                     mtvRoomIDToAssociate,
                 }),
@@ -163,7 +163,7 @@ test.group(
 
             //USER C
             const socketC = {
-                socket: await createUserAndGetSocket({
+                socket: await createAuthenticatedUserAndGetSocket({
                     userID: userCID,
                     mtvRoomIDToAssociate,
                 }),
@@ -373,7 +373,7 @@ test.group(
 
             //CREATOR
             const socket = {
-                socket: await createUserAndGetSocket({
+                socket: await createAuthenticatedUserAndGetSocket({
                     userID: userAID,
                     mtvRoomIDToAssociate,
                 }),
@@ -382,14 +382,14 @@ test.group(
             };
 
             //ROOM TO JOIN CREATOR
-            await createUserAndGetSocket({
+            await createAuthenticatedUserAndGetSocket({
                 userID: roomToJoinCreatorID,
                 mtvRoomIDToAssociate: mtvRoomToJoinID,
             });
 
             //USER B
             const socketB = {
-                socket: await createUserAndGetSocket({
+                socket: await createAuthenticatedUserAndGetSocket({
                     userID: userBID,
                     mtvRoomIDToAssociate,
                 }),
@@ -398,7 +398,7 @@ test.group(
 
             //USER C
             const socketC = {
-                socket: await createUserAndGetSocket({
+                socket: await createAuthenticatedUserAndGetSocket({
                     userID: userCID,
                     mtvRoomIDToAssociate,
                 }),
@@ -603,7 +603,7 @@ test.group(
 
             //CREATOR
             const socket = {
-                socket: await createUserAndGetSocket({
+                socket: await createAuthenticatedUserAndGetSocket({
                     userID: userAID,
                     mtvRoomIDToAssociate,
                 }),
@@ -613,7 +613,7 @@ test.group(
 
             //USER B
             const socketB = {
-                socket: await createUserAndGetSocket({
+                socket: await createAuthenticatedUserAndGetSocket({
                     userID: userBID,
                     mtvRoomIDToAssociate,
                 }),
@@ -622,7 +622,7 @@ test.group(
 
             //USER C
             const socketC = {
-                socket: await createUserAndGetSocket({
+                socket: await createAuthenticatedUserAndGetSocket({
                     userID: userCID,
                     mtvRoomIDToAssociate,
                 }),
@@ -805,7 +805,7 @@ test.group(
              */
             const mtvRoomIDToAssociate = datatype.uuid();
             const userA = {
-                socketA: await createUserAndGetSocket({
+                socketA: await createAuthenticatedUserAndGetSocket({
                     userID,
                     mtvRoomIDToAssociate,
                 }),
@@ -814,7 +814,7 @@ test.group(
             };
 
             const userB = {
-                socketA: await createUserAndGetSocket({
+                socketA: await createAuthenticatedUserAndGetSocket({
                     userID: userBID,
                     mtvRoomIDToAssociate,
                 }),
@@ -822,7 +822,7 @@ test.group(
             };
 
             const userC = {
-                socketA: await createUserAndGetSocket({
+                socketA: await createAuthenticatedUserAndGetSocket({
                     userID: userCID,
                     mtvRoomIDToAssociate,
                 }),

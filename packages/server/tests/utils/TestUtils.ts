@@ -9,6 +9,7 @@ import {
     UserSettingVisibility,
     SignInRequestBody,
     SignInSuccessfulWebAuthResponseBody,
+    SignInSuccessfulApiTokensResponseBody,
 } from '@musicroom/types';
 import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import MpeRoom from 'App/Models/MpeRoom';
@@ -20,6 +21,7 @@ import { unique, datatype, random, name, internet } from 'faker';
 import sinon from 'sinon';
 import { io, Socket } from 'socket.io-client';
 import supertest from 'supertest';
+import urlcat from 'urlcat';
 import {
     createMachine,
     interpret,
@@ -87,6 +89,12 @@ interface CreateUserForSocketConnectionArgs {
     userNickname?: string;
 }
 
+interface CreateUserForSocketConnectionReturnedValue {
+    token: string;
+    email: string;
+    password: string;
+}
+
 interface CreateUserAndGetSocketArgs extends CreateUserForSocketConnectionArgs {
     deviceName?: string;
     browser?: AvailableBrowsersMocks;
@@ -96,6 +104,7 @@ interface CreateSocketConnectionArgs {
     userID: string;
     deviceName?: string;
     browser?: AvailableBrowsersMocks;
+    token: string;
     requiredEventListeners?: (socket: TypedTestSocket) => void;
 }
 
@@ -152,10 +161,10 @@ interface TestUtilsReturnedValue {
     createSocketConnection: (
         args: CreateSocketConnectionArgs,
     ) => Promise<TypedTestSocket>;
-    createUserAndGetSocketWithoutConnectionAcknowledgement: (
+    createAuthenticatedUserAndGetSocketWithoutConnectionAcknowledgement: (
         args: CreateUserAndGetSocketArgs,
     ) => Promise<TypedTestSocket>;
-    createUserAndGetSocket: (
+    createAuthenticatedUserAndGetSocket: (
         args: CreateUserAndGetSocketArgs,
     ) => Promise<TypedTestSocket>;
     waitFor: <ExpectReturn>(
@@ -243,6 +252,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
         userID,
         browser,
         deviceName,
+        token,
         requiredEventListeners,
     }: CreateSocketConnectionArgs): TypedTestSocket {
         const query: Record<string, string> = {
@@ -276,6 +286,10 @@ export function initTestUtils(): TestUtilsReturnedValue {
         const socket = io(BASE_URL, {
             query,
             extraHeaders,
+            withCredentials: true, //useless same domain for server and test ?
+            auth: {
+                Authorization: `Bearer ${token}`,
+            },
         });
         socketsConnections.push(socket);
         if (requiredEventListeners) requiredEventListeners(socket);
@@ -385,18 +399,23 @@ export function initTestUtils(): TestUtilsReturnedValue {
         return socket;
     }
 
-    async function createUserForSocketConnection({
+    /**
+     * This function performs an api token authentication
+     */
+    async function createAuthenticatedUserForSocketConnection({
         userID,
         mtvRoomIDToAssociate,
         mpeRoomIDToAssociate,
         roomName,
         userNickname,
-    }: CreateUserForSocketConnectionArgs) {
+    }: CreateUserForSocketConnectionArgs): Promise<CreateUserForSocketConnectionReturnedValue> {
+        const email = internet.email();
+        const password = generateStrongPassword();
         const createdUser = await User.create({
             uuid: userID,
             nickname: userNickname ?? unique(() => random.word()),
-            email: internet.email(),
-            password: internet.password(),
+            email,
+            password,
         });
 
         if (mtvRoomIDToAssociate !== undefined) {
@@ -413,9 +432,26 @@ export function initTestUtils(): TestUtilsReturnedValue {
                 mpeRoomList: mpeRoomIDToAssociate,
             });
         }
+
+        //Perform sign in
+        const { body: rawBody } = await supertest(BASE_URL)
+            .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-in'))
+            .send({
+                authenticationMode: 'api',
+                email,
+                password,
+            } as SignInRequestBody)
+            .expect(200);
+        const { token } = SignInSuccessfulApiTokensResponseBody.parse(rawBody);
+
+        return {
+            email,
+            password,
+            token,
+        };
     }
 
-    async function createUserAndGetSocketWithoutConnectionAcknowledgement({
+    async function createAuthenticatedUserAndGetSocketWithoutConnectionAcknowledgement({
         userID,
         deviceName,
         browser,
@@ -424,7 +460,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
         roomName,
         userNickname,
     }: CreateUserAndGetSocketArgs): Promise<TypedTestSocket> {
-        await createUserForSocketConnection({
+        const { token } = await createAuthenticatedUserForSocketConnection({
             userID,
             mtvRoomIDToAssociate,
             mpeRoomIDToAssociate,
@@ -437,12 +473,13 @@ export function initTestUtils(): TestUtilsReturnedValue {
             userID,
             deviceName,
             browser,
+            token,
         });
 
         return socket;
     }
 
-    async function createUserAndGetSocket({
+    async function createAuthenticatedUserAndGetSocket({
         userID,
         deviceName,
         browser,
@@ -451,7 +488,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
         userNickname,
         roomName,
     }: CreateUserAndGetSocketArgs): Promise<TypedTestSocket> {
-        await createUserForSocketConnection({
+        const { token } = await createAuthenticatedUserForSocketConnection({
             userID,
             mtvRoomIDToAssociate,
             mpeRoomIDToAssociate,
@@ -464,6 +501,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
             userID,
             deviceName,
             browser,
+            token,
         });
 
         return socket;
@@ -672,8 +710,8 @@ export function initTestUtils(): TestUtilsReturnedValue {
 
     return {
         createSocketConnection,
-        createUserAndGetSocket,
-        createUserAndGetSocketWithoutConnectionAcknowledgement,
+        createAuthenticatedUserAndGetSocket,
+        createAuthenticatedUserAndGetSocketWithoutConnectionAcknowledgement,
         disconnectSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,

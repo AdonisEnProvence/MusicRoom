@@ -14,7 +14,7 @@ test.group(
     (group) => {
         const {
             createSocketConnection,
-            createUserAndGetSocket,
+            createAuthenticatedUserAndGetSocket,
             disconnectEveryRemainingSocketConnection,
             disconnectSocket,
             initSocketConnection,
@@ -34,7 +34,9 @@ test.group(
 
         test('It should send to every user socket instance the CONNECTED_DEVICES_UPDATE socket event on device co/dc', async (assert) => {
             const userID = datatype.uuid();
-            const socketA = await createUserAndGetSocket({ userID });
+            const socketA = await createAuthenticatedUserAndGetSocket({
+                userID,
+            });
 
             const socketAConnectedDevicesSpy = createSpyOnClientSocketEvent(
                 socketA,
@@ -57,7 +59,7 @@ test.group(
             const userID = datatype.uuid();
             const deviceNameA = random.word();
 
-            const socketA = await createUserAndGetSocket({
+            const socketA = await createAuthenticatedUserAndGetSocket({
                 userID,
                 deviceName: deviceNameA,
             });

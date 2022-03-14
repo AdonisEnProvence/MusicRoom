@@ -39,8 +39,6 @@ export type UpdateRelationsVisibilityResponseBody = z.infer<
 >;
 
 export const UpdateNicknameRequestBody = z.object({
-    tmpAuthUserID: z.string(),
-
     nickname: z.string().nonempty(),
 });
 export type UpdateNicknameRequestBody = z.infer<

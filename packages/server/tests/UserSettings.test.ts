@@ -15,8 +15,7 @@ import User from 'App/Models/User';
 import { datatype, random, internet } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
-import supertest from 'supertest';
-import { BASE_URL, initTestUtils } from './utils/TestUtils';
+import { initTestUtils } from './utils/TestUtils';
 
 test.group('User settings', (group) => {
     const {
@@ -74,7 +73,7 @@ test.group('User settings', (group) => {
         );
     });
 
-    test('Returns Authorization error when the user is not authenticated', async () => {
+    test("Prevents to get current user's settings when she is not authenticated", async () => {
         const request = createRequest();
 
         await request.get('/me/settings').expect(401);
@@ -105,7 +104,7 @@ test.group('User settings', (group) => {
         );
     });
 
-    test(`Returns Authorization error when the user is not authenticated`, async () => {
+    test("Prevents to set user's playlists visibility when she is not authenticated", async () => {
         const request = createRequest();
 
         const requestBody: UpdatePlaylistsVisibilityRequestBody = {
@@ -197,7 +196,7 @@ test.group('User settings', (group) => {
         );
     });
 
-    test('Returns Authorization error when the user is not authenticated', async () => {
+    test("Prevents to set user's relations visibility when she is not authenticated", async () => {
         const request = createRequest();
 
         const requestBody: UpdateRelationsVisibilityRequestBody = {
@@ -292,21 +291,25 @@ test.group('User settings', (group) => {
         );
     });
 
-    test(`Returns an error when trying to update user's nickname with her current nickname`, async (assert) => {
-        const userID = datatype.uuid();
-        const userNickname = random.word();
-        const user = await User.create({
-            uuid: userID,
-            nickname: userNickname,
-            email: internet.email(),
-            password: internet.password(),
-        });
+    test("Prevents to set user's nickname when she is not authenticated", async () => {
+        const request = createRequest();
 
         const requestBody: UpdateNicknameRequestBody = {
-            tmpAuthUserID: userID,
-            nickname: userNickname,
+            nickname: 'new nickname',
         };
-        const { body: rawResponseBody } = await supertest(BASE_URL)
+        await request.post('/me/nickname').send(requestBody).expect(401);
+    });
+
+    test(`Returns an error when trying to update user's nickname with her current nickname`, async (assert) => {
+        const request = createRequest();
+
+        const user = await createUserAndAuthenticate(request);
+        const initialNickname = user.nickname;
+
+        const requestBody: UpdateNicknameRequestBody = {
+            nickname: initialNickname,
+        };
+        const { body: rawResponseBody } = await request
             .post('/me/nickname')
             .send(requestBody)
             .expect(200)
@@ -320,18 +323,13 @@ test.group('User settings', (group) => {
 
         await user.refresh();
 
-        assert.equal(user.nickname, userNickname);
+        assert.equal(user.nickname, initialNickname);
     });
 
     test(`Returns an error when trying to update user's nickname with an unavailable nickname`, async (assert) => {
-        const userID = datatype.uuid();
-        const userNickname = random.word();
-        await User.create({
-            uuid: userID,
-            nickname: userNickname,
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
 
         const randomUser = await User.create({
             uuid: datatype.uuid(),
@@ -341,10 +339,9 @@ test.group('User settings', (group) => {
         });
 
         const requestBody: UpdateNicknameRequestBody = {
-            tmpAuthUserID: userID,
             nickname: randomUser.nickname,
         };
-        const { body: rawResponseBody } = await supertest(BASE_URL)
+        const { body: rawResponseBody } = await request
             .post('/me/nickname')
             .send(requestBody)
             .expect(400)
@@ -363,45 +360,31 @@ test.group('User settings', (group) => {
     });
 
     test(`Returns an error when trying to set username as an empty string`, async (assert) => {
-        const userID = datatype.uuid();
-        const userNickname = random.word();
-        const user = await User.create({
-            uuid: userID,
-            nickname: userNickname,
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
+
+        const user = await createUserAndAuthenticate(request);
+        const initialNickname = user.nickname;
 
         const requestBody: UpdateNicknameRequestBody = {
-            tmpAuthUserID: userID,
             nickname: '',
         };
-        await supertest(BASE_URL)
-            .post('/me/nickname')
-            .send(requestBody)
-            .expect(500);
+        await request.post('/me/nickname').send(requestBody).expect(500);
 
         await user.refresh();
 
-        assert.equal(user.nickname, userNickname);
+        assert.equal(user.nickname, initialNickname);
     });
 
     test(`Updates user's nickname`, async (assert) => {
-        const userID = datatype.uuid();
-        const userNickname = random.word();
-        const user = await User.create({
-            uuid: userID,
-            nickname: userNickname,
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
+
+        const user = await createUserAndAuthenticate(request);
         const newNickname = random.words();
 
         const requestBody: UpdateNicknameRequestBody = {
-            tmpAuthUserID: userID,
             nickname: newNickname,
         };
-        const { body: rawResponseBody } = await supertest(BASE_URL)
+        const { body: rawResponseBody } = await request
             .post('/me/nickname')
             .send(requestBody)
             .expect(200)

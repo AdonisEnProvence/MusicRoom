@@ -63,11 +63,8 @@ export async function setUserNickname({
     nickname,
 }: SetUserNicknameArgs): Promise<UpdateNicknameResponseBody> {
     const body: UpdateNicknameRequestBody = {
-        tmpAuthUserID: getFakeUserID(),
-
         nickname,
     };
-
     const rawResponse = await request.post('/me/nickname', body);
     const parsedResponse = UpdateNicknameResponseBody.parse(rawResponse.data);
 

@@ -91,13 +91,17 @@ export default class UserSettingsController {
 
     public async updateNickname({
         request,
+        auth,
         response,
     }: HttpContextContract): Promise<UpdateNicknameResponseBody> {
-        const rawBody = request.body();
-        const { tmpAuthUserID, nickname } =
-            UpdateNicknameRequestBody.parse(rawBody);
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            'User must be logged in to update her nickname',
+        );
 
-        const user = await User.findOrFail(tmpAuthUserID);
+        const { nickname } = UpdateNicknameRequestBody.parse(request.body());
+
         if (user.nickname === nickname) {
             return {
                 status: 'SAME_NICKNAME',

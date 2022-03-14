@@ -66,7 +66,9 @@ Route.group(() => {
         'UserSettingsController.updateRelationsVisibility',
     ).middleware('every-auth');
 
-    Route.post('/nickname', 'UserSettingsController.updateNickname');
+    Route.post('/nickname', 'UserSettingsController.updateNickname').middleware(
+        'every-auth',
+    );
 
     Route.post('/search/followers', 'SearchUsersController.listMyFollowers');
     Route.post('/search/following', 'SearchUsersController.listMyFollowing');

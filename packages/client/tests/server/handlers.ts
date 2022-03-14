@@ -410,26 +410,29 @@ export const handlers = [
 
     rest.post<
         UpdatePlaylistsVisibilityRequestBody,
-        Record<string, never>,
+        never,
         UpdatePlaylistsVisibilityResponseBody
-    >(`${SERVER_ENDPOINT}/me/playlists-visibility`, (req, res, ctx) => {
-        db.myProfileInformation.update({
-            where: {
-                userID: {
-                    equals: req.body.tmpAuthUserID,
+    >(
+        `${SERVER_ENDPOINT}/me/playlists-visibility`,
+        withAuthentication((req, res, ctx) => {
+            db.myProfileInformation.update({
+                where: {
+                    userID: {
+                        equals: testGetFakeUserID(),
+                    },
                 },
-            },
-            data: {
-                playlistsVisibilitySetting: req.body.visibility,
-            },
-        });
+                data: {
+                    playlistsVisibilitySetting: req.body.visibility,
+                },
+            });
 
-        return res(
-            ctx.json({
-                status: 'SUCCESS',
-            }),
-        );
-    }),
+            return res(
+                ctx.json({
+                    status: 'SUCCESS',
+                }),
+            );
+        }),
+    ),
 
     rest.post<
         UpdateRelationsVisibilityRequestBody,

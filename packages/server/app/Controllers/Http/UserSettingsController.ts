@@ -37,12 +37,17 @@ export default class UserSettingsController {
 
     public async updatePlaylistsVisibility({
         request,
+        auth,
     }: HttpContextContract): Promise<UpdatePlaylistsVisibilityResponseBody> {
-        const rawBody = request.body();
-        const { tmpAuthUserID, visibility } =
-            UpdatePlaylistsVisibilityRequestBody.parse(rawBody);
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            'User must be logged in to update her playlists visibility setting',
+        );
 
-        const user = await User.findOrFail(tmpAuthUserID);
+        const { visibility } = UpdatePlaylistsVisibilityRequestBody.parse(
+            request.body(),
+        );
         const settingVisibility = await SettingVisibility.findByOrFail(
             'name',
             visibility,

@@ -26,7 +26,6 @@ export async function setUserPlaylistsSettingVisibility({
     visibility,
 }: SetUserPlaylistsSettingVisibilityArgs): Promise<UpdatePlaylistsVisibilityResponseBody> {
     const body: UpdatePlaylistsVisibilityRequestBody = {
-        tmpAuthUserID: getFakeUserID(),
         visibility,
     };
 

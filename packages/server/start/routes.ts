@@ -59,7 +59,7 @@ Route.group(() => {
     Route.post(
         '/playlists-visibility',
         'UserSettingsController.updatePlaylistsVisibility',
-    );
+    ).middleware('every-auth');
 
     Route.post(
         '/relations-visibility',

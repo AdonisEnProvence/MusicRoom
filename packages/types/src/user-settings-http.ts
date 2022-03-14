@@ -11,8 +11,6 @@ export type GetMySettingsResponseBody = z.infer<
 >;
 
 export const UpdatePlaylistsVisibilityRequestBody = z.object({
-    tmpAuthUserID: z.string(),
-
     visibility: UserSettingVisibility,
 });
 export type UpdatePlaylistsVisibilityRequestBody = z.infer<

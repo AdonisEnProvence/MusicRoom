@@ -19,6 +19,7 @@ import {
     initTestUtils,
     generateArray,
     getVisibilityDatabaseEntry,
+    getSocketApiAuthToken,
 } from './utils/TestUtils';
 
 test.group('My MPE Rooms Search', (group) => {
@@ -28,7 +29,6 @@ test.group('My MPE Rooms Search', (group) => {
         initSocketConnection,
         createRequest,
         createUserAndAuthenticate,
-        createSocketConnection,
         associateMpeRoomListToUser,
     } = initTestUtils();
 
@@ -82,7 +82,7 @@ test.group('My MPE Rooms Search', (group) => {
             mpeRoomList: mpeRooms,
         });
 
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: datatype.uuid(),
             mpeRoomIDToAssociate: otherMpeRooms,
         });
@@ -218,14 +218,12 @@ test.group('My MPE Rooms Search', (group) => {
         });
         const totalRoomsCount = mpeRooms.length;
 
-        const user = await createUserAndAuthenticate(request);
-        await createSocketConnection({
-            userID: user.uuid,
+        const userID = datatype.uuid();
+        const socket = await createAuthenticatedUserAndGetSocket({
+            userID,
+            mpeRoomIDToAssociate: mpeRooms,
         });
-        await associateMpeRoomListToUser({
-            user,
-            mpeRoomList: mpeRooms,
-        });
+        const token = getSocketApiAuthToken(socket);
 
         let page = 1;
         let hasMore = true;
@@ -238,6 +236,7 @@ test.group('My MPE Rooms Search', (group) => {
 
             const { body: pageBodyRaw } = await request
                 .post('/mpe/search/my-rooms')
+                .set('Authorization', `bearer ${token}`)
                 .send(requestBody)
                 .expect('Content-Type', /json/)
                 .expect(200);
@@ -261,6 +260,7 @@ test.group('My MPE Rooms Search', (group) => {
         };
         const { body: extraPageBodyRaw } = await request
             .post('/mpe/search/my-rooms')
+            .set('Authorization', `bearer ${token}`)
             .send(extraRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);

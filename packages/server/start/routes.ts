@@ -70,7 +70,10 @@ Route.group(() => {
         'every-auth',
     );
 
-    Route.post('/search/followers', 'SearchUsersController.listMyFollowers');
+    Route.post(
+        '/search/followers',
+        'SearchUsersController.listMyFollowers',
+    ).middleware('every-auth');
     Route.post('/search/following', 'SearchUsersController.listMyFollowing');
 }).prefix(MY_PROFILE_ROUTES_GROUP_PREFIX);
 

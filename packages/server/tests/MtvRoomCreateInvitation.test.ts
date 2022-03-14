@@ -5,7 +5,7 @@ import MtvRoomInvitation from 'App/Models/MtvRoomInvitation';
 import { datatype } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
-import { initTestUtils, sleep } from './utils/TestUtils';
+import { getSocketApiAuthToken, initTestUtils } from './utils/TestUtils';
 
 test.group(`MtvRoomInvitation tests group`, (group) => {
     const {
@@ -39,8 +39,10 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         const invitedUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: invitedUserID,
         });
+        const invitedUserToken = getSocketApiAuthToken(invitedUserSocket);
         const invitedUserSocketB = await createSocketConnection({
             userID: invitedUserID,
+            token: invitedUserToken,
         });
 
         const receivedEvents: string[] = [];
@@ -54,9 +56,10 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         creatorSocket.emit('MTV_CREATOR_INVITE_USER', {
             invitedUserID,
         });
-        await sleep();
 
-        assert.equal(receivedEvents.length, 2);
+        await waitFor(() => {
+            assert.equal(receivedEvents.length, 2);
+        });
         const createdInvitation = await MtvRoomInvitation.findBy(
             'invited_user_id',
             invitedUserID,
@@ -72,10 +75,11 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         creatorSocket.emit('MTV_CREATOR_INVITE_USER', {
             invitedUserID,
         });
-        await sleep();
-        assert.equal(receivedEvents.length, 4);
-        const allInvitations = await MtvRoomInvitation.all();
-        assert.equal(allInvitations.length, 1);
+        await waitFor(async () => {
+            assert.equal(receivedEvents.length, 4);
+            const allInvitations = await MtvRoomInvitation.all();
+            assert.equal(allInvitations.length, 1);
+        });
     });
 
     test('It should fail to invite user as invitedUser is creator himself', async (assert) => {

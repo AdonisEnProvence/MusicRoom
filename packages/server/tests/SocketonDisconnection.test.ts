@@ -10,6 +10,7 @@ import supertest from 'supertest';
 import {
     BASE_URL,
     getDefaultMtvRoomCreateRoomArgs,
+    getSocketApiAuthToken,
     initTestUtils,
     sleep,
 } from './utils/TestUtils';
@@ -295,27 +296,26 @@ test.group('Rooms life cycle', (group) => {
         const userID = datatype.uuid();
 
         const mtvRoomIDToAssociate = datatype.uuid();
-        const user = {
-            socketA: await createAuthenticatedUserAndGetSocket({
-                userID,
-                mtvRoomIDToAssociate,
-            }),
-            socketB: await createSocketConnection({ userID }),
-        };
+        const socketA = await createAuthenticatedUserAndGetSocket({
+            userID,
+            mtvRoomIDToAssociate,
+        });
+        const token = getSocketApiAuthToken(socketA);
+        const socketB = await createSocketConnection({ userID, token });
 
         /**
          *  Check if both user's devices are in database
          *  Then emit disconnect from one device
          */
         assert.equal((await Device.query().where('user_id', userID)).length, 2);
-        await disconnectSocket(user.socketA);
+        await disconnectSocket(socketA);
 
         /**
          * Check if room is still in database
          * Then emit disconnect from last device
          */
         assert.isNotNull(await MtvRoom.findBy('creator', userID));
-        await disconnectSocket(user.socketB);
+        await disconnectSocket(socketB);
 
         /**
          * Check if room is not in database

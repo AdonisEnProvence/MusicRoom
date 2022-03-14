@@ -5,8 +5,8 @@ import sinon from 'sinon';
 import Device from '../app/Models/Device';
 import {
     createSpyOnClientSocketEvent,
+    getSocketApiAuthToken,
     initTestUtils,
-    sleep,
 } from './utils/TestUtils';
 
 test.group(
@@ -37,13 +37,14 @@ test.group(
             const socketA = await createAuthenticatedUserAndGetSocket({
                 userID,
             });
+            const token = getSocketApiAuthToken(socketA);
 
             const socketAConnectedDevicesSpy = createSpyOnClientSocketEvent(
                 socketA,
                 'CONNECTED_DEVICES_UPDATE',
             );
 
-            const socketB = await createSocketConnection({ userID });
+            const socketB = await createSocketConnection({ userID, token });
             await waitFor(() => {
                 assert.isTrue(socketAConnectedDevicesSpy.calledOnce);
             });
@@ -63,13 +64,14 @@ test.group(
                 userID,
                 deviceName: deviceNameA,
             });
+            const token = getSocketApiAuthToken(socketA);
 
             const deviceA = await Device.findBy('socket_id', socketA.id);
             assert.isNotNull(deviceA);
             if (deviceA === null) throw new Error('DeviceA should not be null');
 
             let callbackHasBeenCalled = false;
-            await createSocketConnection({ userID, browser: 'Safari' });
+            await createSocketConnection({ userID, browser: 'Safari', token });
 
             socketA.emit(
                 'GET_CONNECTED_DEVICES_AND_DEVICE_ID',
@@ -88,8 +90,9 @@ test.group(
                 },
             );
 
-            await sleep();
-            assert.isTrue(callbackHasBeenCalled);
+            await waitFor(() => {
+                assert.isTrue(callbackHasBeenCalled);
+            });
         });
     },
 );

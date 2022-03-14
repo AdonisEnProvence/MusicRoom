@@ -11,6 +11,7 @@ import test from 'japa';
 import sinon from 'sinon';
 import {
     getDefaultMtvRoomCreateRoomArgs,
+    getSocketApiAuthToken,
     initTestUtils,
     sleep,
 } from './utils/TestUtils';
@@ -141,11 +142,13 @@ test.group(
             let userPositionFitsTheGivenRadius: undefined | boolean;
 
             const userID = datatype.uuid();
-            await createAuthenticatedUserAndGetSocket({
+            const socket = await createAuthenticatedUserAndGetSocket({
                 userID,
                 mtvRoomIDToAssociate: roomID,
             });
-            const socketB = await createSocketConnection({ userID });
+            const token = getSocketApiAuthToken(socket);
+
+            const socketB = await createSocketConnection({ userID, token });
 
             const relatedRoom = await MtvRoom.find(roomID);
             if (relatedRoom === null) throw new Error('mtv room is null');
@@ -197,7 +200,7 @@ test.group(
             assert.isFalse(userPositionFitsTheGivenRadius);
             mockHasBeenCalled = false;
 
-            await createSocketConnection({ userID });
+            await createSocketConnection({ userID, token });
 
             assert.isTrue(mockHasBeenCalled);
             assert.isFalse(userPositionFitsTheGivenRadius);

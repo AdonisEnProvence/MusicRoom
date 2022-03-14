@@ -9,9 +9,12 @@ import { datatype, name, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
+import invariant from 'tiny-invariant';
 import {
     BASE_URL,
+    createSpyOnClientSocketEvent,
     getDefaultMtvRoomCreateRoomArgs,
+    getSocketApiAuthToken,
     initTestUtils,
     sleep,
 } from './utils/TestUtils';
@@ -22,6 +25,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         createSocketConnection,
+        waitFor,
     } = initTestUtils();
 
     group.beforeEach(async () => {
@@ -94,23 +98,28 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
          * User connects two devices then create a room from one
          */
         const socketA = await createAuthenticatedUserAndGetSocket({ userID });
-        const socketB = await createSocketConnection({ userID });
+        const token = getSocketApiAuthToken(socketA);
+        const socketB = await createSocketConnection({ userID, token });
         assert.equal((await Device.all()).length, 2);
         const settings = getDefaultMtvRoomCreateRoomArgs({
             name: roomName,
             initialTracksIDs: [datatype.uuid()],
         });
         socketA.emit('MTV_CREATE_ROOM', settings);
-        await sleep();
-        assert.isNotNull(await MtvRoom.findBy('creator', userID));
+
+        await waitFor(async () => {
+            assert.isNotNull(await MtvRoom.findBy('creator', userID));
+        });
 
         /**
          * From the other one he emits an MTV_ACTION_PLAY event
          * It achieves only if he joined the socket io server room
          */
         socketB.emit('MTV_ACTION_PLAY');
-        await sleep();
-        assert.equal(userCouldEmitAnExclusiveRoomSignal, true);
+
+        await waitFor(() => {
+            assert.equal(userCouldEmitAnExclusiveRoomSignal, true);
+        });
     });
 
     test('New user socket connection should join previously joined/created room', async (assert) => {
@@ -119,6 +128,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         const socketA = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
         });
+        const token = getSocketApiAuthToken(socketA);
         let userCouldEmitAnExclusiveRoomSignal = false;
         /** Mocks */
         sinon
@@ -211,7 +221,12 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
             initialTracksIDs: [datatype.uuid()],
         });
         socketA.emit('MTV_CREATE_ROOM', settings);
-        await sleep();
+
+        await waitFor(async () => {
+            const createdRoom = await MtvRoom.findBy('creator', creatorUserID);
+            assert.isNotNull(createdRoom);
+            return createdRoom;
+        });
 
         /**
          * User connects a new device, then emits an MTV_ACTION_PLAY
@@ -219,13 +234,16 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
          * He also receives the mtvRoom's context
          */
         const socketB = {
-            socket: await createSocketConnection({ userID: creatorUserID }),
+            socket: await createSocketConnection({
+                userID: creatorUserID,
+                token,
+            }),
         };
 
         socketB.socket.emit('MTV_ACTION_PLAY');
-        await sleep();
-
-        assert.isTrue(userCouldEmitAnExclusiveRoomSignal);
+        await waitFor(() => {
+            assert.isTrue(userCouldEmitAnExclusiveRoomSignal);
+        });
     });
 
     test(`It should joins room for every user's session/device after one emits MTV_JOIN_ROOM
@@ -309,50 +327,66 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         /**
          * Fisrt creatorUser creates a room
          */
-        const creatorUser = await createAuthenticatedUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorID,
         });
-        const creatorReceivedEvents: string[] = [];
         const settings = getDefaultMtvRoomCreateRoomArgs({
             initialTracksIDs: [datatype.uuid()],
         });
-        creatorUser.emit('MTV_CREATE_ROOM', settings);
-        await sleep();
-        const createdRoom = await MtvRoom.findBy('creator', creatorID);
-        assert.isNotNull(createdRoom);
-        if (!createdRoom) throw new Error('room is undefined');
+        creatorSocket.emit('MTV_CREATE_ROOM', settings);
 
+        const createdRoom = await waitFor(async () => {
+            const freshlyCreatedRoom = await MtvRoom.findBy(
+                'creator',
+                creatorID,
+            );
+            assert.isNotNull(freshlyCreatedRoom);
+            return freshlyCreatedRoom;
+        });
+
+        invariant(createdRoom !== null, 'createdRoom is null');
         /**
          * JoiningUser connects 2 socket and joins the createdRoom with one
          */
-        creatorUser.once('MTV_USER_LENGTH_UPDATE', () => {
-            creatorReceivedEvents.push('MTV_USER_LENGTH_UPDATE');
+        const creatorSocketUserLengthUpdateSpy = createSpyOnClientSocketEvent(
+            creatorSocket,
+            'MTV_USER_LENGTH_UPDATE',
+        );
+
+        const joiningUserSocketA = await createAuthenticatedUserAndGetSocket({
+            userID,
+        });
+        const joiningUserToken = getSocketApiAuthToken(joiningUserSocketA);
+        const joiningUserSocketB = await createSocketConnection({
+            userID,
+            token: joiningUserToken,
         });
 
-        const receivedEvents: string[] = [];
-        const joiningUser = {
-            socketA: await createAuthenticatedUserAndGetSocket({ userID }),
-            socketB: await createSocketConnection({ userID }),
-        };
-        Object.values(joiningUser).forEach((socket, i) =>
-            socket.once('MTV_JOIN_ROOM_CALLBACK', () => {
-                receivedEvents.push(`JOIN_ROOM_CALLBACK_${i}`);
-            }),
+        const joiningUserSocketAJoinCallbackSpy = createSpyOnClientSocketEvent(
+            joiningUserSocketA,
+            'MTV_JOIN_ROOM_CALLBACK',
         );
-        joiningUser.socketA.emit('MTV_JOIN_ROOM', { roomID: createdRoom.uuid });
-        await sleep();
-        console.log(receivedEvents);
-        assert.isTrue(receivedEvents.includes('JOIN_ROOM_CALLBACK_0'));
-        assert.isTrue(receivedEvents.includes('JOIN_ROOM_CALLBACK_1'));
-        assert.equal(creatorReceivedEvents.length, 1);
+        const joiningUserSocketBJoinCallbackSpy = createSpyOnClientSocketEvent(
+            joiningUserSocketB,
+            'MTV_JOIN_ROOM_CALLBACK',
+        );
+
+        joiningUserSocketA.emit('MTV_JOIN_ROOM', { roomID: createdRoom.uuid });
+
+        await waitFor(() => {
+            assert.isTrue(joiningUserSocketAJoinCallbackSpy.calledOnce);
+            assert.isTrue(joiningUserSocketBJoinCallbackSpy.calledOnce);
+            assert.isTrue(creatorSocketUserLengthUpdateSpy.calledOnce);
+        });
 
         /**
          * JoiningUser emit an MTV_ACTION_PLAY with the other socket connection
          * It achieves only if he joined the socket io server room
          */
-        joiningUser.socketB.emit('MTV_ACTION_PLAY');
-        await sleep();
-        assert.equal(userCouldEmitAnExclusiveRoomSignal, true);
+        joiningUserSocketB.emit('MTV_ACTION_PLAY');
+        await waitFor(() => {
+            assert.isTrue(userCouldEmitAnExclusiveRoomSignal);
+        });
     });
 
     test('It should handle a temporal onCreate error, by removing any entry from pg', async (assert) => {
@@ -387,7 +421,10 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
          */
         const settings = getDefaultMtvRoomCreateRoomArgs();
         socket.emit('MTV_CREATE_ROOM', settings);
-        await sleep();
+
+        await waitFor(async () => {
+            assert.isDefined(roomID);
+        });
 
         if (roomID === undefined) throw new Error('roomID is undefined');
         /**

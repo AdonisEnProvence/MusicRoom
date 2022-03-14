@@ -90,7 +90,10 @@ export async function getVisibilityDatabaseEntry(
 
 export const sleep = async (): Promise<void> => await waitForTimeout(200);
 
-type TypedTestSocket = Socket<AllServerToClientEvents, AllClientToServerEvents>;
+export type TypedTestSocket = Socket<
+    AllServerToClientEvents,
+    AllClientToServerEvents
+>;
 
 type AvailableBrowsersMocks = 'Firefox' | 'Chrome' | 'Safari';
 
@@ -196,6 +199,7 @@ interface TestUtilsReturnedValue {
     associateMpeRoomListToUser: (
         args: AssociateMpeRoomListToUserArgs,
     ) => Promise<void>;
+    waitForSocketToBeAcknowledged: (socket: TypedTestSocket) => Promise<void>;
     spy: typeof spy;
 }
 
@@ -266,15 +270,12 @@ export function initTestUtils(): TestUtilsReturnedValue {
     }
 
     function createSocketConnectionWithoutAcknowledgement({
-        userID,
         browser,
         deviceName,
         token,
         requiredEventListeners,
     }: CreateSocketConnectionArgs): TypedTestSocket {
-        const query: Record<string, string> = {
-            userID,
-        };
+        const query: Record<string, string> = {};
         if (deviceName) {
             query.deviceName = deviceName;
         }
@@ -301,7 +302,6 @@ export function initTestUtils(): TestUtilsReturnedValue {
         }
 
         const socket = io(BASE_URL, {
-            query,
             extraHeaders,
             withCredentials: true, //useless same domain for server and test ?
             auth: {
@@ -314,7 +314,9 @@ export function initTestUtils(): TestUtilsReturnedValue {
         return socket;
     }
 
-    async function waitForSocketToBeAcknowledged(socket: TypedTestSocket) {
+    async function waitForSocketToBeAcknowledged(
+        socket: TypedTestSocket,
+    ): Promise<void> {
         const pollConnectionAcknowledgementMachine = createMachine<
             unknown,
             { type: 'CONNECTION_ACKNOWLEDGED' }
@@ -738,6 +740,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
         associateMtvRoomToUser,
         associateMpeRoomListToUser,
         spy,
+        waitForSocketToBeAcknowledged,
     };
 }
 

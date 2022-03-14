@@ -14,6 +14,8 @@ import MtvRoom from 'App/Models/MtvRoom';
 import { DateTime } from 'luxon';
 import HttpContext from '@ioc:Adonis/Core/HttpContext';
 import AuthManager from '@ioc:Adonis/Addons/Auth';
+import User from 'App/Models/User';
+import invariant from 'tiny-invariant';
 import initMtvSocketEventListeners from './mtvSocket';
 import initMpeSocketEventListeners from './mpeSocket';
 
@@ -38,10 +40,13 @@ Ws.io
         const auth = AuthManager.getAuthForRequest(ctx);
 
         if (apiAuthToken) {
-            const user = await auth.use('api').authenticate();
+            try {
+                const user = await auth.use('api').authenticate();
 
-            const userIsNotAuthenticated = user === undefined || user === null;
-            if (userIsNotAuthenticated) {
+                socket.handshake['user'] = user;
+                console.log('user is authenticated');
+                next();
+            } catch (e) {
                 console.log('Error api token auth socket is not authenticated');
                 next(
                     new Error(
@@ -50,11 +55,14 @@ Ws.io
                 );
             }
         } else {
-            await ctx.session.initiate(false);
-            await auth.use('web').check();
+            try {
+                await ctx.session.initiate(false);
+                const user = await auth.use('web').authenticate();
 
-            const userIsNotAuthenticated = auth.isAuthenticated === false;
-            if (userIsNotAuthenticated) {
+                console.log('user is authenticated');
+                socket.handshake['user'] = user;
+                next();
+            } catch (e) {
                 console.log('Error web auth socket is not authenticated');
                 next(
                     new Error(
@@ -63,17 +71,23 @@ Ws.io
                 );
             }
         }
-
-        console.log('user is authenticated');
-        next();
     })
     .on('connection', async (socket) => {
         try {
+            const userAuth: User = socket.handshake['user'];
+            invariant(
+                userAuth instanceof User,
+                'socket io authentication user is corrupted',
+            );
+
             const hasDeviceNotBeenFound =
                 (await Device.findBy('socket_id', socket.id)) === null;
             if (hasDeviceNotBeenFound) {
                 //Registering the new device in the Device model + relationship with user
-                const newDevice = await SocketLifecycle.registerDevice(socket);
+                const newDevice = await SocketLifecycle.registerDevice(
+                    socket,
+                    userAuth.uuid,
+                );
 
                 //Looking for mtvRoom to sync to the new device
                 await SocketLifecycle.registeredDeviceLookForMtvContext({
@@ -198,6 +212,7 @@ Ws.io
                 }
             });
         } catch (e) {
+            console.log('il se passe qqlch ici');
             console.error(e);
         }
     });

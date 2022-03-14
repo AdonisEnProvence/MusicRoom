@@ -6,6 +6,7 @@ import MpeRoom from 'App/Models/MpeRoom';
 import User from 'App/Models/User';
 import { TypedSocket } from 'start/socket';
 import UserAgentParser from 'ua-parser-js';
+import * as z from 'zod';
 import MtvRoom from '../Models/MtvRoom';
 import UserService from './UserService';
 import Ws from './Ws';
@@ -64,12 +65,14 @@ export default class SocketLifecycle {
      * Then associates it to the creator userModel
      * @param socket Socket to match to a device
      */
-    public static async registerDevice(socket: TypedSocket): Promise<Device> {
-        const queryUserID = socket.handshake.query['userID'];
+    public static async registerDevice(
+        socket: TypedSocket,
+        userID: string,
+    ): Promise<Device> {
         let deviceName = socket.handshake.query['deviceName'];
 
-        console.log(`registering a device for user ${queryUserID}`);
-        if (!queryUserID || typeof queryUserID !== 'string') {
+        console.log(`registering a device for user ${userID}`);
+        if (!z.string().check(userID)) {
             throw new Error('Empty or invalid user token');
         }
 
@@ -86,7 +89,7 @@ export default class SocketLifecycle {
             throw new Error('user agent should not be null');
         }
 
-        const deviceOwner = await User.findOrFail(queryUserID);
+        const deviceOwner = await User.findOrFail(userID);
 
         if (deviceName === undefined) {
             deviceName =
@@ -95,7 +98,7 @@ export default class SocketLifecycle {
 
         const newDevice = await Device.create({
             socketID: socket.id,
-            userID: queryUserID,
+            userID: deviceOwner.uuid,
             userAgent,
             name: deviceName,
         });

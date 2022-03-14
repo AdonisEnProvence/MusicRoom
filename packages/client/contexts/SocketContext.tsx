@@ -20,9 +20,7 @@ interface IoConnectionQuery {
 export function useSocket(): SocketClient {
     const socket: SocketClient = useMemo(() => {
         const deviceName = Device.deviceName;
-        const query: IoConnectionQuery = {
-            userID: getFakeUserID(),
-        };
+        const query: IoConnectionQuery = {};
         if (deviceName !== null) {
             query.deviceName = deviceName;
         }

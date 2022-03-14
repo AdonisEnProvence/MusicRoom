@@ -8,10 +8,8 @@ import User from 'App/Models/User';
 import { datatype, internet, random, unique } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
-import supertest from 'supertest';
 import urlcat from 'urlcat';
 import {
-    BASE_URL,
     generateArray,
     initTestUtils,
     sortBy,
@@ -21,8 +19,12 @@ import {
 const PAGE_MAX_LENGTH = 10;
 
 test.group('List my followers tests group', (group) => {
-    const { initSocketConnection, disconnectEveryRemainingSocketConnection } =
-        initTestUtils();
+    const {
+        initSocketConnection,
+        disconnectEveryRemainingSocketConnection,
+        createRequest,
+        createUserAndAuthenticate,
+    } = initTestUtils();
 
     group.beforeEach(async () => {
         initSocketConnection();
@@ -35,14 +37,26 @@ test.group('List my followers tests group', (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
+    test('Returns an authentication error when the current user is not authenticated and tries to get her followers', async () => {
+        const request = createRequest();
+
+        const body: ListMyFollowersRequestBody = {
+            page: 1,
+            searchQuery: '',
+        };
+        await request
+            .post(
+                urlcat(TEST_MY_PROFILE_ROUTES_GROUP_PREFIX, 'search/followers'),
+            )
+            .send(body)
+            .expect('Content-Type', /json/)
+            .expect(401);
+    });
+
     test('It should retrieve paginated my followers', async (assert) => {
-        const meUserID = datatype.uuid();
-        const meUser = await User.create({
-            uuid: meUserID,
-            nickname: unique(() => internet.userName()),
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
+
+        const meUser = await createUserAndAuthenticate(request);
 
         const users = await User.createMany(
             generateArray({
@@ -93,15 +107,15 @@ test.group('List my followers tests group', (group) => {
             );
         ///
 
-        const { body: page1BodyRaw } = await supertest(BASE_URL)
+        const page1RequestBody: ListMyFollowersRequestBody = {
+            page: 1,
+            searchQuery: '',
+        };
+        const { body: page1BodyRaw } = await request
             .post(
                 urlcat(TEST_MY_PROFILE_ROUTES_GROUP_PREFIX, 'search/followers'),
             )
-            .send({
-                page: 1,
-                searchQuery: '',
-                tmpAuthUserID: meUserID,
-            } as ListMyFollowersRequestBody)
+            .send(page1RequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
         const page1BodyParsed = ListMyFollowersResponseBody.parse(page1BodyRaw);
@@ -121,15 +135,15 @@ test.group('List my followers tests group', (group) => {
             ),
         );
 
-        const { body: page2BodyRaw } = await supertest(BASE_URL)
+        const page2RequestBody: ListMyFollowersRequestBody = {
+            page: 2,
+            searchQuery: '',
+        };
+        const { body: page2BodyRaw } = await request
             .post(
                 urlcat(TEST_MY_PROFILE_ROUTES_GROUP_PREFIX, 'search/followers'),
             )
-            .send({
-                page: 2,
-                searchQuery: '',
-                tmpAuthUserID: meUserID,
-            } as ListMyFollowersRequestBody)
+            .send(page2RequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
         const page2BodyParsed = ListMyFollowersResponseBody.parse(page2BodyRaw);
@@ -155,13 +169,9 @@ test.group('List my followers tests group', (group) => {
     });
 
     test('It should retrieve filtered my followers', async (assert) => {
-        const meUserID = datatype.uuid();
-        const meUser = await User.create({
-            uuid: meUserID,
-            nickname: unique(() => internet.userName()),
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
+
+        const meUser = await createUserAndAuthenticate(request);
 
         const searchQuery = random.word()[0];
         const users = await User.createMany(
@@ -216,15 +226,15 @@ test.group('List my followers tests group', (group) => {
                 .sort((a, b) => a.nickname.localeCompare(b.nickname));
         ///
 
-        const { body: pageBodyRaw } = await supertest(BASE_URL)
+        const pageRequestBody: ListMyFollowersRequestBody = {
+            page: 1,
+            searchQuery,
+        };
+        const { body: pageBodyRaw } = await request
             .post(
                 urlcat(TEST_MY_PROFILE_ROUTES_GROUP_PREFIX, 'search/followers'),
             )
-            .send({
-                page: 1,
-                searchQuery,
-                tmpAuthUserID: meUserID,
-            } as ListMyFollowersRequestBody)
+            .send(pageRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
 
@@ -248,20 +258,5 @@ test.group('List my followers tests group', (group) => {
         console.log('ACTUAL', pageBodyParsed.data);
         console.log('EXPECTED', expectedData);
         assert.deepEqual(pageBodyParsed.data, expectedData);
-    });
-
-    test('It should send back 404 as requesting user does not exist', async () => {
-        const meUserID = datatype.uuid();
-
-        await supertest(BASE_URL)
-            .post(
-                urlcat(TEST_MY_PROFILE_ROUTES_GROUP_PREFIX, 'search/followers'),
-            )
-            .send({
-                page: 1,
-                searchQuery: '',
-                tmpAuthUserID: meUserID,
-            } as ListMyFollowersRequestBody)
-            .expect(404);
     });
 });

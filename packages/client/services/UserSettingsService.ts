@@ -1,5 +1,4 @@
 import {
-    GetMySettingsRequestBody,
     GetMySettingsResponseBody,
     UpdateNicknameRequestBody,
     UpdateNicknameResponseBody,
@@ -13,11 +12,7 @@ import { getFakeUserID } from '../contexts/SocketContext';
 import { request } from './http';
 
 export async function getMySettings(): Promise<GetMySettingsResponseBody> {
-    const body: GetMySettingsRequestBody = {
-        tmpAuthUserID: getFakeUserID(),
-    };
-
-    const rawResponse = await request.post('/me/settings', body);
+    const rawResponse = await request.get('/me/settings');
     const parsedResponse = GetMySettingsResponseBody.parse(rawResponse.data);
 
     return parsedResponse;
@@ -31,7 +26,6 @@ export async function setUserPlaylistsSettingVisibility({
     visibility,
 }: SetUserPlaylistsSettingVisibilityArgs): Promise<UpdatePlaylistsVisibilityResponseBody> {
     const body: UpdatePlaylistsVisibilityRequestBody = {
-        tmpAuthUserID: getFakeUserID(),
         visibility,
     };
 
@@ -51,10 +45,8 @@ export async function setUserRelationsSettingVisibility({
     visibility,
 }: SetUserRelationsSettingVisibilityArgs): Promise<UpdateRelationsVisibilityResponseBody> {
     const body: UpdateRelationsVisibilityRequestBody = {
-        tmpAuthUserID: getFakeUserID(),
         visibility,
     };
-
     const rawResponse = await request.post('/me/relations-visibility', body);
     const parsedResponse = UpdateRelationsVisibilityResponseBody.parse(
         rawResponse.data,
@@ -71,11 +63,8 @@ export async function setUserNickname({
     nickname,
 }: SetUserNicknameArgs): Promise<UpdateNicknameResponseBody> {
     const body: UpdateNicknameRequestBody = {
-        tmpAuthUserID: getFakeUserID(),
-
         nickname,
     };
-
     const rawResponse = await request.post('/me/nickname', body);
     const parsedResponse = UpdateNicknameResponseBody.parse(rawResponse.data);
 

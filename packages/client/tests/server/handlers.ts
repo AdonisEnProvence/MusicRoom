@@ -4,7 +4,6 @@ import {
     FollowUserRequestBody,
     FollowUserResponseBody,
     GetMyProfileInformationResponseBody,
-    GetMySettingsRequestBody,
     GetMySettingsResponseBody,
     GetUserProfileInformationRequestBody,
     GetUserProfileInformationResponseBody,
@@ -55,7 +54,7 @@ import { SearchTracksAPIRawResponse } from '../../services/search-tracks';
 import { db } from '../data';
 import { testGetFakeUserID } from '../tests-utils';
 
-function withAuthentication<
+export function withAuthentication<
     RequestBody extends DefaultRequestBody,
     Params extends PathParams,
     ResponseBody extends DefaultRequestBody,
@@ -385,76 +384,81 @@ export const handlers = [
         }),
     ),
 
-    rest.post<
-        GetMySettingsRequestBody,
-        Record<string, never>,
-        GetMySettingsResponseBody
-    >(`${SERVER_ENDPOINT}/me/settings`, (req, res, ctx) => {
-        const user = db.myProfileInformation.findFirst({
-            where: {
-                userID: {
-                    equals: req.body.tmpAuthUserID,
+    rest.get<never, never, GetMySettingsResponseBody>(
+        `${SERVER_ENDPOINT}/me/settings`,
+        withAuthentication((_req, res, ctx) => {
+            const user = db.myProfileInformation.findFirst({
+                where: {
+                    userID: {
+                        equals: testGetFakeUserID(),
+                    },
                 },
-            },
-        });
-        if (user === null) {
-            return res(ctx.status(404));
-        }
+            });
+            if (user === null) {
+                return res(ctx.status(404));
+            }
 
-        return res(
-            ctx.json({
-                nickname: user.userNickname,
-                playlistsVisibilitySetting: user.playlistsVisibilitySetting,
-                relationsVisibilitySetting: user.relationsVisibilitySetting,
-            }),
-        );
-    }),
+            return res(
+                ctx.json({
+                    nickname: user.userNickname,
+                    playlistsVisibilitySetting: user.playlistsVisibilitySetting,
+                    relationsVisibilitySetting: user.relationsVisibilitySetting,
+                }),
+            );
+        }),
+    ),
 
     rest.post<
         UpdatePlaylistsVisibilityRequestBody,
-        Record<string, never>,
+        never,
         UpdatePlaylistsVisibilityResponseBody
-    >(`${SERVER_ENDPOINT}/me/playlists-visibility`, (req, res, ctx) => {
-        db.myProfileInformation.update({
-            where: {
-                userID: {
-                    equals: req.body.tmpAuthUserID,
+    >(
+        `${SERVER_ENDPOINT}/me/playlists-visibility`,
+        withAuthentication((req, res, ctx) => {
+            db.myProfileInformation.update({
+                where: {
+                    userID: {
+                        equals: testGetFakeUserID(),
+                    },
                 },
-            },
-            data: {
-                playlistsVisibilitySetting: req.body.visibility,
-            },
-        });
+                data: {
+                    playlistsVisibilitySetting: req.body.visibility,
+                },
+            });
 
-        return res(
-            ctx.json({
-                status: 'SUCCESS',
-            }),
-        );
-    }),
+            return res(
+                ctx.json({
+                    status: 'SUCCESS',
+                }),
+            );
+        }),
+    ),
 
     rest.post<
         UpdateRelationsVisibilityRequestBody,
-        Record<string, never>,
+        never,
         UpdateRelationsVisibilityResponseBody
-    >(`${SERVER_ENDPOINT}/me/relations-visibility`, (req, res, ctx) => {
-        db.myProfileInformation.update({
-            where: {
-                userID: {
-                    equals: req.body.tmpAuthUserID,
+    >(
+        `${SERVER_ENDPOINT}/me/relations-visibility`,
+        withAuthentication((req, res, ctx) => {
+            db.myProfileInformation.update({
+                where: {
+                    userID: {
+                        equals: testGetFakeUserID(),
+                    },
                 },
-            },
-            data: {
-                relationsVisibilitySetting: req.body.visibility,
-            },
-        });
+                data: {
+                    relationsVisibilitySetting: req.body.visibility,
+                },
+            });
 
-        return res(
-            ctx.json({
-                status: 'SUCCESS',
-            }),
-        );
-    }),
+            return res(
+                ctx.json({
+                    status: 'SUCCESS',
+                }),
+            );
+        }),
+    ),
 
     rest.post<
         UserSearchMpeRoomsRequestBody,
@@ -526,39 +530,48 @@ export const handlers = [
         ListMyFollowersRequestBody,
         Record<string, never>,
         ListMyFollowersResponseBody
-    >(`${SERVER_ENDPOINT}/me/search/followers`, (req, res, ctx) => {
-        const PAGE_SIZE = 10;
-        const { page, searchQuery, tmpAuthUserID } = req.body;
+    >(
+        `${SERVER_ENDPOINT}/me/search/followers`,
+        withAuthentication((req, res, ctx) => {
+            const PAGE_SIZE = 10;
+            const { page, searchQuery } = req.body;
 
-        const userFollowers = db.userFollowers.findFirst({
-            where: {
-                userID: {
-                    equals: tmpAuthUserID,
+            const userFollowers = db.userFollowers.findFirst({
+                where: {
+                    userID: {
+                        equals: testGetFakeUserID(),
+                    },
                 },
-            },
-        });
+            });
 
-        if (userFollowers === null || userFollowers.followers === undefined) {
-            return res(ctx.status(404));
-        }
-        const filteredUserFollowers = userFollowers.followers.filter((user) =>
-            user.nickname.toLowerCase().startsWith(searchQuery.toLowerCase()),
-        );
+            if (
+                userFollowers === null ||
+                userFollowers.followers === undefined
+            ) {
+                return res(ctx.status(404));
+            }
+            const filteredUserFollowers = userFollowers.followers.filter(
+                (user) =>
+                    user.nickname
+                        .toLowerCase()
+                        .startsWith(searchQuery.toLowerCase()),
+            );
 
-        const paginatedFollowers = filteredUserFollowers.slice(
-            (page - 1) * PAGE_SIZE,
-            page * PAGE_SIZE,
-        );
+            const paginatedFollowers = filteredUserFollowers.slice(
+                (page - 1) * PAGE_SIZE,
+                page * PAGE_SIZE,
+            );
 
-        return res(
-            ctx.json({
-                data: paginatedFollowers,
-                totalEntries: filteredUserFollowers.length,
-                hasMore: filteredUserFollowers.length > page * PAGE_SIZE,
-                page,
-            }),
-        );
-    }),
+            return res(
+                ctx.json({
+                    data: paginatedFollowers,
+                    totalEntries: filteredUserFollowers.length,
+                    hasMore: filteredUserFollowers.length > page * PAGE_SIZE,
+                    page,
+                }),
+            );
+        }),
+    ),
 
     rest.post<
         ListUserFollowingRequestBody,
@@ -599,44 +612,49 @@ export const handlers = [
         );
     }),
 
-    rest.post<
-        ListMyFollowingRequestBody,
-        Record<string, never>,
-        ListMyFollowersResponseBody
-    >(`${SERVER_ENDPOINT}/me/search/following`, (req, res, ctx) => {
-        const PAGE_SIZE = 10;
-        const { page, searchQuery, tmpAuthUserID } = req.body;
+    rest.post<ListMyFollowingRequestBody, never, ListMyFollowersResponseBody>(
+        `${SERVER_ENDPOINT}/me/search/following`,
+        withAuthentication((req, res, ctx) => {
+            const PAGE_SIZE = 10;
+            const { page, searchQuery } = req.body;
 
-        const userFollowing = db.userFollowing.findFirst({
-            where: {
-                userID: {
-                    equals: tmpAuthUserID,
+            const userFollowing = db.userFollowing.findFirst({
+                where: {
+                    userID: {
+                        equals: testGetFakeUserID(),
+                    },
                 },
-            },
-        });
+            });
 
-        if (userFollowing === null || userFollowing.following === undefined) {
-            return res(ctx.status(404));
-        }
+            if (
+                userFollowing === null ||
+                userFollowing.following === undefined
+            ) {
+                return res(ctx.status(404));
+            }
 
-        const filteredUserFollowing = userFollowing.following.filter((user) =>
-            user.nickname.toLowerCase().startsWith(searchQuery.toLowerCase()),
-        );
+            const filteredUserFollowing = userFollowing.following.filter(
+                (user) =>
+                    user.nickname
+                        .toLowerCase()
+                        .startsWith(searchQuery.toLowerCase()),
+            );
 
-        const paginatedFollowing = filteredUserFollowing.slice(
-            (page - 1) * PAGE_SIZE,
-            page * PAGE_SIZE,
-        );
+            const paginatedFollowing = filteredUserFollowing.slice(
+                (page - 1) * PAGE_SIZE,
+                page * PAGE_SIZE,
+            );
 
-        return res(
-            ctx.json({
-                data: paginatedFollowing,
-                totalEntries: filteredUserFollowing.length,
-                hasMore: filteredUserFollowing.length > page * PAGE_SIZE,
-                page,
-            }),
-        );
-    }),
+            return res(
+                ctx.json({
+                    data: paginatedFollowing,
+                    totalEntries: filteredUserFollowing.length,
+                    hasMore: filteredUserFollowing.length > page * PAGE_SIZE,
+                    page,
+                }),
+            );
+        }),
+    ),
 
     rest.post<SignUpRequestBody, Record<string, never>, SignUpResponseBody>(
         `${SERVER_ENDPOINT}/authentication/sign-up`,

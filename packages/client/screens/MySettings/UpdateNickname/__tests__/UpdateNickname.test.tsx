@@ -18,6 +18,7 @@ import {
 import { db } from '../../../../tests/data';
 import { server } from '../../../../tests/server/test-server';
 import { SERVER_ENDPOINT } from '../../../../constants/Endpoints';
+import { withAuthentication } from '../../../../tests/server/handlers';
 
 interface TestingContext {
     screen: ReturnType<typeof render>;
@@ -268,33 +269,36 @@ describe('Update Nickname', () => {
                         rest.post<
                             UpdateNicknameRequestBody,
                             UpdateNicknameResponseBody
-                        >(`${SERVER_ENDPOINT}/me/nickname`, (req, res, ctx) => {
-                            switch (req.body.nickname) {
-                                case CURRENT_USER_NICKNAME: {
-                                    return res(
-                                        ctx.json({
-                                            status: 'SAME_NICKNAME',
-                                        }),
-                                    );
-                                }
+                        >(
+                            `${SERVER_ENDPOINT}/me/nickname`,
+                            withAuthentication((req, res, ctx) => {
+                                switch (req.body.nickname) {
+                                    case CURRENT_USER_NICKNAME: {
+                                        return res(
+                                            ctx.json({
+                                                status: 'SAME_NICKNAME',
+                                            }),
+                                        );
+                                    }
 
-                                case UNAVAILABLE_NICKNAME: {
-                                    return res(
-                                        ctx.json({
-                                            status: 'UNAVAILABLE_NICKNAME',
-                                        }),
-                                    );
-                                }
+                                    case UNAVAILABLE_NICKNAME: {
+                                        return res(
+                                            ctx.json({
+                                                status: 'UNAVAILABLE_NICKNAME',
+                                            }),
+                                        );
+                                    }
 
-                                default: {
-                                    return res(
-                                        ctx.json({
-                                            status: 'SUCCESS',
-                                        }),
-                                    );
+                                    default: {
+                                        return res(
+                                            ctx.json({
+                                                status: 'SUCCESS',
+                                            }),
+                                        );
+                                    }
                                 }
-                            }
-                        }),
+                            }),
+                        ),
                     );
 
                     const userID = testGetFakeUserID();

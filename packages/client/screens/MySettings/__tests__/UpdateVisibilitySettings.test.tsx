@@ -1,5 +1,4 @@
 import {
-    GetMySettingsRequestBody,
     GetMySettingsResponseBody,
     UserSettingVisibility,
 } from '@musicroom/types';
@@ -25,6 +24,7 @@ import { db } from '../../../tests/data';
 import { assertEventType } from '../../../machines/utils';
 import { SERVER_ENDPOINT } from '../../../constants/Endpoints';
 import { server } from '../../../tests/server/test-server';
+import { withAuthentication } from '../../../tests/server/handlers';
 
 interface TestingContext {
     screen: ReturnType<typeof render> | undefined;
@@ -618,33 +618,32 @@ const updateVisibilitySettingsTestModel = createTestModel<TestingContext>(
 ).withEvents({
     'Delay API response and render application': async (context) => {
         server.use(
-            rest.post<
-                GetMySettingsRequestBody,
-                Record<string, never>,
-                GetMySettingsResponseBody
-            >(`${SERVER_ENDPOINT}/me/settings`, (req, res, ctx) => {
-                const user = db.myProfileInformation.findFirst({
-                    where: {
-                        userID: {
-                            equals: req.body.tmpAuthUserID,
+            rest.get<never, never, GetMySettingsResponseBody>(
+                `${SERVER_ENDPOINT}/me/settings`,
+                withAuthentication((_req, res, ctx) => {
+                    const user = db.myProfileInformation.findFirst({
+                        where: {
+                            userID: {
+                                equals: testGetFakeUserID(),
+                            },
                         },
-                    },
-                });
-                if (user === null) {
-                    return res(ctx.status(404));
-                }
+                    });
+                    if (user === null) {
+                        return res(ctx.status(404));
+                    }
 
-                return res(
-                    ctx.delay(600),
-                    ctx.json({
-                        nickname: user.userNickname,
-                        playlistsVisibilitySetting:
-                            user.playlistsVisibilitySetting,
-                        relationsVisibilitySetting:
-                            user.relationsVisibilitySetting,
-                    }),
-                );
-            }),
+                    return res(
+                        ctx.delay(600),
+                        ctx.json({
+                            nickname: user.userNickname,
+                            playlistsVisibilitySetting:
+                                user.playlistsVisibilitySetting,
+                            relationsVisibilitySetting:
+                                user.relationsVisibilitySetting,
+                        }),
+                    );
+                }),
+            ),
         );
 
         const screen = await renderApp();
@@ -667,35 +666,6 @@ const updateVisibilitySettingsTestModel = createTestModel<TestingContext>(
     },
 
     'Make API respond instantly and render application': async (context) => {
-        server.use(
-            rest.post<
-                GetMySettingsRequestBody,
-                Record<string, never>,
-                GetMySettingsResponseBody
-            >(`${SERVER_ENDPOINT}/me/settings`, (req, res, ctx) => {
-                const user = db.myProfileInformation.findFirst({
-                    where: {
-                        userID: {
-                            equals: req.body.tmpAuthUserID,
-                        },
-                    },
-                });
-                if (user === null) {
-                    return res(ctx.status(404));
-                }
-
-                return res(
-                    ctx.json({
-                        nickname: user.userNickname,
-                        playlistsVisibilitySetting:
-                            user.playlistsVisibilitySetting,
-                        relationsVisibilitySetting:
-                            user.relationsVisibilitySetting,
-                    }),
-                );
-            }),
-        );
-
         const screen = await renderApp();
 
         const goToMyProfileButton = await screen.findByLabelText(
@@ -717,13 +687,12 @@ const updateVisibilitySettingsTestModel = createTestModel<TestingContext>(
 
     'Make API fail and render application': async (context) => {
         server.use(
-            rest.post<
-                GetMySettingsRequestBody,
-                Record<string, never>,
-                GetMySettingsResponseBody
-            >(`${SERVER_ENDPOINT}/me/settings`, (_req, res, ctx) => {
-                return res(ctx.status(500));
-            }),
+            rest.get<never, never, GetMySettingsResponseBody>(
+                `${SERVER_ENDPOINT}/me/settings`,
+                (_req, res, ctx) => {
+                    return res(ctx.status(500));
+                },
+            ),
         );
 
         const screen = await renderApp();

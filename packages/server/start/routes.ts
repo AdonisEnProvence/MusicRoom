@@ -50,35 +50,22 @@ Route.group(() => {
     Route.get(
         '/profile-information',
         'MyProfileController.getMyProfileInformation',
-    ).middleware('every-auth');
-
-    Route.get('/settings', 'UserSettingsController.getMySettings').middleware(
-        'every-auth',
     );
-
+    Route.get('/settings', 'UserSettingsController.getMySettings');
     Route.post(
         '/playlists-visibility',
         'UserSettingsController.updatePlaylistsVisibility',
-    ).middleware('every-auth');
-
+    );
     Route.post(
         '/relations-visibility',
         'UserSettingsController.updateRelationsVisibility',
-    ).middleware('every-auth');
-
-    Route.post('/nickname', 'UserSettingsController.updateNickname').middleware(
-        'every-auth',
     );
-
-    Route.post(
-        '/search/followers',
-        'SearchUsersController.listMyFollowers',
-    ).middleware('every-auth');
-    Route.post(
-        '/search/following',
-        'SearchUsersController.listMyFollowing',
-    ).middleware('every-auth');
-}).prefix(MY_PROFILE_ROUTES_GROUP_PREFIX);
+    Route.post('/nickname', 'UserSettingsController.updateNickname');
+    Route.post('/search/followers', 'SearchUsersController.listMyFollowers');
+    Route.post('/search/following', 'SearchUsersController.listMyFollowing');
+})
+    .prefix(MY_PROFILE_ROUTES_GROUP_PREFIX)
+    .middleware('every-auth');
 
 export const USER_ROUTES_GROUP_PREFIX = '/user';
 Route.group(() => {

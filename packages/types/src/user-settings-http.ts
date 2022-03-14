@@ -1,11 +1,6 @@
 import * as z from 'zod';
 import { UserSettingVisibility } from './user-settings';
 
-export const GetMySettingsRequestBody = z.object({
-    tmpAuthUserID: z.string(),
-});
-export type GetMySettingsRequestBody = z.infer<typeof GetMySettingsRequestBody>;
-
 export const GetMySettingsResponseBody = z.object({
     nickname: z.string(),
     playlistsVisibilitySetting: UserSettingVisibility,

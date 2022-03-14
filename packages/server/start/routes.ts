@@ -45,6 +45,33 @@ Route.post(
     'MpeRoomsHttpController.listAllRooms',
 ).middleware('every-auth');
 
+export const MY_PROFILE_ROUTES_GROUP_PREFIX = '/me';
+Route.group(() => {
+    Route.get(
+        '/profile-information',
+        'MyProfileController.getMyProfileInformation',
+    ).middleware('every-auth');
+
+    Route.get('/settings', 'UserSettingsController.getMySettings').middleware(
+        'every-auth',
+    );
+
+    Route.post(
+        '/playlists-visibility',
+        'UserSettingsController.updatePlaylistsVisibility',
+    );
+
+    Route.post(
+        '/relations-visibility',
+        'UserSettingsController.updateRelationsVisibility',
+    );
+
+    Route.post('/nickname', 'UserSettingsController.updateNickname');
+
+    Route.post('/search/followers', 'SearchUsersController.listMyFollowers');
+    Route.post('/search/following', 'SearchUsersController.listMyFollowing');
+}).prefix(MY_PROFILE_ROUTES_GROUP_PREFIX);
+
 export const USER_ROUTES_GROUP_PREFIX = '/user';
 Route.group(() => {
     Route.post(
@@ -186,31 +213,6 @@ Route.group(() => {
 }).prefix(MPE_TEMPORAL_LISTENER);
 
 /// //////// ////// ///
-
-export const MY_PROFILE_ROUTES_GROUP_PREFIX = '/me';
-Route.group(() => {
-    Route.get(
-        '/profile-information',
-        'MyProfileController.getMyProfileInformation',
-    ).middleware('every-auth');
-
-    Route.post('/settings', 'UserSettingsController.getMySettings');
-
-    Route.post(
-        '/playlists-visibility',
-        'UserSettingsController.updatePlaylistsVisibility',
-    );
-
-    Route.post(
-        '/relations-visibility',
-        'UserSettingsController.updateRelationsVisibility',
-    );
-
-    Route.post('/nickname', 'UserSettingsController.updateNickname');
-
-    Route.post('/search/followers', 'SearchUsersController.listMyFollowers');
-    Route.post('/search/following', 'SearchUsersController.listMyFollowing');
-}).prefix(MY_PROFILE_ROUTES_GROUP_PREFIX);
 
 Route.get('/', () => {
     return { hello: 'world' };

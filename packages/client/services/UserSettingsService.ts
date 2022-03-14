@@ -1,5 +1,4 @@
 import {
-    GetMySettingsRequestBody,
     GetMySettingsResponseBody,
     UpdateNicknameRequestBody,
     UpdateNicknameResponseBody,
@@ -13,11 +12,7 @@ import { getFakeUserID } from '../contexts/SocketContext';
 import { request } from './http';
 
 export async function getMySettings(): Promise<GetMySettingsResponseBody> {
-    const body: GetMySettingsRequestBody = {
-        tmpAuthUserID: getFakeUserID(),
-    };
-
-    const rawResponse = await request.post('/me/settings', body);
+    const rawResponse = await request.get('/me/settings');
     const parsedResponse = GetMySettingsResponseBody.parse(rawResponse.data);
 
     return parsedResponse;

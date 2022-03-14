@@ -4,7 +4,6 @@ import {
     FollowUserRequestBody,
     FollowUserResponseBody,
     GetMyProfileInformationResponseBody,
-    GetMySettingsRequestBody,
     GetMySettingsResponseBody,
     GetUserProfileInformationRequestBody,
     GetUserProfileInformationResponseBody,
@@ -55,7 +54,7 @@ import { SearchTracksAPIRawResponse } from '../../services/search-tracks';
 import { db } from '../data';
 import { testGetFakeUserID } from '../tests-utils';
 
-function withAuthentication<
+export function withAuthentication<
     RequestBody extends DefaultRequestBody,
     Params extends PathParams,
     ResponseBody extends DefaultRequestBody,
@@ -385,30 +384,29 @@ export const handlers = [
         }),
     ),
 
-    rest.post<
-        GetMySettingsRequestBody,
-        Record<string, never>,
-        GetMySettingsResponseBody
-    >(`${SERVER_ENDPOINT}/me/settings`, (req, res, ctx) => {
-        const user = db.myProfileInformation.findFirst({
-            where: {
-                userID: {
-                    equals: req.body.tmpAuthUserID,
+    rest.get<never, never, GetMySettingsResponseBody>(
+        `${SERVER_ENDPOINT}/me/settings`,
+        withAuthentication((_req, res, ctx) => {
+            const user = db.myProfileInformation.findFirst({
+                where: {
+                    userID: {
+                        equals: testGetFakeUserID(),
+                    },
                 },
-            },
-        });
-        if (user === null) {
-            return res(ctx.status(404));
-        }
+            });
+            if (user === null) {
+                return res(ctx.status(404));
+            }
 
-        return res(
-            ctx.json({
-                nickname: user.userNickname,
-                playlistsVisibilitySetting: user.playlistsVisibilitySetting,
-                relationsVisibilitySetting: user.relationsVisibilitySetting,
-            }),
-        );
-    }),
+            return res(
+                ctx.json({
+                    nickname: user.userNickname,
+                    playlistsVisibilitySetting: user.playlistsVisibilitySetting,
+                    relationsVisibilitySetting: user.relationsVisibilitySetting,
+                }),
+            );
+        }),
+    ),
 
     rest.post<
         UpdatePlaylistsVisibilityRequestBody,

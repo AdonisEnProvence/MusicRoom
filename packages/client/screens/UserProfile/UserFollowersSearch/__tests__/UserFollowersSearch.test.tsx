@@ -21,6 +21,7 @@ import {
 import { db, generateMtvWorklowState } from '../../../../tests/data';
 import { server } from '../../../../tests/server/test-server';
 import { SERVER_ENDPOINT } from '../../../../constants/Endpoints';
+import { withAuthentication } from '../../../../tests/server/handlers';
 
 interface TestingContext {
     meUserSummary: UserSummary;
@@ -355,9 +356,9 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
                 GetUserProfileInformationResponseBody
             >(
                 `${SERVER_ENDPOINT}/user/profile-information`,
-                (_req, res, ctx) => {
+                withAuthentication((_req, res, ctx) => {
                     return res(ctx.status(404));
-                },
+                }),
             ),
         );
         await goToUserFollowersScreen({ screen, expectedFollowersCounter: 1 });
@@ -387,7 +388,7 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
                 GetUserProfileInformationResponseBody
             >(
                 `${SERVER_ENDPOINT}/user/profile-information`,
-                (_req, res, ctx) => {
+                withAuthentication((_req, res, ctx) => {
                     return res(
                         ctx.json({
                             userID,
@@ -398,7 +399,7 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
                             playlistsCounter: undefined,
                         }),
                     );
-                },
+                }),
             ),
         );
         await goToUserFollowersScreen({ screen, expectedFollowersCounter: 1 });

@@ -14,6 +14,7 @@ import { FollowUserResponseBody } from '@musicroom/types/src/user';
 import ForbiddenException from 'App/Exceptions/ForbiddenException';
 import User from 'App/Models/User';
 import UserService from 'App/Services/UserService';
+import invariant from 'tiny-invariant';
 import { fromMpeRoomsToMpeRoomSummaries } from '../Ws/MpeRoomsWsController';
 
 function getUserProfileInformationDependingOnItsVisibility({
@@ -144,15 +145,20 @@ async function getIfUserCanQueryOtherUserMpeRooms({
 export default class UserProfileController {
     public async getUserProfileInformation({
         request,
+        auth,
     }: HttpContextContract): Promise<GetUserProfileInformationResponseBody> {
-        const rawBody = request.body();
-        //TODO tmpAuthUserID refactor authentication
-        const { tmpAuthUserID, userID } =
-            GetUserProfileInformationRequestBody.parse(rawBody);
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            "User must be authenticated to get another user's profile information",
+        );
 
-        await User.findOrFail(tmpAuthUserID);
+        const { userID } = GetUserProfileInformationRequestBody.parse(
+            request.body(),
+        );
+
         const userProfileInformation = await requestUserProfileInformation({
-            requestingUserID: tmpAuthUserID,
+            requestingUserID: user.uuid,
             userID,
         });
 

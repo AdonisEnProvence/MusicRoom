@@ -1,5 +1,4 @@
 import { UserProfileInformation } from '@musicroom/types';
-import { context } from 'msw';
 import { ContextFrom, EventFrom, MachineOptions, StateMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { getFakeUserID } from '../contexts/SocketContext';
@@ -205,7 +204,6 @@ export function createUserProfileInformationMachine({
                     retrieveUserProfileInformation: () => async (sendBack) => {
                         try {
                             const response = await getUserProfileInformation({
-                                tmpAuthUserID: getFakeUserID(),
                                 userID,
                             });
 

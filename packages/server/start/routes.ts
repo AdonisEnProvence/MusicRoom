@@ -72,7 +72,7 @@ Route.group(() => {
     Route.post(
         '/profile-information',
         'UserProfileController.getUserProfileInformation',
-    );
+    ).middleware('every-auth');
     Route.post('/follow', 'UserProfileController.followUser');
     Route.post('/unfollow', 'UserProfileController.unfollowUser');
     Route.post('/search/followers', 'SearchUsersController.listUserFollowers');

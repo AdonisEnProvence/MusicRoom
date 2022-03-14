@@ -6,7 +6,6 @@ import {
     UnfollowUserRequestBody,
     UnfollowUserResponseBody,
 } from '@musicroom/types';
-import { SERVER_ENDPOINT } from '../constants/Endpoints';
 import { request } from './http';
 
 export async function sendFollowUser(

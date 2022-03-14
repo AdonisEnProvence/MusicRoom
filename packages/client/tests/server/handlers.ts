@@ -226,40 +226,43 @@ export const handlers = [
         GetUserProfileInformationRequestBody,
         Record<string, never>,
         GetUserProfileInformationResponseBody
-    >(`${SERVER_ENDPOINT}/user/profile-information`, async (req, res, ctx) => {
-        const { userID } = req.body;
+    >(
+        `${SERVER_ENDPOINT}/user/profile-information`,
+        withAuthentication((req, res, ctx) => {
+            const { userID } = req.body;
 
-        const user = db.userProfileInformation.findFirst({
-            where: {
-                userID: {
-                    equals: userID,
+            const user = db.userProfileInformation.findFirst({
+                where: {
+                    userID: {
+                        equals: userID,
+                    },
                 },
-            },
-        });
+            });
 
-        if (user === null) {
-            return res(ctx.status(404));
-        }
+            if (user === null) {
+                return res(ctx.status(404));
+            }
 
-        const {
-            userNickname,
-            following,
-            followersCounter,
-            followingCounter,
-            playlistsCounter,
-        } = user;
-
-        return res(
-            ctx.json({
-                userID,
+            const {
                 userNickname,
                 following,
-                followersCounter: followersCounter ?? undefined,
-                followingCounter: followingCounter ?? undefined,
-                playlistsCounter: playlistsCounter ?? undefined,
-            }),
-        );
-    }),
+                followersCounter,
+                followingCounter,
+                playlistsCounter,
+            } = user;
+
+            return res(
+                ctx.json({
+                    userID,
+                    userNickname,
+                    following,
+                    followersCounter: followersCounter ?? undefined,
+                    followingCounter: followingCounter ?? undefined,
+                    playlistsCounter: playlistsCounter ?? undefined,
+                }),
+            );
+        }),
+    ),
 
     rest.get<never, never, GetMyProfileInformationResponseBody>(
         `${SERVER_ENDPOINT}/me/profile-information`,

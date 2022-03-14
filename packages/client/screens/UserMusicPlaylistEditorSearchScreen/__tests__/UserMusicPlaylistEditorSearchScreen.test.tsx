@@ -30,6 +30,7 @@ import { server } from '../../../tests/server/test-server';
 import { SERVER_ENDPOINT } from '../../../constants/Endpoints';
 import { assertEventType } from '../../../machines/utils';
 import { serverSocket } from '../../../services/websockets';
+import { withAuthentication } from '../../../tests/server/handlers';
 
 const OTHER_USER_MPE_ROOMS_PAGE_LENGTH = 10;
 const OTHER_USER_MPE_ROOMS = generateArray({
@@ -490,7 +491,7 @@ const otherUserMpeRoomsTestModel = createTestModel<TestingContext>(
                 GetUserProfileInformationResponseBody
             >(
                 `${SERVER_ENDPOINT}/user/profile-information`,
-                async (req, res, ctx) => {
+                withAuthentication((req, res, ctx) => {
                     const { userID } = req.body;
 
                     const user = db.userProfileInformation.findFirst({
@@ -524,7 +525,7 @@ const otherUserMpeRoomsTestModel = createTestModel<TestingContext>(
                             playlistsCounter: playlistsCounter ?? undefined,
                         }),
                     );
-                },
+                }),
             ),
         );
 

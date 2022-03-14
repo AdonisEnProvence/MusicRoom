@@ -21,7 +21,6 @@ export type UserProfileInformation = z.infer<typeof UserProfileInformation>;
 
 export const GetUserProfileInformationRequestBody = z.object({
     userID: z.string().uuid(),
-    tmpAuthUserID: z.string().uuid(),
 });
 export type GetUserProfileInformationRequestBody = z.infer<
     typeof GetUserProfileInformationRequestBody

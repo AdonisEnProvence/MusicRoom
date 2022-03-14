@@ -15,10 +15,13 @@ import urlcat from 'urlcat';
 import {
     BASE_URL,
     getVisibilityDatabaseEntry,
+    initTestUtils,
     TEST_USER_ROUTES_GROUP_PREFIX,
 } from './utils/TestUtils';
 
 test.group('Users Profile information tests', (group) => {
+    const { createRequest, createUserAndAuthenticate } = initTestUtils();
+
     group.beforeEach(async () => {
         await Database.beginGlobalTransaction();
     });
@@ -197,14 +200,11 @@ test.group('Users Profile information tests', (group) => {
     });
 
     test('It should retrieve given user public profile information, then follow and inside follow retrieve follower only related user profile information', async (assert) => {
+        const request = createRequest();
+
+        const followingUser = await createUserAndAuthenticate(request);
+
         const followedUserID = datatype.uuid();
-        const followingUserID = datatype.uuid();
-        const followingUser = await User.create({
-            uuid: followingUserID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
         const followedUser = await User.create({
             uuid: followedUserID,
             nickname: internet.userName(),
@@ -221,15 +221,13 @@ test.group('Users Profile information tests', (group) => {
             .related('relationsVisibilitySetting')
             .associate(followerOnlyVisibility);
 
-        //GetUserProfileInformation
-        const { body: getUserProfileInformationRawBody } = await supertest(
-            BASE_URL,
-        )
-            .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
-            .send({
-                tmpAuthUserID: followingUserID,
+        const getUserProfileInformationRequestBody: GetUserProfileInformationRequestBody =
+            {
                 userID: followedUserID,
-            } as GetUserProfileInformationRequestBody)
+            };
+        const { body: getUserProfileInformationRawBody } = await request
+            .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
+            .send(getUserProfileInformationRequestBody)
             .expect(200);
 
         const getUserProfileInformationParsedBody =
@@ -251,7 +249,7 @@ test.group('Users Profile information tests', (group) => {
         const { body: followRawBody } = await supertest(BASE_URL)
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'follow'))
             .send({
-                tmpAuthUserID: followingUserID,
+                tmpAuthUserID: followingUser.uuid,
                 userID: followedUserID,
             } as FollowUserRequestBody)
             .expect(200);

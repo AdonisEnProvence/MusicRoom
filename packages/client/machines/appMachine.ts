@@ -78,8 +78,7 @@ export function createAppMachine({
                         src: 'fetchUser',
 
                         onDone: {
-                            target: 'waitingForServerToAcknowledgeSocketConnection',
-                            actions: 'reconnectSocket',
+                            target: 'reconnectingSocketConnection',
                         },
 
                         onError: {
@@ -146,9 +145,7 @@ export function createAppMachine({
                             },
 
                             onDone: {
-                                target: '#app.waitingForServerToAcknowledgeSocketConnection',
-
-                                actions: 'reconnectSocket',
+                                target: '#app.reconnectingSocketConnection',
                             },
                         },
 
@@ -169,10 +166,19 @@ export function createAppMachine({
                             },
 
                             onDone: {
-                                target: '#app.waitingForServerToAcknowledgeSocketConnection',
-
-                                actions: 'reconnectSocket',
+                                target: '#app.reconnectingSocketConnection',
                             },
+                        },
+                    },
+                },
+
+                reconnectingSocketConnection: {
+                    tags: ['showApplicationLoader', 'userIsAuthenticated'],
+
+                    invoke: {
+                        src: 'reconnectSocket',
+                        onDone: {
+                            target: '#app.waitingForServerToAcknowledgeSocketConnection',
                         },
                     },
                 },
@@ -186,7 +192,7 @@ export function createAppMachine({
                         fetching: {
                             after: {
                                 500: {
-                                    target: 'deboucing',
+                                    target: 'debouncing',
                                 },
                             },
 
@@ -206,7 +212,7 @@ export function createAppMachine({
                             },
                         },
 
-                        deboucing: {
+                        debouncing: {
                             after: {
                                 500: {
                                     target: 'fetching',
@@ -280,6 +286,16 @@ export function createAppMachine({
                     return me;
                 },
 
+                reconnectSocket: async (_context) => {
+                    if (SHOULD_USE_TOKEN_AUTH) {
+                        socket.auth = {
+                            Authorization: `Bearer ${await request.GetToken()}`,
+                        };
+                    }
+                    socket.disconnect();
+                    socket.connect();
+                },
+
                 signIn: async ({
                     email,
                     password,
@@ -301,19 +317,6 @@ export function createAppMachine({
 
                 loadAuthenticationTokenFromAsyncStorage: async () => {
                     await request.loadToken();
-                },
-            },
-
-            actions: {
-                //TODO refactor as a service
-                reconnectSocket: async (_context) => {
-                    if (SHOULD_USE_TOKEN_AUTH) {
-                        socket.auth = {
-                            Authorization: `Bearer ${await request.GetToken()}`,
-                        };
-                    }
-                    socket.disconnect();
-                    socket.connect();
                 },
             },
 

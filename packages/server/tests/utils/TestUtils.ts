@@ -39,12 +39,10 @@ export function getSocketApiAuthToken(socket: TypedTestSocket): string {
     const token: string | undefined = socket.auth['Authorization'];
     console.log({ token });
 
-    //TODO see to dump typescript, it's a pain to type overload each time
-    invariant(token !== null || token !== undefined, 'token should be defined');
+    invariant(token !== null && token !== undefined, 'token should be defined');
     invariant(token?.startsWith('Bearer '), 'token should be defined');
 
-    //TODO should remove as
-    return token?.split(' ')[1] as string;
+    return token?.split(' ')[1];
 }
 
 /**

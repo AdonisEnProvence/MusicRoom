@@ -100,6 +100,10 @@ export function withinMpeRoomsLibraryScreen(selector: string): string {
     return `css=[data-testid="library-mpe-rooms-list"] >> ${selector}`;
 }
 
+export function withinSignUpFormScreenContainer(selector: string): string {
+    return `css=[data-testid="sign-up-form-screen-container"] >> ${selector}`;
+}
+
 export function withinMpeRoomScreen(selector: string): string {
     return `css=[data-testid^="mpe-room-screen-"] >> ${selector}`;
 }
@@ -489,11 +493,9 @@ export async function pageIsOnHomeScreen({
 }: {
     page: Page;
 }): Promise<void> {
-    const goToMusicPlaylistEditorButton = page.locator(
-        `text="Go to Music Playlist Editor"`,
-    );
-    await expect(goToMusicPlaylistEditorButton).toBeVisible();
-    await expect(goToMusicPlaylistEditorButton).toBeEnabled();
+    await expect(
+        page.locator('css=[data-testid="home-screen-container"]'),
+    ).toBeVisible();
 }
 
 export async function pageIsOnMyProfileScreen({

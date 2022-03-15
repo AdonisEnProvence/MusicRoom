@@ -57,7 +57,7 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                 }}
             />
 
-            <AppScreenContainer>
+            <AppScreenContainer testID="home-screen-container">
                 <Button
                     title="Go to Music Track Vote"
                     onPress={() => {
@@ -106,34 +106,6 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                                 userID: '7d21f121-bed5-4c20-9da5-94746bbc8c08',
                             },
                         });
-                    }}
-                />
-
-                <Button
-                    testID="sign-up-button"
-                    title="signUp"
-                    onPress={async () => {
-                        const {
-                            userSummary: { nickname: userNickname, userID },
-                        } = await sendWebAuthSignUp({
-                            email: internet.email(),
-                            password: 'p@a55wORd.',
-                            userNickname: internet.userName(),
-                        });
-
-                        Toast.show({
-                            type: 'success',
-                            text1: 'Signed up successfully',
-                        });
-
-                        localStorage.setItem('USER_ID', userID);
-                        localStorage.setItem(
-                            'USER_CREDENTIALS',
-                            JSON.stringify({
-                                userID,
-                                userNickname,
-                            }),
-                        );
                     }}
                 />
 

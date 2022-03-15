@@ -1,7 +1,12 @@
 import { Browser, Page, BrowserContext, expect } from '@playwright/test';
 import * as z from 'zod';
-import invariant from 'tiny-invariant';
+import { internet, unique } from 'faker';
+import { SignUpSuccessfullResponseBody } from '@musicroom/types';
 import { KnownSearchesRecord, mockSearchTracks } from './mock-http';
+import {
+    pageIsOnHomeScreen,
+    withinSignUpFormScreenContainer,
+} from './mpe-e2e-utils';
 
 const UserCredentials = z.object({
     userID: z.string().uuid(),
@@ -43,20 +48,6 @@ export async function setupPageAndSignUpUser({
     userID: string;
 }> {
     const context = await browser.newContext({
-        storageState: {
-            cookies: [],
-            origins: [
-                {
-                    origin: 'http://localhost:4000',
-                    localStorage: [
-                        {
-                            name: 'USER_ID',
-                            value: '8d71dcb3-9638-4b7a-89ad-838e2310686c',
-                        },
-                    ],
-                },
-            ],
-        },
         permissions: ['geolocation'],
         geolocation:
             town === undefined ? undefined : GEOLOCATION_POSITIONS[town],
@@ -68,25 +59,11 @@ export async function setupPageAndSignUpUser({
         knownSearches,
     });
 
+    await page.goto('/');
+
+    const { userNickname, userID } = await performSignUp(page);
+
     await initPage(page);
-
-    await performSignUp(page);
-
-    await initPage(page);
-
-    const storageState = await context.storageState();
-
-    const userCredentialsLocalStorage = storageState.origins
-        .slice(-1)[0]
-        .localStorage.find((el) => el.name === 'USER_CREDENTIALS');
-
-    invariant(
-        userCredentialsLocalStorage !== undefined,
-        'could not retrieve user credentials from local storage',
-    );
-    const { userID, userNickname } = UserCredentials.parse(
-        JSON.parse(userCredentialsLocalStorage.value),
-    );
 
     return {
         context,
@@ -103,21 +80,81 @@ export async function initPage(page: Page): Promise<void> {
     await focusTrap.click();
 }
 
-export async function performSignUp(page: Page): Promise<void> {
-    const signUpButton = page
-        .locator(`css=[data-testid="sign-up-button"]`)
-        .last();
-    await expect(signUpButton).toBeVisible();
-
-    await signUpButton.click();
-
-    await expect(
-        page.locator(`text="Signed up successfully"`).last(),
-    ).toBeVisible({
-        timeout: 30_000,
+export async function performSignUp(page: Page): Promise<{
+    email: string;
+    password: string;
+    userNickname: string;
+    userID: string;
+}> {
+    //Go to sign up form
+    const goToSignUpFormButton = page.locator(`text="Or sign up ?"`);
+    await expect(goToSignUpFormButton).toBeVisible({
+        timeout: 30000,
     });
+    await goToSignUpFormButton.click();
 
-    await page.reload();
+    const signUpFormContainer = page.locator(
+        `css=[data-testid="sign-up-form-screen-container"]`,
+    );
+    await expect(signUpFormContainer).toBeVisible();
+
+    //Fill sign up form
+    const email = unique(() => internet.email());
+    const userNickname = unique(() => internet.userName());
+    const password = `:net66LTW`;
+
+    //Nickanme
+    const yourNicknameInput = page.locator(
+        withinSignUpFormScreenContainer(`css=[placeholder="Your nickname"]`),
+    );
+    await expect(yourNicknameInput).toBeVisible();
+    await yourNicknameInput.fill(userNickname);
+
+    //Email
+    const yourEmailInput = page.locator(
+        withinSignUpFormScreenContainer(`css=[placeholder="Your email"]`),
+    );
+    await expect(yourEmailInput).toBeVisible();
+    await yourEmailInput.fill(email);
+
+    //Password
+    const yourPasswordInput = page.locator(
+        withinSignUpFormScreenContainer(`css=[placeholder="Your password"]`),
+    );
+    await expect(yourPasswordInput).toBeVisible();
+    await yourPasswordInput.fill(password);
+
+    //Submit sign up form
+    const submitSignUpFormButton = page.locator(
+        withinSignUpFormScreenContainer(
+            `css=[data-testid="submit-sign-up-form-button"]`,
+        ),
+    );
+    await expect(submitSignUpFormButton).toBeVisible();
+
+    const [rawSignUpResponse] = await Promise.all([
+        page.waitForResponse(
+            (resp) =>
+                resp.url().includes('/authentication/sign-up') &&
+                resp.status() === 200,
+        ),
+        submitSignUpFormButton.click(),
+    ]);
+
+    const signUpRawBody = await rawSignUpResponse.json();
+    const {
+        userSummary: { userID, nickname },
+    } = SignUpSuccessfullResponseBody.parse(signUpRawBody);
+
+    //Expecting to see the home
+    await pageIsOnHomeScreen({ page });
+
+    return {
+        email,
+        password,
+        userNickname: nickname,
+        userID,
+    };
 }
 
 /**

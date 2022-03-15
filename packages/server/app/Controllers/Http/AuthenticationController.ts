@@ -55,7 +55,6 @@ export default class AuthenticationController {
                 signUpFailureReasonCollection: errors,
             };
         }
-        console.log('COULD NOT FIND ANY ERRORS');
 
         const { nickname, uuid: userID } = await User.create({
             nickname: userNickname,

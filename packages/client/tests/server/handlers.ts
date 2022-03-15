@@ -330,33 +330,36 @@ export const handlers = [
         UnfollowUserRequestBody,
         Record<string, never>,
         UnfollowUserResponseBody
-    >(`${SERVER_ENDPOINT}/user/unfollow`, async (req, res, ctx) => {
-        const { userID } = req.body;
-        console.log('UNFOLLOW');
-        const user = db.userProfileInformation.findFirst({
-            where: {
-                userID: {
-                    equals: userID,
+    >(
+        `${SERVER_ENDPOINT}/user/unfollow`,
+        withAuthentication((req, res, ctx) => {
+            const { userID } = req.body;
+            console.log('UNFOLLOW');
+            const user = db.userProfileInformation.findFirst({
+                where: {
+                    userID: {
+                        equals: userID,
+                    },
                 },
-            },
-        });
+            });
 
-        if (user === null) {
-            return res(ctx.status(404));
-        }
+            if (user === null) {
+                return res(ctx.status(404));
+            }
 
-        return res(
-            ctx.json({
-                userProfileInformation: {
-                    ...user,
-                    followersCounter: user.followersCounter || undefined,
-                    followingCounter: user.followingCounter || undefined,
-                    playlistsCounter: user.playlistsCounter || undefined,
-                    following: false,
-                },
-            }),
-        );
-    }),
+            return res(
+                ctx.json({
+                    userProfileInformation: {
+                        ...user,
+                        followersCounter: user.followersCounter || undefined,
+                        followingCounter: user.followingCounter || undefined,
+                        playlistsCounter: user.playlistsCounter || undefined,
+                        following: false,
+                    },
+                }),
+            );
+        }),
+    ),
 
     //Normally we should be filtering on mpe room user has joined
     //Atm we don't maintain or have any kind of users list in the client db mock

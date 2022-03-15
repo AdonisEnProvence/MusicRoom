@@ -58,7 +58,6 @@ export type FollowUserResponseBody = z.infer<typeof FollowUserResponseBody>;
 
 export const UnfollowUserRequestBody = z.object({
     userID: z.string().uuid(),
-    tmpAuthUserID: z.string().uuid(),
 });
 export type UnfollowUserRequestBody = z.infer<typeof UnfollowUserRequestBody>;
 

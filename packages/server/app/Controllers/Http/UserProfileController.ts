@@ -217,28 +217,32 @@ export default class UserProfileController {
 
     public async unfollowUser({
         request,
+        auth,
     }: HttpContextContract): Promise<UnfollowUserResponseBody> {
-        const rawBody = request.body();
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            'User must be authenticated to unfollow another user',
+        );
 
-        const { tmpAuthUserID, userID } =
-            UnfollowUserRequestBody.parse(rawBody);
+        const { userID } = UnfollowUserRequestBody.parse(request.body());
 
-        const requestingUserIsRelatedUser = tmpAuthUserID === userID;
+        const requestingUserIsRelatedUser = user.uuid === userID;
         if (requestingUserIsRelatedUser) {
             throw new ForbiddenException();
         }
 
-        const unfollowingUser = await User.findOrFail(tmpAuthUserID);
-        await unfollowingUser.load('following', (userQuery) => {
+        await user.load('following', (userQuery) => {
             return userQuery.where('uuid', userID);
         });
+
         const unfollowedUser = await User.findOrFail(userID);
         await unfollowedUser.load('followers', (userQuery) => {
-            return userQuery.where('uuid', tmpAuthUserID);
+            return userQuery.where('uuid', user.uuid);
         });
 
         const unfollowingUserDoesnotFollowGivenUser =
-            unfollowingUser.following.length === 0;
+            user.following.length === 0;
         const unfollowedUserDoesnotHaveFollowingUserInHisFollowers =
             unfollowedUser.followers.length === 0;
         if (
@@ -248,12 +252,10 @@ export default class UserProfileController {
             throw new Error('User is not following given user');
         }
 
-        await unfollowingUser
-            .related('following')
-            .detach([unfollowedUser.uuid]);
+        await user.related('following').detach([unfollowedUser.uuid]);
 
         const userProfileInformation = await requestUserProfileInformation({
-            requestingUserID: tmpAuthUserID,
+            requestingUserID: user.uuid,
             userID,
         });
 

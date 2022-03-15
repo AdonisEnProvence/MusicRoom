@@ -41,7 +41,7 @@ test.group('List user followers tests group', (group) => {
     test('It should retrieve paginated user followers', async (assert) => {
         const request = createRequest();
 
-        const requestUser = await createUserAndAuthenticate(request);
+        await createUserAndAuthenticate(request);
 
         const searchedUserID = datatype.uuid();
         const searchedUser = await User.create({
@@ -164,7 +164,7 @@ test.group('List user followers tests group', (group) => {
     test('It should retrieve filtered user followers', async (assert) => {
         const request = createRequest();
 
-        const requestingUser = await createUserAndAuthenticate(request);
+        await createUserAndAuthenticate(request);
 
         const searchedUserID = datatype.uuid();
         const searchedUser = await User.create({

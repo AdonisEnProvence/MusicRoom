@@ -85,7 +85,7 @@ test.group('Users Profile information tests', (group) => {
     test('It should return followed user not found', async () => {
         const request = createRequest();
 
-        const unfollowingUser = await createUserAndAuthenticate(request);
+        await createUserAndAuthenticate(request);
 
         const unfollowRequestBody: UnfollowUserRequestBody = {
             userID: datatype.uuid(),

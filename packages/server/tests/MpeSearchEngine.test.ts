@@ -296,7 +296,7 @@ test.group("Other user's MPE Rooms Search", (group) => {
         const PAGE_MAX_LENGTH = 10;
         const request = createRequest();
 
-        const user = await createUserAndAuthenticate(request);
+        await createUserAndAuthenticate(request);
 
         const otherUserID = datatype.uuid();
         const otherUserPrivateRooms = generateArray({
@@ -427,7 +427,7 @@ test.group("Other user's MPE Rooms Search", (group) => {
     test('Returns only public MPE rooms matching partial search query', async (assert) => {
         const request = createRequest();
 
-        const user = await createUserAndAuthenticate(request);
+        await createUserAndAuthenticate(request);
 
         const otherUserID = datatype.uuid();
         const otherUserMpeRooms: {
@@ -480,7 +480,7 @@ test.group("Other user's MPE Rooms Search", (group) => {
     test('Returns only public MPE rooms matching case insensitive search query', async (assert) => {
         const request = createRequest();
 
-        const user = await createUserAndAuthenticate(request);
+        await createUserAndAuthenticate(request);
 
         const otherUserID = datatype.uuid();
         const otherUserMpeRooms: {

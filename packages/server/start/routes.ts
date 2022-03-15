@@ -72,24 +72,15 @@ Route.group(() => {
     Route.post(
         '/profile-information',
         'UserProfileController.getUserProfileInformation',
-    ).middleware('every-auth');
-    Route.post('/follow', 'UserProfileController.followUser').middleware(
-        'every-auth',
     );
-    Route.post('/unfollow', 'UserProfileController.unfollowUser').middleware(
-        'every-auth',
-    );
-    Route.post(
-        '/search/followers',
-        'SearchUsersController.listUserFollowers',
-    ).middleware('every-auth');
-    Route.post(
-        '/search/following',
-        'SearchUsersController.listUserFollowing',
-    ).middleware('every-auth');
-
+    Route.post('/follow', 'UserProfileController.followUser');
+    Route.post('/unfollow', 'UserProfileController.unfollowUser');
+    Route.post('/search/followers', 'SearchUsersController.listUserFollowers');
+    Route.post('/search/following', 'SearchUsersController.listUserFollowing');
     Route.post('/search/mpe', 'UserProfileController.listUserMpeRooms');
-}).prefix(USER_ROUTES_GROUP_PREFIX);
+})
+    .prefix(USER_ROUTES_GROUP_PREFIX)
+    .middleware('every-auth');
 
 export const AUTHENTICATION_ROUTES_GROUP_PREFIX = '/authentication';
 Route.group(() => {

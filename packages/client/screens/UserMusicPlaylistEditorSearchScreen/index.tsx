@@ -162,15 +162,10 @@ const MpeRoomsList: React.FC<
 
     const [libraryRoomState, libraryRoomSend] = useMachine(() => {
         return createMpeRoomUniversalSearchMachine({
-            fetchMpeRooms: async ({
-                searchQuery,
-                page,
-                userID: currentUserID,
-            }) => {
+            fetchMpeRooms: async ({ searchQuery, page }) => {
                 const rooms = await fetchOtherUserMpeRooms({
                     searchQuery,
                     page,
-                    tmpAuthUserID: currentUserID,
                     userID,
                 });
 

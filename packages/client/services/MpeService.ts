@@ -51,23 +51,19 @@ export async function fetchAllMpeRooms({
 interface FetchOtherUserMpeRoomsArgs {
     searchQuery: string;
     page: number;
-    tmpAuthUserID: string;
     userID: string;
 }
 
 export async function fetchOtherUserMpeRooms({
     searchQuery,
     page,
-    tmpAuthUserID,
     userID,
 }: FetchOtherUserMpeRoomsArgs): Promise<UserSearchMpeRoomsResponseBody> {
     const body: UserSearchMpeRoomsRequestBody = {
         searchQuery,
         page,
-        tmpAuthUserID,
         userID,
     };
-
     const rawResponse = await request.post('/user/search/mpe', body);
     const parsedResponse = UserSearchMpeRoomsResponseBody.parse(
         rawResponse.data,

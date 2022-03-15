@@ -266,19 +266,23 @@ export default class UserProfileController {
 
     public async listUserMpeRooms({
         request,
+        auth,
     }: HttpContextContract): Promise<UserSearchMpeRoomsResponseBody> {
         const MPE_ROOMS_SEARCH_LIMIT = 10;
-        const rawBody = request.body();
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            "User must be authenticated to list another user's mpe rooms",
+        );
 
-        const { tmpAuthUserID, userID, searchQuery, page } =
-            UserSearchMpeRoomsRequestBody.parse(rawBody);
+        const { userID, searchQuery, page } =
+            UserSearchMpeRoomsRequestBody.parse(request.body());
 
-        const me = await User.findOrFail(tmpAuthUserID);
         const queriedUser = await User.findOrFail(userID);
 
         const userCanQueryOtherUserMpeRooms =
             await getIfUserCanQueryOtherUserMpeRooms({
-                user: me,
+                user,
                 queriedUser,
             });
         const userCanNotQueryOtherUserMpeRooms =
@@ -305,7 +309,7 @@ export default class UserProfileController {
         const hasMoreRoomsToLoad = mpeRoomsPagination.hasMorePages;
         const formattedMpeRooms = await fromMpeRoomsToMpeRoomSummaries({
             mpeRooms: mpeRoomsPagination.all(),
-            userID: me.uuid,
+            userID: user.uuid,
         });
 
         return {

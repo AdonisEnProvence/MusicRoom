@@ -67,8 +67,7 @@ export const UnfollowUserResponseBody = z.object({
 export type UnfollowUserResponseBody = z.infer<typeof UnfollowUserResponseBody>;
 
 export const UserSearchMpeRoomsRequestBody = z.object({
-    tmpAuthUserID: z.string().uuid(),
-    userID: z.string().uuid(), // FIXME: use authentication
+    userID: z.string().uuid(),
     searchQuery: z.string(),
     page: StrictlyPositiveInteger,
 });

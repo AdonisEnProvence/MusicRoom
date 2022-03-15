@@ -3,7 +3,11 @@ import MpeServerToTemporalController from 'App/Controllers/Http/Temporal/MpeServ
 import { datatype } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
-import { createSpyOnClientSocketEvent, initTestUtils } from './utils/TestUtils';
+import {
+    createSpyOnClientSocketEvent,
+    getSocketApiAuthToken,
+    initTestUtils,
+} from './utils/TestUtils';
 
 test.group(`user receives MpeRoom invitation tests group`, (group) => {
     const {
@@ -40,8 +44,10 @@ test.group(`user receives MpeRoom invitation tests group`, (group) => {
         const invitedUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: invitedUserID,
         });
+        const invitedUserToken = getSocketApiAuthToken(invitedUserSocket);
         const invitedUserSocketB = await createSocketConnection({
             userID: invitedUserID,
+            token: invitedUserToken,
         });
 
         //invited user spies

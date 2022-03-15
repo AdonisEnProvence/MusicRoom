@@ -12,6 +12,7 @@ import {
     generateMpeWorkflowState,
     createSpyOnClientSocketEvent,
     TEST_MPE_TEMPORAL_LISTENER,
+    getSocketApiAuthToken,
 } from './utils/TestUtils';
 
 test.group('MPE Delete Tracks', (group) => {
@@ -121,8 +122,10 @@ test.group('MPE Delete Tracks', (group) => {
                 },
             ],
         });
+        const userAToken = getSocketApiAuthToken(userASocket1);
         const userASocket2 = await createSocketConnection({
             userID: creatorUserID,
+            token: userAToken,
         });
         const roomState = generateMpeWorkflowState({
             roomID,

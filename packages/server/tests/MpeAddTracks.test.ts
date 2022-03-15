@@ -15,6 +15,7 @@ import {
     initTestUtils,
     generateMpeWorkflowState,
     TEST_MPE_TEMPORAL_LISTENER,
+    getSocketApiAuthToken,
 } from './utils/TestUtils';
 
 function noop() {
@@ -240,8 +241,10 @@ test.group('MPE Add Tracks', (group) => {
                 },
             ],
         });
+        const userAToken = getSocketApiAuthToken(userASocket1);
         const userASocket2 = await createSocketConnection({
             userID: creatorUserID,
+            token: userAToken,
         });
         const roomState = generateMpeWorkflowState({
             roomID,

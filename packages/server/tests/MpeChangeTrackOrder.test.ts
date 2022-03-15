@@ -14,6 +14,7 @@ import {
     BASE_URL,
     createSpyOnClientSocketEvent,
     generateMpeWorkflowState,
+    getSocketApiAuthToken,
     initTestUtils,
     TEST_MPE_TEMPORAL_LISTENER,
 } from './utils/TestUtils';
@@ -52,8 +53,10 @@ test.group(`mpe rooms change track order group test`, (group) => {
             userID: creatorUserID,
             mpeRoomIDToAssociate: [{ roomID: mpeRoomIDToAssociate }],
         });
+        const creatorToken = getSocketApiAuthToken(creatorSocket);
         const creatorSocketB = await createSocketConnection({
             userID: creatorUserID,
+            token: creatorToken,
         });
         ///
 
@@ -66,9 +69,10 @@ test.group(`mpe rooms change track order group test`, (group) => {
                 },
             ],
         });
-
+        const joinerToken = getSocketApiAuthToken(joinerSocket);
         const joinerSocketB = await createSocketConnection({
             userID: joinerUserID,
+            token: joinerToken,
         });
 
         //Creator
@@ -222,8 +226,10 @@ test.group(`mpe rooms change track order group test`, (group) => {
             userID: creatorUserID,
             mpeRoomIDToAssociate: [{ roomID: mpeRoomIDToAssociate }],
         });
+        const creatorToken = getSocketApiAuthToken(creatorSocket);
         const creatorSocketB = await createSocketConnection({
             userID: creatorUserID,
+            token: creatorToken,
         });
         ///
 
@@ -236,9 +242,10 @@ test.group(`mpe rooms change track order group test`, (group) => {
                 },
             ],
         });
-
+        const joinerToken = getSocketApiAuthToken(joinerSocket);
         const joinerSocketB = await createSocketConnection({
             userID: joinerUserID,
+            token: joinerToken,
         });
 
         //Creator

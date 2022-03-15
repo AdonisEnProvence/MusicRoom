@@ -16,7 +16,6 @@ import {
     getDefaultMtvRoomCreateRoomArgs,
     getSocketApiAuthToken,
     initTestUtils,
-    sleep,
 } from './utils/TestUtils';
 
 test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
@@ -393,17 +392,11 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         const userID = datatype.uuid();
         const socket = await createAuthenticatedUserAndGetSocket({ userID });
         let roomID: undefined | string;
-        const receivedEvents: string[] = [];
-        socket.once('MTV_CREATE_ROOM_CALLBACK', () => {
-            receivedEvents.push('MTV_CREATE_ROOM_CALLBACK');
-        });
-
         /** Mocks */
         sinon
             .stub(MtvServerToTemporalController, 'createMtvWorkflow')
             .callsFake(async ({ workflowID }) => {
                 roomID = workflowID;
-
                 /**
                  * Checking if the user is well registered in the socket-io
                  * room instance
@@ -412,7 +405,7 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                     await SocketLifecycle.getConnectedSocketToRoom(workflowID);
                 assert.isTrue(connectedSockets.has(socket.id));
 
-                throw new Error('Mocked error');
+                throw new Error('Mocking temporal error');
             });
         /** ***** */
 
@@ -426,16 +419,23 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
             assert.isDefined(roomID);
         });
 
-        if (roomID === undefined) throw new Error('roomID is undefined');
+        if (roomID === undefined) {
+            throw new Error('RoomID is undefined');
+        }
         /**
          * Checking if the user has correctly been removed from the
          * room instance
          */
-        const connectedSockets = await SocketLifecycle.getConnectedSocketToRoom(
-            roomID,
-        );
-        assert.isFalse(connectedSockets.has(socket.id));
-        assert.equal(connectedSockets.size, 0);
+        await waitFor(async () => {
+            if (roomID === undefined) {
+                throw new Error('RoomID is undefined');
+            }
+
+            const connectedSockets =
+                await SocketLifecycle.getConnectedSocketToRoom(roomID);
+            assert.equal(connectedSockets.size, 0);
+            assert.isFalse(connectedSockets.has(socket.id));
+        });
 
         /**
          * Even if the room hasn't been inserted checking
@@ -511,14 +511,14 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
         });
         creatorSocket.emit('MTV_CREATE_ROOM', settings);
 
-        await sleep();
+        await waitFor(async () => {
+            await creatorUser.refresh();
+            await creatorUser.load('mtvRoom');
+            const createdRoom = creatorUser.mtvRoom;
 
-        await creatorUser.refresh();
-        await creatorUser.load('mtvRoom');
-        const createdRoom = creatorUser.mtvRoom;
-
-        assert.isNotNull(createdRoom);
-        assert.equal(createdRoom.name, expectedRoomName);
-        assert.isTrue(createRoomSynchedCallbackHasBeenCalled);
+            assert.isNotNull(createdRoom);
+            assert.equal(createdRoom.name, expectedRoomName);
+            assert.isTrue(createRoomSynchedCallbackHasBeenCalled);
+        });
     });
 });

@@ -10,6 +10,7 @@ import {
     BASE_URL,
     createSpyOnClientSocketEvent,
     generateMpeWorkflowState,
+    getSocketApiAuthToken,
     initTestUtils,
     TEST_MPE_TEMPORAL_LISTENER,
 } from './utils/TestUtils';
@@ -48,8 +49,10 @@ test.group(`join mpe room group test`, (group) => {
             userID: creatorUserID,
             mpeRoomIDToAssociate: [{ roomID: mpeRoomIDToAssociate }],
         });
+        const creatorToken = getSocketApiAuthToken(creatorSocket);
         const creatorSocketB = await createSocketConnection({
             userID: creatorUserID,
+            token: creatorToken,
         });
         ///
 
@@ -57,9 +60,10 @@ test.group(`join mpe room group test`, (group) => {
         const joiningUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: joiningUserID,
         });
-
+        const joiningUserToken = getSocketApiAuthToken(joiningUserSocket);
         const joiningUserSocketB = await createSocketConnection({
             userID: joiningUserID,
+            token: joiningUserToken,
         });
 
         //Creator
@@ -169,8 +173,10 @@ test.group(`join mpe room group test`, (group) => {
             userID: creatorUserID,
             mpeRoomIDToAssociate: [{ roomID: mpeRoomIDToAssociate }],
         });
+        const creatorToken = getSocketApiAuthToken(creatorSocket);
         const creatorSocketB = await createSocketConnection({
             userID: creatorUserID,
+            token: creatorToken,
         });
         ///
 

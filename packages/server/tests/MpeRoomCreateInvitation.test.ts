@@ -7,7 +7,11 @@ import { datatype } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import invariant from 'tiny-invariant';
-import { createSpyOnClientSocketEvent, initTestUtils } from './utils/TestUtils';
+import {
+    createSpyOnClientSocketEvent,
+    getSocketApiAuthToken,
+    initTestUtils,
+} from './utils/TestUtils';
 
 test.group(`MpeRoomInvitation tests group`, (group) => {
     const {
@@ -44,8 +48,10 @@ test.group(`MpeRoomInvitation tests group`, (group) => {
         const invitedUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: invitedUserID,
         });
+        const invitedUserToken = getSocketApiAuthToken(invitedUserSocket);
         const invitedUserSocketB = await createSocketConnection({
             userID: invitedUserID,
+            token: invitedUserToken,
         });
 
         //invited user spies

@@ -12,6 +12,7 @@ import urlcat from 'urlcat';
 import {
     BASE_URL,
     getDefaultMpeRoomCreateRoomArgs,
+    getSocketApiAuthToken,
     initTestUtils,
     TEST_MPE_TEMPORAL_LISTENER,
 } from './utils/TestUtils';
@@ -47,8 +48,10 @@ test.group(`mpe rooms relationship tests`, (group) => {
             userID: creatorUserID,
             mpeRoomIDToAssociate: mpeRoomsIDs,
         });
+        const creatorToken = getSocketApiAuthToken(creatorSocket);
         const creatorSocketB = await createSocketConnection({
             userID: creatorUserID,
+            token: creatorToken,
         });
 
         const userB = await createAuthenticatedUserAndGetSocket({
@@ -79,8 +82,10 @@ test.group(`mpe rooms relationship tests`, (group) => {
         const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
         });
+        const creatorToken = getSocketApiAuthToken(creatorSocket);
         const creatorSocketB = await createSocketConnection({
             userID: creatorUserID,
+            token: creatorToken,
         });
 
         const settings = getDefaultMpeRoomCreateRoomArgs();

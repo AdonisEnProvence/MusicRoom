@@ -27,7 +27,7 @@ type Requester = typeof redaxios & {
     /**
      * Returns the api token if existing if not returns undefined
      */
-    GetToken(): Promise<undefined | string>;
+    getToken(): Promise<undefined | string>;
 };
 
 /**
@@ -62,15 +62,12 @@ export function createRequester(): Requester {
         setRequestAuthorizationHeader(token);
     }
 
-    //TODO Test GetToken
     async function getToken(): Promise<undefined | string> {
         if (SHOULD_USE_TOKEN_AUTH === false) {
             return undefined;
         }
 
         const token = await AsyncStorage.getItem(TOKEN_STORAGE_KEY);
-        console.log({ token });
-
         if (token === null) {
             return undefined;
         }
@@ -101,7 +98,7 @@ export function createRequester(): Requester {
     request.loadToken = loadToken;
     request.persistToken = persistToken;
     request.clearToken = clearToken;
-    request.GetToken = getToken;
+    request.getToken = getToken;
 
     return request;
 }

@@ -44,6 +44,23 @@ test('loadToken should load the token from AsyncStorage and set the Authorizatio
     );
 });
 
+test('getToken should return the token from AsyncStorage', async () => {
+    const request = createRequester();
+
+    const token = '12345';
+    await AsyncStorage.setItem('auth-token', token);
+
+    const retrievedToken = await request.getToken();
+    expect(retrievedToken).toEqual(token);
+});
+
+test('getToken should return undefined as token is not set in AsyncStorage', async () => {
+    const request = createRequester();
+
+    const retrievedToken = await request.getToken();
+    expect(retrievedToken).toBeUndefined();
+});
+
 test('loadToken should do nothing if no token is in AsyncStorage', async () => {
     const request = createRequester();
 

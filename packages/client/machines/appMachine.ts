@@ -288,8 +288,14 @@ export function createAppMachine({
 
                 reconnectSocket: async (_context) => {
                     if (SHOULD_USE_TOKEN_AUTH) {
+                        const token = await request.getToken();
+                        invariant(
+                            token !== undefined,
+                            'retrieved token is undefined reconnectSocket',
+                        );
+
                         socket.auth = {
-                            Authorization: `Bearer ${await request.GetToken()}`,
+                            Authorization: `Bearer ${token}`,
                         };
                     }
                     socket.disconnect();

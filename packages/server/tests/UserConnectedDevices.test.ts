@@ -77,20 +77,15 @@ test.group(
                 'GET_CONNECTED_DEVICES_AND_DEVICE_ID',
                 ({ devices, currDeviceID }) => {
                     assert.equal(deviceA.uuid, currDeviceID);
-                    console.log('SALUT');
 
                     assert.equal(2, devices.length);
-                    console.log('SALUT 1');
 
                     console.log(devices);
                     assert.isTrue(devices.some((d) => d.name === deviceNameA));
-                    console.log('SALUT 2');
 
                     assert.isTrue(
                         devices.some((d) => d.name === 'Web Player (Safari)'),
                     );
-
-                    console.log('SALUT 3');
 
                     callbackHasBeenCalled = true;
                     console.log({ callbackHasBeenCalled });

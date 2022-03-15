@@ -40,9 +40,9 @@ export function getSocketApiAuthToken(socket: TypedTestSocket): string {
     console.log({ token });
 
     invariant(token !== null && token !== undefined, 'token should be defined');
-    invariant(token?.startsWith('Bearer '), 'token should be defined');
+    invariant(token.startsWith('Bearer '), 'token should be defined');
 
-    return token?.split(' ')[1];
+    return token.split(' ')[1];
 }
 
 /**

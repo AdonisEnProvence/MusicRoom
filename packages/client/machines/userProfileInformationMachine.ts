@@ -222,7 +222,6 @@ export function createUserProfileInformationMachine({
                         try {
                             const { userProfileInformation } =
                                 await sendFollowUser({
-                                    tmpAuthUserID: getFakeUserID(),
                                     userID,
                                 });
 

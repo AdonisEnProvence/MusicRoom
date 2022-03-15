@@ -48,7 +48,6 @@ export type GetMyProfileInformationResponseBody = z.infer<
 
 export const FollowUserRequestBody = z.object({
     userID: z.string().uuid(),
-    tmpAuthUserID: z.string().uuid(),
 });
 export type FollowUserRequestBody = z.infer<typeof FollowUserRequestBody>;
 

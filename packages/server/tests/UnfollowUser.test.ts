@@ -156,7 +156,7 @@ test.group('Users Profile information tests', (group) => {
         });
 
         await supertest(BASE_URL)
-            .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'follow'))
+            .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'unfollow'))
             .send({
                 tmpAuthUserID: unfollowingUserID,
                 userID: unfollowingUserID,

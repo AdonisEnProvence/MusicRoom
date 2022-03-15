@@ -169,27 +169,31 @@ export default class UserProfileController {
 
     public async followUser({
         request,
+        auth,
     }: HttpContextContract): Promise<FollowUserResponseBody> {
-        const rawBody = request.body();
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            'User must be authenticated to follow another user',
+        );
 
-        const { tmpAuthUserID, userID } = FollowUserRequestBody.parse(rawBody);
+        const { userID } = FollowUserRequestBody.parse(request.body());
 
-        const requestingUserIsRelatedUser = tmpAuthUserID === userID;
+        const requestingUserIsRelatedUser = user.uuid === userID;
         if (requestingUserIsRelatedUser) {
             throw new ForbiddenException();
         }
 
-        const followingUser = await User.findOrFail(tmpAuthUserID);
-        await followingUser.load('following', (userQuery) => {
+        await user.load('following', (userQuery) => {
             return userQuery.where('uuid', userID);
         });
         const followedUser = await User.findOrFail(userID);
         await followedUser.load('followers', (userQuery) => {
-            return userQuery.where('uuid', tmpAuthUserID);
+            return userQuery.where('uuid', user.uuid);
         });
 
         const followingUserIsAlreadyFollowingGivenUser =
-            followingUser.following.length > 0;
+            user.following.length > 0;
         const followedUserAlreadyHasFollowingUserInHisFollowers =
             followedUser.followers.length > 0;
         if (
@@ -199,10 +203,10 @@ export default class UserProfileController {
             throw new Error('User is already following given user');
         }
 
-        await followingUser.related('following').save(followedUser);
+        await user.related('following').save(followedUser);
 
         const userProfileInformation = await requestUserProfileInformation({
-            requestingUserID: tmpAuthUserID,
+            requestingUserID: user.uuid,
             userID,
         });
 

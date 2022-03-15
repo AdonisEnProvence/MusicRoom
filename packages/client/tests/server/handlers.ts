@@ -295,33 +295,36 @@ export const handlers = [
         FollowUserRequestBody,
         Record<string, never>,
         FollowUserResponseBody
-    >(`${SERVER_ENDPOINT}/user/follow`, async (req, res, ctx) => {
-        const { userID } = req.body;
+    >(
+        `${SERVER_ENDPOINT}/user/follow`,
+        withAuthentication((req, res, ctx) => {
+            const { userID } = req.body;
 
-        const user = db.userProfileInformation.findFirst({
-            where: {
-                userID: {
-                    equals: userID,
+            const user = db.userProfileInformation.findFirst({
+                where: {
+                    userID: {
+                        equals: userID,
+                    },
                 },
-            },
-        });
+            });
 
-        if (user === null) {
-            return res(ctx.status(404));
-        }
+            if (user === null) {
+                return res(ctx.status(404));
+            }
 
-        return res(
-            ctx.json({
-                userProfileInformation: {
-                    ...user,
-                    followersCounter: user.followersCounter || undefined,
-                    followingCounter: user.followingCounter || undefined,
-                    playlistsCounter: user.playlistsCounter || undefined,
-                    following: true,
-                },
-            }),
-        );
-    }),
+            return res(
+                ctx.json({
+                    userProfileInformation: {
+                        ...user,
+                        followersCounter: user.followersCounter || undefined,
+                        followingCounter: user.followingCounter || undefined,
+                        playlistsCounter: user.playlistsCounter || undefined,
+                        following: true,
+                    },
+                }),
+            );
+        }),
+    ),
 
     rest.post<
         UnfollowUserRequestBody,

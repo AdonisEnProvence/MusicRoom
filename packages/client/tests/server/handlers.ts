@@ -500,40 +500,49 @@ export const handlers = [
         ListUserFollowersRequestBody,
         Record<string, never>,
         ListUserFollowersResponseBody
-    >(`${SERVER_ENDPOINT}/user/search/followers`, (req, res, ctx) => {
-        const PAGE_SIZE = 10;
-        const { page, searchQuery, userID } = req.body;
+    >(
+        `${SERVER_ENDPOINT}/user/search/followers`,
+        withAuthentication((req, res, ctx) => {
+            const PAGE_SIZE = 10;
+            const { page, searchQuery, userID } = req.body;
 
-        const userFollowers = db.userFollowers.findFirst({
-            where: {
-                userID: {
-                    equals: userID,
+            const userFollowers = db.userFollowers.findFirst({
+                where: {
+                    userID: {
+                        equals: userID,
+                    },
                 },
-            },
-        });
+            });
 
-        if (userFollowers === null || userFollowers.followers === undefined) {
-            return res(ctx.status(404));
-        }
-        const filteredUserFollowers = userFollowers.followers.filter((user) =>
-            user.nickname.toLowerCase().startsWith(searchQuery.toLowerCase()),
-        );
+            if (
+                userFollowers === null ||
+                userFollowers.followers === undefined
+            ) {
+                return res(ctx.status(404));
+            }
+            const filteredUserFollowers = userFollowers.followers.filter(
+                (user) =>
+                    user.nickname
+                        .toLowerCase()
+                        .startsWith(searchQuery.toLowerCase()),
+            );
 
-        const paginatedFollowers = filteredUserFollowers.slice(
-            (page - 1) * PAGE_SIZE,
-            page * PAGE_SIZE,
-        );
+            const paginatedFollowers = filteredUserFollowers.slice(
+                (page - 1) * PAGE_SIZE,
+                page * PAGE_SIZE,
+            );
 
-        console.log({ paginatedFollowers });
-        return res(
-            ctx.json({
-                data: paginatedFollowers,
-                totalEntries: filteredUserFollowers.length,
-                hasMore: filteredUserFollowers.length > page * PAGE_SIZE,
-                page,
-            }),
-        );
-    }),
+            console.log({ paginatedFollowers });
+            return res(
+                ctx.json({
+                    data: paginatedFollowers,
+                    totalEntries: filteredUserFollowers.length,
+                    hasMore: filteredUserFollowers.length > page * PAGE_SIZE,
+                    page,
+                }),
+            );
+        }),
+    ),
 
     rest.post<
         ListMyFollowersRequestBody,

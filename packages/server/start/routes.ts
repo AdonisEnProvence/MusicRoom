@@ -79,7 +79,10 @@ Route.group(() => {
     Route.post('/unfollow', 'UserProfileController.unfollowUser').middleware(
         'every-auth',
     );
-    Route.post('/search/followers', 'SearchUsersController.listUserFollowers');
+    Route.post(
+        '/search/followers',
+        'SearchUsersController.listUserFollowers',
+    ).middleware('every-auth');
     Route.post('/search/following', 'SearchUsersController.listUserFollowing');
 
     Route.post('/search/mpe', 'UserProfileController.listUserMpeRooms');

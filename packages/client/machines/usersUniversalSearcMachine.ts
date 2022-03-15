@@ -269,13 +269,9 @@ export function createUserFollowersSearchMachine({
                     >,
                 ) => {
                     try {
-                        //This is temporary
-                        //Later we will use the session cookie as auth
-                        const tmpAuthUserID = getFakeUserID();
                         const { data, page, hasMore } =
                             await fetchUserFollowers({
                                 searchQuery,
-                                tmpAuthUserID,
                                 page: nextPage,
                                 userID,
                             });

@@ -3,7 +3,7 @@ import redaxios from 'redaxios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
 
-const SHOULD_USE_TOKEN_AUTH = Platform.OS !== 'web';
+export const SHOULD_USE_TOKEN_AUTH = Platform.OS !== 'web';
 
 type Requester = typeof redaxios & {
     /**
@@ -23,6 +23,11 @@ type Requester = typeof redaxios & {
      * If the token is not found, it's a no-op.
      */
     clearToken(): Promise<void>;
+
+    /**
+     * Returns the api token if existing if not returns undefined
+     */
+    getToken(): Promise<undefined | string>;
 };
 
 /**
@@ -48,12 +53,26 @@ export function createRequester(): Requester {
             return undefined;
         }
 
-        const token = await AsyncStorage.getItem(TOKEN_STORAGE_KEY);
-        if (token === null) {
+        const token = await getToken();
+
+        if (token === undefined) {
             return;
         }
 
         setRequestAuthorizationHeader(token);
+    }
+
+    async function getToken(): Promise<undefined | string> {
+        if (SHOULD_USE_TOKEN_AUTH === false) {
+            return undefined;
+        }
+
+        const token = await AsyncStorage.getItem(TOKEN_STORAGE_KEY);
+        if (token === null) {
+            return undefined;
+        }
+
+        return token;
     }
 
     async function persistToken(token: string): Promise<void> {
@@ -79,6 +98,7 @@ export function createRequester(): Requester {
     request.loadToken = loadToken;
     request.persistToken = persistToken;
     request.clearToken = clearToken;
+    request.getToken = getToken;
 
     return request;
 }

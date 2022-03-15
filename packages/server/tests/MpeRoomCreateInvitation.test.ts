@@ -7,11 +7,15 @@ import { datatype } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import invariant from 'tiny-invariant';
-import { createSpyOnClientSocketEvent, initTestUtils } from './utils/TestUtils';
+import {
+    createSpyOnClientSocketEvent,
+    getSocketApiAuthToken,
+    initTestUtils,
+} from './utils/TestUtils';
 
 test.group(`MpeRoomInvitation tests group`, (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         createSocketConnection,
@@ -33,7 +37,7 @@ test.group(`MpeRoomInvitation tests group`, (group) => {
         const invitedUserID = datatype.uuid();
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [
                 {
@@ -41,11 +45,13 @@ test.group(`MpeRoomInvitation tests group`, (group) => {
                 },
             ],
         });
-        const invitedUserSocket = await createUserAndGetSocket({
+        const invitedUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: invitedUserID,
         });
+        const invitedUserToken = getSocketApiAuthToken(invitedUserSocket);
         const invitedUserSocketB = await createSocketConnection({
             userID: invitedUserID,
+            token: invitedUserToken,
         });
 
         //invited user spies
@@ -119,7 +125,7 @@ test.group(`MpeRoomInvitation tests group`, (group) => {
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
 
-        const socket = await createUserAndGetSocket({
+        const socket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [
                 {
@@ -155,17 +161,17 @@ test.group(`MpeRoomInvitation tests group`, (group) => {
         const normalUserID = datatype.uuid();
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [{ roomID }],
         });
 
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: normalUserID,
             mpeRoomIDToAssociate: [{ roomID }],
         });
 
-        const invitedUserSocket = await createUserAndGetSocket({
+        const invitedUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: invitedUserID,
         });
 
@@ -196,12 +202,12 @@ test.group(`MpeRoomInvitation tests group`, (group) => {
         const invitedUserID = datatype.uuid();
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [{ roomID }],
         });
 
-        const invitedUserSocket = await createUserAndGetSocket({
+        const invitedUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: invitedUserID,
             mpeRoomIDToAssociate: [{ roomID }],
         });
@@ -233,11 +239,11 @@ test.group(`MpeRoomInvitation tests group`, (group) => {
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
 
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [{ roomID }],
         });
-        const invitedUserSocket = await createUserAndGetSocket({
+        const invitedUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: invitedUserID,
         });
 

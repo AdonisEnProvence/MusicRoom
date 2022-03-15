@@ -19,7 +19,8 @@ class Ws {
         this.booted = true;
         this.io = new Server(AdonisServer.instance, {
             cors: {
-                origin: '*',
+                origin: true,
+                credentials: true,
             },
         });
         const pubClient = new RedisClient({

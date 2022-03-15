@@ -11,6 +11,7 @@ import test from 'japa';
 import sinon from 'sinon';
 import {
     getDefaultMtvRoomCreateRoomArgs,
+    getSocketApiAuthToken,
     initTestUtils,
     sleep,
 } from './utils/TestUtils';
@@ -19,7 +20,7 @@ test.group(
     `MtvRoom creation with position and time constraints but here testin only position ftm and device position udpate`,
     (group) => {
         const {
-            createUserAndGetSocket,
+            createAuthenticatedUserAndGetSocket,
             disconnectEveryRemainingSocketConnection,
             initSocketConnection,
             createSocketConnection,
@@ -117,7 +118,9 @@ test.group(
             /** ***** */
 
             const userID = datatype.uuid();
-            const socket = await createUserAndGetSocket({ userID });
+            const socket = await createAuthenticatedUserAndGetSocket({
+                userID,
+            });
 
             socket.emit('MTV_CREATE_ROOM', settings);
             await sleep();
@@ -139,11 +142,13 @@ test.group(
             let userPositionFitsTheGivenRadius: undefined | boolean;
 
             const userID = datatype.uuid();
-            await createUserAndGetSocket({
+            const socket = await createAuthenticatedUserAndGetSocket({
                 userID,
                 mtvRoomIDToAssociate: roomID,
             });
-            const socketB = await createSocketConnection({ userID });
+            const token = getSocketApiAuthToken(socket);
+
+            const socketB = await createSocketConnection({ userID, token });
 
             const relatedRoom = await MtvRoom.find(roomID);
             if (relatedRoom === null) throw new Error('mtv room is null');
@@ -195,7 +200,7 @@ test.group(
             assert.isFalse(userPositionFitsTheGivenRadius);
             mockHasBeenCalled = false;
 
-            await createSocketConnection({ userID });
+            await createSocketConnection({ userID, token });
 
             assert.isTrue(mockHasBeenCalled);
             assert.isFalse(userPositionFitsTheGivenRadius);

@@ -8,7 +8,7 @@ test.group('Connection Acknowledgement', (group) => {
     const {
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
-        createUserAndGetSocketWithoutConnectionAcknowledgement,
+        createAuthenticatedUserAndGetSocketWithoutConnectionAcknowledgement,
     } = initTestUtils();
 
     group.beforeEach(async () => {
@@ -26,10 +26,12 @@ test.group('Connection Acknowledgement', (group) => {
         const mtvRoomID = datatype.uuid();
 
         const socket =
-            await createUserAndGetSocketWithoutConnectionAcknowledgement({
-                userID: senderUserID,
-                mtvRoomIDToAssociate: mtvRoomID,
-            });
+            await createAuthenticatedUserAndGetSocketWithoutConnectionAcknowledgement(
+                {
+                    userID: senderUserID,
+                    mtvRoomIDToAssociate: mtvRoomID,
+                },
+            );
 
         const pollConnectionAcknowledgementMachine = createMachine<
             unknown,

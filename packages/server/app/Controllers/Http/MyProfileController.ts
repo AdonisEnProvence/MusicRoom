@@ -4,8 +4,11 @@ import invariant from 'tiny-invariant';
 
 export default class MyProfileController {
     public async getMyProfileInformation({
+        request,
         auth,
     }: HttpContextContract): Promise<GetMyProfileInformationResponseBody> {
+        console.log('MYPROFILEINFOMRATION HEADERS', request.headers());
+        console.log(request.cookiesList());
         const user = auth.user;
         invariant(
             user !== undefined,
@@ -21,13 +24,10 @@ export default class MyProfileController {
             .loadCount('mpeRooms')
             .loadCount('devices');
 
-        const devicesCounter = Number(user.$extras.devices_count);
-        invariant(devicesCounter > 0, 'user has no related devices');
-
         return {
             userID: user.uuid,
             userNickname,
-            devicesCounter,
+            devicesCounter: Number(user.$extras.devices_count),
             followersCounter: Number(user.$extras.followers_count),
             followingCounter: Number(user.$extras.following_count),
             playlistsCounter: Number(user.$extras.mpeRooms_count),

@@ -12,13 +12,14 @@ import urlcat from 'urlcat';
 import {
     BASE_URL,
     getDefaultMpeRoomCreateRoomArgs,
+    getSocketApiAuthToken,
     initTestUtils,
     TEST_MPE_TEMPORAL_LISTENER,
 } from './utils/TestUtils';
 
 test.group(`mpe rooms relationship tests`, (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         createSocketConnection,
@@ -43,15 +44,17 @@ test.group(`mpe rooms relationship tests`, (group) => {
             roomID: datatype.uuid(),
         }));
 
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: mpeRoomsIDs,
         });
+        const creatorToken = getSocketApiAuthToken(creatorSocket);
         const creatorSocketB = await createSocketConnection({
             userID: creatorUserID,
+            token: creatorToken,
         });
 
-        const userB = await createUserAndGetSocket({
+        const userB = await createAuthenticatedUserAndGetSocket({
             userID: datatype.uuid(),
         });
 
@@ -76,11 +79,13 @@ test.group(`mpe rooms relationship tests`, (group) => {
 
     test('It should create MPE room ', async (assert) => {
         const creatorUserID = datatype.uuid();
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
         });
+        const creatorToken = getSocketApiAuthToken(creatorSocket);
         const creatorSocketB = await createSocketConnection({
             userID: creatorUserID,
+            token: creatorToken,
         });
 
         const settings = getDefaultMpeRoomCreateRoomArgs();
@@ -222,7 +227,7 @@ test.group(`mpe rooms relationship tests`, (group) => {
 
     test('It should fail to create MPE room du to temporal fail reponse ', async (assert) => {
         const creatorUserID = datatype.uuid();
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
         });
         const settings = getDefaultMpeRoomCreateRoomArgs();
@@ -276,7 +281,7 @@ test.group(`mpe rooms relationship tests`, (group) => {
         const creatorNickname = random.words(2);
         const roomName = random.words(2);
 
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [
                 {
@@ -384,7 +389,7 @@ test.group(`mpe rooms relationship tests`, (group) => {
 
     test('It should fail to create MPE du to invalid creation args ', async (assert) => {
         const creatorUserID = datatype.uuid();
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
         });
         const settings = getDefaultMpeRoomCreateRoomArgs({

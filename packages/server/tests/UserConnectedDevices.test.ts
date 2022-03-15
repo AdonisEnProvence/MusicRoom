@@ -5,8 +5,8 @@ import sinon from 'sinon';
 import Device from '../app/Models/Device';
 import {
     createSpyOnClientSocketEvent,
+    getSocketApiAuthToken,
     initTestUtils,
-    sleep,
 } from './utils/TestUtils';
 
 test.group(
@@ -14,7 +14,7 @@ test.group(
     (group) => {
         const {
             createSocketConnection,
-            createUserAndGetSocket,
+            createAuthenticatedUserAndGetSocket,
             disconnectEveryRemainingSocketConnection,
             disconnectSocket,
             initSocketConnection,
@@ -34,14 +34,17 @@ test.group(
 
         test('It should send to every user socket instance the CONNECTED_DEVICES_UPDATE socket event on device co/dc', async (assert) => {
             const userID = datatype.uuid();
-            const socketA = await createUserAndGetSocket({ userID });
+            const socketA = await createAuthenticatedUserAndGetSocket({
+                userID,
+            });
+            const token = getSocketApiAuthToken(socketA);
 
             const socketAConnectedDevicesSpy = createSpyOnClientSocketEvent(
                 socketA,
                 'CONNECTED_DEVICES_UPDATE',
             );
 
-            const socketB = await createSocketConnection({ userID });
+            const socketB = await createSocketConnection({ userID, token });
             await waitFor(() => {
                 assert.isTrue(socketAConnectedDevicesSpy.calledOnce);
             });
@@ -57,17 +60,18 @@ test.group(
             const userID = datatype.uuid();
             const deviceNameA = random.word();
 
-            const socketA = await createUserAndGetSocket({
+            const socketA = await createAuthenticatedUserAndGetSocket({
                 userID,
                 deviceName: deviceNameA,
             });
+            const token = getSocketApiAuthToken(socketA);
 
             const deviceA = await Device.findBy('socket_id', socketA.id);
             assert.isNotNull(deviceA);
             if (deviceA === null) throw new Error('DeviceA should not be null');
 
             let callbackHasBeenCalled = false;
-            await createSocketConnection({ userID, browser: 'Safari' });
+            await createSocketConnection({ userID, browser: 'Safari', token });
 
             socketA.emit(
                 'GET_CONNECTED_DEVICES_AND_DEVICE_ID',
@@ -76,6 +80,7 @@ test.group(
 
                     assert.equal(2, devices.length);
 
+                    console.log(devices);
                     assert.isTrue(devices.some((d) => d.name === deviceNameA));
 
                     assert.isTrue(
@@ -83,11 +88,13 @@ test.group(
                     );
 
                     callbackHasBeenCalled = true;
+                    console.log({ callbackHasBeenCalled });
                 },
             );
 
-            await sleep();
-            assert.isTrue(callbackHasBeenCalled);
+            await waitFor(() => {
+                assert.isTrue(callbackHasBeenCalled);
+            });
         });
     },
 );

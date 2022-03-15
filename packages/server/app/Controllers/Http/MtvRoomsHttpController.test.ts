@@ -9,7 +9,12 @@ import MtvRoomInvitation from 'App/Models/MtvRoomInvitation';
 import User from 'App/Models/User';
 import { datatype, internet, random } from 'faker';
 import test from 'japa';
-import { initTestUtils } from '../../../tests/utils/TestUtils';
+import supertest from 'supertest';
+import {
+    BASE_URL,
+    getSocketApiAuthToken,
+    initTestUtils,
+} from '../../../tests/utils/TestUtils';
 
 function generateArray<Item>(
     length: number,
@@ -22,11 +27,9 @@ test.group('MtvRoom Search Engine', (group) => {
     const {
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
-        createUserAndGetSocket,
         createUserAndAuthenticate,
-        createSocketConnection,
         createRequest,
-        associateMtvRoomToUser,
+        createAuthenticatedUserAndGetSocket,
     } = initTestUtils();
 
     group.beforeEach(async () => {
@@ -215,15 +218,15 @@ test.group('MtvRoom Search Engine', (group) => {
 
     test('Rooms should be ordered by private room first, public but invited room in second and then some public rooms', async (assert) => {
         const PAGE_MAX_LENGTH = 10;
-        const request = createRequest();
 
-        const user = await createUserAndAuthenticate(request);
-        await createSocketConnection({
-            userID: user.uuid,
+        const userID = datatype.uuid();
+        const userSocket = await createAuthenticatedUserAndGetSocket({
+            userID,
         });
+        const userToken = getSocketApiAuthToken(userSocket);
 
         const creatorUserID = datatype.uuid();
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
         });
 
@@ -254,7 +257,7 @@ test.group('MtvRoom Search Engine', (group) => {
                     runID: datatype.uuid(),
                     name: random.words(2),
                     //Adding some complexity to the query
-                    creatorID: isIndexZero ? user.uuid : creatorUserID,
+                    creatorID: isIndexZero ? userID : creatorUserID,
                     isOpen: isIndexEven,
                 };
             }),
@@ -264,7 +267,7 @@ test.group('MtvRoom Search Engine', (group) => {
         const publicRoom = rooms[10];
         const firstInvitationForPublicRoom = await MtvRoomInvitation.create({
             mtvRoomID: publicRoom.uuid,
-            invitedUserID: user.uuid,
+            invitedUserID: userID,
             invitingUserID: creatorUserID,
             uuid: datatype.uuid(),
         });
@@ -276,7 +279,7 @@ test.group('MtvRoom Search Engine', (group) => {
         const privateRoom = rooms[7];
         const firstInvitationForPrivateRoom = await MtvRoomInvitation.create({
             mtvRoomID: privateRoom.uuid,
-            invitedUserID: user.uuid,
+            invitedUserID: userID,
             invitingUserID: creatorUserID,
             uuid: datatype.uuid(),
         });
@@ -288,7 +291,7 @@ test.group('MtvRoom Search Engine', (group) => {
         const secondPrivateRoom = rooms[11];
         const secondInvitationForPrivateRoom = await MtvRoomInvitation.create({
             mtvRoomID: secondPrivateRoom.uuid,
-            invitedUserID: user.uuid,
+            invitedUserID: userID,
             invitingUserID: creatorUserID,
             uuid: datatype.uuid(),
         });
@@ -302,8 +305,9 @@ test.group('MtvRoom Search Engine', (group) => {
             page: 1,
             searchQuery: '',
         };
-        const { body: firstPageBodyRaw } = await request
+        const { body: firstPageBodyRaw } = await supertest(BASE_URL)
             .post('/search/rooms')
+            .set('Authorization', `Bearer ${userToken}`)
             .send(firstPageRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
@@ -357,21 +361,17 @@ test.group('MtvRoom Search Engine', (group) => {
     });
 
     test("It should not list the user's current room", async (assert) => {
-        const request = createRequest();
-
-        const user = await createUserAndAuthenticate(request);
+        const userID = datatype.uuid();
         const mtvRoomIDToAssociate = datatype.uuid();
-        await createSocketConnection({
-            userID: user.uuid,
+        const userSocket = await createAuthenticatedUserAndGetSocket({
+            userID,
+            mtvRoomIDToAssociate,
         });
-        await associateMtvRoomToUser({
-            user,
-            mtvRoomID: mtvRoomIDToAssociate,
-        });
-
+        const userToken = getSocketApiAuthToken(userSocket);
         const creatorUserID = datatype.uuid();
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
+            mtvRoomIDToAssociate,
         });
 
         const roomsCount = datatype.number({
@@ -395,8 +395,9 @@ test.group('MtvRoom Search Engine', (group) => {
             page: 1,
             searchQuery: '',
         };
-        const { body: pageBodyRaw } = await request
+        const { body: pageBodyRaw } = await supertest(BASE_URL)
             .post('/search/rooms')
+            .set('Authorization', `Bearer ${userToken}`)
             .send(pageRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
@@ -412,12 +413,11 @@ test.group('MtvRoom Search Engine', (group) => {
     });
 
     test('It should not duplicate any result even after a lot of page', async (assert) => {
-        const request = createRequest();
-
-        const user = await createUserAndAuthenticate(request);
-        await createSocketConnection({
-            userID: user.uuid,
+        const userID = datatype.uuid();
+        const userSocket = await createAuthenticatedUserAndGetSocket({
+            userID,
         });
+        const userToken = getSocketApiAuthToken(userSocket);
 
         const creator = await User.firstOrCreate({
             uuid: 'f5ddbf01-cc01-4422-b347-67988342b558',
@@ -461,8 +461,9 @@ test.group('MtvRoom Search Engine', (group) => {
                 page,
                 searchQuery: '',
             };
-            const { body: pageBodyRaw } = await request
+            const { body: pageBodyRaw } = await supertest(BASE_URL)
                 .post('/search/rooms')
+                .set('Authorization', `Bearer ${userToken}`)
                 .send(pageRequestBody)
                 .expect('Content-Type', /json/)
                 .expect(200);

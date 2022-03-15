@@ -3,11 +3,15 @@ import MpeServerToTemporalController from 'App/Controllers/Http/Temporal/MpeServ
 import { datatype } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
-import { createSpyOnClientSocketEvent, initTestUtils } from './utils/TestUtils';
+import {
+    createSpyOnClientSocketEvent,
+    getSocketApiAuthToken,
+    initTestUtils,
+} from './utils/TestUtils';
 
 test.group(`user receives MpeRoom invitation tests group`, (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         createSocketConnection,
@@ -29,7 +33,7 @@ test.group(`user receives MpeRoom invitation tests group`, (group) => {
         const invitedUserID = datatype.uuid();
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [
                 {
@@ -37,11 +41,13 @@ test.group(`user receives MpeRoom invitation tests group`, (group) => {
                 },
             ],
         });
-        const invitedUserSocket = await createUserAndGetSocket({
+        const invitedUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: invitedUserID,
         });
+        const invitedUserToken = getSocketApiAuthToken(invitedUserSocket);
         const invitedUserSocketB = await createSocketConnection({
             userID: invitedUserID,
+            token: invitedUserToken,
         });
 
         //invited user spies

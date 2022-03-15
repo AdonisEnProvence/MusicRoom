@@ -5,11 +5,11 @@ import MtvRoomInvitation from 'App/Models/MtvRoomInvitation';
 import { datatype } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
-import { initTestUtils, sleep } from './utils/TestUtils';
+import { getSocketApiAuthToken, initTestUtils } from './utils/TestUtils';
 
 test.group(`MtvRoomInvitation tests group`, (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         createSocketConnection,
@@ -32,15 +32,17 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         const invitedUserID = datatype.uuid();
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mtvRoomIDToAssociate: roomID,
         });
-        const invitedUserSocket = await createUserAndGetSocket({
+        const invitedUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: invitedUserID,
         });
+        const invitedUserToken = getSocketApiAuthToken(invitedUserSocket);
         const invitedUserSocketB = await createSocketConnection({
             userID: invitedUserID,
+            token: invitedUserToken,
         });
 
         const receivedEvents: string[] = [];
@@ -54,9 +56,10 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         creatorSocket.emit('MTV_CREATOR_INVITE_USER', {
             invitedUserID,
         });
-        await sleep();
 
-        assert.equal(receivedEvents.length, 2);
+        await waitFor(() => {
+            assert.equal(receivedEvents.length, 2);
+        });
         const createdInvitation = await MtvRoomInvitation.findBy(
             'invited_user_id',
             invitedUserID,
@@ -72,10 +75,11 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         creatorSocket.emit('MTV_CREATOR_INVITE_USER', {
             invitedUserID,
         });
-        await sleep();
-        assert.equal(receivedEvents.length, 4);
-        const allInvitations = await MtvRoomInvitation.all();
-        assert.equal(allInvitations.length, 1);
+        await waitFor(async () => {
+            assert.equal(receivedEvents.length, 4);
+            const allInvitations = await MtvRoomInvitation.all();
+            assert.equal(allInvitations.length, 1);
+        });
     });
 
     test('It should fail to invite user as invitedUser is creator himself', async (assert) => {
@@ -83,12 +87,12 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
 
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mtvRoomIDToAssociate: roomID,
         });
 
-        const invitedUserSocket = await createUserAndGetSocket({
+        const invitedUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: invitedUserID,
         });
 
@@ -113,17 +117,17 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         const invitedUserID = datatype.uuid();
         const normalUserID = datatype.uuid();
         const roomID = datatype.uuid();
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: datatype.uuid(),
             mtvRoomIDToAssociate: roomID,
         });
 
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: normalUserID,
             mtvRoomIDToAssociate: roomID,
         });
 
-        const invitedUserSocket = await createUserAndGetSocket({
+        const invitedUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: invitedUserID,
         });
 
@@ -151,12 +155,12 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         const invitedUserID = datatype.uuid();
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mtvRoomIDToAssociate: roomID,
         });
 
-        const invitedUserSocket = await createUserAndGetSocket({
+        const invitedUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: invitedUserID,
             mtvRoomIDToAssociate: roomID,
         });
@@ -185,11 +189,11 @@ test.group(`MtvRoomInvitation tests group`, (group) => {
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
 
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mtvRoomIDToAssociate: roomID,
         });
-        const invitedUserSocket = await createUserAndGetSocket({
+        const invitedUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: invitedUserID,
         });
 

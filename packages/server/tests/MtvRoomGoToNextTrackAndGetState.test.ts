@@ -11,7 +11,7 @@ test.group(
     GetState join create goToNextTrack play pause etc`,
     (group) => {
         const {
-            createUserAndGetSocket,
+            createAuthenticatedUserAndGetSocket,
             disconnectEveryRemainingSocketConnection,
             initSocketConnection,
         } = initTestUtils();
@@ -36,7 +36,7 @@ test.group(
             const userID = datatype.uuid();
 
             const mtvRoomIDToAssociate = datatype.uuid();
-            const socket = await createUserAndGetSocket({
+            const socket = await createAuthenticatedUserAndGetSocket({
                 userID,
                 mtvRoomIDToAssociate,
             });
@@ -59,7 +59,7 @@ test.group(
              */
             const userID = datatype.uuid();
             const mtvRoomIDToAssociate = datatype.uuid();
-            const socket = await createUserAndGetSocket({
+            const socket = await createAuthenticatedUserAndGetSocket({
                 userID,
                 mtvRoomIDToAssociate,
             });

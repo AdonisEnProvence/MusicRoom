@@ -10,7 +10,7 @@ import { initTestUtils } from './utils/TestUtils';
 
 test.group(`Invited user joins mtv room`, (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         waitFor,
@@ -31,11 +31,11 @@ test.group(`Invited user joins mtv room`, (group) => {
         const invitedUserID = datatype.uuid();
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mtvRoomIDToAssociate: roomID,
         });
-        const invitedUserSocket = await createUserAndGetSocket({
+        const invitedUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: invitedUserID,
         });
 
@@ -75,7 +75,7 @@ test.group(`Invited user joins mtv room`, (group) => {
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
 
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mtvRoomIDToAssociate: roomID,
         });
@@ -87,7 +87,7 @@ test.group(`Invited user joins mtv room`, (group) => {
         createdRoom.isOpen = false;
         await createdRoom.save();
 
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: joiningUserID,
         });
 
@@ -121,11 +121,11 @@ test.group(`Invited user joins mtv room`, (group) => {
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
 
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mtvRoomIDToAssociate: roomID,
         });
-        const joiningUserSocket = await createUserAndGetSocket({
+        const joiningUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: joiningUserID,
         });
 

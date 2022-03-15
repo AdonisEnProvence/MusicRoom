@@ -11,7 +11,7 @@ import {
 } from 'xstate';
 import { SocketClient } from '../contexts/SocketContext';
 import { sendSignIn } from '../services/AuthenticationService';
-import { request } from '../services/http';
+import { request, SHOULD_USE_TOKEN_AUTH } from '../services/http';
 import { getMyProfileInformation } from '../services/UsersSearchService';
 import { appModel } from './appModel';
 import { createAppMusicPlayerMachine } from './appMusicPlayerMachine';
@@ -57,7 +57,7 @@ export function createAppMachine({
                     tags: 'showApplicationLoader',
 
                     always: {
-                        cond: 'isOnWeb',
+                        cond: 'shouldUseWebAuth',
 
                         target: 'fetchingInitialUserAuthenticationState',
                     },
@@ -78,7 +78,7 @@ export function createAppMachine({
                         src: 'fetchUser',
 
                         onDone: {
-                            target: 'waitingForServerToAcknowledgeSocketConnection',
+                            target: 'reconnectingSocketConnection',
                         },
 
                         onError: {
@@ -145,9 +145,7 @@ export function createAppMachine({
                             },
 
                             onDone: {
-                                target: '#app.waitingForServerToAcknowledgeSocketConnection',
-
-                                actions: 'reconnectSocket',
+                                target: '#app.reconnectingSocketConnection',
                             },
                         },
 
@@ -168,10 +166,19 @@ export function createAppMachine({
                             },
 
                             onDone: {
-                                target: '#app.waitingForServerToAcknowledgeSocketConnection',
-
-                                actions: 'reconnectSocket',
+                                target: '#app.reconnectingSocketConnection',
                             },
+                        },
+                    },
+                },
+
+                reconnectingSocketConnection: {
+                    tags: ['showApplicationLoader', 'userIsAuthenticated'],
+
+                    invoke: {
+                        src: 'reconnectSocket',
+                        onDone: {
+                            target: '#app.waitingForServerToAcknowledgeSocketConnection',
                         },
                     },
                 },
@@ -185,7 +192,7 @@ export function createAppMachine({
                         fetching: {
                             after: {
                                 500: {
-                                    target: 'deboucing',
+                                    target: 'debouncing',
                                 },
                             },
 
@@ -205,7 +212,7 @@ export function createAppMachine({
                             },
                         },
 
-                        deboucing: {
+                        debouncing: {
                             after: {
                                 500: {
                                     target: 'fetching',
@@ -279,6 +286,22 @@ export function createAppMachine({
                     return me;
                 },
 
+                reconnectSocket: async (_context) => {
+                    if (SHOULD_USE_TOKEN_AUTH) {
+                        const token = await request.getToken();
+                        invariant(
+                            token !== undefined,
+                            'retrieved token is undefined reconnectSocket',
+                        );
+
+                        socket.auth = {
+                            Authorization: `Bearer ${token}`,
+                        };
+                    }
+                    socket.disconnect();
+                    socket.connect();
+                },
+
                 signIn: async ({
                     email,
                     password,
@@ -303,21 +326,13 @@ export function createAppMachine({
                 },
             },
 
-            actions: {
-                reconnectSocket: () => {
-                    socket.disconnect();
-                    socket.connect();
-                },
-            },
-
             guards: {
-                isOnWeb: () => Platform.OS === 'web',
-
                 submittedSigningInCredentialsAreInvalid: (_context, e) => {
                     const event = e as DoneInvokeEvent<SignInResponseBody>;
 
                     return event.data.status === 'INVALID_CREDENTIALS';
                 },
+                shouldUseWebAuth: () => !SHOULD_USE_TOKEN_AUTH,
             },
         },
     );

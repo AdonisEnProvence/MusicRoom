@@ -12,7 +12,7 @@ import {
 
 test.group('MPE get context', (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         waitFor,
@@ -42,7 +42,7 @@ test.group('MPE get context', (group) => {
             maxLength: 7,
         });
         const { roomID } = roomsIDs[0];
-        const socket = await createUserAndGetSocket({
+        const socket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: roomsIDs,
         });
@@ -101,7 +101,7 @@ test.group('MPE get context', (group) => {
             roomID,
             roomName: random.words(3),
         };
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [room],
         });
@@ -119,7 +119,7 @@ test.group('MPE get context', (group) => {
             maxLength: 7,
         });
         const userID = datatype.uuid();
-        const socket = await createUserAndGetSocket({
+        const socket = await createAuthenticatedUserAndGetSocket({
             userID,
             mpeRoomIDToAssociate: roomsIDs,
         });
@@ -181,7 +181,7 @@ test.group('MPE get context', (group) => {
             roomName: random.words(3),
         }));
         const userID = datatype.uuid();
-        const socket = await createUserAndGetSocket({
+        const socket = await createAuthenticatedUserAndGetSocket({
             userID,
             mpeRoomIDToAssociate: roomsIDs,
         });
@@ -228,7 +228,7 @@ test.group('MPE get context', (group) => {
         };
         const creatorUserID = datatype.uuid();
 
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [room],
         });
@@ -241,7 +241,7 @@ test.group('MPE get context', (group) => {
             roomName: random.words(3),
         }));
         const userID = datatype.uuid();
-        const socket = await createUserAndGetSocket({
+        const socket = await createAuthenticatedUserAndGetSocket({
             userID,
             mpeRoomIDToAssociate: roomsIDs,
         });
@@ -288,7 +288,7 @@ test.group('MPE get context', (group) => {
         };
         const creatorUserID = datatype.uuid();
 
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [room],
         });
@@ -301,7 +301,7 @@ test.group('MPE get context', (group) => {
             roomName: random.words(3),
         }));
         const invitedUserID = datatype.uuid();
-        const invitedUserSocket = await createUserAndGetSocket({
+        const invitedUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: invitedUserID,
             mpeRoomIDToAssociate: roomsIDs,
         });
@@ -376,7 +376,7 @@ test.group('MPE get context', (group) => {
         };
         const creatorUserID = datatype.uuid();
 
-        await createUserAndGetSocket({
+        await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [room],
         });
@@ -389,7 +389,7 @@ test.group('MPE get context', (group) => {
             roomName: random.words(3),
         }));
         const userID = datatype.uuid();
-        const socket = await createUserAndGetSocket({
+        const socket = await createAuthenticatedUserAndGetSocket({
             userID,
             mpeRoomIDToAssociate: [...roomsIDs, room],
         });

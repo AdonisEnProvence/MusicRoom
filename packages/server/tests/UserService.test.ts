@@ -10,7 +10,7 @@ import { initTestUtils, sleep } from './utils/TestUtils';
 
 test.group(`User service socket handler tests`, (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
     } = initTestUtils();
@@ -28,7 +28,7 @@ test.group(`User service socket handler tests`, (group) => {
 
     test('It should send server socket event to the client via the UserService.emitEventInSocket', async (assert) => {
         const userID = datatype.uuid();
-        const socket = await createUserAndGetSocket({ userID });
+        const socket = await createAuthenticatedUserAndGetSocket({ userID });
         const state: MtvWorkflowState = {
             currentTrack: null,
             playingMode: 'BROADCAST',

@@ -15,6 +15,7 @@ import {
     initTestUtils,
     generateMpeWorkflowState,
     TEST_MPE_TEMPORAL_LISTENER,
+    getSocketApiAuthToken,
 } from './utils/TestUtils';
 
 function noop() {
@@ -23,7 +24,7 @@ function noop() {
 
 test.group('MPE Add Tracks', (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         createSocketConnection,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
@@ -44,7 +45,7 @@ test.group('MPE Add Tracks', (group) => {
     test('Can not add tracks for a room in which user is not member', async (assert) => {
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
-        const socket = await createUserAndGetSocket({
+        const socket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             // User is not in any room.
             mpeRoomIDToAssociate: [],
@@ -83,7 +84,7 @@ test.group('MPE Add Tracks', (group) => {
     test('Sends rejection message to user if tracks could not be added by Temporal', async (assert) => {
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
-        const socket = await createUserAndGetSocket({
+        const socket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [
                 {
@@ -156,7 +157,7 @@ test.group('MPE Add Tracks', (group) => {
     test('Sends adding tracks acknowledgement to the user if it succeeded', async (assert) => {
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
-        const userASocket1 = await createUserAndGetSocket({
+        const userASocket1 = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [
                 {
@@ -232,7 +233,7 @@ test.group('MPE Add Tracks', (group) => {
     test("Sends tracks list update to every other user's devices if adding tracks succeeded", async (assert) => {
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
-        const userASocket1 = await createUserAndGetSocket({
+        const userASocket1 = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [
                 {
@@ -240,8 +241,10 @@ test.group('MPE Add Tracks', (group) => {
                 },
             ],
         });
+        const userAToken = getSocketApiAuthToken(userASocket1);
         const userASocket2 = await createSocketConnection({
             userID: creatorUserID,
+            token: userAToken,
         });
         const roomState = generateMpeWorkflowState({
             roomID,
@@ -311,7 +314,7 @@ test.group('MPE Add Tracks', (group) => {
     test('Sends tracks list update to every other user if adding tracks succeeded', async (assert) => {
         const creatorUserID = datatype.uuid();
         const roomID = datatype.uuid();
-        const userASocket1 = await createUserAndGetSocket({
+        const userASocket1 = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [
                 {
@@ -319,7 +322,7 @@ test.group('MPE Add Tracks', (group) => {
                 },
             ],
         });
-        const userBSocket1 = await createUserAndGetSocket({
+        const userBSocket1 = await createAuthenticatedUserAndGetSocket({
             userID: datatype.uuid(),
             mpeRoomIDToAssociate: [
                 {

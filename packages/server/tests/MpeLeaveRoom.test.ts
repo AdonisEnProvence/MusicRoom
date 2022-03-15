@@ -13,11 +13,12 @@ import {
     createSpyOnClientSocketEvent,
     BASE_URL,
     TEST_MPE_TEMPORAL_LISTENER,
+    getSocketApiAuthToken,
 } from './utils/TestUtils';
 
 test.group('MPE leave room tests group', (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         waitFor,
@@ -43,20 +44,24 @@ test.group('MPE leave room tests group', (group) => {
             roomName: random.words(3),
         };
         const roomID = mpeRoomToAssociate.roomID;
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [mpeRoomToAssociate],
         });
+        const creatorToken = getSocketApiAuthToken(creatorSocket);
         const creatorSocketB = await createSocketConnection({
             userID: creatorUserID,
+            token: creatorToken,
         });
 
-        const joiningUserSocket = await createUserAndGetSocket({
+        const joiningUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: joiningUserID,
             mpeRoomIDToAssociate: [mpeRoomToAssociate],
         });
+        const joiningUserToken = getSocketApiAuthToken(joiningUserSocket);
         const joiningUserSocketB = await createSocketConnection({
             userID: joiningUserID,
+            token: joiningUserToken,
         });
 
         const state = generateMpeWorkflowState({
@@ -215,20 +220,24 @@ test.group('MPE leave room tests group', (group) => {
             roomName: random.words(3),
         };
         const roomID = mpeRoomToAssociate.roomID;
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [mpeRoomToAssociate],
         });
+        const creatorToken = getSocketApiAuthToken(creatorSocket);
         const creatorSocketB = await createSocketConnection({
             userID: creatorUserID,
+            token: creatorToken,
         });
 
-        const joiningUserSocket = await createUserAndGetSocket({
+        const joiningUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: joiningUserID,
             mpeRoomIDToAssociate: [mpeRoomToAssociate],
         });
+        const joiningUserToken = getSocketApiAuthToken(joiningUserSocket);
         const joiningUserSocketB = await createSocketConnection({
             userID: joiningUserID,
+            token: joiningUserToken,
         });
 
         sinon

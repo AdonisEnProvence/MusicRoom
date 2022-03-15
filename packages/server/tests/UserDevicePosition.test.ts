@@ -14,7 +14,7 @@ test.group(
     `MtvRoom creation with position and time constraints but here testin only position ftm and device position udpate`,
     (group) => {
         const {
-            createUserAndGetSocket,
+            createAuthenticatedUserAndGetSocket,
             disconnectEveryRemainingSocketConnection,
             initSocketConnection,
         } = initTestUtils();
@@ -51,7 +51,9 @@ test.group(
             /** ***** */
 
             const userID = datatype.uuid();
-            const socket = await createUserAndGetSocket({ userID });
+            const socket = await createAuthenticatedUserAndGetSocket({
+                userID,
+            });
 
             socket.emit('UPDATE_DEVICE_POSITION', mockedCoords);
             await sleep();
@@ -66,7 +68,7 @@ test.group(
         test(`It should find user fits position and then doesnot anymore as his device coords are more than 24hours old`, async (assert) => {
             const roomID = datatype.uuid();
             const userID = datatype.uuid();
-            await createUserAndGetSocket({
+            await createAuthenticatedUserAndGetSocket({
                 userID,
                 mtvRoomIDToAssociate: roomID,
             });

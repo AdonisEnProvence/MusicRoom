@@ -10,13 +10,14 @@ import {
     BASE_URL,
     createSpyOnClientSocketEvent,
     generateMpeWorkflowState,
+    getSocketApiAuthToken,
     initTestUtils,
     TEST_MPE_TEMPORAL_LISTENER,
 } from './utils/TestUtils';
 
 test.group(`join mpe room group test`, (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
         createSocketConnection,
@@ -44,22 +45,25 @@ test.group(`join mpe room group test`, (group) => {
         });
 
         //Creator
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [{ roomID: mpeRoomIDToAssociate }],
         });
+        const creatorToken = getSocketApiAuthToken(creatorSocket);
         const creatorSocketB = await createSocketConnection({
             userID: creatorUserID,
+            token: creatorToken,
         });
         ///
 
         //Joiner
-        const joiningUserSocket = await createUserAndGetSocket({
+        const joiningUserSocket = await createAuthenticatedUserAndGetSocket({
             userID: joiningUserID,
         });
-
+        const joiningUserToken = getSocketApiAuthToken(joiningUserSocket);
         const joiningUserSocketB = await createSocketConnection({
             userID: joiningUserID,
+            token: joiningUserToken,
         });
 
         //Creator
@@ -165,12 +169,14 @@ test.group(`join mpe room group test`, (group) => {
         const mpeRoomIDToAssociate = datatype.uuid();
 
         //Creator
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
             mpeRoomIDToAssociate: [{ roomID: mpeRoomIDToAssociate }],
         });
+        const creatorToken = getSocketApiAuthToken(creatorSocket);
         const creatorSocketB = await createSocketConnection({
             userID: creatorUserID,
+            token: creatorToken,
         });
         ///
 

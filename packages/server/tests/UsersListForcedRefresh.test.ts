@@ -55,7 +55,7 @@ function getBasicState({
 
 test.group(`MtvRoom get users list test group`, (group) => {
     const {
-        createUserAndGetSocket,
+        createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
     } = initTestUtils();
@@ -74,7 +74,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
     test('It should emit users list forced refresh on temporal response for user length update', async (assert) => {
         const userID = datatype.uuid();
         const roomID = datatype.uuid();
-        const socket = await createUserAndGetSocket({
+        const socket = await createAuthenticatedUserAndGetSocket({
             userID,
             mtvRoomIDToAssociate: roomID,
         });
@@ -97,7 +97,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
     test('It should emit users list forced refresh on temporal response for update delegation owner', async (assert) => {
         const userID = datatype.uuid();
         const roomID = datatype.uuid();
-        const socket = await createUserAndGetSocket({
+        const socket = await createAuthenticatedUserAndGetSocket({
             userID,
             mtvRoomIDToAssociate: roomID,
         });
@@ -120,7 +120,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
     test('It should emit users list forced refresh on temporal response for update control and delegation permission', async (assert) => {
         const userID = datatype.uuid();
         const roomID = datatype.uuid();
-        const socket = await createUserAndGetSocket({
+        const socket = await createAuthenticatedUserAndGetSocket({
             userID,
             mtvRoomIDToAssociate: roomID,
         });
@@ -151,7 +151,7 @@ test.group(`MtvRoom get users list test group`, (group) => {
     test('It should emit users list forced refresh on temporal response for leave temporal response', async (assert) => {
         const userID = datatype.uuid();
         const roomID = datatype.uuid();
-        const creatorSocket = await createUserAndGetSocket({
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID,
             mtvRoomIDToAssociate: roomID,
         });

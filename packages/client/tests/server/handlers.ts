@@ -595,40 +595,49 @@ export const handlers = [
         ListUserFollowingRequestBody,
         Record<string, never>,
         ListUserFollowingResponseBody
-    >(`${SERVER_ENDPOINT}/user/search/following`, (req, res, ctx) => {
-        const PAGE_SIZE = 10;
-        const { page, searchQuery } = req.body;
+    >(
+        `${SERVER_ENDPOINT}/user/search/following`,
+        withAuthentication((req, res, ctx) => {
+            const PAGE_SIZE = 10;
+            const { page, searchQuery } = req.body;
 
-        const userFollowing = db.userFollowing.findFirst({
-            where: {
-                userID: {
-                    equals: req.body.userID,
+            const userFollowing = db.userFollowing.findFirst({
+                where: {
+                    userID: {
+                        equals: req.body.userID,
+                    },
                 },
-            },
-        });
+            });
 
-        if (userFollowing === null || userFollowing.following === undefined) {
-            return res(ctx.status(404));
-        }
+            if (
+                userFollowing === null ||
+                userFollowing.following === undefined
+            ) {
+                return res(ctx.status(404));
+            }
 
-        const filteredUserFollowing = userFollowing.following.filter((user) =>
-            user.nickname.toLowerCase().startsWith(searchQuery.toLowerCase()),
-        );
+            const filteredUserFollowing = userFollowing.following.filter(
+                (user) =>
+                    user.nickname
+                        .toLowerCase()
+                        .startsWith(searchQuery.toLowerCase()),
+            );
 
-        const paginatedFollowing = filteredUserFollowing.slice(
-            (page - 1) * PAGE_SIZE,
-            page * PAGE_SIZE,
-        );
+            const paginatedFollowing = filteredUserFollowing.slice(
+                (page - 1) * PAGE_SIZE,
+                page * PAGE_SIZE,
+            );
 
-        return res(
-            ctx.json({
-                data: paginatedFollowing,
-                totalEntries: filteredUserFollowing.length,
-                hasMore: filteredUserFollowing.length > page * PAGE_SIZE,
-                page,
-            }),
-        );
-    }),
+            return res(
+                ctx.json({
+                    data: paginatedFollowing,
+                    totalEntries: filteredUserFollowing.length,
+                    hasMore: filteredUserFollowing.length > page * PAGE_SIZE,
+                    page,
+                }),
+            );
+        }),
+    ),
 
     rest.post<ListMyFollowingRequestBody, never, ListMyFollowersResponseBody>(
         `${SERVER_ENDPOINT}/me/search/following`,

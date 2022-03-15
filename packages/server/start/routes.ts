@@ -83,7 +83,10 @@ Route.group(() => {
         '/search/followers',
         'SearchUsersController.listUserFollowers',
     ).middleware('every-auth');
-    Route.post('/search/following', 'SearchUsersController.listUserFollowing');
+    Route.post(
+        '/search/following',
+        'SearchUsersController.listUserFollowing',
+    ).middleware('every-auth');
 
     Route.post('/search/mpe', 'UserProfileController.listUserMpeRooms');
 }).prefix(USER_ROUTES_GROUP_PREFIX);

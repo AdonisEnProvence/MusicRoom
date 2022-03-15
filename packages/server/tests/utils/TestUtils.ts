@@ -302,6 +302,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
         }
 
         const socket = io(BASE_URL, {
+            query,
             extraHeaders,
             withCredentials: true, //useless same domain for server and test ?
             auth: {

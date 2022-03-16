@@ -16,11 +16,11 @@ import {
     generateUserSummary,
 } from '../tests/data';
 import {
+    CLIENT_INTEG_TEST_USER_ID,
     fireEvent,
     getFakeUsersList,
     render,
     renderApp,
-    testGetFakeUserID,
     waitFor,
     waitForElementToBeRemoved,
     within,
@@ -691,7 +691,7 @@ describe('Display following and search users', () => {
                     });
 
                     db.userFollowing.create({
-                        userID: testGetFakeUserID(),
+                        userID: CLIENT_INTEG_TEST_USER_ID,
                         following: fakeFollowing.map((following) =>
                             db.searchableUsers.create(following),
                         ),
@@ -796,7 +796,7 @@ test('Clearing search input displays users without filtering', async () => {
     const userNicknameToSearch = fakeUsers[0].nickname;
 
     db.userFollowing.create({
-        userID: testGetFakeUserID(),
+        userID: CLIENT_INTEG_TEST_USER_ID,
         following: fakeFollowing.map((following) =>
             db.searchableUsers.create(following),
         ),
@@ -876,7 +876,7 @@ test('Cancelling search input displays users without filtering', async () => {
     const userNicknameToSearch = fakeUsers[0].nickname;
 
     db.userFollowing.create({
-        userID: testGetFakeUserID(),
+        userID: CLIENT_INTEG_TEST_USER_ID,
         following: fakeFollowing.map((following) =>
             db.searchableUsers.create(following),
         ),

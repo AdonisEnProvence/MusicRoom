@@ -16,7 +16,7 @@ import { serverSocket } from '../../../../services/websockets';
 import {
     render,
     renderApp,
-    testGetFakeUserID,
+    CLIENT_INTEG_TEST_USER_ID,
 } from '../../../../tests/tests-utils';
 import { db, generateMtvWorklowState } from '../../../../tests/data';
 import { server } from '../../../../tests/server/test-server';
@@ -505,7 +505,7 @@ cases<{
         await plan.test({
             meUserSummary: {
                 nickname: internet.userName(),
-                userID: testGetFakeUserID(),
+                userID: CLIENT_INTEG_TEST_USER_ID,
             },
             searchedUserSummary: {
                 nickname: internet.userName(),
@@ -568,7 +568,7 @@ cases<{
         });
         const meUserSummary = {
             nickname: internet.userName(),
-            userID: testGetFakeUserID(),
+            userID: CLIENT_INTEG_TEST_USER_ID,
         };
         const searchedUserSummary = {
             nickname: internet.userName(),

@@ -17,7 +17,7 @@ import {
     renderApp,
     within,
     waitFor,
-    testGetFakeUserID,
+    CLIENT_INTEG_TEST_USER_ID,
     noop,
 } from '../../../tests/tests-utils';
 import { db } from '../../../tests/data';
@@ -624,7 +624,7 @@ const updateVisibilitySettingsTestModel = createTestModel<TestingContext>(
                     const user = db.myProfileInformation.findFirst({
                         where: {
                             userID: {
-                                equals: testGetFakeUserID(),
+                                equals: CLIENT_INTEG_TEST_USER_ID,
                             },
                         },
                     });
@@ -838,7 +838,7 @@ cases<{
 }>(
     "Initial fetching of user's settings",
     async ({ events, target }) => {
-        const userID = testGetFakeUserID();
+        const userID = CLIENT_INTEG_TEST_USER_ID;
 
         const user = db.myProfileInformation.create({
             userID,
@@ -910,7 +910,7 @@ cases<{
         events,
         target,
     }) => {
-        const userID = testGetFakeUserID();
+        const userID = CLIENT_INTEG_TEST_USER_ID;
 
         const user = db.myProfileInformation.create({
             userID,

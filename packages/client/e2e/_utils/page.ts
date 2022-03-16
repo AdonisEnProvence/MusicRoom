@@ -8,13 +8,6 @@ import {
     withinSignUpFormScreenContainer,
 } from './mpe-e2e-utils';
 
-const UserCredentials = z.object({
-    userID: z.string().uuid(),
-    userNickname: z.string(),
-});
-
-type UserCredentials = z.infer<typeof UserCredentials>;
-
 export const GEOLOCATION_POSITIONS = {
     'Paris, France': {
         latitude: 48.864716,
@@ -45,6 +38,8 @@ export async function setupPageAndSignUpUser({
     context: BrowserContext;
     page: Page;
     userNickname: string;
+    password: string;
+    email: string;
     userID: string;
 }> {
     const context = await browser.newContext({
@@ -61,7 +56,7 @@ export async function setupPageAndSignUpUser({
 
     await page.goto('/');
 
-    const { userNickname, userID } = await performSignUp(page);
+    const { userNickname, userID, email, password } = await performSignUp(page);
 
     await initPage(page);
 
@@ -70,6 +65,8 @@ export async function setupPageAndSignUpUser({
         page,
         userNickname,
         userID,
+        email,
+        password,
     };
 }
 

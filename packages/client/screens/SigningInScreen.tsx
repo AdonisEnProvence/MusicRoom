@@ -48,7 +48,7 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
     }
 
     return (
-        <AppScreen>
+        <AppScreen testID="sign-in-screen-container">
             <SafeAreaView sx={{ flex: 1 }}>
                 <Text
                     sx={{

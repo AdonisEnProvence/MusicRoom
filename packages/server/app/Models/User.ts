@@ -135,6 +135,9 @@ export default class User extends BaseModel {
             user.password = await Hash.make(user.password);
         }
     }
+
+    @column.dateTime()
+    public confirmedEmailAt: DateTime | null;
     ///
 
     @column.dateTime({ autoCreate: true })

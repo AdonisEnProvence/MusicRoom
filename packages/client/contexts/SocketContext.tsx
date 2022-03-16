@@ -4,7 +4,6 @@ import {
 } from '@musicroom/types';
 import * as Device from 'expo-device';
 import React, { useContext, useMemo } from 'react';
-import invariant from 'tiny-invariant';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
 import { io, Socket } from '../services/websockets';
 
@@ -33,12 +32,6 @@ export function useSocket(): SocketClient {
     }, []);
 
     return socket;
-}
-
-export function getFakeUserID(): string {
-    const userID = window.localStorage.getItem('USER_ID');
-    invariant(userID !== null, 'userID is null');
-    return userID;
 }
 
 const SocketContext = React.createContext<SocketClient | undefined>(undefined);

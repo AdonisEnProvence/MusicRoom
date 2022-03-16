@@ -2,13 +2,14 @@ import { createModel } from 'xstate/lib/model';
 
 export const appModel = createModel(
     {
+        userID: undefined as string | undefined,
         email: undefined as string | undefined,
         password: undefined as string | undefined,
     },
     {
         events: {
             SIGN_IN: (args: { email: string; password: string }) => args,
-            SIGNED_UP_SUCCESSFULLY: () => ({}),
+            SIGNED_UP_SUCCESSFULLY: (userID: string) => ({ userID }),
 
             ACKNOWLEDGE_SOCKET_CONNECTION: () => ({}),
 

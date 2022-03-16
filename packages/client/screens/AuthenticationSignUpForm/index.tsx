@@ -24,7 +24,7 @@ type UpdateNicknameMachineEvent =
           type: 'Validated sign up form';
           body: AuthenticationSignUpFormFormFieldValues;
       }
-    | { type: 'Signed up successfully' }
+    | { type: 'Signed up successfully'; userID: string }
     | { type: 'Nickname unavailable' }
     | { type: 'Email unavailable' }
     | { type: 'Email invalid' }
@@ -110,10 +110,13 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                 assertEventType(event, 'Validated sign up form');
 
                 try {
-                    await sendSignUp(event.body);
+                    const {
+                        userSummary: { userID },
+                    } = await sendSignUp(event.body);
 
                     sendBack({
                         type: 'Signed up successfully',
+                        userID,
                     });
                 } catch (error) {
                     if (!(error instanceof SignUpError)) {
@@ -164,9 +167,13 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
             },
         },
         actions: {
-            'Forward sign up success to appMachine': () => {
+            'Forward sign up success to appMachine': (_context, event) => {
+                assertEventType(event, 'Signed up successfully');
+
+                const { userID } = event;
                 appService.send({
                     type: 'SIGNED_UP_SUCCESSFULLY',
+                    userID,
                 });
             },
 

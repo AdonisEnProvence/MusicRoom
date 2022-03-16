@@ -1,6 +1,5 @@
 import { MtvRoomSummary } from '@musicroom/types';
 import { createModel } from 'xstate/lib/model';
-import { getFakeUserID } from '../contexts/SocketContext';
 import { fetchMtvRooms } from '../services/MtvService';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 

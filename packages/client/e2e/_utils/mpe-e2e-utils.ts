@@ -104,6 +104,10 @@ export function withinSignUpFormScreenContainer(selector: string): string {
     return `css=[data-testid="sign-up-form-screen-container"] >> ${selector}`;
 }
 
+export function withinSignInFormScreenContainer(selector: string): string {
+    return `css=[data-testid="sign-in-screen-container"] >> ${selector}`;
+}
+
 export function withinMpeRoomScreen(selector: string): string {
     return `css=[data-testid^="mpe-room-screen-"] >> ${selector}`;
 }

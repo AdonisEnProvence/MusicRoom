@@ -1,8 +1,6 @@
 import { UserProfileInformation } from '@musicroom/types';
-import { context } from 'msw';
 import { ContextFrom, EventFrom, MachineOptions, StateMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { getFakeUserID } from '../contexts/SocketContext';
 import {
     getUserProfileInformation,
     sendFollowUser,
@@ -205,7 +203,6 @@ export function createUserProfileInformationMachine({
                     retrieveUserProfileInformation: () => async (sendBack) => {
                         try {
                             const response = await getUserProfileInformation({
-                                tmpAuthUserID: getFakeUserID(),
                                 userID,
                             });
 
@@ -224,7 +221,6 @@ export function createUserProfileInformationMachine({
                         try {
                             const { userProfileInformation } =
                                 await sendFollowUser({
-                                    tmpAuthUserID: getFakeUserID(),
                                     userID,
                                 });
 
@@ -240,10 +236,8 @@ export function createUserProfileInformationMachine({
                     },
                     sendUnfollowToServer: () => async (sendBack) => {
                         try {
-                            console.log('sendUnfollowToServer');
                             const { userProfileInformation } =
                                 await sendUnfollowUser({
-                                    tmpAuthUserID: getFakeUserID(),
                                     userID,
                                 });
 

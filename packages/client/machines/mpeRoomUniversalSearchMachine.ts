@@ -65,11 +65,7 @@ type MpeRoomsUniversalSearchMachine = ReturnType<
 >;
 
 export interface CreateMpeRoomUniversalSearchMachine {
-    fetchMpeRooms: (args: {
-        userID: string;
-        searchQuery: string;
-        page: number;
-    }) => Promise<{
+    fetchMpeRooms: (args: { searchQuery: string; page: number }) => Promise<{
         page: number;
         totalEntries: number;
         hasMore: boolean;
@@ -191,12 +187,8 @@ export function createMpeRoomUniversalSearchMachine({
                         >,
                     ) => {
                         try {
-                            //This is temporary
-                            //Later we will use the session cookie as auth
-                            const userID = getFakeUserID();
                             const { data, page, hasMore } = await fetchMpeRooms(
                                 {
-                                    userID,
                                     searchQuery,
                                     page: nextPage,
                                 },

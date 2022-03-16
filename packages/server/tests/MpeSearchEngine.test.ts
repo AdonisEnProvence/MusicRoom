@@ -2,7 +2,6 @@ import Database from '@ioc:Adonis/Lucid/Database';
 import { datatype, lorem, internet } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
-import supertest from 'supertest';
 import {
     ListAllMpeRoomsRequestBody,
     ListAllMpeRoomsResponseBody,
@@ -15,7 +14,6 @@ import {
 import MpeRoom from 'App/Models/MpeRoom';
 import User from 'App/Models/User';
 import {
-    BASE_URL,
     initTestUtils,
     generateArray,
     getVisibilityDatabaseEntry,
@@ -279,6 +277,8 @@ test.group("Other user's MPE Rooms Search", (group) => {
         createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
+        createRequest,
+        createUserAndAuthenticate,
     } = initTestUtils();
 
     group.beforeEach(async () => {
@@ -294,7 +294,10 @@ test.group("Other user's MPE Rooms Search", (group) => {
 
     test("It should send back all other user's public MPE rooms", async (assert) => {
         const PAGE_MAX_LENGTH = 10;
-        const userID = datatype.uuid();
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
         const otherUserID = datatype.uuid();
         const otherUserPrivateRooms = generateArray({
             fill: () => ({
@@ -313,9 +316,6 @@ test.group("Other user's MPE Rooms Search", (group) => {
             }),
             minLength: 11,
             maxLength: 22,
-        });
-        await createAuthenticatedUserAndGetSocket({
-            userID,
         });
         await createAuthenticatedUserAndGetSocket({
             userID: otherUserID,
@@ -347,13 +347,12 @@ test.group("Other user's MPE Rooms Search", (group) => {
         const fetchedEntries: MpeRoomSummary[] = [];
         while (hasMore === true) {
             const requestBody: UserSearchMpeRoomsRequestBody = {
-                tmpAuthUserID: userID,
                 userID: otherUserID,
                 searchQuery: '',
                 page,
             };
 
-            const { body: pageBodyRaw } = await supertest(BASE_URL)
+            const { body: pageBodyRaw } = await request
                 .post('/user/search/mpe')
                 .send(requestBody)
                 .expect('Content-Type', /json/)
@@ -376,12 +375,11 @@ test.group("Other user's MPE Rooms Search", (group) => {
         );
 
         const extraRequestBody: UserSearchMpeRoomsRequestBody = {
-            tmpAuthUserID: userID,
             userID: otherUserID,
             searchQuery: '',
             page,
         };
-        const { body: extraPageBodyRaw } = await supertest(BASE_URL)
+        const { body: extraPageBodyRaw } = await request
             .post('/user/search/mpe')
             .send(extraRequestBody)
             .expect('Content-Type', /json/)
@@ -396,47 +394,41 @@ test.group("Other user's MPE Rooms Search", (group) => {
     });
 
     test('It should fail when querying the MPE rooms of an unknown user', async () => {
-        const userID = datatype.uuid();
-        await createAuthenticatedUserAndGetSocket({
-            userID,
-        });
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
 
         const unknownUserID = datatype.uuid();
 
         const requestBody: UserSearchMpeRoomsRequestBody = {
-            tmpAuthUserID: userID,
             userID: unknownUserID,
             searchQuery: '',
             page: 1,
         };
-        await supertest(BASE_URL)
-            .post('/user/search/mpe')
-            .send(requestBody)
-            .expect(404);
+        await request.post('/user/search/mpe').send(requestBody).expect(404);
     });
 
-    test("It should fail when the user that queries an other user's MPE rooms is unknown", async () => {
+    test('Returns an authentication error when the current user is unauthenticated', async () => {
+        const request = createRequest();
+
         const otherUserID = datatype.uuid();
         await createAuthenticatedUserAndGetSocket({
             userID: otherUserID,
         });
 
-        const unknownUserID = datatype.uuid();
-
         const requestBody: UserSearchMpeRoomsRequestBody = {
-            tmpAuthUserID: unknownUserID,
             userID: otherUserID,
             searchQuery: '',
             page: 1,
         };
-        await supertest(BASE_URL)
-            .post('/user/search/mpe')
-            .send(requestBody)
-            .expect(404);
+        await request.post('/user/search/mpe').send(requestBody).expect(401);
     });
 
     test('Returns only public MPE rooms matching partial search query', async (assert) => {
-        const userID = datatype.uuid();
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
         const otherUserID = datatype.uuid();
         const otherUserMpeRooms: {
             roomName: string;
@@ -461,21 +453,17 @@ test.group("Other user's MPE Rooms Search", (group) => {
         ];
         const firstOtherUserMpeRoom = otherUserMpeRooms[0];
         await createAuthenticatedUserAndGetSocket({
-            userID,
-        });
-        await createAuthenticatedUserAndGetSocket({
             userID: otherUserID,
             mpeRoomIDToAssociate: otherUserMpeRooms,
         });
 
         const searchQuery = firstOtherUserMpeRoom.roomName.slice(0, 3);
         const requestBody: UserSearchMpeRoomsRequestBody = {
-            tmpAuthUserID: userID,
             userID: otherUserID,
             searchQuery,
             page: 1,
         };
-        const { body } = await supertest(BASE_URL)
+        const { body } = await request
             .post('/user/search/mpe')
             .send(requestBody)
             .expect('Content-Type', /json/)
@@ -490,7 +478,10 @@ test.group("Other user's MPE Rooms Search", (group) => {
     });
 
     test('Returns only public MPE rooms matching case insensitive search query', async (assert) => {
-        const userID = datatype.uuid();
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
         const otherUserID = datatype.uuid();
         const otherUserMpeRooms: {
             roomName: string;
@@ -515,21 +506,17 @@ test.group("Other user's MPE Rooms Search", (group) => {
         ];
         const firstOtherUserMpeRoom = otherUserMpeRooms[0];
         await createAuthenticatedUserAndGetSocket({
-            userID,
-        });
-        await createAuthenticatedUserAndGetSocket({
             userID: otherUserID,
             mpeRoomIDToAssociate: otherUserMpeRooms,
         });
 
         const searchQuery = firstOtherUserMpeRoom.roomName.toLowerCase();
         const requestBody: UserSearchMpeRoomsRequestBody = {
-            tmpAuthUserID: userID,
             userID: otherUserID,
             searchQuery,
             page: 1,
         };
-        const { body } = await supertest(BASE_URL)
+        const { body } = await request
             .post('/user/search/mpe')
             .send(requestBody)
             .expect('Content-Type', /json/)
@@ -544,35 +531,28 @@ test.group("Other user's MPE Rooms Search", (group) => {
     });
 
     test('Page must be strictly positive', async () => {
-        const userID = datatype.uuid();
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
         const otherUserID = datatype.uuid();
-        await createAuthenticatedUserAndGetSocket({
-            userID,
-        });
         await createAuthenticatedUserAndGetSocket({
             userID: otherUserID,
         });
 
         const requestBody: UserSearchMpeRoomsRequestBody = {
-            tmpAuthUserID: userID,
             userID: otherUserID,
             searchQuery: '',
             page: 0,
         };
-        await supertest(BASE_URL)
-            .post('/user/search/mpe')
-            .send(requestBody)
-            .expect(500);
+        await request.post('/user/search/mpe').send(requestBody).expect(500);
     });
 
     test('Fails when user has set playlists setting visibility as PRIVATE', async () => {
-        const userID = datatype.uuid();
-        await User.create({
-            uuid: userID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
         const otherUserID = datatype.uuid();
         const privateVisibility = await getVisibilityDatabaseEntry('PRIVATE');
         await User.create({
@@ -584,25 +564,18 @@ test.group("Other user's MPE Rooms Search", (group) => {
         });
 
         const requestBody: UserSearchMpeRoomsRequestBody = {
-            tmpAuthUserID: userID,
             userID: otherUserID,
             searchQuery: '',
             page: 1,
         };
-        await supertest(BASE_URL)
-            .post('/user/search/mpe')
-            .send(requestBody)
-            .expect(403);
+        await request.post('/user/search/mpe').send(requestBody).expect(403);
     });
 
     test('Fails when user has set playlists visibility setting as FOLLOWERS_ONLY, and requesting user does not follow her', async () => {
-        const userID = datatype.uuid();
-        await User.create({
-            uuid: userID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
         const otherUserID = datatype.uuid();
         const privateVisibility = await getVisibilityDatabaseEntry(
             'FOLLOWERS_ONLY',
@@ -616,25 +589,18 @@ test.group("Other user's MPE Rooms Search", (group) => {
         });
 
         const requestBody: UserSearchMpeRoomsRequestBody = {
-            tmpAuthUserID: userID,
             userID: otherUserID,
             searchQuery: '',
             page: 1,
         };
-        await supertest(BASE_URL)
-            .post('/user/search/mpe')
-            .send(requestBody)
-            .expect(403);
+        await request.post('/user/search/mpe').send(requestBody).expect(403);
     });
 
     test("Returns user's MPE rooms who has set playlists visibility setting as FOLLOWERS_ONLY, and requesting user followers her", async (assert) => {
-        const userID = datatype.uuid();
-        const user = await User.create({
-            uuid: userID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
+
+        const user = await createUserAndAuthenticate(request);
+
         const otherUserID = datatype.uuid();
         const privateVisibility = await getVisibilityDatabaseEntry(
             'FOLLOWERS_ONLY',
@@ -650,12 +616,11 @@ test.group("Other user's MPE Rooms Search", (group) => {
         await user.related('following').save(otherUser);
 
         const requestBody: UserSearchMpeRoomsRequestBody = {
-            tmpAuthUserID: userID,
             userID: otherUserID,
             searchQuery: '',
             page: 1,
         };
-        const { body } = await supertest(BASE_URL)
+        const { body } = await request
             .post('/user/search/mpe')
             .send(requestBody)
             .expect(200);

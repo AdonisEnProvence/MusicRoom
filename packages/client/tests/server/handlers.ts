@@ -226,40 +226,43 @@ export const handlers = [
         GetUserProfileInformationRequestBody,
         Record<string, never>,
         GetUserProfileInformationResponseBody
-    >(`${SERVER_ENDPOINT}/user/profile-information`, async (req, res, ctx) => {
-        const { userID } = req.body;
+    >(
+        `${SERVER_ENDPOINT}/user/profile-information`,
+        withAuthentication((req, res, ctx) => {
+            const { userID } = req.body;
 
-        const user = db.userProfileInformation.findFirst({
-            where: {
-                userID: {
-                    equals: userID,
+            const user = db.userProfileInformation.findFirst({
+                where: {
+                    userID: {
+                        equals: userID,
+                    },
                 },
-            },
-        });
+            });
 
-        if (user === null) {
-            return res(ctx.status(404));
-        }
+            if (user === null) {
+                return res(ctx.status(404));
+            }
 
-        const {
-            userNickname,
-            following,
-            followersCounter,
-            followingCounter,
-            playlistsCounter,
-        } = user;
-
-        return res(
-            ctx.json({
-                userID,
+            const {
                 userNickname,
                 following,
-                followersCounter: followersCounter ?? undefined,
-                followingCounter: followingCounter ?? undefined,
-                playlistsCounter: playlistsCounter ?? undefined,
-            }),
-        );
-    }),
+                followersCounter,
+                followingCounter,
+                playlistsCounter,
+            } = user;
+
+            return res(
+                ctx.json({
+                    userID,
+                    userNickname,
+                    following,
+                    followersCounter: followersCounter ?? undefined,
+                    followingCounter: followingCounter ?? undefined,
+                    playlistsCounter: playlistsCounter ?? undefined,
+                }),
+            );
+        }),
+    ),
 
     rest.get<never, never, GetMyProfileInformationResponseBody>(
         `${SERVER_ENDPOINT}/me/profile-information`,
@@ -292,65 +295,71 @@ export const handlers = [
         FollowUserRequestBody,
         Record<string, never>,
         FollowUserResponseBody
-    >(`${SERVER_ENDPOINT}/user/follow`, async (req, res, ctx) => {
-        const { userID } = req.body;
+    >(
+        `${SERVER_ENDPOINT}/user/follow`,
+        withAuthentication((req, res, ctx) => {
+            const { userID } = req.body;
 
-        const user = db.userProfileInformation.findFirst({
-            where: {
-                userID: {
-                    equals: userID,
+            const user = db.userProfileInformation.findFirst({
+                where: {
+                    userID: {
+                        equals: userID,
+                    },
                 },
-            },
-        });
+            });
 
-        if (user === null) {
-            return res(ctx.status(404));
-        }
+            if (user === null) {
+                return res(ctx.status(404));
+            }
 
-        return res(
-            ctx.json({
-                userProfileInformation: {
-                    ...user,
-                    followersCounter: user.followersCounter || undefined,
-                    followingCounter: user.followingCounter || undefined,
-                    playlistsCounter: user.playlistsCounter || undefined,
-                    following: true,
-                },
-            }),
-        );
-    }),
+            return res(
+                ctx.json({
+                    userProfileInformation: {
+                        ...user,
+                        followersCounter: user.followersCounter || undefined,
+                        followingCounter: user.followingCounter || undefined,
+                        playlistsCounter: user.playlistsCounter || undefined,
+                        following: true,
+                    },
+                }),
+            );
+        }),
+    ),
 
     rest.post<
         UnfollowUserRequestBody,
         Record<string, never>,
         UnfollowUserResponseBody
-    >(`${SERVER_ENDPOINT}/user/unfollow`, async (req, res, ctx) => {
-        const { userID } = req.body;
-        console.log('UNFOLLOW');
-        const user = db.userProfileInformation.findFirst({
-            where: {
-                userID: {
-                    equals: userID,
+    >(
+        `${SERVER_ENDPOINT}/user/unfollow`,
+        withAuthentication((req, res, ctx) => {
+            const { userID } = req.body;
+            console.log('UNFOLLOW');
+            const user = db.userProfileInformation.findFirst({
+                where: {
+                    userID: {
+                        equals: userID,
+                    },
                 },
-            },
-        });
+            });
 
-        if (user === null) {
-            return res(ctx.status(404));
-        }
+            if (user === null) {
+                return res(ctx.status(404));
+            }
 
-        return res(
-            ctx.json({
-                userProfileInformation: {
-                    ...user,
-                    followersCounter: user.followersCounter || undefined,
-                    followingCounter: user.followingCounter || undefined,
-                    playlistsCounter: user.playlistsCounter || undefined,
-                    following: false,
-                },
-            }),
-        );
-    }),
+            return res(
+                ctx.json({
+                    userProfileInformation: {
+                        ...user,
+                        followersCounter: user.followersCounter || undefined,
+                        followingCounter: user.followingCounter || undefined,
+                        playlistsCounter: user.playlistsCounter || undefined,
+                        following: false,
+                    },
+                }),
+            );
+        }),
+    ),
 
     //Normally we should be filtering on mpe room user has joined
     //Atm we don't maintain or have any kind of users list in the client db mock
@@ -464,67 +473,79 @@ export const handlers = [
         UserSearchMpeRoomsRequestBody,
         Record<string, never>,
         UserSearchMpeRoomsResponseBody
-    >(`${SERVER_ENDPOINT}/user/search/mpe`, (req, res, ctx) => {
-        const PAGE_SIZE = 10;
-        const { page, searchQuery } = req.body;
+    >(
+        `${SERVER_ENDPOINT}/user/search/mpe`,
+        withAuthentication((req, res, ctx) => {
+            const PAGE_SIZE = 10;
+            const { page, searchQuery } = req.body;
 
-        const allRooms = db.searchableMpeRooms.getAll();
-        const roomsMatching = allRooms.filter(({ roomName }) =>
-            roomName.toLowerCase().startsWith(searchQuery.toLowerCase()),
-        );
-        const paginatedRooms = roomsMatching.slice(
-            (page - 1) * PAGE_SIZE,
-            page * PAGE_SIZE,
-        );
+            const allRooms = db.searchableMpeRooms.getAll();
+            const roomsMatching = allRooms.filter(({ roomName }) =>
+                roomName.toLowerCase().startsWith(searchQuery.toLowerCase()),
+            );
+            const paginatedRooms = roomsMatching.slice(
+                (page - 1) * PAGE_SIZE,
+                page * PAGE_SIZE,
+            );
 
-        return res(
-            ctx.json({
-                data: paginatedRooms,
-                totalEntries: roomsMatching.length,
-                hasMore: roomsMatching.length > page * PAGE_SIZE,
-                page,
-            }),
-        );
-    }),
+            return res(
+                ctx.json({
+                    data: paginatedRooms,
+                    totalEntries: roomsMatching.length,
+                    hasMore: roomsMatching.length > page * PAGE_SIZE,
+                    page,
+                }),
+            );
+        }),
+    ),
 
     rest.post<
         ListUserFollowersRequestBody,
         Record<string, never>,
         ListUserFollowersResponseBody
-    >(`${SERVER_ENDPOINT}/user/search/followers`, (req, res, ctx) => {
-        const PAGE_SIZE = 10;
-        const { page, searchQuery, userID } = req.body;
+    >(
+        `${SERVER_ENDPOINT}/user/search/followers`,
+        withAuthentication((req, res, ctx) => {
+            const PAGE_SIZE = 10;
+            const { page, searchQuery, userID } = req.body;
 
-        const userFollowers = db.userFollowers.findFirst({
-            where: {
-                userID: {
-                    equals: userID,
+            const userFollowers = db.userFollowers.findFirst({
+                where: {
+                    userID: {
+                        equals: userID,
+                    },
                 },
-            },
-        });
+            });
 
-        if (userFollowers === null || userFollowers.followers === undefined) {
-            return res(ctx.status(404));
-        }
-        const filteredUserFollowers = userFollowers.followers.filter((user) =>
-            user.nickname.toLowerCase().startsWith(searchQuery.toLowerCase()),
-        );
+            if (
+                userFollowers === null ||
+                userFollowers.followers === undefined
+            ) {
+                return res(ctx.status(404));
+            }
+            const filteredUserFollowers = userFollowers.followers.filter(
+                (user) =>
+                    user.nickname
+                        .toLowerCase()
+                        .startsWith(searchQuery.toLowerCase()),
+            );
 
-        const paginatedFollowers = filteredUserFollowers.slice(
-            (page - 1) * PAGE_SIZE,
-            page * PAGE_SIZE,
-        );
+            const paginatedFollowers = filteredUserFollowers.slice(
+                (page - 1) * PAGE_SIZE,
+                page * PAGE_SIZE,
+            );
 
-        console.log({ paginatedFollowers });
-        return res(
-            ctx.json({
-                data: paginatedFollowers,
-                totalEntries: filteredUserFollowers.length,
-                hasMore: filteredUserFollowers.length > page * PAGE_SIZE,
-                page,
-            }),
-        );
-    }),
+            console.log({ paginatedFollowers });
+            return res(
+                ctx.json({
+                    data: paginatedFollowers,
+                    totalEntries: filteredUserFollowers.length,
+                    hasMore: filteredUserFollowers.length > page * PAGE_SIZE,
+                    page,
+                }),
+            );
+        }),
+    ),
 
     rest.post<
         ListMyFollowersRequestBody,
@@ -577,40 +598,49 @@ export const handlers = [
         ListUserFollowingRequestBody,
         Record<string, never>,
         ListUserFollowingResponseBody
-    >(`${SERVER_ENDPOINT}/user/search/following`, (req, res, ctx) => {
-        const PAGE_SIZE = 10;
-        const { page, searchQuery } = req.body;
+    >(
+        `${SERVER_ENDPOINT}/user/search/following`,
+        withAuthentication((req, res, ctx) => {
+            const PAGE_SIZE = 10;
+            const { page, searchQuery } = req.body;
 
-        const userFollowing = db.userFollowing.findFirst({
-            where: {
-                userID: {
-                    equals: req.body.userID,
+            const userFollowing = db.userFollowing.findFirst({
+                where: {
+                    userID: {
+                        equals: req.body.userID,
+                    },
                 },
-            },
-        });
+            });
 
-        if (userFollowing === null || userFollowing.following === undefined) {
-            return res(ctx.status(404));
-        }
+            if (
+                userFollowing === null ||
+                userFollowing.following === undefined
+            ) {
+                return res(ctx.status(404));
+            }
 
-        const filteredUserFollowing = userFollowing.following.filter((user) =>
-            user.nickname.toLowerCase().startsWith(searchQuery.toLowerCase()),
-        );
+            const filteredUserFollowing = userFollowing.following.filter(
+                (user) =>
+                    user.nickname
+                        .toLowerCase()
+                        .startsWith(searchQuery.toLowerCase()),
+            );
 
-        const paginatedFollowing = filteredUserFollowing.slice(
-            (page - 1) * PAGE_SIZE,
-            page * PAGE_SIZE,
-        );
+            const paginatedFollowing = filteredUserFollowing.slice(
+                (page - 1) * PAGE_SIZE,
+                page * PAGE_SIZE,
+            );
 
-        return res(
-            ctx.json({
-                data: paginatedFollowing,
-                totalEntries: filteredUserFollowing.length,
-                hasMore: filteredUserFollowing.length > page * PAGE_SIZE,
-                page,
-            }),
-        );
-    }),
+            return res(
+                ctx.json({
+                    data: paginatedFollowing,
+                    totalEntries: filteredUserFollowing.length,
+                    hasMore: filteredUserFollowing.length > page * PAGE_SIZE,
+                    page,
+                }),
+            );
+        }),
+    ),
 
     rest.post<ListMyFollowingRequestBody, never, ListMyFollowersResponseBody>(
         `${SERVER_ENDPOINT}/me/search/following`,

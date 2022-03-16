@@ -8,10 +8,8 @@ import User from 'App/Models/User';
 import { datatype, internet, unique } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
-import supertest from 'supertest';
 import urlcat from 'urlcat';
 import {
-    BASE_URL,
     generateArray,
     getVisibilityDatabaseEntry,
     initTestUtils,
@@ -22,8 +20,12 @@ import {
 const PAGE_MAX_LENGTH = 10;
 
 test.group('List user followers tests group', (group) => {
-    const { initSocketConnection, disconnectEveryRemainingSocketConnection } =
-        initTestUtils();
+    const {
+        initSocketConnection,
+        disconnectEveryRemainingSocketConnection,
+        createRequest,
+        createUserAndAuthenticate,
+    } = initTestUtils();
 
     group.beforeEach(async () => {
         initSocketConnection();
@@ -37,16 +39,13 @@ test.group('List user followers tests group', (group) => {
     });
 
     test('It should retrieve paginated user followers', async (assert) => {
-        const requestingUserID = datatype.uuid();
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
         const searchedUserID = datatype.uuid();
         const searchedUser = await User.create({
             uuid: searchedUserID,
-            nickname: unique(() => internet.userName()),
-            email: internet.email(),
-            password: internet.password(),
-        });
-        await User.create({
-            uuid: requestingUserID,
             nickname: unique(() => internet.userName()),
             email: internet.email(),
             password: internet.password(),
@@ -101,14 +100,14 @@ test.group('List user followers tests group', (group) => {
             );
         ///
 
-        const { body: page1BodyRaw } = await supertest(BASE_URL)
+        const page1RequestBody: ListUserFollowersRequestBody = {
+            page: 1,
+            searchQuery: '',
+            userID: searchedUserID,
+        };
+        const { body: page1BodyRaw } = await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'search/followers'))
-            .send({
-                page: 1,
-                searchQuery: '',
-                userID: searchedUserID,
-                tmpAuthUserID: requestingUserID,
-            } as ListUserFollowersRequestBody)
+            .send(page1RequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
         const page1BodyParsed =
@@ -129,14 +128,14 @@ test.group('List user followers tests group', (group) => {
             ),
         );
 
-        const { body: page2BodyRaw } = await supertest(BASE_URL)
+        const page2RequestBody: ListUserFollowersRequestBody = {
+            page: 2,
+            searchQuery: '',
+            userID: searchedUserID,
+        };
+        const { body: page2BodyRaw } = await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'search/followers'))
-            .send({
-                page: 2,
-                searchQuery: '',
-                userID: searchedUserID,
-                tmpAuthUserID: requestingUserID,
-            } as ListUserFollowersRequestBody)
+            .send(page2RequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
         const page2BodyParsed =
@@ -163,16 +162,13 @@ test.group('List user followers tests group', (group) => {
     });
 
     test('It should retrieve filtered user followers', async (assert) => {
-        const requestingUserID = datatype.uuid();
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
         const searchedUserID = datatype.uuid();
         const searchedUser = await User.create({
             uuid: searchedUserID,
-            nickname: unique(() => internet.userName()),
-            email: internet.email(),
-            password: internet.password(),
-        });
-        await User.create({
-            uuid: requestingUserID,
             nickname: unique(() => internet.userName()),
             email: internet.email(),
             password: internet.password(),
@@ -231,14 +227,14 @@ test.group('List user followers tests group', (group) => {
                 .sort((a, b) => a.nickname.localeCompare(b.nickname));
         ///
 
-        const { body: pageBodyRaw } = await supertest(BASE_URL)
+        const pageRequestBody: ListUserFollowersRequestBody = {
+            page: 1,
+            searchQuery,
+            userID: searchedUserID,
+        };
+        const { body: pageBodyRaw } = await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'search/followers'))
-            .send({
-                page: 1,
-                searchQuery,
-                userID: searchedUserID,
-                tmpAuthUserID: requestingUserID,
-            } as ListUserFollowersRequestBody)
+            .send(pageRequestBody)
             .expect('Content-Type', /json/)
             .expect(200);
 
@@ -264,8 +260,9 @@ test.group('List user followers tests group', (group) => {
         assert.deepEqual(pageBodyParsed.data, expectedData);
     });
 
-    test('It should send back 404 as requesting user does not exist', async () => {
-        const requestingUserID = datatype.uuid();
+    test('Returns an authentication user when current user is not authenticated and tries to search the followers of another user', async () => {
+        const request = createRequest();
+
         const searchedUserID = datatype.uuid();
         await User.create({
             uuid: searchedUserID,
@@ -274,47 +271,39 @@ test.group('List user followers tests group', (group) => {
             password: internet.password(),
         });
 
-        await supertest(BASE_URL)
+        const pageRequestBody: ListUserFollowersRequestBody = {
+            page: 1,
+            searchQuery: '',
+            userID: searchedUserID,
+        };
+        await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'search/followers'))
-            .send({
-                page: 1,
-                searchQuery: '',
-                userID: searchedUserID,
-                tmpAuthUserID: requestingUserID,
-            } as ListUserFollowersRequestBody)
-            .expect(404);
+            .send(pageRequestBody)
+            .expect(401);
     });
 
     test('It should send back 404 as searched user does not exist', async () => {
-        const requestingUserID = datatype.uuid();
-        const searchedUserID = datatype.uuid();
-        await User.create({
-            uuid: requestingUserID,
-            nickname: unique(() => internet.userName()),
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
 
-        await supertest(BASE_URL)
+        await createUserAndAuthenticate(request);
+
+        const pageRequestBody: ListUserFollowersRequestBody = {
+            page: 1,
+            searchQuery: '',
+            userID: datatype.uuid(),
+        };
+        await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'search/followers'))
-            .send({
-                page: 1,
-                searchQuery: '',
-                userID: searchedUserID,
-                tmpAuthUserID: requestingUserID,
-            } as ListUserFollowersRequestBody)
+            .send(pageRequestBody)
             .expect(404);
     });
 
     test('It should send back forbidden as searched user relations visibility is PRIVATE', async () => {
-        const requestingUserID = datatype.uuid();
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
         const searchedUserID = datatype.uuid();
-        await User.create({
-            uuid: requestingUserID,
-            nickname: unique(() => internet.userName()),
-            email: internet.email(),
-            password: internet.password(),
-        });
         const searchedUser = await User.create({
             uuid: searchedUserID,
             nickname: unique(() => internet.userName()),
@@ -327,26 +316,23 @@ test.group('List user followers tests group', (group) => {
             .related('relationsVisibilitySetting')
             .associate(privateVisibility);
 
-        await supertest(BASE_URL)
+        const pageRequestBody: ListUserFollowersRequestBody = {
+            page: 1,
+            searchQuery: '',
+            userID: searchedUserID,
+        };
+        await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'search/followers'))
-            .send({
-                page: 1,
-                searchQuery: '',
-                userID: searchedUserID,
-                tmpAuthUserID: requestingUserID,
-            } as ListUserFollowersRequestBody)
+            .send(pageRequestBody)
             .expect(403);
     });
 
     test('It should send back forbidden as searched user relations visibility is FOLLOWERS_ONLY and requesting user is not a follower', async () => {
-        const requestingUserID = datatype.uuid();
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
         const searchedUserID = datatype.uuid();
-        await User.create({
-            uuid: requestingUserID,
-            nickname: unique(() => internet.userName()),
-            email: internet.email(),
-            password: internet.password(),
-        });
         const searchedUser = await User.create({
             uuid: searchedUserID,
             nickname: unique(() => internet.userName()),
@@ -361,26 +347,23 @@ test.group('List user followers tests group', (group) => {
             .related('relationsVisibilitySetting')
             .associate(followersOnlyVisibility);
 
-        await supertest(BASE_URL)
+        const pageRequestBody: ListUserFollowersRequestBody = {
+            page: 1,
+            searchQuery: '',
+            userID: searchedUserID,
+        };
+        await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'search/followers'))
-            .send({
-                page: 1,
-                searchQuery: '',
-                userID: searchedUserID,
-                tmpAuthUserID: requestingUserID,
-            } as ListUserFollowersRequestBody)
+            .send(pageRequestBody)
             .expect(403);
     });
 
     test('It should send back status 200 as searched user relations visibility is FOLLOWERS_ONLY and requesting user is a follower', async () => {
-        const requestingUserID = datatype.uuid();
+        const request = createRequest();
+
+        const requestingUser = await createUserAndAuthenticate(request);
+
         const searchedUserID = datatype.uuid();
-        const requestingUser = await User.create({
-            uuid: requestingUserID,
-            nickname: unique(() => internet.userName()),
-            email: internet.email(),
-            password: internet.password(),
-        });
         const searchedUser = await User.create({
             uuid: searchedUserID,
             nickname: unique(() => internet.userName()),
@@ -397,14 +380,14 @@ test.group('List user followers tests group', (group) => {
 
         await searchedUser.related('followers').save(requestingUser);
 
-        await supertest(BASE_URL)
+        const pageRequestBody: ListUserFollowersRequestBody = {
+            page: 1,
+            searchQuery: '',
+            userID: searchedUserID,
+        };
+        await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'search/followers'))
-            .send({
-                page: 1,
-                searchQuery: '',
-                userID: searchedUserID,
-                tmpAuthUserID: requestingUserID,
-            } as ListUserFollowersRequestBody)
+            .send(pageRequestBody)
             .expect(200);
     });
 });

@@ -7,15 +7,16 @@ import {
 import User from 'App/Models/User';
 import { datatype, internet } from 'faker';
 import test from 'japa';
-import supertest from 'supertest';
 import urlcat from 'urlcat';
 import {
-    BASE_URL,
     getVisibilityDatabaseEntry,
+    initTestUtils,
     TEST_USER_ROUTES_GROUP_PREFIX,
 } from './utils/TestUtils';
 
-test.group('Users Profile information tests', (group) => {
+test.group('Users Profile information', (group) => {
+    const { createRequest, createUserAndAuthenticate } = initTestUtils();
+
     group.beforeEach(async () => {
         await Database.beginGlobalTransaction();
     });
@@ -25,14 +26,11 @@ test.group('Users Profile information tests', (group) => {
     });
 
     test('It should retrieve all user profile information, as every visibilities are public', async (assert) => {
-        const userID = datatype.uuid();
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
         const searchedUserID = datatype.uuid();
-        await User.create({
-            uuid: userID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
         const searchedUser = await User.create({
             uuid: searchedUserID,
             nickname: internet.userName(),
@@ -40,12 +38,12 @@ test.group('Users Profile information tests', (group) => {
             password: internet.password(),
         });
 
-        const { body: rawBody } = await supertest(BASE_URL)
+        const body: GetUserProfileInformationRequestBody = {
+            userID: searchedUserID,
+        };
+        const { body: rawBody } = await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
-            .send({
-                tmpAuthUserID: userID,
-                userID: searchedUserID,
-            } as GetUserProfileInformationRequestBody)
+            .send(body)
             .expect(200);
 
         const parsedBody = GetUserProfileInformationResponseBody.parse(rawBody);
@@ -59,14 +57,11 @@ test.group('Users Profile information tests', (group) => {
     });
 
     test('It should retrieve followed user profile information', async (assert) => {
-        const userID = datatype.uuid();
+        const request = createRequest();
+
+        const searchingUser = await createUserAndAuthenticate(request);
+
         const searchedUserID = datatype.uuid();
-        const searchingUser = await User.create({
-            uuid: userID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
         const searchedUser = await User.create({
             uuid: searchedUserID,
             nickname: internet.userName(),
@@ -75,12 +70,12 @@ test.group('Users Profile information tests', (group) => {
         });
         await searchedUser.related('followers').save(searchingUser);
 
-        const { body: rawBody } = await supertest(BASE_URL)
+        const body: GetUserProfileInformationRequestBody = {
+            userID: searchedUserID,
+        };
+        const { body: rawBody } = await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
-            .send({
-                tmpAuthUserID: userID,
-                userID: searchedUserID,
-            } as GetUserProfileInformationRequestBody)
+            .send(body)
             .expect(200);
 
         const parsedBody = GetUserProfileInformationResponseBody.parse(rawBody);
@@ -90,71 +85,57 @@ test.group('Users Profile information tests', (group) => {
         assert.equal(parsedBody.userNickname, searchedUser.nickname);
     });
 
-    test('Requesting user not found', async () => {
-        const userID = datatype.uuid();
-        const searchedUserID = datatype.uuid();
+    test("Requires authentication to get another user's information", async () => {
+        const request = createRequest();
 
-        await User.create({
-            uuid: searchedUserID,
+        const searchedUser = await User.create({
+            uuid: datatype.uuid(),
             nickname: internet.userName(),
             email: internet.email(),
             password: internet.password(),
         });
 
-        await supertest(BASE_URL)
+        const body: GetUserProfileInformationRequestBody = {
+            userID: searchedUser.uuid,
+        };
+        await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
-            .send({
-                tmpAuthUserID: userID,
-                userID: searchedUserID,
-            } as GetUserProfileInformationRequestBody)
+            .send(body)
+            .expect(401);
+    });
+
+    test('Returns an error when searched user does not exist', async () => {
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
+        const body: GetUserProfileInformationRequestBody = {
+            userID: datatype.uuid(),
+        };
+        await request
+            .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
+            .send(body)
             .expect(404);
     });
 
-    test('Searched user not found', async () => {
-        const userID = datatype.uuid();
-        const searchedUserID = datatype.uuid();
-        await User.create({
-            uuid: userID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
+    test('Can not get its own information', async () => {
+        const request = createRequest();
 
-        await supertest(BASE_URL)
+        const user = await createUserAndAuthenticate(request);
+
+        const body: GetUserProfileInformationRequestBody = {
+            userID: user.uuid,
+        };
+        await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
-            .send({
-                tmpAuthUserID: userID,
-                userID: searchedUserID,
-            } as GetUserProfileInformationRequestBody)
-            .expect(404);
-    });
-
-    test('Searched user is searching user', async () => {
-        const userID = datatype.uuid();
-        await User.create({
-            uuid: userID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
-
-        await supertest(BASE_URL)
-            .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
-            .send({
-                tmpAuthUserID: userID,
-                userID: userID,
-            } as GetUserProfileInformationRequestBody)
+            .send(body)
             .expect(403);
     });
 
     test('It should return only playlist information as relations visibility is private', async (assert) => {
-        const userID = datatype.uuid();
-        await User.create({
-            uuid: userID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
 
         const searchedUserID = datatype.uuid();
         const searchedUser = await User.create({
@@ -163,19 +144,17 @@ test.group('Users Profile information tests', (group) => {
             email: internet.email(),
             password: internet.password(),
         });
-        const privateVisibility = await getVisibilityDatabaseEntry(
-            UserSettingVisibility.Values.PRIVATE,
-        );
+        const privateVisibility = await getVisibilityDatabaseEntry('PRIVATE');
         await searchedUser
             .related('relationsVisibilitySetting')
             .associate(privateVisibility);
 
-        const { body: rawBody } = await supertest(BASE_URL)
+        const body: GetUserProfileInformationRequestBody = {
+            userID: searchedUserID,
+        };
+        const { body: rawBody } = await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
-            .send({
-                tmpAuthUserID: userID,
-                userID: searchedUserID,
-            } as GetUserProfileInformationRequestBody)
+            .send(body)
             .expect(200);
 
         const parsedBody = GetUserProfileInformationResponseBody.parse(rawBody);
@@ -189,13 +168,9 @@ test.group('Users Profile information tests', (group) => {
     });
 
     test('It should return only relations information as playlist visibility is private', async (assert) => {
-        const userID = datatype.uuid();
-        await User.create({
-            uuid: userID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
 
         const searchedUserID = datatype.uuid();
         const searchedUser = await User.create({
@@ -204,19 +179,17 @@ test.group('Users Profile information tests', (group) => {
             email: internet.email(),
             password: internet.password(),
         });
-        const privateVisibility = await getVisibilityDatabaseEntry(
-            UserSettingVisibility.Values.PRIVATE,
-        );
+        const privateVisibility = await getVisibilityDatabaseEntry('PRIVATE');
         await searchedUser
             .related('playlistsVisibilitySetting')
             .associate(privateVisibility);
 
-        const { body: rawBody } = await supertest(BASE_URL)
+        const body: GetUserProfileInformationRequestBody = {
+            userID: searchedUserID,
+        };
+        const { body: rawBody } = await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
-            .send({
-                tmpAuthUserID: userID,
-                userID: searchedUserID,
-            } as GetUserProfileInformationRequestBody)
+            .send(body)
             .expect(200);
 
         const parsedBody = GetUserProfileInformationResponseBody.parse(rawBody);
@@ -230,13 +203,9 @@ test.group('Users Profile information tests', (group) => {
     });
 
     test("It should not return either playlist nor relations information as they're followers only", async (assert) => {
-        const userID = datatype.uuid();
-        await User.create({
-            uuid: userID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
 
         const searchedUserID = datatype.uuid();
         const searchedUser = await User.create({
@@ -255,12 +224,12 @@ test.group('Users Profile information tests', (group) => {
             .related('relationsVisibilitySetting')
             .associate(followerOnlyVisibility);
 
-        const { body: rawBody } = await supertest(BASE_URL)
+        const body: GetUserProfileInformationRequestBody = {
+            userID: searchedUserID,
+        };
+        const { body: rawBody } = await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
-            .send({
-                tmpAuthUserID: userID,
-                userID: searchedUserID,
-            } as GetUserProfileInformationRequestBody)
+            .send(body)
             .expect(200);
 
         const parsedBody = GetUserProfileInformationResponseBody.parse(rawBody);
@@ -274,13 +243,9 @@ test.group('Users Profile information tests', (group) => {
     });
 
     test("It should return playlist and relations information as they're followers only", async (assert) => {
-        const userID = datatype.uuid();
-        const searchingUser = await User.create({
-            uuid: userID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
+
+        const searchingUser = await createUserAndAuthenticate(request);
 
         const searchedUserID = datatype.uuid();
         const searchedUser = await User.create({
@@ -301,12 +266,12 @@ test.group('Users Profile information tests', (group) => {
             .related('relationsVisibilitySetting')
             .associate(followerOnlyVisibility);
 
-        const { body: rawBody } = await supertest(BASE_URL)
+        const body: GetUserProfileInformationRequestBody = {
+            userID: searchedUserID,
+        };
+        const { body: rawBody } = await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
-            .send({
-                tmpAuthUserID: userID,
-                userID: searchedUserID,
-            } as GetUserProfileInformationRequestBody)
+            .send(body)
             .expect(200);
 
         const parsedBody = GetUserProfileInformationResponseBody.parse(rawBody);

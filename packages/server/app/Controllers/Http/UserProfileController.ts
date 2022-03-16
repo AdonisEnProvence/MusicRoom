@@ -14,6 +14,7 @@ import { FollowUserResponseBody } from '@musicroom/types/src/user';
 import ForbiddenException from 'App/Exceptions/ForbiddenException';
 import User from 'App/Models/User';
 import UserService from 'App/Services/UserService';
+import invariant from 'tiny-invariant';
 import { fromMpeRoomsToMpeRoomSummaries } from '../Ws/MpeRoomsWsController';
 
 function getUserProfileInformationDependingOnItsVisibility({
@@ -144,15 +145,20 @@ async function getIfUserCanQueryOtherUserMpeRooms({
 export default class UserProfileController {
     public async getUserProfileInformation({
         request,
+        auth,
     }: HttpContextContract): Promise<GetUserProfileInformationResponseBody> {
-        const rawBody = request.body();
-        //TODO tmpAuthUserID refactor authentication
-        const { tmpAuthUserID, userID } =
-            GetUserProfileInformationRequestBody.parse(rawBody);
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            "User must be authenticated to get another user's profile information",
+        );
 
-        await User.findOrFail(tmpAuthUserID);
+        const { userID } = GetUserProfileInformationRequestBody.parse(
+            request.body(),
+        );
+
         const userProfileInformation = await requestUserProfileInformation({
-            requestingUserID: tmpAuthUserID,
+            requestingUserID: user.uuid,
             userID,
         });
 
@@ -163,27 +169,31 @@ export default class UserProfileController {
 
     public async followUser({
         request,
+        auth,
     }: HttpContextContract): Promise<FollowUserResponseBody> {
-        const rawBody = request.body();
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            'User must be authenticated to follow another user',
+        );
 
-        const { tmpAuthUserID, userID } = FollowUserRequestBody.parse(rawBody);
+        const { userID } = FollowUserRequestBody.parse(request.body());
 
-        const requestingUserIsRelatedUser = tmpAuthUserID === userID;
+        const requestingUserIsRelatedUser = user.uuid === userID;
         if (requestingUserIsRelatedUser) {
             throw new ForbiddenException();
         }
 
-        const followingUser = await User.findOrFail(tmpAuthUserID);
-        await followingUser.load('following', (userQuery) => {
+        await user.load('following', (userQuery) => {
             return userQuery.where('uuid', userID);
         });
         const followedUser = await User.findOrFail(userID);
         await followedUser.load('followers', (userQuery) => {
-            return userQuery.where('uuid', tmpAuthUserID);
+            return userQuery.where('uuid', user.uuid);
         });
 
         const followingUserIsAlreadyFollowingGivenUser =
-            followingUser.following.length > 0;
+            user.following.length > 0;
         const followedUserAlreadyHasFollowingUserInHisFollowers =
             followedUser.followers.length > 0;
         if (
@@ -193,10 +203,10 @@ export default class UserProfileController {
             throw new Error('User is already following given user');
         }
 
-        await followingUser.related('following').save(followedUser);
+        await user.related('following').save(followedUser);
 
         const userProfileInformation = await requestUserProfileInformation({
-            requestingUserID: tmpAuthUserID,
+            requestingUserID: user.uuid,
             userID,
         });
 
@@ -207,28 +217,32 @@ export default class UserProfileController {
 
     public async unfollowUser({
         request,
+        auth,
     }: HttpContextContract): Promise<UnfollowUserResponseBody> {
-        const rawBody = request.body();
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            'User must be authenticated to unfollow another user',
+        );
 
-        const { tmpAuthUserID, userID } =
-            UnfollowUserRequestBody.parse(rawBody);
+        const { userID } = UnfollowUserRequestBody.parse(request.body());
 
-        const requestingUserIsRelatedUser = tmpAuthUserID === userID;
+        const requestingUserIsRelatedUser = user.uuid === userID;
         if (requestingUserIsRelatedUser) {
             throw new ForbiddenException();
         }
 
-        const unfollowingUser = await User.findOrFail(tmpAuthUserID);
-        await unfollowingUser.load('following', (userQuery) => {
+        await user.load('following', (userQuery) => {
             return userQuery.where('uuid', userID);
         });
+
         const unfollowedUser = await User.findOrFail(userID);
         await unfollowedUser.load('followers', (userQuery) => {
-            return userQuery.where('uuid', tmpAuthUserID);
+            return userQuery.where('uuid', user.uuid);
         });
 
         const unfollowingUserDoesnotFollowGivenUser =
-            unfollowingUser.following.length === 0;
+            user.following.length === 0;
         const unfollowedUserDoesnotHaveFollowingUserInHisFollowers =
             unfollowedUser.followers.length === 0;
         if (
@@ -238,12 +252,10 @@ export default class UserProfileController {
             throw new Error('User is not following given user');
         }
 
-        await unfollowingUser
-            .related('following')
-            .detach([unfollowedUser.uuid]);
+        await user.related('following').detach([unfollowedUser.uuid]);
 
         const userProfileInformation = await requestUserProfileInformation({
-            requestingUserID: tmpAuthUserID,
+            requestingUserID: user.uuid,
             userID,
         });
 
@@ -254,19 +266,23 @@ export default class UserProfileController {
 
     public async listUserMpeRooms({
         request,
+        auth,
     }: HttpContextContract): Promise<UserSearchMpeRoomsResponseBody> {
         const MPE_ROOMS_SEARCH_LIMIT = 10;
-        const rawBody = request.body();
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            "User must be authenticated to list another user's mpe rooms",
+        );
 
-        const { tmpAuthUserID, userID, searchQuery, page } =
-            UserSearchMpeRoomsRequestBody.parse(rawBody);
+        const { userID, searchQuery, page } =
+            UserSearchMpeRoomsRequestBody.parse(request.body());
 
-        const me = await User.findOrFail(tmpAuthUserID);
         const queriedUser = await User.findOrFail(userID);
 
         const userCanQueryOtherUserMpeRooms =
             await getIfUserCanQueryOtherUserMpeRooms({
-                user: me,
+                user,
                 queriedUser,
             });
         const userCanNotQueryOtherUserMpeRooms =
@@ -293,7 +309,7 @@ export default class UserProfileController {
         const hasMoreRoomsToLoad = mpeRoomsPagination.hasMorePages;
         const formattedMpeRooms = await fromMpeRoomsToMpeRoomSummaries({
             mpeRooms: mpeRoomsPagination.all(),
-            userID: me.uuid,
+            userID: user.uuid,
         });
 
         return {

@@ -19,6 +19,7 @@ import {
 import { db } from '../../../../tests/data';
 import { server } from '../../../../tests/server/test-server';
 import { SERVER_ENDPOINT } from '../../../../constants/Endpoints';
+import { withAuthentication } from '../../../../tests/server/handlers';
 
 interface TestingContext {
     meUserSummary: UserSummary;
@@ -257,9 +258,9 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
                 GetUserProfileInformationResponseBody
             >(
                 `${SERVER_ENDPOINT}/user/profile-information`,
-                (_req, res, ctx) => {
+                withAuthentication((_req, res, ctx) => {
                     return res(ctx.status(404));
-                },
+                }),
             ),
         );
         goToMyFollowersScreen({ screen, expectedFollowersCounter: 1 });

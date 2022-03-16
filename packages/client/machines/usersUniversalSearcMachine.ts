@@ -4,7 +4,6 @@ import {
 } from '@musicroom/types';
 import { EventFrom, Sender } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { getFakeUserID } from '../contexts/SocketContext';
 import {
     fetchMyFollowers,
     fetchMyFollowing,
@@ -269,13 +268,9 @@ export function createUserFollowersSearchMachine({
                     >,
                 ) => {
                     try {
-                        //This is temporary
-                        //Later we will use the session cookie as auth
-                        const tmpAuthUserID = getFakeUserID();
                         const { data, page, hasMore } =
                             await fetchUserFollowers({
                                 searchQuery,
-                                tmpAuthUserID,
                                 page: nextPage,
                                 userID,
                             });
@@ -311,13 +306,9 @@ export function createUserFollowingSearchMachine({
                     >,
                 ) => {
                     try {
-                        //This is temporary
-                        //Later we will use the session cookie as auth
-                        const tmpAuthUserID = getFakeUserID();
                         const { data, page, hasMore } =
                             await fetchUserFollowing({
                                 searchQuery,
-                                tmpAuthUserID,
                                 page: nextPage,
                                 userID,
                             });

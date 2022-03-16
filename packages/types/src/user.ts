@@ -21,7 +21,6 @@ export type UserProfileInformation = z.infer<typeof UserProfileInformation>;
 
 export const GetUserProfileInformationRequestBody = z.object({
     userID: z.string().uuid(),
-    tmpAuthUserID: z.string().uuid(),
 });
 export type GetUserProfileInformationRequestBody = z.infer<
     typeof GetUserProfileInformationRequestBody
@@ -49,7 +48,6 @@ export type GetMyProfileInformationResponseBody = z.infer<
 
 export const FollowUserRequestBody = z.object({
     userID: z.string().uuid(),
-    tmpAuthUserID: z.string().uuid(),
 });
 export type FollowUserRequestBody = z.infer<typeof FollowUserRequestBody>;
 
@@ -60,7 +58,6 @@ export type FollowUserResponseBody = z.infer<typeof FollowUserResponseBody>;
 
 export const UnfollowUserRequestBody = z.object({
     userID: z.string().uuid(),
-    tmpAuthUserID: z.string().uuid(),
 });
 export type UnfollowUserRequestBody = z.infer<typeof UnfollowUserRequestBody>;
 
@@ -70,8 +67,7 @@ export const UnfollowUserResponseBody = z.object({
 export type UnfollowUserResponseBody = z.infer<typeof UnfollowUserResponseBody>;
 
 export const UserSearchMpeRoomsRequestBody = z.object({
-    tmpAuthUserID: z.string().uuid(),
-    userID: z.string().uuid(), // FIXME: use authentication
+    userID: z.string().uuid(),
     searchQuery: z.string(),
     page: StrictlyPositiveInteger,
 });

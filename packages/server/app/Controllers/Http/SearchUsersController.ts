@@ -163,17 +163,23 @@ export default class SearchUsersController {
 
     public async listUserFollowers({
         request,
+        auth,
     }: HttpContextContract): Promise<ListUserFollowersResponseBody> {
-        const rawBody = request.body();
-        const { page, searchQuery, userID, tmpAuthUserID } =
-            ListUserFollowersRequestBody.parse(rawBody);
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            "User must be authenticated to list another user's followers",
+        );
+
+        const { page, searchQuery, userID } =
+            ListUserFollowersRequestBody.parse(request.body());
 
         //TODO tmpAUThUSerID !== relatedUserID + tests
         //Checking relations visibility
         await throwErrorIfRequestingUserCanNotAccessRelatedUserRelationsVisibility(
             {
                 relatedUserID: userID,
-                requestingUserID: tmpAuthUserID,
+                requestingUserID: user.uuid,
             },
         );
         //
@@ -187,17 +193,23 @@ export default class SearchUsersController {
 
     public async listUserFollowing({
         request,
+        auth,
     }: HttpContextContract): Promise<ListUserFollowingResponseBody> {
-        const rawBody = request.body();
-        const { page, searchQuery, userID, tmpAuthUserID } =
-            ListUserFollowingRequestBody.parse(rawBody);
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            "User must be authenticated to list another user's following",
+        );
+
+        const { page, searchQuery, userID } =
+            ListUserFollowingRequestBody.parse(request.body());
 
         //TODO tmpAUThUSerID !== relatedUserID + tests
         //Checking relations visibility
         await throwErrorIfRequestingUserCanNotAccessRelatedUserRelationsVisibility(
             {
                 relatedUserID: userID,
-                requestingUserID: tmpAuthUserID,
+                requestingUserID: user.uuid,
             },
         );
         //

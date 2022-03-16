@@ -3,7 +3,6 @@ import { createModel } from 'xstate/lib/model';
 import { assign } from 'xstate';
 import Toast from 'react-native-toast-message';
 import { getUserProfileInformation } from '../services/UserProfileService';
-import { getFakeUserID } from '../contexts/SocketContext';
 import { assertEventType } from './utils';
 
 const userInformationModel = createModel(
@@ -91,7 +90,6 @@ export function createUserInformationMachine(
                 "Fetch user's information": () => async (sendBack) => {
                     try {
                         const response = await getUserProfileInformation({
-                            tmpAuthUserID: getFakeUserID(),
                             userID,
                         });
 

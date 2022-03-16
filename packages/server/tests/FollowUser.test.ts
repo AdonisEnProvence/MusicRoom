@@ -10,15 +10,16 @@ import {
 import User from 'App/Models/User';
 import { datatype, internet } from 'faker';
 import test from 'japa';
-import supertest from 'supertest';
 import urlcat from 'urlcat';
 import {
-    BASE_URL,
     getVisibilityDatabaseEntry,
+    initTestUtils,
     TEST_USER_ROUTES_GROUP_PREFIX,
 } from './utils/TestUtils';
 
 test.group('Users Profile information tests', (group) => {
+    const { createRequest, createUserAndAuthenticate } = initTestUtils();
+
     group.beforeEach(async () => {
         await Database.beginGlobalTransaction();
     });
@@ -28,14 +29,11 @@ test.group('Users Profile information tests', (group) => {
     });
 
     test('It should follow given user', async (assert) => {
+        const request = createRequest();
+
+        const followingUser = await createUserAndAuthenticate(request);
+
         const followedUserID = datatype.uuid();
-        const followingUserID = datatype.uuid();
-        const followingUser = await User.create({
-            uuid: followingUserID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
         const followedUser = await User.create({
             uuid: followedUserID,
             nickname: internet.userName(),
@@ -43,12 +41,12 @@ test.group('Users Profile information tests', (group) => {
             password: internet.password(),
         });
 
-        const { body: rawBody } = await supertest(BASE_URL)
+        const requestBody: FollowUserRequestBody = {
+            userID: followedUserID,
+        };
+        const { body: rawBody } = await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'follow'))
-            .send({
-                tmpAuthUserID: followingUserID,
-                userID: followedUserID,
-            } as FollowUserRequestBody)
+            .send(requestBody)
             .expect(200);
 
         const parsedBody = FollowUserResponseBody.parse(rawBody);
@@ -67,41 +65,38 @@ test.group('Users Profile information tests', (group) => {
         );
 
         await followingUser.refresh();
-        await followingUser.load('following');
-        await followingUser.load('followers');
-        await followedUser.refresh();
-        await followedUser.load('following');
-        await followedUser.load('followers');
-
+        await followingUser.load((loader) => {
+            loader.load('following').load('followers');
+        });
         assert.equal(followingUser.followers.length, 0);
         assert.equal(followingUser.following.length, 1);
+
+        await followedUser.refresh();
+        await followedUser.load((loader) => {
+            loader.load('following').load('followers');
+        });
         assert.equal(followedUser.followers.length, 1);
         assert.equal(followedUser.following.length, 0);
     });
 
     test('It should return followed user not found', async () => {
-        const followedUserID = datatype.uuid();
-        const followingUserID = datatype.uuid();
-        await User.create({
-            uuid: followingUserID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
 
-        await supertest(BASE_URL)
+        await createUserAndAuthenticate(request);
+
+        const requestBody: FollowUserRequestBody = {
+            userID: datatype.uuid(),
+        };
+        await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'follow'))
-            .send({
-                tmpAuthUserID: followingUserID,
-                userID: followedUserID,
-            } as FollowUserRequestBody)
+            .send(requestBody)
             .expect(404);
     });
 
-    //This will be should removed after authentication implem
-    test('It should return following user not found', async () => {
+    test('Returns an authentication error when current user is not authenticated', async () => {
+        const request = createRequest();
+
         const followedUserID = datatype.uuid();
-        const followingUserID = datatype.uuid();
         await User.create({
             uuid: followedUserID,
             nickname: internet.userName(),
@@ -109,42 +104,35 @@ test.group('Users Profile information tests', (group) => {
             password: internet.password(),
         });
 
-        await supertest(BASE_URL)
+        const requestBody: FollowUserRequestBody = {
+            userID: followedUserID,
+        };
+        await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'follow'))
-            .send({
-                tmpAuthUserID: followingUserID,
-                userID: followedUserID,
-            } as FollowUserRequestBody)
-            .expect(404);
+            .send(requestBody)
+            .expect(401);
     });
 
     test('It should return forbideen as following and followed user are the same', async () => {
-        const followedUserID = datatype.uuid();
-        await User.create({
-            uuid: followedUserID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
+        const request = createRequest();
 
-        await supertest(BASE_URL)
+        const followingUser = await createUserAndAuthenticate(request);
+
+        const requestBody: FollowUserRequestBody = {
+            userID: followingUser.uuid,
+        };
+        await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'follow'))
-            .send({
-                tmpAuthUserID: followedUserID,
-                userID: followedUserID,
-            } as FollowUserRequestBody)
+            .send(requestBody)
             .expect(403);
     });
 
     test('It should follow given user, on second try nothing should throw an error', async (assert) => {
+        const request = createRequest();
+
+        const followingUser = await createUserAndAuthenticate(request);
+
         const followedUserID = datatype.uuid();
-        const followingUserID = datatype.uuid();
-        const followingUser = await User.create({
-            uuid: followingUserID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
         const followedUser = await User.create({
             uuid: followedUserID,
             nickname: internet.userName(),
@@ -152,12 +140,12 @@ test.group('Users Profile information tests', (group) => {
             password: internet.password(),
         });
 
-        const { body: rawBody } = await supertest(BASE_URL)
+        const requestBody: FollowUserRequestBody = {
+            userID: followedUserID,
+        };
+        const { body: rawBody } = await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'follow'))
-            .send({
-                tmpAuthUserID: followingUserID,
-                userID: followedUserID,
-            } as FollowUserRequestBody)
+            .send(requestBody)
             .expect(200);
 
         const parsedBody = FollowUserResponseBody.parse(rawBody);
@@ -176,35 +164,36 @@ test.group('Users Profile information tests', (group) => {
         );
 
         await followingUser.refresh();
-        await followingUser.load('following');
-        await followingUser.load('followers');
-        await followedUser.refresh();
-        await followedUser.load('following');
-        await followedUser.load('followers');
+        await followingUser.load((loader) => {
+            loader.load('following').load('followers');
+        });
 
         assert.equal(followingUser.followers.length, 0);
         assert.equal(followingUser.following.length, 1);
+
+        await followedUser.refresh();
+        await followedUser.load((loader) => {
+            loader.load('following').load('followers');
+        });
+
         assert.equal(followedUser.followers.length, 1);
         assert.equal(followedUser.following.length, 0);
 
-        await supertest(BASE_URL)
+        const secondRequestBody = {
+            userID: followedUserID,
+        };
+        await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'follow'))
-            .send({
-                tmpAuthUserID: followingUserID,
-                userID: followedUserID,
-            } as FollowUserRequestBody)
+            .send(secondRequestBody)
             .expect(500);
     });
 
     test('It should retrieve given user public profile information, then follow and inside follow retrieve follower only related user profile information', async (assert) => {
+        const request = createRequest();
+
+        const followingUser = await createUserAndAuthenticate(request);
+
         const followedUserID = datatype.uuid();
-        const followingUserID = datatype.uuid();
-        const followingUser = await User.create({
-            uuid: followingUserID,
-            nickname: internet.userName(),
-            email: internet.email(),
-            password: internet.password(),
-        });
         const followedUser = await User.create({
             uuid: followedUserID,
             nickname: internet.userName(),
@@ -221,15 +210,13 @@ test.group('Users Profile information tests', (group) => {
             .related('relationsVisibilitySetting')
             .associate(followerOnlyVisibility);
 
-        //GetUserProfileInformation
-        const { body: getUserProfileInformationRawBody } = await supertest(
-            BASE_URL,
-        )
-            .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
-            .send({
-                tmpAuthUserID: followingUserID,
+        const getUserProfileInformationRequestBody: GetUserProfileInformationRequestBody =
+            {
                 userID: followedUserID,
-            } as GetUserProfileInformationRequestBody)
+            };
+        const { body: getUserProfileInformationRawBody } = await request
+            .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
+            .send(getUserProfileInformationRequestBody)
             .expect(200);
 
         const getUserProfileInformationParsedBody =
@@ -248,12 +235,12 @@ test.group('Users Profile information tests', (group) => {
         );
 
         //follow
-        const { body: followRawBody } = await supertest(BASE_URL)
+        const followRequestBody: FollowUserRequestBody = {
+            userID: followedUserID,
+        };
+        const { body: followRawBody } = await request
             .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'follow'))
-            .send({
-                tmpAuthUserID: followingUserID,
-                userID: followedUserID,
-            } as FollowUserRequestBody)
+            .send(followRequestBody)
             .expect(200);
 
         const followParsedBody = FollowUserResponseBody.parse(followRawBody);
@@ -271,14 +258,18 @@ test.group('Users Profile information tests', (group) => {
         );
 
         await followingUser.refresh();
-        await followingUser.load('following');
-        await followingUser.load('followers');
-        await followedUser.refresh();
-        await followedUser.load('following');
-        await followedUser.load('followers');
+        await followingUser.load((loader) => {
+            loader.load('following').load('followers');
+        });
 
         assert.equal(followingUser.followers.length, 0);
         assert.equal(followingUser.following.length, 1);
+
+        await followedUser.refresh();
+        await followedUser.load((loader) => {
+            loader.load('following').load('followers');
+        });
+
         assert.equal(followedUser.followers.length, 1);
         assert.equal(followedUser.following.length, 0);
     });

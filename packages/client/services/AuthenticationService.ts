@@ -159,9 +159,5 @@ export async function sendSignUp(
         return await sendApiTokenSignUp(args);
     }
 
-    const tmp = await sendWebAuthSignUp(args);
-    //FIXME BELOW LOCALSTORAGE management is TMP
-    localStorage.setItem('USER_ID', tmp.userSummary.userID);
-    ///
-    return tmp;
+    return await sendWebAuthSignUp(args);
 }

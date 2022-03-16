@@ -10,6 +10,7 @@ export const appModel = createModel(
         events: {
             SIGN_IN: (args: { email: string; password: string }) => args,
             SIGNED_UP_SUCCESSFULLY: (userID: string) => ({ userID }),
+            SIGN_OUT: () => ({}),
 
             ACKNOWLEDGE_SOCKET_CONNECTION: () => ({}),
 

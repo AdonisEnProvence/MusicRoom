@@ -14,6 +14,7 @@ import {
     AppScreenHeader,
 } from '../../components/kit';
 import MtvRoomCreationFormOptionButton from '../../components/MtvRoomCreationForm/MtvRoomCreationFormOptionButton';
+import SignOutButton from '../../components/SignOutButton';
 import { useRefreshOnFocus } from '../../hooks/useRefreshOnFocus';
 import { getMySettings } from '../../services/UserSettingsService';
 import { MySettingsScreenProps } from '../../types';
@@ -344,6 +345,7 @@ const MySettingsScreen: React.FC<MySettingsScreenProps> = ({ navigation }) => {
                                 </View>
                             </View>
                         ) : null}
+                        <SignOutButton testID="my-profile-sign-out-button" />
                     </View>
                 </ScrollView>
             </AppScreenContainer>

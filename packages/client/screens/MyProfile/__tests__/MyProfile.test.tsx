@@ -3,12 +3,12 @@ import { db } from '../../../tests/data';
 import {
     fireEvent,
     renderApp,
-    testGetFakeUserID,
+    CLIENT_INTEG_TEST_USER_ID,
     waitFor,
 } from '../../../tests/tests-utils';
 
 test('It should display my profile page with my profile information', async () => {
-    const userID = testGetFakeUserID();
+    const userID = CLIENT_INTEG_TEST_USER_ID;
 
     db.myProfileInformation.create({
         userID,
@@ -49,7 +49,7 @@ test('It should display my profile page with my profile information', async () =
 });
 
 test('It should display my library after pressing playlists counter', async () => {
-    const userID = testGetFakeUserID();
+    const userID = CLIENT_INTEG_TEST_USER_ID;
 
     db.myProfileInformation.create({
         userID,

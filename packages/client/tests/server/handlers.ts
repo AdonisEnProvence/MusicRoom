@@ -52,7 +52,7 @@ import * as z from 'zod';
 import { SERVER_ENDPOINT } from '../../constants/Endpoints';
 import { SearchTracksAPIRawResponse } from '../../services/search-tracks';
 import { db } from '../data';
-import { testGetFakeUserID } from '../tests-utils';
+import { CLIENT_INTEG_TEST_USER_ID } from '../tests-utils';
 
 export function withAuthentication<
     RequestBody extends DefaultRequestBody,
@@ -270,7 +270,7 @@ export const handlers = [
             const user = db.myProfileInformation.findFirst({
                 where: {
                     userID: {
-                        equals: testGetFakeUserID(),
+                        equals: CLIENT_INTEG_TEST_USER_ID,
                     },
                 },
             });
@@ -399,7 +399,7 @@ export const handlers = [
             const user = db.myProfileInformation.findFirst({
                 where: {
                     userID: {
-                        equals: testGetFakeUserID(),
+                        equals: CLIENT_INTEG_TEST_USER_ID,
                     },
                 },
             });
@@ -427,7 +427,7 @@ export const handlers = [
             db.myProfileInformation.update({
                 where: {
                     userID: {
-                        equals: testGetFakeUserID(),
+                        equals: CLIENT_INTEG_TEST_USER_ID,
                     },
                 },
                 data: {
@@ -453,7 +453,7 @@ export const handlers = [
             db.myProfileInformation.update({
                 where: {
                     userID: {
-                        equals: testGetFakeUserID(),
+                        equals: CLIENT_INTEG_TEST_USER_ID,
                     },
                 },
                 data: {
@@ -560,7 +560,7 @@ export const handlers = [
             const userFollowers = db.userFollowers.findFirst({
                 where: {
                     userID: {
-                        equals: testGetFakeUserID(),
+                        equals: CLIENT_INTEG_TEST_USER_ID,
                     },
                 },
             });
@@ -651,7 +651,7 @@ export const handlers = [
             const userFollowing = db.userFollowing.findFirst({
                 where: {
                     userID: {
-                        equals: testGetFakeUserID(),
+                        equals: CLIENT_INTEG_TEST_USER_ID,
                     },
                 },
             });

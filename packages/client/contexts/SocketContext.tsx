@@ -4,7 +4,6 @@ import {
 } from '@musicroom/types';
 import * as Device from 'expo-device';
 import React, { useContext, useMemo } from 'react';
-import { Platform } from 'react-native';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
 import { io, Socket } from '../services/websockets';
 
@@ -33,19 +32,6 @@ export function useSocket(): SocketClient {
     }, []);
 
     return socket;
-}
-
-export function getFakeUserID(): string {
-    if (typeof window !== 'undefined' && 'localStorage' in window) {
-        const userIDFromLocalStorage = window.localStorage.getItem('USER_ID');
-        if (typeof userIDFromLocalStorage === 'string') {
-            return userIDFromLocalStorage;
-        }
-    }
-
-    return Platform.OS === 'web'
-        ? 'f5ddbf01-cc01-4422-b347-67988342b558'
-        : '9ed60e96-d5fc-40b3-b842-aeaa75e93972';
 }
 
 const SocketContext = React.createContext<SocketClient | undefined>(undefined);

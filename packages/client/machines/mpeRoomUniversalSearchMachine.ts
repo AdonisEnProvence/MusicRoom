@@ -1,7 +1,6 @@
 import { MpeRoomSummary, MtvRoomSummary } from '@musicroom/types';
 import { EventFrom, Sender } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { getFakeUserID } from '../contexts/SocketContext';
 import { fetchAllMpeRooms, fetchLibraryMpeRooms } from '../services/MpeService';
 import { appScreenHeaderWithSearchBarMachine } from './appScreenHeaderWithSearchBarMachine';
 

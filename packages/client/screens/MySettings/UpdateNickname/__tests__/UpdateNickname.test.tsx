@@ -12,7 +12,7 @@ import {
     fireEvent,
     within,
     waitFor,
-    testGetFakeUserID,
+    CLIENT_INTEG_TEST_USER_ID,
     renderApp,
 } from '../../../../tests/tests-utils';
 import { db } from '../../../../tests/data';
@@ -301,7 +301,7 @@ describe('Update Nickname', () => {
                         ),
                     );
 
-                    const userID = testGetFakeUserID();
+                    const userID = CLIENT_INTEG_TEST_USER_ID;
 
                     db.myProfileInformation.create({
                         userID,

@@ -8,7 +8,6 @@ import {
     UpdateRelationsVisibilityResponseBody,
     UserSettingVisibility,
 } from '@musicroom/types';
-import { getFakeUserID } from '../contexts/SocketContext';
 import { request } from './http';
 
 export async function getMySettings(): Promise<GetMySettingsResponseBody> {

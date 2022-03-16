@@ -1,7 +1,11 @@
-import { SignInResponseBody } from '@musicroom/types';
-import { Platform } from 'react-native';
+import {
+    GetMyProfileInformationResponseBody,
+    SignInResponseBody,
+    SignInSuccessfulResponseBody,
+} from '@musicroom/types';
 import invariant from 'tiny-invariant';
 import {
+    assign,
     ContextFrom,
     DoneInvokeEvent,
     EventFrom,
@@ -78,6 +82,14 @@ export function createAppMachine({
                         src: 'fetchUser',
 
                         onDone: {
+                            actions: assign({
+                                userID: (_context, e) => {
+                                    const event =
+                                        e as DoneInvokeEvent<GetMyProfileInformationResponseBody>;
+
+                                    return event.data.userID;
+                                },
+                            }),
                             target: 'reconnectingSocketConnection',
                         },
 
@@ -110,6 +122,15 @@ export function createAppMachine({
                                                 target: 'credentialsAreInvalid',
                                             },
                                             {
+                                                actions: assign({
+                                                    userID: (_context, e) => {
+                                                        const event =
+                                                            e as DoneInvokeEvent<SignInSuccessfulResponseBody>;
+
+                                                        return event.data
+                                                            .userSummary.userID;
+                                                    },
+                                                }),
                                                 target: 'successfullySubmittedCredentials',
                                             },
                                         ],
@@ -155,6 +176,10 @@ export function createAppMachine({
                                 waitingForSignUpFormSubmitSuccess: {
                                     on: {
                                         SIGNED_UP_SUCCESSFULLY: {
+                                            actions: appModel.assign({
+                                                userID: (_, event) =>
+                                                    event.userID,
+                                            }),
                                             target: 'successfullySubmittedSignUpCredentials',
                                         },
                                     },

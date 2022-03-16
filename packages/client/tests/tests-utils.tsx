@@ -10,7 +10,6 @@ import {
 import { DripsyProvider } from 'dripsy';
 import { datatype } from 'faker';
 import React from 'react';
-import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import invariant from 'tiny-invariant';
@@ -89,14 +88,16 @@ export function render(
 
     return {
         ...utils,
-        serverSocket,
+        serverSocket, //Why do we store this here ?
     };
 }
 
-export async function authenticateUser(): Promise<void> {
+export const CLIENT_INTEG_TEST_USER_ID = datatype.uuid();
+
+export async function authenticateUser(): Promise<{ userID: string }> {
     await AsyncStorage.setItem('auth-token', 'token');
 
-    const currentUserID = testGetFakeUserID();
+    const currentUserID = CLIENT_INTEG_TEST_USER_ID;
     const currentUserAlreadyExists = db.myProfileInformation.findFirst({
         where: {
             userID: {
@@ -105,12 +106,18 @@ export async function authenticateUser(): Promise<void> {
         },
     });
     if (currentUserAlreadyExists !== null) {
-        return;
+        return {
+            userID: currentUserID,
+        };
     }
 
     db.myProfileInformation.create({
         userID: currentUserID,
     });
+
+    return {
+        userID: currentUserID,
+    };
 }
 
 /**
@@ -242,17 +249,4 @@ export function toTrackCardContainerTestID({
     return [testIDPrefix, trackID, 'track-card-container']
         .filter((chunk) => chunk !== undefined)
         .join('-');
-}
-
-export function testGetFakeUserID(): string {
-    if (typeof window !== 'undefined' && 'localStorage' in window) {
-        const userIDFromLocalStorage = window.localStorage.getItem('USER_ID');
-        if (typeof userIDFromLocalStorage === 'string') {
-            return userIDFromLocalStorage;
-        }
-    }
-
-    return Platform.OS === 'web'
-        ? 'f5ddbf01-cc01-4422-b347-67988342b558'
-        : '9ed60e96-d5fc-40b3-b842-aeaa75e93972';
 }

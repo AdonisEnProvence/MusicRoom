@@ -9,6 +9,7 @@ import {
     SignUpResponseBody,
     WebAuthSuccessfullSignUpResponseBody,
     SignInFailureResponseBody,
+    SignUpSuccessfullResponseBody,
 } from '@musicroom/types';
 import { request, SHOULD_USE_TOKEN_AUTH } from './http';
 
@@ -153,7 +154,7 @@ export async function sendWebAuthSignUp({
 
 export async function sendSignUp(
     args: sendSignUpArgs,
-): Promise<SignUpResponseBody> {
+): Promise<SignUpSuccessfullResponseBody> {
     if (SHOULD_USE_TOKEN_AUTH) {
         return await sendApiTokenSignUp(args);
     }

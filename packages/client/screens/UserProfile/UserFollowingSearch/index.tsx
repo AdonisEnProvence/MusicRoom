@@ -2,7 +2,7 @@ import { Button, Text, useSx, View } from 'dripsy';
 import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActorRef } from 'xstate';
-import { useActor, useMachine } from '@xstate/react';
+import { useActor, useMachine, useSelector } from '@xstate/react';
 import { FlatList, TouchableOpacity } from 'react-native';
 import { RefreshControl } from 'react-native-web-refresh-control';
 import { UserProfileInformation } from '@musicroom/types';
@@ -20,12 +20,12 @@ import {
 import UserListItem from '../../../components/User/UserListItem';
 import { IS_TEST } from '../../../constants/Env';
 import { createUserInformationMachine } from '../../../machines/userInformationMachine';
-import { getFakeUserID } from '../../../contexts/SocketContext';
 import UserNotFoundScreen from '../kit/UserNotFound';
 import BlankScreen from '../kit/BlankScreen';
 import LoadingScreen from '../kit/LoadingScreen';
 import { createUserFollowingSearchMachine } from '../../../machines/usersUniversalSearcMachine';
 import { UserFollowingSearchScreenProps } from '../../../types';
+import { useAppContext } from '../../../contexts/AppContext';
 
 const ForbiddenAccessToUserFollowingScreen: React.FC<
     UserFollowingSearchScreenProps & {
@@ -62,19 +62,19 @@ const UserfollowingScreen: React.FC<UserFollowingSearchScreenProps> = ({
         params: { userID: relatedUserID },
     },
 }) => {
-    const meUSerID = getFakeUserID();
     const insets = useSafeAreaInsets();
     const sx = useSx();
     const [screenOffsetY, setScreenOffsetY] = useState(0);
     const initialNumberOfItemsToRender = IS_TEST ? Infinity : 10;
-
+    const { appService } = useAppContext();
+    const meUSerID = useSelector(appService, (state) => state.context.userID);
     const [userfollowingSearchState, userfollowingSearchMachineSend] =
         useMachine(() =>
             createUserFollowingSearchMachine({
                 userID: relatedUserID,
             }),
         );
-    const { searchQuery, usersSummaries } = userfollowingSearchState.context;
+    const { usersSummaries } = userfollowingSearchState.context;
     const hasMoreUsersToFetch = userfollowingSearchState.context.hasMore;
     const isFetching = userfollowingSearchState.hasTag('fetching');
     const searchBarActor: ActorRef<

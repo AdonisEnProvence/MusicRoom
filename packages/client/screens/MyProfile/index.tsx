@@ -16,7 +16,6 @@ import {
     Typo,
 } from '../../components/kit';
 import { MyProfileScreenProps } from '../../types';
-import { getFakeUserID } from '../../contexts/SocketContext';
 import { generateUserAvatarUri } from '../../constants/users-avatar';
 import { getMyProfileInformation } from '../../services/UsersSearchService';
 import { useRefreshOnFocus } from '../../hooks/useRefreshOnFocus';
@@ -62,7 +61,6 @@ const MyProfileInformationSection: React.FC<MyProfileInformationSectionProps> =
 const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const sx = useSx();
-    const userID = getFakeUserID();
 
     const [state, sendToMachine] = useMachine(() =>
         createMachine({
@@ -173,6 +171,7 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
         );
     }
 
+    const { userID } = myProfileInformation;
     const myProfileInformationSections: MyProfileInformationSectionProps[] = [
         {
             informationName: 'followers',

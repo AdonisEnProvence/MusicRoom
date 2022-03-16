@@ -118,3 +118,9 @@ export type SignUpRequestBody = z.infer<typeof SignUpRequestBody>;
 // Invalid password examples: 'bestpasswor@1', 'abcqwerty', 'ABCWE'
 export const passwordStrengthRegex =
     /^(?=.*[A-Z].*[A-Z])(?=.*[!#$:@+%&'*+/\\=?^_`{|}~-])(?=.*[0-9].*[0-9])(?=.*[a-z].*[a-z].*[a-z]).{8,}$/;
+
+export const SignOutResponseBody = z.object({
+    status: z.literal('SUCCESS'),
+});
+
+export type SignOutResponseBody = z.infer<typeof SignOutResponseBody>;

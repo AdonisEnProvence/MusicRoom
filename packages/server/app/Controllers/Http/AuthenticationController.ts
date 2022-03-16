@@ -6,10 +6,12 @@ import {
     passwordStrengthRegex,
     SignInResponseBody,
     SignInRequestBody,
+    SignOutResponseBody,
 } from '@musicroom/types';
 import User from 'App/Models/User';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import * as z from 'zod';
+import invariant from 'tiny-invariant';
 
 export default class AuthenticationController {
     public async signUp({
@@ -160,5 +162,27 @@ export default class AuthenticationController {
                 throw new Error('unkown authentication mode encountered');
             }
         }
+    }
+
+    public async signOut({
+        request,
+        auth,
+    }: HttpContextContract): Promise<SignOutResponseBody> {
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            'User must be authenticated to get her profile information',
+        );
+
+        const apiAuthtoken = request.header('Authorization');
+        if (apiAuthtoken) {
+            await auth.use('api').revoke();
+        } else {
+            await auth.logout();
+        }
+
+        return {
+            status: 'SUCCESS',
+        };
     }
 }

@@ -86,6 +86,9 @@ export const AUTHENTICATION_ROUTES_GROUP_PREFIX = '/authentication';
 Route.group(() => {
     Route.post('/sign-up', 'AuthenticationController.signUp');
     Route.post('/sign-in', 'AuthenticationController.signIn');
+    Route.get('/sign-out', 'AuthenticationController.signOut').middleware(
+        'every-auth',
+    );
 }).prefix(AUTHENTICATION_ROUTES_GROUP_PREFIX);
 
 /// Temporal MTV Routes ///

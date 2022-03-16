@@ -4,11 +4,8 @@ import invariant from 'tiny-invariant';
 
 export default class MyProfileController {
     public async getMyProfileInformation({
-        request,
         auth,
     }: HttpContextContract): Promise<GetMyProfileInformationResponseBody> {
-        console.log('MYPROFILEINFOMRATION HEADERS', request.headers());
-        console.log(request.cookiesList());
         const user = auth.user;
         invariant(
             user !== undefined,

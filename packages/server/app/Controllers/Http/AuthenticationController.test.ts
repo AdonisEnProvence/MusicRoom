@@ -5,11 +5,17 @@ import {
     SignInRequestBody,
     SignInSuccessfulApiTokensResponseBody,
     SignInSuccessfulWebAuthResponseBody,
+    SignOutResponseBody,
 } from '@musicroom/types';
 import User from 'App/Models/User';
+import { internet } from 'faker';
 import test from 'japa';
 import supertest from 'supertest';
-import { BASE_URL, initTestUtils } from '../../../tests/utils/TestUtils';
+import {
+    BASE_URL,
+    generateStrongPassword,
+    initTestUtils,
+} from '../../../tests/utils/TestUtils';
 
 test.group('AuthenticationController', (group) => {
     const { initSocketConnection, disconnectEveryRemainingSocketConnection } =
@@ -227,5 +233,90 @@ test.group('AuthenticationController', (group) => {
                 status: 'INVALID_CREDENTIALS',
             },
         );
+    });
+
+    test('It should sign out api token authenticated user', async (assert) => {
+        const email = internet.email();
+        const password = generateStrongPassword();
+        await User.create({
+            nickname: 'Popol',
+            email,
+            password,
+        });
+
+        const signInRequestBody: SignInRequestBody = {
+            email,
+            password,
+            authenticationMode: 'api',
+        };
+        const signInResponse = await supertest(BASE_URL)
+            .post('/authentication/sign-in')
+            .send(signInRequestBody)
+            .expect(200);
+
+        const signInResponseBody = SignInSuccessfulApiTokensResponseBody.parse(
+            signInResponse.body,
+        );
+        const authToken = signInResponseBody.token;
+
+        const signOutResponse = await supertest(BASE_URL)
+            .get('/authentication/sign-out')
+            .set('Authorization', `bearer ${authToken}`)
+            .expect(200);
+
+        const parsedBody = SignOutResponseBody.parse(signOutResponse.body);
+        assert.equal(parsedBody.status, 'SUCCESS');
+
+        await supertest(BASE_URL)
+            .get('/me/profile-information')
+            .set('Authorization', `bearer ${authToken}`)
+            .expect(401);
+    });
+
+    test('It should sign out web auth authenticated user', async (assert) => {
+        const request = supertest.agent(BASE_URL);
+
+        const email = internet.email();
+        const password = generateStrongPassword();
+        await User.create({
+            nickname: 'Popol',
+            email,
+            password,
+        });
+
+        const signInRequestBody: SignInRequestBody = {
+            email,
+            password,
+            authenticationMode: 'web',
+        };
+        const signInResponse = await request
+            .post('/authentication/sign-in')
+            .send(signInRequestBody)
+            .expect(200);
+
+        SignInSuccessfulWebAuthResponseBody.parse(signInResponse.body);
+
+        const signOutResponse = await request
+            .get('/authentication/sign-out')
+            .expect(200);
+
+        const parsedBody = SignOutResponseBody.parse(signOutResponse.body);
+        assert.equal(parsedBody.status, 'SUCCESS');
+
+        await request.get('/me/profile-information').expect(401);
+    });
+
+    test('It should throw an error as signing out user is not authenticated', async () => {
+        const request = supertest.agent(BASE_URL);
+
+        const email = internet.email();
+        const password = generateStrongPassword();
+        await User.create({
+            nickname: 'Popol',
+            email,
+            password,
+        });
+
+        await request.get('/authentication/sign-out').expect(401);
     });
 });

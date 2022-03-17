@@ -26,6 +26,7 @@ import { getUserMachineOptions } from '../machines/options/appUserMachineOptions
 import { ApplicationState } from '../types';
 import { AppMusicPlaylistsActorRef } from '../machines/appMusicPlaylistsModel';
 import { getAppMusicPlaylistsMachineOptions } from '../machines/options/appMusicPlaylistsMachineOptions';
+import { PLATFORM_OS_IS_WEB } from '../machines/utils';
 import { useSocketContext } from './SocketContext';
 
 export interface UserContextValue {
@@ -109,6 +110,9 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
         () =>
             createAppMachine({
                 socket,
+                musicRoomBroadcastChannel: PLATFORM_OS_IS_WEB
+                    ? new BroadcastChannel('music_room_channel')
+                    : undefined,
                 locationPollingTickDelay,
                 musicPlayerMachineOptions,
                 userMachineOptions,

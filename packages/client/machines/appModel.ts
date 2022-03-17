@@ -11,6 +11,8 @@ export const appModel = createModel(
             SIGN_IN: (args: { email: string; password: string }) => args,
             SIGNED_UP_SUCCESSFULLY: (userID: string) => ({ userID }),
             SIGN_OUT: () => ({}),
+            __BROADCAST_RELOAD_INTO_BROADCAST_CHANNEL: () => ({}),
+            __RECEIVED_RELOAD_PAGE: () => ({}),
 
             ACKNOWLEDGE_SOCKET_CONNECTION: () => ({}),
 

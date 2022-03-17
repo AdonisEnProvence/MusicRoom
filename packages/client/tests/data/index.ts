@@ -12,6 +12,7 @@ import {
 } from '@musicroom/types';
 import { LocationObject } from 'expo-location';
 import { datatype, name, random, internet } from 'faker';
+import { CLIENT_INTEG_TEST_USER_ID } from '../tests-utils';
 
 export const db = factory({
     searchableTracks: {
@@ -359,7 +360,7 @@ export function generateLocationObject(
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function generateAuthenticationUser() {
     return {
-        uuid: datatype.uuid(),
+        uuid: CLIENT_INTEG_TEST_USER_ID,
         email: internet.email(),
         password: internet.password(),
         nickname: internet.userName(),

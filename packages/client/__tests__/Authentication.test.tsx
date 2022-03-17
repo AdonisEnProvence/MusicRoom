@@ -1594,9 +1594,17 @@ cases<{
         | 'Rendering home screen';
     events: EventFrom<typeof authenticationModelMachine>[];
 }>(
-    'Authentication',
+    'Signing in',
     async ({ target, events }) => {
         db.authenticationUser.create(existingUser);
+        db.myProfileInformation.create({
+            userID: existingUser.uuid,
+            devicesCounter: 3,
+            playlistsCounter: 4,
+            followersCounter: 5,
+            followingCounter: 6,
+            userNickname: existingUser.nickname,
+        });
 
         const plan = authenticationModel.getPlanFromEvents(events, { target });
 
@@ -1839,9 +1847,17 @@ cases<{
           };
     events: EventFrom<typeof authenticationModelMachine>[];
 }>(
-    'Authentication',
+    'Signing up',
     async ({ target, events }) => {
         db.authenticationUser.create(existingUser);
+        db.myProfileInformation.create({
+            userID: existingUser.uuid,
+            devicesCounter: 3,
+            playlistsCounter: 4,
+            followersCounter: 5,
+            followingCounter: 6,
+            userNickname: existingUser.nickname,
+        });
 
         const plan = authenticationModel.getPlanFromEvents(events, { target });
 
@@ -2092,6 +2108,14 @@ cases<{
     'Sign out authentication tests',
     async ({ target, events }) => {
         db.authenticationUser.create(existingUser);
+        db.myProfileInformation.create({
+            userID: existingUser.uuid,
+            devicesCounter: 3,
+            playlistsCounter: 4,
+            followersCounter: 5,
+            followingCounter: 6,
+            userNickname: existingUser.nickname,
+        });
 
         const plan = authenticationModel.getPlanFromEvents(events, { target });
 

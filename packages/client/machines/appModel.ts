@@ -1,18 +1,20 @@
+import { MyProfileInformation } from '@musicroom/types';
 import { createModel } from 'xstate/lib/model';
 
 export const appModel = createModel(
     {
-        userID: undefined as string | undefined,
+        myProfileInformation: undefined as MyProfileInformation | undefined,
         email: undefined as string | undefined,
         password: undefined as string | undefined,
     },
     {
         events: {
             SIGN_IN: (args: { email: string; password: string }) => args,
-            SIGNED_UP_SUCCESSFULLY: (userID: string) => ({ userID }),
+            SIGNED_UP_SUCCESSFULLY: () => ({}),
             SIGN_OUT: () => ({}),
             __BROADCAST_RELOAD_INTO_BROADCAST_CHANNEL: () => ({}),
             __RECEIVED_RELOAD_PAGE: () => ({}),
+            __AUTHENTICATED: () => ({}),
 
             ACKNOWLEDGE_SOCKET_CONNECTION: () => ({}),
 

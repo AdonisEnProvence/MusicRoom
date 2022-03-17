@@ -67,7 +67,10 @@ const UserfollowingScreen: React.FC<UserFollowingSearchScreenProps> = ({
     const [screenOffsetY, setScreenOffsetY] = useState(0);
     const initialNumberOfItemsToRender = IS_TEST ? Infinity : 10;
     const { appService } = useAppContext();
-    const meUSerID = useSelector(appService, (state) => state.context.userID);
+    const myUserID = useSelector(
+        appService,
+        (state) => state.context.myProfileInformation?.userID,
+    );
     const [userfollowingSearchState, userfollowingSearchMachineSend] =
         useMachine(() =>
             createUserFollowingSearchMachine({
@@ -130,7 +133,7 @@ const UserfollowingScreen: React.FC<UserFollowingSearchScreenProps> = ({
                 }
                 renderItem={({ item: { nickname, userID }, index }) => {
                     const isLastItem = index === usersSummaries.length - 1;
-                    const isMe = userID === meUSerID;
+                    const isMe = userID === myUserID;
                     return (
                         <View
                             sx={{

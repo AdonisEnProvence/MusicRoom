@@ -170,10 +170,8 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
             'Forward sign up success to appMachine': (_context, event) => {
                 assertEventType(event, 'Signed up successfully');
 
-                const { userID } = event;
                 appService.send({
                     type: 'SIGNED_UP_SUCCESSFULLY',
-                    userID,
                 });
             },
 

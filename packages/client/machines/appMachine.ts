@@ -2,6 +2,7 @@ import {
     GetMyProfileInformationResponseBody,
     SignInResponseBody,
     SignInSuccessfulResponseBody,
+    SignOutResponseBody,
 } from '@musicroom/types';
 import invariant from 'tiny-invariant';
 import {
@@ -14,7 +15,7 @@ import {
     StateMachine,
 } from 'xstate';
 import { SocketClient } from '../contexts/SocketContext';
-import { sendSignIn } from '../services/AuthenticationService';
+import { sendSignIn, sendSignOut } from '../services/AuthenticationService';
 import { request, SHOULD_USE_TOKEN_AUTH } from '../services/http';
 import { getMyProfileInformation } from '../services/UsersSearchService';
 import { appModel } from './appModel';
@@ -299,6 +300,42 @@ export function createAppMachine({
                         __EXIT_MPE_EXPORT_TO_MTV: {
                             actions: forwardTo('appMusicPlayerMachine'),
                         },
+
+                        SIGN_OUT: {
+                            target: '#app.handleSignOut',
+                        },
+                    },
+                },
+
+                handleSignOut: {
+                    initial: 'sendingSignOutToServer',
+                    states: {
+                        sendingSignOutToServer: {
+                            invoke: {
+                                src: 'signOut',
+
+                                onDone: {
+                                    target: 'clearingAsyncStorage',
+                                },
+                                onError: {
+                                    target: 'clearingAsyncStorage',
+                                },
+                            },
+                        },
+
+                        clearingAsyncStorage: {
+                            invoke: {
+                                src: 'clearAsyncStorage',
+
+                                onDone: {
+                                    target: '#app.loadingAuthenticationTokenFromAsyncStorage',
+                                },
+
+                                onError: {
+                                    target: '#app.loadingAuthenticationTokenFromAsyncStorage',
+                                },
+                            },
+                        },
                     },
                 },
             },
@@ -344,6 +381,14 @@ export function createAppMachine({
                         email,
                         password,
                     });
+                },
+
+                signOut: async (): Promise<SignOutResponseBody> => {
+                    return await sendSignOut();
+                },
+
+                clearAsyncStorage: async (): Promise<void> => {
+                    return await request.clearToken();
                 },
 
                 loadAuthenticationTokenFromAsyncStorage: async () => {

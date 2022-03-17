@@ -10,6 +10,7 @@ import {
     WebAuthSuccessfullSignUpResponseBody,
     SignInFailureResponseBody,
     SignUpSuccessfullResponseBody,
+    SignOutResponseBody,
 } from '@musicroom/types';
 import { request, SHOULD_USE_TOKEN_AUTH } from './http';
 
@@ -26,6 +27,14 @@ export function sendSignIn({
         return sendSignInApi({ email, password });
     }
     return sendSignInWeb({ email, password });
+}
+
+export async function sendSignOut(): Promise<SignOutResponseBody> {
+    const rawResponse = await request.get('/authentication/sign-out');
+    //Cannot clear token here, in case the current token is now invalid and then throws an error
+    const parsedResponse = SignOutResponseBody.parse(rawResponse.data);
+
+    return parsedResponse;
 }
 
 async function sendSignInWeb({

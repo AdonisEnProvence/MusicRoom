@@ -208,6 +208,7 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
                     return (
                         <TouchableOpacity onPress={handleGoToMySettingsScreen}>
                             <Ionicons
+                                testID="go-to-my-settings-button"
                                 name="cog"
                                 accessibilityLabel="Open my settings screen"
                                 style={sx({

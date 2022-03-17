@@ -72,6 +72,9 @@ const authenticationModelMachine =
                           type: 'Press button to go to sign up screen';
                       }
                     | {
+                          type: 'Make user go to his profile settings from home and sign out';
+                      }
+                    | {
                           type: 'Press button to go to sign in screen';
                       }
                     | {
@@ -120,6 +123,13 @@ const authenticationModelMachine =
                                 ).toBeGreaterThanOrEqual(1);
                             });
                         },
+                    },
+
+                    on: {
+                        'Make user go to his profile settings from home and sign out':
+                            {
+                                target: 'Rendering signing screen',
+                            },
                     },
                 },
                 'Rendering signing screen': {
@@ -1509,6 +1519,39 @@ const authenticationModel = createModel<TestingContext>(
         );
     },
     ///
+
+    //Sign out
+    'Make user go to his profile settings from home and sign out': async ({
+        screen,
+    }) => {
+        invariant(screen !== undefined, 'Screen must have been rendered');
+
+        const goToMyProfileButton = await screen.findByTestId(
+            'open-my-profile-page-button',
+        );
+        expect(goToMyProfileButton).toBeTruthy();
+        fireEvent.press(goToMyProfileButton);
+        expect(
+            await screen.findByTestId('my-profile-page-container'),
+        ).toBeTruthy();
+
+        const goToMySettingsButton = await screen.findByTestId(
+            'go-to-my-settings-button',
+        );
+        expect(goToMySettingsButton).toBeTruthy();
+        fireEvent.press(goToMySettingsButton);
+        expect(
+            await screen.findByTestId('my-profile-settings-page-container'),
+        ).toBeTruthy();
+
+        const myProfileSettingsSignOutButton = await screen.findByTestId(
+            'my-profile-sign-out-button',
+        );
+        expect(myProfileSettingsSignOutButton).toBeTruthy();
+
+        fireEvent.press(myProfileSettingsSignOutButton);
+    },
+    ///
 });
 
 //Signing in tests
@@ -2035,6 +2078,36 @@ cases<{
                 },
                 {
                     type: 'Press button to go to sign in screen',
+                },
+            ],
+        },
+    },
+);
+
+//Sign out tests
+cases<{
+    target: 'Rendering signing screen';
+    events: EventFrom<typeof authenticationModelMachine>[];
+}>(
+    'Sign out authentication tests',
+    async ({ target, events }) => {
+        db.authenticationUser.create(existingUser);
+
+        const plan = authenticationModel.getPlanFromEvents(events, { target });
+
+        await plan.test({
+            screen: undefined,
+        });
+    },
+    {
+        'It should sign out user from my profile settings': {
+            target: 'Rendering signing screen',
+            events: [
+                {
+                    type: 'Make user authenticated and render application',
+                },
+                {
+                    type: 'Make user go to his profile settings from home and sign out',
                 },
             ],
         },

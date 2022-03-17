@@ -2,7 +2,11 @@ import { test, expect } from '@playwright/test';
 import { internet } from 'faker';
 import { mockSearchTracks } from './_utils/mock-http';
 import { knownSearches, pageIsOnHomeScreen } from './_utils/mpe-e2e-utils';
-import { GEOLOCATION_POSITIONS } from './_utils/page';
+import { closeAllContexts, GEOLOCATION_POSITIONS } from './_utils/page';
+
+test.afterEach(async ({ browser }) => {
+    await closeAllContexts(browser);
+});
 
 test('Signs up a user, expects to be redirected to home and to be still loggged in on another page or after a refresh', async ({
     browser,

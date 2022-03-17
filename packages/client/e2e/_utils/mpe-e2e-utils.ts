@@ -502,6 +502,16 @@ export async function pageIsOnHomeScreen({
     ).toBeVisible();
 }
 
+export async function pageIsOnSignInScreen({
+    page,
+}: {
+    page: Page;
+}): Promise<void> {
+    await expect(
+        page.locator('css=[data-testid="sign-in-screen-container"]'),
+    ).toBeVisible();
+}
+
 export async function pageIsOnMyProfileScreen({
     page,
 }: {

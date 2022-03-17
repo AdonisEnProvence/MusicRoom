@@ -48,17 +48,16 @@ export async function setupPageAndSignUpUser({
             town === undefined ? undefined : GEOLOCATION_POSITIONS[town],
     });
     const page = await context.newPage();
+    await page.goto('/');
 
     await mockSearchTracks({
         context: context,
         knownSearches,
     });
 
-    await page.goto('/');
-
     const { userNickname, userID, email, password } = await performSignUp(page);
 
-    await initPage(page);
+    await focusPage(page);
 
     return {
         context,
@@ -70,9 +69,7 @@ export async function setupPageAndSignUpUser({
     };
 }
 
-export async function initPage(page: Page): Promise<void> {
-    await page.goto('/');
-
+export async function focusPage(page: Page): Promise<void> {
     const focusTrap = page.locator('text="Click"').first();
     await focusTrap.click();
 }
@@ -161,8 +158,9 @@ export async function createNewTabFromExistingContext(
     context: BrowserContext,
 ): Promise<{ page: Page }> {
     const page = await context.newPage();
+    await page.goto('/');
 
-    await initPage(page);
+    await focusPage(page);
 
     return {
         page,

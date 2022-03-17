@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { EventObject } from 'xstate';
 
 /**
@@ -36,3 +37,5 @@ export function assertEventType(
         );
     }
 }
+
+export const PLATFORM_OS_IS_WEB = Platform.OS === 'web';

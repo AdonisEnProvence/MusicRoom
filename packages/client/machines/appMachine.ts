@@ -4,6 +4,7 @@ import {
     SignInSuccessfulResponseBody,
     SignOutResponseBody,
 } from '@musicroom/types';
+import { Platform } from 'react-native';
 import invariant from 'tiny-invariant';
 import {
     assign,
@@ -12,6 +13,9 @@ import {
     EventFrom,
     forwardTo,
     Interpreter,
+    Receiver,
+    send,
+    Sender,
     StateMachine,
 } from 'xstate';
 import { SocketClient } from '../contexts/SocketContext';
@@ -25,10 +29,12 @@ import { createUserMachine } from './appUserMachine';
 import { AppMusicPlayerMachineOptions } from './options/appMusicPlayerMachineOptions';
 import { AppMusicPlaylistsOptions } from './options/appMusicPlaylistsMachineOptions';
 import { AppUserMachineOptions } from './options/appUserMachineOptions';
+import { PLATFORM_OS_IS_WEB } from './utils';
 
 interface CreateAppMachineArgs {
     locationPollingTickDelay: number;
     socket: SocketClient;
+    musicRoomBroadcastChannel?: BroadcastChannel;
     musicPlayerMachineOptions: AppMusicPlayerMachineOptions;
     userMachineOptions: AppUserMachineOptions;
     appMusicPlaylistsMachineOptions: AppMusicPlaylistsOptions;
@@ -42,6 +48,7 @@ export type AppMachineInterpreter = Interpreter<
 
 export function createAppMachine({
     socket,
+    musicRoomBroadcastChannel,
     locationPollingTickDelay,
     musicPlayerMachineOptions,
     userMachineOptions,
@@ -54,6 +61,49 @@ export function createAppMachine({
     return appModel.createMachine(
         {
             id: 'app',
+
+            invoke: {
+                id: 'broadcastChannelService',
+                src:
+                    () =>
+                    (
+                        sendBack: Sender<EventFrom<typeof appModel>>,
+                        onReceive: Receiver<EventFrom<typeof appModel>>,
+                    ) => {
+                        if (PLATFORM_OS_IS_WEB) {
+                            invariant(
+                                musicRoomBroadcastChannel !== undefined,
+                                'broadcast channel is undefined on web OS',
+                            );
+
+                            musicRoomBroadcastChannel.onmessage = (event) => {
+                                switch (event.data) {
+                                    case 'RELOAD_BROWSER_TABS': {
+                                        sendBack('__RECEIVED_RELOAD_PAGE');
+                                        break;
+                                    }
+                                    default: {
+                                        console.error(
+                                            'encountered unknown broadcast channel message',
+                                        );
+                                    }
+                                }
+                            };
+
+                            onReceive((event) => {
+                                switch (event.type) {
+                                    case '__BROADCAST_RELOAD_INTO_BROADCAST_CHANNEL': {
+                                        musicRoomBroadcastChannel.postMessage(
+                                            'RELOAD_BROWSER_TABS',
+                                        );
+
+                                        break;
+                                    }
+                                }
+                            });
+                        }
+                    },
+            },
 
             initial: 'loadingAuthenticationTokenFromAsyncStorage',
 
@@ -168,6 +218,8 @@ export function createAppMachine({
 
                             onDone: {
                                 target: '#app.reconnectingSocketConnection',
+                                actions:
+                                    'sendBroadcastReloadIntoBroadcastChannel',
                             },
                         },
 
@@ -193,6 +245,8 @@ export function createAppMachine({
 
                             onDone: {
                                 target: '#app.reconnectingSocketConnection',
+                                actions:
+                                    'sendBroadcastReloadIntoBroadcastChannel',
                             },
                         },
                     },
@@ -329,14 +383,30 @@ export function createAppMachine({
 
                                 onDone: {
                                     target: '#app.loadingAuthenticationTokenFromAsyncStorage',
+                                    actions:
+                                        'sendBroadcastReloadIntoBroadcastChannel',
                                 },
 
                                 onError: {
                                     target: '#app.loadingAuthenticationTokenFromAsyncStorage',
+                                    actions:
+                                        'sendBroadcastReloadIntoBroadcastChannel',
                                 },
                             },
                         },
                     },
+                },
+            },
+
+            on: {
+                __BROADCAST_RELOAD_INTO_BROADCAST_CHANNEL: {
+                    cond: 'platformOsIsWeb',
+                    actions: forwardTo('broadcastChannelService'),
+                },
+
+                __RECEIVED_RELOAD_PAGE: {
+                    cond: 'platformOsIsWeb',
+                    actions: 'reloadPage',
                 },
             },
         },
@@ -396,6 +466,20 @@ export function createAppMachine({
                 },
             },
 
+            actions: {
+                reloadPage: () => {
+                    invariant(
+                        window !== undefined && window !== null,
+                        'window is undefined',
+                    );
+
+                    window.location.reload();
+                },
+                sendBroadcastReloadIntoBroadcastChannel: send(() => ({
+                    type: '__BROADCAST_RELOAD_INTO_BROADCAST_CHANNEL',
+                })),
+            },
+
             guards: {
                 submittedSigningInCredentialsAreInvalid: (_context, e) => {
                     const event = e as DoneInvokeEvent<SignInResponseBody>;
@@ -403,6 +487,7 @@ export function createAppMachine({
                     return event.data.status === 'INVALID_CREDENTIALS';
                 },
                 shouldUseWebAuth: () => !SHOULD_USE_TOKEN_AUTH,
+                platformOsIsWeb: () => PLATFORM_OS_IS_WEB,
             },
         },
     );

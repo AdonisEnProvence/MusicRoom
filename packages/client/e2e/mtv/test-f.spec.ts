@@ -10,7 +10,7 @@ import {
     closeAllContexts,
     createNewTabFromExistingContext,
     GEOLOCATION_POSITIONS,
-    initPage,
+    focusPage,
     setupPageAndSignUpUser,
 } from '../_utils/page';
 import { knownSearches } from '../_utils/mpe-e2e-utils';
@@ -378,7 +378,8 @@ test('Test F', async ({ browser }) => {
         GEOLOCATION_POSITIONS['Manosque, France'],
     );
     await userBDevice1Page.reload();
-    await initPage(userBDevice1Page);
+    await userBDevice1Page.goto('/');
+    await focusPage(userBDevice1Page);
     await openFullScreenPlayer({
         page: userBDevice1Page,
         roomName,
@@ -415,7 +416,8 @@ test('Test F', async ({ browser }) => {
         GEOLOCATION_POSITIONS['Soissons, France'],
     );
     await userBDevice1Page.reload();
-    await initPage(userBDevice1Page);
+    await userBDevice1Page.goto('/');
+    await focusPage(userBDevice1Page);
     await openFullScreenPlayer({
         page: userBDevice1Page,
         roomName,

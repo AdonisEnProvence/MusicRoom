@@ -1,7 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { internet } from 'faker';
 import { mockSearchTracks } from './_utils/mock-http';
-import { knownSearches, pageIsOnHomeScreen } from './_utils/mpe-e2e-utils';
+import {
+    knownSearches,
+    pageIsOnHomeScreen,
+    pageIsOnSignInScreen,
+} from './_utils/mpe-e2e-utils';
 import { closeAllContexts, GEOLOCATION_POSITIONS } from './_utils/page';
 
 test.afterEach(async ({ browser }) => {
@@ -23,7 +27,7 @@ test('Signs up a user, expects to be redirected to home and to be still loggged 
     const page = await context.newPage();
     await page.goto('/');
 
-    await expect(page.locator('text="Welcome back Popol!"')).toBeVisible();
+    await pageIsOnSignInScreen({ page });
 
     await page.click('text="Or sign up ?"');
 
@@ -75,7 +79,7 @@ test('It should renders home on every browser tab after a signUp', async ({
     const secondContextPage = await secondContext.newPage();
     await secondContextPage.goto('/');
 
-    await expect(page.locator('text="Welcome back Popol!"')).toBeVisible();
+    await pageIsOnSignInScreen({ page });
 
     await page.click('text="Or sign up ?"');
 
@@ -90,7 +94,5 @@ test('It should renders home on every browser tab after a signUp', async ({
     await pageIsOnHomeScreen({ page });
     await pageIsOnHomeScreen({ page: newTab1 });
     await pageIsOnHomeScreen({ page: newTab2 });
-    await expect(
-        secondContextPage.locator('text="Or sign up ?"'),
-    ).toBeVisible();
+    await pageIsOnSignInScreen({ page: secondContextPage });
 });

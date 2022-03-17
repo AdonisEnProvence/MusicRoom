@@ -266,7 +266,7 @@ export const handlers = [
 
     rest.get<never, never, GetMyProfileInformationResponseBody>(
         `${SERVER_ENDPOINT}/me/profile-information`,
-        withAuthentication(async (_req, res, ctx) => {
+        withAuthentication((_req, res, ctx) => {
             const user = db.myProfileInformation.findFirst({
                 where: {
                     userID: {

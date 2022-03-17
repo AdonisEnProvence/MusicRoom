@@ -13,10 +13,10 @@ import {
     YoutubeIframeRef,
 } from 'react-native-youtube-iframe';
 import faker from 'faker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { cleanup, serverSocket } from './services/websockets';
 import { dropDatabase } from './tests/data';
 import { server } from './tests/server/test-server';
+import { request } from './services/http';
 
 jest.setTimeout(20_000);
 
@@ -332,7 +332,7 @@ beforeEach(async () => {
         onAcknowledged();
     });
 
-    await AsyncStorage.clear();
+    await request.clearToken();
 });
 
 // jest.spyOn(console, 'warn').mockImplementation();

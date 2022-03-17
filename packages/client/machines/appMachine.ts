@@ -1,7 +1,6 @@
 import {
     GetMyProfileInformationResponseBody,
     SignInResponseBody,
-    SignInSuccessfulResponseBody,
     SignOutResponseBody,
 } from '@musicroom/types';
 import { Platform } from 'react-native';
@@ -18,6 +17,7 @@ import {
     Sender,
     StateMachine,
 } from 'xstate';
+import { raise } from 'xstate/lib/actions';
 import { SocketClient } from '../contexts/SocketContext';
 import { sendSignIn, sendSignOut } from '../services/AuthenticationService';
 import { request, SHOULD_USE_TOKEN_AUTH } from '../services/http';
@@ -134,11 +134,11 @@ export function createAppMachine({
 
                         onDone: {
                             actions: assign({
-                                userID: (_context, e) => {
+                                myProfileInformation: (_context, e) => {
                                     const event =
                                         e as DoneInvokeEvent<GetMyProfileInformationResponseBody>;
 
-                                    return event.data.userID;
+                                    return event.data;
                                 },
                             }),
                             target: 'reconnectingSocketConnection',
@@ -173,15 +173,6 @@ export function createAppMachine({
                                                 target: 'credentialsAreInvalid',
                                             },
                                             {
-                                                actions: assign({
-                                                    userID: (_context, e) => {
-                                                        const event =
-                                                            e as DoneInvokeEvent<SignInSuccessfulResponseBody>;
-
-                                                        return event.data
-                                                            .userSummary.userID;
-                                                    },
-                                                }),
                                                 target: 'successfullySubmittedCredentials',
                                             },
                                         ],
@@ -217,22 +208,18 @@ export function createAppMachine({
                             },
 
                             onDone: {
-                                target: '#app.reconnectingSocketConnection',
-                                actions:
-                                    'sendBroadcastReloadIntoBroadcastChannel',
+                                actions: raise({
+                                    type: '__AUTHENTICATED',
+                                }),
                             },
                         },
 
-                        SigningUp: {
+                        signingUp: {
                             initial: 'waitingForSignUpFormSubmitSuccess',
                             states: {
                                 waitingForSignUpFormSubmitSuccess: {
                                     on: {
                                         SIGNED_UP_SUCCESSFULLY: {
-                                            actions: appModel.assign({
-                                                userID: (_, event) =>
-                                                    event.userID,
-                                            }),
                                             target: 'successfullySubmittedSignUpCredentials',
                                         },
                                     },
@@ -244,10 +231,42 @@ export function createAppMachine({
                             },
 
                             onDone: {
-                                target: '#app.reconnectingSocketConnection',
-                                actions:
-                                    'sendBroadcastReloadIntoBroadcastChannel',
+                                actions: raise({
+                                    type: '__AUTHENTICATED',
+                                }),
                             },
+                        },
+                    },
+
+                    on: {
+                        __AUTHENTICATED: {
+                            target: 'refetchingUserAuthenticationState',
+
+                            actions: 'sendBroadcastReloadIntoBroadcastChannel',
+                        },
+                    },
+                },
+
+                refetchingUserAuthenticationState: {
+                    tags: 'userIsUnauthenticated',
+
+                    invoke: {
+                        src: 'fetchUser',
+
+                        onDone: {
+                            actions: assign({
+                                myProfileInformation: (_context, e) => {
+                                    const event =
+                                        e as DoneInvokeEvent<GetMyProfileInformationResponseBody>;
+
+                                    return event.data;
+                                },
+                            }),
+                            target: 'reconnectingSocketConnection',
+                        },
+
+                        onError: {
+                            target: 'waitingForUserAuthentication',
                         },
                     },
                 },

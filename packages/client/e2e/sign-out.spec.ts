@@ -5,7 +5,11 @@ import {
     pageIsOnHomeScreen,
     pageIsOnSignInScreen,
 } from './_utils/mpe-e2e-utils';
-import { setupPageAndSignUpUser } from './_utils/page';
+import { closeAllContexts, setupPageAndSignUpUser } from './_utils/page';
+
+test.afterEach(async ({ browser }) => {
+    await closeAllContexts(browser);
+});
 
 test('It should sign out user and redirect him to the sign in view', async ({
     browser,

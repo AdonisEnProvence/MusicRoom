@@ -403,4 +403,26 @@ test.group('Confirm email', (group) => {
 
         assert.isNull(user.confirmedEmailAt);
     });
+
+    test('Returns an authorization error when trying confirm the email that has already been confirmed', async (assert) => {
+        const request = supertest.agent(BASE_URL);
+
+        const user = await createUserAndAuthenticate(request);
+
+        const now = DateTime.now();
+        user.confirmedEmailAt = now;
+        await user.save();
+
+        const requestBody: ConfirmEmailRequestBody = {
+            token: '123456',
+        };
+        await request
+            .post('/authentication/confirm-email')
+            .send(requestBody)
+            .expect(403);
+
+        await user.refresh();
+
+        assert.isTrue(now.equals(user.confirmedEmailAt));
+    });
 });

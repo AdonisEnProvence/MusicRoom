@@ -4,7 +4,8 @@
     "./commands",
     "@adonisjs/core/build/commands",
     "@adonisjs/repl/build/commands",
-    "@adonisjs/lucid/build/commands"
+    "@adonisjs/lucid/build/commands",
+    "@adonisjs/bouncer/build/commands"
   ],
   "exceptionHandlerNamespace": "App/Exceptions/Handler",
   "aliases": {
@@ -29,7 +30,8 @@
         "repl",
         "web"
       ]
-    }
+    },
+    "./start/bouncer"
   ],
   "providers": [
     "./providers/AppProvider",
@@ -37,7 +39,8 @@
     "@adonisjs/redis",
     "@adonisjs/lucid",
     "@adonisjs/auth",
-    "@adonisjs/session"
+    "@adonisjs/session",
+    "@adonisjs/bouncer"
   ],
   "aceProviders": [
     "@adonisjs/repl"

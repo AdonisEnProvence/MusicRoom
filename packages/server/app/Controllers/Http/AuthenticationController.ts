@@ -193,12 +193,15 @@ export default class AuthenticationController {
         request,
         response,
         auth,
+        bouncer,
     }: HttpContextContract): Promise<ConfirmEmailResponseBody> {
         const user = auth.user;
         invariant(
             user !== undefined,
             'User must be authenticated to get her profile information',
         );
+
+        await bouncer.authorize('confirmEmail');
 
         const { token } = ConfirmEmailRequestBody.parse(request.body());
 

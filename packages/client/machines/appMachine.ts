@@ -3,7 +3,6 @@ import {
     SignInResponseBody,
     SignOutResponseBody,
 } from '@musicroom/types';
-import { Platform } from 'react-native';
 import invariant from 'tiny-invariant';
 import {
     assign,
@@ -141,7 +140,7 @@ export function createAppMachine({
                                     return event.data;
                                 },
                             }),
-                            target: 'reconnectingSocketConnection',
+                            target: 'checkingUserAccountValidity',
                         },
 
                         onError: {
@@ -262,13 +261,32 @@ export function createAppMachine({
                                     return event.data;
                                 },
                             }),
-                            target: 'reconnectingSocketConnection',
+                            target: 'checkingUserAccountValidity',
                         },
 
                         onError: {
                             target: 'waitingForUserAuthentication',
                         },
                     },
+                },
+
+                checkingUserAccountValidity: {
+                    tags: 'showApplicationLoader',
+
+                    always: [
+                        {
+                            cond: 'userEmailIsNotConfirmed',
+
+                            target: 'waitingForUserEmailConfirmation',
+                        },
+                        {
+                            target: 'reconnectingSocketConnection',
+                        },
+                    ],
+                },
+
+                waitingForUserEmailConfirmation: {
+                    tags: 'userEmailIsNotConfirmed',
                 },
 
                 reconnectingSocketConnection: {
@@ -507,6 +525,11 @@ export function createAppMachine({
                 },
                 shouldUseWebAuth: () => !SHOULD_USE_TOKEN_AUTH,
                 platformOsIsWeb: () => PLATFORM_OS_IS_WEB,
+                userEmailIsNotConfirmed: (_context) => {
+                    const userEmailIsConfirmed = true as boolean;
+
+                    return userEmailIsConfirmed === false;
+                },
             },
         },
     );

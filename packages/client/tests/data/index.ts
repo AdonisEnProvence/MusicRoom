@@ -71,6 +71,7 @@ export const db = factory({
         playlistsCounter: () => datatype.number(),
         userNickname: () => internet.userName(),
         devicesCounter: () => datatype.number(),
+        hasConfirmedEmail: () => datatype.boolean(),
         playlistsVisibilitySetting: () =>
             UserSettingVisibility.enum.PUBLIC as UserSettingVisibility,
         relationsVisibilitySetting: () =>

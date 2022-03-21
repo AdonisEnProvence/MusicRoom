@@ -50,7 +50,6 @@ test.group('MyProfileController', (group) => {
             token,
         });
 
-        console.log('de novueau', { token });
         const { body: rawBody } = await supertest(BASE_URL)
             .get(
                 urlcat(
@@ -67,6 +66,7 @@ test.group('MyProfileController', (group) => {
             followersCounter: 0,
             followingCounter: 0,
             playlistsCounter: 0,
+            hasConfirmedEmail: false,
             userID,
             userNickname,
         };

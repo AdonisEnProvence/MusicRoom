@@ -286,6 +286,7 @@ export const handlers = [
                     followersCounter: user.followersCounter,
                     followingCounter: user.followingCounter,
                     devicesCounter: user.devicesCounter,
+                    hasConfirmedEmail: user.hasConfirmedEmail,
                 }),
             );
         }),

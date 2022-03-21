@@ -18861,12 +18861,10 @@ react-native-svg@12.1.0:
     css-select "^2.1.0"
     css-tree "^1.0.0-alpha.39"
 
-react-native-toast-message@^1.4.9:
-  version "1.4.9"
-  resolved "https://registry.yarnpkg.com/react-native-toast-message/-/react-native-toast-message-1.4.9.tgz#47f33ac312fe2aee5dbdd4ae14745fa0d354102e"
-  integrity sha512-QhHzzsiymKpHEWz2nUKQjQMRuGN+/a8cOwDXJcz3TQFY03p20f6sJW9JKw3KkMfvWiUhGbApCPpNU6tHaAZ32w==
-  dependencies:
-    prop-types "^15.7.2"
+react-native-toast-message@^2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/react-native-toast-message/-/react-native-toast-message-2.1.2.tgz#c7fd78252d829e6a69e82320acd6fa878bb0e910"
+  integrity sha512-nLySPAhxovSisRoorpxQxUBchQJjypDit3SCaMmQMOZh3pUH0Q72XRUFingBCq19i849v+A082fdcfqGlkuiFg==
 
 react-native-web-refresh-control@^1.1.0:
   version "1.1.0"

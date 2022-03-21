@@ -7,7 +7,10 @@ import {
     SignInResponseBody,
     SignInRequestBody,
     SignOutResponseBody,
+    ConfirmEmailRequestBody,
+    ConfirmEmailResponseBody,
 } from '@musicroom/types';
+import { DateTime } from 'luxon';
 import User from 'App/Models/User';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import * as z from 'zod';
@@ -180,6 +183,37 @@ export default class AuthenticationController {
         } else {
             await auth.logout();
         }
+
+        return {
+            status: 'SUCCESS',
+        };
+    }
+
+    public async confirmEmail({
+        request,
+        response,
+        auth,
+    }: HttpContextContract): Promise<ConfirmEmailResponseBody> {
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            'User must be authenticated to get her profile information',
+        );
+
+        const { token } = ConfirmEmailRequestBody.parse(request.body());
+
+        const isValidToken = token === '123456';
+        const isInvalidToken = isValidToken === false;
+        if (isInvalidToken === true) {
+            response.status(400);
+
+            return {
+                status: 'INVALID_TOKEN',
+            };
+        }
+
+        user.confirmedEmailAt = DateTime.now();
+        await user.save();
 
         return {
             status: 'SUCCESS',

@@ -124,3 +124,13 @@ export const SignOutResponseBody = z.object({
 });
 
 export type SignOutResponseBody = z.infer<typeof SignOutResponseBody>;
+
+export const ConfirmEmailRequestBody = z.object({
+    token: z.string(),
+});
+export type ConfirmEmailRequestBody = z.infer<typeof ConfirmEmailRequestBody>;
+
+export const ConfirmEmailResponseBody = z.object({
+    status: z.enum(['SUCCESS', 'INVALID_TOKEN']),
+});
+export type ConfirmEmailResponseBody = z.infer<typeof ConfirmEmailResponseBody>;

@@ -1,5 +1,7 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import {
+    ConfirmEmailRequestBody,
+    ConfirmEmailResponseBody,
     GetMyProfileInformationResponseBody,
     SignInFailureResponseBody,
     SignInRequestBody,
@@ -7,6 +9,7 @@ import {
     SignInSuccessfulWebAuthResponseBody,
     SignOutResponseBody,
 } from '@musicroom/types';
+import { DateTime } from 'luxon';
 import User from 'App/Models/User';
 import { internet } from 'faker';
 import test from 'japa';
@@ -318,5 +321,86 @@ test.group('AuthenticationController', (group) => {
         });
 
         await request.get('/authentication/sign-out').expect(401);
+    });
+});
+
+test.group('Confirm email', (group) => {
+    const {
+        initSocketConnection,
+        disconnectEveryRemainingSocketConnection,
+        createUserAndAuthenticate,
+    } = initTestUtils();
+
+    group.beforeEach(async () => {
+        initSocketConnection();
+        await Database.beginGlobalTransaction();
+    });
+
+    group.afterEach(async () => {
+        await disconnectEveryRemainingSocketConnection();
+        await Database.rollbackGlobalTransaction();
+    });
+
+    test('Returns an authentication error when current user is not authenticated', async () => {
+        const request = supertest.agent(BASE_URL);
+
+        const requestBody: ConfirmEmailRequestBody = {
+            token: '123456',
+        };
+        await request
+            .post('/authentication/confirm-email')
+            .send(requestBody)
+            .expect(401);
+    });
+
+    test("Confirms user's email with a valid token", async (assert) => {
+        const request = supertest.agent(BASE_URL);
+
+        const user = await createUserAndAuthenticate(request);
+
+        const requestBody: ConfirmEmailRequestBody = {
+            token: '123456',
+        };
+        const response = await request
+            .post('/authentication/confirm-email')
+            .send(requestBody)
+            .expect(200);
+        const parsedResponseBody = ConfirmEmailResponseBody.parse(
+            response.body,
+        );
+
+        assert.deepStrictEqual(parsedResponseBody, {
+            status: 'SUCCESS',
+        });
+
+        await user.refresh();
+
+        assert.instanceOf(user.confirmedEmailAt, DateTime);
+    });
+
+    test("Does not confirm user's email when confirmation code is invalid", async (assert) => {
+        const request = supertest.agent(BASE_URL);
+
+        const user = await createUserAndAuthenticate(request);
+        const INVALID_CONFIRMATION_CODE = 'adgfhjadfg';
+
+        const requestBody: ConfirmEmailRequestBody = {
+            token: INVALID_CONFIRMATION_CODE,
+        };
+        const response = await request
+            .post('/authentication/confirm-email')
+            .send(requestBody)
+            .expect(400);
+        const parsedResponseBody = ConfirmEmailResponseBody.parse(
+            response.body,
+        );
+
+        assert.deepStrictEqual(parsedResponseBody, {
+            status: 'INVALID_TOKEN',
+        });
+
+        await user.refresh();
+
+        assert.isNull(user.confirmedEmailAt);
     });
 });

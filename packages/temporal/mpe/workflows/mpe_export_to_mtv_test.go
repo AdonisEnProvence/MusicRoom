@@ -16,8 +16,8 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func generateMtvRoomCreationOptions() shared_mtv.MtvRoomCreationOptions {
-	return shared_mtv.MtvRoomCreationOptions{
+func generateMtvRoomCreationOptionsWithPlaceID() shared_mtv.MtvRoomCreationOptionsFromExportWithPlaceID {
+	return shared_mtv.MtvRoomCreationOptionsFromExportWithPlaceID{
 		RoomName:                      faker.Word(),
 		MinimumScoreToBePlayed:        10,
 		IsOpen:                        true,
@@ -44,7 +44,7 @@ func (s *MpeExportToMtvTestUnit) Test_CreatorExportsMpeToMtv() {
 		},
 	}
 	initialTracksIDs := []string{tracks[0].ID}
-	mtvRoomOptions := generateMtvRoomCreationOptions()
+	mtvRoomOptions := generateMtvRoomCreationOptionsWithPlaceID()
 
 	params, roomCreatorDeviceID := s.getWorkflowInitParams(initialTracksIDs)
 	defaultDuration := 200 * time.Millisecond
@@ -104,7 +104,7 @@ func (s *MpeExportToMtvTestUnit) Test_UserInRoomExportsMpeToMtv() {
 		},
 	}
 	initialTracksIDs := []string{tracks[0].ID}
-	mtvRoomOptions := generateMtvRoomCreationOptions()
+	mtvRoomOptions := generateMtvRoomCreationOptionsWithPlaceID()
 
 	params, _ := s.getWorkflowInitParams(initialTracksIDs)
 	defaultDuration := 200 * time.Millisecond
@@ -177,7 +177,7 @@ func (s *MpeExportToMtvTestUnit) Test_UserNotInRoomCanNotExportMpeToMtv() {
 		},
 	}
 	initialTracksIDs := []string{tracks[0].ID}
-	mtvRoomOptions := generateMtvRoomCreationOptions()
+	mtvRoomOptions := generateMtvRoomCreationOptionsWithPlaceID()
 
 	params, _ := s.getWorkflowInitParams(initialTracksIDs)
 	defaultDuration := 200 * time.Millisecond

@@ -132,15 +132,15 @@ func NewRemoveUserSignal(args NewRemoveUserSignalArgs) RemoveUserSignal {
 type ExportToMtvRoomSignal struct {
 	Route shared.SignalRoute `validate:"required"`
 
-	UserID         string                            `validate:"required,uuid"`
-	DeviceID       string                            `validate:"required,uuid"`
-	MtvRoomOptions shared_mtv.MtvRoomCreationOptions `validate:"required"`
+	UserID         string                                                 `validate:"required,uuid"`
+	DeviceID       string                                                 `validate:"required,uuid"`
+	MtvRoomOptions shared_mtv.MtvRoomCreationOptionsFromExportWithPlaceID `validate:"required"`
 }
 
 type ExportToMtvRoomSignalArgs struct {
 	UserID         string
 	DeviceID       string
-	MtvRoomOptions shared_mtv.MtvRoomCreationOptions
+	MtvRoomOptions shared_mtv.MtvRoomCreationOptionsFromExportWithPlaceID
 }
 
 func NewExportToMtvRoomSignal(args ExportToMtvRoomSignalArgs) ExportToMtvRoomSignal {

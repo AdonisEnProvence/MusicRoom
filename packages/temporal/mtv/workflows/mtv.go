@@ -11,7 +11,6 @@ import (
 	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/Devessier/brainy"
 
-	"github.com/mitchellh/mapstructure"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -966,7 +965,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 
 			var routeSignal shared.GenericRouteSignal
 
-			if err := mapstructure.Decode(signal, &routeSignal); err != nil {
+			if err := shared.DecodeWithCustomMapStructure(signal, &routeSignal); err != nil {
 				logger.Error("Invalid signal type %v", err)
 				return
 			}
@@ -975,7 +974,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 			case shared_mtv.SignalRoutePlay:
 				var message shared_mtv.PlaySignal
 
-				if err := mapstructure.Decode(signal, &message); err != nil {
+				if err := shared.DecodeWithCustomMapStructure(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
@@ -992,7 +991,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 			case shared_mtv.SignalRoutePause:
 				var message shared_mtv.PauseSignal
 
-				if err := mapstructure.Decode(signal, &message); err != nil {
+				if err := shared.DecodeWithCustomMapStructure(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
@@ -1009,7 +1008,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 			case shared_mtv.SignalRouteJoin:
 				var message shared_mtv.JoinSignal
 
-				if err := mapstructure.Decode(signal, &message); err != nil {
+				if err := shared.DecodeWithCustomMapStructure(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
@@ -1039,7 +1038,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 			case shared_mtv.SignalRouteGoToNextTrack:
 				var message shared_mtv.GoToNextTrackSignal
 
-				if err := mapstructure.Decode(signal, &message); err != nil {
+				if err := shared.DecodeWithCustomMapStructure(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
@@ -1055,7 +1054,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 			case shared_mtv.SignalRouteChangeUserEmittingDevice:
 				var message shared_mtv.ChangeUserEmittingDeviceSignal
 
-				if err := mapstructure.Decode(signal, &message); err != nil {
+				if err := shared.DecodeWithCustomMapStructure(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
@@ -1071,7 +1070,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 			case shared_mtv.SignalRouteSuggestTracks:
 				var message shared_mtv.SuggestTracksSignal
 
-				if err := mapstructure.Decode(signal, &message); err != nil {
+				if err := shared.DecodeWithCustomMapStructure(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
@@ -1091,7 +1090,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 			case shared_mtv.SignalRouteLeave:
 				var message shared_mtv.LeaveSignal
 
-				if err := mapstructure.Decode(signal, &message); err != nil {
+				if err := shared.DecodeWithCustomMapStructure(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
@@ -1107,7 +1106,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 			case shared_mtv.SignalRouteVoteForTrack:
 				var message shared_mtv.VoteForTrackSignal
 
-				if err := mapstructure.Decode(signal, &message); err != nil {
+				if err := shared.DecodeWithCustomMapStructure(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
@@ -1123,7 +1122,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 			case shared_mtv.SignalUpdateUserFitsPositionConstraint:
 				var message shared_mtv.UpdateUserFitsPositionConstraintSignal
 
-				if err := mapstructure.Decode(signal, &message); err != nil {
+				if err := shared.DecodeWithCustomMapStructure(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
@@ -1139,7 +1138,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 			case shared_mtv.SignalUpdateDelegationOwner:
 				var message shared_mtv.UpdateDelegationOwnerSignal
 
-				if err := mapstructure.Decode(signal, &message); err != nil {
+				if err := shared.DecodeWithCustomMapStructure(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
@@ -1155,7 +1154,7 @@ func MtvRoomWorkflow(ctx workflow.Context, params shared_mtv.MtvRoomParameters) 
 			case shared_mtv.SignalUpdateControlAndDelegationPermission:
 				var message shared_mtv.UpdateControlAndDelegationPermissionSignal
 
-				if err := mapstructure.Decode(signal, &message); err != nil {
+				if err := shared.DecodeWithCustomMapStructure(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}

@@ -89,6 +89,10 @@ Route.group(() => {
     Route.get('/sign-out', 'AuthenticationController.signOut').middleware(
         'every-auth',
     );
+    Route.post(
+        '/confirm-email',
+        'AuthenticationController.confirmEmail',
+    ).middleware('every-auth');
 }).prefix(AUTHENTICATION_ROUTES_GROUP_PREFIX);
 
 /// Temporal MTV Routes ///

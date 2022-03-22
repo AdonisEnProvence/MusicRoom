@@ -31,7 +31,8 @@
             "@adonisjs/redis",
             "@adonisjs/lucid",
             "@adonisjs/auth",
-            "@adonisjs/session"
+            "@adonisjs/session",
+            "@adonisjs/bouncer"
         ]
     }
 }

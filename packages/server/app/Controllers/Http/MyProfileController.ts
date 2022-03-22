@@ -12,9 +12,9 @@ export default class MyProfileController {
             'User must be authenticated to get her profile information',
         );
 
-        const { nickname: userNickname } = user;
+        const { uuid, nickname: userNickname, confirmedEmailAt } = user;
 
-        //After this user model column are erased
+        // After this user model column are erased
         await user
             .loadCount('following')
             .loadCount('followers')
@@ -22,12 +22,13 @@ export default class MyProfileController {
             .loadCount('devices');
 
         return {
-            userID: user.uuid,
+            userID: uuid,
             userNickname,
             devicesCounter: Number(user.$extras.devices_count),
             followersCounter: Number(user.$extras.followers_count),
             followingCounter: Number(user.$extras.following_count),
             playlistsCounter: Number(user.$extras.mpeRooms_count),
+            hasConfirmedEmail: confirmedEmailAt !== null,
         };
     }
 }

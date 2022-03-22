@@ -302,4 +302,24 @@ test.group('Authentication sign up tests group', (group) => {
             'WEAK_PASSWORD',
         ]);
     });
+
+    test('Users that sign up have their email not confirmed by default', async (assert) => {
+        const request = supertest.agent(BASE_URL);
+        const email = internet.email();
+        const userNickname = internet.userName();
+        const password = generateStrongPassword();
+
+        await request
+            .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-up'))
+            .send({
+                authenticationMode: 'web',
+                email,
+                password,
+                userNickname,
+            } as SignUpRequestBody)
+            .expect(200);
+
+        const user = await User.findByOrFail('email', email);
+        assert.isNull(user.confirmedEmailAt);
+    });
 });

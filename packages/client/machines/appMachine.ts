@@ -524,11 +524,19 @@ export function createAppMachine({
                     return event.data.status === 'INVALID_CREDENTIALS';
                 },
                 shouldUseWebAuth: () => !SHOULD_USE_TOKEN_AUTH,
-                platformOsIsWeb: () => PLATFORM_OS_IS_WEB,
-                userEmailIsNotConfirmed: (_context) => {
-                    const userEmailIsConfirmed = true as boolean;
 
-                    return userEmailIsConfirmed === false;
+                platformOsIsWeb: () => PLATFORM_OS_IS_WEB,
+
+                userEmailIsNotConfirmed: ({ myProfileInformation }) => {
+                    if (myProfileInformation === undefined) {
+                        return true;
+                    }
+
+                    const hasConfirmedEmail =
+                        myProfileInformation.hasConfirmedEmail === true;
+                    const hasNotConfirmedEmail = hasConfirmedEmail === false;
+
+                    return hasNotConfirmedEmail;
                 },
             },
         },

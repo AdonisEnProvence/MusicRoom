@@ -212,6 +212,7 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
                             <View sx={{ marginLeft: 'xl' }}>
                                 <TouchableOpacity
                                     onPress={handleRoomConstraintDetailsPress}
+                                    testID={'open-mtv-room-constraints-details'}
                                 >
                                     <Fontisto
                                         name="world-o"

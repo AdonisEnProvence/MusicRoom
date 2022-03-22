@@ -222,6 +222,7 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
             followersCounter: 0,
             playlistsCounter: 0,
             devicesCounter: 1,
+            hasConfirmedEmail: true,
         });
 
         db.userFollowing.create({
@@ -246,6 +247,7 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
             followingCounter: 1,
             followersCounter: 0,
             playlistsCounter: 0,
+            hasConfirmedEmail: true,
         });
 
         const screen = await goToMyProfileScreen();

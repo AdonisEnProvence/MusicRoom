@@ -113,6 +113,7 @@ export async function authenticateUser(): Promise<{ userID: string }> {
 
     db.myProfileInformation.create({
         userID: currentUserID,
+        hasConfirmedEmail: true,
     });
 
     return {

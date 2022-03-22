@@ -17,6 +17,7 @@ test('It should display my profile page with my profile information', async () =
         followersCounter: 5,
         followingCounter: 6,
         userNickname: internet.userName(),
+        hasConfirmedEmail: true,
     });
 
     const screen = await renderApp();
@@ -58,6 +59,7 @@ test('It should display my library after pressing playlists counter', async () =
         followersCounter: 5,
         followingCounter: 6,
         userNickname: internet.userName(),
+        hasConfirmedEmail: true,
     });
 
     const screen = await renderApp();

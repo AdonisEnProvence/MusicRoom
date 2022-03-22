@@ -3,7 +3,6 @@ import {
     SignInResponseBody,
     SignOutResponseBody,
 } from '@musicroom/types';
-import { Platform } from 'react-native';
 import invariant from 'tiny-invariant';
 import {
     assign,
@@ -141,7 +140,7 @@ export function createAppMachine({
                                     return event.data;
                                 },
                             }),
-                            target: 'reconnectingSocketConnection',
+                            target: 'checkingUserAccountValidity',
                         },
 
                         onError: {
@@ -262,13 +261,32 @@ export function createAppMachine({
                                     return event.data;
                                 },
                             }),
-                            target: 'reconnectingSocketConnection',
+                            target: 'checkingUserAccountValidity',
                         },
 
                         onError: {
                             target: 'waitingForUserAuthentication',
                         },
                     },
+                },
+
+                checkingUserAccountValidity: {
+                    tags: 'showApplicationLoader',
+
+                    always: [
+                        {
+                            cond: 'userEmailIsNotConfirmed',
+
+                            target: 'waitingForUserEmailConfirmation',
+                        },
+                        {
+                            target: 'reconnectingSocketConnection',
+                        },
+                    ],
+                },
+
+                waitingForUserEmailConfirmation: {
+                    tags: 'userEmailIsNotConfirmed',
                 },
 
                 reconnectingSocketConnection: {
@@ -506,7 +524,20 @@ export function createAppMachine({
                     return event.data.status === 'INVALID_CREDENTIALS';
                 },
                 shouldUseWebAuth: () => !SHOULD_USE_TOKEN_AUTH,
+
                 platformOsIsWeb: () => PLATFORM_OS_IS_WEB,
+
+                userEmailIsNotConfirmed: ({ myProfileInformation }) => {
+                    if (myProfileInformation === undefined) {
+                        return true;
+                    }
+
+                    const hasConfirmedEmail =
+                        myProfileInformation.hasConfirmedEmail === true;
+                    const hasNotConfirmedEmail = hasConfirmedEmail === false;
+
+                    return hasNotConfirmedEmail;
+                },
             },
         },
     );

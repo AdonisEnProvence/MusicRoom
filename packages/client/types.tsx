@@ -13,6 +13,7 @@ import { StackNavigationProp, StackScreenProps } from '@react-navigation/stack';
 
 export type ApplicationState =
     | 'SHOW_APPLICATION_LOADER'
+    | 'EMAIL_NOT_CONFIRMED'
     | 'AUTHENTICATED'
     | 'UNAUTHENTICATED';
 
@@ -72,6 +73,7 @@ export type RootStackParamList = {
     MusicPlaylistEditorExportToMtvCreationForm: NavigatorScreenParams<MusicTrackVoteCreationFormParamList>;
 
     SigningIn: undefined;
+    EmailConfirmation: undefined;
 
     SignUpFormScreen: undefined;
 };
@@ -594,4 +596,9 @@ export type MpeTabMpeSearchTracksScreenProps = {
 export type SigningInScreenProps = StackScreenProps<
     RootStackParamList,
     'SigningIn'
+>;
+
+export type EmailConfirmationScreenProps = StackScreenProps<
+    RootStackParamList,
+    'EmailConfirmation'
 >;

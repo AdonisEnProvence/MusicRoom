@@ -310,6 +310,7 @@ describe('Update Nickname', () => {
                         followersCounter: 5,
                         followingCounter: 6,
                         userNickname: CURRENT_USER_NICKNAME,
+                        hasConfirmedEmail: true,
                     });
 
                     const screen = await renderApp();

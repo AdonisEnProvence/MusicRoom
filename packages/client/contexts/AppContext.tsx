@@ -128,6 +128,9 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
     );
     const appService = useInterpret(appMachine, { devTools: true });
 
+    const userEmailIsNotConfirmed = useSelector(appService, (state) =>
+        state.hasTag('userEmailIsNotConfirmed'),
+    );
     const userIsUnauthenticated = useSelector(appService, (state) =>
         state.hasTag('userIsUnauthenticated'),
     );
@@ -156,6 +159,10 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
             return 'UNAUTHENTICATED';
         }
 
+        if (userEmailIsNotConfirmed === true) {
+            return 'EMAIL_NOT_CONFIRMED';
+        }
+
         const shouldShowSplashScreen =
             hasShowApplicationLoaderTag ||
             appMusicPlayerMachineActorRef === undefined ||
@@ -169,6 +176,7 @@ export const AppContextProvider: React.FC<MusicPlayerContextProviderProps> = ({
         return 'AUTHENTICATED';
     }, [
         userIsUnauthenticated,
+        userEmailIsNotConfirmed,
         hasShowApplicationLoaderTag,
         appMusicPlayerMachineActorRef,
         appUserMachineActorRef,

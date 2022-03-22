@@ -63,6 +63,7 @@ import MyFollowersSearchScreen from '../screens/MyProfile/MyFollowers';
 import MyFollowingSearchScreen from '../screens/MyProfile/MyFollowing';
 import SigningInScreen from '../screens/SigningInScreen';
 import AuthenticationSignUpFormScreen from '../screens/AuthenticationSignUpForm';
+import EmailConfirmationScreen from '../screens/EmailConfirmationScreen';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
@@ -144,7 +145,11 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
     return (
         <RootStack.Navigator
             initialRouteName={
-                applicationState === 'UNAUTHENTICATED' ? 'SigningIn' : 'Main'
+                applicationState === 'UNAUTHENTICATED'
+                    ? 'SigningIn'
+                    : applicationState === 'EMAIL_NOT_CONFIRMED'
+                    ? 'EmailConfirmation'
+                    : 'Main'
             }
             mode="modal"
             //Why animationEnabled ?
@@ -164,6 +169,12 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
                         options={{ headerShown: false }}
                     />
                 </>
+            ) : applicationState === 'EMAIL_NOT_CONFIRMED' ? (
+                <RootStack.Screen
+                    name="EmailConfirmation"
+                    component={EmailConfirmationScreen}
+                    options={{ headerShown: false }}
+                />
             ) : (
                 <>
                     <RootStack.Screen

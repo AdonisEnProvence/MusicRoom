@@ -849,6 +849,7 @@ cases<{
             userNickname: internet.userName(),
             playlistsVisibilitySetting: 'PUBLIC',
             relationsVisibilitySetting: 'PUBLIC',
+            hasConfirmedEmail: true,
         });
 
         const plan = updateVisibilitySettingsTestModel.getPlanFromEvents(
@@ -921,6 +922,7 @@ cases<{
             userNickname: internet.userName(),
             playlistsVisibilitySetting: initialPlaylistsVisibility,
             relationsVisibilitySetting: initialRelationsVisibility,
+            hasConfirmedEmail: true,
         });
 
         const location: LocationObject = {

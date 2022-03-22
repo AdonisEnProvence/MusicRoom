@@ -113,6 +113,7 @@ export async function authenticateUser(): Promise<{ userID: string }> {
 
     db.myProfileInformation.create({
         userID: currentUserID,
+        hasConfirmedEmail: true,
     });
 
     return {
@@ -128,10 +129,7 @@ export async function renderApp(
 ): Promise<RenderAPI & { serverSocket: ServerSocket }> {
     await authenticateUser();
 
-    const screen = render(
-        <Navigation colorScheme="dark" toggleColorScheme={noop} />,
-        options,
-    );
+    const screen = renderAppWithNavigation(options);
 
     await waitFor(() => {
         expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
@@ -140,13 +138,21 @@ export async function renderApp(
     return screen;
 }
 
-export async function renderUnauthenticatedApp(
+export function renderAppWithNavigation(
     options?: RenderOptions,
-): Promise<RenderAPI & { serverSocket: ServerSocket }> {
+): RenderAPI & { serverSocket: ServerSocket } {
     const screen = render(
         <Navigation colorScheme="dark" toggleColorScheme={noop} />,
         options,
     );
+
+    return screen;
+}
+
+export async function renderUnauthenticatedApp(
+    options?: RenderOptions,
+): Promise<RenderAPI & { serverSocket: ServerSocket }> {
+    const screen = renderAppWithNavigation(options);
 
     await waitFor(() => {
         expect(

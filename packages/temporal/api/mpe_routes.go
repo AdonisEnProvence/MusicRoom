@@ -408,9 +408,9 @@ func MpeLeaveHandler(w http.ResponseWriter, r *http.Request) {
 type MpeExportToMtvRoomRequestBody struct {
 	WorkflowID string `json:"workflowID" validate:"required,uuid"`
 
-	UserID         string                            `json:"userID" validate:"required,uuid"`
-	DeviceID       string                            `json:"deviceID" validate:"required,uuid"`
-	MtvRoomOptions shared_mtv.MtvRoomCreationOptions `json:"mtvRoomOptions" validate:"required"`
+	UserID         string                                                 `json:"userID" validate:"required,uuid"`
+	DeviceID       string                                                 `json:"deviceID" validate:"required,uuid"`
+	MtvRoomOptions shared_mtv.MtvRoomCreationOptionsFromExportWithPlaceID `json:"mtvRoomOptions" validate:"required"`
 }
 
 func MpeExportToMtvRoomHandler(w http.ResponseWriter, r *http.Request) {
@@ -422,6 +422,8 @@ func MpeExportToMtvRoomHandler(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
+
+	fmt.Printf("%+v", body.MtvRoomOptions.PhysicalAndTimeConstraints)
 	if err := validate.Struct(body); err != nil {
 		WriteError(w, err)
 		return

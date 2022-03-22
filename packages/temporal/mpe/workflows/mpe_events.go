@@ -178,15 +178,15 @@ func NewMpeRoomRemoveUserEvent(args NewMpeRoomRemoveUserEventArgs) MpeRoomRemove
 type MpeExportToMtvRoomEvent struct {
 	brainy.EventWithType
 
-	UserID         string                            `validate:"required,uuid"`
-	DeviceID       string                            `validate:"required,uuid"`
-	MtvRoomOptions shared_mtv.MtvRoomCreationOptions `validate:"required"`
+	UserID         string                                                 `validate:"required,uuid"`
+	DeviceID       string                                                 `validate:"required,uuid"`
+	MtvRoomOptions shared_mtv.MtvRoomCreationOptionsFromExportWithPlaceID `validate:"required"`
 }
 
 type NewMpeExportToMtvRoomEventArgs struct {
 	UserID         string
 	DeviceID       string
-	MtvRoomOptions shared_mtv.MtvRoomCreationOptions
+	MtvRoomOptions shared_mtv.MtvRoomCreationOptionsFromExportWithPlaceID
 }
 
 func NewMpeExportToMtvRoomEvent(args NewMpeExportToMtvRoomEventArgs) MpeExportToMtvRoomEvent {

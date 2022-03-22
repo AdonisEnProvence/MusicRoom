@@ -47,21 +47,7 @@ const App: React.FC = () => {
                                                 backgroundColor: 'red',
                                             }}
                                         >
-                                            <ImageBackground
-                                                source={{
-                                                    uri: `https://media-exp1.licdn.com/dms/image/C4D03AQE_UVoK5h2u8w/profile-displayphoto-shrink_200_200/0/1585838395278?e=1632960000&v=beta&t=hPLhVUJU0fzc-y5iFafdhhGrlwhSOJtAQjsCSlSLg7M`,
-                                                }}
-                                                resizeMode="cover"
-                                                style={{
-                                                    width: '100%',
-                                                    height: '100%',
-                                                    display: 'flex',
-                                                    justifyContent: 'center',
-                                                    alignItems: 'center',
-                                                }}
-                                            >
-                                                <Text>Click</Text>
-                                            </ImageBackground>
+                                            <Text>Click</Text>
                                         </View>
                                     )}
                                     <Navigation

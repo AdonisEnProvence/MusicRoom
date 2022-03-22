@@ -272,6 +272,13 @@ type MtvRoomPhysicalAndTimeConstraints struct {
 	PhysicalConstraintEndsAt   time.Time     `json:"physicalConstraintEndsAt" validate:"required"`
 }
 
+type MtvRoomPhysicalAndTimeConstraintsWithPlaceID struct {
+	PhysicalConstraintPlaceID  string    `json:"physicalConstraintPlaceID" validate:"required"`
+	PhysicalConstraintRadius   int       `json:"physicalConstraintRadius" validate:"required"`
+	PhysicalConstraintStartsAt time.Time `json:"physicalConstraintStartsAt" validate:"required"`
+	PhysicalConstraintEndsAt   time.Time `json:"physicalConstraintEndsAt" validate:"required"`
+}
+
 type MtvPlayingModes string
 
 func (m MtvPlayingModes) IsValid() bool {
@@ -301,6 +308,18 @@ type MtvRoomCreationOptions struct {
 	HasPhysicalAndTimeConstraints bool                               `json:"hasPhysicalAndTimeConstraints"`
 	PhysicalAndTimeConstraints    *MtvRoomPhysicalAndTimeConstraints `json:"physicalAndTimeConstraints,omitempty"`
 	PlayingMode                   MtvPlayingModes                    `json:"playingMode" validate:"required,oneof=DIRECT BROADCAST"`
+}
+
+type MtvRoomCreationOptionsFromExportWithPlaceID struct {
+	RoomName               string `json:"name" validate:"required" mapstructure:"name"`
+	MinimumScoreToBePlayed int    `json:"minimumScoreToBePlayed" validate:"min=0"`
+	// Same as for PhysicalConstraintPosition IsOpen won't be useful
+	// for temporal itself but for the adonis mtv room search engine
+	IsOpen                        bool                                          `json:"isOpen"`
+	IsOpenOnlyInvitedUsersCanVote bool                                          `json:"isOpenOnlyInvitedUsersCanVote"`
+	HasPhysicalAndTimeConstraints bool                                          `json:"hasPhysicalAndTimeConstraints"`
+	PhysicalAndTimeConstraints    *MtvRoomPhysicalAndTimeConstraintsWithPlaceID `json:"physicalAndTimeConstraints,omitempty"`
+	PlayingMode                   MtvPlayingModes                               `json:"playingMode" validate:"required,oneof=DIRECT BROADCAST"`
 }
 
 type MtvRoomParameters struct {

@@ -168,10 +168,10 @@ func (a *Activities) AcknowledgeLeaveActivity(ctx context.Context, args Acknowle
 }
 
 type SendMtvRoomCreationRequestToServerActivityArgs struct {
-	TracksIDs      []string                          `json:"tracksIDs"`
-	UserID         string                            `json:"userID"`
-	DeviceID       string                            `json:"deviceID"`
-	MtvRoomOptions shared_mtv.MtvRoomCreationOptions `json:"mtvRoomOptions"`
+	TracksIDs      []string                                               `json:"tracksIDs"`
+	UserID         string                                                 `json:"userID"`
+	DeviceID       string                                                 `json:"deviceID"`
+	MtvRoomOptions shared_mtv.MtvRoomCreationOptionsFromExportWithPlaceID `json:"mtvRoomOptions"`
 }
 
 func (a *Activities) SendMtvRoomCreationRequestToServerActivity(ctx context.Context, args SendMtvRoomCreationRequestToServerActivityArgs) error {

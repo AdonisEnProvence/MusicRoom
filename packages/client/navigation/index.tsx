@@ -106,7 +106,7 @@ const Navigation: React.FC<ColorModeProps> = ({
                 toggleColorScheme={toggleColorScheme}
             />
 
-            <Toast ref={(ref) => Toast.setRef(ref)} />
+            <Toast />
         </NavigationContainer>
     );
 };

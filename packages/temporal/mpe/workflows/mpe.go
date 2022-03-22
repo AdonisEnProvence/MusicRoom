@@ -10,7 +10,6 @@ import (
 	activities_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/activities"
 	shared_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/shared"
 	"github.com/AdonisEnProvence/MusicRoom/shared"
-	"github.com/mitchellh/mapstructure"
 
 	"github.com/Devessier/brainy"
 
@@ -448,7 +447,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 
 			var routeSignal shared.GenericRouteSignal
 
-			if err := mapstructure.Decode(signal, &routeSignal); err != nil {
+			if err := shared.DecodeWithCustomMapStructure(signal, &routeSignal); err != nil {
 				logger.Error("Invalid signal type %v", err)
 				return
 			}
@@ -457,7 +456,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 			case shared_mpe.SignalAddTracks:
 				var message shared_mpe.AddTracksSignal
 
-				if err := mapstructure.Decode(signal, &message); err != nil {
+				if err := shared.DecodeWithCustomMapStructure(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
@@ -477,7 +476,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 			case shared_mpe.SignalChangeTrackOrder:
 				var message shared_mpe.ChangeTrackOrderSignal
 				fmt.Printf("\n RECEIVED SIGNAL SignalChangeTrackOrder \n%+v\n", signal)
-				if err := mapstructure.Decode(signal, &message); err != nil {
+				if err := shared.DecodeWithCustomMapStructure(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
@@ -506,7 +505,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 			case shared_mpe.SignalDeleteTracks:
 				var message shared_mpe.DeleteTracksSignal
 
-				if err := mapstructure.Decode(signal, &message); err != nil {
+				if err := shared.DecodeWithCustomMapStructure(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
@@ -526,7 +525,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 			case shared_mpe.SignalAddUser:
 				var message shared_mpe.AddUserSignal
 
-				if err := mapstructure.Decode(signal, &message); err != nil {
+				if err := shared.DecodeWithCustomMapStructure(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
@@ -545,7 +544,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 			case shared_mpe.SignalRemoveUser:
 				var message shared_mpe.RemoveUserSignal
 
-				if err := mapstructure.Decode(signal, &message); err != nil {
+				if err := shared.DecodeWithCustomMapStructure(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}
@@ -563,7 +562,7 @@ func MpeRoomWorkflow(ctx workflow.Context, params shared_mpe.MpeRoomParameters) 
 			case shared_mpe.SignalExportToMtvRoom:
 				var message shared_mpe.ExportToMtvRoomSignal
 
-				if err := mapstructure.Decode(signal, &message); err != nil {
+				if err := shared.DecodeWithCustomMapStructure(signal, &message); err != nil {
 					logger.Error("Invalid signal type %v", err)
 					return
 				}

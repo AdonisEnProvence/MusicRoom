@@ -11,6 +11,8 @@ import {
     SignInFailureResponseBody,
     SignUpSuccessfullResponseBody,
     SignOutResponseBody,
+    ConfirmEmailRequestBody,
+    ConfirmEmailResponseBody,
 } from '@musicroom/types';
 import { request, SHOULD_USE_TOKEN_AUTH } from './http';
 
@@ -169,4 +171,26 @@ export async function sendSignUp(
     }
 
     return await sendWebAuthSignUp(args);
+}
+
+interface SendEmailConfirmationCodeArgs {
+    code: string;
+}
+
+export async function sendEmailConfirmationCode({
+    code,
+}: SendEmailConfirmationCodeArgs): Promise<ConfirmEmailResponseBody> {
+    const body: ConfirmEmailRequestBody = {
+        token: code,
+    };
+    const rawResponse = await request.post(
+        '/authentication/confirm-email',
+        body,
+        {
+            validateStatus: (status) => status === 200 || status === 400,
+        },
+    );
+    const parsedResponseBody = ConfirmEmailResponseBody.parse(rawResponse.data);
+
+    return parsedResponseBody;
 }

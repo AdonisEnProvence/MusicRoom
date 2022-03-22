@@ -38,6 +38,8 @@ import {
     UpdateRelationsVisibilityResponseBody,
     UserSearchMpeRoomsRequestBody,
     UserSearchMpeRoomsResponseBody,
+    ConfirmEmailRequestBody,
+    ConfirmEmailResponseBody,
 } from '@musicroom/types';
 import { datatype } from 'faker';
 import {
@@ -817,5 +819,38 @@ export const handlers = [
                 }),
             );
         },
+    ),
+
+    rest.post<ConfirmEmailRequestBody, never, ConfirmEmailResponseBody>(
+        `${SERVER_ENDPOINT}/authentication/confirm-email`,
+        withAuthentication((req, res, ctx) => {
+            const isConfirmationCodeValid = req.body.token === '123456';
+            if (isConfirmationCodeValid === false) {
+                return res(
+                    ctx.status(400),
+                    ctx.json({
+                        status: 'INVALID_TOKEN',
+                    }),
+                );
+            }
+
+            db.myProfileInformation.update({
+                where: {
+                    userID: {
+                        equals: CLIENT_INTEG_TEST_USER_ID,
+                    },
+                },
+                data: {
+                    hasConfirmedEmail: true,
+                },
+            });
+
+            return res(
+                ctx.status(200),
+                ctx.json({
+                    status: 'SUCCESS',
+                }),
+            );
+        }),
     ),
 ];

@@ -6,12 +6,14 @@ export const appModel = createModel(
         myProfileInformation: undefined as MyProfileInformation | undefined,
         email: undefined as string | undefined,
         password: undefined as string | undefined,
+        confirmationCode: undefined as string | undefined,
     },
     {
         events: {
             SIGN_IN: (args: { email: string; password: string }) => args,
             SIGNED_UP_SUCCESSFULLY: () => ({}),
             SIGN_OUT: () => ({}),
+            SUBMIT_EMAIL_CONFIRMATION_FORM: (args: { code: string }) => args,
             __BROADCAST_RELOAD_INTO_BROADCAST_CHANNEL: () => ({}),
             __RECEIVED_RELOAD_PAGE: () => ({}),
             __AUTHENTICATED: () => ({}),

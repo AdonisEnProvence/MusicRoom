@@ -18,7 +18,6 @@ import { db, generateAuthenticationUser } from '../tests/data';
 import { server } from '../tests/server/test-server';
 import {
     render,
-    renderApp,
     renderUnauthenticatedApp,
     waitFor,
     within,
@@ -28,6 +27,7 @@ import {
     CLIENT_INTEG_TEST_USER_ID,
     renderAppWithNavigation,
 } from '../tests/tests-utils';
+import { withAuthentication } from '../tests/server/handlers';
 
 interface TestingContext {
     screen?: ReturnType<typeof render>;
@@ -36,7 +36,7 @@ interface TestingContext {
 const existingUser = generateAuthenticationUser();
 
 const authenticationModelMachine =
-    /** @xstate-layout N4IgpgJg5mDOIC5QEECuAXAFmAduglgMYCGBA9jgAQC2ZEYANgHQCSO+BxD+AXqfhQDEAWWIBrMJVSwwAJ0rEM2PEVKQFOCJVm5684gAcD3EuRyJQBsrA4DzSEAA9EATgBsAJiYBmAOwAWbwBWAAYARgAOMKCPN28AGhAAT0QAWn8wlyY3AO8wj19vfxdQsIBfMsS0LFwCUzsaOkZWdk5uPjMRcUlpOSkcRRqVU3ViTW1dPsNjVTMLECsbOYdnBFSPF18fFxcIjO9Ytxd-IN9ElIQw-xCmTZDfU4Or-zcQ7wqqpVrZhtp6ZgASpNZPgcFBKJgyNRJLBCDpcF0JFIZPIoGRKOh0Zh8LBKAZZGQAGb4BgwsDoAhg3GEgnUCFQyRjLQ2KBUMgYeaLWwUearUI3EKxFxhYL+KL+XxnZKINz+bI7EpXI6CuIuD4garKOr8CiNf5MIGaOSg8Es9hgyiw+E4JgAMRJ3AtcMg3y4sDtDpNlGJjAg7vtDEd4LA1GIJMEAGVUAAjagcS34Vle0Hesiyaic6zc+ygVapfIhCJMMIPEIhNwRCK+EK7c6IMJhN63CIeVvC-wFVvqzXfeq6v7NQ16L1mkfO3AewNe530FRuydB734X3+z0WkNhhiCAAqSQMkl1o4tKY3JKXvszSzsvLSwS8HiC7mCORyEU8dYQLnCxYOBQiQW8e5G3KSoNS+YYdSoAdAWBEdE3NU1xxtANFxnV0GFXKcLR9Bg-QXL0DGIWBYAAdzTCBIxjON0ATJNjyoQk0wzBwuWWXM0kbcsmFOOI-AiXZ+LyD9MlbJgNjCNx+X-GsQn8btwO1Mw9UHWCLSPRDrXwp0dFnNpMMXHC8JQgiiNI8idz3A8qHUygU0I4iyNkLRDMvbMbzWK4tgiQCYkk8tHweIJhN8Nw3CYXx-wrQV-xCq55KGRTfiaGCjRBNT4LHTTjO0l05wwrTwUM2BBAgCgwCYWB0DUJgewgpToINVTTQytSkIKyg0Ly-SvSK1y2KcRANjlBtfAk-jRsFXwXGEjwmxiXwPE4-i33yeKtR+ftksa1K4LojSwAnbLwU6vT2qKxEYRa8EUx0ABHVA4BowlNz668Vg4yUwluUaxUyf8RROYTAjCoJ-ECCaWzcRtfDW3tIOUlLh3SvbLTaodjTUuQADc+jkAlZEo2N4xslNGPTV6eXetZ-zlPw-uFAGYg-DwTjlFxAOKF5xt2GHQNqxLNv1dG0ualGrQOnASrKiqqvQcr+Y2qCtuF3aENR60KZzAaEErLIO2OctG34r8EmlBBRXlMH8g8IoPD2NxYbqpKhaa2i1fFhEAAUdGIyhowwTEqExSg0QxdEzSkAx1YlzX3MKIsDjebzCnZsUImE2Usj2FwbcrQJoncR2BaVl2duRtXUCjj3kLXY6dPQ7qLV6eR2EIMQBmhQnqLdyPU3Jlis361YCyyWJJvyV4WaiDORW+h9okWiSQqLxWEe2pHRYrqu2qOjr6669rm8oVv2+ITvd33ShD3g3uj5PjvJBcger0p9jLjyLJqz8Ioa0lIIwmEjnIs-5+IViCBWEKBwV59hLipMum8vSV2jodWue9cqnV3kfeyZknJd2JjfJBZNmKWEHm9N++RvBhUiP-F4-9fKCmZpkbwTBwiSWhnbKGexoHwwaircuiDt5ZVQSdfA85MEojxKZRyFEL5WR7kgrBUjyLnlwrHKmIoSy3DiIcTYsp7huGZqELYJsbZgwiDWd4fMFKr14a7GySDq7tREWI1BR9TxbijETGiEdCFMTUeQlmYVvDHBCicIBsoPzuC2LNTO+wgigwktw+qys7FXV7o43ezj8riNxqGcMsir7WQIVHNxeSGAqIgP47WIoDjFklEcUGIV7jxOEkULOnk4ieG8pkJJzs4EbzdgI5BNcsJ13QaI-KAAZMgZAxC+PkKgHA7cyAkWstjXGsh8Z4O8cUvuxCFikNftU2IQRthvgfG08shRmaSi8OWe4IU9ERVOL0wW-SMYIKboIiWTj956SljgcqlVqoKxgWvPhnzwQOJ3sIv5Ez4DPzcuolszCAIvDbDJAxZs6ZiQil0go9y1RWISjYlJ8DBlfOGb88ZboLryKjndB6lUMSYAJCRfoyzVmUDxmmKpqxZqFh8J4B4BRgjHDiB+XWWjWwyWCScXmnwSVgtseS+x3yvY+1xP7Ckupg6h2DhHFM1c+WIAeMwyhEkSx00fEFM2Vx-zbHAQcYo4D-yWMVetZVZKBnuI6hQYk6Z4YZOEU0AFQLZby2sV60uPqyl+pwAG0MSlg2jL9fQE15sTgJ2CaNIIb4xTgOEk2YIj4-DPJtqNV5sDEYfO5XGwg-r8CBuTTC1NDb6AWUvrqBtCam1JoaO2x+y5VGIqHogH+NxKEARCDQq4woPzpCbOzUGGRrhVglBEKt4LXa+p7YmoNrbUKhs8d3Pdfb4aDr2RmlmIViwljfJWSImxAgLqYUwfiHYJIdnMaYhVYElU8O9bW3djbm0NGrmGmWIKo2AZjcB+toH+2HiQhmp995S01mfTkB4C6OHZCKL+MGnDvCWNAjgJoCKUAweSfqNgtguC8Eghmk4Nwqx5FOHcIoAFbUXFSKEOUdsbZln4rNa2W6VUDMhNCYZqGAJhUWqFF4lrZLpzNukY4Ph7js3COEKsUNxNAZFhS-aKC21wpcamoq7V3GsAgKSDN+YYk+BCv-Ea1YHhYouO4ATrY5XtnMXkAzcGjM2RTahcz2TUFWd3jZtgWMGMQCYAAUTjTiOtBh0AXBIS-LWeY2EsI4xKCsOw3yefrBQpgwMyySQlLEDsQX3khbSWF6cEXG6FWHUZVBsWcDxe4IllLm5bK4lBH1-AlTR1kO1qkSSzDIEczthFKsHgi2SnfXETIoNZrxIAg1mtTWxaHtazSyLlnOvtbrZuFoY2JvZaRW-Gba35uyUW5WBaRbZLvoWkUPTYMNgO2JZ62DjXVaZR+ZktrZ1zvWbKUwAAaglhzoVmElGCMbACRQwZA1nvE8xRwSwdnc3t9etbQtHZyrpeFUOVww5epNo5eYKFeBLPyCsVYayqYuFWUeeQOwbDq4+YnELjNUohydi70XUHYOkbZ+z9PcscQbAJhaLNOYzsbDx+sU0vqth4jxETC0hepMO0Isz4vqe4Qu9L8i12EtME9kopyw30uZYc3Q7I+RQhDTfN4PYgC7Y+FBqDWSmRJSFCN6q5r5OxmU4swZaHu9rdOVt-1t3wSPcPkFMcH3fu7X-lOZQ58execkZAh6uGNGQf8Naqb8L5vd6S9TUnxLCPU-y-cnxwC3FZJlimno33muECLQdeAwsj5Zpij-hHgZZPa-Hdj6d+PNPE+O9uwcnLHeGy+9xa2MGBt-4zuClxX97MIozu8h4afpOo9z4pw3C3foHOe6oaWcsb2OeSuP9cFj7Mohzqvwdu7NHmggvvpOoL1O3lTGKF4IpjerENEC2N5DNFcB7n-LJJJFWAEAAaDjXuDrCuLk-lNKcpsPan9P-Fxh+IUMwizCEh+psJWoDhXn0vtjgSZjaMLiiDjPIDyrILLmAIQWFF+BKIKGPAtNWIPmPMzjWDbI+EcLsPEtgdXmwSTiFustwZsmmEwAACI4jGDEBJDcoaG8FxYJYgENwOadiVbBKhTlhQx-wszMzZ7ZD555pKjj6KGQpUocFqGGH4zaG6EMD6G+GaEACqSy5GXKnBGy+MFhEUPgLwsoxW3kEoEhOwAmeaVsIqoMRK5eTsbyLBShXhdiPhPB-hsAehBhPBDmgEXgRQimSRRQOGZsi2pyRwYolCLYsQ-4HhIuji3hsgXBwRvBJ6HAcszIqAhAhAcAsAhIqAgYWW6+9202EC3EpwWeMQ3kioH4eQZYPgts0QBOsoQQPRs+Py-RgxVRkBD2VYCco0uwDMXGK2zRlCWQ7MJQrY1YVwjSJxN+McVx02kQmQ30pB8hjMH4NhYkea2iGwlCrMPxKM0Kt+Me9+OSLcRAp80IfBqGfgWQSc+QMUJGnRwkrq2wT4EkM6dx8JW8ou+BoBh8Ei98Z85Ure422JcRgo4CuwvupirYxJokkM-EGuMkxwVJQyLWd+B8qJx86JD8Ke42TAAAcjKUyc7iGBlgsaxFNsPBCXYbxPcAUCUGVpcIUFsPkNpsJgtBkKKZSuKciZKa4gycqZiSYf1oqU6ZIGlossQPFiSMQNGHLndmOpcJJK0SWHqWIYaRnMKKsbKF+lEHbHJIwXkdWioaweksAVkhdnfO6XKWvpqQzvWBtqgeGQaYWnapwtxDVmDMUENNaVCuqiMnXnSVKYydCKhtQmJJPKNJIb9EDH4O+pQrJIELQb7nWemUiWYfaamoog5DbiwHZvwf8cPL7ijscAzA+uWIwhKJVuDJ8fHDWGOYiXgWbs2Q6X0M3vDojkufWNyc2FPEvNWE8RcItN+OzpWJJK+DEIeQ2dSqedORIheS6fKQ7rOU7mlmqa7tecGYENkOWM6tcKNL7kaTbBJHUsEIKAcIUA0t+TSSeSiWefIIBb1nbiBTgloGliRGAOIKhrKNQTbBWlPMuv4MzASrBYbMtlcJ7jhbaZORggRZIqBYlkBXmYcgrsGUCb5gxWKExYwpsLBd5jkCRm-scUmcXNupHgiT+WLn+YuDOWRahotMzv9LQgvJPMzKwl9jsF8UQfotxRmZDlKbFguQZdECwgtI2KFAgSRoPvbMWK+CWBJMKGIXZROZmfSbkldiySJRvuoiueFL7h2MUGagFJKreoSolcHjbCFceU2fhf+RFSSLmclqlriBBRqaJe5BJEULcGPjnDnJ4M8MJPkD5h2FCbJDEKDNlaZrlVObpRIj1jdsVUNmlqNleYGVqYWdvpJO5oWJ4GWKDE1UcOFO4AqAXN5V1Y2fPnlX1QVcwMJUNWeJ6QMD6YEf6YueNQWcGRsDVf+HVbEItFjnaotAXkcCnD9M8CpbkWpRJtfppbhT1XxfldwbDsJTRTOjdePvVQ9cxXaurmJCRhkJkO0QqBtb+dtYgv1WUu2dGfqR5VDHmt5ZQVDHUhWCcJEIWBwqjdpfftMrMvMhyhEWsgMdEZofOQGYsUGVcP2Y+FpugcKLbDcrEJVjcdpj9pTapaSsFmmUed1VtQfLTXMlHGTAzSskzRcUYbmTRW+NxPbJNA8GKG8MzCtIHhWK8AFfjgDl9ZLVXp4TLZtRKadArfTYspymrSzbwVFahsDNxBFIOX+DWBkMzFFLcAcTEAbeEDkf+kDpXgUbbVpbSTTTMorX3CrZESUUYQZRkGcp4Gil+IpYYiULcCzOTcUEvJ9VHUwfkamYUXbWjV1O2cTZId2ZPL2WbGzsWCAoUCJGKBKBte2f2U3RPIKK3RcPjcWGueEBPlcPcD0SBr2mBshqFU0FiVBa2C2JVuEPNl+oBKbLxgploi2GaY+rNJfhLdGjbZdmeGegvdZBmcvZ7avbVmJMXbsC6m-rvfWDnCwl+Etmfv-KFJumfcDrHZfeUtfUhrfUvfQEVQAMJNCqnUDqkZoczGJLxZrFB1ULpVhiTsKPr5xfqz0Ibz0QP-XTjL37VwP0DO6jVt4XViUoMh05DoM7AbCRLhTmIE4E2UIXKANW3n0gNz37otpQPlSg1QU1Eo5oMZEsPTRqbkliSsIzqGmSQPiENDbgMHoiPXoPhFjXBhml60WG1qaARfQlBfhfgijoEa5qNX2IaaM-JwPEPqDuLIOhRZCbbVi6zI5SgXBTQ4Om0HG1aF42NgN2PCN-F0PuS+Zyh6Nb2GMf1rBFZF1xDFBvCFCyR7ZP7F7Am-SgkUFqanDRKFCzT-jbZgIVAVBAA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QEECuAXAFmAduglgMYCGBA9jgAQC2ZEYANgHQCSO+BxD+AXqfhQDEAWWIBrMJVSwwAJ0rEM2PEVKQFOCJVm5684gAcD3EuRyJQBsrA4DzSEAA9EATgBsAJiYBmAOwAWbwBWAAYARgAOMKCPN28AGhAAT0QAWn8wlyY3AO8wj19vfxdQsIBfMsS0LFwCUzsaOkZWdk5uPjMRcUlpOSkcRRqVU3ViTW1dPsNjVTMLECsbOYdnBFSPF18fFxcIjO9Ytxd-IN9ElIQw-xCmTZDfU4Or-zcQ7wqqpVrZhtp6ZgASpNZPgcFBKJgyNRJLBCDpcF0JFIZPIoGRKOh0Zh8LBKAZZGQAGb4BgwsDoAhg3GEgnUCFQyRjLQ2KBUMgYeaLWwUearUI3EKxFxhYL+KL+XxnZKINz+bI7EpXI6CuIuD4garKOr8CiNf5MIGaOSg8Es9hgyiw+E4JgAMRJ3AtcMg3y4sDtDpNlGJjAg7vtDEd4LA1GIJMEAGVUAAjagcS34Vle0Hesiyaic6zc+ygVapfIhCJMMIPEIhNwRCK+EK7c6IMJhN63CIeVvC-wFVvqzXfeq6v7NQ16L1mkfO3AewNe530FRuydB734X3+z0WkNhhiCAAqSQMkl1o4tKY3JKXvszSzsvLSwS8HiC7mCORyEU8dYQLnCxYOBQiQW8e5G3KSoNS+YYdSoAdAWBEdE3NU1xxtANFxnV0GFXKcLR9Bg-QXL0DGIWBYAAdzTCBIxjON0ATJNjyoQk0wzBwuWWXM0kbcsmFOOI-AiXZ+LyD9MlbJgNjCNx+X-GsQn8btwO1Mw9UHWCLSPRDrXwp0dFnNpMMXHC8JQgiiNI8idz3A8qHUygU0I4iyNkLRDMvbMbzWK4tgiQCYkk8tHweIJhN8Nw3CYXx-wrQV-xCq55KGRTfiaGCjRBNT4LHTTjO0l05wwrTwUM2BBAgCgwCYWB0DUJgewgpToINVTTQytSkIKyg0Ly-SvSK1y2KcRANjlBtfAk-jRsFXwXGEjwmxiXwPE4-i33yeKtR+ftksa1K4LojSwAnbLwU6vT2qKxEYRa8EUx0ABHVA4BowlNz668Vg4yUwluUaxUyf8RROYTAjCoJ-ECCaWzcRtfDW3tIOUlLh3SvbLTaodjTUuQADc+jkAlZEo2N4xslNGPTV6eXetZ-zlPw-uFAGYg-DwTjlFxAOKF5xt2GHQNqxLNv1dG0ualGrQOnASrKiqqvQcr+Y2qCtuF3aENR60KZzAaEErLIO2OctG34r8EmlBBRXlMH8g8IoPD2NxYbqpKhaa2i1fFhEAAUdGIyhowwTEqExSg0QxdEzSkAx1YlzX3MKIsDjebzCnZsUImE2Usj2FwbcrQJoncR2BaVl2duRtXUCjj3kLXY6dPQ7qLV6eR2EIMQBmhQnqLdyPU3Jlis361YCyyWJJvyV4WaiDORW+h9okWiSQqLxWEe2pHRYrqu2qOjr6669rm8oVv2+ITvd33ShD3g3uj5PjvJBcger0p9jLjyLJqz8Ioa0lIIwmEjnIs-5+IViCBWEKBwV59hLipMum8vSV2jodWue9cqnV3kfeyZknJd2JjfJBZNmKWEHm9N++RvBhUiP-F4-9fKCmZpkbwTBwiSWhnbKGexoHwwaircuiDt5ZVQSdfA85MEojxKZRyFEL5WR7kgrBUjyLnlwrHKmIoSy3DiIcTYsp7huGZqELYJsbZgwiDWd4fMFKr14a7GySDq7tREWI1BR9TxbijETGiEdCFMTUeQlmYVvDHBCicIBsoPzuC2LNTO+wgigwktw+qys7FXV7o43ezj8riNxqGcMsir7WQIVHNxeSGAqIgP47WIoDjFklEcUGIV7jxOEkULOnk4ieG8pkJJzs4EbzdgI5BNcsJ13QaI-KAAZMgZAxC+PkKgHA7cyAkWstjXGsh8Z4O8cUvuxCFikNftU2IQRthvgfG08shRmaSi8OWe4IU9ERVOL0wW-SMYIKboIiWTj956SljgcqlVqoKxgWvPhnzwQOJ3sIv5Ez4DPzcuolszCAIvDbDJAxZs6ZiQil0go9y1RWISjYlJ8DBlfOGb88ZboLryKjndB6lUMSYAJCRfoyzVmUDxmmKpqxZqFh8J4B4BRgjHDiB+XWWjWwyWCScXmnwSVgtseS+x3yvY+1xP7Ckupg6h2DhHFM1c+WIAeMwyhEkSx00fEFM2Vx-zbHAQcYo4D-yWMVetZVZKBnuI6hQYk6Z4YZOEU0AFQLZby2sV60uPqyl+pwAG0MSlg2jL9fQE15s07ZAOOYoI-FwHFGEt+CSrwpoFlbH+V5sDEYfO5XGwg-r8CBuTTC1NDb6AWUvrqBtCam1JoaO2x+y5VGIqHogNpdzvB5H-rsShU0PzpCbAXO2xQwEpyreC12vqe2JqDa21CobPHdx3X2+Gg69kZpZiFYsJY3yVkiJsQIC6mFMH4h2CSHZzGmIVWBJVPDvW1u3Y25tDRq5hpliCqN-6Y2AfrcB-th4kIZoffeR8gEdgBByA8BdHDs2BFbGDThU6N0qtjZueNu6W3WjpUB3tIHdSMset6F6o6yHa2CJkJgHZAo1PEv+BdFYvAvGCZQk5AFhQVFAjgJoCKUBQeSfqNgtguC8Eghmk4NwqzTqml-E4wQF2hDlHbG2ZZ+KzWtiRgDIt6TQmGchgCYVFqhReJa2S6czbpGOD4e47NwjhCrFDSzMHrM2RTahOFLjU1FXau41gEBSQZvzDEnwIV-4jWrA8LFFx3BGdbHK9s5i8hBfeSFtJYXpwReyag6Lu9YtsCxipiATAACicacR1oMOgC4JCX5azzGwlhpwQkVh2G+LL9YKFccoWWSSEpYgdmKzW0rYt90VZpVVqLw6jKoLqzgBr3AmutfI+10E+38CVNY0c-rAFwq8VknbCKVYPBFslK+uImRQazXiQBRb69a2hdWzlXS8KzpbcbsGMpLQzsXZ60it+qQsO3anfdqslYFpFtkq+haRQAtgw2A7YlnroMldVplH5mTKvg4qVT2LAA1RriXQrMJKMEY2AEihgyBrPeJ5ijglm4-cX7EKKX7RQW2ynoOVwxbKYlihXgSz8grFWGs7mLhVlHnkDsGx5uPiF6klbQjxfrapzV1B2DpFxYS5dvrHEGxGYWizTmIR-7O+CsKMSD5UshTMwtPXqqyuA7GcDyLBkwftXN+RKHjWmCeyUU5WyuIQyde6wc3r7lUh0OyPkUIQ03zeD2IAu2PhQag1kpkSUhQ-cDIB4b8LxvJe4SpxHpyUeDuJfE1nh8gpjh54L3a-8pzKHPj2JrqdIEPVwwUyT-hrVa9reDxt0PUvd7N6a-Ttv1v08ARuIZssU09H59tRcRaDrwGFkfLNMUf8q--YD3PoHDcG-bdTav2XIoiydkdwbF3R-6zVkc0UFNHxM7t5B4Dfstu7IHmggvibmDrLg+FQqWOWGjirpKlxCzM7iFASlOsRoTpPn0ktqTrPuTrCvXihOoL1JvlTGKF4M5lerENEC2N5DNFcFnn-LJJJFWAEOAUQaLiMnXjAbLlNKcpsPan9P-EUL-ggIUMwizO4CjvTHJHgU7G8oQTPnwX9iFusvIDyrIJbmAEIWFF+BKIKGPAtNWFIWPPLjWDbI+EcLsPEjweoVSsLiiDjDoZsmmEwAACI4jGDEBJDcqeF6H1aNbQENyJadhTbuCvChQlgir+DMw97ZAD55pKgX5OGQouF2LaFBH4w+F+EMABF5FeEACqSy0mXKbhGy+MkREUPgLwsoI23kEolhOwRmeaVsIqoMRKE+Kh1amhvB2RqquRuhBRsA-hgRuhiWgEXgRQzmzRgBlhVYpyRwYolCLYsQ-4mRIuwx1eoxwRTAR6HAcszIqAhAhAcAsAhIqAgYKerEbG-WVY3Epw3eMQ3kioH4eQZYPgts0Q-OsoQQOxNePyrhBxtRVB8OqOKW9MDYkhz2ZsNsRwtwwSMQBKVwjSwJd+MckJ2s+YUQWQohv0DhjMH4oUNwD4KxWBeacQEQWJKM0K9+Qej+OSLcRAp80I+hyGfgWQSc+QMUU6mxwkrq2wT4EkmBPSyhxcm6-uDJ6q-B8+LJriEi98Z85U6+523J9Rgo4Cs6KKWuwpokkM-EjYoQX4xw9JW8VKFOZBypfQqpnJoRB2TAAAcuyQ-Anh1l1shuSWwXduYSUONpcIUFsPkL5qZgtBkJaUMuVg-gfKycfO6Wqa3udq6UmbZu1ossQA1iSMQNGFbrDmOpcJJKsSWP6QUIGRnO7vErKB+lECutGZSrGcyfGXaWyW3A-CmTDqnnDtUu9n6cjgGeAjPEWOAqDGDMUENI2VCvKdSjAYfCqemQYbicPNQmJJPKNFYb9EDH4K+tNmDHKhFPntOeklAVklToog5JHiwPFsuYWY8fWPnszscAzHeuWIwhKFxuDNWFauYr0b+kTlPmoVkYySQUbvOQmavkwBqd2Q8Vdo+S2M2FPEvNWAicfsBFjoWG+OAs8mAVKaSsFkMaBWLgIUqampeTgk1k6ambHlefHu1knt6SufWLKMwrEc6tcKNPnkGTbBJHUsEIKAcIUA0iecRQqXGRgm2ZInRVRXttHrRZRZ6SRGAOID6YEB7gcH4FPOzKDMzAStkDNpEAtFcNnqJbOTaRBVJVBdRbBYcjbsWZxnljbJGYJLpYieXgZTljkMjmAmZdaaQZZeRRIq-sxZcItPLv9LQgvJPMzKwljjsBicIfon5c2eEa2UFbkpuFyaFfkNECwsZeWFDHmlOlIfbMWK+CWBJMKOYSlWeRLgmXTgzjlU+eFPnh2MUGagFJKteoSu1aXjbLVUyWlZJRlToZDjZS1m1ontQMnj6UULcOfjnDnJ4M8MJPkLlh2DSbJDEKDINWBaRelYuKUllRNUdmeCdnJRvvefBcWfntkK8dWOcmWG5RcA2MifvgqAXCVXtSRYqYdYghIrttDpNcdriFmTmUUfmXeT2UWRJBsAtf+EtbEItJznaotIPkcCnD9M8ECfhdGtPiBeZQFWRUdYDeNZdZqTla8CIYtdritaja9c7l9DbEUA2D3sEjsD9eJS2SNaTZlSSMhpkF9PcItIVYwSVR+LFHUhWCcJEIWBwlzXOY-tMrMvMhypUWsrIO4SUSEbechuDNxF+FNBwcKLbDcrEFxqjr5jjgrXjcTsBbsWJUrQfCrXMlHGTOrSsprdrWMTZT6W+NxPbJNA8GKG8MzCtMXhWK8JVXzgTn0dKaRrfnKf5eBcrTMm7X3J7VUeCV4TBfrZQtxEeRuX+RkMzFFLcP8TEKHeEP+aCvbYMc4U7RZWnare7WmFnd7TUbyjlSzF9MEucmil+N5YYiULcL3eYsUEvLjfHQRQTY7UTanV1ILVDOuePFudPGbErsWCAoUCJGKBKFzYLbuVYZuZPNuZvXlR9iqA5mKuPgBfgaoQ3RDuRievRtZGeU0NlddfZa2IhdcGWWPqxWHR5k5loi2GGferNHhTPfjQ7bRpRqBh-fQNBU1d-e5PQR7hkLsC6sgabK9TnCwkbWjrmiWnSXbUBU-XWi-fBnukNYOl2UwAAMJNCemMX3F2XuR5ANhiQ0ILRR2LRSgXD5jfhQxVUiYWqig7HwOnpUb7XTif0TXMP0CemnaoMw0PnmwNjM28NbErWCNpByieA+bO5ioiZxDT3339EylkZniv0Ibv10MKMU1NYRi5HPQkjqDBw+xWCaAZrfFFhRQSGZYml4OuCyFBNMKNHszQOWMJ1WZejSNv0p0HrIN+2hWAR7ApFM1+Cuqm3PoBAGUPinAZAYHO5x2xOz1wNwZ0b2PJPyPpqhWth5pcbhCQJ5BAOhNrCARfQlDCgCqRCyh2xSPVMIOIaaTMM1PqDuJ+OhRZAfaPWgJxD6PSGjxjRFWeRInuoVOwOUOJO1PGqNOmItMAPtOBDANCMShUKlArWNgFaLay4j7fRiEkmSELqBRcagwj5vo1g-aSZAA */
     createMachine(
         {
             context: {
@@ -47,7 +47,8 @@ const authenticationModelMachine =
                 signUpNickname: '',
                 signUpPassword: '',
                 isSignUpRequestGoingToThrowUnknownError: false,
-                emailConfirmationCode: '',
+                emailConfirmationCode: undefined,
+                isEmailConfirmationRequestGoingToFail: false,
             },
             schema: {
                 context: {} as {
@@ -58,7 +59,8 @@ const authenticationModelMachine =
                     signUpEmail: string;
                     signUpPassword: string;
                     isSignUpRequestGoingToThrowUnknownError: boolean;
-                    emailConfirmationCode: string;
+                    emailConfirmationCode: string | undefined;
+                    isEmailConfirmationRequestGoingToFail: boolean;
                 },
                 events: {} as
                     | { type: 'Make user authenticated and render application' }
@@ -102,6 +104,9 @@ const authenticationModelMachine =
                     | {
                           type: 'Type on confirmation code field';
                           confirmationCode: string;
+                      }
+                    | {
+                          type: 'Make email confirmation request fail';
                       }
                     | {
                           type: 'Submit confirmation code form';
@@ -1230,20 +1235,149 @@ const authenticationModelMachine =
                     },
                 },
                 'Rendering email confirmation screen': {
+                    meta: {
+                        test: async ({ screen }: TestingContext) => {
+                            invariant(
+                                screen !== undefined,
+                                'Screen must have been rendered',
+                            );
+
+                            const emailConfirmationScreenTitle =
+                                await screen.findByText(
+                                    /confirmation.*email.*address/i,
+                                );
+                            expect(emailConfirmationScreenTitle).toBeTruthy();
+                        },
+                    },
                     initial: 'Filling code',
                     states: {
                         'Filling code': {
                             initial: 'Idle',
                             states: {
-                                Idle: {},
+                                Idle: {
+                                    meta: {
+                                        test: async ({
+                                            screen,
+                                        }: TestingContext) => {
+                                            invariant(
+                                                screen !== undefined,
+                                                'Screen must have been rendered',
+                                            );
+
+                                            await waitFor(() => {
+                                                expect(
+                                                    within(
+                                                        screen.getByTestId(
+                                                            'email-confirmation-screen-code-field',
+                                                        ),
+                                                    ).queryByRole('alert'),
+                                                ).toBeNull();
+                                            });
+                                        },
+                                    },
+                                },
                                 Valid: {
                                     type: 'final',
                                 },
                                 Invalid: {
                                     initial: 'Code is empty',
                                     states: {
-                                        'Code is empty': {},
-                                        'Code is invalid': {},
+                                        'Code is empty': {
+                                            meta: {
+                                                test: async ({
+                                                    screen,
+                                                }: TestingContext) => {
+                                                    invariant(
+                                                        screen !== undefined,
+                                                        'Screen must have been rendered',
+                                                    );
+
+                                                    await waitFor(() => {
+                                                        const emailConfirmationCodeIsEmpty =
+                                                            within(
+                                                                screen.getByTestId(
+                                                                    'email-confirmation-screen-code-field',
+                                                                ),
+                                                            ).getByRole(
+                                                                'alert',
+                                                            );
+                                                        expect(
+                                                            emailConfirmationCodeIsEmpty,
+                                                        ).toBeTruthy();
+
+                                                        expect(
+                                                            emailConfirmationCodeIsEmpty,
+                                                        ).toHaveTextContent(
+                                                            'This field is required',
+                                                        );
+                                                    });
+                                                },
+                                            },
+                                        },
+                                        'Code is invalid': {
+                                            meta: {
+                                                test: async ({
+                                                    screen,
+                                                }: TestingContext) => {
+                                                    invariant(
+                                                        screen !== undefined,
+                                                        'Screen must have been rendered',
+                                                    );
+
+                                                    await waitFor(() => {
+                                                        const emailConfirmationCodeIsInvalid =
+                                                            within(
+                                                                screen.getByTestId(
+                                                                    'email-confirmation-screen-code-field',
+                                                                ),
+                                                            ).getByRole(
+                                                                'alert',
+                                                            );
+                                                        expect(
+                                                            emailConfirmationCodeIsInvalid,
+                                                        ).toBeTruthy();
+
+                                                        expect(
+                                                            emailConfirmationCodeIsInvalid,
+                                                        ).toHaveTextContent(
+                                                            'Code is invalid.',
+                                                        );
+                                                    });
+                                                },
+                                            },
+                                        },
+                                        'Server failed to respond': {
+                                            meta: {
+                                                test: async ({
+                                                    screen,
+                                                }: TestingContext) => {
+                                                    invariant(
+                                                        screen !== undefined,
+                                                        'Screen must have been rendered',
+                                                    );
+
+                                                    await waitFor(() => {
+                                                        const emailConfirmationCodeRequestFailed =
+                                                            within(
+                                                                screen.getByTestId(
+                                                                    'email-confirmation-screen-code-field',
+                                                                ),
+                                                            ).getByRole(
+                                                                'alert',
+                                                            );
+                                                        expect(
+                                                            emailConfirmationCodeRequestFailed,
+                                                        ).toBeTruthy();
+
+                                                        expect(
+                                                            emailConfirmationCodeRequestFailed,
+                                                        ).toHaveTextContent(
+                                                            'An error occured during submitting.',
+                                                        );
+                                                    });
+                                                },
+                                            },
+                                        },
                                     },
                                 },
                             },
@@ -1263,6 +1397,10 @@ const authenticationModelMachine =
                                         target: '#Authentication model.Rendering email confirmation screen.Filling code.Invalid.Code is invalid',
                                     },
                                     {
+                                        cond: 'Server fails to respond to email confirmation request',
+                                        target: '#Authentication model.Rendering email confirmation screen.Filling code.Invalid.Server failed to respond',
+                                    },
+                                    {
                                         target: '#Authentication model.Rendering email confirmation screen.Filling code.Valid',
                                     },
                                 ],
@@ -1273,6 +1411,13 @@ const authenticationModelMachine =
                         },
                         'Confirmed email': {
                             type: 'final',
+                        },
+                    },
+                    on: {
+                        'Make email confirmation request fail': {
+                            actions:
+                                'Assign email confirmation request will fail to context',
+                            target: '#Authentication model.Rendering email confirmation screen',
                         },
                     },
                     onDone: {
@@ -1403,6 +1548,11 @@ const authenticationModelMachine =
 
                     return isConfirmationCodeInvalid === true;
                 },
+                'Server fails to respond to email confirmation request': ({
+                    isEmailConfirmationRequestGoingToFail,
+                }) => {
+                    return isEmailConfirmationRequestGoingToFail === true;
+                },
             },
             actions: {
                 'Assign signing in typed email to context': assign({
@@ -1461,6 +1611,21 @@ const authenticationModelMachine =
                         );
 
                         return event.password;
+                    },
+                }),
+                'Assign email confirmation request will fail to context':
+                    assign({
+                        isEmailConfirmationRequestGoingToFail: (_context) =>
+                            true,
+                    }),
+                'Assign typed confirmation code to context': assign({
+                    emailConfirmationCode: (_context, event) => {
+                        assertEventType(
+                            event,
+                            'Type on confirmation code field',
+                        );
+
+                        return event.confirmationCode;
                     },
                 }),
             },
@@ -1650,6 +1815,44 @@ const authenticationModel = createModel<TestingContext>(
         fireEvent.press(myProfileSettingsSignOutButton);
     },
     ///
+
+    'Type on confirmation code field': async ({ screen }, e) => {
+        invariant(screen !== undefined, 'Screen must have been rendered');
+
+        const event = e as EventFrom<
+            typeof authenticationModelMachine,
+            'Type on confirmation code field'
+        >;
+
+        const confirmationCodeTextField = await screen.findByPlaceholderText(
+            /enter.*confirmation.*code/i,
+        );
+        expect(confirmationCodeTextField).toBeTruthy();
+
+        fireEvent.changeText(confirmationCodeTextField, event.confirmationCode);
+    },
+
+    'Make email confirmation request fail': () => {
+        server.use(
+            rest.post(
+                `${SERVER_ENDPOINT}/authentication/confirm-email`,
+                withAuthentication((_req, res, ctx) => {
+                    return res(ctx.status(500));
+                }),
+            ),
+        );
+    },
+
+    'Submit confirmation code form': async ({ screen }) => {
+        invariant(screen !== undefined, 'Screen must have been rendered');
+
+        const confirmationCodeFormSubmitButton = await screen.findByText(
+            /confirm.*account/i,
+        );
+        expect(confirmationCodeFormSubmitButton).toBeTruthy();
+
+        fireEvent.press(confirmationCodeFormSubmitButton);
+    },
 });
 
 cases<{
@@ -2235,6 +2438,130 @@ cases<{
                 },
                 {
                     type: 'Press button to go to sign in screen',
+                },
+            ],
+        },
+    },
+);
+
+cases<{
+    target:
+        | {
+              'Rendering email confirmation screen': {
+                  'Filling code':
+                      | 'Idle'
+                      | {
+                            Invalid:
+                                | 'Code is empty'
+                                | 'Code is invalid'
+                                | 'Server failed to respond';
+                        };
+              };
+          }
+        | 'Rendering home screen';
+    events: EventFrom<typeof authenticationModelMachine>[];
+}>(
+    'Email confirmation',
+    async ({ target, events }) => {
+        db.authenticationUser.create(existingUser);
+        db.myProfileInformation.create({
+            userID: existingUser.uuid,
+            devicesCounter: 3,
+            playlistsCounter: 4,
+            followersCounter: 5,
+            followingCounter: 6,
+            userNickname: existingUser.nickname,
+            hasConfirmedEmail: false,
+        });
+
+        const plan = authenticationModel.getPlanFromEvents(events, { target });
+
+        await plan.test({
+            screen: undefined,
+        });
+    },
+    {
+        'Fails to confirm email as code is empty': {
+            target: {
+                'Rendering email confirmation screen': {
+                    'Filling code': {
+                        Invalid: 'Code is empty',
+                    },
+                },
+            },
+            events: [
+                {
+                    type: 'Make user authenticated and render application',
+                },
+                {
+                    type: 'Type on confirmation code field',
+                    confirmationCode: '',
+                },
+                {
+                    type: 'Submit confirmation code form',
+                },
+            ],
+        },
+
+        'Fails to confirm email as code is invalid': {
+            target: {
+                'Rendering email confirmation screen': {
+                    'Filling code': {
+                        Invalid: 'Code is invalid',
+                    },
+                },
+            },
+            events: [
+                {
+                    type: 'Make user authenticated and render application',
+                },
+                {
+                    type: 'Type on confirmation code field',
+                    confirmationCode: '-- INVALID TOKEN --',
+                },
+                {
+                    type: 'Submit confirmation code form',
+                },
+            ],
+        },
+
+        'Fails to confirm email as server failed unexpectedly': {
+            target: {
+                'Rendering email confirmation screen': {
+                    'Filling code': {
+                        Invalid: 'Server failed to respond',
+                    },
+                },
+            },
+            events: [
+                {
+                    type: 'Make user authenticated and render application',
+                },
+                {
+                    type: 'Make email confirmation request fail',
+                },
+                {
+                    type: 'Type on confirmation code field',
+                    confirmationCode: '123456',
+                },
+                {
+                    type: 'Submit confirmation code form',
+                },
+            ],
+        },
+
+        'Confirms email successfully': {
+            target: 'Rendering home screen',
+            events: [
+                {
+                    type: 'Make user authenticated and render application',
+                },
+                {
+                    type: 'Type on confirmation code field',
+                    confirmationCode: '123456',
+                },
+                {
+                    type: 'Submit confirmation code form',
                 },
             ],
         },

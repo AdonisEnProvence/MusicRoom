@@ -18,6 +18,7 @@ import {
     generateStrongPassword,
     generateWeakPassword,
     initTestUtils,
+    noop,
     TEST_AUTHENTICATION_GROUP_PREFIX,
 } from './utils/TestUtils';
 
@@ -26,6 +27,8 @@ test.group('Authentication sign up tests group', (group) => {
         initTestUtils();
 
     group.beforeEach(async () => {
+        //Init mail.trap here to prevent sending mails to random email if .env is correctly set see test `It should fail to sign up as user with given email is already in base`
+        Mail.trap(noop);
         initSocketConnection();
         await Database.beginGlobalTransaction();
     });

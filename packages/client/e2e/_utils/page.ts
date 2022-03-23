@@ -1,12 +1,14 @@
 import { Browser, Page, BrowserContext, expect } from '@playwright/test';
-import * as z from 'zod';
 import { internet, unique } from 'faker';
 import { SignUpSuccessfullResponseBody } from '@musicroom/types';
 import { KnownSearchesRecord, mockSearchTracks } from './mock-http';
 import {
+    pageIsOnEmailConfirmationScreen,
     pageIsOnHomeScreen,
     withinSignUpFormScreenContainer,
 } from './mpe-e2e-utils';
+
+const SERVER_ENDPOINT = 'http://localhost:3333';
 
 export const GEOLOCATION_POSITIONS = {
     'Paris, France': {
@@ -56,6 +58,8 @@ export async function setupPageAndSignUpUser({
     });
 
     const { userNickname, userID, email, password } = await performSignUp(page);
+
+    await bypassVerifyEmailScreen({ page });
 
     await focusPage(page);
 
@@ -149,6 +153,26 @@ export async function performSignUp(page: Page): Promise<{
         userNickname: nickname,
         userID,
     };
+}
+
+export async function bypassVerifyEmailScreen({
+    page,
+}: {
+    page: Page;
+}): Promise<void> {
+    await pageIsOnEmailConfirmationScreen({
+        page,
+    });
+
+    await page.request.get(`${SERVER_ENDPOINT}/test/bypass-email-confirmation`);
+
+    //FIXME TMP should be removed after email polling
+    await page.reload();
+    ///
+
+    await pageIsOnHomeScreen({
+        page,
+    });
 }
 
 /**

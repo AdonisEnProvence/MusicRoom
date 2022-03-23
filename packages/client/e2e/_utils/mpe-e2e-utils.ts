@@ -136,6 +136,12 @@ export function withinMyProfilePageContainer(selector: string): string {
     return `css=[data-testid="my-profile-settings-page-container"] >> ${selector}`;
 }
 
+export function withinEmailConfirmationScreenContainer(
+    selector: string,
+): string {
+    return `css=[data-testid="email-confirmation-screen-container"] >> ${selector}`;
+}
+
 export function withinUserProfileScreen({
     page,
     userID,
@@ -551,6 +557,16 @@ export async function pageIsOnSearchTrackScreen({
         withinSearchTrackTabScreen('text="Search a track"'),
     );
     await expect(searchTrackScreenTitle).toBeVisible();
+}
+
+export async function pageIsOnEmailConfirmationScreen({
+    page,
+}: {
+    page: Page;
+}): Promise<void> {
+    await expect(
+        page.locator(`css=[data-testid="email-confirmation-screen-container"]`),
+    ).toBeVisible();
 }
 
 export async function goToMyProfileFromHomeTab({

@@ -1,3 +1,4 @@
+import Mail from '@ioc:Adonis/Addons/Mail';
 import Database from '@ioc:Adonis/Lucid/Database';
 import {
     ApiTokensSuccessfullSignUpResponseBody,
@@ -6,6 +7,7 @@ import {
     SignUpRequestBody,
     WebAuthSuccessfullSignUpResponseBody,
 } from '@musicroom/types';
+import EmailVerification from 'App/Mailers/EmailVerification';
 import User from 'App/Models/User';
 import { datatype, internet, random } from 'faker';
 import test from 'japa';
@@ -29,6 +31,7 @@ test.group('Authentication sign up tests group', (group) => {
     });
 
     group.afterEach(async () => {
+        Mail.restore();
         await disconnectEveryRemainingSocketConnection();
         await Database.rollbackGlobalTransaction();
     });
@@ -38,6 +41,23 @@ test.group('Authentication sign up tests group', (group) => {
         const email = internet.email();
         const userNickname = internet.userName();
         const password = generateStrongPassword();
+
+        Mail.trap((message) => {
+            assert.deepEqual(message.to, [
+                {
+                    address: email,
+                },
+            ]);
+
+            assert.deepEqual(message.from, {
+                address: 'no-reply@adonisenprovence.com',
+            });
+
+            assert.equal(
+                message.subject,
+                `Welcome ${userNickname}, please verify your email !`,
+            );
+        });
 
         const { body: rawBody } = await request
             .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-up'))
@@ -98,7 +118,7 @@ test.group('Authentication sign up tests group', (group) => {
             );
         });
 
-        const emailVerification = new EmailVerification(user);
+        const emailVerification = new EmailVerification(user, 'token1234');
         await emailVerification.send();
 
         //Mail.trap will be expected without any more required actions such as waitFor
@@ -122,7 +142,7 @@ test.group('Authentication sign up tests group', (group) => {
                 assert.isFalse(onSignUpFailEmailShouldNotBeSent);
             });
 
-            const emailVerification = new EmailVerification(user);
+            const emailVerification = new EmailVerification(user, 'token1234');
             await emailVerification.send();
         },
     );
@@ -132,6 +152,23 @@ test.group('Authentication sign up tests group', (group) => {
         const email = internet.email();
         const userNickname = internet.userName();
         const password = generateStrongPassword();
+
+        Mail.trap((message) => {
+            assert.deepEqual(message.to, [
+                {
+                    address: email,
+                },
+            ]);
+
+            assert.deepEqual(message.from, {
+                address: 'no-reply@adonisenprovence.com',
+            });
+
+            assert.equal(
+                message.subject,
+                `Welcome ${userNickname}, please verify your email !`,
+            );
+        });
 
         const { body: rawBody } = await request
             .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-up'))
@@ -173,6 +210,11 @@ test.group('Authentication sign up tests group', (group) => {
         const userNickname = internet.userName();
         const password = generateWeakPassword();
 
+        Mail.trap(() => {
+            const onSignUpFailEmailShouldNotBeSent = true;
+            assert.isFalse(onSignUpFailEmailShouldNotBeSent);
+        });
+
         const { body: rawBody } = await request
             .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-up'))
             .send({
@@ -195,6 +237,11 @@ test.group('Authentication sign up tests group', (group) => {
         const email = internet.email().replace('@', random.word());
         const userNickname = internet.userName();
         const password = generateStrongPassword();
+
+        Mail.trap(() => {
+            const onSignUpFailEmailShouldNotBeSent = true;
+            assert.isFalse(onSignUpFailEmailShouldNotBeSent);
+        });
 
         const { body: rawBody } = await request
             .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-up'))
@@ -219,6 +266,11 @@ test.group('Authentication sign up tests group', (group) => {
         const userNickname = internet.userName();
         const password = generateStrongPassword();
 
+        Mail.trap(() => {
+            const onSignUpFailEmailShouldNotBeSent = true;
+            assert.isFalse(onSignUpFailEmailShouldNotBeSent);
+        });
+
         const { body: rawBody } = await request
             .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-up'))
             .send({
@@ -236,10 +288,15 @@ test.group('Authentication sign up tests group', (group) => {
         assert.include(signUpFailureReasonCollection, 'INVALID_EMAIL');
     });
 
-    test('It should send back 500 error as payload is partially empty', async () => {
+    test('It should send back 500 error as payload is partially empty', async (assert) => {
         const request = supertest.agent(BASE_URL);
         const userNickname = internet.userName();
         const password = generateStrongPassword();
+
+        Mail.trap(() => {
+            const onSignUpFailEmailShouldNotBeSent = true;
+            assert.isFalse(onSignUpFailEmailShouldNotBeSent);
+        });
 
         await request
             .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-up'))
@@ -264,6 +321,11 @@ test.group('Authentication sign up tests group', (group) => {
                 userNickname,
             } as SignUpRequestBody)
             .expect(200);
+
+        Mail.trap(() => {
+            const onSignUpFailEmailShouldNotBeSent = true;
+            assert.isFalse(onSignUpFailEmailShouldNotBeSent);
+        });
 
         const request = supertest.agent(BASE_URL);
         const email = internet.email();
@@ -299,6 +361,10 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(200);
 
+        Mail.trap(() => {
+            const onSignUpFailEmailShouldNotBeSent = true;
+            assert.isFalse(onSignUpFailEmailShouldNotBeSent);
+        });
         const request = supertest.agent(BASE_URL);
         const password = internet.password();
         const userNickname = internet.userName();
@@ -324,6 +390,10 @@ test.group('Authentication sign up tests group', (group) => {
         const email = internet.email().replace('@', random.word());
         const userNickname = internet.userName();
 
+        Mail.trap(() => {
+            const onSignUpFailEmailShouldNotBeSent = true;
+            assert.isFalse(onSignUpFailEmailShouldNotBeSent);
+        });
         // Indeed we're saving a bad formatted email directly in database
         // To cover corresponding exception for the following sign up
         await User.create({
@@ -365,6 +435,23 @@ test.group('Authentication sign up tests group', (group) => {
         const email = internet.email();
         const userNickname = internet.userName();
         const password = generateStrongPassword();
+
+        Mail.trap((message) => {
+            assert.deepEqual(message.to, [
+                {
+                    address: email,
+                },
+            ]);
+
+            assert.deepEqual(message.from, {
+                address: 'no-reply@adonisenprovence.com',
+            });
+
+            assert.equal(
+                message.subject,
+                `Welcome ${userNickname}, please verify your email !`,
+            );
+        });
 
         await request
             .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-up'))

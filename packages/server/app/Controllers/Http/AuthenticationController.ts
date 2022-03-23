@@ -15,6 +15,7 @@ import User from 'App/Models/User';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import * as z from 'zod';
 import invariant from 'tiny-invariant';
+import EmailVerification from 'App/Mailers/EmailVerification';
 
 export default class AuthenticationController {
     public async signUp({
@@ -61,12 +62,19 @@ export default class AuthenticationController {
             };
         }
 
-        const { nickname, uuid: userID } = await User.create({
+        const createdUser = await User.create({
             nickname: userNickname,
             email: email,
             password,
         });
 
+        const emailVerification = new EmailVerification(
+            createdUser,
+            'token1234',
+        );
+        await emailVerification.sendLater();
+
+        const { nickname, uuid: userID } = createdUser;
         const userSummary: UserSummary = {
             nickname,
             userID,

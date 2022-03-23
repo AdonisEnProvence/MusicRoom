@@ -41,4 +41,9 @@ export default Env.rules({
     REDIS_PORT: Env.schema.number(),
     REDIS_PASSWORD: Env.schema.string.optional(),
     SESSION_DRIVER: Env.schema.string(),
+
+    SMTP_HOST: Env.schema.string({ format: 'host' }),
+    SMTP_PORT: Env.schema.number(),
+    SMTP_USERNAME: Env.schema.string(),
+    SMTP_PASSWORD: Env.schema.string(),
 });

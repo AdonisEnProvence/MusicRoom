@@ -14,10 +14,12 @@ import User from 'App/Models/User';
 import { internet } from 'faker';
 import test from 'japa';
 import supertest from 'supertest';
+import Mail from '@ioc:Adonis/Addons/Mail';
 import {
     BASE_URL,
     generateStrongPassword,
     initTestUtils,
+    noop,
 } from '../../../tests/utils/TestUtils';
 
 test.group('AuthenticationController', (group) => {
@@ -25,6 +27,7 @@ test.group('AuthenticationController', (group) => {
         initTestUtils();
 
     group.beforeEach(async () => {
+        Mail.trap(noop);
         initSocketConnection();
         await Database.beginGlobalTransaction();
     });

@@ -68,11 +68,8 @@ export default class AuthenticationController {
             password,
         });
 
-        const emailVerification = new EmailVerification(
-            createdUser,
-            'token1234',
-        );
-        await emailVerification.sendLater();
+        const emailVerification = new EmailVerification(createdUser, '123456');
+        await emailVerification.sendLater().catch((e) => console.error(e));
 
         const { nickname, uuid: userID } = createdUser;
         const userSummary: UserSummary = {

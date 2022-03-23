@@ -70,6 +70,63 @@ test.group('Authentication sign up tests group', (group) => {
         assert.equal(getMyProfileParsedBody.userID, userID);
     });
 
+    test('It should send an email verification email', async (assert) => {
+        const email = internet.email();
+        const nickname = internet.userName();
+        const password = generateStrongPassword();
+
+        const user = await User.create({
+            email,
+            nickname,
+            password,
+        });
+
+        Mail.trap((message) => {
+            assert.deepEqual(message.to, [
+                {
+                    address: email,
+                },
+            ]);
+
+            assert.deepEqual(message.from, {
+                address: 'no-reply@adonisenprovence.com',
+            });
+
+            assert.equal(
+                message.subject,
+                `Welcome ${nickname}, please verify your email !`,
+            );
+        });
+
+        const emailVerification = new EmailVerification(user);
+        await emailVerification.send();
+
+        //Mail.trap will be expected without any more required actions such as waitFor
+    });
+
+    test.failing(
+        'It should fail expecting no email to be sent',
+        async (assert) => {
+            const email = 'cinem69586@f1xm.com'; //internet.email();
+            const nickname = internet.userName();
+            const password = generateStrongPassword();
+
+            const user = await User.create({
+                email,
+                nickname,
+                password,
+            });
+
+            Mail.trap(() => {
+                const onSignUpFailEmailShouldNotBeSent = true;
+                assert.isFalse(onSignUpFailEmailShouldNotBeSent);
+            });
+
+            const emailVerification = new EmailVerification(user);
+            await emailVerification.send();
+        },
+    );
+
     test('It should sign up user with api token auth using given credentials', async (assert) => {
         const request = supertest.agent(BASE_URL);
         const email = internet.email();

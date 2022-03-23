@@ -18,6 +18,7 @@ import Device from './Device';
 import MtvRoom from './MtvRoom';
 import MpeRoom from './MpeRoom';
 import SettingVisibility from './SettingVisibility';
+import Token from './Token';
 
 export default class User extends BaseModel {
     @column({ isPrimary: true })
@@ -138,6 +139,9 @@ export default class User extends BaseModel {
 
     @column.dateTime()
     public confirmedEmailAt: DateTime | null;
+
+    @hasMany(() => Token)
+    public tokens: HasMany<typeof Token>;
     ///
 
     @column.dateTime({ autoCreate: true })

@@ -215,6 +215,13 @@ Route.group(() => {
     );
 }).prefix(MPE_TEMPORAL_LISTENER);
 
+const nodeEnvIsDevelopment = process.env.NODE_ENV === 'development';
+if (nodeEnvIsDevelopment) {
+    Route.get(
+        '/test/bypass-email-confirmation',
+        'TestEnvMethodController.bypassUserEmailConfirmation',
+    ).middleware('every-auth');
+}
 /// //////// ////// ///
 
 Route.get('/', () => {

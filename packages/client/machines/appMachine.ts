@@ -1,4 +1,5 @@
 import {
+    ConfirmEmailResponseBody,
     GetMyProfileInformationResponseBody,
     SignInResponseBody,
     SignOutResponseBody,
@@ -18,7 +19,11 @@ import {
 } from 'xstate';
 import { raise } from 'xstate/lib/actions';
 import { SocketClient } from '../contexts/SocketContext';
-import { sendSignIn, sendSignOut } from '../services/AuthenticationService';
+import {
+    sendEmailConfirmationCode,
+    sendSignIn,
+    sendSignOut,
+} from '../services/AuthenticationService';
 import { request, SHOULD_USE_TOKEN_AUTH } from '../services/http';
 import { getMyProfileInformation } from '../services/UsersSearchService';
 import { appModel } from './appModel';
@@ -287,6 +292,93 @@ export function createAppMachine({
 
                 waitingForUserEmailConfirmation: {
                     tags: 'userEmailIsNotConfirmed',
+
+                    initial: 'waitingForCodeToBeSubmitted',
+
+                    states: {
+                        waitingForCodeToBeSubmitted: {
+                            initial: 'idle',
+
+                            states: {
+                                idle: {},
+
+                                previousCodeWasInvalid: {
+                                    tags: 'previousEmailConfirmationCodeWasInvalid',
+                                },
+
+                                unknownErrorOccuredDuringPreviousSubmitting: {
+                                    tags: 'unknownErrorOccuredDuringPreviousSubmittingOfEmailConfirmationCode',
+                                },
+                            },
+
+                            on: {
+                                SUBMIT_EMAIL_CONFIRMATION_FORM: {
+                                    target: 'sendingConfirmationCode',
+
+                                    actions: appModel.assign({
+                                        confirmationCode: (
+                                            _context,
+                                            { code },
+                                        ) => code,
+                                    }),
+                                },
+                            },
+                        },
+
+                        sendingConfirmationCode: {
+                            invoke: {
+                                src: 'sendConfirmationCode',
+
+                                onDone: [
+                                    {
+                                        cond: 'isConfirmationCodeInvalid',
+
+                                        target: 'waitingForCodeToBeSubmitted.previousCodeWasInvalid',
+                                    },
+                                    {
+                                        target: 'revalidatingUserInformation',
+                                    },
+                                ],
+
+                                onError: {
+                                    target: 'waitingForCodeToBeSubmitted.unknownErrorOccuredDuringPreviousSubmitting',
+                                },
+                            },
+                        },
+
+                        revalidatingUserInformation: {
+                            invoke: {
+                                src: 'fetchUser',
+
+                                onDone: {
+                                    target: 'revalidatedUserInformation',
+
+                                    actions: assign({
+                                        myProfileInformation: (_context, e) => {
+                                            const event =
+                                                e as DoneInvokeEvent<GetMyProfileInformationResponseBody>;
+
+                                            return event.data;
+                                        },
+                                    }),
+                                },
+
+                                onError: {
+                                    target: 'failedToRevalidateUserInformation',
+                                },
+                            },
+                        },
+
+                        revalidatedUserInformation: {
+                            type: 'final',
+                        },
+
+                        failedToRevalidateUserInformation: {},
+                    },
+
+                    onDone: {
+                        target: 'reconnectingSocketConnection',
+                    },
                 },
 
                 reconnectingSocketConnection: {
@@ -294,8 +386,9 @@ export function createAppMachine({
 
                     invoke: {
                         src: 'reconnectSocket',
+
                         onDone: {
-                            target: '#app.waitingForServerToAcknowledgeSocketConnection',
+                            target: 'waitingForServerToAcknowledgeSocketConnection',
                         },
                     },
                 },
@@ -501,6 +594,19 @@ export function createAppMachine({
                 loadAuthenticationTokenFromAsyncStorage: async () => {
                     await request.loadToken();
                 },
+
+                sendConfirmationCode: async ({ confirmationCode }) => {
+                    invariant(
+                        confirmationCode !== undefined,
+                        'sendConfirmationCode service must be called after confirmationCode has been assigned a non-empty value to context',
+                    );
+
+                    const responseBody = await sendEmailConfirmationCode({
+                        code: confirmationCode,
+                    });
+
+                    return responseBody;
+                },
             },
 
             actions: {
@@ -537,6 +643,13 @@ export function createAppMachine({
                     const hasNotConfirmedEmail = hasConfirmedEmail === false;
 
                     return hasNotConfirmedEmail;
+                },
+
+                isConfirmationCodeInvalid: (_context, e) => {
+                    const event =
+                        e as DoneInvokeEvent<ConfirmEmailResponseBody>;
+
+                    return event.data.status === 'INVALID_TOKEN';
                 },
             },
         },

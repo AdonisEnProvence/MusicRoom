@@ -233,7 +233,10 @@ export default class AuthenticationController {
 
         const { token } = ConfirmEmailRequestBody.parse(request.body());
 
-        const isValidToken = token === '123456';
+        const isValidToken = await user.checkToken({
+            token,
+            tokenType: 'EMAIL_CONFIRMATION',
+        });
         const isInvalidToken = isValidToken === false;
         if (isInvalidToken === true) {
             response.status(400);

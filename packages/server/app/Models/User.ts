@@ -12,7 +12,7 @@ import {
     manyToMany,
 } from '@ioc:Adonis/Lucid/Orm';
 import { DateTime } from 'luxon';
-import { UserSettingVisibility } from '@musicroom/types';
+import { TokenTypeName, UserSettingVisibility } from '@musicroom/types';
 import Hash from '@ioc:Adonis/Core/Hash';
 import Device from './Device';
 import MtvRoom from './MtvRoom';
@@ -142,6 +142,41 @@ export default class User extends BaseModel {
 
     @hasMany(() => Token)
     public tokens: HasMany<typeof Token>;
+
+    @hasMany(() => Token, {
+        onQuery: (query) => {
+            return query
+                .where('expiresAt', '>', DateTime.now().toSQL())
+                .andWhere('isRevoked', false);
+        },
+    })
+    public activeTokens: HasMany<typeof Token>;
+
+    public async checkToken(
+        this: User,
+        {
+            token,
+            tokenType,
+        }: {
+            token: string;
+            tokenType: TokenTypeName;
+        },
+    ): Promise<boolean> {
+        const activeTokens = await this.related('activeTokens')
+            .query()
+            .whereHas('tokenType', (query) => {
+                return query.where('name', tokenType);
+            });
+
+        for (const activeToken of activeTokens) {
+            const isMatching = await Hash.verify(activeToken.value, token);
+            if (isMatching === true) {
+                return true;
+            }
+        }
+
+        return false;
+    }
     ///
 
     @column.dateTime({ autoCreate: true })

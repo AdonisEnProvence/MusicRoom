@@ -8,10 +8,18 @@ import {
     pageIsOnHomeScreen,
     pageIsOnSignInScreen,
 } from './_utils/mpe-e2e-utils';
-import { closeAllContexts, GEOLOCATION_POSITIONS } from './_utils/page';
+import {
+    closeAllContexts,
+    disabledMailTrap,
+    enableMailTrap,
+    GEOLOCATION_POSITIONS,
+} from './_utils/page';
 
-test.afterEach(async ({ browser }) => {
+test.afterEach(async ({ browser, page }) => {
     await closeAllContexts(browser);
+    await enableMailTrap({
+        page,
+    });
 });
 
 //Remark: to be able to run successfully the following test you have to set up a smtp server and fill the corresponding env variables
@@ -28,6 +36,8 @@ test('It should renders home on every browser tab after a signUp and verify emai
     });
     const aliveInboxPage = await aliveInboxContext.newPage();
     await aliveInboxPage.goto('/');
+
+    await disabledMailTrap({ page: aliveInboxPage });
 
     //Could be improve using waitForSelector and complex css selector + regex ?
     await aliveInboxPage.waitForTimeout(4000);

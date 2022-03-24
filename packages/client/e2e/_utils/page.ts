@@ -1,6 +1,9 @@
 import { Browser, Page, BrowserContext, expect } from '@playwright/test';
 import { internet, unique } from 'faker';
-import { SignUpSuccessfullResponseBody } from '@musicroom/types';
+import {
+    SignUpSuccessfullResponseBody,
+    ToggleMailTrafRequestBody,
+} from '@musicroom/types';
 import { KnownSearchesRecord, mockSearchTracks } from './mock-http';
 import {
     pageIsOnEmailConfirmationScreen,
@@ -27,6 +30,49 @@ export const GEOLOCATION_POSITIONS = {
     },
 };
 
+async function sendToggleMailTrap({
+    body,
+    page,
+}: {
+    page: Page;
+    body: ToggleMailTrafRequestBody;
+}): Promise<void> {
+    await page.request.post(`${SERVER_ENDPOINT}/test/toggle-mail-trap`, {
+        data: body,
+    });
+}
+
+/**
+ * This function should be called at the begin of a test that
+ * uses Alive Inbox email verification method or overall that you want to
+ * send emails
+ */
+export async function disabledMailTrap({
+    page,
+}: {
+    page: Page;
+}): Promise<void> {
+    await sendToggleMailTrap({
+        body: {
+            status: 'DISABLE',
+        },
+        page,
+    });
+}
+
+/**
+ * By calling this function you will activate in the adonis server the mail trap
+ * That means no mail will be sent at all
+ */
+export async function enableMailTrap({ page }: { page: Page }): Promise<void> {
+    await sendToggleMailTrap({
+        body: {
+            status: 'ENABLE',
+        },
+        page,
+    });
+}
+
 type SetupAndGetUserContextArgs = {
     browser: Browser;
     knownSearches: KnownSearchesRecord;
@@ -51,6 +97,11 @@ export async function setupPageAndSignUpUser({
     });
     const page = await context.newPage();
     await page.goto('/');
+
+    //Disabled mail shipment using test e2e private route
+    await enableMailTrap({
+        page,
+    });
 
     await mockSearchTracks({
         context: context,
@@ -144,8 +195,7 @@ export async function performSignUp(page: Page): Promise<{
         userSummary: { userID, nickname },
     } = SignUpSuccessfullResponseBody.parse(signUpRawBody);
 
-    //Expecting to see the home
-    await pageIsOnHomeScreen({ page });
+    await pageIsOnEmailConfirmationScreen({ page });
 
     return {
         email,

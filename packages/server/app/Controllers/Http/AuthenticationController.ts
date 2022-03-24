@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import {
     SignUpResponseBody,
     UserSummary,
@@ -10,16 +9,14 @@ import {
     SignOutResponseBody,
     ConfirmEmailRequestBody,
     ConfirmEmailResponseBody,
-    TokenTypeName,
+    ResendConfirmationEmailResponseBody,
 } from '@musicroom/types';
 import { DateTime } from 'luxon';
 import User from 'App/Models/User';
-import Token from 'App/Models/Token';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import * as z from 'zod';
 import invariant from 'tiny-invariant';
-import EmailVerification from 'App/Mailers/EmailVerification';
-import TokenType from 'App/Models/TokenType';
+import { AuthenticationService } from 'App/Services/AuthenticationService';
 
 export default class AuthenticationController {
     public async signUp({
@@ -72,27 +69,9 @@ export default class AuthenticationController {
             password,
         });
 
-        const emailConfirmationTokenType = await TokenType.findByOrFail(
-            'name',
-            TokenTypeName.enum.EMAIL_CONFIRMATION,
-        );
-        const confirmationTokenValue = await Token.generateCode();
-        const confirmationTokenExpiresAt = DateTime.now().plus({
-            minutes: 15,
+        await AuthenticationService.sendEmailForEmailConfirmation({
+            user: createdUser,
         });
-
-        await createdUser.related('tokens').create({
-            uuid: randomUUID(),
-            tokenTypeUuid: emailConfirmationTokenType.uuid,
-            value: confirmationTokenValue,
-            expiresAt: confirmationTokenExpiresAt,
-        });
-
-        const emailVerification = new EmailVerification(
-            createdUser,
-            confirmationTokenValue,
-        );
-        await emailVerification.sendLater().catch((e) => console.error(e));
 
         const { nickname, uuid: userID } = createdUser;
         const userSummary: UserSummary = {
@@ -248,6 +227,34 @@ export default class AuthenticationController {
 
         user.confirmedEmailAt = DateTime.now();
         await user.save();
+
+        return {
+            status: 'SUCCESS',
+        };
+    }
+
+    public async resendConfirmationEmail({
+        auth,
+        bouncer,
+    }: HttpContextContract): Promise<ResendConfirmationEmailResponseBody> {
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            'User must be authenticated to get her profile information',
+        );
+
+        const hasReachedRateLimit = await bouncer.denies(
+            'resendConfirmationEmail',
+        );
+        if (hasReachedRateLimit === true) {
+            return {
+                status: 'REACHED_RATE_LIMIT',
+            };
+        }
+
+        await AuthenticationService.sendEmailForEmailConfirmation({
+            user,
+        });
 
         return {
             status: 'SUCCESS',

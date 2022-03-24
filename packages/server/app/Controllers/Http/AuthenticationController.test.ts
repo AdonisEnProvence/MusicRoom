@@ -15,10 +15,15 @@ import User from 'App/Models/User';
 import { datatype, internet } from 'faker';
 import test from 'japa';
 import supertest from 'supertest';
-import Mail from '@ioc:Adonis/Addons/Mail';
+import { spy } from 'sinon';
+import cheerio from 'cheerio';
+import Mail, { MessageNode } from '@ioc:Adonis/Addons/Mail';
 import TokenType from 'App/Models/TokenType';
+import invariant from 'tiny-invariant';
+import { customAlphabet } from 'nanoid/non-secure';
 import {
     BASE_URL,
+    generateArray,
     generateStrongPassword,
     initTestUtils,
     noop,
@@ -523,5 +528,198 @@ test.group('Confirm email', (group) => {
         await user.refresh();
 
         assert.isTrue(now.equals(user.confirmedEmailAt));
+    });
+});
+
+test.group('Resending confirmation email', (group) => {
+    const {
+        initSocketConnection,
+        disconnectEveryRemainingSocketConnection,
+        createUserAndAuthenticate,
+        waitFor,
+        waitForSettled,
+    } = initTestUtils();
+
+    group.beforeEach(async () => {
+        Mail.trap(noop);
+        initSocketConnection();
+        await Database.beginGlobalTransaction();
+    });
+
+    group.afterEach(async () => {
+        Mail.restore();
+        await disconnectEveryRemainingSocketConnection();
+        await Database.rollbackGlobalTransaction();
+    });
+
+    test('Returns an authentication error when current user is not authenticated', async () => {
+        const request = supertest.agent(BASE_URL);
+
+        await request
+            .post('/authentication/resend-confirmation-email')
+            .expect(401);
+    });
+
+    test('Resends a confirmation email if rate limit has not been reached', async (assert) => {
+        const request = supertest.agent(BASE_URL);
+        const nanoid = customAlphabet('0123456789', 6);
+
+        const user = await createUserAndAuthenticate(request);
+        const tokenType = await TokenType.findByOrFail(
+            'name',
+            TokenTypeName.enum.EMAIL_CONFIRMATION,
+        );
+        await user.related('tokens').createMany(
+            generateArray({
+                minLength: 2,
+                maxLength: 2,
+                fill: () => ({
+                    uuid: datatype.uuid(),
+                    tokenTypeUuid: tokenType.uuid,
+                    value: nanoid(),
+                    expiresAt: DateTime.local().minus({
+                        minutes: datatype.number({
+                            min: 1,
+                            max: 59,
+                        }),
+                    }),
+                }),
+            }),
+        );
+
+        const mailTrapEmailVerificationSpy = spy<
+            (message: MessageNode) => void
+        >((message) => {
+            assert.deepEqual(message.to, [
+                {
+                    address: user.email,
+                },
+            ]);
+
+            assert.deepEqual(message.from, {
+                address: 'no-reply@adonisenprovence.com',
+            });
+
+            const subject = message.subject;
+            invariant(
+                subject !== undefined,
+                'The subject of the message must be defined',
+            );
+
+            const emailVerificationObjectRegex =
+                /\[.*].*Welcome.*,.*please.*verify.*your.*email.*!/i;
+            assert.match(subject, emailVerificationObjectRegex);
+            assert.include(subject, user.nickname);
+
+            const html = message.html;
+            invariant(
+                html !== undefined,
+                'HTML content of the email must be defined',
+            );
+
+            const $ = cheerio.load(html);
+            const tokenElement = $('[data-testid="token"]');
+            const tokenValue = tokenElement.text();
+            assert.match(tokenValue, /\d{6}/);
+        });
+        Mail.trap(mailTrapEmailVerificationSpy);
+
+        await request
+            .post('/authentication/resend-confirmation-email')
+            .expect(200);
+
+        await waitFor(() => {
+            assert.isTrue(mailTrapEmailVerificationSpy.calledOnce);
+        });
+    });
+
+    test("Can use token from resent confirmation email to confirm user's account", async (assert) => {
+        const request = supertest.agent(BASE_URL);
+
+        const user = await createUserAndAuthenticate(request);
+
+        const mailTrapEmailVerificationSpy =
+            spy<(message: MessageNode) => void>(noop);
+        Mail.trap(mailTrapEmailVerificationSpy);
+
+        await request
+            .post('/authentication/resend-confirmation-email')
+            .expect(200);
+
+        const token = await waitFor(() => {
+            assert.isTrue(mailTrapEmailVerificationSpy.calledOnce);
+
+            const message = mailTrapEmailVerificationSpy.lastCall.args[0];
+            const html = message.html;
+            invariant(
+                html !== undefined,
+                'HTML content of the email must be defined',
+            );
+
+            const $ = cheerio.load(html);
+            const tokenElement = $('[data-testid="token"]');
+            const tokenValue = tokenElement.text();
+
+            return tokenValue;
+        });
+
+        const requestBody: ConfirmEmailRequestBody = {
+            token,
+        };
+        const response = await request
+            .post('/authentication/confirm-email')
+            .send(requestBody)
+            .expect(200);
+        const parsedResponseBody = ConfirmEmailResponseBody.parse(
+            response.body,
+        );
+
+        assert.deepStrictEqual(parsedResponseBody, {
+            status: 'SUCCESS',
+        });
+
+        await user.refresh();
+
+        assert.instanceOf(user.confirmedEmailAt, DateTime);
+    });
+
+    test('Does not resend confirmation email if rate limit has been reached', async (assert) => {
+        const request = supertest.agent(BASE_URL);
+        const nanoid = customAlphabet('0123456789', 6);
+
+        const user = await createUserAndAuthenticate(request);
+
+        const tokenType = await TokenType.findByOrFail(
+            'name',
+            TokenTypeName.enum.EMAIL_CONFIRMATION,
+        );
+        await user.related('tokens').createMany(
+            generateArray({
+                minLength: 3,
+                maxLength: 6,
+                fill: () => ({
+                    uuid: datatype.uuid(),
+                    tokenTypeUuid: tokenType.uuid,
+                    value: nanoid(),
+                    expiresAt: DateTime.local().minus({
+                        minutes: datatype.number({
+                            min: 1,
+                            max: 59,
+                        }),
+                    }),
+                }),
+            }),
+        );
+
+        const mailTrapEmailVerificationSpy = spy();
+        Mail.trap(mailTrapEmailVerificationSpy);
+
+        await request
+            .post('/authentication/resend-confirmation-email')
+            .expect(200);
+
+        await waitForSettled(() => {
+            assert.isTrue(mailTrapEmailVerificationSpy.notCalled);
+        });
     });
 });

@@ -198,6 +198,13 @@ interface TestUtilsReturnedValue {
         args: AssociateMpeRoomListToUserArgs,
     ) => Promise<void>;
     waitForSocketToBeAcknowledged: (socket: TypedTestSocket) => Promise<void>;
+    waitForSettled: <ExpectReturn>(
+        expect: () => ExpectReturn | Promise<ExpectReturn>,
+        config?: {
+            mustSettleFor?: number;
+            timeoutToSettle?: number;
+        },
+    ) => Promise<ExpectReturn>;
     spy: typeof spy;
 }
 
@@ -608,6 +615,128 @@ export function initTestUtils(): TestUtilsReturnedValue {
             },
         );
 
+    function createWaitForSettledMachine<ExpectReturn>({
+        timeoutToSettle,
+        mustSettleFor,
+        assertion,
+    }: {
+        mustSettleFor: number;
+        timeoutToSettle: number;
+        assertion: () => ExpectReturn | Promise<ExpectReturn>;
+    }) {
+        const machine =
+            /** @xstate-layout N4IgpgJg5mDOIC5QHUCGBLALgAgGYHsAnbWMTTAG0gDoAxDC9AOymoBVCBPZqbVWUoUzp8TAMQRRYaswBu+ANbS0WPERJlKNeukYt2XHnwFghIpgjn4AxqmGiA2gAYAuolAAHfLCzn3IAA9EAHYARgBmagAmABYIpwAOUOCANmDUhIAaEE5EKPDg6hSY4ISUgFZSlKdU4IBfOuyVHAJiUnIqCDoGHgNuFmNBe3FTQiJqDwo7VoBbama1Ns1O7t1ejn7efiHzSyZ5W2HnNyQQLx9h-yCEcKcATmoncNCUqOCYp1jElOzchCjkkU7mVQjEEu9wglgQ0mhgWup2loujo9KwACJgABG+AArkxrDwxAFYJg7NJULhMKYABShJwASjEC1aGg62h6+gx2LxBJY-nOvlEV0Q4RSCWoL2CdzeMXKThqTlCv0QLwewOS5RiUQSMTFyQSMJAzIRy3ZaxYRJJZOoFKphGpbHQMzAuPhSw6PEZxvdSNWqP53kFTGFCFeyoQmpSEoStwS5VBANCUMN3tZvoAyjjrNYwJBegAlPFMIzbUzDCRSGT7RTKOGLNMrTPZ3MQAtFksmMyiPYHOzmY4Bi5+U7XcKxR7PV7vT4fMrh4K3Io1cqxKLlBKJEopussxGNrM5vP6QtMYsDUtdkaEMaECZTTCzeY7k1srpNw+t4-t8+d4Y9mx9o4riDkGIYbk4RTgukurlAU8p3OGG7iqUWoAmUThTtuqi7qab4Hi2vRcri+KEsSpJUjalI0nSXrPj6+7Nke6JYsRvJQCBlwjogsrlEUoLhHcAlRCkdx3HE4ZilE1BQjU2qfEkxTlFhboNjQ74ERaZHWraNIYlMnANp6TJ0apeGMZ+7GnAKnGgNc4GQek7wVHB9zzikoSPGktyfMCYI6g0jQgEw+AQHA-ipnuZqon0HY7EKVmBjZgQhFE4ZJpEwSfO5AJODEol5cp9aRciHLMdyJF8glQ7xbZiBypEMlRPkAljrcoJpQuRSpJq4JPOEcoxIVOGvn6PAccOtUIGC4Z3FGon3DUrxxuUrxRENL4ZvhTHUCeZ5bL+E1nIlh12cE84vI8UQYZlkIrXEKTrfRalbRZ1BETyY1VaBXERncHnhKKYrAploSakqOSIGKUbruU8ZOOUf2JNqj2mdQ6lMeNNXJaG4QSfc0miQkSQFFdAko8V1AAILYkIkCY8GP2ibxka3NqdwLukqUQxGeWPDEPHrrEs3FOTuFoy9dNfUl1xM9QLPyezBTBFzfzBJq1CCX16TxnlYKi6+9MhrE4bjvKZvm+bMThAFdRAA */
+            createMachine(
+                {
+                    context: { lastAssertionResult: undefined },
+                    schema: {
+                        context: {} as {
+                            lastAssertionResult: ExpectReturn | undefined;
+                        },
+                    },
+                    id: 'Wait for settled',
+                    initial: 'Failing',
+                    states: {
+                        Failing: {
+                            initial: 'Trying assertion',
+                            after: {
+                                'Timeout for settling': {
+                                    target: 'Aborted',
+                                },
+                            },
+                            states: {
+                                'Trying assertion': {
+                                    invoke: {
+                                        src: 'Run assertion',
+                                        onDone: [
+                                            {
+                                                actions:
+                                                    'Assign assertion result to context',
+                                                target: '#Wait for settled.Succeeding',
+                                            },
+                                        ],
+                                        onError: [
+                                            {
+                                                target: 'Debouncing',
+                                            },
+                                        ],
+                                    },
+                                },
+                                Debouncing: {
+                                    after: {
+                                        '10': {
+                                            target: 'Trying assertion',
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                        Succeeding: {
+                            initial: 'Running assertion',
+                            after: {
+                                'Delay settling': {
+                                    target: 'Succeeded',
+                                },
+                            },
+                            states: {
+                                'Running assertion': {
+                                    invoke: {
+                                        src: 'Run assertion',
+                                        onDone: [
+                                            {
+                                                actions:
+                                                    'Assign assertion result to context',
+                                                target: 'Debouncing',
+                                            },
+                                        ],
+                                        onError: [
+                                            {
+                                                target: '#Wait for settled.Aborted',
+                                            },
+                                        ],
+                                    },
+                                },
+                                Debouncing: {
+                                    after: {
+                                        '10': {
+                                            target: 'Running assertion',
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                        Aborted: {
+                            type: 'final',
+                        },
+                        Succeeded: {
+                            type: 'final',
+                        },
+                    },
+                },
+                {
+                    delays: {
+                        'Delay settling': mustSettleFor,
+                        'Timeout for settling': timeoutToSettle,
+                    },
+                    services: {
+                        'Run assertion': async () => {
+                            return await assertion();
+                        },
+                    },
+                    actions: {
+                        'Assign assertion result to context': assign({
+                            lastAssertionResult: (
+                                _ctx,
+                                event: DoneInvokeEvent<ExpectReturn>,
+                            ) => event.data,
+                        }),
+                    },
+                },
+            );
+
+        return machine;
+    }
+
     async function waitFor<ExpectReturn>(
         expect: () => ExpectReturn | Promise<ExpectReturn>,
         timeout?: number,
@@ -649,6 +778,55 @@ export function initTestUtils(): TestUtilsReturnedValue {
             }
 
             throw new Error('Unexpected error occured in waitFor function');
+        }
+    }
+
+    async function waitForSettled<ExpectReturn>(
+        expect: () => ExpectReturn | Promise<ExpectReturn>,
+        config?: {
+            mustSettleFor?: number;
+            timeoutToSettle?: number;
+        },
+    ): Promise<ExpectReturn> {
+        const { mustSettleFor = 200, timeoutToSettle = 1000 } = config ?? {};
+
+        try {
+            return await new Promise((resolve, reject) => {
+                let state: StateFrom<typeof createWaitForSettledMachine>;
+
+                interpret(
+                    createWaitForSettledMachine({
+                        assertion: expect,
+                        mustSettleFor,
+                        timeoutToSettle,
+                    }),
+                )
+                    .onTransition((updatedState) => {
+                        state = updatedState;
+                    })
+                    .onDone(() => {
+                        if (state.matches('Succeeded')) {
+                            resolve(state.context.expectReturn as ExpectReturn);
+
+                            return;
+                        }
+
+                        reject(new AssertionTimeout());
+                    })
+                    .start();
+            });
+        } catch (err) {
+            if (err instanceof Error) {
+                // Replace err stack with the current stack minus
+                // all calls after waitForSettled function included.
+                Error.captureStackTrace(err, waitForSettled);
+
+                throw err;
+            }
+
+            throw new Error(
+                'Unexpected error occured in waitForSettled function',
+            );
         }
     }
 
@@ -740,6 +918,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
         associateMpeRoomListToUser,
         spy,
         waitForSocketToBeAcknowledged,
+        waitForSettled,
     };
 }
 

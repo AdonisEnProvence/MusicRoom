@@ -134,3 +134,10 @@ export const ConfirmEmailResponseBody = z.object({
     status: z.enum(['SUCCESS', 'INVALID_TOKEN']),
 });
 export type ConfirmEmailResponseBody = z.infer<typeof ConfirmEmailResponseBody>;
+
+export const ResendConfirmationEmailResponseBody = z.object({
+    status: z.enum(['SUCCESS', 'REACHED_RATE_LIMIT']),
+});
+export type ResendConfirmationEmailResponseBody = z.infer<
+    typeof ResendConfirmationEmailResponseBody
+>;

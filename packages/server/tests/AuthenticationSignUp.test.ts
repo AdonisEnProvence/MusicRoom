@@ -15,6 +15,7 @@ import Sinon from 'sinon';
 import supertest from 'supertest';
 import invariant from 'tiny-invariant';
 import urlcat from 'urlcat';
+import cheerio from 'cheerio';
 import {
     BASE_URL,
     generateStrongPassword,
@@ -72,6 +73,17 @@ test.group('Authentication sign up tests group', (group) => {
             );
             assert.match(message.subject, emailVerificationObjectRegex);
             assert.include(message.subject, userNickname);
+
+            const html = message.html;
+            invariant(
+                html !== undefined,
+                'HTML content of the email must be defined',
+            );
+
+            const $ = cheerio.load(html);
+            const tokenElement = $('[data-testid="token"]');
+            const tokenValue = tokenElement.text();
+            assert.match(tokenValue, /\d{6}/);
         });
         Mail.trap(mailTrapEmailVerificationSpy);
 

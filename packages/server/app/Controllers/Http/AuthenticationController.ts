@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import {
     SignUpResponseBody,
     UserSummary,
@@ -9,13 +10,16 @@ import {
     SignOutResponseBody,
     ConfirmEmailRequestBody,
     ConfirmEmailResponseBody,
+    TokenTypeName,
 } from '@musicroom/types';
 import { DateTime } from 'luxon';
 import User from 'App/Models/User';
+import Token from 'App/Models/Token';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import * as z from 'zod';
 import invariant from 'tiny-invariant';
 import EmailVerification from 'App/Mailers/EmailVerification';
+import TokenType from 'App/Models/TokenType';
 
 export default class AuthenticationController {
     public async signUp({
@@ -68,7 +72,26 @@ export default class AuthenticationController {
             password,
         });
 
-        const emailVerification = new EmailVerification(createdUser, '123456');
+        const emailConfirmationTokenType = await TokenType.findByOrFail(
+            'name',
+            TokenTypeName.enum.EMAIL_CONFIRMATION,
+        );
+        const confirmationTokenValue = await Token.generateCode();
+        const confirmationTokenExpiresAt = DateTime.now().plus({
+            minutes: 15,
+        });
+
+        await createdUser.related('tokens').create({
+            uuid: randomUUID(),
+            tokenTypeUuid: emailConfirmationTokenType.uuid,
+            value: confirmationTokenValue,
+            expiresAt: confirmationTokenExpiresAt,
+        });
+
+        const emailVerification = new EmailVerification(
+            createdUser,
+            confirmationTokenValue,
+        );
         await emailVerification.sendLater().catch((e) => console.error(e));
 
         const { nickname, uuid: userID } = createdUser;
@@ -210,7 +233,10 @@ export default class AuthenticationController {
 
         const { token } = ConfirmEmailRequestBody.parse(request.body());
 
-        const isValidToken = token === '123456';
+        const isValidToken = await user.checkToken({
+            token,
+            tokenType: 'EMAIL_CONFIRMATION',
+        });
         const isInvalidToken = isValidToken === false;
         if (isInvalidToken === true) {
             response.status(400);

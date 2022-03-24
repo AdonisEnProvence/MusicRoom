@@ -8,13 +8,15 @@ import {
     SignInSuccessfulApiTokensResponseBody,
     SignInSuccessfulWebAuthResponseBody,
     SignOutResponseBody,
+    TokenTypeName,
 } from '@musicroom/types';
 import { DateTime } from 'luxon';
 import User from 'App/Models/User';
-import { internet } from 'faker';
+import { datatype, internet } from 'faker';
 import test from 'japa';
 import supertest from 'supertest';
 import Mail from '@ioc:Adonis/Addons/Mail';
+import TokenType from 'App/Models/TokenType';
 import {
     BASE_URL,
     generateStrongPassword,
@@ -361,8 +363,23 @@ test.group('Confirm email', (group) => {
 
         const user = await createUserAndAuthenticate(request);
 
+        const validToken = '123456';
+        const tokenType = await TokenType.findByOrFail(
+            'name',
+            TokenTypeName.enum.EMAIL_CONFIRMATION,
+        );
+        const futureDateTime = DateTime.local().plus({
+            minutes: 15,
+        });
+        await user.related('tokens').create({
+            uuid: datatype.uuid(),
+            tokenTypeUuid: tokenType.uuid,
+            value: validToken,
+            expiresAt: futureDateTime,
+        });
+
         const requestBody: ConfirmEmailRequestBody = {
-            token: '123456',
+            token: validToken,
         };
         const response = await request
             .post('/authentication/confirm-email')
@@ -381,11 +398,65 @@ test.group('Confirm email', (group) => {
         assert.instanceOf(user.confirmedEmailAt, DateTime);
     });
 
+    test("Does not confirm user's email when token is valid but has expired", async (assert) => {
+        const request = supertest.agent(BASE_URL);
+
+        const user = await createUserAndAuthenticate(request);
+
+        const validToken = '123456';
+        const tokenType = await TokenType.findByOrFail(
+            'name',
+            TokenTypeName.enum.EMAIL_CONFIRMATION,
+        );
+        const oneHourAgoDateTime = DateTime.local().minus({
+            hour: 1,
+        });
+        await user.related('tokens').create({
+            uuid: datatype.uuid(),
+            tokenTypeUuid: tokenType.uuid,
+            value: validToken,
+            expiresAt: oneHourAgoDateTime,
+        });
+
+        const requestBody: ConfirmEmailRequestBody = {
+            token: validToken,
+        };
+        const response = await request
+            .post('/authentication/confirm-email')
+            .send(requestBody)
+            .expect(400);
+        const parsedResponseBody = ConfirmEmailResponseBody.parse(
+            response.body,
+        );
+
+        assert.deepStrictEqual(parsedResponseBody, {
+            status: 'INVALID_TOKEN',
+        });
+
+        await user.refresh();
+
+        assert.isNull(user.confirmedEmailAt);
+    });
+
     test("Does not confirm user's email when confirmation code is invalid", async (assert) => {
         const request = supertest.agent(BASE_URL);
 
         const user = await createUserAndAuthenticate(request);
         const INVALID_CONFIRMATION_CODE = 'adgfhjadfg';
+
+        const validToken = '123456';
+        const tokenType = await TokenType.findByOrFail(
+            'name',
+            TokenTypeName.enum.EMAIL_CONFIRMATION,
+        );
+        await user.related('tokens').create({
+            uuid: datatype.uuid(),
+            tokenTypeUuid: tokenType.uuid,
+            value: validToken,
+            expiresAt: DateTime.local().plus({
+                minutes: 15,
+            }),
+        });
 
         const requestBody: ConfirmEmailRequestBody = {
             token: INVALID_CONFIRMATION_CODE,
@@ -405,6 +476,31 @@ test.group('Confirm email', (group) => {
         await user.refresh();
 
         assert.isNull(user.confirmedEmailAt);
+    });
+
+    test('Tokens are not stored in plain text', async (assert) => {
+        const user = await User.create({
+            uuid: datatype.uuid(),
+            nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
+        });
+
+        const tokenValue = '123456';
+        const tokenType = await TokenType.findByOrFail(
+            'name',
+            TokenTypeName.enum.EMAIL_CONFIRMATION,
+        );
+        const token = await user.related('tokens').create({
+            uuid: datatype.uuid(),
+            tokenTypeUuid: tokenType.uuid,
+            value: tokenValue,
+            expiresAt: DateTime.local().plus({
+                minutes: 15,
+            }),
+        });
+
+        assert.notEqual(token.value, tokenValue);
     });
 
     test('Returns an authorization error when trying confirm the email that has already been confirmed', async (assert) => {

@@ -217,10 +217,19 @@ Route.group(() => {
 
 const nodeEnvIsDevelopment = process.env.NODE_ENV === 'development';
 if (nodeEnvIsDevelopment) {
-    Route.get(
-        '/test/bypass-email-confirmation',
-        'TestEnvMethodController.bypassUserEmailConfirmation',
-    ).middleware('every-auth');
+    const TEST_GROUP_PREFIX = `/test`;
+
+    Route.group(() => {
+        Route.get(
+            '/bypass-email-confirmation',
+            'TestEnvMethodController.bypassUserEmailConfirmation',
+        ).middleware('every-auth');
+
+        Route.post(
+            '/toggle-mail-trap',
+            'TestEnvMethodController.toggleMailTrap',
+        );
+    }).prefix(TEST_GROUP_PREFIX);
 }
 /// //////// ////// ///
 

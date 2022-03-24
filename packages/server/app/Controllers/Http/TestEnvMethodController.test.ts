@@ -84,4 +84,36 @@ test.group('TestEnvMethodController tests group', (group) => {
 
         await request.get('/test/bypass-email-confirmation').expect(401);
     });
+
+    test('It should reject toggle mail trap request due to invalid body', async () => {
+        const request = supertest.agent(BASE_URL);
+
+        const toggleMailTrapRequestBody = {
+            status: 'anything',
+        };
+        await request
+            .post('/test/toggle-mail-trap')
+            .send(toggleMailTrapRequestBody)
+            .expect(500);
+    });
+
+    test('It should not throw error after valid toggle mail trap request body', async () => {
+        const request = supertest.agent(BASE_URL);
+
+        const enableToggleMailTrapRequestBody = {
+            status: 'ENABLE',
+        };
+        await request
+            .post('/test/toggle-mail-trap')
+            .send(enableToggleMailTrapRequestBody)
+            .expect(200);
+
+        const disableToggleMailTrapRequestBody = {
+            status: 'DISABLE',
+        };
+        await request
+            .post('/test/toggle-mail-trap')
+            .send(disableToggleMailTrapRequestBody)
+            .expect(200);
+    });
 });

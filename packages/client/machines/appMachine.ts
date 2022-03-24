@@ -391,6 +391,8 @@ export function createAppMachine({
                         },
 
                         pollingHandler: {
+                            initial: 'pollingMyProfileInformation',
+
                             states: {
                                 pollingMyProfileInformation: {
                                     invoke: {
@@ -401,8 +403,11 @@ export function createAppMachine({
                                                 cond: (_context, e) => {
                                                     const event =
                                                         e as DoneInvokeEvent<GetMyProfileInformationResponseBody>;
-                                                    return event.data
-                                                        .hasConfirmedEmail;
+                                                    return (
+                                                        event.data
+                                                            .hasConfirmedEmail ===
+                                                        true
+                                                    );
                                                 },
                                                 actions: assign({
                                                     myProfileInformation: (
@@ -447,27 +452,35 @@ export function createAppMachine({
                         },
 
                         signingOut: {
-                            invoke: {
-                                id: 'signOut',
+                            initial: 'idle',
 
-                                src: 'signOut',
+                            states: {
+                                idle: {},
 
-                                onDone: {
-                                    target: '#app.loadingAuthenticationTokenFromAsyncStorage',
-                                    actions:
-                                        'sendBroadcastReloadIntoBroadcastChannel',
+                                performSignOut: {
+                                    invoke: {
+                                        id: 'signOut',
+
+                                        src: 'signOut',
+
+                                        onDone: {
+                                            target: '#app.loadingAuthenticationTokenFromAsyncStorage',
+                                            actions:
+                                                'sendBroadcastReloadIntoBroadcastChannel',
+                                        },
+                                    },
+
+                                    on: {
+                                        SIGN_OUT: undefined,
+                                    },
                                 },
                             },
 
                             on: {
-                                SIGN_OUT: undefined,
+                                SIGN_OUT: {
+                                    target: '.performSignOut',
+                                },
                             },
-                        },
-                    },
-
-                    on: {
-                        SIGN_OUT: {
-                            target: 'waitingForUserEmailConfirmation.signingOut',
                         },
                     },
                 },

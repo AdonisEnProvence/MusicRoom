@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
+    GetMyProfileInformationResponseBody,
     passwordStrengthRegex,
     SignUpRequestBody,
     SignUpResponseBody,
@@ -110,6 +111,9 @@ const authenticationModelMachine =
                       }
                     | {
                           type: 'Submit confirmation code form';
+                      }
+                    | {
+                          type: 'Make server returns user has verified her email';
                       }
                     | {
                           type: 'Sign out';
@@ -1433,6 +1437,10 @@ const authenticationModelMachine =
                                         internal: false,
                                     },
                                 ],
+                                'Make server returns user has verified her email':
+                                    {
+                                        target: 'Confirmed email',
+                                    },
                             },
                             onDone: {
                                 target: 'Confirmed email',
@@ -1870,6 +1878,38 @@ const authenticationModel = createModel<TestingContext>(
                 `${SERVER_ENDPOINT}/authentication/confirm-email`,
                 withAuthentication((_req, res, ctx) => {
                     return res(ctx.status(500));
+                }),
+            ),
+        );
+    },
+
+    'Make server returns user has verified her email': (context) => {
+        server.use(
+            rest.get<never, never, GetMyProfileInformationResponseBody>(
+                `${SERVER_ENDPOINT}/me/profile-information`,
+                withAuthentication((_req, res, ctx) => {
+                    const user = db.myProfileInformation.findFirst({
+                        where: {
+                            userID: {
+                                equals: CLIENT_INTEG_TEST_USER_ID,
+                            },
+                        },
+                    });
+                    if (user === null) {
+                        return res(ctx.status(404));
+                    }
+
+                    return res(
+                        ctx.json({
+                            userID: user.userID,
+                            userNickname: user.userNickname,
+                            playlistsCounter: user.playlistsCounter,
+                            followersCounter: user.followersCounter,
+                            followingCounter: user.followingCounter,
+                            devicesCounter: user.devicesCounter,
+                            hasConfirmedEmail: true,
+                        }),
+                    );
                 }),
             ),
         );
@@ -2604,6 +2644,18 @@ cases<{
                 },
                 {
                     type: 'Submit confirmation code form',
+                },
+            ],
+        },
+
+        'Confirm email from an other device': {
+            target: 'Rendering home screen',
+            events: [
+                {
+                    type: 'Make user authenticated and render application',
+                },
+                {
+                    type: 'Make server returns user has verified her email',
                 },
             ],
         },

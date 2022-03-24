@@ -8,9 +8,15 @@ import test from 'japa';
 import supertest from 'supertest';
 import { BASE_URL, initTestUtils } from '../../../tests/utils/TestUtils';
 
-test.group('AuthenticationController', (group) => {
+test.group('TestEnvMethodController tests group', (group) => {
     const { initSocketConnection, disconnectEveryRemainingSocketConnection } =
         initTestUtils();
+
+    const nodeEnvIsNotDevelopment = process.env.NODE_ENV !== 'development';
+    if (nodeEnvIsNotDevelopment) {
+        console.log('Ignoring TestEnvMethodController tests group');
+        return;
+    }
 
     group.beforeEach(async () => {
         initSocketConnection();

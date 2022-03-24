@@ -40,6 +40,7 @@ import {
     UserSearchMpeRoomsResponseBody,
     ConfirmEmailRequestBody,
     ConfirmEmailResponseBody,
+    SignOutResponseBody,
 } from '@musicroom/types';
 import { datatype } from 'faker';
 import {
@@ -847,6 +848,17 @@ export const handlers = [
 
             return res(
                 ctx.status(200),
+                ctx.json({
+                    status: 'SUCCESS',
+                }),
+            );
+        }),
+    ),
+
+    rest.post<never, never, SignOutResponseBody>(
+        `${SERVER_ENDPOINT}/authentication/sign-out`,
+        withAuthentication((_req, res, ctx) => {
+            return res(
                 ctx.json({
                     status: 'SUCCESS',
                 }),

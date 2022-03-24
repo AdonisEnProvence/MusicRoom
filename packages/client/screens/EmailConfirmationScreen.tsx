@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { TouchableOpacity } from 'react-native';
 import { AppScreen, TextField } from '../components/kit';
+import SignOutButton from '../components/SignOutButton';
 import { useAppContext } from '../contexts/AppContext';
 import { EmailConfirmationScreenProps } from '../types';
 
@@ -205,6 +206,14 @@ const EmailConfirmationScreen: React.FC<EmailConfirmationScreenProps> = () => {
                                     Confirm my account
                                 </Text>
                             </TouchableOpacity>
+
+                            <View sx={{ marginTop: 'xxl' }}>
+                                <Text sx={{ color: 'white' }}>
+                                    Want to switch to another account?
+                                </Text>
+                            </View>
+
+                            <SignOutButton />
                         </View>
                     </View>
                 </View>

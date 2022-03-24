@@ -17,9 +17,6 @@ import {
 
 test.afterEach(async ({ browser, page }) => {
     await closeAllContexts(browser);
-    await enableMailTrap({
-        page,
-    });
 });
 
 //Remark: to be able to run successfully the following test you have to set up a smtp server and fill the corresponding env variables
@@ -40,7 +37,7 @@ test('It should renders home on every browser tab after a signUp and verify emai
     await disabledMailTrap({ page: aliveInboxPage });
 
     //Could be improve using waitForSelector and complex css selector + regex ?
-    await aliveInboxPage.waitForTimeout(4000);
+    await aliveInboxPage.waitForTimeout(8000);
     const myEmail = await aliveInboxPage.inputValue('input#mail');
     console.log({ myEmail });
 
@@ -130,6 +127,9 @@ test('It should renders home on every browser tab after a signUp and verify emai
         ),
     );
     await pageIsOnSignInScreen({ page: secondContextPage });
+    await enableMailTrap({
+        page,
+    });
 });
 
 async function verifyEmail({

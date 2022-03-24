@@ -36,7 +36,7 @@ interface TestingContext {
 const existingUser = generateAuthenticationUser();
 
 const authenticationModelMachine =
-    /** @xstate-layout N4IgpgJg5mDOIC5QEECuAXAFmAduglgMYCGBA9jgAQC2ZEYANgHQCSO+BxD+AXqfhQDEAWWIBrMJVSwwAJ0rEM2PEVKQFOCJVm5684gAcD3EuRyJQBsrA4DzSEAA9EATgBsAJiYBmAOwAWbwBWAAYARgAOMKCPN28AGhAAT0QAWn8wlyY3AO8wj19vfxdQsIBfMsS0LFwCUzsaOkZWdk5uPjMRcUlpOSkcRRqVU3ViTW1dPsNjVTMLECsbOYdnBFSPF18fFxcIjO9Ytxd-IN9ElIQw-xCmTZDfU4Or-zcQ7wqqpVrZhtp6ZgASpNZPgcFBKJgyNRJLBCDpcF0JFIZPIoGRKOh0Zh8LBKAZZGQAGb4BgwsDoAhg3GEgnUCFQyRjLQ2KBUMgYeaLWwUearUI3EKxFxhYL+KL+XxnZKINz+bI7EpXI6CuIuD4garKOr8CiNf5MIGaOSg8Es9hgyiw+E4JgAMRJ3AtcMg3y4sDtDpNlGJjAg7vtDEd4LA1GIJMEAGVUAAjagcS34Vle0Hesiyaic6zc+ygVapfIhCJMMIPEIhNwRCK+EK7c6IMJhN63CIeVvC-wFVvqzXfeq6v7NQ16L1mkfO3AewNe530FRuydB734X3+z0WkNhhiCAAqSQMkl1o4tKY3JKXvszSzsvLSwS8HiC7mCORyEU8dYQLnCxYOBQiQW8e5G3KSoNS+YYdSoAdAWBEdE3NU1xxtANFxnV0GFXKcLR9Bg-QXL0DGIWBYAAdzTCBIxjON0ATJNjyoQk0wzBwuWWXM0kbcsmFOOI-AiXZ+LyD9MlbJgNjCNx+X-GsQn8btwO1Mw9UHWCLSPRDrXwp0dFnNpMMXHC8JQgiiNI8idz3A8qHUygU0I4iyNkLRDMvbMbzWK4tgiQCYkk8tHweIJhN8Nw3CYXx-wrQV-xCq55KGRTfiaGCjRBNT4LHTTjO0l05wwrTwUM2BBAgCgwCYWB0DUJgewgpToINVTTQytSkIKyg0Ly-SvSK1y2KcRANjlBtfAk-jRsFXwXGEjwmxiXwPE4-i33yeKtR+ftksa1K4LojSwAnbLwU6vT2qKxEYRa8EUx0ABHVA4BowlNz668Vg4yUwluUaxUyf8RROYTAjCoJ-ECCaWzcRtfDW3tIOUlLh3SvbLTaodjTUuQADc+jkAlZEo2N4xslNGPTV6eXetZ-zlPw-uFAGYg-DwTjlFxAOKF5xt2GHQNqxLNv1dG0ualGrQOnASrKiqqvQcr+Y2qCtuF3aENR60KZzAaEErLIO2OctG34r8EmlBBRXlMH8g8IoPD2NxYbqpKhaa2i1fFhEAAUdGIyhowwTEqExSg0QxdEzSkAx1YlzX3MKIsDjebzCnZsUImE2Usj2FwbcrQJoncR2BaVl2duRtXUCjj3kLXY6dPQ7qLV6eR2EIMQBmhQnqLdyPU3Jlis361YCyyWJJvyV4WaiDORW+h9okWiSQqLxWEe2pHRYrqu2qOjr6669rm8oVv2+ITvd33ShD3g3uj5PjvJBcger0p9jLjyLJqz8Ioa0lIIwmEjnIs-5+IViCBWEKBwV59hLipMum8vSV2jodWue9cqnV3kfeyZknJd2JjfJBZNmKWEHm9N++RvBhUiP-F4-9fKCmZpkbwTBwiSWhnbKGexoHwwaircuiDt5ZVQSdfA85MEojxKZRyFEL5WR7kgrBUjyLnlwrHKmIoSy3DiIcTYsp7huGZqELYJsbZgwiDWd4fMFKr14a7GySDq7tREWI1BR9TxbijETGiEdCFMTUeQlmYVvDHBCicIBsoPzuC2LNTO+wgigwktw+qys7FXV7o43ezj8riNxqGcMsir7WQIVHNxeSGAqIgP47WIoDjFklEcUGIV7jxOEkULOnk4ieG8pkJJzs4EbzdgI5BNcsJ13QaI-KAAZMgZAxC+PkKgHA7cyAkWstjXGsh8Z4O8cUvuxCFikNftU2IQRthvgfG08shRmaSi8OWe4IU9ERVOL0wW-SMYIKboIiWTj956SljgcqlVqoKxgWvPhnzwQOJ3sIv5Ez4DPzcuolszCAIvDbDJAxZs6ZiQil0go9y1RWISjYlJ8DBlfOGb88ZboLryKjndB6lUMSYAJCRfoyzVmUDxmmKpqxZqFh8J4B4BRgjHDiB+XWWjWwyWCScXmnwSVgtseS+x3yvY+1xP7Ckupg6h2DhHFM1c+WIAeMwyhEkSx00fEFM2Vx-zbHAQcYo4D-yWMVetZVZKBnuI6hQYk6Z4YZOEU0AFQLZby2sV60uPqyl+pwAG0MSlg2jL9fQE15s07ZAOOYoI-FwHFGEt+CSrwpoFlbH+V5sDEYfO5XGwg-r8CBuTTC1NDb6AWUvrqBtCam1JoaO2x+y5VGIqHogNpdzvB5H-rsShU0PzpCbAXO2xQwEpyreC12vqe2JqDa21CobPHdx3X2+Gg69kZpZiFYsJY3yVkiJsQIC6mFMH4h2CSHZzGmIVWBJVPDvW1u3Y25tDRq5hpliCqN-6Y2AfrcB-th4kIZoffeR8gEdgBByA8BdHDs2BFbGDThU6N0qtjZueNu6W3WjpUB3tIHdSMset6F6o6yHa2CJkJgHZAo1PEv+BdFYvAvGCZQk5AFhQVFAjgJoCKUBQeSfqNgtguC8Eghmk4NwqzTqml-E4wQF2hDlHbG2ZZ+KzWtiRgDIt6TQmGchgCYVFqhReJa2S6czbpGOD4e47NwjhCrFDSzMHrM2RTahOFLjU1FXau41gEBSQZvzDEnwIV-4jWrA8LFFx3BGdbHK9s5i8hBfeSFtJYXpwReyag6Lu9YtsCxipiATAACicacR1oMOgC4JCX5azzGwlhpwQkVh2G+LL9YKFccoWWSSEpYgdmKzW0rYt90VZpVVqLw6jKoLqzgBr3AmutfI+10E+38CVNY0c-rAFwq8VknbCKVYPBFslK+uImRQazXiQBRb69a2hdWzlXS8KzpbcbsGMpLQzsXZ60it+qQsO3anfdqslYFpFtkq+haRQAtgw2A7YlnroMldVplH5mTKvg4qVT2LAA1RriXQrMJKMEY2AEihgyBrPeJ5ijglm4-cX7EKKX7RQW2ynoOVwxbKYlihXgSz8grFWGs7mLhVlHnkDsGx5uPiF6klbQjxfrapzV1B2DpFxYS5dvrHEGxGYWizTmIR-7O+CsKMSD5UshTMwtPXqqyuA7GcDyLBkwftXN+RKHjWmCeyUU5WyuIQyde6wc3r7lUh0OyPkUIQ03zeD2IAu2PhQag1kpkSUhQ-cDIB4b8LxvJe4SpxHpyUeDuJfE1nh8gpjh54L3a-8pzKHPj2JrqdIEPVwwUyT-hrVa9reDxt0PUvd7N6a-Ttv1v08ARuIZssU09H59tRcRaDrwGFkfLNMUf8q--YD3PoHDcG-bdTav2XIoiydkdwbF3R-6zVkc0UFNHxM7t5B4Dfstu7IHmggvibmDrLg+FQqWOWGjirpKlxCzM7iFASlOsRoTpPn0ktqTrPuTrCvXihOoL1JvlTGKF4M5lerENEC2N5DNFcFnn-LJJJFWAEOAUQaLiMnXjAbLlNKcpsPan9P-EUL-ggIUMwizO4CjvTHJHgU7G8oQTPnwX9iFusvIDyrIJbmAEIWFF+BKIKGPAtNWFIWPPLjWDbI+EcLsPEjweoVSsLiiDjDoZsmmEwAACI4jGDEBJDcqeF6H1aNbQENyJadhTbuCvChQlgir+DMw97ZAD55pKgX5OGQouF2LaFBH4w+F+EMABF5FeEACqSy0mXKbhGy+MkREUPgLwsoI23kEolhOwRmeaVsIqoMRKE+Kh1amhvB2RqquRuhBRsA-hgRuhiWgEXgRQzmzRgBlhVYpyRwYolCLYsQ-4mRIuwx1eoxwRTAR6HAcszIqAhAhAcAsAhIqAgYKerEbG-WVY3Epw3eMQ3kioH4eQZYPgts0Q-OsoQQOxNePyrhBxtRVB8OqOKW9MDYkhz2ZsNsRwtwwSMQBKVwjSwJd+MckJ2s+YUQWQohv0DhjMH4oUNwD4KxWBeacQEQWJKM0K9+Qej+OSLcRAp80I+hyGfgWQSc+QMUU6mxwkrq2wT4EkmBPSyhxcm6-uDJ6q-B8+LJriEi98Z85U6+523J9Rgo4Cs6KKWuwpokkM-EjYoQX4xw9JW8VKFOZBypfQqpnJoRB2TAAAcuyQ-Anh1l1shuSWwXduYSUONpcIUFsPkL5qZgtBkJaUMuVg-gfKycfO6Wqa3udq6UmbZu1ossQA1iSMQNGFbrDmOpcJJKsSWP6QUIGRnO7vErKB+lECutGZSrGcyfGXaWyW3A-CmTDqnnDtUu9n6cjgGeAjPEWOAqDGDMUENI2VCvKdSjAYfCqemQYbicPNQmJJPKNFYb9EDH4K+tNmDHKhFPntOeklAVklToog5JHiwPFsuYWY8fWPnszscAzHeuWIwhKFxuDNWFauYr0b+kTlPmoVkYySQUbvOQmavkwBqd2Q8Vdo+S2M2FPEvNWAicfsBFjoWG+OAs8mAVKaSsFkMaBWLgIUqampeTgk1k6ambHlefHu1knt6SufWLKMwrEc6tcKNPnkGTbBJHUsEIKAcIUA0iecRQqXGRgm2ZInRVRXttHrRZRZ6SRGAOID6YEB7gcH4FPOzKDMzAStkDNpEAtFcNnqJbOTaRBVJVBdRbBYcjbsWZxnljbJGYJLpYieXgZTljkMjmAmZdaaQZZeRRIq-sxZcItPLv9LQgvJPMzKwljjsBicIfon5c2eEa2UFbkpuFyaFfkNECwsZeWFDHmlOlIfbMWK+CWBJMKOYSlWeRLgmXTgzjlU+eFPnh2MUGagFJKteoSu1aXjbLVUyWlZJRlToZDjZS1m1ontQMnj6UULcOfjnDnJ4M8MJPkLlh2DSbJDEKDINWBaRelYuKUllRNUdmeCdnJRvvefBcWfntkK8dWOcmWG5RcA2MifvgqAXCVXtSRYqYdYghIrttDpNcdriFmTmUUfmXeT2UWRJBsAtf+EtbEItJznaotIPkcCnD9M8ECfhdGtPiBeZQFWRUdYDeNZdZqTla8CIYtdritaja9c7l9DbEUA2D3sEjsD9eJS2SNaTZlSSMhpkF9PcItIVYwSVR+LFHUhWCcJEIWBwlzXOY-tMrMvMhypUWsrIO4SUSEbechuDNxF+FNBwcKLbDcrEFxqjr5jjgrXjcTsBbsWJUrQfCrXMlHGTOrSsprdrWMTZT6W+NxPbJNA8GKG8MzCtMXhWK8JVXzgTn0dKaRrfnKf5eBcrTMm7X3J7VUeCV4TBfrZQtxEeRuX+RkMzFFLcP8TEKHeEP+aCvbYMc4U7RZWnare7WmFnd7TUbyjlSzF9MEucmil+N5YYiULcL3eYsUEvLjfHQRQTY7UTanV1ILVDOuePFudPGbErsWCAoUCJGKBKFzYLbuVYZuZPNuZvXlR9iqA5mKuPgBfgaoQ3RDuRievRtZGeU0NlddfZa2IhdcGWWPqxWHR5k5loi2GGferNHhTPfjQ7bRpRqBh-fQNBU1d-e5PQR7hkLsC6sgabK9TnCwkbWjrmiWnSXbUBU-XWi-fBnukNYOl2UwAAMJNCemMX3F2XuR5ANhiQ0ILRR2LRSgXD5jfhQxVUiYWqig7HwOnpUb7XTif0TXMP0CemnaoMw0PnmwNjM28NbErWCNpByieA+bO5ioiZxDT3339EylkZniv0Ibv10MKMU1NYRi5HPQkjqDBw+xWCaAZrfFFhRQSGZYml4OuCyFBNMKNHszQOWMJ1WZejSNv0p0HrIN+2hWAR7ApFM1+Cuqm3PoBAGUPinAZAYHO5x2xOz1wNwZ0b2PJPyPpqhWth5pcbhCQJ5BAOhNrCARfQlDCgCqRCyh2xSPVMIOIaaTMM1PqDuJ+OhRZAfaPWgJxD6PSGjxjRFWeRInuoVOwOUOJO1PGqNOmItMAPtOBDANCMShUKlArWNgFaLay4j7fRiEkmSELqBRcagwj5vo1g-aSZAA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QEECuAXAFmAduglgMYCGBA9jgAQC2ZEYANgHQCSO+BxD+AXqfhQDEAWWIBrMJVSwwAJ0rEM2PEVKQFOCJVm5684gAcD3EuRyJQBsrA4DzSEAA9EATgBsAJiYBmAOwAWbwBWAAYARgAOMKCPN28AGhAAT0QAWn8wlyY3AO8wj19vfxdQsIBfMsS0LFwCUzsaOkZWdk5uPjMRcUlpOSkcRRqVU3ViTW1dPsNjVTMLECsbOYdnBFSPF18fFxcIjO9Ytxd-IN9ElIQw-xCmTZDfU4Or-zcQ7wqqpVrZhtp6ZgASpNZPgcFBKJgyNRJLBCDpcF0JFIZPIoGRKOh0Zh8LBKAZZGQAGb4BgwsDoAhg3GEgnUCFQyRjLQ2KBUMgYeaLWwUearUI3EKxFxhYL+KL+XxnZKINz+bI7EpXI6CuIuD4garKOr8CiNf5MIGaOSg8Es9hgyiw+E4JgAMRJ3AtcMg3y4sDtDpNlGJjAg7vtDEd4LA1GIJMEAGVUAAjagcS34Vle0Hesiyaic6zc+ygVapfIhCJMMIPEIhNwRCK+EK7c6IMJhN63CIeVvC-wFVvqzXfeq6v7NQ16L1mkfO3AewNe530FRuydB734X3+z0WkNhhiCAAqSQMkl1o4tKY3JKXvszSzsvLSwS8HiC7mCORyEU8dYQLnCxYOBQiQW8e5G3KSoNS+YYdSoAdAWBEdE3NU1xxtANFxnV0GFXKcLR9Bg-QXL0DGIWBYAAdzTCBIxjON0ATJNjyoQk0wzBwuWWXM0kbcsmFOOI-AiXZ+LyD9MlbJgNjCNx+X-GsQn8btwO1Mw9UHWCLSPRDrXwp0dFnNpMMXHC8JQgiiNI8idz3A8qHUygU0I4iyNkLRDMvbMbzWK4tgiQCYkk8tHweIJhN8Nw3CYXx-wrQV-xCq55KGRTfiaGCjRBNT4LHTTjO0l05wwrTwUM2BBAgCgwCYWB0DUJgewgpToINVTTQytSkIKyg0Ly-SvSK1y2KcRANjlBtfAk-jRsFXwXGEjwmxiXwPE4-i33yeKtR+ftksa1K4LojSwAnbLwU6vT2qKxEYRa8EUx0ABHVA4BowlNz668Vg4yUwluUaxUyf8RROYTAjCoJ-ECCaWzcRtfDW3tIOUlLh3SvbLTaodjTUuQADc+jkAlZEo2N4xslNGPTV6eXetZ-zlPw-uFAGYg-DwTjlFxAOKF5xt2GHQNqxLNv1dG0ualGrQOnASrKiqqvQcr+Y2qCtuF3aENR60KZzAaEErLIO2OctG34r8EmlBBRXlMH8g8IoPD2NxYbqpKhaa2i1fFhEAAUdGIyhowwTEqExSg0QxdEzSkAx1YlzX3MKIsDjebzCnZsUImE2Usj2FwbcrQJoncR2BaVl2duRtXUCjj3kLXY6dPQ7qLV6eR2EIMQBmhQnqLdyPU3Jlis361YCyyWJJvyV4WaiDORW+h9okWiSQqLxWEe2pHRYrqu2qOjr6669rm8oVv2+ITvd33ShD3g3uj5PjvJBcger0p9jLjyLJqz8Ioa0lIIwmEjnIs-5+IViCBWEKBwV59hLipMum8vSV2jodWue9cqnV3kfeyZknJd2JjfJBZNmKWEHm9N++RvBhUiP-F4-9fKCmZpkbwTBwiSWhnbKGexoHwwaircuiDt5ZVQSdfA85MEojxKZRyFEL5WR7kgrBUjyLnlwrHKmIoSy3DiIcTYsp7huGZqELYJsbZgwiDWd4fMFKr14a7GySDq7tREWI1BR9TxbijETGiEdCFMTUeQlmYVvDHBCicIBsoPzuC2LNTO+wgigwktw+qys7FXV7o43ezj8riNxqGcMsir7WQIVHNxeSGAqIgP47WIoDjFklEcUGIV7jxOEkULOnk4ieG8pkJJzs4EbzdgI5BNcsJ13QaI-KAAZMgZAxC+PkKgHA7cyAkWstjXGsh8Z4O8cUvuxCFikNftU2IQRthvgfG08shRmaSi8OWe4IU9ERVOL0wW-SMYIKboIiWTj956SljgcqlVqoKxgWvPhnzwQOJ3sIv5Ez4DPzcuolszCAIvDbDJAxZs6ZiQil0go9y1RWISjYlJ8DBlfOGb88ZboLryKjndB6lUMSYAJCRfoyzVmUDxmmKpqxZqFh8J4B4BRgjHDiB+XWWjWwyWCScXmnwSVgtseS+x3yvY+1xP7Ckupg6h2DhHFM1c+WIAeMwyhEkSx00fEFM2Vx-zbHAQcYo4D-yWMVetZVZKBnuI6hQYk6Z4YZOEU0AFQLZby2sV60uPqyl+pwAG0MSlg2jL9fQE15s07ZAOOYoI-FwHFGEt+CSrwpoFlbH+V5sDEYfO5XGwg-r8CBuTTC1NDb6AWUvrqBtCam1JoaO2x+y5VGIqHogNpdzvB5H-rsShU0PzpCbAXO2xQwEpyreC12vqe2JqDa21CobPHdx3X2+Gg69kZpZiFYsJY3yVkiJsQIC6mFMH4h2CSHZzGmIVWBJVPDvW1u3Y25tDRq5hpliCqN-6Y2AfrcB-th4kIZoffeR8gEdgBByA8BdHDs2BFbGDThU6N0qtjZueNu6W3WjpUB3tIHdSMset6F6o6yHa2CJkJgHZAo1PEv+BdFYvAvGCZQk5AFhQkYAyLOt5GT30eskhSMN92ToGQ4KvYKoAibEaQBQxIMKwSkbLsQUjYHbqhwE0BFKAoPJP1GwWwXBeCQQzScG4VZp1TS-icYIC7QhyjtjbMs-FZrW0kzB6TkJoTDOQwBMKi1QovEtbJdOZt0jHB8Pcdm4RwhVihmF950mbIptQnClxqairtXcawCApIM35hiT4EK-8RrVgeFii47h-Otjle2cxeR8s1sK2k4r05SvZNQRV3eVW2BY0cxAJgABRONOI60GHQBcEhL8tZ5jYSw04ISKw7DfO1+sFCuOULLJJCUsQOwDfXrWor+7Rs0vG+V4dRlUHTZwLN7g82lvkZW6CH7+BKmsaOTtgC4VeKyTthFKsHgi2SlfXETIoNZrxIAndiFFL9ooLbWNxuhV3uE5kySFowPQebaRW-VIWGodTph1WSsC0i2yVfQtE5MlYgLSx6ksWT2cq6XhWdYnlWylMAAGpzbq6FZhJRgjGwAkUMGQNZ7xPMUcEs3H7i89VcNgXYyhdlYMqLqbZS6sUK8CWfkFYqw1hSxcKso88gvBOHsOh7rf2eugwV1WmUfmZIJyLlc7VsHSOq7VsH22OINn8xzsGBt-4hFtRcEswoxIPiayFYLPPiXe9s77-hrUhH45eyTybqCw-kXJ3NpgnslFOVsriEMa2NsHK2+5VIdDsj5FCENN83g9iALtj4UGoNZKZElIUXXAzHsl5K2X4PuESdV6cjX37dXxM94fIKY4A+h92v-KcyhfgTiw8bB4GfD39fz+e0b17JuQ+71X-NqXG+o+d4AjcPzZYpp6MHynoNNQtxK8P+DnMln-FfkNvzrfoLg3Evh9qmi-hbiKEWJ2CzJzMno2IAZcNWHFkUN5KDIPqqJ7qCj7oNn7sXgHrCovrvL1B-lTPVuAnUjbszvbpKlxCzMnrbGjqKlAZQbjiMgvvfvpOoPQVTmOggGKF4AllerENEC2N5DNFcD3n-LJJJFWAEPwUXoIdSiIRblNKcpsPan9P-EUDgYUMwizO4G8DnCJscNoZClStjiiDjPIDyrIBHmAAYWFF+BKIKGPAtNWDgWPFbjWDbI+EcLsPEo4Tjs4XYusu4ZsmmEwAACI4jGDEBJDcrJGeEzZzZoL6EME06djnbuCvChQlgir+DMx77ZBH55pKiPiX555wwF4UE6HxGqqJE5H4xpEZEMBZG9EpEACqSyFmXKrhGy+MdWf4PgLwsoh23kEoIROw-meaVsIqoMRKHqbRfSHRThjiLhPRHh-RsAmR2RHhdWgEXgRQCWSxRQ2GZssOpyRwEocQ4QwSJasRc+PyxxsgbhwxnhR6HAcszIqAhAhAcAsAhIqAgYberEbGO2VY3Epwu+MQ3kioH4eQZYPgts0QWusoQQPxN+fxCRAJ0xvKxR2sqQTOjW9MDY5hCOzxlCWQ7MxwD4RiX4VYJJMBMc1JeYkQnGxhv00RjMH4oUNwD4lYhYZaN2vJW8VKgetBriEi98Z85ULANW3hAp9YfgWQSc+QMUU6LYzJqerq2wT4Ekyeo0OxXuexbyBxcR0KsBhu8BOSLcRAp80Iku0uup78EULCD4Rw3kKKHYZp9YMQXgkM-E2BMkDhrRTsjp920BipI2cBB8Hpx8XpD86+IOTAAAcjmRqU3qtutshpKaodDkESUCdrgX4MWBsIBEFgtBkAqUMumW6ZmaqX0OqT6fkb9oWcWVFitossQLNiSMQNGJHhIUifWJJK8SWNWQULWRnOnvErKB+lECuu2ZSp2YUe6T2Z6W3LmQOSDhWXkFWQzjWeAjPEWOAmigtDsHKqQTZvsSmQIekgbged2amnfMOTqbOeDqdg6qEaNKEb9EDA2YQTYQtOWPFruVCuqkIXfoeX+RIi-l4choPnLscAzHeuWIwhKFxuDNWFauYnaWQe0R+Z0S6dQaXiIYfBhQ3q-n6UBdHu-C2M2FPEvNWBGQgItN+HbpWJJK+DEIhV+a6T+RgkeZIg5NXmefNvXvJY3iti3uWf6R+swhUc6tcKNMQczHkFQoUH3gcIUA0hJXRXjsIWhYuIoipfNopXXixaWSRGAOIBWYEBngcH4FPOzKDMzAStkJdpEAtFcL3pZchXobZYgsxQ5XmZTu3tTtUlDKPDbDbK2YJAFc8ZPsFSUC6sElGcSYmcXJunrijFZShRmTJehX0MgZpYtFbv9LQgvJPMzKwuzrsORZEZEJFUqTQYxVmdNtqchotKcvcIJZUXmlOjgfbMWK+CWBJMKEEX1fuVkiTqUpuL6e-uxe5KgcwvHB2MUGagFJKteoSkdePjbKtd+etUxbkltU5f9meGpdQK3heWzIWM0TnJ4M8MJPkF1h2Hmq8GfqDDdVJXdUNeLk9ctriEDmxUlZIRJIPtkGidWOcmWNlankteFO4AqAXDNeDfRTZb+XZRIl9hTotrDf0OOZuFOTOYjXOZcJ4GyV9TnD9YtCrnamNUKpsMEj9M8MVbsUmdWjRU4ZVdFaTbFQ9WTopRWcnrcGzRsLEJzTUXalgWJFOsJoZv+ETdZahVLU3OTebppZkF9BNaZlDNNT5mbLFHUrbhWIPnnBEHrVVV2adNMrMvMhyhMWshSUkX0VqQzYicBZcODNxF+FNOocKLbDcrEFxkzllgQRwq7ZLR7TMnMlHGTD7Ssn7YCacXLZpRWCDPbJNA8GKG8MzCtKPsXeEKNJrmZsLaVaRtfhVVFcqYxZ7ZnX3DnZMScbkdteeZpcDNxBFBdn+DWBkMzFFLcASTEBXeEJRW+cmS4WkhLR3fAV3d7YspynnZSbIKNRkGcp4Gil+DkKbBcA+CULcCzMEIUBKEUJQqnRvV1MhpamJJPOBZPJBWbLbsWGAQ+WzUcK7W-Q2WBRPIKD-RcFbcWIqFDH4M0SKLEbRpRqBrdU0Fhf6a2FxdcEuVOlpZXalvFloi2PkAJOWsg3BnRghgphDRg2-kPbtVTHIRnhkLsC6uWEoXajnCwpHczrmiWi7SVaSuFl6Cg6elRsTdOBg05QAMJNClnqUImHIcV5ANhiQ0ILTF2LRSgXD5jfhQxLUiYWqiiUOybwZ7p0P0AJVMDyP0Clnw07WM2h1qNfTzzXbaMlgLpyieCZbcFobsxxBC32ki1lVkZnhyY0P9VtoyPfa14Rg9HPQkjqDBw+xWCaAZo4lFhRRmFtaxkX2uBWG5NMILHswtFN0iOF7BhUOoOIZWOalxNOMh2qOFg+MCMIOHYijPoBDBWcnZyzRL1-rUXY7iPybRMHrppYPSlcZ128QEMFNrCARfQlBfglBRBXaBBmMRMWOSMTjyPUPqDuKZOhRZCo7o2gJxC6OmqjxjRW2eQ2xxBbPlKROWP8lMNvzdZyi4OQJGWBCEN6PvHFilCurBC75yTCPRqMAW57By4-RRBinmELqBRcaNItjxLXAVgVAVBAA */
     createMachine(
         {
             context: {
@@ -110,6 +110,9 @@ const authenticationModelMachine =
                       }
                     | {
                           type: 'Submit confirmation code form';
+                      }
+                    | {
+                          type: 'Sign out';
                       },
             },
             id: 'Authentication model',
@@ -120,14 +123,14 @@ const authenticationModelMachine =
                         'Make user authenticated and render application': [
                             {
                                 cond: 'User has confirmed her email',
-                                target: '#Authentication model.Rendering home screen',
+                                target: 'Rendering home screen',
                             },
                             {
-                                target: '#Authentication model.Rendering email confirmation screen',
+                                target: 'Rendering email confirmation screen',
                             },
                         ],
                         'Make user unauthenticated and render application': {
-                            target: '#Authentication model.Rendering signing screen',
+                            target: 'Rendering signing screen',
                         },
                     },
                 },
@@ -146,11 +149,10 @@ const authenticationModelMachine =
                             });
                         },
                     },
-
                     on: {
                         'Make user go to his profile settings from home and sign out':
                             {
-                                target: '#Authentication model.Rendering signing screen',
+                                target: 'Rendering signing screen',
                             },
                     },
                 },
@@ -313,21 +315,24 @@ const authenticationModelMachine =
                                                 'Submit signing in form': [
                                                     {
                                                         cond: 'Signing in email is empty',
-                                                        target: '#Authentication model.Rendering signing screen.Filling credentials.Filling fields.Filling email.Invalid.Email is empty',
+                                                        target: '.Invalid.Email is empty',
+                                                        internal: false,
                                                     },
                                                     {
                                                         cond: 'Signing in email is invalid',
-                                                        target: '#Authentication model.Rendering signing screen.Filling credentials.Filling fields.Filling email.Invalid.Email is invalid',
+                                                        target: '.Invalid.Email is invalid',
+                                                        internal: false,
                                                     },
                                                     {
-                                                        target: '#Authentication model.Rendering signing screen.Filling credentials.Filling fields.Filling email.Valid',
+                                                        target: '.Valid',
+                                                        internal: false,
                                                     },
                                                 ],
                                                 'Type on signing in email field':
                                                     {
                                                         actions:
                                                             'Assign signing in typed email to context',
-                                                        target: '#Authentication model.Rendering signing screen.Filling credentials.Filling fields.Filling email',
+                                                        internal: false,
                                                     },
                                             },
                                         },
@@ -435,17 +440,19 @@ const authenticationModelMachine =
                                                 'Submit signing in form': [
                                                     {
                                                         cond: 'Signing in password is empty',
-                                                        target: '#Authentication model.Rendering signing screen.Filling credentials.Filling fields.Filling password.Invalid.Password is empty',
+                                                        target: '.Invalid.Password is empty',
+                                                        internal: false,
                                                     },
                                                     {
-                                                        target: '#Authentication model.Rendering signing screen.Filling credentials.Filling fields.Filling password.Valid',
+                                                        target: '.Valid',
+                                                        internal: false,
                                                     },
                                                 ],
                                                 'Type on signing in password field':
                                                     {
                                                         actions:
                                                             'Assign signing in typed password to context',
-                                                        target: '#Authentication model.Rendering signing screen.Filling credentials.Filling fields.Filling password',
+                                                        internal: false,
                                                     },
                                             },
                                         },
@@ -454,11 +461,11 @@ const authenticationModelMachine =
                                         'Make signing in request fail': {
                                             actions:
                                                 'Assign signing in request will fail to context',
-                                            target: '#Authentication model.Rendering signing screen.Filling credentials.Filling fields',
+                                            internal: false,
                                         },
                                     },
                                     onDone: {
-                                        target: '#Authentication model.Rendering signing screen.Filling credentials.Filled fields',
+                                        target: 'Filled fields',
                                     },
                                 },
                                 'Filled fields': {
@@ -584,26 +591,32 @@ const authenticationModelMachine =
                                 'Submit signing in form': [
                                     {
                                         cond: 'Signing in email is empty',
-                                        target: '#Authentication model.Rendering signing screen.Rendering server error.Idle',
+                                        target: '.Idle',
+                                        internal: false,
                                     },
                                     {
                                         cond: 'Signing in email is invalid',
-                                        target: '#Authentication model.Rendering signing screen.Rendering server error.Idle',
+                                        target: '.Idle',
+                                        internal: false,
                                     },
                                     {
                                         cond: 'Signing in password is empty',
-                                        target: '#Authentication model.Rendering signing screen.Rendering server error.Idle',
+                                        target: '.Idle',
+                                        internal: false,
                                     },
                                     {
                                         cond: 'Credentials are invalid',
-                                        target: '#Authentication model.Rendering signing screen.Rendering server error.Display error.Invalid credentials',
+                                        target: '.Display error.Invalid credentials',
+                                        internal: false,
                                     },
                                     {
                                         cond: 'Server returns an error for signing in request',
-                                        target: '#Authentication model.Rendering signing screen.Rendering server error.Display error.Unknown server error',
+                                        target: '.Display error.Unknown server error',
+                                        internal: false,
                                     },
                                     {
-                                        target: '#Authentication model.Rendering signing screen.Rendering server error.Submitted successfully',
+                                        target: '.Submitted successfully',
+                                        internal: false,
                                     },
                                 ],
                             },
@@ -611,16 +624,16 @@ const authenticationModelMachine =
                     },
                     on: {
                         'Press button to go to sign up screen': {
-                            target: '#Authentication model.Rendering signing up screen',
+                            target: 'Rendering signing up screen',
                         },
                     },
                     onDone: [
                         {
                             cond: 'User has confirmed her email',
-                            target: '#Authentication model.Rendering home screen',
+                            target: 'Rendering home screen',
                         },
                         {
-                            target: '#Authentication model.Rendering email confirmation screen',
+                            target: 'Rendering email confirmation screen',
                         },
                     ],
                 },
@@ -776,20 +789,23 @@ const authenticationModelMachine =
                                         'Submit sign up form': [
                                             {
                                                 cond: 'Sign up nickname field is empty',
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user nickname.Invalid.Nickname is empty',
+                                                target: '.Invalid.Nickname is empty',
+                                                internal: false,
                                             },
                                             {
                                                 cond: 'Sign up nickname field is unavailable',
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user nickname.Invalid.Nickname is unavailable',
+                                                target: '.Invalid.Nickname is unavailable',
+                                                internal: false,
                                             },
                                             {
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user nickname.Valid',
+                                                target: '.Valid',
+                                                internal: false,
                                             },
                                         ],
                                         'Type on sign up user nickname field': {
                                             actions:
                                                 'Assign sign up typed user nickname to context',
-                                            target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user nickname',
+                                            internal: false,
                                         },
                                     },
                                 },
@@ -925,20 +941,23 @@ const authenticationModelMachine =
                                         'Submit sign up form': [
                                             {
                                                 cond: 'Sign up password field is empty',
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user password.Invalid.Password is empty',
+                                                target: '.Invalid.Password is empty',
+                                                internal: false,
                                             },
                                             {
                                                 cond: 'Sign up password field is weak',
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user password.Invalid.Password is weak',
+                                                target: '.Invalid.Password is weak',
+                                                internal: false,
                                             },
                                             {
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user password.Valid',
+                                                target: '.Valid',
+                                                internal: false,
                                             },
                                         ],
                                         'Type on sign up user password field': {
                                             actions:
                                                 'Assign sign up typed user password to context',
-                                            target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user password',
+                                            internal: false,
                                         },
                                     },
                                 },
@@ -1109,24 +1128,28 @@ const authenticationModelMachine =
                                         'Submit sign up form': [
                                             {
                                                 cond: 'Sign up email field is empty',
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user email.Invalid.Email is empty',
+                                                target: '.Invalid.Email is empty',
+                                                internal: false,
                                             },
                                             {
                                                 cond: 'Sign up email is invalid',
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user email.Invalid.Email is invalid',
+                                                target: '.Invalid.Email is invalid',
+                                                internal: false,
                                             },
                                             {
                                                 cond: 'Sign up email is unavailable',
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user email.Invalid.Email is unavailable',
+                                                target: '.Invalid.Email is unavailable',
+                                                internal: false,
                                             },
                                             {
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user email.Valid',
+                                                target: '.Valid',
+                                                internal: false,
                                             },
                                         ],
                                         'Type on sign up user email field': {
                                             actions:
                                                 'Assign sign up typed user email to context',
-                                            target: '#Authentication model.Rendering signing up screen.Filling credentials.Filling user email',
+                                            internal: false,
                                         },
                                     },
                                 },
@@ -1207,10 +1230,12 @@ const authenticationModelMachine =
                                         'Submit sign up form': [
                                             {
                                                 cond: 'Sign up server should throw unkwown error',
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Lookup for unknown server error.Invalid',
+                                                target: '.Invalid',
+                                                internal: false,
                                             },
                                             {
-                                                target: '#Authentication model.Rendering signing up screen.Filling credentials.Lookup for unknown server error.Valid',
+                                                target: '.Valid',
+                                                internal: false,
                                             },
                                         ],
                                     },
@@ -1220,7 +1245,7 @@ const authenticationModelMachine =
                                 'Make sign up request throw unknown error': {
                                     actions:
                                         'Assign sign up request will throw an unknown error to context',
-                                    target: '#Authentication model.Rendering signing up screen.Filling credentials',
+                                    internal: false,
                                 },
                             },
                             onDone: {
@@ -1230,7 +1255,7 @@ const authenticationModelMachine =
                     },
                     on: {
                         'Press button to go to sign in screen': {
-                            target: '#Authentication model.Rendering signing screen',
+                            target: 'Rendering signing screen',
                         },
                     },
                 },
@@ -1385,28 +1410,32 @@ const authenticationModelMachine =
                                 'Type on confirmation code field': {
                                     actions:
                                         'Assign typed confirmation code to context',
-                                    target: '#Authentication model.Rendering email confirmation screen.Filling code',
+                                    internal: false,
                                 },
                                 'Submit confirmation code form': [
                                     {
                                         cond: 'Confirmation code is empty',
-                                        target: '#Authentication model.Rendering email confirmation screen.Filling code.Invalid.Code is empty',
+                                        target: '.Invalid.Code is empty',
+                                        internal: false,
                                     },
                                     {
                                         cond: 'Confirmation code is invalid',
-                                        target: '#Authentication model.Rendering email confirmation screen.Filling code.Invalid.Code is invalid',
+                                        target: '.Invalid.Code is invalid',
+                                        internal: false,
                                     },
                                     {
                                         cond: 'Server fails to respond to email confirmation request',
-                                        target: '#Authentication model.Rendering email confirmation screen.Filling code.Invalid.Server failed to respond',
+                                        target: '.Invalid.Server failed to respond',
+                                        internal: false,
                                     },
                                     {
-                                        target: '#Authentication model.Rendering email confirmation screen.Filling code.Valid',
+                                        target: '.Valid',
+                                        internal: false,
                                     },
                                 ],
                             },
                             onDone: {
-                                target: '#Authentication model.Rendering email confirmation screen.Confirmed email',
+                                target: 'Confirmed email',
                             },
                         },
                         'Confirmed email': {
@@ -1417,11 +1446,14 @@ const authenticationModelMachine =
                         'Make email confirmation request fail': {
                             actions:
                                 'Assign email confirmation request will fail to context',
-                            target: '#Authentication model.Rendering email confirmation screen',
+                            internal: false,
+                        },
+                        'Sign out': {
+                            target: 'Rendering signing screen',
                         },
                     },
                     onDone: {
-                        target: '#Authentication model.Rendering home screen',
+                        target: 'Rendering home screen',
                     },
                 },
             },
@@ -1852,6 +1884,15 @@ const authenticationModel = createModel<TestingContext>(
         expect(confirmationCodeFormSubmitButton).toBeTruthy();
 
         fireEvent.press(confirmationCodeFormSubmitButton);
+    },
+
+    'Sign out': async ({ screen }) => {
+        invariant(screen !== undefined, 'Screen must have been rendered');
+
+        const signOutButton = await screen.findByText(/sign.*out/i);
+        expect(signOutButton).toBeTruthy();
+
+        fireEvent.press(signOutButton);
     },
 });
 
@@ -2458,7 +2499,8 @@ cases<{
                         };
               };
           }
-        | 'Rendering home screen';
+        | 'Rendering home screen'
+        | 'Rendering signing screen';
     events: EventFrom<typeof authenticationModelMachine>[];
 }>(
     'Email confirmation',
@@ -2562,6 +2604,18 @@ cases<{
                 },
                 {
                     type: 'Submit confirmation code form',
+                },
+            ],
+        },
+
+        'Signs out from email confirmation screen': {
+            target: 'Rendering signing screen',
+            events: [
+                {
+                    type: 'Make user authenticated and render application',
+                },
+                {
+                    type: 'Sign out',
                 },
             ],
         },

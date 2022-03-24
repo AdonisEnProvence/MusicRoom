@@ -8,6 +8,7 @@ import invariant from 'tiny-invariant';
 import {
     assign,
     ContextFrom,
+    createMachine,
     DoneInvokeEvent,
     EventFrom,
     forwardTo,
@@ -374,6 +375,30 @@ export function createAppMachine({
                         },
 
                         failedToRevalidateUserInformation: {},
+
+                        signingOut: {
+                            invoke: {
+                                id: 'signOut',
+
+                                src: 'signOut',
+
+                                onDone: {
+                                    target: '#app.loadingAuthenticationTokenFromAsyncStorage',
+                                    actions:
+                                        'sendBroadcastReloadIntoBroadcastChannel',
+                                },
+                            },
+
+                            on: {
+                                SIGN_OUT: undefined,
+                            },
+                        },
+                    },
+
+                    on: {
+                        SIGN_OUT: {
+                            target: 'waitingForUserEmailConfirmation.signingOut',
+                        },
                     },
 
                     onDone: {
@@ -486,43 +511,20 @@ export function createAppMachine({
                         },
 
                         SIGN_OUT: {
-                            target: '#app.handleSignOut',
+                            target: 'handleSignOut',
                         },
                     },
                 },
 
                 handleSignOut: {
-                    initial: 'sendingSignOutToServer',
-                    states: {
-                        sendingSignOutToServer: {
-                            invoke: {
-                                src: 'signOut',
+                    invoke: {
+                        id: 'signOut',
 
-                                onDone: {
-                                    target: 'clearingAsyncStorage',
-                                },
-                                onError: {
-                                    target: 'clearingAsyncStorage',
-                                },
-                            },
-                        },
+                        src: 'signOut',
 
-                        clearingAsyncStorage: {
-                            invoke: {
-                                src: 'clearAsyncStorage',
-
-                                onDone: {
-                                    target: '#app.loadingAuthenticationTokenFromAsyncStorage',
-                                    actions:
-                                        'sendBroadcastReloadIntoBroadcastChannel',
-                                },
-
-                                onError: {
-                                    target: '#app.loadingAuthenticationTokenFromAsyncStorage',
-                                    actions:
-                                        'sendBroadcastReloadIntoBroadcastChannel',
-                                },
-                            },
+                        onDone: {
+                            target: '#app.loadingAuthenticationTokenFromAsyncStorage',
+                            actions: 'sendBroadcastReloadIntoBroadcastChannel',
                         },
                     },
                 },
@@ -583,13 +585,7 @@ export function createAppMachine({
                     });
                 },
 
-                signOut: async (): Promise<SignOutResponseBody> => {
-                    return await sendSignOut();
-                },
-
-                clearAsyncStorage: async (): Promise<void> => {
-                    return await request.clearToken();
-                },
+                signOut: signingOutMachine,
 
                 loadAuthenticationTokenFromAsyncStorage: async () => {
                     await request.loadToken();
@@ -655,3 +651,56 @@ export function createAppMachine({
         },
     );
 }
+
+const signingOutMachine = createMachine(
+    {
+        id: 'Signing out',
+
+        initial: 'sendingSignOutToServer',
+
+        states: {
+            sendingSignOutToServer: {
+                invoke: {
+                    src: 'signOut',
+
+                    onDone: {
+                        target: 'clearingAsyncStorage',
+                    },
+
+                    onError: {
+                        target: 'clearingAsyncStorage',
+                    },
+                },
+            },
+
+            clearingAsyncStorage: {
+                invoke: {
+                    src: 'clearAsyncStorage',
+
+                    onDone: {
+                        target: 'clearedAsyncStorage',
+                    },
+
+                    onError: {
+                        target: 'clearedAsyncStorage',
+                    },
+                },
+            },
+
+            clearedAsyncStorage: {
+                type: 'final',
+            },
+        },
+    },
+    {
+        services: {
+            signOut: async (): Promise<SignOutResponseBody> => {
+                return await sendSignOut();
+            },
+
+            clearAsyncStorage: async (): Promise<void> => {
+                return await request.clearToken();
+            },
+        },
+    },
+);

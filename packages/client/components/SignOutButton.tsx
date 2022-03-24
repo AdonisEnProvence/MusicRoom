@@ -5,7 +5,7 @@ import { createMachine } from 'xstate';
 import { useMachine } from '@xstate/react';
 import { useAppContext } from '../contexts/AppContext';
 
-const SignOutButton: React.FC<{ testID: string }> = ({ testID }) => {
+const SignOutButton: React.FC<{ testID?: string }> = ({ testID }) => {
     const { appService } = useAppContext();
     const sx = useSx();
     function handleSignOutButtonPress() {

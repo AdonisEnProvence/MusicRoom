@@ -21,7 +21,9 @@
     "test": "jest --reporters jest-silent-reporter",
     "test:watch": "jest --watch",
     "install:react-youtube": "cd ../../node_modules/react-youtube && yarn && yarn compile",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "clean": "rimraf dist *.tsbuildinfo"
+
   },
   "jest": {
     "preset": "jest-expo"

@@ -186,6 +186,7 @@ const EmailConfirmationScreen: React.FC<EmailConfirmationScreenProps> = () => {
                             </View>
 
                             <TouchableOpacity
+                                testID="submit-email-verification-code-button"
                                 onPress={handleSubmit(
                                     handleEmailConfirmationSubmit,
                                 )}

@@ -10,7 +10,7 @@ export default class EmailVerification extends BaseMailer {
     public prepare(message: MessageContract): void {
         message
             .subject(
-                `Welcome ${this.user.nickname}, please verify your email !`,
+                `[${this.token}] - Musicroom. Welcome ${this.user.nickname}, please verify your email !`,
             )
             .from('no-reply@adonisenprovence.com')
             .to(this.user.email)

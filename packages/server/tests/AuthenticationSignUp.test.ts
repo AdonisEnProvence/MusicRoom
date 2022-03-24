@@ -13,6 +13,7 @@ import { datatype, internet, random } from 'faker';
 import test from 'japa';
 import Sinon from 'sinon';
 import supertest from 'supertest';
+import invariant from 'tiny-invariant';
 import urlcat from 'urlcat';
 import {
     BASE_URL,
@@ -62,10 +63,15 @@ test.group('Authentication sign up tests group', (group) => {
                 address: 'no-reply@adonisenprovence.com',
             });
 
-            assert.equal(
-                message.subject,
-                `Welcome ${userNickname}, please verify your email !`,
+            const emailVerificationObjectRegex =
+                /\[.*].*Welcome.*,.*please.*verify.*your.*email.*!/i;
+            assert.isDefined(message.subject);
+            invariant(
+                message.subject !== undefined,
+                'message subject is undefined',
             );
+            assert.match(message.subject, emailVerificationObjectRegex);
+            assert.include(message.subject, userNickname);
         });
         Mail.trap(mailTrapEmailVerificationSpy);
 
@@ -128,10 +134,15 @@ test.group('Authentication sign up tests group', (group) => {
                 address: 'no-reply@adonisenprovence.com',
             });
 
-            assert.equal(
-                message.subject,
-                `Welcome ${nickname}, please verify your email !`,
+            const emailVerificationObjectRegex =
+                /\[.*].*Welcome.*,.*please.*verify.*your.*email.*!/i;
+            assert.isDefined(message.subject);
+            invariant(
+                message.subject !== undefined,
+                'message subject is undefined',
             );
+            assert.match(message.subject, emailVerificationObjectRegex);
+            assert.include(message.subject, nickname);
         });
         Mail.trap(mailTrapEmailVerificationSpy);
 
@@ -162,10 +173,15 @@ test.group('Authentication sign up tests group', (group) => {
                 address: 'no-reply@adonisenprovence.com',
             });
 
-            assert.equal(
-                message.subject,
-                `Welcome ${userNickname}, please verify your email !`,
+            const emailVerificationObjectRegex =
+                /\[.*].*Welcome.*,.*please.*verify.*your.*email.*!/i;
+            assert.isDefined(message.subject);
+            invariant(
+                message.subject !== undefined,
+                'message subject is undefined',
             );
+            assert.match(message.subject, emailVerificationObjectRegex);
+            assert.include(message.subject, nickname);
         });
         Mail.trap(mailTrapEmailVerificationSpy);
 
@@ -445,10 +461,15 @@ test.group('Authentication sign up tests group', (group) => {
                 address: 'no-reply@adonisenprovence.com',
             });
 
-            assert.equal(
-                message.subject,
-                `Welcome ${userNickname}, please verify your email !`,
+            const emailVerificationObjectRegex =
+                /\[.*].*Welcome.*,.*please.*verify.*your.*email.*!/i;
+            assert.isDefined(message.subject);
+            invariant(
+                message.subject !== undefined,
+                'message subject is undefined',
             );
+            assert.match(message.subject, emailVerificationObjectRegex);
+            assert.include(message.subject, userNickname);
         });
         Mail.trap(mailTrapEmailVerificationSpy);
 

@@ -215,6 +215,22 @@ Route.group(() => {
     );
 }).prefix(MPE_TEMPORAL_LISTENER);
 
+const nodeEnvIsDevelopment = process.env.NODE_ENV === 'development';
+if (nodeEnvIsDevelopment) {
+    const TEST_GROUP_PREFIX = `/test`;
+
+    Route.group(() => {
+        Route.get(
+            '/bypass-email-confirmation',
+            'TestEnvMethodController.bypassUserEmailConfirmation',
+        ).middleware('every-auth');
+
+        Route.post(
+            '/toggle-mail-trap',
+            'TestEnvMethodController.toggleMailTrap',
+        );
+    }).prefix(TEST_GROUP_PREFIX);
+}
 /// //////// ////// ///
 
 Route.get('/', () => {

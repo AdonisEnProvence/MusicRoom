@@ -93,6 +93,10 @@ Route.group(() => {
         '/confirm-email',
         'AuthenticationController.confirmEmail',
     ).middleware('every-auth');
+    Route.post(
+        '/resend-confirmation-email',
+        'AuthenticationController.resendConfirmationEmail',
+    ).middleware('every-auth');
 }).prefix(AUTHENTICATION_ROUTES_GROUP_PREFIX);
 
 /// Temporal MTV Routes ///

@@ -6,7 +6,9 @@
  */
 
 import Bouncer from '@ioc:Adonis/Addons/Bouncer';
+import { TokenTypeName } from '@musicroom/types';
 import User from 'App/Models/User';
+import { DateTime } from 'luxon';
 
 /*
 |--------------------------------------------------------------------------
@@ -35,6 +37,23 @@ export const { actions } = Bouncer.define('confirmEmail', (user: User) => {
     const canConfirmEmail = isEmailAlreadyConfirmed === false;
 
     return canConfirmEmail === true;
+}).define('resendConfirmationEmail', async (user: User) => {
+    const confirmationEmailTokensGeneratedDuringLastHour = await user
+        .related('tokens')
+        .query()
+        .whereHas('tokenType', (query) => {
+            return query.where('name', TokenTypeName.enum.EMAIL_CONFIRMATION);
+        })
+        .andWhere('createdAt', '>', DateTime.now().minus({ hours: 1 }).toSQL());
+    const confirmationEmailTokensGeneratedDuringLastHourCount =
+        confirmationEmailTokensGeneratedDuringLastHour.length;
+
+    const hasReachedRateLimit =
+        confirmationEmailTokensGeneratedDuringLastHourCount >= 3;
+    const hasNotReachedRateLimit = hasReachedRateLimit === false;
+    const canResendConfirmationEmail = hasNotReachedRateLimit === true;
+
+    return canResendConfirmationEmail === true;
 });
 
 /*

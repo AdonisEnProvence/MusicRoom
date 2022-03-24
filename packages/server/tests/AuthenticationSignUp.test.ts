@@ -64,15 +64,16 @@ test.group('Authentication sign up tests group', (group) => {
                 address: 'no-reply@adonisenprovence.com',
             });
 
+            const subject = message.subject;
+            invariant(
+                subject !== undefined,
+                'The subject of the message must be defined',
+            );
+
             const emailVerificationObjectRegex =
                 /\[.*].*Welcome.*,.*please.*verify.*your.*email.*!/i;
-            assert.isDefined(message.subject);
-            invariant(
-                message.subject !== undefined,
-                'message subject is undefined',
-            );
-            assert.match(message.subject, emailVerificationObjectRegex);
-            assert.include(message.subject, userNickname);
+            assert.match(subject, emailVerificationObjectRegex);
+            assert.include(subject, userNickname);
 
             const html = message.html;
             invariant(

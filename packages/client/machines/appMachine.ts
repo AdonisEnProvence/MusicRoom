@@ -291,90 +291,160 @@ export function createAppMachine({
                     ],
                 },
 
+                //here
                 waitingForUserEmailConfirmation: {
                     tags: 'userEmailIsNotConfirmed',
-
-                    initial: 'waitingForCodeToBeSubmitted',
+                    type: 'parallel',
 
                     states: {
-                        waitingForCodeToBeSubmitted: {
-                            initial: 'idle',
+                        formHandler: {
+                            initial: 'waitingForCodeToBeSubmitted',
 
                             states: {
-                                idle: {},
+                                waitingForCodeToBeSubmitted: {
+                                    initial: 'idle',
 
-                                previousCodeWasInvalid: {
-                                    tags: 'previousEmailConfirmationCodeWasInvalid',
-                                },
+                                    states: {
+                                        idle: {},
 
-                                unknownErrorOccuredDuringPreviousSubmitting: {
-                                    tags: 'unknownErrorOccuredDuringPreviousSubmittingOfEmailConfirmationCode',
-                                },
-                            },
-
-                            on: {
-                                SUBMIT_EMAIL_CONFIRMATION_FORM: {
-                                    target: 'sendingConfirmationCode',
-
-                                    actions: appModel.assign({
-                                        confirmationCode: (
-                                            _context,
-                                            { code },
-                                        ) => code,
-                                    }),
-                                },
-                            },
-                        },
-
-                        sendingConfirmationCode: {
-                            invoke: {
-                                src: 'sendConfirmationCode',
-
-                                onDone: [
-                                    {
-                                        cond: 'isConfirmationCodeInvalid',
-
-                                        target: 'waitingForCodeToBeSubmitted.previousCodeWasInvalid',
-                                    },
-                                    {
-                                        target: 'revalidatingUserInformation',
-                                    },
-                                ],
-
-                                onError: {
-                                    target: 'waitingForCodeToBeSubmitted.unknownErrorOccuredDuringPreviousSubmitting',
-                                },
-                            },
-                        },
-
-                        revalidatingUserInformation: {
-                            invoke: {
-                                src: 'fetchUser',
-
-                                onDone: {
-                                    target: 'revalidatedUserInformation',
-
-                                    actions: assign({
-                                        myProfileInformation: (_context, e) => {
-                                            const event =
-                                                e as DoneInvokeEvent<GetMyProfileInformationResponseBody>;
-
-                                            return event.data;
+                                        previousCodeWasInvalid: {
+                                            tags: 'previousEmailConfirmationCodeWasInvalid',
                                         },
-                                    }),
+
+                                        unknownErrorOccuredDuringPreviousSubmitting:
+                                            {
+                                                tags: 'unknownErrorOccuredDuringPreviousSubmittingOfEmailConfirmationCode',
+                                            },
+                                    },
+
+                                    on: {
+                                        SUBMIT_EMAIL_CONFIRMATION_FORM: {
+                                            target: 'sendingConfirmationCode',
+
+                                            actions: appModel.assign({
+                                                confirmationCode: (
+                                                    _context,
+                                                    { code },
+                                                ) => code,
+                                            }),
+                                        },
+                                    },
                                 },
 
-                                onError: {
-                                    target: 'failedToRevalidateUserInformation',
+                                sendingConfirmationCode: {
+                                    invoke: {
+                                        src: 'sendConfirmationCode',
+
+                                        onDone: [
+                                            {
+                                                cond: 'isConfirmationCodeInvalid',
+
+                                                target: 'waitingForCodeToBeSubmitted.previousCodeWasInvalid',
+                                            },
+                                            {
+                                                target: 'revalidatingUserInformation',
+                                            },
+                                        ],
+
+                                        onError: {
+                                            target: 'waitingForCodeToBeSubmitted.unknownErrorOccuredDuringPreviousSubmitting',
+                                        },
+                                    },
                                 },
+
+                                revalidatingUserInformation: {
+                                    invoke: {
+                                        src: 'fetchUser',
+
+                                        onDone: {
+                                            target: 'revalidatedUserInformation',
+
+                                            actions: assign({
+                                                myProfileInformation: (
+                                                    _context,
+                                                    e,
+                                                ) => {
+                                                    const event =
+                                                        e as DoneInvokeEvent<GetMyProfileInformationResponseBody>;
+
+                                                    return event.data;
+                                                },
+                                            }),
+                                        },
+
+                                        onError: {
+                                            target: 'failedToRevalidateUserInformation',
+                                        },
+                                    },
+                                },
+
+                                revalidatedUserInformation: {
+                                    type: 'final',
+                                },
+
+                                failedToRevalidateUserInformation: {},
+                            },
+
+                            onDone: {
+                                target: '#app.reconnectingSocketConnection',
                             },
                         },
 
-                        revalidatedUserInformation: {
-                            type: 'final',
-                        },
+                        pollingHandler: {
+                            states: {
+                                pollingMyProfileInformation: {
+                                    invoke: {
+                                        src: 'fetchUser',
 
-                        failedToRevalidateUserInformation: {},
+                                        onDone: [
+                                            {
+                                                cond: (_context, e) => {
+                                                    const event =
+                                                        e as DoneInvokeEvent<GetMyProfileInformationResponseBody>;
+                                                    return event.data
+                                                        .hasConfirmedEmail;
+                                                },
+                                                actions: assign({
+                                                    myProfileInformation: (
+                                                        _context,
+                                                        e,
+                                                    ) => {
+                                                        const event =
+                                                            e as DoneInvokeEvent<GetMyProfileInformationResponseBody>;
+
+                                                        return event.data;
+                                                    },
+                                                }),
+                                                target: 'userEmailIsVerified',
+                                            },
+                                            {
+                                                target: 'debouncing',
+                                            },
+                                        ],
+
+                                        onError: {
+                                            target: 'debouncing',
+                                        },
+                                    },
+                                },
+
+                                debouncing: {
+                                    after: {
+                                        500: {
+                                            target: 'pollingMyProfileInformation',
+                                        },
+                                    },
+                                },
+
+                                userEmailIsVerified: {
+                                    type: 'final',
+                                },
+                            },
+
+                            onDone: {
+                                target: '#app.reconnectingSocketConnection',
+                            },
+                        },
 
                         signingOut: {
                             invoke: {
@@ -399,10 +469,6 @@ export function createAppMachine({
                         SIGN_OUT: {
                             target: 'waitingForUserEmailConfirmation.signingOut',
                         },
-                    },
-
-                    onDone: {
-                        target: 'reconnectingSocketConnection',
                     },
                 },
 

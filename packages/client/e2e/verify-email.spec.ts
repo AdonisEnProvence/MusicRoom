@@ -14,6 +14,9 @@ test.afterEach(async ({ browser }) => {
     await closeAllContexts(browser);
 });
 
+//Remark: to be able to run successfully the following test you have to set up a smtp server and fill the corresponding env variables
+//inside your .env.testing file
+
 test('It should renders home on every browser tab after a signUp and verify email', async ({
     browser,
 }) => {

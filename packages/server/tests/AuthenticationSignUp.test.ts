@@ -63,15 +63,15 @@ test.group('Authentication sign up tests group', (group) => {
                 address: 'no-reply@adonisenprovence.com',
             });
 
-            const emailVerificationObjectRegex = new RegExp(
-                `[.*].*Welcome.*${userNickname},.*please.*verify.*your.*email.*!`,
-            );
+            const emailVerificationObjectRegex =
+                /\[.*].*Welcome.*,.*please.*verify.*your.*email.*!/i;
             assert.isDefined(message.subject);
             invariant(
                 message.subject !== undefined,
                 'message subject is undefined',
             );
-            assert.isTrue(emailVerificationObjectRegex.test(message.subject));
+            assert.match(message.subject, emailVerificationObjectRegex);
+            assert.include(message.subject, userNickname);
         });
         Mail.trap(mailTrapEmailVerificationSpy);
 
@@ -134,15 +134,15 @@ test.group('Authentication sign up tests group', (group) => {
                 address: 'no-reply@adonisenprovence.com',
             });
 
-            const emailVerificationObjectRegex = new RegExp(
-                `[.*].*Welcome.*${nickname},.*please.*verify.*your.*email.*!`,
-            );
+            const emailVerificationObjectRegex =
+                /\[.*].*Welcome.*,.*please.*verify.*your.*email.*!/i;
             assert.isDefined(message.subject);
             invariant(
                 message.subject !== undefined,
                 'message subject is undefined',
             );
-            assert.isTrue(emailVerificationObjectRegex.test(message.subject));
+            assert.match(message.subject, emailVerificationObjectRegex);
+            assert.include(message.subject, nickname);
         });
         Mail.trap(mailTrapEmailVerificationSpy);
 
@@ -173,15 +173,15 @@ test.group('Authentication sign up tests group', (group) => {
                 address: 'no-reply@adonisenprovence.com',
             });
 
-            const emailVerificationObjectRegex = new RegExp(
-                `[.*].*Welcome.*${userNickname},.*please.*verify.*your.*email.*!`,
-            );
+            const emailVerificationObjectRegex =
+                /\[.*].*Welcome.*,.*please.*verify.*your.*email.*!/i;
             assert.isDefined(message.subject);
             invariant(
                 message.subject !== undefined,
                 'message subject is undefined',
             );
-            assert.isTrue(emailVerificationObjectRegex.test(message.subject));
+            assert.match(message.subject, emailVerificationObjectRegex);
+            assert.include(message.subject, nickname);
         });
         Mail.trap(mailTrapEmailVerificationSpy);
 
@@ -461,15 +461,15 @@ test.group('Authentication sign up tests group', (group) => {
                 address: 'no-reply@adonisenprovence.com',
             });
 
-            const emailVerificationObjectRegex = new RegExp(
-                `[.*].*Welcome.*${userNickname},.*please.*verify.*your.*email.*!`,
-            );
+            const emailVerificationObjectRegex =
+                /\[.*].*Welcome.*,.*please.*verify.*your.*email.*!/i;
             assert.isDefined(message.subject);
             invariant(
                 message.subject !== undefined,
                 'message subject is undefined',
             );
-            assert.isTrue(emailVerificationObjectRegex.test(message.subject));
+            assert.match(message.subject, emailVerificationObjectRegex);
+            assert.include(message.subject, userNickname);
         });
         Mail.trap(mailTrapEmailVerificationSpy);
 

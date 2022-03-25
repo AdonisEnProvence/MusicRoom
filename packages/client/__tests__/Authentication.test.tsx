@@ -1884,35 +1884,16 @@ const authenticationModel = createModel<TestingContext>(
     },
 
     'Make server returns user has verified her email': (context) => {
-        server.use(
-            rest.get<never, never, GetMyProfileInformationResponseBody>(
-                `${SERVER_ENDPOINT}/me/profile-information`,
-                withAuthentication((_req, res, ctx) => {
-                    const user = db.myProfileInformation.findFirst({
-                        where: {
-                            userID: {
-                                equals: CLIENT_INTEG_TEST_USER_ID,
-                            },
-                        },
-                    });
-                    if (user === null) {
-                        return res(ctx.status(404));
-                    }
-
-                    return res(
-                        ctx.json({
-                            userID: user.userID,
-                            userNickname: user.userNickname,
-                            playlistsCounter: user.playlistsCounter,
-                            followersCounter: user.followersCounter,
-                            followingCounter: user.followingCounter,
-                            devicesCounter: user.devicesCounter,
-                            hasConfirmedEmail: true,
-                        }),
-                    );
-                }),
-            ),
-        );
+        db.myProfileInformation.update({
+            where: {
+                userID: {
+                    equals: CLIENT_INTEG_TEST_USER_ID,
+                },
+            },
+            data: {
+                hasConfirmedEmail: true,
+            },
+        });
     },
 
     'Submit confirmation code form': async ({ screen }) => {

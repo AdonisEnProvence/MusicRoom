@@ -19,6 +19,7 @@ import {
     StateMachine,
 } from 'xstate';
 import { raise } from 'xstate/lib/actions';
+import { IS_TEST } from '../constants/Env';
 import { SocketClient } from '../contexts/SocketContext';
 import {
     sendEmailConfirmationCode,
@@ -435,9 +436,10 @@ export function createAppMachine({
 
                                 debouncing: {
                                     after: {
-                                        500: {
-                                            target: 'pollingMyProfileInformation',
-                                        },
+                                        POLLING_EMAIL_VERIFICATION_STATUS_DELAY:
+                                            {
+                                                target: 'pollingMyProfileInformation',
+                                            },
                                     },
                                 },
 
@@ -696,6 +698,10 @@ export function createAppMachine({
                 sendBroadcastReloadIntoBroadcastChannel: send(() => ({
                     type: '__BROADCAST_RELOAD_INTO_BROADCAST_CHANNEL',
                 })),
+            },
+
+            delays: {
+                POLLING_EMAIL_VERIFICATION_STATUS_DELAY: IS_TEST ? 500 : 5000,
             },
 
             guards: {

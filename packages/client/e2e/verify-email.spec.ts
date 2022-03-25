@@ -15,7 +15,7 @@ import {
     GEOLOCATION_POSITIONS,
 } from './_utils/page';
 
-test.afterEach(async ({ browser, page }) => {
+test.afterEach(async ({ browser }) => {
     await closeAllContexts(browser);
 });
 
@@ -123,7 +123,7 @@ test('It should renders home on every browser tab after a signUp and verify emai
 
     await Promise.all(
         everyUserFirstContextPage.map(
-            async (page) => await pageIsOnHomeScreen({ page }),
+            async (page) => await pageIsOnHomeScreen({ page, timeout: 6000 }),
         ),
     );
     await pageIsOnSignInScreen({ page: secondContextPage });

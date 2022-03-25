@@ -218,6 +218,7 @@ export async function bypassVerifyEmailScreen({
 
     await pageIsOnHomeScreen({
         page,
+        timeout: 6000,
     });
 }
 

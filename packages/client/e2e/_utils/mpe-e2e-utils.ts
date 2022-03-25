@@ -500,12 +500,16 @@ export async function leaveMpeRoom({
 
 export async function pageIsOnHomeScreen({
     page,
+    timeout,
 }: {
     page: Page;
+    timeout?: number;
 }): Promise<void> {
     await expect(
         page.locator('css=[data-testid="home-screen-container"]'),
-    ).toBeVisible();
+    ).toBeVisible({
+        timeout,
+    });
 }
 
 export async function pageIsOnSignInScreen({

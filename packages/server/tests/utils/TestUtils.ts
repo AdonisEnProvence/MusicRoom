@@ -23,6 +23,7 @@ import { io, Socket } from 'socket.io-client';
 import supertest from 'supertest';
 import invariant from 'tiny-invariant';
 import urlcat from 'urlcat';
+import { DateTime } from 'luxon';
 import {
     createMachine,
     interpret,
@@ -191,6 +192,7 @@ interface TestUtilsReturnedValue {
     ) => Promise<ExpectReturn>;
     createUserAndAuthenticate: (
         request: supertest.SuperAgentTest,
+        withoutEmailIsConfirmed?: boolean,
     ) => Promise<User>;
     createRequest: () => supertest.SuperAgentTest;
     associateMtvRoomToUser: (args: AssociateMtvRoomToUserArgs) => Promise<void>;
@@ -832,6 +834,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
 
     async function createUserAndAuthenticate(
         request: supertest.SuperAgentTest,
+        withoutEmailIsConfirmed?: boolean,
     ): Promise<User> {
         const userID = datatype.uuid();
         const userUnhashedPassword = internet.password();
@@ -840,6 +843,9 @@ export function initTestUtils(): TestUtilsReturnedValue {
             nickname: internet.userName(),
             email: internet.email(),
             password: userUnhashedPassword,
+            confirmedEmailAt: withoutEmailIsConfirmed
+                ? undefined
+                : DateTime.now(),
         });
 
         const signInRequestBody: SignInRequestBody = {

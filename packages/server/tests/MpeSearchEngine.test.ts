@@ -292,6 +292,28 @@ test.group("Other user's MPE Rooms Search", (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
+    test('It should failed to unfollow user as the requesting user has not confirmed his email', async () => {
+        const request = createRequest();
+
+        const emailNotConfirmed = true;
+        await createUserAndAuthenticate(request, emailNotConfirmed);
+
+        const userID = datatype.uuid();
+        await User.create({
+            uuid: userID,
+            nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
+        });
+
+        const requestBody: UserSearchMpeRoomsRequestBody = {
+            userID,
+            searchQuery: '',
+            page: 1,
+        };
+        await request.post('/user/search/mpe').send(requestBody).expect(403);
+    });
+
     test("It should send back all other user's public MPE rooms", async (assert) => {
         const PAGE_MAX_LENGTH = 10;
         const request = createRequest();

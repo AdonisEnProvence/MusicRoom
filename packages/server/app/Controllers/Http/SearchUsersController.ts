@@ -131,12 +131,14 @@ export default class SearchUsersController {
     public async searchUsers({
         request,
         auth,
+        bouncer,
     }: HttpContextContract): Promise<SearchUsersResponseBody> {
         const user = auth.user;
         invariant(
             user !== undefined,
             'User must be authenticated to search users',
         );
+        await bouncer.authorize('hasConfirmedEmail');
 
         const rawBody = request.body();
         const { searchQuery, page } = SearchUsersRequestBody.parse(rawBody);
@@ -164,18 +166,18 @@ export default class SearchUsersController {
     public async listUserFollowers({
         request,
         auth,
+        bouncer,
     }: HttpContextContract): Promise<ListUserFollowersResponseBody> {
         const user = auth.user;
         invariant(
             user !== undefined,
             "User must be authenticated to list another user's followers",
         );
+        await bouncer.authorize('hasConfirmedEmail');
 
         const { page, searchQuery, userID } =
             ListUserFollowersRequestBody.parse(request.body());
 
-        //TODO tmpAUThUSerID !== relatedUserID + tests
-        //Checking relations visibility
         await throwErrorIfRequestingUserCanNotAccessRelatedUserRelationsVisibility(
             {
                 relatedUserID: userID,
@@ -194,12 +196,14 @@ export default class SearchUsersController {
     public async listUserFollowing({
         request,
         auth,
+        bouncer,
     }: HttpContextContract): Promise<ListUserFollowingResponseBody> {
         const user = auth.user;
         invariant(
             user !== undefined,
             "User must be authenticated to list another user's following",
         );
+        await bouncer.authorize('hasConfirmedEmail');
 
         const { page, searchQuery, userID } =
             ListUserFollowingRequestBody.parse(request.body());
@@ -224,12 +228,14 @@ export default class SearchUsersController {
     public async listMyFollowing({
         request,
         auth,
+        bouncer,
     }: HttpContextContract): Promise<ListMyFollowingResponseBody> {
         const user = auth.user;
         invariant(
             user !== undefined,
             'User must be authenticated to list her following',
         );
+        await bouncer.authorize('hasConfirmedEmail');
 
         const { page, searchQuery } = ListMyFollowingRequestBody.parse(
             request.body(),
@@ -245,12 +251,14 @@ export default class SearchUsersController {
     public async listMyFollowers({
         request,
         auth,
+        bouncer,
     }: HttpContextContract): Promise<ListMyFollowersResponseBody> {
         const user = auth.user;
         invariant(
             user !== undefined,
             'User must be authenticated to list her followers',
         );
+        await bouncer.authorize('hasConfirmedEmail');
 
         const { page, searchQuery } = ListMyFollowersRequestBody.parse(
             request.body(),

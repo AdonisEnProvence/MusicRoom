@@ -26,6 +26,19 @@ test.group('Users Search Engine', (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
+    test('It should failed to search for users as the requesting user has not confirmed his email', async () => {
+        const request = createRequest();
+
+        const emailNotConfirmed = true;
+        await createUserAndAuthenticate(request, emailNotConfirmed);
+
+        const body: SearchUsersRequestBody = {
+            page: 1,
+            searchQuery: 'query',
+        };
+        await request.post('/search/users').send(body).expect(403);
+    });
+
     test('Requires authentication', async () => {
         const request = createRequest();
 

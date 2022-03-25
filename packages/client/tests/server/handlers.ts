@@ -41,6 +41,7 @@ import {
     ConfirmEmailRequestBody,
     ConfirmEmailResponseBody,
     SignOutResponseBody,
+    ResendConfirmationEmailResponseBody,
 } from '@musicroom/types';
 import { datatype } from 'faker';
 import {
@@ -846,6 +847,18 @@ export const handlers = [
                 },
             });
 
+            return res(
+                ctx.status(200),
+                ctx.json({
+                    status: 'SUCCESS',
+                }),
+            );
+        }),
+    ),
+
+    rest.post<never, never, ResendConfirmationEmailResponseBody>(
+        `${SERVER_ENDPOINT}/authentication/resend-confirmation-email`,
+        withAuthentication((_req, res, ctx) => {
             return res(
                 ctx.status(200),
                 ctx.json({

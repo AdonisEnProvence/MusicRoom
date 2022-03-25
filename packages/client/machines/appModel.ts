@@ -14,6 +14,7 @@ export const appModel = createModel(
             SIGNED_UP_SUCCESSFULLY: () => ({}),
             SIGN_OUT: () => ({}),
             SUBMIT_EMAIL_CONFIRMATION_FORM: (args: { code: string }) => args,
+            RESEND_CONFIRMATION_EMAIL: () => ({}),
             __BROADCAST_RELOAD_INTO_BROADCAST_CHANNEL: () => ({}),
             __RECEIVED_RELOAD_PAGE: () => ({}),
             __AUTHENTICATED: () => ({}),

@@ -1,10 +1,12 @@
 import {
     ConfirmEmailResponseBody,
     GetMyProfileInformationResponseBody,
+    ResendConfirmationEmailResponseBody,
     SignInResponseBody,
     SignOutResponseBody,
 } from '@musicroom/types';
 import invariant from 'tiny-invariant';
+import Toast from 'react-native-toast-message';
 import {
     assign,
     ContextFrom,
@@ -23,6 +25,7 @@ import { IS_TEST } from '../constants/Env';
 import { SocketClient } from '../contexts/SocketContext';
 import {
     sendEmailConfirmationCode,
+    sendResendingConfirmationEmail,
     sendSignIn,
     sendSignOut,
 } from '../services/AuthenticationService';
@@ -453,6 +456,50 @@ export function createAppMachine({
                             },
                         },
 
+                        resendingConfirmationEmail: {
+                            initial: 'idle',
+
+                            states: {
+                                idle: {
+                                    on: {
+                                        RESEND_CONFIRMATION_EMAIL: {
+                                            target: 'requestingResendingConfirmationEmail',
+                                        },
+                                    },
+                                },
+
+                                requestingResendingConfirmationEmail: {
+                                    invoke: {
+                                        src: 'resendConfirmationEmail',
+
+                                        onDone: [
+                                            {
+                                                cond: 'hasReachedRateLimitForResendingConfirmationEmail',
+
+                                                target: 'idle',
+
+                                                actions:
+                                                    'showToastForRateLimitedConfirmationEmailResending',
+                                            },
+                                            {
+                                                target: 'idle',
+
+                                                actions:
+                                                    'showToastForSuccessfulConfirmationEmailResending',
+                                            },
+                                        ],
+
+                                        onError: {
+                                            target: 'idle',
+
+                                            actions:
+                                                'showToastForFailedConfirmationEmailResending',
+                                        },
+                                    },
+                                },
+                            },
+                        },
+
                         signingOut: {
                             initial: 'idle',
 
@@ -684,6 +731,14 @@ export function createAppMachine({
 
                     return responseBody;
                 },
+
+                resendConfirmationEmail:
+                    async (): Promise<ResendConfirmationEmailResponseBody> => {
+                        const responseBody =
+                            await sendResendingConfirmationEmail();
+
+                        return responseBody;
+                    },
             },
 
             actions: {
@@ -695,9 +750,31 @@ export function createAppMachine({
 
                     window.location.reload();
                 },
+
                 sendBroadcastReloadIntoBroadcastChannel: send(() => ({
                     type: '__BROADCAST_RELOAD_INTO_BROADCAST_CHANNEL',
                 })),
+
+                showToastForRateLimitedConfirmationEmailResending: () => {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'You have reached the limit of resending confirmation emails',
+                    });
+                },
+
+                showToastForSuccessfulConfirmationEmailResending: () => {
+                    Toast.show({
+                        type: 'success',
+                        text1: 'You should have received a new confirmation email',
+                    });
+                },
+
+                showToastForFailedConfirmationEmailResending: () => {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'An error occured while trying to resend your confirmation email. Please try again later',
+                    });
+                },
             },
 
             delays: {
@@ -731,6 +808,16 @@ export function createAppMachine({
                         e as DoneInvokeEvent<ConfirmEmailResponseBody>;
 
                     return event.data.status === 'INVALID_TOKEN';
+                },
+
+                hasReachedRateLimitForResendingConfirmationEmail: (
+                    _context,
+                    e,
+                ) => {
+                    const event =
+                        e as DoneInvokeEvent<ResendConfirmationEmailResponseBody>;
+
+                    return event.data.status === 'REACHED_RATE_LIMIT';
                 },
             },
         },

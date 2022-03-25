@@ -214,7 +214,7 @@ const EmailConfirmationScreen: React.FC<EmailConfirmationScreenProps> = () => {
                                 </Text>
                             </View>
 
-                            <SignOutButton />
+                            <SignOutButton testID="email-confirmation-sign-out-button" />
                         </View>
                     </View>
                 </View>

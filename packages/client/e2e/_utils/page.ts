@@ -76,12 +76,14 @@ export async function enableMailTrap({ page }: { page: Page }): Promise<void> {
 type SetupAndGetUserContextArgs = {
     browser: Browser;
     knownSearches: KnownSearchesRecord;
+    doNotByPassEmailVerification?: boolean;
     town?: keyof typeof GEOLOCATION_POSITIONS;
 };
 export async function setupPageAndSignUpUser({
     browser,
     knownSearches,
     town,
+    doNotByPassEmailVerification,
 }: SetupAndGetUserContextArgs): Promise<{
     context: BrowserContext;
     page: Page;
@@ -109,6 +111,17 @@ export async function setupPageAndSignUpUser({
     });
 
     const { userNickname, userID, email, password } = await performSignUp(page);
+
+    if (doNotByPassEmailVerification) {
+        return {
+            context,
+            page,
+            userNickname,
+            userID,
+            email,
+            password,
+        };
+    }
 
     await bypassVerifyEmailScreen({ page });
 

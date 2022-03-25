@@ -119,3 +119,4 @@ jobs:
               env:
                   GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
                   GOOGLE_MAPS_JAVASCRIPT_API_KEY: ${{ secrets.GOOGLE_MAPS_JAVASCRIPT_API_KEY }}
+                  NODE_ENV: 'test'

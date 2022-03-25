@@ -216,12 +216,9 @@ export async function bypassVerifyEmailScreen({
 
     await page.request.get(`${SERVER_ENDPOINT}/test/bypass-email-confirmation`);
 
-    //FIXME TMP should be removed after email polling
-    await page.reload();
-    ///
-
     await pageIsOnHomeScreen({
         page,
+        timeout: 6000,
     });
 }
 

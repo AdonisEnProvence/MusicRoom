@@ -15,11 +15,8 @@ import {
     GEOLOCATION_POSITIONS,
 } from './_utils/page';
 
-test.afterEach(async ({ browser, page }) => {
+test.afterEach(async ({ browser }) => {
     await closeAllContexts(browser);
-    await enableMailTrap({
-        page,
-    });
 });
 
 //Remark: to be able to run successfully the following test you have to set up a smtp server and fill the corresponding env variables
@@ -40,7 +37,7 @@ test('It should renders home on every browser tab after a signUp and verify emai
     await disabledMailTrap({ page: aliveInboxPage });
 
     //Could be improve using waitForSelector and complex css selector + regex ?
-    await aliveInboxPage.waitForTimeout(4000);
+    await aliveInboxPage.waitForTimeout(8000);
     const myEmail = await aliveInboxPage.inputValue('input#mail');
     console.log({ myEmail });
 
@@ -126,10 +123,13 @@ test('It should renders home on every browser tab after a signUp and verify emai
 
     await Promise.all(
         everyUserFirstContextPage.map(
-            async (page) => await pageIsOnHomeScreen({ page }),
+            async (page) => await pageIsOnHomeScreen({ page, timeout: 6000 }),
         ),
     );
     await pageIsOnSignInScreen({ page: secondContextPage });
+    await enableMailTrap({
+        page,
+    });
 });
 
 async function verifyEmail({

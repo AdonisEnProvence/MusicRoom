@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
+    GetMyProfileInformationResponseBody,
     passwordStrengthRegex,
     SignUpRequestBody,
     SignUpResponseBody,
@@ -110,6 +111,9 @@ const authenticationModelMachine =
                       }
                     | {
                           type: 'Submit confirmation code form';
+                      }
+                    | {
+                          type: 'Make server returns user has verified her email';
                       }
                     | {
                           type: 'Sign out';
@@ -1433,6 +1437,10 @@ const authenticationModelMachine =
                                         internal: false,
                                     },
                                 ],
+                                'Make server returns user has verified her email':
+                                    {
+                                        target: 'Confirmed email',
+                                    },
                             },
                             onDone: {
                                 target: 'Confirmed email',
@@ -1873,6 +1881,19 @@ const authenticationModel = createModel<TestingContext>(
                 }),
             ),
         );
+    },
+
+    'Make server returns user has verified her email': (context) => {
+        db.myProfileInformation.update({
+            where: {
+                userID: {
+                    equals: CLIENT_INTEG_TEST_USER_ID,
+                },
+            },
+            data: {
+                hasConfirmedEmail: true,
+            },
+        });
     },
 
     'Submit confirmation code form': async ({ screen }) => {
@@ -2604,6 +2625,18 @@ cases<{
                 },
                 {
                     type: 'Submit confirmation code form',
+                },
+            ],
+        },
+
+        'Confirm email from an other device': {
+            target: 'Rendering home screen',
+            events: [
+                {
+                    type: 'Make user authenticated and render application',
+                },
+                {
+                    type: 'Make server returns user has verified her email',
                 },
             ],
         },

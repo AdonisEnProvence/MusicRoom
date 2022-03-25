@@ -3,6 +3,7 @@ import {
     ConfirmEmailRequestBody,
     ConfirmEmailResponseBody,
     GetMyProfileInformationResponseBody,
+    ResendConfirmationEmailResponseBody,
     SignInFailureResponseBody,
     SignInRequestBody,
     SignInSuccessfulApiTokensResponseBody,
@@ -624,9 +625,16 @@ test.group('Resending confirmation email', (group) => {
         });
         Mail.trap(mailTrapEmailVerificationSpy);
 
-        await request
+        const resendConfirmationEmailRawResponse = await request
             .post('/authentication/resend-confirmation-email')
             .expect(200);
+        const resendConfirmationEmailResponse =
+            ResendConfirmationEmailResponseBody.parse(
+                resendConfirmationEmailRawResponse.body,
+            );
+        assert.deepStrictEqual(resendConfirmationEmailResponse, {
+            status: 'SUCCESS',
+        });
 
         await waitFor(() => {
             assert.isTrue(mailTrapEmailVerificationSpy.calledOnce);
@@ -714,9 +722,16 @@ test.group('Resending confirmation email', (group) => {
         const mailTrapEmailVerificationSpy = spy();
         Mail.trap(mailTrapEmailVerificationSpy);
 
-        await request
+        const resendConfirmationEmailRawResponse = await request
             .post('/authentication/resend-confirmation-email')
-            .expect(200);
+            .expect(429);
+        const resendConfirmationEmailResponse =
+            ResendConfirmationEmailResponseBody.parse(
+                resendConfirmationEmailRawResponse.body,
+            );
+        assert.deepStrictEqual(resendConfirmationEmailResponse, {
+            status: 'REACHED_RATE_LIMIT',
+        });
 
         await waitForSettled(() => {
             assert.isTrue(mailTrapEmailVerificationSpy.notCalled);

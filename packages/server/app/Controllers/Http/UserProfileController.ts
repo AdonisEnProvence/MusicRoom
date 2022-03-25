@@ -146,12 +146,14 @@ export default class UserProfileController {
     public async getUserProfileInformation({
         request,
         auth,
+        bouncer,
     }: HttpContextContract): Promise<GetUserProfileInformationResponseBody> {
         const user = auth.user;
         invariant(
             user !== undefined,
             "User must be authenticated to get another user's profile information",
         );
+        await bouncer.authorize('hasConfirmedEmail');
 
         const { userID } = GetUserProfileInformationRequestBody.parse(
             request.body(),
@@ -170,12 +172,14 @@ export default class UserProfileController {
     public async followUser({
         request,
         auth,
+        bouncer,
     }: HttpContextContract): Promise<FollowUserResponseBody> {
         const user = auth.user;
         invariant(
             user !== undefined,
             'User must be authenticated to follow another user',
         );
+        await bouncer.authorize('hasConfirmedEmail');
 
         const { userID } = FollowUserRequestBody.parse(request.body());
 
@@ -218,12 +222,14 @@ export default class UserProfileController {
     public async unfollowUser({
         request,
         auth,
+        bouncer,
     }: HttpContextContract): Promise<UnfollowUserResponseBody> {
         const user = auth.user;
         invariant(
             user !== undefined,
             'User must be authenticated to unfollow another user',
         );
+        await bouncer.authorize('hasConfirmedEmail');
 
         const { userID } = UnfollowUserRequestBody.parse(request.body());
 
@@ -267,6 +273,7 @@ export default class UserProfileController {
     public async listUserMpeRooms({
         request,
         auth,
+        bouncer,
     }: HttpContextContract): Promise<UserSearchMpeRoomsResponseBody> {
         const MPE_ROOMS_SEARCH_LIMIT = 10;
         const user = auth.user;
@@ -274,6 +281,7 @@ export default class UserProfileController {
             user !== undefined,
             "User must be authenticated to list another user's mpe rooms",
         );
+        await bouncer.authorize('hasConfirmedEmail');
 
         const { userID, searchQuery, page } =
             UserSearchMpeRoomsRequestBody.parse(request.body());

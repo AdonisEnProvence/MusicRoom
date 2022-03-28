@@ -479,6 +479,16 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                         {errors.password.message}
                                     </Text>
                                 )}
+
+                                <View sx={{ marginTop: 'm' }}>
+                                    <Text
+                                        sx={{
+                                            color: 'greyLighter',
+                                        }}
+                                    >
+                                        Password must be 8 or more in length.
+                                    </Text>
+                                </View>
                             </View>
 
                             <View sx={{ marginBottom: 'l' }}>

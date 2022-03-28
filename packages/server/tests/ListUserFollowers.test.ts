@@ -197,7 +197,7 @@ test.group('List user followers tests group', (group) => {
                 fill: (index) => ({
                     uuid: datatype.uuid(),
                     nickname: `${index % 2 === 0 ? searchQuery : ''}${unique(
-                        () => internet.userName(),
+                        () => internet.userName().toLowerCase(),
                     )}`,
                     email: internet.email(),
                     password: internet.password(),

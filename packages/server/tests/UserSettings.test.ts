@@ -36,6 +36,15 @@ test.group('User settings', (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
+    test('It should fail to get my settings as I don t have verified my email', async () => {
+        const request = createRequest();
+
+        const emailIsNotConfirmed = true;
+        await createUserAndAuthenticate(request, emailIsNotConfirmed);
+
+        await request.get('/me/settings').expect(403);
+    });
+
     test('Gets my settings', async (assert) => {
         const request = createRequest();
 
@@ -114,6 +123,21 @@ test.group('User settings', (group) => {
             .post('/me/playlists-visibility')
             .send(requestBody)
             .expect(401);
+    });
+
+    test('It should fail to set my playlist visibility as I don t have verified my email', async () => {
+        const request = createRequest();
+
+        const emailIsNotConfirmed = true;
+        await createUserAndAuthenticate(request, emailIsNotConfirmed);
+
+        const requestBody: UpdatePlaylistsVisibilityRequestBody = {
+            visibility: 'PUBLIC',
+        };
+        await request
+            .post('/me/playlists-visibility')
+            .send(requestBody)
+            .expect(403);
     });
 
     test(`Can set playlists visibility to 'PUBLIC'`, async (assert) => {
@@ -208,6 +232,21 @@ test.group('User settings', (group) => {
             .expect(401);
     });
 
+    test('It should fail to set my relations visibility as I don t have verified my email', async () => {
+        const request = createRequest();
+
+        const emailIsNotConfirmed = true;
+        await createUserAndAuthenticate(request, emailIsNotConfirmed);
+
+        const requestBody: UpdateRelationsVisibilityRequestBody = {
+            visibility: 'PUBLIC',
+        };
+        await request
+            .post('/me/relations-visibility')
+            .send(requestBody)
+            .expect(403);
+    });
+
     test(`Can set relations visibility to 'PUBLIC'`, async (assert) => {
         const request = createRequest();
 
@@ -298,6 +337,18 @@ test.group('User settings', (group) => {
             nickname: 'new nickname',
         };
         await request.post('/me/nickname').send(requestBody).expect(401);
+    });
+
+    test('It should fail to update my nickname as I don t have verified my email', async () => {
+        const request = createRequest();
+
+        const emailIsNotConfirmed = true;
+        await createUserAndAuthenticate(request, emailIsNotConfirmed);
+
+        const requestBody: UpdateNicknameRequestBody = {
+            nickname: 'new nickname',
+        };
+        await request.post('/me/nickname').send(requestBody).expect(403);
     });
 
     test(`Returns an error when trying to update user's nickname with her current nickname`, async (assert) => {

@@ -2,16 +2,27 @@ import Env from '@ioc:Adonis/Core/Env';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import { TrackMetadata } from '@musicroom/types';
 import { google } from 'googleapis';
+import invariant from 'tiny-invariant';
 
 const youtube = google.youtube({
     version: 'v3',
     auth: Env.get('GOOGLE_API_KEY'),
 });
 
+//TODO
 export default class TracksSearchesController {
     public async searchTrackName({
         request,
+        auth,
+        bouncer,
     }: HttpContextContract): Promise<TrackMetadata[] | undefined> {
+        const user = auth.user;
+        invariant(
+            user !== undefined,
+            'User must be authenticated to search users',
+        );
+        await bouncer.authorize('hasConfirmedEmail');
+
         const params = request.params();
         const query = decodeURIComponent(params.query);
 

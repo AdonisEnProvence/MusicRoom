@@ -54,6 +54,22 @@ test.group('My MPE Rooms Search', (group) => {
             .expect(401);
     });
 
+    test('It should fail to list my mpe rooms as I ve not verified my email', async () => {
+        const request = createRequest();
+
+        const emailIsNotConfirmed = true;
+        await createUserAndAuthenticate(request, emailIsNotConfirmed);
+
+        const requestBody: ListAllMpeRoomsRequestBody = {
+            searchQuery: '',
+            page: 1,
+        };
+        await request
+            .post('/mpe/search/my-rooms')
+            .send(requestBody)
+            .expect(403);
+    });
+
     test('It should send back mpe room user has joined only', async (assert) => {
         const request = createRequest();
 
@@ -202,7 +218,7 @@ test.group('My MPE Rooms Search', (group) => {
             .expect(500);
     });
 
-    test('Rooms are paginated', async (assert) => {
+    test('My mpe rooms are paginated', async (assert) => {
         const request = createRequest();
 
         const PAGE_MAX_LENGTH = 10;
@@ -684,6 +700,22 @@ test.group('All MPE Rooms Search', (group) => {
             .post('/mpe/search/all-rooms')
             .send(requestBody)
             .expect(401);
+    });
+
+    test('It should fail to list all mpe rooms as I ve not verified my email', async () => {
+        const request = createRequest();
+
+        const emailIsNotConfirmed = true;
+        await createUserAndAuthenticate(request, emailIsNotConfirmed);
+
+        const requestBody: ListAllMpeRoomsRequestBody = {
+            searchQuery: '',
+            page: 1,
+        };
+        await request
+            .post('/mpe/search/all-rooms')
+            .send(requestBody)
+            .expect(403);
     });
 
     test('Does not return rooms user is member of', async (assert) => {

@@ -13,6 +13,7 @@ import invariant from 'tiny-invariant';
 
 export default class UserSettingsController {
     public async getMySettings({
+        bouncer,
         auth,
     }: HttpContextContract): Promise<GetMySettingsResponseBody> {
         const user = auth.user;
@@ -20,6 +21,7 @@ export default class UserSettingsController {
             user !== undefined,
             'User must be logged in to get her settings',
         );
+        await bouncer.authorize('hasConfirmedEmail');
 
         await user.load((loader) => {
             loader
@@ -36,6 +38,7 @@ export default class UserSettingsController {
 
     public async updatePlaylistsVisibility({
         request,
+        bouncer,
         auth,
     }: HttpContextContract): Promise<UpdatePlaylistsVisibilityResponseBody> {
         const user = auth.user;
@@ -43,6 +46,7 @@ export default class UserSettingsController {
             user !== undefined,
             'User must be logged in to update her playlists visibility setting',
         );
+        await bouncer.authorize('hasConfirmedEmail');
 
         const { visibility } = UpdatePlaylistsVisibilityRequestBody.parse(
             request.body(),
@@ -63,6 +67,7 @@ export default class UserSettingsController {
 
     public async updateRelationsVisibility({
         request,
+        bouncer,
         auth,
     }: HttpContextContract): Promise<UpdateRelationsVisibilityResponseBody> {
         const user = auth.user;
@@ -70,6 +75,7 @@ export default class UserSettingsController {
             user !== undefined,
             'User must be logged in to update her relations visibility setting',
         );
+        await bouncer.authorize('hasConfirmedEmail');
 
         const { visibility } = UpdateRelationsVisibilityRequestBody.parse(
             request.body(),
@@ -91,6 +97,7 @@ export default class UserSettingsController {
     public async updateNickname({
         request,
         auth,
+        bouncer,
         response,
     }: HttpContextContract): Promise<UpdateNicknameResponseBody> {
         const user = auth.user;
@@ -98,6 +105,7 @@ export default class UserSettingsController {
             user !== undefined,
             'User must be logged in to update her nickname',
         );
+        await bouncer.authorize('hasConfirmedEmail');
 
         const { nickname } = UpdateNicknameRequestBody.parse(request.body());
 

@@ -236,6 +236,7 @@ export default class AuthenticationController {
     public async resendConfirmationEmail({
         auth,
         bouncer,
+        response,
     }: HttpContextContract): Promise<ResendConfirmationEmailResponseBody> {
         const user = auth.user;
         invariant(
@@ -247,6 +248,8 @@ export default class AuthenticationController {
             'resendConfirmationEmail',
         );
         if (hasReachedRateLimit === true) {
+            response.status(429);
+
             return {
                 status: 'REACHED_RATE_LIMIT',
             };

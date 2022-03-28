@@ -76,6 +76,12 @@ const EmailConfirmationScreen: React.FC<EmailConfirmationScreenProps> = () => {
         });
     }
 
+    function handleResendConfirmationEmail() {
+        appService.send({
+            type: 'RESEND_CONFIRMATION_EMAIL',
+        });
+    }
+
     return (
         <AppScreen testID="email-confirmation-screen-container">
             <SafeAreaView sx={{ flex: 1 }}>
@@ -207,6 +213,42 @@ const EmailConfirmationScreen: React.FC<EmailConfirmationScreenProps> = () => {
                                     Confirm my account
                                 </Text>
                             </TouchableOpacity>
+
+                            <View sx={{ marginTop: 'xxl' }}>
+                                <Text sx={{ color: 'white' }}>
+                                    You did not receive the confirmation email?
+                                    Even in spam folder?
+                                </Text>
+                            </View>
+
+                            <TouchableOpacity
+                                style={sx({
+                                    marginTop: 'l',
+                                    paddingX: 's',
+                                    paddingY: 'm',
+                                    backgroundColor: 'greyLighter',
+                                    borderRadius: 's',
+                                })}
+                                onPress={handleResendConfirmationEmail}
+                            >
+                                <Text
+                                    sx={{
+                                        color: 'greyLight',
+                                        textAlign: 'center',
+                                        fontWeight: 'bold',
+                                    }}
+                                >
+                                    Send a new confirmation email
+                                </Text>
+                            </TouchableOpacity>
+
+                            <View
+                                sx={{
+                                    height: 1,
+                                    marginTop: 'xxl',
+                                    backgroundColor: 'greyLighter',
+                                }}
+                            />
 
                             <View sx={{ marginTop: 'xxl' }}>
                                 <Text sx={{ color: 'white' }}>

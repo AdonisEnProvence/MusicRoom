@@ -366,7 +366,11 @@ test.group('Confirm email', (group) => {
     test("Confirms user's email with a valid token", async (assert) => {
         const request = supertest.agent(BASE_URL);
 
-        const user = await createUserAndAuthenticate(request);
+        const emailIsNotConfirmed = true;
+        const user = await createUserAndAuthenticate(
+            request,
+            emailIsNotConfirmed,
+        );
 
         const validToken = '123456';
         const tokenType = await TokenType.findByOrFail(
@@ -406,7 +410,11 @@ test.group('Confirm email', (group) => {
     test("Does not confirm user's email when token is valid but has expired", async (assert) => {
         const request = supertest.agent(BASE_URL);
 
-        const user = await createUserAndAuthenticate(request);
+        const emailIsNotConfirmed = true;
+        const user = await createUserAndAuthenticate(
+            request,
+            emailIsNotConfirmed,
+        );
 
         const validToken = '123456';
         const tokenType = await TokenType.findByOrFail(
@@ -446,7 +454,11 @@ test.group('Confirm email', (group) => {
     test("Does not confirm user's email when confirmation code is invalid", async (assert) => {
         const request = supertest.agent(BASE_URL);
 
-        const user = await createUserAndAuthenticate(request);
+        const emailIsNotConfirmed = true;
+        const user = await createUserAndAuthenticate(
+            request,
+            emailIsNotConfirmed,
+        );
         const INVALID_CONFIRMATION_CODE = 'adgfhjadfg';
 
         const validToken = '123456';
@@ -636,7 +648,11 @@ test.group('Resending confirmation email', (group) => {
     test("Can use token from resent confirmation email to confirm user's account", async (assert) => {
         const request = supertest.agent(BASE_URL);
 
-        const user = await createUserAndAuthenticate(request);
+        const emailIsNotConfirmed = true;
+        const user = await createUserAndAuthenticate(
+            request,
+            emailIsNotConfirmed,
+        );
 
         const mailTrapEmailVerificationSpy =
             spy<(message: MessageNode) => void>(noop);

@@ -106,6 +106,7 @@ interface CreateUserForSocketConnectionArgs {
     }[];
     roomName?: string;
     userNickname?: string;
+    emailIsNotConfirmed?: boolean;
 }
 
 interface CreateUserForSocketConnectionReturnedValue {
@@ -117,6 +118,7 @@ interface CreateUserForSocketConnectionReturnedValue {
 interface CreateUserAndGetSocketArgs extends CreateUserForSocketConnectionArgs {
     deviceName?: string;
     browser?: AvailableBrowsersMocks;
+    emailIsNotConfirmed?: boolean;
 }
 
 interface CreateSocketConnectionArgs {
@@ -435,6 +437,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
         mpeRoomIDToAssociate,
         roomName,
         userNickname,
+        emailIsNotConfirmed,
     }: CreateUserForSocketConnectionArgs): Promise<CreateUserForSocketConnectionReturnedValue> {
         const email = internet.email();
         const password = generateStrongPassword();
@@ -487,6 +490,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
         mpeRoomIDToAssociate,
         roomName,
         userNickname,
+        emailIsNotConfirmed,
     }: CreateUserAndGetSocketArgs): Promise<TypedTestSocket> {
         const { token } = await createAuthenticatedUserForSocketConnection({
             userID,
@@ -494,6 +498,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
             mpeRoomIDToAssociate,
             roomName,
             userNickname,
+            emailIsNotConfirmed,
         });
 
         //No need to remoteJoin the created socket as SocketLifeCycle.registerDevice will do it for us
@@ -515,6 +520,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
         mpeRoomIDToAssociate,
         userNickname,
         roomName,
+        emailIsNotConfirmed,
     }: CreateUserAndGetSocketArgs): Promise<TypedTestSocket> {
         const { token } = await createAuthenticatedUserForSocketConnection({
             userID,
@@ -522,6 +528,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
             mpeRoomIDToAssociate,
             roomName,
             userNickname,
+            emailIsNotConfirmed,
         });
 
         //No need to remoteJoin the created socket as SocketLifeCycle.registerDevice will do it for us

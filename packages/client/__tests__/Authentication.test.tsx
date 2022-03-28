@@ -1821,6 +1821,17 @@ const authenticationModel = createModel<TestingContext>(
             }),
         );
     },
+
+    'Press button to go to sign in screen': async ({ screen }) => {
+        invariant(screen !== undefined, 'Screen must have been rendered');
+
+        const goToSignInFormScreenButton = await screen.findByText(
+            /or.*sign.*in.*/i,
+        );
+        expect(goToSignInFormScreenButton).toBeTruthy();
+
+        fireEvent.press(goToSignInFormScreenButton);
+    },
     ///
 
     //Sign out

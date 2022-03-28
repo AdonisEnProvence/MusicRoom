@@ -52,6 +52,19 @@ test.group('MtvRoom Search Engine', (group) => {
         await request.post('/search/rooms').send(body).expect(401);
     });
 
+    test('Requires authentication', async () => {
+        const request = createRequest();
+
+        const emailIsNotConfirmed = true;
+        await createUserAndAuthenticate(request, emailIsNotConfirmed);
+
+        const body: MtvRoomSearchRequestBody = {
+            page: 0,
+            searchQuery: '',
+        };
+        await request.post('/search/rooms').send(body).expect(403);
+    });
+
     test('Page must be strictly positive', async () => {
         const request = createRequest();
 

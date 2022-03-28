@@ -40,6 +40,7 @@ test.group('MyProfileController', (group) => {
         const socket = await createAuthenticatedUserAndGetSocket({
             userNickname,
             userID,
+            emailIsNotConfirmed: true,
         });
         const token = getSocketApiAuthToken(socket);
 

@@ -26,12 +26,14 @@ export default class MtvRoomsHttpController {
     public async fetchMtvRooms({
         request,
         auth,
+        bouncer,
     }: HttpContextContract): Promise<MtvRoomSearchResponse> {
         const user = auth.user;
         invariant(
             user !== undefined,
             'User must be authenticated to fetch MTV rooms',
         );
+        await bouncer.authorize('hasConfirmedEmail');
 
         const { searchQuery, page } = MtvRoomSearchRequestBody.parse(
             request.body(),

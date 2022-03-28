@@ -11,6 +11,7 @@ export default class MyProfileController {
             user !== undefined,
             'User must be authenticated to get her profile information',
         );
+        //This should not be hasConfirmedEmail bouncer protected
 
         const { uuid, nickname: userNickname, confirmedEmailAt } = user;
 

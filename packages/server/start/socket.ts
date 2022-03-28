@@ -16,6 +16,7 @@ import HttpContext from '@ioc:Adonis/Core/HttpContext';
 import AuthManager from '@ioc:Adonis/Addons/Auth';
 import User from 'App/Models/User';
 import invariant from 'tiny-invariant';
+import Bouncer from '@ioc:Adonis/Addons/Bouncer';
 import initMtvSocketEventListeners from './mtvSocket';
 import initMpeSocketEventListeners from './mpeSocket';
 
@@ -71,6 +72,29 @@ Ws.io
                 );
             }
         }
+    })
+    .use(async (socket, next) => {
+        const user = socket.handshake['user'];
+        invariant(
+            user instanceof User,
+            'User must be authenticated to perform socket connection',
+        );
+
+        const bouncer = Bouncer.forUser(user);
+
+        const accountIsNotConfirmed =
+            (await bouncer.denies('hasConfirmedEmail')) === true;
+        if (accountIsNotConfirmed === true) {
+            next(
+                new Error(
+                    'User must confirm email to perform socket connection',
+                ),
+            );
+
+            return;
+        }
+
+        next();
     })
     .on('connection', async (socket) => {
         try {

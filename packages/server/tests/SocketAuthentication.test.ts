@@ -9,6 +9,7 @@ import { datatype, internet } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import { io } from 'socket.io-client';
+import { DateTime } from 'luxon';
 import supertest from 'supertest';
 import urlcat from 'urlcat';
 import {
@@ -52,6 +53,7 @@ test.group('Socket authentication tests group', (group) => {
             nickname: 'Popol',
             email: 'gentil-popol@gmail.com',
             password: userUnhashedPassword,
+            confirmedEmailAt: DateTime.now(),
         });
 
         const signInRequestBody: SignInRequestBody = {
@@ -114,6 +116,7 @@ test.group('Socket authentication tests group', (group) => {
             nickname: internet.userName(),
             email,
             password,
+            confirmedEmailAt: DateTime.now(),
         });
 
         //Perform sign in
@@ -148,6 +151,7 @@ test.group('Socket authentication tests group', (group) => {
             nickname: internet.userName(),
             email,
             password,
+            confirmedEmailAt: DateTime.now(),
         });
 
         const socket = io(BASE_URL, {
@@ -171,6 +175,7 @@ test.group('Socket authentication tests group', (group) => {
             nickname: internet.userName(),
             email,
             password,
+            confirmedEmailAt: DateTime.now(),
         });
 
         const socket = io(BASE_URL, {
@@ -184,6 +189,45 @@ test.group('Socket authentication tests group', (group) => {
         try {
             await waitForSocketToBeAcknowledged(socket);
         } catch (e) {
+            assert.isFalse(socket.connected);
+        }
+    });
+
+    test('User that has not confirmed her email can not create socket connection', async (assert) => {
+        const userID = datatype.uuid();
+        const email = internet.email();
+        const password = generateStrongPassword();
+        await User.create({
+            uuid: userID,
+            nickname: internet.userName(),
+            email,
+            password,
+
+            // User has not confirmed her email
+            confirmedEmailAt: null,
+        });
+
+        const { body: rawBody } = await supertest(BASE_URL)
+            .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-in'))
+            .send({
+                authenticationMode: 'api',
+                email,
+                password,
+            } as SignInRequestBody)
+            .expect(200);
+        const { token } = SignInSuccessfulApiTokensResponseBody.parse(rawBody);
+
+        const socket = io(BASE_URL, {
+            withCredentials: true,
+            auth: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        assert.plan(1);
+        try {
+            await waitForSocketToBeAcknowledged(socket);
+        } catch {
             assert.isFalse(socket.connected);
         }
     });

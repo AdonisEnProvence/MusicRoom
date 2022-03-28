@@ -32,7 +32,10 @@ const queryClient = new QueryClient({
     },
 });
 
-const TEST_STRONG_PASSWORD: string[] = [':net66LTW', 'RN4k`d8he9k.'];
+const TEST_STRONG_PASSWORD: string[] = [
+    'yolo super strong password',
+    '69 Jean-Louis Murat is one of the best singers! 96',
+];
 export function generateStrongPassword(): string {
     return TEST_STRONG_PASSWORD[
         datatype.number({
@@ -41,7 +44,7 @@ export function generateStrongPassword(): string {
     ];
 }
 
-const TEST_WEAK_PASSWORD: string[] = ['bestpasswor@1', 'abcqwerty', 'ABCWE'];
+const TEST_WEAK_PASSWORD: string[] = ['666', 'qwerty', 'B A D'];
 export function generateWeakPassword(): string {
     return TEST_WEAK_PASSWORD[
         datatype.number({

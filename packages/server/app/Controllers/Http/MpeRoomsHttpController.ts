@@ -15,6 +15,7 @@ const MPE_ROOMS_SEARCH_LIMIT = 10;
 export default class MpeRoomsHttpController {
     public async listAllRooms({
         request,
+        bouncer,
         auth,
     }: HttpContextContract): Promise<ListAllMpeRoomsResponseBody> {
         const user = auth.user;
@@ -22,6 +23,7 @@ export default class MpeRoomsHttpController {
             user !== undefined,
             'User must be logged in to list all Mpe rooms',
         );
+        await bouncer.authorize('hasConfirmedEmail');
 
         const { searchQuery, page } = ListAllMpeRoomsRequestBody.parse(
             request.body(),
@@ -78,6 +80,7 @@ export default class MpeRoomsHttpController {
 
     public async listMyRooms({
         request,
+        bouncer,
         auth,
     }: HttpContextContract): Promise<MpeSearchMyRoomsResponseBody> {
         const user = auth.user;
@@ -85,6 +88,7 @@ export default class MpeRoomsHttpController {
             user !== undefined,
             'User must be logged in to list their own Mpe rooms',
         );
+        await bouncer.authorize('hasConfirmedEmail');
 
         const { searchQuery, page } = MpeSearchMyRoomsRequestBody.parse(
             request.body(),

@@ -443,6 +443,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
             nickname: userNickname ?? unique(() => random.word()),
             email,
             password,
+            confirmedEmailAt: DateTime.now(),
         });
 
         if (mtvRoomIDToAssociate !== undefined) {

@@ -68,7 +68,7 @@ test.group('MyProfileController', (group) => {
             followersCounter: 0,
             followingCounter: 0,
             playlistsCounter: 0,
-            hasConfirmedEmail: false,
+            hasConfirmedEmail: true,
             userID,
             userNickname,
         };

@@ -480,6 +480,14 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     </Text>
                                 )}
                             </View>
+
+                            <View sx={{ marginBottom: 'l' }}>
+                                <Text sx={{ color: 'white' }}>
+                                    You acknowledge that you read, and agree to
+                                    our Terms of Service and our Privacy Policy.
+                                </Text>
+                            </View>
+
                             <TouchableOpacity
                                 onPress={handleSubmit(handleSigningInSubmit)}
                                 testID="submit-sign-up-form-button"

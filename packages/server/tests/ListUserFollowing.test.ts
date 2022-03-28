@@ -38,6 +38,23 @@ test.group('List user following tests group', (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
+    test('It should failed to list user following as the requesting user has not confirmed his email', async () => {
+        const request = createRequest();
+
+        const emailNotConfirmed = true;
+        await createUserAndAuthenticate(request, emailNotConfirmed);
+
+        const page1RequestBody: ListUserFollowingRequestBody = {
+            page: 1,
+            searchQuery: '',
+            userID: datatype.uuid(),
+        };
+        await request
+            .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'search/following'))
+            .send(page1RequestBody)
+            .expect(403);
+    });
+
     test('It should retrieve paginated user following', async (assert) => {
         const request = createRequest();
 

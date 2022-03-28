@@ -28,6 +28,33 @@ test.group('Users Profile information tests', (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
+    test('It should failed to unfollow user as the requesting user has not confirmed his email', async () => {
+        const request = createRequest();
+
+        const emailNotConfirmed = true;
+        const unfollowingUser = await createUserAndAuthenticate(
+            request,
+            emailNotConfirmed,
+        );
+
+        const unfollowedUserID = datatype.uuid();
+        const unfollowedUser = await User.create({
+            uuid: unfollowedUserID,
+            nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
+        });
+        await unfollowedUser.related('followers').save(unfollowingUser);
+
+        const unfollowRequestBody: UnfollowUserRequestBody = {
+            userID: unfollowedUserID,
+        };
+        await request
+            .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'unfollow'))
+            .send(unfollowRequestBody)
+            .expect(403);
+    });
+
     test('It should unfollow given user', async (assert) => {
         const request = createRequest();
 

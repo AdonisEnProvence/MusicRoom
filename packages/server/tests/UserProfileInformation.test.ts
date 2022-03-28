@@ -25,6 +25,29 @@ test.group('Users Profile information', (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
+    test('It should failed to retrieve user profile information as the requesting user has not confirmed his email', async () => {
+        const request = createRequest();
+
+        const emailNotConfirmed = true;
+        await createUserAndAuthenticate(request, emailNotConfirmed);
+
+        const searchedUserID = datatype.uuid();
+        await User.create({
+            uuid: searchedUserID,
+            nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
+        });
+
+        const body: GetUserProfileInformationRequestBody = {
+            userID: searchedUserID,
+        };
+        await request
+            .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'profile-information'))
+            .send(body)
+            .expect(403);
+    });
+
     test('It should retrieve all user profile information, as every visibilities are public', async (assert) => {
         const request = createRequest();
 

@@ -37,6 +37,24 @@ test.group('List my following tests group', (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
+    test('It should failed to list my following as I have not confirmed my email', async () => {
+        const request = createRequest();
+
+        const emailNotConfirmed = true;
+        await createUserAndAuthenticate(request, emailNotConfirmed);
+
+        const body: ListMyFollowingRequestBody = {
+            page: 1,
+            searchQuery: '',
+        };
+        await request
+            .post(
+                urlcat(TEST_MY_PROFILE_ROUTES_GROUP_PREFIX, 'search/following'),
+            )
+            .send(body)
+            .expect(403);
+    });
+
     test('Returns an error when an unauthenticated user tries to get her following list', async () => {
         const request = createRequest();
 

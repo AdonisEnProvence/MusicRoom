@@ -37,24 +37,38 @@ export const { actions } = Bouncer.define('confirmEmail', (user: User) => {
     const canConfirmEmail = isEmailAlreadyConfirmed === false;
 
     return canConfirmEmail === true;
-}).define('resendConfirmationEmail', async (user: User) => {
-    const confirmationEmailTokensGeneratedDuringLastHour = await user
-        .related('tokens')
-        .query()
-        .whereHas('tokenType', (query) => {
-            return query.where('name', TokenTypeName.enum.EMAIL_CONFIRMATION);
-        })
-        .andWhere('createdAt', '>', DateTime.now().minus({ hours: 1 }).toSQL());
-    const confirmationEmailTokensGeneratedDuringLastHourCount =
-        confirmationEmailTokensGeneratedDuringLastHour.length;
+})
+    .define('resendConfirmationEmail', async (user: User) => {
+        const confirmationEmailTokensGeneratedDuringLastHour = await user
+            .related('tokens')
+            .query()
+            .whereHas('tokenType', (query) => {
+                return query.where(
+                    'name',
+                    TokenTypeName.enum.EMAIL_CONFIRMATION,
+                );
+            })
+            .andWhere(
+                'createdAt',
+                '>',
+                DateTime.now().minus({ hours: 1 }).toSQL(),
+            );
+        const confirmationEmailTokensGeneratedDuringLastHourCount =
+            confirmationEmailTokensGeneratedDuringLastHour.length;
 
-    const hasReachedRateLimit =
-        confirmationEmailTokensGeneratedDuringLastHourCount >= 3;
-    const hasNotReachedRateLimit = hasReachedRateLimit === false;
-    const canResendConfirmationEmail = hasNotReachedRateLimit === true;
+        const hasReachedRateLimit =
+            confirmationEmailTokensGeneratedDuringLastHourCount >= 3;
+        const hasNotReachedRateLimit = hasReachedRateLimit === false;
+        const canResendConfirmationEmail = hasNotReachedRateLimit === true;
 
-    return canResendConfirmationEmail === true;
-});
+        return canResendConfirmationEmail === true;
+    })
+    .define('hasConfirmedEmail', async (user: User) => {
+        return (
+            user.confirmedEmailAt !== null &&
+            user.confirmedEmailAt !== undefined
+        );
+    });
 
 /*
 |--------------------------------------------------------------------------

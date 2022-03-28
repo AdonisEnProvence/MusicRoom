@@ -28,6 +28,29 @@ test.group('Users Profile information tests', (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
+    test('It should failed to follow user as the requesting user has not confirmed his email', async () => {
+        const request = createRequest();
+
+        const emailNotConfirmed = true;
+        await createUserAndAuthenticate(request, emailNotConfirmed);
+
+        const followedUserID = datatype.uuid();
+        await User.create({
+            uuid: followedUserID,
+            nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
+        });
+
+        const requestBody: FollowUserRequestBody = {
+            userID: followedUserID,
+        };
+        await request
+            .post(urlcat(TEST_USER_ROUTES_GROUP_PREFIX, 'follow'))
+            .send(requestBody)
+            .expect(403);
+    });
+
     test('It should follow given user', async (assert) => {
         const request = createRequest();
 

@@ -37,6 +37,24 @@ test.group('List my followers tests group', (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
+    test('It should failed to list my followers as I have not confirmed my email', async () => {
+        const request = createRequest();
+
+        const emailNotConfirmed = true;
+        await createUserAndAuthenticate(request, emailNotConfirmed);
+
+        const body: ListMyFollowersRequestBody = {
+            page: 1,
+            searchQuery: '',
+        };
+        await request
+            .post(
+                urlcat(TEST_MY_PROFILE_ROUTES_GROUP_PREFIX, 'search/followers'),
+            )
+            .send(body)
+            .expect(403);
+    });
+
     test('Returns an authentication error when the current user is not authenticated and tries to get her followers', async () => {
         const request = createRequest();
 

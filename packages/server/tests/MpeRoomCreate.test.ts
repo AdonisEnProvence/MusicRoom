@@ -11,6 +11,7 @@ import supertest from 'supertest';
 import urlcat from 'urlcat';
 import {
     BASE_URL,
+    createSpyOnClientSocketEvent,
     getDefaultMpeRoomCreateRoomArgs,
     getSocketApiAuthToken,
     initTestUtils,
@@ -37,7 +38,7 @@ test.group(`mpe rooms relationship tests`, (group) => {
         await Database.rollbackGlobalTransaction();
     });
 
-    test('It should sync both yser socket instance to the related mpeRooms', async (assert) => {
+    test('It should sync both user socket instance to the related mpeRooms', async (assert) => {
         const creatorUserID = datatype.uuid();
         const mpeRoomsIDs = Array.from({ length: 10 }).map(() => ({
             roomName: random.words(4),
@@ -77,7 +78,7 @@ test.group(`mpe rooms relationship tests`, (group) => {
         assert.isTrue(lastHasBeenHit);
     });
 
-    test('It should create MPE room ', async (assert) => {
+    test('It should create MPE room', async (assert) => {
         const creatorUserID = datatype.uuid();
         const creatorSocket = await createAuthenticatedUserAndGetSocket({
             userID: creatorUserID,
@@ -273,6 +274,79 @@ test.group(`mpe rooms relationship tests`, (group) => {
         assert.equal(mpeRooms.length, 0);
 
         assert.isTrue(creatorFailListenerHasBeenCalled);
+    });
+
+    test('It should fail to create MPE as name is invalid ', async (assert) => {
+        const creatorUserID = datatype.uuid();
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
+            userID: creatorUserID,
+        });
+        const settings = getDefaultMpeRoomCreateRoomArgs({
+            name: '   ',
+        });
+
+        const mpeCreateRoomFail = await createSpyOnClientSocketEvent(
+            creatorSocket,
+            'MPE_CREATE_ROOM_FAIL',
+        );
+
+        creatorSocket.emit('MPE_CREATE_ROOM', settings);
+
+        await waitFor(() => {
+            assert.isTrue(mpeCreateRoomFail.calledOnce);
+        });
+    });
+
+    test('It should fail to create MPE as name is empty ', async (assert) => {
+        const creatorUserID = datatype.uuid();
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
+            userID: creatorUserID,
+        });
+        const settings = getDefaultMpeRoomCreateRoomArgs({
+            name: '',
+        });
+
+        const mpeCreateRoomFail = await createSpyOnClientSocketEvent(
+            creatorSocket,
+            'MPE_CREATE_ROOM_FAIL',
+        );
+
+        creatorSocket.emit('MPE_CREATE_ROOM', settings);
+
+        await waitFor(() => {
+            assert.isTrue(mpeCreateRoomFail.calledOnce);
+        });
+    });
+
+    test('It should trim MPE room name', async (assert) => {
+        const creatorUserID = datatype.uuid();
+        const creatorSocket = await createAuthenticatedUserAndGetSocket({
+            userID: creatorUserID,
+        });
+        const trimmedName = `${random.word()} ${random.word()}`;
+        const settings = getDefaultMpeRoomCreateRoomArgs({
+            name: `         ${trimmedName}          `,
+        });
+
+        let mockHasBeenCalled = false;
+        sinon
+            .stub(MpeServerToTemporalController, 'createMpeWorkflow')
+            .callsFake(async ({ name }) => {
+                /**
+                 * Checking if the user is well registered in the socket-io
+                 * room instance
+                 */
+                assert.equal(name, trimmedName);
+
+                mockHasBeenCalled = true;
+                throw new Error('End of test');
+            });
+
+        creatorSocket.emit('MPE_CREATE_ROOM', settings);
+
+        await waitFor(async () => {
+            assert.isTrue(mockHasBeenCalled);
+        });
     });
 
     test(`It should handle room name duplication by adding creator nickname to room name 

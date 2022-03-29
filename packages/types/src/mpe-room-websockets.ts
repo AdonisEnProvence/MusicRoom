@@ -6,10 +6,11 @@ import {
     MpeWorkflowStateWithUserRelatedInformation,
     PlaylistModelMpeWorkflowState,
 } from './mpe';
+import { trimString } from './zod-utils';
 
 //Client to server
 export const MpeRoomClientToServerCreateArgs = z.object({
-    name: z.string(),
+    name: z.preprocess(trimString, z.string().min(1)),
     initialTrackID: z.string(),
     isOpen: z.boolean(),
     isOpenOnlyInvitedUsersCanEdit: z.boolean(),

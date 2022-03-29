@@ -3,22 +3,19 @@ import View from '@ioc:Adonis/Core/View';
 import User from 'App/Models/User';
 import mjml from 'mjml';
 
-export default class EmailVerification extends BaseMailer {
+export default class PasswordReset extends BaseMailer {
     constructor(private user: User, private token: string) {
         super();
     }
 
-    public prepare(message: MessageContract): void {
+    public async prepare(message: MessageContract): Promise<void> {
         message
-            .subject(
-                `[${this.token}] - Musicroom. Welcome ${this.user.nickname}, please verify your email !`,
-            )
+            .subject(`[${this.token}] Reset your password`)
             .from('no-reply@adonisenprovence.com', 'MusicRoom')
             .to(this.user.email, this.user.nickname)
             .html(
                 mjml(
-                    View.renderSync('emails/email_verification', {
-                        nickname: this.user.nickname,
+                    await View.render('emails/password_reset', {
                         token: this.token,
                     }),
                 ).html,

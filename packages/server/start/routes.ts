@@ -97,6 +97,10 @@ Route.group(() => {
         '/resend-confirmation-email',
         'AuthenticationController.resendConfirmationEmail',
     ).middleware('every-auth');
+    Route.post(
+        '/request-password-reset',
+        'AuthenticationController.requestPasswordReset',
+    );
 }).prefix(AUTHENTICATION_ROUTES_GROUP_PREFIX);
 
 /// Temporal MTV Routes ///

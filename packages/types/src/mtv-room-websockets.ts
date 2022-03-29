@@ -7,6 +7,7 @@ import {
     MtvWorkflowStateWithUserRelatedInformation,
 } from './mtv';
 import { LatlngCoords } from './user-websockets';
+import { trimString } from './zod-utils';
 
 export const MAX_CHAT_MESSAGE_LENGTH = 255;
 
@@ -56,7 +57,7 @@ export type MtvRoomPhysicalAndTimeConstraints = z.infer<
 >;
 
 export const MtvRoomClientToServerCreateArgs = z.object({
-    name: z.string(),
+    name: z.preprocess(trimString, z.string().min(1)),
     initialTracksIDs: z.string().array(),
     isOpen: z.boolean(),
     minimumScoreToBePlayed: z.number().positive().int(),

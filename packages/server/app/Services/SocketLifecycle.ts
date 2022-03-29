@@ -72,7 +72,8 @@ export default class SocketLifecycle {
         let deviceName = socket.handshake.query['deviceName'];
 
         console.log(`registering a device for user ${userID}`);
-        if (!z.string().check(userID)) {
+        const userIDIsInvalid = !z.string().safeParse(userID).success;
+        if (userIDIsInvalid) {
             throw new Error('Empty or invalid user token');
         }
 

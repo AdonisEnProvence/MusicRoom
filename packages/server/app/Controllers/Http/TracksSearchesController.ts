@@ -1,6 +1,6 @@
 import Env from '@ioc:Adonis/Core/Env';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
-import { TrackMetadata } from '@musicroom/types';
+import { TrackMetadata, TrackMetadataWithScore } from '@musicroom/types';
 import { google } from 'googleapis';
 import invariant from 'tiny-invariant';
 
@@ -67,7 +67,12 @@ export default class TracksSearchesController {
 
                 return trackMetadata;
             })
-            .filter(TrackMetadata.check.bind(TrackMetadata));
+            .filter((el: TrackMetadata | undefined): el is TrackMetadata => {
+                if (el === undefined) {
+                    return false;
+                }
+                return TrackMetadata.safeParse(el).success;
+            });
 
         return tracksMetadata;
     }

@@ -28,7 +28,8 @@ export default class AuthenticationController {
             SignUpRequestBody.parse(request.body());
         const errors: SignUpFailureReasons[] = [];
 
-        const emailIsInvalid = !z.string().email().max(255).check(email);
+        const emailIsInvalid = !z.string().email().max(255).safeParse(email)
+            .success;
         if (emailIsInvalid) {
             errors.push('INVALID_EMAIL');
         }

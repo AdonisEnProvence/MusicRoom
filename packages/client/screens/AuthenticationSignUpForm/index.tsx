@@ -29,6 +29,7 @@ type UpdateNicknameMachineEvent =
     | { type: 'Email unavailable' }
     | { type: 'Email invalid' }
     | { type: 'Weak password' }
+    | { type: 'Nickname invalid' }
     | { type: 'Unknown error' };
 
 const signUpMachine =
@@ -70,6 +71,10 @@ const signUpMachine =
             },
             'Nickname unavailable': {
                 actions: 'Set error state to nickname unavailable',
+                target: '#Sign up.Idle',
+            },
+            'Nickname invalid': {
+                actions: 'Set error state to nickname invalid',
                 target: '#Sign up.Idle',
             },
             'Email unavailable': {
@@ -154,6 +159,12 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     });
                                     return;
                                 }
+                                case 'INVALID_NICKNAME': {
+                                    sendBack({
+                                        type: 'Nickname invalid',
+                                    });
+                                    return;
+                                }
                                 default: {
                                     sendBack({
                                         type: 'Unknown error',
@@ -211,6 +222,13 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                 setError('userNickname', {
                     type: 'server error',
                     message: 'Nickname is unavailable',
+                });
+            },
+
+            'Set error state to nickname invalid': () => {
+                setError('userNickname', {
+                    type: 'server error',
+                    message: 'Nickname is invalid',
                 });
             },
 
@@ -371,7 +389,7 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                                     .string()
                                                     .max(255)
                                                     .email()
-                                                    .check(email);
+                                                    .safeParse(email).success;
                                                 return (
                                                     emailIsValid ||
                                                     'Email is not valid'

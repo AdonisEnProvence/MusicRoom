@@ -47,8 +47,8 @@ test.group('Authentication sign up tests group', (group) => {
 
     test('It should sign up user with web auth using given credentials', async (assert) => {
         const request = supertest.agent(BASE_URL);
-        const email = internet.email();
-        const userNickname = internet.userName();
+        const trimmedEmail = internet.email();
+        const trimmedUserNickname = `${internet.userName()} ${internet.userName()}`;
         const password = generateStrongPassword();
 
         const mailTrapEmailVerificationSpy = Sinon.spy<
@@ -56,7 +56,7 @@ test.group('Authentication sign up tests group', (group) => {
         >((message) => {
             assert.deepEqual(message.to, [
                 {
-                    address: email,
+                    address: trimmedEmail,
                 },
             ]);
 
@@ -73,7 +73,7 @@ test.group('Authentication sign up tests group', (group) => {
             const emailVerificationObjectRegex =
                 /\[.*].*Welcome.*,.*please.*verify.*your.*email.*!/i;
             assert.match(subject, emailVerificationObjectRegex);
-            assert.include(subject, userNickname);
+            assert.include(subject, trimmedUserNickname);
 
             const html = message.html;
             invariant(
@@ -92,9 +92,9 @@ test.group('Authentication sign up tests group', (group) => {
             .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-up'))
             .send({
                 authenticationMode: 'web',
-                email,
+                email: `           ${trimmedEmail}            `,
                 password,
-                userNickname,
+                userNickname: `              ${trimmedUserNickname}        `,
             } as SignUpRequestBody)
             .expect(200);
 
@@ -104,7 +104,7 @@ test.group('Authentication sign up tests group', (group) => {
         } = WebAuthSuccessfullSignUpResponseBody.parse(rawBody);
         assert.equal(status, 'SUCCESS');
         assert.isDefined(userID);
-        assert.equal(nickname, userNickname);
+        assert.equal(nickname, trimmedUserNickname);
 
         const getMyProfileRawResponse = await request
             .get('/me/profile-information')
@@ -263,6 +263,33 @@ test.group('Authentication sign up tests group', (group) => {
         assert.isTrue(mailTrapEmailVerificationSpy.notCalled);
     });
 
+    test('It should fail to sign up as given name is invalid', async (assert) => {
+        const request = supertest.agent(BASE_URL);
+        const email = internet.email();
+        const userNickname = '                ';
+        const password = generateWeakPassword();
+
+        const mailTrapEmailVerificationSpy = Sinon.spy(noop);
+        Mail.trap(mailTrapEmailVerificationSpy);
+
+        const { body: rawBody } = await request
+            .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-up'))
+            .send({
+                authenticationMode: 'api',
+                email,
+                password,
+                userNickname,
+            } as SignUpRequestBody)
+            .expect(400);
+
+        const { status, signUpFailureReasonCollection } =
+            SignUpFailureResponseBody.parse(rawBody);
+        assert.equal(status, 'FAILURE');
+        assert.isDefined(signUpFailureReasonCollection);
+        assert.include(signUpFailureReasonCollection, 'INVALID_NICKNAME');
+        assert.isTrue(mailTrapEmailVerificationSpy.notCalled);
+    });
+
     test('It should fail to sign up as given email is invalid', async (assert) => {
         const request = supertest.agent(BASE_URL);
         const email = internet.email().replace('@', random.word());
@@ -414,11 +441,11 @@ test.group('Authentication sign up tests group', (group) => {
 
     test('It should fail to sign up raising every possibles errors', async (assert) => {
         const email = internet.email().replace('@', random.word());
-        const userNickname = internet.userName();
+        const userNickname = '';
 
         const mailTrapEmailVerificationSpy = Sinon.spy(noop);
         Mail.trap(mailTrapEmailVerificationSpy);
-        // Indeed we're saving a bad formatted email directly in database
+        // Indeed we're saving a bad formatted email and nickname directly in database
         // To cover corresponding exception for the following sign up
         await User.create({
             email,
@@ -444,10 +471,11 @@ test.group('Authentication sign up tests group', (group) => {
             SignUpFailureResponseBody.parse(rawBody);
         assert.equal(status, 'FAILURE');
         assert.isDefined(signUpFailureReasonCollection);
-        assert.equal(signUpFailureReasonCollection.length, 4);
+        assert.equal(signUpFailureReasonCollection.length, 5);
 
         assert.deepEqual(signUpFailureReasonCollection, [
             'INVALID_EMAIL',
+            'INVALID_NICKNAME',
             'UNAVAILABLE_NICKNAME',
             'UNAVAILABLE_EMAIL',
             'WEAK_PASSWORD',

@@ -76,7 +76,7 @@
     "tiny-invariant": "^1.2.0",
     "ua-parser-js": "^0.7.28",
     "urlcat": "^2.0.4",
-    "zod": "^1.11.17"
+    "zod": "^3.14.3"
   },
   "workspaces": {
     "nohoist": [

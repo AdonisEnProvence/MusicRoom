@@ -698,7 +698,9 @@ export const handlers = [
             const { authenticationMode, email, password, userNickname } =
                 req.body;
 
-            if (!z.string().max(255).email().check(email)) {
+            const emailIsInvalid =
+                z.string().max(255).email().safeParse(email).success === false;
+            if (emailIsInvalid) {
                 signUpFailureReasonCollection.push('INVALID_EMAIL');
             }
 

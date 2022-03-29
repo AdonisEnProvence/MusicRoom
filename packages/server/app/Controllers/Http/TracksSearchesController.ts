@@ -67,7 +67,12 @@ export default class TracksSearchesController {
 
                 return trackMetadata;
             })
-            .filter(TrackMetadata.check.bind(TrackMetadata));
+            .filter((el: TrackMetadata | undefined): el is TrackMetadata => {
+                if (el === undefined) {
+                    return false;
+                }
+                return TrackMetadata.safeParse(el).success;
+            });
 
         return tracksMetadata;
     }

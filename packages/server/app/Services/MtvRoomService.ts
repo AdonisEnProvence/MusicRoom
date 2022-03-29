@@ -142,6 +142,7 @@ export default class MtvRoomService {
             | MtvRoomPhysicalAndTimeConstraintsWithCoords
             | undefined;
         let creatorFitsPositionConstraint: boolean | undefined;
+        params.name = params.name.trim();
         const roomID = randomUUID();
         const room = new MtvRoom();
         let roomHasBeenSaved = false;

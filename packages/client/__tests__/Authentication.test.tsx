@@ -1475,8 +1475,8 @@ const authenticationModelMachine =
                 },
                 'Signing in email is invalid': ({ signingInEmail }) => {
                     const isSigningInInvalid =
-                        z.string().max(255).email().check(signingInEmail) ===
-                        false;
+                        z.string().max(255).email().safeParse(signingInEmail)
+                            .success === false;
 
                     return isSigningInInvalid;
                 },
@@ -1517,8 +1517,8 @@ const authenticationModelMachine =
                 },
                 'Sign up email is invalid': ({ signUpEmail }) => {
                     const isSignUpEmailInvalid =
-                        z.string().max(255).email().check(signUpEmail) ===
-                        false;
+                        z.string().max(255).email().safeParse(signUpEmail)
+                            .success === false;
                     return isSignUpEmailInvalid;
                 },
                 //Not sure about the following

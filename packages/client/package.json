@@ -85,7 +85,7 @@
     "urlcat": "^2.0.4",
     "xstate": "^4.27.0",
     "xstate-codegen": "^0.3.0",
-    "zod": "^1.11.17"
+    "zod": "^3.14.3"
   },
   "devDependencies": {
     "@babel/core": "^7.9.0",

@@ -138,7 +138,8 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
                                                     z
                                                         .string()
                                                         .email()
-                                                        .check(email) ||
+                                                        .safeParse(email)
+                                                        .success ||
                                                     'Not a well formed email address'
                                                 );
                                             },

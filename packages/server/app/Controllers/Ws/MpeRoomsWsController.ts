@@ -178,16 +178,20 @@ export default class MpeRoomsWsController {
     public static async onCreate(
         args: MpeOnCreateArgs,
     ): Promise<MpeCreateWorkflowResponse> {
-        const { roomCreator, ...rest } = args;
+        const { roomCreator, ...mpeRoomSettings } = args;
+        mpeRoomSettings.name = mpeRoomSettings.name.trim();
         const userID = roomCreator.uuid;
 
         /**
          * Checking args validity
          */
         const roomIsNotOpenAndIsOpenOnlyInvitedUsersCanEditIsTrue =
-            !args.isOpen && args.isOpenOnlyInvitedUsersCanEdit === true;
+            !mpeRoomSettings.isOpen &&
+            mpeRoomSettings.isOpenOnlyInvitedUsersCanEdit === true;
         if (roomIsNotOpenAndIsOpenOnlyInvitedUsersCanEditIsTrue) {
-            throw new Error('Mpe create room failed, given args are invalid');
+            throw new Error(
+                'Mpe create room failed, given mpeRoomSettings are invalid',
+            );
         }
 
         /**
@@ -205,14 +209,17 @@ export default class MpeRoomsWsController {
          * If room name is found in db
          * Just add creator nickame after the room name
          */
-        const roomWithCreatedRoomName = await MpeRoom.findBy('name', args.name);
+        const roomWithCreatedRoomName = await MpeRoom.findBy(
+            'name',
+            mpeRoomSettings.name,
+        );
         const roomNameIsAlreadyTaken = roomWithCreatedRoomName !== null;
         if (roomNameIsAlreadyTaken) {
             console.log(
                 'MPE room with given name already exist attempt to make it unique',
             );
 
-            const newName = `${args.name} (${roomCreator.nickname})`;
+            const newName = `${mpeRoomSettings.name} (${roomCreator.nickname})`;
             const roomWithNewName = await MpeRoom.findBy('name', newName);
             if (roomWithNewName !== null) {
                 console.log(
@@ -223,7 +230,7 @@ export default class MpeRoomsWsController {
                 );
             }
 
-            args.name = newName;
+            mpeRoomSettings.name = newName;
             console.log({ newName });
         }
         ///
@@ -231,7 +238,7 @@ export default class MpeRoomsWsController {
         try {
             const temporalResponse =
                 await MpeServerToTemporalController.createMpeWorkflow({
-                    ...rest,
+                    ...mpeRoomSettings,
                     workflowID: roomID,
                     userID,
                 });
@@ -239,10 +246,10 @@ export default class MpeRoomsWsController {
             room.merge({
                 uuid: roomID,
                 runID: temporalResponse.runID,
-                name: args.name,
+                name: mpeRoomSettings.name,
                 //By setting this field lucid will manage the BelongsTo relationship
                 creatorID: userID,
-                isOpen: args.isOpen,
+                isOpen: mpeRoomSettings.isOpen,
             });
 
             await room.save();

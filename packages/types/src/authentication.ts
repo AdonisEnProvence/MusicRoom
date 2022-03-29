@@ -51,11 +51,11 @@ export type SignInResponseBody = z.infer<typeof SignInResponseBody>;
 
 export type SignInResponseBodyStatus = SignInResponseBody['status'];
 
+//Sign up
 export const WebAuthSuccessfullSignUpResponseBody = z.object({
     userSummary: UserSummary,
     status: z.literal('SUCCESS'),
 });
-
 export type WebAuthSuccessfullSignUpResponseBody = z.infer<
     typeof WebAuthSuccessfullSignUpResponseBody
 >;
@@ -65,7 +65,6 @@ export const ApiTokensSuccessfullSignUpResponseBody = z.object({
     userSummary: UserSummary,
     status: z.literal('SUCCESS'),
 });
-
 export type ApiTokensSuccessfullSignUpResponseBody = z.infer<
     typeof ApiTokensSuccessfullSignUpResponseBody
 >;
@@ -74,7 +73,6 @@ export const SignUpSuccessfullResponseBody =
     WebAuthSuccessfullSignUpResponseBody.or(
         ApiTokensSuccessfullSignUpResponseBody,
     );
-
 export type SignUpSuccessfullResponseBody = z.infer<
     typeof SignUpSuccessfullResponseBody
 >;
@@ -83,6 +81,7 @@ export const SignUpFailureReasons = z.enum([
     'UNAVAILABLE_NICKNAME',
     'UNAVAILABLE_EMAIL',
     'INVALID_EMAIL',
+    'INVALID_NICKNAME',
     'WEAK_PASSWORD',
 ]);
 
@@ -92,15 +91,27 @@ export const SignUpFailureResponseBody = z.object({
     status: z.literal('FAILURE'),
     signUpFailureReasonCollection: SignUpFailureReasons.array(),
 });
-
 export type SignUpFailureResponseBody = z.infer<
     typeof SignUpFailureResponseBody
 >;
 
-export const SignUpResponseBody = SignUpFailureResponseBody.or(
-    SignUpSuccessfullResponseBody,
+export const ApiTokensSignUpResponseBody = SignUpFailureResponseBody.or(
+    ApiTokensSuccessfullSignUpResponseBody,
 );
+export type ApiTokensSignUpResponseBody = z.infer<
+    typeof ApiTokensSignUpResponseBody
+>;
 
+export const WebAuthSignUpResponseBody = SignUpFailureResponseBody.or(
+    WebAuthSuccessfullSignUpResponseBody,
+);
+export type WebAuthSignUpResponseBody = z.infer<
+    typeof WebAuthSignUpResponseBody
+>;
+
+export const SignUpResponseBody = WebAuthSignUpResponseBody.or(
+    ApiTokensSignUpResponseBody,
+);
 export type SignUpResponseBody = z.infer<typeof SignUpResponseBody>;
 
 export const SignUpRequestBody = z.object({

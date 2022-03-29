@@ -16,6 +16,8 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
         createAuthenticatedUserAndGetSocket,
         disconnectEveryRemainingSocketConnection,
         initSocketConnection,
+        waitForSettled,
+        waitFor,
     } = initTestUtils();
 
     group.beforeEach(async () => {
@@ -201,5 +203,48 @@ test.group(`MtvRoom create room with advanced settings`, (group) => {
         const createdRoom = await MtvRoom.findBy('name', settings.name);
         assert.isNotNull(createdRoom);
         assert.isFalse(createdRoom?.isOpen);
+    });
+
+    test('It should fail to create an mtv room as name is invalid', async (assert) => {
+        const userID = datatype.uuid();
+        const socket = await createAuthenticatedUserAndGetSocket({
+            userID,
+        });
+        const settings = getDefaultMtvRoomCreateRoomArgs({
+            name: '  ',
+        });
+
+        socket.emit('MTV_CREATE_ROOM', settings);
+
+        await waitForSettled(async () => {
+            const allRooms = await MtvRoom.all();
+            assert.equal(allRooms.length, 0);
+        });
+    });
+
+    test('It should trim mtv room name', async (assert) => {
+        const userID = datatype.uuid();
+        const trimmedRommName = `${random.word()} ${random.word()}`;
+        const socket = await createAuthenticatedUserAndGetSocket({
+            userID,
+        });
+        const settings = getDefaultMtvRoomCreateRoomArgs({
+            name: `    ${trimmedRommName}  `,
+        });
+
+        let mockHasBeenCalled = false;
+        sinon
+            .stub(MtvServerToTemporalController, 'createMtvWorkflow')
+            .callsFake(async ({ params: { name: receivedName } }) => {
+                assert.equal(receivedName, trimmedRommName);
+                mockHasBeenCalled = true;
+                throw new Error('end of test');
+            });
+
+        socket.emit('MTV_CREATE_ROOM', settings);
+
+        await waitFor(() => {
+            assert.isTrue(mockHasBeenCalled);
+        });
     });
 });

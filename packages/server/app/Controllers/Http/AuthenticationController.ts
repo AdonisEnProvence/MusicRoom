@@ -26,22 +26,36 @@ export default class AuthenticationController {
     }: HttpContextContract): Promise<SignUpResponseBody> {
         const { authenticationMode, email, password, userNickname } =
             SignUpRequestBody.parse(request.body());
+        const trimmedUserNickname = userNickname.trim();
+        const trimmedEmail = email.trim();
         const errors: SignUpFailureReasons[] = [];
 
-        const emailIsInvalid = !z.string().email().max(255).check(email);
+        const emailIsInvalid = !z
+            .string()
+            .email()
+            .max(255)
+            .safeParse(trimmedEmail).success;
         if (emailIsInvalid) {
             errors.push('INVALID_EMAIL');
         }
 
+        const nickanmeIsInvalid = !z
+            .string()
+            .min(1)
+            .safeParse(trimmedUserNickname).success;
+        if (nickanmeIsInvalid) {
+            errors.push('INVALID_NICKNAME');
+        }
+
         const userWithGivenNickname = await User.findBy(
             'nickname',
-            userNickname,
+            trimmedUserNickname,
         );
         if (userWithGivenNickname) {
             errors.push('UNAVAILABLE_NICKNAME');
         }
 
-        const userWithGivenEmail = await User.findBy('email', email);
+        const userWithGivenEmail = await User.findBy('email', trimmedEmail);
         if (userWithGivenEmail) {
             errors.push('UNAVAILABLE_EMAIL');
         }
@@ -64,8 +78,8 @@ export default class AuthenticationController {
         }
 
         const createdUser = await User.create({
-            nickname: userNickname,
-            email: email,
+            nickname: trimmedUserNickname,
+            email: trimmedEmail,
             password,
         });
 
@@ -83,7 +97,7 @@ export default class AuthenticationController {
             case 'api': {
                 const { token } = await auth
                     .use('api')
-                    .attempt(email, password);
+                    .attempt(trimmedEmail, password);
 
                 return {
                     token,
@@ -92,7 +106,7 @@ export default class AuthenticationController {
                 };
             }
             case 'web': {
-                await auth.use('web').attempt(email, password);
+                await auth.use('web').attempt(trimmedEmail, password);
 
                 return {
                     userSummary,

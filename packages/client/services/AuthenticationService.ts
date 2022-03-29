@@ -7,6 +7,7 @@ import {
     SignInSuccessfulWebAuthResponseBody,
     SignUpRequestBody,
     SignUpResponseBody,
+    WebAuthSignUpResponseBody,
     WebAuthSuccessfullSignUpResponseBody,
     SignInFailureResponseBody,
     SignUpSuccessfullResponseBody,
@@ -14,6 +15,7 @@ import {
     ConfirmEmailRequestBody,
     ConfirmEmailResponseBody,
     ResendConfirmationEmailResponseBody,
+    ApiTokensSignUpResponseBody,
 } from '@musicroom/types';
 import { request, SHOULD_USE_TOKEN_AUTH } from './http';
 
@@ -122,15 +124,15 @@ export async function sendApiTokenSignUp({
         },
     );
     //Error 500 will raise an error indirectly via below zod parsing
-    const parsedResponseBody = SignUpResponseBody.parse(rawResponse.data);
-
+    const parsedResponseBody = ApiTokensSignUpResponseBody.parse(
+        rawResponse.data,
+    );
     if (parsedResponseBody.status === 'FAILURE') {
         throw new SignUpError(parsedResponseBody.signUpFailureReasonCollection);
     }
 
     const apiTokenSuccessSignUpReponseBody =
         ApiTokensSuccessfullSignUpResponseBody.parse(parsedResponseBody);
-
     await request.persistToken(apiTokenSuccessSignUpReponseBody.token);
 
     return apiTokenSuccessSignUpReponseBody;
@@ -154,7 +156,9 @@ export async function sendWebAuthSignUp({
         },
     );
     //Error 500 will raise an error indirectly via below zod parsing
-    const parsedResponseBody = SignUpResponseBody.parse(rawResponse.data);
+    const parsedResponseBody = WebAuthSignUpResponseBody.parse(
+        rawResponse.data,
+    );
 
     if (parsedResponseBody.status === 'FAILURE') {
         throw new SignUpError(parsedResponseBody.signUpFailureReasonCollection);

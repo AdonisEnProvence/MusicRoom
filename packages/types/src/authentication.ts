@@ -83,6 +83,7 @@ export const SignUpFailureReasons = z.enum([
     'UNAVAILABLE_NICKNAME',
     'UNAVAILABLE_EMAIL',
     'INVALID_EMAIL',
+    'INVALID_NICKNAME',
     'WEAK_PASSWORD',
 ]);
 

@@ -1,6 +1,6 @@
 import Env from '@ioc:Adonis/Core/Env';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
-import { TrackMetadata, TrackMetadataWithScore } from '@musicroom/types';
+import { TrackMetadata } from '@musicroom/types';
 import { google } from 'googleapis';
 import invariant from 'tiny-invariant';
 

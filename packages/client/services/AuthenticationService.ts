@@ -54,7 +54,7 @@ async function sendSignInWeb({
         validateStatus: (status) => status >= 200 && status <= 499,
     });
     const responseBody = response.data;
-    if (SignInFailureResponseBody.check(responseBody)) {
+    if (SignInFailureResponseBody.safeParse(responseBody).success) {
         return responseBody;
     }
 
@@ -78,7 +78,7 @@ async function sendSignInApi({
         validateStatus: (status) => status >= 200 && status <= 499,
     });
     const responseBody = response.data;
-    if (SignInFailureResponseBody.check(responseBody)) {
+    if (SignInFailureResponseBody.safeParse(responseBody).success) {
         return responseBody;
     }
 

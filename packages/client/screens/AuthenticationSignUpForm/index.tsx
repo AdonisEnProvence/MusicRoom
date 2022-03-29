@@ -389,7 +389,7 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                                     .string()
                                                     .max(255)
                                                     .email()
-                                                    .check(email);
+                                                    .safeParse(email).success;
                                                 return (
                                                     emailIsValid ||
                                                     'Email is not valid'

@@ -57,19 +57,23 @@ Ws.io
             }
         } else {
             try {
-                await ctx.session.initiate(false);
-                const user = await auth.use('web').authenticate();
+                const readOnly = true;
+                await ctx.session.initiate(readOnly);
+                const isAuthenticated = await auth.use('web').check();
 
-                console.log('user is authenticated');
-                socket.handshake['user'] = user;
-                next();
+                if (isAuthenticated) {
+                    socket.handshake['user'] = auth.user;
+                    next();
+                } else {
+                    next(
+                        new Error(
+                            'User must be authenticated to perform socket protocol',
+                        ),
+                    );
+                }
             } catch (e) {
-                console.log('Error web auth socket is not authenticated');
-                next(
-                    new Error(
-                        'User must be authenticated to perform socket protocol',
-                    ),
-                );
+                console.log('Adonis session init failed');
+                next(new Error('Adonis session init failed'));
             }
         }
     })

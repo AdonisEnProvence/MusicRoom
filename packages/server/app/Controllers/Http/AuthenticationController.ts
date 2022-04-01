@@ -14,6 +14,8 @@ import {
     RequestPasswordResetRequestBody,
     ValidatePasswordResetTokenResponseBody,
     ValidatePasswordResetTokenRequestBody,
+    AuthenticateWithGoogleOauthResponseBody,
+    AuthenticateWithGoogleOauthRequestBody,
 } from '@musicroom/types';
 import { DateTime } from 'luxon';
 import User from 'App/Models/User';
@@ -351,5 +353,60 @@ export default class AuthenticationController {
         return {
             status: 'SUCCESS',
         };
+    }
+
+    public async authenticateWithGoogleOauth({
+        request,
+        auth,
+    }: HttpContextContract): Promise<AuthenticateWithGoogleOauthResponseBody> {
+        const { authenticationMode, userGoogleAccessToken } =
+            AuthenticateWithGoogleOauthRequestBody.parse(request.body());
+        const userGoogleInformation =
+            await AuthenticationService.getUserGoogleInformationFromUserGoogleAccessToken(
+                userGoogleAccessToken,
+            );
+        let existingUserWithMatchingGoogleID = await User.findBy(
+            'google_id',
+            userGoogleInformation.sub,
+        );
+
+        const userDoesnotExist = existingUserWithMatchingGoogleID === null;
+
+        if (userDoesnotExist) {
+            //Sign Up
+            const googleAuthSignUpFailure =
+                await AuthenticationService.verifyUserGoogleInformationAvailability(
+                    {
+                        email: userGoogleInformation.email,
+                        googleID: userGoogleInformation.sub,
+                        userNickname: userGoogleInformation.name,
+                    },
+                );
+
+            if (googleAuthSignUpFailure.length > 0) {
+                return {
+                    status: 'FAILURE',
+                    googleAuthSignUpFailure,
+                };
+            }
+
+            //Reminder there's nothing about email confirmation while authenticating with a google account
+            existingUserWithMatchingGoogleID = await User.create({
+                nickname: userGoogleInformation.name.trim(),
+                email: userGoogleInformation.email.trim(),
+                googleID: userGoogleInformation.sub,
+            });
+        }
+
+        invariant(
+            existingUserWithMatchingGoogleID !== null,
+            'user matching retrieved googleID is still null should never occurs',
+        );
+
+        return await AuthenticationService.signInUserWithAuthenticationMode({
+            auth,
+            authenticationMode,
+            user: existingUserWithMatchingGoogleID,
+        });
     }
 }

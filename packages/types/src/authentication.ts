@@ -84,7 +84,6 @@ export const SignUpFailureReasons = z.enum([
     'INVALID_NICKNAME',
     'WEAK_PASSWORD',
 ]);
-
 export type SignUpFailureReasons = z.infer<typeof SignUpFailureReasons>;
 
 export const SignUpFailureResponseBody = z.object({
@@ -180,3 +179,56 @@ export const ValidatePasswordResetTokenResponseBody = z.object({
 export type ValidatePasswordResetTokenResponseBody = z.infer<
     typeof ValidatePasswordResetTokenResponseBody
 >;
+
+//Google auth
+export const GoogleAuthenticationFailureReasons = z.enum([
+    'UNAVAILABLE_NICKNAME',
+    'UNAVAILABLE_EMAIL',
+    'INVALID_EMAIL',
+    'INVALID_NICKNAME',
+    'UNAVAILABLE_GOOGLE_ID',
+]);
+export type GoogleAuthenticationFailureReasons = z.infer<
+    typeof GoogleAuthenticationFailureReasons
+>;
+
+export const AuthenticateWithGoogleOauthRequestBody = z.object({
+    userGoogleAccessToken: z.string().nonempty(),
+    authenticationMode: AuthenticationModeValues,
+});
+export type AuthenticateWithGoogleOauthRequestBody = z.infer<
+    typeof AuthenticateWithGoogleOauthRequestBody
+>;
+
+//add optionnal token
+export const WebAuthAuthenticateWithGoogleOauthSuccessResponseBody = z.object({
+    status: z.literal('SUCCESS'),
+});
+export type WebAuthAuthenticateWithGoogleOauthSuccessResponseBody = z.infer<
+    typeof WebAuthAuthenticateWithGoogleOauthSuccessResponseBody
+>;
+
+export const ApiTokenAuthenticateWithGoogleOauthSuccessResponseBody = z.object({
+    status: z.literal('SUCCESS'),
+    token: z.string(),
+});
+export type ApiTokenAuthenticateWithGoogleOauthSuccessResponseBody = z.infer<
+    typeof ApiTokenAuthenticateWithGoogleOauthSuccessResponseBody
+>;
+
+export const AuthenticateWithGoogleOauthFailureReponseBody = z.object({
+    status: z.literal('FAILURE'),
+    googleAuthSignUpFailure: GoogleAuthenticationFailureReasons.array(),
+});
+export type AuthenticateWithGoogleOauthFailureReponseBody = z.infer<
+    typeof AuthenticateWithGoogleOauthFailureReponseBody
+>;
+
+export const AuthenticateWithGoogleOauthResponseBody =
+    WebAuthAuthenticateWithGoogleOauthSuccessResponseBody.or(
+        ApiTokenAuthenticateWithGoogleOauthSuccessResponseBody,
+    ).or(AuthenticateWithGoogleOauthFailureReponseBody);
+export type AuthenticateWithGoogleOauthResponseBody = z.infer<
+    typeof AuthenticateWithGoogleOauthResponseBody
+>;
+///

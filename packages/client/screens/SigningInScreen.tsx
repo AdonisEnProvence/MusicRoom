@@ -5,9 +5,11 @@ import * as WebBrowser from 'expo-web-browser';
 import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { TouchableOpacity } from 'react-native';
+import invariant from 'tiny-invariant';
 import * as z from 'zod';
 import { AppScreen, TextField } from '../components/kit';
 import { useAppContext } from '../contexts/AppContext';
+import { sendAuthenticateWithGoogleAccount } from '../services/AuthenticationService';
 import { SigningInScreenProps } from '../types';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -103,7 +105,11 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
         if (response?.type === 'success') {
             const { authentication } = response;
             console.log({ authentication });
-            setAccessToken(authentication?.accessToken);
+            invariant(authentication !== null, 'authentication is undefined');
+            setAccessToken(authentication.accessToken);
+            void sendAuthenticateWithGoogleAccount({
+                userGoogleAccessToken: authentication.accessToken,
+            });
         }
     }, [response]);
 

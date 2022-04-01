@@ -165,3 +165,18 @@ export const RequestPasswordResetResponseBody = z.object({
 export type RequestPasswordResetResponseBody = z.infer<
     typeof RequestPasswordResetResponseBody
 >;
+
+export const ValidatePasswordResetTokenRequestBody = z.object({
+    email: z.string().email(),
+    token: z.string(),
+});
+export type ValidatePasswordResetTokenRequestBody = z.infer<
+    typeof ValidatePasswordResetTokenRequestBody
+>;
+
+export const ValidatePasswordResetTokenResponseBody = z.object({
+    status: z.enum(['SUCCESS', 'INVALID_TOKEN']),
+});
+export type ValidatePasswordResetTokenResponseBody = z.infer<
+    typeof ValidatePasswordResetTokenResponseBody
+>;

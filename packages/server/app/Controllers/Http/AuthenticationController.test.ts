@@ -12,6 +12,8 @@ import {
     SignInSuccessfulWebAuthResponseBody,
     SignOutResponseBody,
     TokenTypeName,
+    ValidatePasswordResetTokenRequestBody,
+    ValidatePasswordResetTokenResponseBody,
 } from '@musicroom/types';
 import { DateTime } from 'luxon';
 import User from 'App/Models/User';
@@ -935,5 +937,161 @@ test.group('Request password reset', (group) => {
             const tokenValue = tokenElement.text().trim();
             assert.match(tokenValue, /^\d{6}$/);
         }
+    });
+});
+
+test.group('Validate password reset token', (group) => {
+    const { createRequest, generateToken } = initTestUtils();
+
+    group.beforeEach(async () => {
+        await Database.beginGlobalTransaction();
+    });
+
+    group.afterEach(async () => {
+        await Database.rollbackGlobalTransaction();
+    });
+
+    test('Returns token is valid if token is not expired and belongs to user with provided email', async (assert) => {
+        const request = createRequest();
+
+        const user = await User.create({
+            uuid: datatype.uuid(),
+            nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
+        });
+
+        const plainToken = generateToken();
+        const tokenType = await TokenType.findByOrFail(
+            'name',
+            TokenTypeName.enum.PASSWORD_RESET,
+        );
+        await user.related('tokens').create({
+            uuid: datatype.uuid(),
+            tokenTypeUuid: tokenType.uuid,
+            value: plainToken,
+            expiresAt: DateTime.local().plus({
+                minutes: 15,
+            }),
+        });
+
+        const requestBody: ValidatePasswordResetTokenRequestBody = {
+            token: plainToken,
+            email: user.email,
+        };
+        const response = await request
+            .post('/authentication/validate-password-reset-token')
+            .send(requestBody)
+            .expect(200);
+        const parsedResponseBody = ValidatePasswordResetTokenResponseBody.parse(
+            response.body,
+        );
+
+        assert.deepStrictEqual(parsedResponseBody, {
+            status: 'SUCCESS',
+        });
+    });
+
+    test('Returns error when no user exist with provided email', async (assert) => {
+        const request = createRequest();
+
+        const requestBody: ValidatePasswordResetTokenRequestBody = {
+            token: generateToken(),
+            email: internet.email(),
+        };
+        const response = await request
+            .post('/authentication/validate-password-reset-token')
+            .send(requestBody)
+            .expect(400);
+        const parsedResponseBody = ValidatePasswordResetTokenResponseBody.parse(
+            response.body,
+        );
+
+        assert.deepStrictEqual(parsedResponseBody, {
+            status: 'INVALID_TOKEN',
+        });
+    });
+
+    test('Returns error if no token match with provided token', async (assert) => {
+        const request = createRequest();
+
+        const user = await User.create({
+            uuid: datatype.uuid(),
+            nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
+        });
+
+        const plainToken = generateToken();
+        const tokenType = await TokenType.findByOrFail(
+            'name',
+            TokenTypeName.enum.PASSWORD_RESET,
+        );
+        await user.related('tokens').create({
+            uuid: datatype.uuid(),
+            tokenTypeUuid: tokenType.uuid,
+            value: plainToken,
+            expiresAt: DateTime.local().plus({
+                minutes: 15,
+            }),
+        });
+
+        const requestBody: ValidatePasswordResetTokenRequestBody = {
+            token: generateToken(),
+            email: user.email,
+        };
+        const response = await request
+            .post('/authentication/validate-password-reset-token')
+            .send(requestBody)
+            .expect(400);
+        const parsedResponseBody = ValidatePasswordResetTokenResponseBody.parse(
+            response.body,
+        );
+
+        assert.deepStrictEqual(parsedResponseBody, {
+            status: 'INVALID_TOKEN',
+        });
+    });
+
+    test('Returns error if token has expired', async (assert) => {
+        const request = createRequest();
+
+        const user = await User.create({
+            uuid: datatype.uuid(),
+            nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
+        });
+
+        const plainToken = generateToken();
+        const tokenType = await TokenType.findByOrFail(
+            'name',
+            TokenTypeName.enum.PASSWORD_RESET,
+        );
+        const twoHoursAgo = DateTime.local().minus({
+            hours: 2,
+        });
+        await user.related('tokens').create({
+            uuid: datatype.uuid(),
+            tokenTypeUuid: tokenType.uuid,
+            value: plainToken,
+            expiresAt: twoHoursAgo,
+        });
+
+        const requestBody: ValidatePasswordResetTokenRequestBody = {
+            token: plainToken,
+            email: user.email,
+        };
+        const response = await request
+            .post('/authentication/validate-password-reset-token')
+            .send(requestBody)
+            .expect(400);
+        const parsedResponseBody = ValidatePasswordResetTokenResponseBody.parse(
+            response.body,
+        );
+
+        assert.deepStrictEqual(parsedResponseBody, {
+            status: 'INVALID_TOKEN',
+        });
     });
 });

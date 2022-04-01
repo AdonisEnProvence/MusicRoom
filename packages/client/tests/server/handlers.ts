@@ -42,6 +42,8 @@ import {
     ConfirmEmailResponseBody,
     SignOutResponseBody,
     ResendConfirmationEmailResponseBody,
+    RequestPasswordResetRequestBody,
+    RequestPasswordResetResponseBody,
 } from '@musicroom/types';
 import { datatype } from 'faker';
 import {
@@ -879,5 +881,37 @@ export const handlers = [
                 }),
             );
         }),
+    ),
+
+    rest.post<
+        RequestPasswordResetRequestBody,
+        never,
+        RequestPasswordResetResponseBody
+    >(
+        `${SERVER_ENDPOINT}/authentication/request-password-reset`,
+        (req, res, ctx) => {
+            const user = db.authenticationUser.findFirst({
+                where: {
+                    email: {
+                        equals: req.body.email,
+                    },
+                },
+            });
+            if (user === null) {
+                return res(
+                    ctx.status(404),
+                    ctx.json({
+                        status: 'INVALID_EMAIL',
+                    }),
+                );
+            }
+
+            return res(
+                ctx.status(200),
+                ctx.json({
+                    status: 'SUCCESS',
+                }),
+            );
+        },
     ),
 ];

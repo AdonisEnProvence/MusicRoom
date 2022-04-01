@@ -6,7 +6,6 @@ import {
     SignInSuccessfulApiTokensResponseBody,
     SignInSuccessfulWebAuthResponseBody,
     SignUpRequestBody,
-    SignUpResponseBody,
     WebAuthSignUpResponseBody,
     WebAuthSuccessfullSignUpResponseBody,
     SignInFailureResponseBody,
@@ -16,6 +15,8 @@ import {
     ConfirmEmailResponseBody,
     ResendConfirmationEmailResponseBody,
     ApiTokensSignUpResponseBody,
+    RequestPasswordResetResponseBody,
+    RequestPasswordResetRequestBody,
 } from '@musicroom/types';
 import { request, SHOULD_USE_TOKEN_AUTH } from './http';
 
@@ -209,6 +210,31 @@ export async function sendResendingConfirmationEmail(): Promise<ResendConfirmati
         },
     );
     const parsedResponseBody = ResendConfirmationEmailResponseBody.parse(
+        rawResponse.data,
+    );
+
+    return parsedResponseBody;
+}
+
+interface SendRequestingPasswordResetArgs {
+    email: string;
+}
+
+export async function sendRequestingPasswordReset({
+    email,
+}: SendRequestingPasswordResetArgs): Promise<RequestPasswordResetResponseBody> {
+    const requestBody: RequestPasswordResetRequestBody = {
+        email,
+    };
+    const rawResponse = await request.post(
+        '/authentication/request-password-reset',
+        requestBody,
+        {
+            validateStatus: (status) =>
+                status === 200 || status === 404 || status === 429,
+        },
+    );
+    const parsedResponseBody = RequestPasswordResetResponseBody.parse(
         rawResponse.data,
     );
 

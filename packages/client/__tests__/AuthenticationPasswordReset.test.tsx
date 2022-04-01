@@ -385,5 +385,26 @@ cases<{
                 },
             ],
         },
+        'Users can request a password reset several times': {
+            target: {
+                'Rendering signing in screen': 'Displaying success toast',
+            },
+            events: [
+                {
+                    type: 'Type email',
+                    email: '',
+                },
+                {
+                    type: 'Request password reset',
+                },
+                {
+                    type: 'Type email',
+                    email: existingUser.email,
+                },
+                {
+                    type: 'Request password reset',
+                },
+            ],
+        },
     },
 );

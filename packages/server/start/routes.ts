@@ -97,6 +97,10 @@ Route.group(() => {
         '/resend-confirmation-email',
         'AuthenticationController.resendConfirmationEmail',
     ).middleware('every-auth');
+    Route.post(
+        '/request-password-reset',
+        'AuthenticationController.requestPasswordReset',
+    );
 }).prefix(AUTHENTICATION_ROUTES_GROUP_PREFIX);
 
 /// Temporal MTV Routes ///
@@ -234,6 +238,19 @@ if (nodeEnvIsDevelopment) {
             'TestEnvMethodController.toggleMailTrap',
         );
     }).prefix(TEST_GROUP_PREFIX);
+
+    Route.get('/email/:template', async ({ request, view }) => {
+        const template = request.param('template');
+
+        const { default: mjml } = await import('mjml');
+
+        return mjml(
+            await view.render(`emails/${template}`, {
+                nickname: 'Baba',
+                token: '897632',
+            }),
+        ).html;
+    });
 }
 /// //////// ////// ///
 

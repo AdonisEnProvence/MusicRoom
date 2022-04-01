@@ -11,7 +11,7 @@ import EmailVerification from 'App/Mailers/EmailVerification';
 import User from 'App/Models/User';
 import { datatype, internet, random } from 'faker';
 import test from 'japa';
-import Sinon from 'sinon';
+import { spy } from 'sinon';
 import supertest from 'supertest';
 import invariant from 'tiny-invariant';
 import urlcat from 'urlcat';
@@ -51,41 +51,8 @@ test.group('Authentication sign up tests group', (group) => {
         const trimmedUserNickname = `${internet.userName()} ${internet.userName()}`;
         const password = generateStrongPassword();
 
-        const mailTrapEmailVerificationSpy = Sinon.spy<
-            (message: MessageNode) => void
-        >((message) => {
-            assert.deepEqual(message.to, [
-                {
-                    address: trimmedEmail,
-                },
-            ]);
-
-            assert.deepEqual(message.from, {
-                address: 'no-reply@adonisenprovence.com',
-            });
-
-            const subject = message.subject;
-            invariant(
-                subject !== undefined,
-                'The subject of the message must be defined',
-            );
-
-            const emailVerificationObjectRegex =
-                /\[.*].*Welcome.*,.*please.*verify.*your.*email.*!/i;
-            assert.match(subject, emailVerificationObjectRegex);
-            assert.include(subject, trimmedUserNickname);
-
-            const html = message.html;
-            invariant(
-                html !== undefined,
-                'HTML content of the email must be defined',
-            );
-
-            const $ = cheerio.load(html);
-            const tokenElement = $('[data-testid="token"]');
-            const tokenValue = tokenElement.text();
-            assert.match(tokenValue, /\d{6}/);
-        });
+        const mailTrapEmailVerificationSpy =
+            spy<(message: MessageNode) => void>(noop);
         Mail.trap(mailTrapEmailVerificationSpy);
 
         const { body: rawBody } = await request
@@ -121,6 +88,44 @@ test.group('Authentication sign up tests group', (group) => {
         await waitFor(() => {
             assert.isTrue(mailTrapEmailVerificationSpy.calledOnce);
         });
+
+        {
+            const message = mailTrapEmailVerificationSpy.lastCall.args[0];
+
+            assert.deepEqual(message.to, [
+                {
+                    address: trimmedEmail,
+                    name: trimmedUserNickname,
+                },
+            ]);
+
+            assert.deepEqual(message.from, {
+                address: 'no-reply@adonisenprovence.com',
+                name: 'MusicRoom',
+            });
+
+            const subject = message.subject;
+            invariant(
+                subject !== undefined,
+                'The subject of the message must be defined',
+            );
+
+            const emailVerificationObjectRegex =
+                /\[.*].*Welcome.*,.*please.*verify.*your.*email.*!/i;
+            assert.match(subject, emailVerificationObjectRegex);
+            assert.include(subject, trimmedUserNickname);
+
+            const html = message.html;
+            invariant(
+                html !== undefined,
+                'HTML content of the email must be defined',
+            );
+
+            const $ = cheerio.load(html);
+            const tokenElement = $('[data-testid="token"]');
+            const tokenValue = tokenElement.text();
+            assert.match(tokenValue, /\d{6}/);
+        }
     });
 
     test('It should send an email verification email', async (assert) => {
@@ -134,29 +139,8 @@ test.group('Authentication sign up tests group', (group) => {
             password,
         });
 
-        const mailTrapEmailVerificationSpy = Sinon.spy<
-            (message: MessageNode) => void
-        >((message) => {
-            assert.deepEqual(message.to, [
-                {
-                    address: email,
-                },
-            ]);
-
-            assert.deepEqual(message.from, {
-                address: 'no-reply@adonisenprovence.com',
-            });
-
-            const emailVerificationObjectRegex =
-                /\[.*].*Welcome.*,.*please.*verify.*your.*email.*!/i;
-            assert.isDefined(message.subject);
-            invariant(
-                message.subject !== undefined,
-                'message subject is undefined',
-            );
-            assert.match(message.subject, emailVerificationObjectRegex);
-            assert.include(message.subject, nickname);
-        });
+        const mailTrapEmailVerificationSpy =
+            spy<(message: MessageNode) => void>(noop);
         Mail.trap(mailTrapEmailVerificationSpy);
 
         const emailVerification = new EmailVerification(user, 'token1234');
@@ -165,25 +149,20 @@ test.group('Authentication sign up tests group', (group) => {
         await waitFor(() => {
             assert.isTrue(mailTrapEmailVerificationSpy.calledOnce);
         });
-    });
 
-    test('It should sign up user with api token auth using given credentials', async (assert) => {
-        const request = supertest.agent(BASE_URL);
-        const email = internet.email();
-        const userNickname = internet.userName();
-        const password = generateStrongPassword();
+        {
+            const message = mailTrapEmailVerificationSpy.lastCall.args[0];
 
-        const mailTrapEmailVerificationSpy = Sinon.spy<
-            (message: MessageNode) => void
-        >((message) => {
             assert.deepEqual(message.to, [
                 {
                     address: email,
+                    name: nickname,
                 },
             ]);
 
             assert.deepEqual(message.from, {
                 address: 'no-reply@adonisenprovence.com',
+                name: 'MusicRoom',
             });
 
             const emailVerificationObjectRegex =
@@ -195,7 +174,17 @@ test.group('Authentication sign up tests group', (group) => {
             );
             assert.match(message.subject, emailVerificationObjectRegex);
             assert.include(message.subject, nickname);
-        });
+        }
+    });
+
+    test('It should sign up user with api token auth using given credentials', async (assert) => {
+        const request = supertest.agent(BASE_URL);
+        const email = internet.email();
+        const userNickname = internet.userName();
+        const password = generateStrongPassword();
+
+        const mailTrapEmailVerificationSpy =
+            spy<(message: MessageNode) => void>(noop);
         Mail.trap(mailTrapEmailVerificationSpy);
 
         const { body: rawBody } = await request
@@ -234,6 +223,32 @@ test.group('Authentication sign up tests group', (group) => {
         await waitFor(() => {
             assert.isTrue(mailTrapEmailVerificationSpy.calledOnce);
         });
+
+        {
+            const message = mailTrapEmailVerificationSpy.lastCall.args[0];
+
+            assert.deepEqual(message.to, [
+                {
+                    address: email,
+                    name: userNickname,
+                },
+            ]);
+
+            assert.deepEqual(message.from, {
+                address: 'no-reply@adonisenprovence.com',
+                name: 'MusicRoom',
+            });
+
+            const emailVerificationObjectRegex =
+                /\[.*].*Welcome.*,.*please.*verify.*your.*email.*!/i;
+            assert.isDefined(message.subject);
+            invariant(
+                message.subject !== undefined,
+                'message subject is undefined',
+            );
+            assert.match(message.subject, emailVerificationObjectRegex);
+            assert.include(message.subject, nickname);
+        }
     });
 
     test('It should fail to sign up as given password is weak', async (assert) => {
@@ -242,7 +257,7 @@ test.group('Authentication sign up tests group', (group) => {
         const userNickname = internet.userName();
         const password = generateWeakPassword();
 
-        const mailTrapEmailVerificationSpy = Sinon.spy(noop);
+        const mailTrapEmailVerificationSpy = spy(noop);
         Mail.trap(mailTrapEmailVerificationSpy);
 
         const { body: rawBody } = await request
@@ -269,7 +284,7 @@ test.group('Authentication sign up tests group', (group) => {
         const userNickname = '                ';
         const password = generateWeakPassword();
 
-        const mailTrapEmailVerificationSpy = Sinon.spy(noop);
+        const mailTrapEmailVerificationSpy = spy(noop);
         Mail.trap(mailTrapEmailVerificationSpy);
 
         const { body: rawBody } = await request
@@ -296,7 +311,7 @@ test.group('Authentication sign up tests group', (group) => {
         const userNickname = internet.userName();
         const password = generateStrongPassword();
 
-        const mailTrapEmailVerificationSpy = Sinon.spy(noop);
+        const mailTrapEmailVerificationSpy = spy(noop);
         Mail.trap(mailTrapEmailVerificationSpy);
 
         const { body: rawBody } = await request
@@ -323,7 +338,7 @@ test.group('Authentication sign up tests group', (group) => {
         const userNickname = internet.userName();
         const password = generateStrongPassword();
 
-        const mailTrapEmailVerificationSpy = Sinon.spy(noop);
+        const mailTrapEmailVerificationSpy = spy(noop);
         Mail.trap(mailTrapEmailVerificationSpy);
 
         const { body: rawBody } = await request
@@ -349,7 +364,7 @@ test.group('Authentication sign up tests group', (group) => {
         const userNickname = internet.userName();
         const password = generateStrongPassword();
 
-        const mailTrapEmailVerificationSpy = Sinon.spy(noop);
+        const mailTrapEmailVerificationSpy = spy(noop);
         Mail.trap(mailTrapEmailVerificationSpy);
 
         await request
@@ -377,7 +392,7 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(200);
 
-        const mailTrapEmailVerificationSpy = Sinon.spy(noop);
+        const mailTrapEmailVerificationSpy = spy(noop);
         Mail.trap(mailTrapEmailVerificationSpy);
 
         const request = supertest.agent(BASE_URL);
@@ -415,7 +430,7 @@ test.group('Authentication sign up tests group', (group) => {
             } as SignUpRequestBody)
             .expect(200);
 
-        const mailTrapEmailVerificationSpy = Sinon.spy(noop);
+        const mailTrapEmailVerificationSpy = spy(noop);
         Mail.trap(mailTrapEmailVerificationSpy);
         const request = supertest.agent(BASE_URL);
         const password = internet.password();
@@ -443,7 +458,7 @@ test.group('Authentication sign up tests group', (group) => {
         const email = internet.email().replace('@', random.word());
         const userNickname = '';
 
-        const mailTrapEmailVerificationSpy = Sinon.spy(noop);
+        const mailTrapEmailVerificationSpy = spy(noop);
         Mail.trap(mailTrapEmailVerificationSpy);
         // Indeed we're saving a bad formatted email and nickname directly in database
         // To cover corresponding exception for the following sign up
@@ -489,29 +504,8 @@ test.group('Authentication sign up tests group', (group) => {
         const userNickname = internet.userName();
         const password = generateStrongPassword();
 
-        const mailTrapEmailVerificationSpy = Sinon.spy<
-            (message: MessageNode) => void
-        >((message) => {
-            assert.deepEqual(message.to, [
-                {
-                    address: email,
-                },
-            ]);
-
-            assert.deepEqual(message.from, {
-                address: 'no-reply@adonisenprovence.com',
-            });
-
-            const emailVerificationObjectRegex =
-                /\[.*].*Welcome.*,.*please.*verify.*your.*email.*!/i;
-            assert.isDefined(message.subject);
-            invariant(
-                message.subject !== undefined,
-                'message subject is undefined',
-            );
-            assert.match(message.subject, emailVerificationObjectRegex);
-            assert.include(message.subject, userNickname);
-        });
+        const mailTrapEmailVerificationSpy =
+            spy<(message: MessageNode) => void>(noop);
         Mail.trap(mailTrapEmailVerificationSpy);
 
         await request
@@ -530,5 +524,31 @@ test.group('Authentication sign up tests group', (group) => {
         await waitFor(() => {
             assert.isTrue(mailTrapEmailVerificationSpy.calledOnce);
         });
+
+        {
+            const message = mailTrapEmailVerificationSpy.lastCall.args[0];
+
+            assert.deepEqual(message.to, [
+                {
+                    address: email,
+                    name: userNickname,
+                },
+            ]);
+
+            assert.deepEqual(message.from, {
+                address: 'no-reply@adonisenprovence.com',
+                name: 'MusicRoom',
+            });
+
+            const emailVerificationObjectRegex =
+                /\[.*].*Welcome.*,.*please.*verify.*your.*email.*!/i;
+            assert.isDefined(message.subject);
+            invariant(
+                message.subject !== undefined,
+                'message subject is undefined',
+            );
+            assert.match(message.subject, emailVerificationObjectRegex);
+            assert.include(message.subject, userNickname);
+        }
     });
 });

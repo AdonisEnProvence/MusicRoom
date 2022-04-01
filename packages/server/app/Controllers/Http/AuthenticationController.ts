@@ -10,6 +10,8 @@ import {
     ConfirmEmailRequestBody,
     ConfirmEmailResponseBody,
     ResendConfirmationEmailResponseBody,
+    RequestPasswordResetResponseBody,
+    RequestPasswordResetRequestBody,
 } from '@musicroom/types';
 import { DateTime } from 'luxon';
 import User from 'App/Models/User';
@@ -271,6 +273,42 @@ export default class AuthenticationController {
 
         await AuthenticationService.sendEmailForEmailConfirmation({
             user,
+        });
+
+        return {
+            status: 'SUCCESS',
+        };
+    }
+
+    public async requestPasswordReset({
+        request,
+        response,
+        bouncer,
+    }: HttpContextContract): Promise<RequestPasswordResetResponseBody> {
+        const { email } = RequestPasswordResetRequestBody.parse(request.body());
+
+        const userWithGivenEmail = await User.findBy('email', email);
+        if (userWithGivenEmail === null) {
+            response.status(404);
+
+            return {
+                status: 'INVALID_EMAIL',
+            };
+        }
+
+        const hasReachedRateLimit = await bouncer
+            .forUser(userWithGivenEmail)
+            .denies('requestPasswordReset');
+        if (hasReachedRateLimit === true) {
+            response.status(429);
+
+            return {
+                status: 'REACHED_RATE_LIMIT',
+            };
+        }
+
+        await AuthenticationService.sendPasswordResetEmail({
+            user: userWithGivenEmail,
         });
 
         return {

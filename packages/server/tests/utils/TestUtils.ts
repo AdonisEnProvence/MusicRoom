@@ -11,6 +11,7 @@ import {
     SignInSuccessfulWebAuthResponseBody,
     SignInSuccessfulApiTokensResponseBody,
 } from '@musicroom/types';
+import { customAlphabet } from 'nanoid/non-secure';
 import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import MpeRoom from 'App/Models/MpeRoom';
 import MtvRoom from 'App/Models/MtvRoom';
@@ -210,6 +211,7 @@ interface TestUtilsReturnedValue {
             timeoutToSettle?: number;
         },
     ) => Promise<ExpectReturn>;
+    generateToken: () => string;
     spy: typeof spy;
 }
 
@@ -914,6 +916,12 @@ export function initTestUtils(): TestUtilsReturnedValue {
         );
     }
 
+    const nanoid = customAlphabet('0123456789', 6);
+
+    function generateToken(): string {
+        return nanoid();
+    }
+
     return {
         createSocketConnection,
         createAuthenticatedUserAndGetSocket,
@@ -929,6 +937,7 @@ export function initTestUtils(): TestUtilsReturnedValue {
         spy,
         waitForSocketToBeAcknowledged,
         waitForSettled,
+        generateToken,
     };
 }
 

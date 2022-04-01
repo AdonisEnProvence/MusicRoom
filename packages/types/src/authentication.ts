@@ -151,3 +151,17 @@ export const ResendConfirmationEmailResponseBody = z.object({
 export type ResendConfirmationEmailResponseBody = z.infer<
     typeof ResendConfirmationEmailResponseBody
 >;
+
+export const RequestPasswordResetRequestBody = z.object({
+    email: z.string().email(),
+});
+export type RequestPasswordResetRequestBody = z.infer<
+    typeof RequestPasswordResetRequestBody
+>;
+
+export const RequestPasswordResetResponseBody = z.object({
+    status: z.enum(['SUCCESS', 'REACHED_RATE_LIMIT', 'INVALID_EMAIL']),
+});
+export type RequestPasswordResetResponseBody = z.infer<
+    typeof RequestPasswordResetResponseBody
+>;

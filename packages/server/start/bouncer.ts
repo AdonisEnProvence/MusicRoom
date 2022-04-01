@@ -63,6 +63,28 @@ export const { actions } = Bouncer.define('confirmEmail', (user: User) => {
 
         return canResendConfirmationEmail === true;
     })
+    .define('requestPasswordReset', async (user: User) => {
+        const passwordResetTokensGeneratedDuringLastHour = await user
+            .related('tokens')
+            .query()
+            .whereHas('tokenType', (query) => {
+                return query.where('name', TokenTypeName.enum.PASSWORD_RESET);
+            })
+            .andWhere(
+                'createdAt',
+                '>',
+                DateTime.now().minus({ hours: 1 }).toSQL(),
+            );
+        const passwordResetTokensGeneratedDuringLastHourCount =
+            passwordResetTokensGeneratedDuringLastHour.length;
+
+        const hasReachedRateLimit =
+            passwordResetTokensGeneratedDuringLastHourCount >= 3;
+        const hasNotReachedRateLimit = hasReachedRateLimit === false;
+        const canRequestPasswordReset = hasNotReachedRateLimit === true;
+
+        return canRequestPasswordReset === true;
+    })
     .define('hasConfirmedEmail', async (user: User) => {
         return (
             user.confirmedEmailAt !== null &&

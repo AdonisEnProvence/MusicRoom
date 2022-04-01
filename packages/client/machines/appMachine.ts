@@ -1,6 +1,7 @@
 import {
     ConfirmEmailResponseBody,
     GetMyProfileInformationResponseBody,
+    RequestPasswordResetResponseBody,
     ResendConfirmationEmailResponseBody,
     SignInResponseBody,
     SignOutResponseBody,
@@ -25,6 +26,7 @@ import { IS_TEST } from '../constants/Env';
 import { SocketClient } from '../contexts/SocketContext';
 import {
     sendEmailConfirmationCode,
+    sendRequestingPasswordReset,
     sendResendingConfirmationEmail,
     sendSignIn,
     sendSignOut,
@@ -220,6 +222,74 @@ export function createAppMachine({
                                 actions: raise({
                                     type: '__AUTHENTICATED',
                                 }),
+                            },
+                        },
+
+                        passwordResetting: {
+                            initial: 'waitingForEmail',
+
+                            states: {
+                                waitingForEmail: {},
+
+                                requestingPasswordReset: {
+                                    invoke: {
+                                        src: 'requestPasswordReset',
+
+                                        onDone: [
+                                            {
+                                                cond: 'hasReachedRateLimitForPasswordResetRequests',
+
+                                                target: 'reachedRateLimitForPasswordResetRequests',
+
+                                                actions:
+                                                    'showToastForRateLimitedPasswordResetRequests',
+                                            },
+                                            {
+                                                cond: 'isProvidedEmailInvalid',
+
+                                                target: 'providedEmailIsInvalid',
+
+                                                actions:
+                                                    'showToastForFailedPasswordResetAsEmailIsInvalid',
+                                            },
+                                            {
+                                                target: 'requestedPasswordResetSuccessfully',
+
+                                                actions:
+                                                    'showToastForSuccessfulPasswordReset',
+                                            },
+                                        ],
+
+                                        onError: {
+                                            target: 'erredRequestingPasswordReset',
+
+                                            actions:
+                                                'showToastForFailedPasswordReset',
+                                        },
+                                    },
+
+                                    on: {
+                                        REQUEST_PASSWORD_RESET: undefined,
+                                    },
+                                },
+
+                                requestedPasswordResetSuccessfully: {},
+
+                                providedEmailIsInvalid: {},
+
+                                reachedRateLimitForPasswordResetRequests: {},
+
+                                erredRequestingPasswordReset: {},
+                            },
+
+                            on: {
+                                REQUEST_PASSWORD_RESET: {
+                                    target: 'passwordResetting.requestingPasswordReset',
+
+                                    actions: appModel.assign({
+                                        email: (_, event) => event.email,
+                                    }),
+                                },
                             },
                         },
 
@@ -739,6 +809,17 @@ export function createAppMachine({
 
                         return responseBody;
                     },
+
+                requestPasswordReset: async ({ email }) => {
+                    invariant(
+                        email !== undefined,
+                        'Service must be called after an email has been assigned to context',
+                    );
+
+                    return await sendRequestingPasswordReset({
+                        email,
+                    });
+                },
             },
 
             actions: {
@@ -773,6 +854,38 @@ export function createAppMachine({
                     Toast.show({
                         type: 'error',
                         text1: 'An error occured while trying to resend your confirmation email. Please try again later',
+                    });
+                },
+
+                showToastForRateLimitedPasswordResetRequests: () => {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Password reset request failed',
+                        text2: 'Too much requests have been made in the last hour, please wait',
+                    });
+                },
+
+                showToastForFailedPasswordResetAsEmailIsInvalid: () => {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Password reset request failed',
+                        text2: 'The email you provided is invalid',
+                    });
+                },
+
+                showToastForSuccessfulPasswordReset: () => {
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Password reset request succeeded',
+                        text2: 'We sent you an email with a code in it.',
+                    });
+                },
+
+                showToastForFailedPasswordReset: () => {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Password reset request failed',
+                        text2: 'An unexpected error occured, please try again later',
                     });
                 },
             },
@@ -818,6 +931,20 @@ export function createAppMachine({
                         e as DoneInvokeEvent<ResendConfirmationEmailResponseBody>;
 
                     return event.data.status === 'REACHED_RATE_LIMIT';
+                },
+
+                hasReachedRateLimitForPasswordResetRequests: (_context, e) => {
+                    const event =
+                        e as DoneInvokeEvent<RequestPasswordResetResponseBody>;
+
+                    return event.data.status === 'REACHED_RATE_LIMIT';
+                },
+
+                isProvidedEmailInvalid: (_context, e) => {
+                    const event =
+                        e as DoneInvokeEvent<RequestPasswordResetResponseBody>;
+
+                    return event.data.status === 'INVALID_EMAIL';
                 },
             },
         },

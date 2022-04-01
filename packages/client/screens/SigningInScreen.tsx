@@ -19,6 +19,8 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
     const {
         control,
         handleSubmit,
+        getValues,
+        trigger,
         formState: { errors },
     } = useForm<SigningInFormFieldValues>();
     const credentialsAreInvalid = useSelector(
@@ -45,6 +47,21 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
 
     function handleGoToSignUpFormScreen() {
         navigation.navigate('SignUpFormScreen');
+    }
+
+    async function handleRequestPasswordReset() {
+        const isEmailValid = await trigger('email');
+        const isEmailInvalid = isEmailValid === false;
+        if (isEmailInvalid === true) {
+            return;
+        }
+
+        const { email } = getValues();
+
+        appService.send({
+            type: 'REQUEST_PASSWORD_RESET',
+            email,
+        });
     }
 
     return (
@@ -222,6 +239,17 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
                                         );
                                     }}
                                 />
+
+                                <TouchableOpacity
+                                    style={sx({
+                                        marginTop: 'm',
+                                    })}
+                                    onPress={handleRequestPasswordReset}
+                                >
+                                    <Text sx={{ color: 'white' }}>
+                                        Do you lost your password?
+                                    </Text>
+                                </TouchableOpacity>
 
                                 {errors.password?.message && (
                                     <Text

@@ -1,12 +1,16 @@
-import { SafeAreaView, Text, useSx, View } from 'dripsy';
-import React from 'react';
+import { useSelector } from '@xstate/react';
+import { Button, SafeAreaView, Text, useSx, View } from 'dripsy';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
+import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { TouchableOpacity } from 'react-native';
 import * as z from 'zod';
-import { useSelector } from '@xstate/react';
 import { AppScreen, TextField } from '../components/kit';
 import { useAppContext } from '../contexts/AppContext';
 import { SigningInScreenProps } from '../types';
+
+WebBrowser.maybeCompleteAuthSession();
 
 interface SigningInFormFieldValues {
     email: string;
@@ -14,6 +18,36 @@ interface SigningInFormFieldValues {
 }
 
 const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
+    const [accessToken, setAccessToken] = useState<string | undefined>(
+        undefined,
+    );
+    const [request, response, promptAsync] = Google.useAuthRequest({
+        expoClientId:
+            '326703248925-qg0i9ig0b4gqvkpmpfd665d5un082adj.apps.googleusercontent.com',
+        iosClientId:
+            '326703248925-n6knfko9tffasgpq3ffbv8i8qj7vpcgg.apps.googleusercontent.com',
+        androidClientId:
+            '326703248925-fq6r2lio64q1fg0ap6hj6uvm09raf9cd.apps.googleusercontent.com',
+        webClientId:
+            '326703248925-sn4nvaq3vkjoc1chuju6binov8ha3jl3.apps.googleusercontent.com',
+    });
+    //   protected userInfoUrl = 'https://www.googleapis.com/oauth2/v3/userinfo'
+    async function getUserData() {
+        if (accessToken) {
+            const userInfoResponse = await fetch(
+                'https://www.googleapis.com/userinfo/v2/me',
+                {
+                    headers: { Authorization: `Bearer ${accessToken}` },
+                },
+            );
+
+            const infos = await userInfoResponse.json();
+            console.log({ infos });
+        } else {
+            console.log('no access token');
+        }
+    }
+
     const sx = useSx();
     const { appService } = useAppContext();
     const {
@@ -63,6 +97,15 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
             email,
         });
     }
+
+    React.useEffect(() => {
+        console.log({ response });
+        if (response?.type === 'success') {
+            const { authentication } = response;
+            console.log({ authentication });
+            setAccessToken(authentication?.accessToken);
+        }
+    }, [response]);
 
     return (
         <AppScreen testID="sign-in-screen-container">
@@ -280,6 +323,19 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
                                     Log in
                                 </Text>
                             </TouchableOpacity>
+
+                            <Button
+                                disabled={!request}
+                                title="Login"
+                                onPress={async () => {
+                                    await promptAsync();
+                                }}
+                            />
+
+                            <Button
+                                title={'Get User Data'}
+                                onPress={getUserData}
+                            />
 
                             <TouchableOpacity
                                 onPress={handleGoToSignUpFormScreen}

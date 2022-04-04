@@ -12,6 +12,8 @@ import {
     ResendConfirmationEmailResponseBody,
     RequestPasswordResetResponseBody,
     RequestPasswordResetRequestBody,
+    ValidatePasswordResetTokenResponseBody,
+    ValidatePasswordResetTokenRequestBody,
 } from '@musicroom/types';
 import { DateTime } from 'luxon';
 import User from 'App/Models/User';
@@ -310,6 +312,41 @@ export default class AuthenticationController {
         await AuthenticationService.sendPasswordResetEmail({
             user: userWithGivenEmail,
         });
+
+        return {
+            status: 'SUCCESS',
+        };
+    }
+
+    public async validatePasswordResetToken({
+        request,
+        response,
+    }: HttpContextContract): Promise<ValidatePasswordResetTokenResponseBody> {
+        const { token, email } = ValidatePasswordResetTokenRequestBody.parse(
+            request.body(),
+        );
+
+        const user = await User.findBy('email', email);
+        if (user === null) {
+            response.status(400);
+
+            return {
+                status: 'INVALID_TOKEN',
+            };
+        }
+
+        const isValidToken = await user.checkToken({
+            token,
+            tokenType: 'PASSWORD_RESET',
+        });
+        const isInvalidToken = isValidToken === false;
+        if (isInvalidToken === true) {
+            response.status(400);
+
+            return {
+                status: 'INVALID_TOKEN',
+            };
+        }
 
         return {
             status: 'SUCCESS',

@@ -33,22 +33,6 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
         webClientId:
             '326703248925-sn4nvaq3vkjoc1chuju6binov8ha3jl3.apps.googleusercontent.com',
     });
-    //   protected userInfoUrl = 'https://www.googleapis.com/oauth2/v3/userinfo'
-    async function getUserData() {
-        if (accessToken) {
-            const userInfoResponse = await fetch(
-                'https://www.googleapis.com/userinfo/v2/me',
-                {
-                    headers: { Authorization: `Bearer ${accessToken}` },
-                },
-            );
-
-            const infos = await userInfoResponse.json();
-            console.log({ infos });
-        } else {
-            console.log('no access token');
-        }
-    }
 
     const sx = useSx();
     const { appService } = useAppContext();
@@ -332,15 +316,10 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
 
                             <Button
                                 disabled={!request}
-                                title="Login"
+                                title="Google Oauth"
                                 onPress={async () => {
                                     await promptAsync();
                                 }}
-                            />
-
-                            <Button
-                                title={'Get User Data'}
-                                onPress={getUserData}
                             />
 
                             <TouchableOpacity

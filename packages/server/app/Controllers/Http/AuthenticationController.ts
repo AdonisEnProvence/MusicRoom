@@ -357,6 +357,7 @@ export default class AuthenticationController {
 
     public async authenticateWithGoogleOauth({
         request,
+        response,
         auth,
     }: HttpContextContract): Promise<AuthenticateWithGoogleOauthResponseBody> {
         const { authenticationMode, userGoogleAccessToken } =
@@ -384,6 +385,7 @@ export default class AuthenticationController {
                 );
 
             if (googleAuthSignUpFailure.length > 0) {
+                response.status(400);
                 return {
                     status: 'FAILURE',
                     googleAuthSignUpFailure,

@@ -3,7 +3,6 @@ import { DateTime } from 'luxon';
 import {
     AuthenticationModeValues,
     GoogleAuthenticationFailureReasons,
-    SignUpFailureReasons,
     TokenTypeName,
 } from '@musicroom/types';
 import Token from 'App/Models/Token';

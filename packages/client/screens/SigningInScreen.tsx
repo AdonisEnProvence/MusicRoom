@@ -1,18 +1,14 @@
 import { useSelector } from '@xstate/react';
-import { Button, SafeAreaView, Text, useSx, View } from 'dripsy';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
-import React, { useState } from 'react';
+import { SafeAreaView, Text, useSx, View } from 'dripsy';
+import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { TouchableOpacity } from 'react-native';
-import invariant from 'tiny-invariant';
 import * as z from 'zod';
+import GoogleAuthenticationButton from '../components/GoogleAuthenticationButton';
 import { AppScreen, TextField } from '../components/kit';
 import { useAppContext } from '../contexts/AppContext';
 import { sendAuthenticateWithGoogleAccount } from '../services/AuthenticationService';
 import { SigningInScreenProps } from '../types';
-
-WebBrowser.maybeCompleteAuthSession();
 
 interface SigningInFormFieldValues {
     email: string;
@@ -20,20 +16,7 @@ interface SigningInFormFieldValues {
 }
 
 const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
-    const [accessToken, setAccessToken] = useState<string | undefined>(
-        undefined,
-    );
-    const [request, response, promptAsync] = Google.useAuthRequest({
-        expoClientId:
-            '326703248925-qg0i9ig0b4gqvkpmpfd665d5un082adj.apps.googleusercontent.com',
-        iosClientId:
-            '326703248925-n6knfko9tffasgpq3ffbv8i8qj7vpcgg.apps.googleusercontent.com',
-        androidClientId:
-            '326703248925-fq6r2lio64q1fg0ap6hj6uvm09raf9cd.apps.googleusercontent.com',
-        webClientId:
-            '326703248925-sn4nvaq3vkjoc1chuju6binov8ha3jl3.apps.googleusercontent.com',
-    });
-
+    // GoogleAuthenticationButton
     const sx = useSx();
     const { appService } = useAppContext();
     const {
@@ -83,19 +66,6 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
             email,
         });
     }
-
-    React.useEffect(() => {
-        console.log({ response });
-        if (response?.type === 'success') {
-            const { authentication } = response;
-            console.log({ authentication });
-            invariant(authentication !== null, 'authentication is undefined');
-            setAccessToken(authentication.accessToken);
-            void sendAuthenticateWithGoogleAccount({
-                userGoogleAccessToken: authentication.accessToken,
-            });
-        }
-    }, [response]);
 
     return (
         <AppScreen testID="sign-in-screen-container">
@@ -314,13 +284,7 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
                                 </Text>
                             </TouchableOpacity>
 
-                            <Button
-                                disabled={!request}
-                                title="Google Oauth"
-                                onPress={async () => {
-                                    await promptAsync();
-                                }}
-                            />
+                            <GoogleAuthenticationButton />
 
                             <TouchableOpacity
                                 onPress={handleGoToSignUpFormScreen}

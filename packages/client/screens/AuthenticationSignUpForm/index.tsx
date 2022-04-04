@@ -12,6 +12,7 @@ import { AppScreen, TextField } from '../../components/kit';
 import { sendSignUp, SignUpError } from '../../services/AuthenticationService';
 import { SignUpFormScreenProps } from '../../types';
 import { useAppContext } from '../../contexts/AppContext';
+import GoogleAuthenticationButton from '../../components/GoogleAuthenticationButton';
 
 export interface AuthenticationSignUpFormFormFieldValues {
     userNickname: string;
@@ -536,6 +537,8 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                     Sign Up
                                 </Text>
                             </TouchableOpacity>
+
+                            <GoogleAuthenticationButton />
 
                             <TouchableOpacity
                                 onPress={handleGoToSignInFormScreen}

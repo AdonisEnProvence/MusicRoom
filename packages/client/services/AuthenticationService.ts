@@ -18,6 +18,8 @@ import {
     RequestPasswordResetResponseBody,
     RequestPasswordResetRequestBody,
     AuthenticateWithGoogleOauthRequestBody,
+    ValidatePasswordResetTokenResponseBody,
+    ValidatePasswordResetTokenRequestBody,
 } from '@musicroom/types';
 import { request, SHOULD_USE_TOKEN_AUTH } from './http';
 
@@ -241,7 +243,6 @@ export async function sendRequestingPasswordReset({
 
     return parsedResponseBody;
 }
-//Social authentication
 
 type sendAuthenticateWithGoogleAccountArgs = Omit<
     AuthenticateWithGoogleOauthRequestBody,
@@ -291,3 +292,30 @@ export async function sendAuthenticateWithGoogleAccount(
     return await sendWebAuthAuthenticateWithGoogleAccount(args);
 }
 ///
+
+interface SendValidatePasswordResetCodeArgs {
+    code: string;
+    email: string;
+}
+
+export async function sendValidatePasswordResetCode({
+    code,
+    email,
+}: SendValidatePasswordResetCodeArgs): Promise<ValidatePasswordResetTokenResponseBody> {
+    const requestBody: ValidatePasswordResetTokenRequestBody = {
+        token: code,
+        email,
+    };
+    const rawResponse = await request.post(
+        '/authentication/validate-password-reset-token',
+        requestBody,
+        {
+            validateStatus: (status) => status === 200 || status === 400,
+        },
+    );
+    const parsedResponseBody = ValidatePasswordResetTokenResponseBody.parse(
+        rawResponse.data,
+    );
+
+    return parsedResponseBody;
+}

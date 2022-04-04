@@ -5,6 +5,7 @@ import {
     ResendConfirmationEmailResponseBody,
     SignInResponseBody,
     SignOutResponseBody,
+    ValidatePasswordResetTokenResponseBody,
 } from '@musicroom/types';
 import invariant from 'tiny-invariant';
 import Toast from 'react-native-toast-message';
@@ -30,9 +31,11 @@ import {
     sendResendingConfirmationEmail,
     sendSignIn,
     sendSignOut,
+    sendValidatePasswordResetCode,
 } from '../services/AuthenticationService';
 import { request, SHOULD_USE_TOKEN_AUTH } from '../services/http';
 import { getMyProfileInformation } from '../services/UsersSearchService';
+import { navigateFromRef } from '../navigation/RootNavigation';
 import { appModel } from './appModel';
 import { createAppMusicPlayerMachine } from './appMusicPlayerMachine';
 import { createAppMusicPlaylistsMachine } from './appMusicPlaylistsMachine';
@@ -229,66 +232,175 @@ export function createAppMachine({
                             initial: 'waitingForEmail',
 
                             states: {
-                                waitingForEmail: {},
+                                waitingForEmail: {
+                                    on: {
+                                        REQUEST_PASSWORD_RESET: {
+                                            target: 'requestingPasswordReset',
+
+                                            actions: appModel.assign({
+                                                email: (_, event) =>
+                                                    event.email,
+                                            }),
+                                        },
+                                    },
+                                },
 
                                 requestingPasswordReset: {
-                                    invoke: {
-                                        src: 'requestPasswordReset',
+                                    initial: 'sendingRequest',
 
-                                        onDone: [
-                                            {
-                                                cond: 'hasReachedRateLimitForPasswordResetRequests',
+                                    states: {
+                                        sendingRequest: {
+                                            invoke: {
+                                                src: 'requestPasswordReset',
 
-                                                target: 'reachedRateLimitForPasswordResetRequests',
+                                                onDone: [
+                                                    {
+                                                        cond: 'hasReachedRateLimitForPasswordResetRequests',
 
-                                                actions:
-                                                    'showToastForRateLimitedPasswordResetRequests',
+                                                        target: 'reachedRateLimitForPasswordResetRequests',
+
+                                                        actions:
+                                                            'showToastForRateLimitedPasswordResetRequests',
+                                                    },
+                                                    {
+                                                        cond: 'isProvidedEmailInvalid',
+
+                                                        target: 'providedEmailIsInvalid',
+
+                                                        actions:
+                                                            'showToastForFailedPasswordResetAsEmailIsInvalid',
+                                                    },
+                                                    {
+                                                        target: 'requestedPasswordResetSuccessfully',
+
+                                                        actions: [
+                                                            'showToastForSuccessfulPasswordReset',
+                                                            'redirectToPasswordResetTokenScreen',
+                                                        ],
+                                                    },
+                                                ],
+
+                                                onError: {
+                                                    target: 'erredRequestingPasswordReset',
+
+                                                    actions:
+                                                        'showToastForFailedPasswordReset',
+                                                },
                                             },
-                                            {
-                                                cond: 'isProvidedEmailInvalid',
 
-                                                target: 'providedEmailIsInvalid',
-
-                                                actions:
-                                                    'showToastForFailedPasswordResetAsEmailIsInvalid',
+                                            on: {
+                                                REQUEST_PASSWORD_RESET:
+                                                    undefined,
                                             },
-                                            {
-                                                target: 'requestedPasswordResetSuccessfully',
+                                        },
 
-                                                actions:
-                                                    'showToastForSuccessfulPasswordReset',
-                                            },
-                                        ],
+                                        providedEmailIsInvalid: {},
 
-                                        onError: {
-                                            target: 'erredRequestingPasswordReset',
+                                        reachedRateLimitForPasswordResetRequests:
+                                            {},
 
-                                            actions:
-                                                'showToastForFailedPasswordReset',
+                                        erredRequestingPasswordReset: {},
+
+                                        requestedPasswordResetSuccessfully: {
+                                            type: 'final',
                                         },
                                     },
 
                                     on: {
-                                        REQUEST_PASSWORD_RESET: undefined,
+                                        REQUEST_PASSWORD_RESET: {
+                                            target: 'requestingPasswordReset.sendingRequest',
+
+                                            actions: appModel.assign({
+                                                email: (_, event) =>
+                                                    event.email,
+                                            }),
+                                        },
+                                    },
+
+                                    onDone: {
+                                        target: 'validatingCode',
                                     },
                                 },
 
-                                requestedPasswordResetSuccessfully: {},
+                                validatingCode: {
+                                    initial: 'waitingForCode',
 
-                                providedEmailIsInvalid: {},
+                                    states: {
+                                        waitingForCode: {
+                                            on: {
+                                                SUBMIT_PASSWORD_RESET_CONFIRMATION_FORM:
+                                                    {
+                                                        target: 'sendingValidationRequest',
 
-                                reachedRateLimitForPasswordResetRequests: {},
+                                                        actions:
+                                                            appModel.assign({
+                                                                passwordResetCode:
+                                                                    (
+                                                                        _,
+                                                                        event,
+                                                                    ) =>
+                                                                        event.code,
+                                                            }),
+                                                    },
+                                            },
+                                        },
 
-                                erredRequestingPasswordReset: {},
-                            },
+                                        sendingValidationRequest: {
+                                            invoke: {
+                                                src: 'validatePasswordResetCode',
 
-                            on: {
-                                REQUEST_PASSWORD_RESET: {
-                                    target: 'passwordResetting.requestingPasswordReset',
+                                                onDone: [
+                                                    {
+                                                        cond: 'isPasswordResetCodeInvalid',
 
-                                    actions: appModel.assign({
-                                        email: (_, event) => event.email,
-                                    }),
+                                                        target: 'codeIsInvalid',
+                                                    },
+                                                    {
+                                                        target: 'codeIsValid',
+
+                                                        actions:
+                                                            'showToastForValidPasswordResetCode',
+                                                    },
+                                                ],
+
+                                                onError: {
+                                                    target: 'unknownErrorOccuredDuringValidation',
+
+                                                    actions:
+                                                        'showToastForUnknownErrorDuringPasswordResetCodeValidation',
+                                                },
+                                            },
+
+                                            on: {
+                                                SUBMIT_PASSWORD_RESET_CONFIRMATION_FORM:
+                                                    undefined,
+                                            },
+                                        },
+
+                                        codeIsValid: {
+                                            type: 'final',
+                                        },
+
+                                        codeIsInvalid: {
+                                            tags: 'passwordResetCodeIsInvalid',
+                                        },
+
+                                        unknownErrorOccuredDuringValidation: {},
+                                    },
+
+                                    on: {
+                                        SUBMIT_PASSWORD_RESET_CONFIRMATION_FORM:
+                                            {
+                                                target: 'validatingCode.sendingValidationRequest',
+
+                                                actions: appModel.assign({
+                                                    passwordResetCode: (
+                                                        _,
+                                                        event,
+                                                    ) => event.code,
+                                                }),
+                                            },
+                                    },
                                 },
                             },
                         },
@@ -820,6 +932,21 @@ export function createAppMachine({
                         email,
                     });
                 },
+
+                validatePasswordResetCode: async ({
+                    email,
+                    passwordResetCode,
+                }) => {
+                    invariant(
+                        email !== undefined && passwordResetCode !== undefined,
+                        'Service must be called after an email and a password reset code have been assigned to context',
+                    );
+
+                    return await sendValidatePasswordResetCode({
+                        email,
+                        code: passwordResetCode,
+                    });
+                },
             },
 
             actions: {
@@ -888,6 +1015,26 @@ export function createAppMachine({
                         text2: 'An unexpected error occured, please try again later',
                     });
                 },
+
+                redirectToPasswordResetTokenScreen: () => {
+                    navigateFromRef('PasswordResetConfirmationToken');
+                },
+
+                showToastForValidPasswordResetCode: () => {
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Confirmed validity of the code',
+                    });
+                },
+
+                showToastForUnknownErrorDuringPasswordResetCodeValidation:
+                    () => {
+                        Toast.show({
+                            type: 'error',
+                            text1: 'Validation of the code failed',
+                            text2: 'An unexpected error occured, please try again later',
+                        });
+                    },
             },
 
             delays: {
@@ -945,6 +1092,13 @@ export function createAppMachine({
                         e as DoneInvokeEvent<RequestPasswordResetResponseBody>;
 
                     return event.data.status === 'INVALID_EMAIL';
+                },
+
+                isPasswordResetCodeInvalid: (_context, e) => {
+                    const event =
+                        e as DoneInvokeEvent<ValidatePasswordResetTokenResponseBody>;
+
+                    return event.data.status === 'INVALID_TOKEN';
                 },
             },
         },

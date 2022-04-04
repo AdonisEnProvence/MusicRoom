@@ -15,7 +15,7 @@ import {
 import User from 'App/Models/User';
 import { BASE_URL, initTestUtils, noop } from '../../../tests/utils/TestUtils';
 
-test.group('AuthenticationController', (group) => {
+test.group('Google Authentication Sign In and Sign Up tests group', (group) => {
     const { initSocketConnection, disconnectEveryRemainingSocketConnection } =
         initTestUtils();
 

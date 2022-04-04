@@ -101,7 +101,7 @@ const PasswordResetConfirmationTokenScreen: React.FC<PasswordResetConfirmationTo
                                 </Text>
 
                                 <View
-                                    testID="email-confirmation-screen-code-field"
+                                    testID="password-reset-confirmation-code-field"
                                     sx={{ marginBottom: 'xl' }}
                                 >
                                     <Text

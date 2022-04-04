@@ -1,11 +1,12 @@
 {
   "expo": {
-    "name": "client",
-    "slug": "client",
+    "name": "musicroom-test",
+    "slug": "musicroom-test",
     "version": "1.0.0",
     "orientation": "portrait",
+    "owner": "prastoin",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "com.musicroom",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
@@ -19,9 +20,11 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.musicroom"
     },
     "android": {
+      "package": "com.musicroom",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"

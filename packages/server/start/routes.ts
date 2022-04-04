@@ -90,6 +90,10 @@ Route.group(() => {
         'every-auth',
     );
     Route.post(
+        '/authenticate-with-google-oauth',
+        'AuthenticationController.authenticateWithGoogleOauth',
+    );
+    Route.post(
         '/confirm-email',
         'AuthenticationController.confirmEmail',
     ).middleware('every-auth');

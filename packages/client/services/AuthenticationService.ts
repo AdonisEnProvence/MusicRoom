@@ -17,6 +17,7 @@ import {
     ApiTokensSignUpResponseBody,
     RequestPasswordResetResponseBody,
     RequestPasswordResetRequestBody,
+    AuthenticateWithGoogleOauthRequestBody,
 } from '@musicroom/types';
 import { request, SHOULD_USE_TOKEN_AUTH } from './http';
 
@@ -240,3 +241,53 @@ export async function sendRequestingPasswordReset({
 
     return parsedResponseBody;
 }
+//Social authentication
+
+type sendAuthenticateWithGoogleAccountArgs = Omit<
+    AuthenticateWithGoogleOauthRequestBody,
+    'authenticationMode'
+>;
+
+async function sendApiTokenAuthenticateWithGoogleAccount({
+    userGoogleAccessToken,
+}: sendAuthenticateWithGoogleAccountArgs): Promise<void> {
+    await request.post(
+        '/authentication/authenticate-with-google-oauth',
+        {
+            userGoogleAccessToken,
+            authenticationMode: 'api',
+        } as AuthenticateWithGoogleOauthRequestBody,
+        {
+            validateStatus: () => true,
+        },
+    );
+
+    return;
+}
+async function sendWebAuthAuthenticateWithGoogleAccount({
+    userGoogleAccessToken,
+}: sendAuthenticateWithGoogleAccountArgs): Promise<void> {
+    await request.post(
+        '/authentication/authenticate-with-google-oauth',
+        {
+            userGoogleAccessToken,
+            authenticationMode: 'web',
+        } as AuthenticateWithGoogleOauthRequestBody,
+        {
+            validateStatus: () => true,
+        },
+    );
+
+    return;
+}
+
+export async function sendAuthenticateWithGoogleAccount(
+    args: sendAuthenticateWithGoogleAccountArgs,
+): Promise<void> {
+    if (SHOULD_USE_TOKEN_AUTH) {
+        return await sendApiTokenAuthenticateWithGoogleAccount(args);
+    }
+
+    return await sendWebAuthAuthenticateWithGoogleAccount(args);
+}
+///

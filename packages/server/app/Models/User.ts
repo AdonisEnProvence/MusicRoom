@@ -125,14 +125,17 @@ export default class User extends BaseModel {
     public email: string;
 
     @column({ serializeAs: null })
-    public password: string;
+    public password: string | undefined;
 
     @column()
     public rememberMeToken?: string;
 
+    @column({ columnName: 'google_id' })
+    public googleID: string | null;
+
     @beforeSave()
     public static async hashPassword(user: User): Promise<void> {
-        if (user.$dirty.password) {
+        if (user.$dirty.password && user.password) {
             user.password = await Hash.make(user.password);
         }
     }

@@ -316,6 +316,18 @@ jest.mock('react-native-svg', () => {
     };
 });
 
+jest.mock('expo-auth-session/providers/google', () => {
+    const originalModule = jest.requireActual('expo-location');
+
+    return {
+        ...originalModule,
+
+        useAuthRequest: () => {
+            return [null, null, null];
+        },
+    };
+});
+
 // Set up MSW before all tests, close MSW after all tests and clear temporary listeners after each test.
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterAll(() => server.close());

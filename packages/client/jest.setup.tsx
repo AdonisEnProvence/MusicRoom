@@ -16,7 +16,7 @@ import faker from 'faker';
 import { cleanup, serverSocket } from './services/websockets';
 import { dropDatabase } from './tests/data';
 import { server } from './tests/server/test-server';
-import { request } from './services/http';
+import { request as requestService } from './services/http';
 
 jest.setTimeout(20_000);
 
@@ -317,13 +317,35 @@ jest.mock('react-native-svg', () => {
 });
 
 jest.mock('expo-auth-session/providers/google', () => {
-    const originalModule = jest.requireActual('expo-location');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const React = require('react');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const Redaxios = require('redaxios');
+    const originalModule = jest.requireActual(
+        'expo-auth-session/providers/google',
+    );
 
     return {
         ...originalModule,
 
         useAuthRequest: () => {
-            return [null, null, null];
+            const [response, setResponse] = React.useState(null);
+            const [request, setRequest] = React.useState(true);
+
+            const PromptAsync = async () => {
+                const rawResponse = await Redaxios.get(
+                    'http://msw.google.domain/fake-google-oauth-service',
+                    {
+                        validateStatus: () => true,
+                    },
+                );
+                console.log({ rawResponse });
+                setResponse(rawResponse.data);
+                setRequest(null);
+            };
+
+            console.log([request, response, PromptAsync]);
+            return [request, response, PromptAsync];
         },
     };
 });
@@ -344,7 +366,7 @@ beforeEach(async () => {
         onAcknowledged();
     });
 
-    await request.clearToken();
+    await requestService.clearToken();
 });
 
 // jest.spyOn(console, 'warn').mockImplementation();

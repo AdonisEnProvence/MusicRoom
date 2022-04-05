@@ -75,6 +75,7 @@ export type RootStackParamList = {
     SigningIn: undefined;
     EmailConfirmation: undefined;
     PasswordResetConfirmationToken: undefined;
+    PasswordResetFinal: undefined;
 
     SignUpFormScreen: undefined;
 };
@@ -607,4 +608,9 @@ export type EmailConfirmationScreenProps = StackScreenProps<
 export type PasswordResetConfirmationTokenScreenProps = StackScreenProps<
     RootStackParamList,
     'PasswordResetConfirmationToken'
+>;
+
+export type PasswordResetFinalScreenProps = StackScreenProps<
+    RootStackParamList,
+    'PasswordResetFinal'
 >;

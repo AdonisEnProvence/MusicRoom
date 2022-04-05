@@ -28,7 +28,7 @@ interface TestingContext {
 const VALID_PASSWORD_RESET_CODE = '123456';
 
 const passwordResetMachine =
-    /** @xstate-layout N4IgpgJg5mDOIC5QAUCGtYHcD2AnCABLnGAC4B0ASmAHYRi4CWNUBsjUNzrzbAxsVoBiACoBPAA5gCYALapGAG0SgJ2dqUbYaKkAA9EAWgBMATmPkADJYAsxgMwB2B8csBWABwAaEGMQBGR38rew9bf2Mw+1D-NwBfOJ80DBx8IhIKajoGbjYOLhYCXlgBMGFqAEcAVzhSAgl0LDxCYlgyXTUNLR0kfUQANkDye0Hox0tTGzd-Wx8-BGNB8n6JoLdTfw8PR0d7BKTG1JaMqlp6JkL2Tlzi0uEAWVQAa2lcVFJpRUZZRjriVD4AAtIB11L9uroDAhDNEPOQZh57JMPIMbP1+vY5ogzDYrKYPGZHCiIpZIvsQMkmmlWmRTtkLqwrgUeDR+IIaEJHi8CFUaE8aNhMKyGLg8ARsHw+FVcKCutpIUZ7ItyFtzNZ+uNnI4sQgbPY3ORTP03PYbBFFqZLcZyZSjuk2pkzjlCg0Us17WQCHxsPQ2WUOQBlKoAIx+dVdVOODoIpGwL1ZADM8LJZeD5b0of4Ro5yI4NbYbDZTEjjFMdWjguj0W49aEa0abYd3TTHfTchG7S2vT7pCV2aJJNJtPUm9SMt3fQnGGBFBBU5p06BMzZduRpp4s-q0TZLN5fAFNirxh43JYSeiK423WOHXTzu3R1HPd7fX3-ZzntJefzBcLcKLcHFSVpQICBpQfa8nzqF9pAAN1QL4IHeCFek6NMeiXAJTGschjFPWx3A8bcth1DxgnsLM8P1DxLQoxEEkSEABXoeBeltZsTiye9LnyG5WTfWhyAASQgRQwHnFDMIQFYdViHN8UCIidl3Uxxn6K9Iw9VtuMZXjCludlyAAEUYWAJEUVAxFyf4gUgIh3k+b5fhjbB0FICTFz6aTLB1PDcVUi0HEtKYlXiRj2JvWkuOdXTrn0-i7hoYzTPMyy+PgxCZHkJQXLcjyMK8mT9wQfVgiNEZrFJMIJhsDTO04p0GTyOKWT9QSTLMiyrMKb8BSFGR-zFWM8tQsEFwKqEivmQs4VMGtTzzNxjWWuqONvaKmqZPi2qSjrUu61g5AURQilgLKJFIMQCAQhh3NGuUJsQNwDX8QslVsbDCzPPd5hNA0jRWIKdiJPNVsi7SYua5kigS9l8oVErglevVXCLAtvp1ZxDRRJwLxqtxHDBqC70hjs1ufHsduSzq0pdR8tLYKpJTgWAEyqE7iGqWpctgO7VDGySvP8TZLHIKZHFUsiFMWnUlXk-oyMUolLHsSxCfC+mWxJpqyfBide0S4SaAyxhCCTXBZHIABhSnTPOy74YzLD+gsAk0VPJTpmMbVirsCxheMUtTSLSYTSJrTtYgzSuxgqmhONhDTYIc3LZt307eYE253u9CEf8I1XdLY1dxXL2fd+-P4TVwYJncCIaPDrWNqj+ro1jgSkvjrPk+TcgAFU+T6v8AKAqViEIMCmqz5DPLQ8a84LlUi490uInLgZ-H6KvVaLCWdhdsKDkgiPm7p4+Y8pjuje7lPHak-PQiX92S8cMvZaLeFN7CGwUQ92xG4am2M+0dxzt0NiIOMtACDTw+NnfmD086vQNI4FG2xEQ-1LOvBAuwcwEhwUtTw0R1Ia3PoAnSI5SFt0volO+QsIjBBQUqNBpo3ZYNLBYAKKDSSkitKYABDpaFQhhC7KuiJkSonRJiYqhhRbWGwsvVWqszz7wYnEIAA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QAUCGtYHcD2AnCABLnGAC4B0ASmAHYRi4CWNUBsjUNzrzbAxsVoBiACoBPAA5gCYALapGAG0SgJ2dqUbYaKkAA9EAWgBMATmPkADJYAsxgMwB2B8csBWABwAaEGMQBGR38rew9bf2Mw+1D-NwBfOJ80DBx8IhIKajoGbjYOLhYCXlgBMGFqAEcAVzhSAgl0LDxCYlgyXTUNLR0kfUQANkDye0Hox0tTGzd-Wx8-BGNB8n6JoLdTfw8PR0d7BKTG1JaMqlp6JkL2Tlzi0uEAWVQAa2lcVFJpRUZZRjriVD4AAtIB11L9uroDAhDNEPOQZh57JMPIMbP1+vY5ogzDYrKYPGZHCiIpZIvsQMkmmlWmRTtkLqwrgUeDR+IIaEJHi8CFUaE8aNhMKyGLg8ARsHw+FVcKCutpIUZ7ItyFtzNZ+uNnI4sQgbPY3ORTP03PYbBFFqZLcZyZSjuk2pkzjlCg0Us17WQCHxsPQ2WUOQBlKoAIx+dVdVOODoIpGwL1ZADM8LJZeD5b0of4Ro5yI4NbYbDZTEjjFMdWjguj0W49aEa0abYd3TTHfTchG7S2vT7pCV2aJJNJtPUm9SMt3fQnGGBFBBU5p06BMzZduRpp4s-q0TZLN5fAFNirxh43JYSeiK423WOHXTzu3R1HPd7fX3-ZzntJefzBcLcKLcHFSVpQICBpQfa8nzqF9pAAN1QL4IHeCFek6NMeiXAJTGschjFPWx3A8bcth1DxgnsLM8P1DxLQoxEr0jD1W3vF1HyYggpxoBC-WEINQ1+EdIPYzjuKTXAU1QsEFwwvoEGiexcJWIJYjME1SR1GZSzXVx7HcGwtjPBtEgpNiWzvZ1WA7ZtxxExQeI5cQpHFVkaDATBBMYqcZznSS5RkqFDGmYJC3RaJBhmU9TG1fcEHxYJ-CisJEQ1OwRgYzsTiyFjLNMmzmG4t8Hk-DyMujYhqlqDiFGUXz0IVaEMWCWw3EcKZxmMIlog0iIc3XYtjVPU8nASYyBXoeBeltazbyyiy8muQpbnZcgAEkIEUMB5xQzCEBWDSWsNMiiRXY8ossfp0um2lZoZebmSKVlCpocgABFGFgCRFFQMRcn+IFICId5Pm+ATY3QUgtsXWS9pivDcSii0HEtKYlXiYyppva6nVupkbkeu5nrej6vp+xaaHgxCZHkJQY2wcHIf8gZLB1fVgiNEZrFJMIJhsS7MeYubcbJ+zXvez7vtyb8BSFGR-zFMHYAh2rpPqmH5kLOFTBrU88zcY19b5qDzJx-I8ZFonxdJ1g5GqopYCpiRSDEAgEIYJXVCk7bZLcA1-ELJVbGwwszz3eYTQNI0ViRnYiTzQ2mON3IhZZeyGfqij4X91wiwLEOdWcQ7+h3cYtZPcwPHjsybogxiuxg82xZJmvSs9WAqklOBYATKo7PKmpFdp+nla9zNNkscg2sShKjuNFmOsNfoyMCbYoksRxK8y7Hm6u6CexFlbyYQxhCDE2RyAAYT396HadtOMyw-oLAJNFTyIxxpg68tjAsfxzT1QtkYmg3jNLerEhJ1z3k9Vah9Kanwvlfe2zAKbHzvjtBKj8VSlmNLuFcH9ophwSvCNegwJjuAiDRYBWM2xgNruOeuUCD7IJPsmcgABVPk0s-wASAlKYghAwK3SYchKGaEVb3wQOgp+WDX64J6jqQY-QiG6SLI4KKeY8KUIFrdKy-MJy9gJtAphHFkyoNkglUImCX44PfnImKppTDwn8IvWwKJX62E0YnGhLdd6vgJqY0eesJ4tSnnFXWOpSwWARq1UkpIrTmA8dXLxO8OL5Tsgw9am1h5QwCoENmJ5AjtTUlsfwpE3CRKLq4pUUUxgJNATlcBeUuJpIMRbJuSTdGxnjAQIRHwfIez8vVE6wwykuLwhUpxpTyn6WNFU3YaV0a5RAdQ+ptDoy2X3jA4+xjxLkAAHJuRKu6a+chHbzH6XVcRhgVK4W-gSVRRYaJZjcBpSwFjtiRAJJsS05heYLIaUs7KhzdHrIYZs5hOz9nuR0YQa+sBUCyGkOgL00piA0DqNoTJ5yxE7SuWUm5kQOqTHxBsfU3V9QqkXkqX+ep1gRFqcsoFUEUlNI2UYuB7CfwyxFGKCUvCAYCN+mACqit-FGGud-Al9ziVPI0i4ClTgVirASvSwF0LhKpNZUfcFEksUjzFXmfFdyiWPNJTFI0BptitT1CsPBaMDj-KoaqxZnoQV+KyYzaErhx4SqNQ8klzyYp5hzEaSYLUEqJQcCquagJsAItTu6+qEUDRmkpTRSYeEayyrwoafSapjDTzInsP5qz2gJsuQNKwbU2qkk6piGKhhx7WGwmeV5O41SqJREWhIQA */
     createMachine(
         {
             context: {
@@ -69,6 +69,16 @@ const passwordResetMachine =
                       }
                     | {
                           type: 'Submit password reset token form';
+                      }
+                    | {
+                          type: 'Submit password reset final form';
+                      }
+                    | {
+                          type: 'Type on new password field';
+                          newPassword: string;
+                      }
+                    | {
+                          type: 'Make password reset request fail';
                       },
             },
             initial: 'Rendering signing in screen',
@@ -295,18 +305,6 @@ const passwordResetMachine =
                         },
                         'Token validated': {
                             type: 'final',
-                            meta: {
-                                test: async () => {
-                                    await waitFor(() => {
-                                        expect(Toast.show).toHaveBeenCalledWith(
-                                            {
-                                                type: 'success',
-                                                text1: 'Confirmed validity of the code',
-                                            },
-                                        );
-                                    });
-                                },
-                            },
                         },
                     },
                     on: {
@@ -324,7 +322,7 @@ const passwordResetMachine =
                                 target: '.Invalid form.Unknown error occured during validation',
                             },
                             {
-                                target: '.Token validated',
+                                target: '#Password reset.Rendering password reset final screen.Displaying password reset token validated',
                             },
                         ],
                         'Type on password reset code field': {
@@ -336,6 +334,63 @@ const passwordResetMachine =
                                     'Assign unknown error occured during password reset code validation to context',
                             },
                     },
+                },
+                'Rendering password reset final screen': {
+                    initial: 'Idle',
+                    states: {
+                        Idle: {},
+                        'Displaying password reset token validated': {
+                            meta: {
+                                test: async () => {
+                                    await waitFor(() => {
+                                        expect(Toast.show).toHaveBeenCalledWith(
+                                            {
+                                                type: 'success',
+                                                text1: 'Confirmed validity of the code',
+                                            },
+                                        );
+                                    });
+                                },
+                            },
+                        },
+                        'Invalid form': {
+                            initial: 'New password is empty',
+                            states: {
+                                'New password is empty': {},
+                                'New password is same as current one': {},
+                                'Unknown error occured during request': {},
+                            },
+                        },
+                    },
+                    on: {
+                        'Submit password reset final form': [
+                            {
+                                cond: 'Is new password empty',
+                                target: '.Invalid form.New password is empty',
+                            },
+                            {
+                                cond: 'Is new password same as current one',
+                                target: '.Invalid form.New password is same as current one',
+                            },
+                            {
+                                cond: 'Has unknown error occured during password reset request',
+                                target: '.Invalid form.Unknown error occured during request',
+                            },
+                            {
+                                target: 'Rendering home screen',
+                            },
+                        ],
+                        'Type on new password field': {
+                            actions: 'Assign new password to context',
+                        },
+                        'Make password reset request fail': {
+                            actions:
+                                'Assign unknown error occured during password reset request to context',
+                        },
+                    },
+                },
+                'Rendering home screen': {
+                    type: 'final',
                 },
             },
             id: 'Password reset',
@@ -363,6 +418,16 @@ const passwordResetMachine =
                 ) =>
                     context.hasUnknownErrorOccuredDuringPasswordResetCodeValidation ===
                     true,
+
+                // TODO: to implement
+                'Is new password empty': () => false,
+
+                // TODO: to implement
+                'Is new password same as current one': () => false,
+
+                // TODO: to implement
+                'Has unknown error occured during password reset request': () =>
+                    false,
             },
             actions: {
                 'Assign typed email to context': assign({
@@ -649,17 +714,20 @@ cases<{
 );
 
 cases<{
-    target: {
-        'Rendering password reset code screen':
-            | 'Displaying password reset successful request toast'
-            | {
-                  'Invalid form':
-                      | 'Code is empty'
-                      | 'Code is invalid'
-                      | 'Unknown error occured during validation';
-              }
-            | 'Token validated';
-    };
+    target:
+        | {
+              'Rendering password reset code screen':
+                  | 'Displaying password reset successful request toast'
+                  | {
+                        'Invalid form':
+                            | 'Code is empty'
+                            | 'Code is invalid'
+                            | 'Unknown error occured during validation';
+                    };
+          }
+        | {
+              'Rendering password reset final screen': 'Displaying password reset token validated';
+          };
     events: EventFrom<typeof passwordResetMachine>[];
 }>(
     'Validate password reset token',
@@ -763,7 +831,8 @@ cases<{
 
         'Shows success toast when valid password reset code is provided': {
             target: {
-                'Rendering password reset code screen': 'Token validated',
+                'Rendering password reset final screen':
+                    'Displaying password reset token validated',
             },
             events: [
                 {

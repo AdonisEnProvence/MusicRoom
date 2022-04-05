@@ -65,6 +65,7 @@ import SigningInScreen from '../screens/SigningInScreen';
 import AuthenticationSignUpFormScreen from '../screens/AuthenticationSignUpForm';
 import EmailConfirmationScreen from '../screens/EmailConfirmationScreen';
 import PasswordResetConfirmationTokenScreen from '../screens/PasswordResetConfirmationTokenScreen';
+import PasswordResetFinalScreen from '../screens/PasswordResetFinalScreen';
 import BottomTabNavigator from './BottomBarNavigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import { isReadyRef, navigationRef } from './RootNavigation';
@@ -172,6 +173,11 @@ export const RootNavigator: React.FC<ColorModeProps> = ({ colorScheme }) => {
                     <RootStack.Screen
                         name="PasswordResetConfirmationToken"
                         component={PasswordResetConfirmationTokenScreen}
+                        options={{ headerShown: false }}
+                    />
+                    <RootStack.Screen
+                        name="PasswordResetFinal"
+                        component={PasswordResetFinalScreen}
                         options={{ headerShown: false }}
                     />
                 </>

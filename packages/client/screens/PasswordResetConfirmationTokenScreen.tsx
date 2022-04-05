@@ -53,7 +53,7 @@ const PasswordResetConfirmationTokenScreen: React.FC<PasswordResetConfirmationTo
             code,
         }: PasswordResetConfirmationTokenFormFieldValues) {
             appService.send({
-                type: 'SUBMIT_PASSWORD_RESET_CONFIRMATION_FORM',
+                type: 'SUBMIT_PASSWORD_RESET_CONFIRMATION_CODE_FORM',
                 code,
             });
         }

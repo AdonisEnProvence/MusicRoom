@@ -17,8 +17,9 @@ export const appModel = createModel(
             SUBMIT_EMAIL_CONFIRMATION_FORM: (args: { code: string }) => args,
             RESEND_CONFIRMATION_EMAIL: () => ({}),
             REQUEST_PASSWORD_RESET: (args: { email: string }) => args,
-            SUBMIT_PASSWORD_RESET_CONFIRMATION_FORM: (args: { code: string }) =>
-                args,
+            SUBMIT_PASSWORD_RESET_CONFIRMATION_CODE_FORM: (args: {
+                code: string;
+            }) => args,
             __BROADCAST_RELOAD_INTO_BROADCAST_CHANNEL: () => ({}),
             __RECEIVED_RELOAD_PAGE: () => ({}),
             __AUTHENTICATED: () => ({}),

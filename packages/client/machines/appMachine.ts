@@ -328,7 +328,7 @@ export function createAppMachine({
                                     states: {
                                         waitingForCode: {
                                             on: {
-                                                SUBMIT_PASSWORD_RESET_CONFIRMATION_FORM:
+                                                SUBMIT_PASSWORD_RESET_CONFIRMATION_CODE_FORM:
                                                     {
                                                         target: 'sendingValidationRequest',
 
@@ -372,7 +372,7 @@ export function createAppMachine({
                                             },
 
                                             on: {
-                                                SUBMIT_PASSWORD_RESET_CONFIRMATION_FORM:
+                                                SUBMIT_PASSWORD_RESET_CONFIRMATION_CODE_FORM:
                                                     undefined,
                                             },
                                         },
@@ -389,7 +389,7 @@ export function createAppMachine({
                                     },
 
                                     on: {
-                                        SUBMIT_PASSWORD_RESET_CONFIRMATION_FORM:
+                                        SUBMIT_PASSWORD_RESET_CONFIRMATION_CODE_FORM:
                                             {
                                                 target: 'validatingCode.sendingValidationRequest',
 

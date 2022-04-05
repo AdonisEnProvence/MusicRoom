@@ -1,4 +1,5 @@
 import { MyProfileInformation } from '@musicroom/types';
+import { AuthSessionResult } from 'expo-auth-session';
 import { createModel } from 'xstate/lib/model';
 
 export const appModel = createModel(
@@ -8,6 +9,7 @@ export const appModel = createModel(
         password: undefined as string | undefined,
         confirmationCode: undefined as string | undefined,
         passwordResetCode: undefined as string | undefined,
+        userGoogleAccessToken: undefined as string | undefined,
     },
     {
         events: {
@@ -23,6 +25,12 @@ export const appModel = createModel(
             __BROADCAST_RELOAD_INTO_BROADCAST_CHANNEL: () => ({}),
             __RECEIVED_RELOAD_PAGE: () => ({}),
             __AUTHENTICATED: () => ({}),
+
+            //Google authentication
+            RECEIVED_GOOGLE_OAUTH_RESPONSE: (args: {
+                googleResponse: AuthSessionResult;
+            }) => args,
+            ///
 
             ACKNOWLEDGE_SOCKET_CONNECTION: () => ({}),
 

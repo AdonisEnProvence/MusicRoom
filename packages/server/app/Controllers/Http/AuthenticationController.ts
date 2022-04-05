@@ -16,6 +16,7 @@ import {
     ValidatePasswordResetTokenRequestBody,
     AuthenticateWithGoogleOauthResponseBody,
     AuthenticateWithGoogleOauthRequestBody,
+    ResetPasswordRequestBody,
 } from '@musicroom/types';
 import { DateTime } from 'luxon';
 import User from 'App/Models/User';
@@ -23,6 +24,7 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import * as z from 'zod';
 import invariant from 'tiny-invariant';
 import { AuthenticationService } from 'App/Services/AuthenticationService';
+import { ResetPasswordResponseBody } from '@musicroom/types/src/authentication';
 
 export default class AuthenticationController {
     public async signUp({
@@ -353,6 +355,55 @@ export default class AuthenticationController {
         return {
             status: 'SUCCESS',
         };
+    }
+
+    public async resetPassword({
+        request,
+        auth,
+        response,
+    }: HttpContextContract): Promise<ResetPasswordResponseBody> {
+        const { email, password, token, authenticationMode } =
+            ResetPasswordRequestBody.parse(request.body());
+
+        const user = await User.findBy('email', email);
+        if (user === null) {
+            response.status(400);
+
+            return {
+                status: 'INVALID_TOKEN',
+            };
+        }
+
+        const isValidToken = await user.checkToken({
+            token,
+            tokenType: 'PASSWORD_RESET',
+            revoke: true,
+        });
+        const isInvalidToken = isValidToken === false;
+        if (isInvalidToken === true) {
+            response.status(400);
+
+            return {
+                status: 'INVALID_TOKEN',
+            };
+        }
+
+        if ((await user.isSamePassword(password)) === true) {
+            response.status(400);
+
+            return {
+                status: 'PASSWORD_ALREADY_USED',
+            };
+        }
+
+        user.password = password;
+        await user.save();
+
+        return await AuthenticationService.signInUserWithAuthenticationMode({
+            auth,
+            authenticationMode,
+            user,
+        });
     }
 
     public async authenticateWithGoogleOauth({

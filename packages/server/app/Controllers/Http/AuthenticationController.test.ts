@@ -6,6 +6,10 @@ import {
     RequestPasswordResetRequestBody,
     RequestPasswordResetResponseBody,
     ResendConfirmationEmailResponseBody,
+    ResetPasswordRequestBody,
+    ResetPasswordResponseBody,
+    ResetPasswordSuccessfulApiAuthenticationResponseBody,
+    ResetPasswordSuccessfulWebAuthenticationResponseBody,
     SignInFailureResponseBody,
     SignInRequestBody,
     SignInSuccessfulApiTokensResponseBody,
@@ -1087,6 +1091,357 @@ test.group('Validate password reset token', (group) => {
             .send(requestBody)
             .expect(400);
         const parsedResponseBody = ValidatePasswordResetTokenResponseBody.parse(
+            response.body,
+        );
+
+        assert.deepStrictEqual(parsedResponseBody, {
+            status: 'INVALID_TOKEN',
+        });
+    });
+});
+
+test.group('Reset password', (group) => {
+    const { createRequest, generateToken } = initTestUtils();
+
+    group.beforeEach(async () => {
+        await Database.beginGlobalTransaction();
+    });
+
+    group.afterEach(async () => {
+        await Database.rollbackGlobalTransaction();
+    });
+
+    test('Returns an error if provided email does not exist', async (assert) => {
+        const request = createRequest();
+
+        const requestBody: ResetPasswordRequestBody = {
+            token: generateToken(),
+            email: internet.email(),
+            password: internet.password(),
+            authenticationMode: 'web',
+        };
+        const response = await request
+            .post('/authentication/reset-password')
+            .send(requestBody)
+            .expect(400);
+        const parsedResponseBody = ResetPasswordResponseBody.parse(
+            response.body,
+        );
+
+        assert.deepStrictEqual(parsedResponseBody, {
+            status: 'INVALID_TOKEN',
+        });
+    });
+
+    test('Returns an error if token does not exist', async (assert) => {
+        const request = createRequest();
+
+        const user = await User.create({
+            uuid: datatype.uuid(),
+            nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
+        });
+
+        const requestBody: ResetPasswordRequestBody = {
+            token: generateToken(),
+            email: user.email,
+            password: internet.password(),
+            authenticationMode: 'web',
+        };
+        const response = await request
+            .post('/authentication/reset-password')
+            .send(requestBody)
+            .expect(400);
+        const parsedResponseBody = ResetPasswordResponseBody.parse(
+            response.body,
+        );
+
+        assert.deepStrictEqual(parsedResponseBody, {
+            status: 'INVALID_TOKEN',
+        });
+    });
+
+    test('Returns an error if token is expired', async (assert) => {
+        const request = createRequest();
+
+        const user = await User.create({
+            uuid: datatype.uuid(),
+            nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
+        });
+
+        const plainToken = generateToken();
+        const tokenType = await TokenType.findByOrFail(
+            'name',
+            TokenTypeName.enum.PASSWORD_RESET,
+        );
+        const twoHoursAgo = DateTime.local().minus({
+            hours: 2,
+        });
+        await user.related('tokens').create({
+            uuid: datatype.uuid(),
+            tokenTypeUuid: tokenType.uuid,
+            value: plainToken,
+            expiresAt: twoHoursAgo,
+        });
+
+        const requestBody: ResetPasswordRequestBody = {
+            token: plainToken,
+            email: user.email,
+            password: internet.password(),
+            authenticationMode: 'web',
+        };
+        const response = await request
+            .post('/authentication/reset-password')
+            .send(requestBody)
+            .expect(400);
+        const parsedResponseBody = ResetPasswordResponseBody.parse(
+            response.body,
+        );
+
+        assert.deepStrictEqual(parsedResponseBody, {
+            status: 'INVALID_TOKEN',
+        });
+    });
+
+    test('Returns an error if password is already used by the user', async (assert) => {
+        const request = createRequest();
+
+        const userPlainPassword = internet.password();
+        const user = await User.create({
+            uuid: datatype.uuid(),
+            nickname: internet.userName(),
+            email: internet.email(),
+            password: userPlainPassword,
+        });
+
+        const plainToken = generateToken();
+        const tokenType = await TokenType.findByOrFail(
+            'name',
+            TokenTypeName.enum.PASSWORD_RESET,
+        );
+        await user.related('tokens').create({
+            uuid: datatype.uuid(),
+            tokenTypeUuid: tokenType.uuid,
+            value: plainToken,
+            expiresAt: DateTime.local().plus({
+                minutes: 15,
+            }),
+        });
+
+        const requestBody: ResetPasswordRequestBody = {
+            token: plainToken,
+            email: user.email,
+            password: userPlainPassword,
+            authenticationMode: 'web',
+        };
+        const response = await request
+            .post('/authentication/reset-password')
+            .send(requestBody)
+            .expect(400);
+        const parsedResponseBody = ResetPasswordResponseBody.parse(
+            response.body,
+        );
+
+        assert.deepStrictEqual(parsedResponseBody, {
+            status: 'PASSWORD_ALREADY_USED',
+        });
+    });
+
+    test('Authenticates user with web mode if provided information are correct', async (assert) => {
+        const request = createRequest();
+
+        const user = await User.create({
+            uuid: datatype.uuid(),
+            nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
+        });
+
+        const plainToken = generateToken();
+        const tokenType = await TokenType.findByOrFail(
+            'name',
+            TokenTypeName.enum.PASSWORD_RESET,
+        );
+        await user.related('tokens').create({
+            uuid: datatype.uuid(),
+            tokenTypeUuid: tokenType.uuid,
+            value: plainToken,
+            expiresAt: DateTime.local().plus({
+                minutes: 15,
+            }),
+        });
+
+        const requestBody: ResetPasswordRequestBody = {
+            token: plainToken,
+            email: user.email,
+            password: internet.password(),
+            authenticationMode: 'web',
+        };
+        const response = await request
+            .post('/authentication/reset-password')
+            .send(requestBody)
+            .expect(200);
+        const parsedResponseBody =
+            ResetPasswordSuccessfulWebAuthenticationResponseBody.parse(
+                response.body,
+            );
+
+        assert.deepStrictEqual(parsedResponseBody, {
+            status: 'SUCCESS',
+        });
+
+        const getMyProfileRawResponse = await request
+            .get('/me/profile-information')
+            .expect(200);
+        const getMyProfileParsedBody =
+            GetMyProfileInformationResponseBody.parse(
+                getMyProfileRawResponse.body,
+            );
+
+        assert.equal(getMyProfileParsedBody.userID, user.uuid);
+    });
+
+    test('Authenticates user with api mode if provided information are correct', async (assert) => {
+        const request = createRequest();
+
+        const user = await User.create({
+            uuid: datatype.uuid(),
+            nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
+        });
+
+        const plainToken = generateToken();
+        const tokenType = await TokenType.findByOrFail(
+            'name',
+            TokenTypeName.enum.PASSWORD_RESET,
+        );
+        await user.related('tokens').create({
+            uuid: datatype.uuid(),
+            tokenTypeUuid: tokenType.uuid,
+            value: plainToken,
+            expiresAt: DateTime.local().plus({
+                minutes: 15,
+            }),
+        });
+
+        const requestBody: ResetPasswordRequestBody = {
+            token: plainToken,
+            email: user.email,
+            password: internet.password(),
+            authenticationMode: 'api',
+        };
+        const response = await request
+            .post('/authentication/reset-password')
+            .send(requestBody)
+            .expect(200);
+        const parsedResponseBody =
+            ResetPasswordSuccessfulApiAuthenticationResponseBody.parse(
+                response.body,
+            );
+
+        assert.equal(parsedResponseBody.status, 'SUCCESS');
+
+        const getMyProfileRawResponse = await request
+            .get('/me/profile-information')
+            .set('Authorization', `Bearer ${parsedResponseBody.token}`)
+            .expect(200);
+        const getMyProfileParsedBody =
+            GetMyProfileInformationResponseBody.parse(
+                getMyProfileRawResponse.body,
+            );
+
+        assert.equal(getMyProfileParsedBody.userID, user.uuid);
+    });
+
+    test('Revokes token if provided information are correct', async (assert) => {
+        const request = createRequest();
+
+        const user = await User.create({
+            uuid: datatype.uuid(),
+            nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
+        });
+
+        const plainToken = generateToken();
+        const tokenType = await TokenType.findByOrFail(
+            'name',
+            TokenTypeName.enum.PASSWORD_RESET,
+        );
+        const token = await user.related('tokens').create({
+            uuid: datatype.uuid(),
+            tokenTypeUuid: tokenType.uuid,
+            value: plainToken,
+            expiresAt: DateTime.local().plus({
+                minutes: 15,
+            }),
+        });
+
+        const requestBody: ResetPasswordRequestBody = {
+            token: plainToken,
+            email: user.email,
+            password: internet.password(),
+            authenticationMode: 'web',
+        };
+        const response = await request
+            .post('/authentication/reset-password')
+            .send(requestBody)
+            .expect(200);
+        const parsedResponseBody =
+            ResetPasswordSuccessfulWebAuthenticationResponseBody.parse(
+                response.body,
+            );
+
+        assert.deepStrictEqual(parsedResponseBody, {
+            status: 'SUCCESS',
+        });
+
+        await token.refresh();
+
+        assert.isTrue(token.isRevoked);
+    });
+
+    test('Returns an error when token is revoked', async (assert) => {
+        const request = createRequest();
+
+        const user = await User.create({
+            uuid: datatype.uuid(),
+            nickname: internet.userName(),
+            email: internet.email(),
+            password: internet.password(),
+        });
+
+        const plainToken = generateToken();
+        const tokenType = await TokenType.findByOrFail(
+            'name',
+            TokenTypeName.enum.PASSWORD_RESET,
+        );
+        await user.related('tokens').create({
+            uuid: datatype.uuid(),
+            tokenTypeUuid: tokenType.uuid,
+            value: plainToken,
+            expiresAt: DateTime.local().plus({
+                minutes: 15,
+            }),
+
+            isRevoked: true,
+        });
+
+        const requestBody: ResetPasswordRequestBody = {
+            token: plainToken,
+            email: user.email,
+            password: internet.password(),
+            authenticationMode: 'web',
+        };
+        const response = await request
+            .post('/authentication/reset-password')
+            .send(requestBody)
+            .expect(400);
+        const parsedResponseBody = ResetPasswordResponseBody.parse(
             response.body,
         );
 

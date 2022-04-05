@@ -140,6 +140,16 @@ export default class User extends BaseModel {
         }
     }
 
+    public async isSamePassword(password: string): Promise<boolean> {
+        if (this.password === undefined || this.password === null) {
+            return false;
+        }
+
+        const isSamePassword = await Hash.verify(this.password, password);
+
+        return isSamePassword === true;
+    }
+
     @column.dateTime()
     public confirmedEmailAt: DateTime | null;
 
@@ -160,9 +170,11 @@ export default class User extends BaseModel {
         {
             token,
             tokenType,
+            revoke = false,
         }: {
             token: string;
             tokenType: TokenTypeName;
+            revoke?: boolean;
         },
     ): Promise<boolean> {
         const activeTokens = await this.related('activeTokens')
@@ -174,12 +186,18 @@ export default class User extends BaseModel {
         for (const activeToken of activeTokens) {
             const isMatching = await Hash.verify(activeToken.value, token);
             if (isMatching === true) {
+                if (revoke === true) {
+                    activeToken.isRevoked = true;
+                    await activeToken.save();
+                }
+
                 return true;
             }
         }
 
         return false;
     }
+
     ///
 
     @column.dateTime({ autoCreate: true })

@@ -43,6 +43,7 @@ const GoogleAuthenticationButton: React.FC = () => {
     return (
         <TouchableOpacity
             disabled={!request}
+            testID="continue-with-google-authentication-button"
             onPress={async () => {
                 await promptAsync();
             }}

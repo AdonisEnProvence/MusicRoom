@@ -44,6 +44,8 @@ import {
     ResendConfirmationEmailResponseBody,
     RequestPasswordResetRequestBody,
     RequestPasswordResetResponseBody,
+    ValidatePasswordResetTokenRequestBody,
+    ValidatePasswordResetTokenResponseBody,
 } from '@musicroom/types';
 import { datatype } from 'faker';
 import {
@@ -902,6 +904,33 @@ export const handlers = [
                     ctx.status(404),
                     ctx.json({
                         status: 'INVALID_EMAIL',
+                    }),
+                );
+            }
+
+            return res(
+                ctx.status(200),
+                ctx.json({
+                    status: 'SUCCESS',
+                }),
+            );
+        },
+    ),
+
+    rest.post<
+        ValidatePasswordResetTokenRequestBody,
+        never,
+        ValidatePasswordResetTokenResponseBody
+    >(
+        `${SERVER_ENDPOINT}/authentication/validate-password-reset-token`,
+        (req, res, ctx) => {
+            const isValidCode = req.body.token === '123456';
+            const isInvalidCode = isValidCode === false;
+            if (isInvalidCode === true) {
+                return res(
+                    ctx.status(400),
+                    ctx.json({
+                        status: 'INVALID_TOKEN',
                     }),
                 );
             }

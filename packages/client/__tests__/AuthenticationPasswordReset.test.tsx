@@ -199,6 +199,13 @@ const passwordResetMachine =
                     initial:
                         'Displaying password reset successful request toast',
                     states: {
+                        /**
+                         * When the user requests a password reset, we display a success toast
+                         * and we redirect her to "password reset code screen".
+                         *
+                         * In the state bellow we check that the toast has been displayed,
+                         * and in its parent (meta.test above), we check that we are on password reset code screen.
+                         */
                         'Displaying password reset successful request toast': {
                             meta: {
                                 test: async () => {

@@ -258,6 +258,14 @@ export type AuthenticateWithGoogleOauthFailureReponseBody = z.infer<
     typeof AuthenticateWithGoogleOauthFailureReponseBody
 >;
 
+export const AuthenticateWithGoogleSuccessFulResponseBody =
+    WebAuthAuthenticateWithGoogleOauthSuccessResponseBody.or(
+        ApiTokenAuthenticateWithGoogleOauthSuccessResponseBody,
+    );
+export type AuthenticateWithGoogleSuccessFulResponseBody = z.infer<
+    typeof AuthenticateWithGoogleSuccessFulResponseBody
+>;
+
 export const AuthenticateWithGoogleOauthResponseBody =
     WebAuthAuthenticateWithGoogleOauthSuccessResponseBody.or(
         ApiTokenAuthenticateWithGoogleOauthSuccessResponseBody,

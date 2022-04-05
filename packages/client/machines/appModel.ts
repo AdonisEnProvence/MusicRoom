@@ -42,3 +42,7 @@ export const appModel = createModel(
         },
     },
 );
+
+export const resetUserGoogleAccessToken = appModel.assign({
+    userGoogleAccessToken: () => undefined,
+});

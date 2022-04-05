@@ -1,4 +1,5 @@
 import {
+    AuthenticateWithGoogleOauthFailureReponseBody,
     ConfirmEmailResponseBody,
     GetMyProfileInformationResponseBody,
     RequestPasswordResetResponseBody,
@@ -37,7 +38,7 @@ import {
 import { request, SHOULD_USE_TOKEN_AUTH } from '../services/http';
 import { getMyProfileInformation } from '../services/UsersSearchService';
 import { navigateFromRef } from '../navigation/RootNavigation';
-import { appModel } from './appModel';
+import { appModel, resetUserGoogleAccessToken } from './appModel';
 import { createAppMusicPlayerMachine } from './appMusicPlayerMachine';
 import { createAppMusicPlaylistsMachine } from './appMusicPlaylistsMachine';
 import { createUserMachine } from './appUserMachine';
@@ -436,7 +437,13 @@ export function createAppMachine({
                                 waitingForGoogleUserAccessToken: {
                                     initial: 'Idle',
                                     states: {
-                                        Idle: {},
+                                        Idle: {
+                                            /**
+                                             * We're reseting this context prop in case the user encounters an error during the google
+                                             * authentication process and has to restart everything from there
+                                             */
+                                            entry: resetUserGoogleAccessToken,
+                                        },
 
                                         googleAuthenticationErrorOccured: {},
                                     },
@@ -470,25 +477,32 @@ export function createAppMachine({
                                             },
                                             {
                                                 cond: 'googleAuthenticationDismissError',
+
                                                 actions:
                                                     'displayGoogleAuthenticationDismissErrorToast',
+
                                                 target: '.googleAuthenticationErrorOccured',
                                             },
                                             {
                                                 cond: 'googleAuthenticationCancelError',
+
                                                 actions:
                                                     'displayGoogleAuthenticationCancelErrorToast',
+
                                                 target: '.googleAuthenticationErrorOccured',
                                             },
                                             {
                                                 cond: 'googleAuthenticationLockedError',
+
                                                 actions:
                                                     'displayGoogleAuthenticationLockedErrorToast',
+
                                                 target: '.googleAuthenticationErrorOccured',
                                             },
                                             {
                                                 actions:
                                                     'displayGoogleAuthenticationResponseErrorToast',
+
                                                 target: '.googleAuthenticationErrorOccured',
                                             },
                                         ],
@@ -496,10 +510,57 @@ export function createAppMachine({
                                 },
 
                                 sendingGoogleAccessTokenToServer: {
-                                    invoke: {
-                                        src: 'sendGoogleUserAccessTokenToServer',
+                                    initial: 'Idle',
+                                    states: {
+                                        Idle: {
+                                            invoke: {
+                                                src: 'sendGoogleUserAccessTokenToServer',
+
+                                                onDone: {
+                                                    target: 'userIsAuthenticatedViaGoogleOauth',
+                                                    actions:
+                                                        'googleAuthenticationDisplayServerOperationSuccess',
+                                                },
+
+                                                onError: [
+                                                    {
+                                                        cond: 'googleAuthenticationServerEmailNorNicknameInvalidError',
+
+                                                        actions:
+                                                            'googleAuthenticationDisplayServerEmailNorNicknameInvalidToastError',
+
+                                                        target: '#app.waitingForUserAuthentication.googleAuthenticationHandler.waitingForGoogleUserAccessToken.Idle',
+                                                    },
+                                                    {
+                                                        cond: 'googleAuthenticationServerEmailNorNicknameUnavailableError',
+
+                                                        actions:
+                                                            'googleAuthenticationServerEmailNorNicknameUnavailableToastError',
+
+                                                        target: '#app.waitingForUserAuthentication.googleAuthenticationHandler.waitingForGoogleUserAccessToken.Idle',
+                                                    },
+                                                    {
+                                                        actions:
+                                                            'googleAuthenticationDisplayServerUnknownError',
+
+                                                        target: '#app.waitingForUserAuthentication.googleAuthenticationHandler.waitingForGoogleUserAccessToken.Idle',
+                                                    },
+                                                ],
+                                            },
+                                        },
+
+                                        userIsAuthenticatedViaGoogleOauth: {
+                                            entry: resetUserGoogleAccessToken,
+                                            type: 'final',
+                                        },
                                     },
                                 },
+                            },
+
+                            onDone: {
+                                actions: raise({
+                                    type: '__AUTHENTICATED',
+                                }),
                             },
                         },
                     },
@@ -1155,7 +1216,36 @@ export function createAppMachine({
                 },
                 ///
 
-                //Google accessToken verification
+                //Google server accessToken verification actions
+                googleAuthenticationDisplayServerEmailNorNicknameInvalidToastError:
+                    () => {
+                        Toast.show({
+                            type: 'error',
+                            text1: 'Continue with google error',
+                            text2: 'Google account nickname or email is invalid',
+                        });
+                    },
+                googleAuthenticationServerEmailNorNicknameUnavailableToastError:
+                    () => {
+                        Toast.show({
+                            type: 'error',
+                            text1: 'Continue with google error',
+                            text2: 'Google account nickname or email is unavailable',
+                        });
+                    },
+                googleAuthenticationDisplayServerUnknownError: () => {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Continue with google error',
+                        text2: 'We encountered an error please try again later',
+                    });
+                },
+                googleAuthenticationDisplayServerOperationSuccess: () => {
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Continue with google succeeded',
+                    });
+                },
                 ///
             },
 
@@ -1238,6 +1328,42 @@ export function createAppMachine({
                 googleAuthenticationIsSuccessful: (_context, event) => {
                     assertEventType(event, 'RECEIVED_GOOGLE_OAUTH_RESPONSE');
                     return event.googleResponse.type === 'success';
+                },
+                ///
+
+                //Google authentication server errors
+                googleAuthenticationServerEmailNorNicknameInvalidError: (
+                    _context,
+                    e,
+                ) => {
+                    const event =
+                        e as DoneInvokeEvent<AuthenticateWithGoogleOauthFailureReponseBody>;
+
+                    return (
+                        event.data.googleAuthSignUpFailure.includes(
+                            'INVALID_EMAIL',
+                        ) ||
+                        event.data.googleAuthSignUpFailure.includes(
+                            'INVALID_NICKNAME',
+                        )
+                    );
+                },
+
+                googleAuthenticationServerEmailNorNicknameUnavailableError: (
+                    _context,
+                    e,
+                ) => {
+                    const event =
+                        e as DoneInvokeEvent<AuthenticateWithGoogleOauthFailureReponseBody>;
+
+                    return (
+                        event.data.googleAuthSignUpFailure.includes(
+                            'UNAVAILABLE_EMAIL',
+                        ) ||
+                        event.data.googleAuthSignUpFailure.includes(
+                            'UNAVAILABLE_NICKNAME',
+                        )
+                    );
                 },
                 ///
             },

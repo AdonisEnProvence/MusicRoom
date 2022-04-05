@@ -215,6 +215,11 @@ const googleAuthMachine =
                             expect(
                                 screen.getAllByText(/home/i).length,
                             ).toBeGreaterThanOrEqual(1);
+
+                            expect(Toast.show).toHaveBeenCalledWith({
+                                type: 'success',
+                                text1: 'Continue with google succeeded',
+                            });
                         });
                     },
                 },

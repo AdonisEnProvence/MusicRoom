@@ -35,29 +35,31 @@ const PasswordResetFinalScreen: React.FC<PasswordResetFinalScreenProps> = ({
     });
 
     const { appService } = useAppContext();
-    const passwordResetCodeIsInvalid = useSelector(appService, (state) =>
-        state.hasTag('passwordResetCodeIsInvalid'),
+    const passwordIsSameAsOldPassword = useSelector(appService, (state) =>
+        state.hasTag('passwordIsSameAsOldPassword'),
     );
 
-    // useEffect(() => {
-    //     if (passwordResetCodeIsInvalid === false) {
-    //         return;
-    //     }
+    useEffect(() => {
+        if (passwordIsSameAsOldPassword === false) {
+            return;
+        }
 
-    //     setError('code', {
-    //         type: 'server',
-    //         message: 'Code is invalid.',
-    //     });
-    // }, [passwordResetCodeIsInvalid, setError]);
+        setError('password', {
+            type: 'server',
+            message: 'New password must be different than old password.',
+        });
+    }, [passwordIsSameAsOldPassword, setError]);
 
     function handlePasswordResetSubmit({
         password,
     }: PasswordResetFinalFormFieldValues) {
-        // TODO: to implement
+        appService.send('SUBMIT_PASSWORD_RESET_NEW_PASSWORD_FORM', {
+            password,
+        });
     }
 
     return (
-        <AppScreen testID="password-reset-confirmation-token-screen-container">
+        <AppScreen testID="password-reset-new-password-screen-container">
             <AppScreenHeader
                 title="Password reset"
                 insetTop={insets.top}
@@ -94,7 +96,7 @@ const PasswordResetFinalScreen: React.FC<PasswordResetFinalScreenProps> = ({
                             </Text>
 
                             <View
-                                testID="password-reset-confirmation-code-field"
+                                testID="password-reset-new-password-field"
                                 sx={{ marginBottom: 'xl' }}
                             >
                                 <Text
@@ -151,7 +153,7 @@ const PasswordResetFinalScreen: React.FC<PasswordResetFinalScreenProps> = ({
                             </View>
 
                             <TouchableOpacity
-                                testID="submit-password-reset-code-button"
+                                testID="submit-password-reset-new-password-button"
                                 onPress={handleSubmit(
                                     handlePasswordResetSubmit,
                                 )}

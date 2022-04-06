@@ -22,7 +22,13 @@ import {
     ValidatePasswordResetTokenRequestBody,
     ApiTokenAuthenticateWithGoogleOauthSuccessResponseBody,
     AuthenticateWithGoogleOauthResponseBody,
+    ResetPasswordFailureResponseBody,
+    ResetPasswordSuccessfulApiAuthenticationResponseBody,
+    ResetPasswordResponseBody,
+    ResetPasswordSuccessfulWebAuthenticationResponseBody,
+    ResetPasswordRequestBody,
 } from '@musicroom/types';
+import { z } from 'zod';
 import { request, SHOULD_USE_TOKEN_AUTH } from './http';
 
 interface SendSignInArgs {
@@ -332,6 +338,88 @@ export async function sendValidatePasswordResetCode({
     const parsedResponseBody = ValidatePasswordResetTokenResponseBody.parse(
         rawResponse.data,
     );
+
+    return parsedResponseBody;
+}
+
+interface SendResetPasswordNewPasswordArgs {
+    code: string;
+    email: string;
+    password: string;
+}
+
+export async function sendResetPasswordNewPassword(
+    args: SendResetPasswordNewPasswordArgs,
+): Promise<ResetPasswordResponseBody> {
+    if (SHOULD_USE_TOKEN_AUTH) {
+        return await sendResetPasswordNewPasswordApiAuth(args);
+    }
+
+    return await sendResetPasswordNewPasswordWebAuth(args);
+}
+
+async function sendResetPasswordNewPasswordApiAuth({
+    email,
+    code,
+    password,
+}: SendResetPasswordNewPasswordArgs): Promise<
+    | ResetPasswordSuccessfulApiAuthenticationResponseBody
+    | ResetPasswordFailureResponseBody
+> {
+    const requestBody: ResetPasswordRequestBody = {
+        email,
+        password,
+        token: code,
+        authenticationMode: 'api',
+    };
+    const rawResponse = await request.post(
+        '/authentication/reset-password',
+        requestBody,
+        {
+            validateStatus: (status) => status === 200 || status === 400,
+        },
+    );
+    const parsedResponseBody = z
+        .union([
+            ResetPasswordSuccessfulApiAuthenticationResponseBody,
+            ResetPasswordFailureResponseBody,
+        ])
+        .parse(rawResponse.data);
+
+    if (parsedResponseBody.status === 'SUCCESS') {
+        await request.persistToken(parsedResponseBody.token);
+    }
+
+    return parsedResponseBody;
+}
+
+async function sendResetPasswordNewPasswordWebAuth({
+    email,
+    code,
+    password,
+}: SendResetPasswordNewPasswordArgs): Promise<
+    | ResetPasswordSuccessfulWebAuthenticationResponseBody
+    | ResetPasswordFailureResponseBody
+> {
+    const requestBody: ResetPasswordRequestBody = {
+        email,
+        password,
+        token: code,
+        authenticationMode: 'web',
+    };
+    const rawResponse = await request.post(
+        '/authentication/reset-password',
+        requestBody,
+        {
+            validateStatus: (status) => status === 200 || status === 400,
+        },
+    );
+    const parsedResponseBody = z
+        .union([
+            ResetPasswordSuccessfulWebAuthenticationResponseBody,
+            ResetPasswordFailureResponseBody,
+        ])
+        .parse(rawResponse.data);
 
     return parsedResponseBody;
 }

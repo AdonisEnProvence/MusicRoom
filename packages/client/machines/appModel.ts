@@ -10,6 +10,7 @@ export const appModel = createModel(
         confirmationCode: undefined as string | undefined,
         passwordResetCode: undefined as string | undefined,
         userGoogleAccessToken: undefined as string | undefined,
+        passwordResetNewPassword: undefined as string | undefined,
     },
     {
         events: {
@@ -22,6 +23,10 @@ export const appModel = createModel(
             SUBMIT_PASSWORD_RESET_CONFIRMATION_CODE_FORM: (args: {
                 code: string;
             }) => args,
+            SUBMIT_PASSWORD_RESET_NEW_PASSWORD_FORM: (args: {
+                password: string;
+            }) => args,
+            ROLLBACK_PASSWORD_RESET: () => ({}),
             __BROADCAST_RELOAD_INTO_BROADCAST_CHANNEL: () => ({}),
             __RECEIVED_RELOAD_PAGE: () => ({}),
             __AUTHENTICATED: () => ({}),

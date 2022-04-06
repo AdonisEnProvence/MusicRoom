@@ -6,6 +6,8 @@ import { rest } from 'msw';
 import {
     RequestPasswordResetRequestBody,
     RequestPasswordResetResponseBody,
+    ResetPasswordRequestBody,
+    ResetPasswordResponseBody,
     ValidatePasswordResetTokenRequestBody,
     ValidatePasswordResetTokenResponseBody,
 } from '@musicroom/types';
@@ -26,9 +28,10 @@ interface TestingContext {
 }
 
 const VALID_PASSWORD_RESET_CODE = '123456';
+const CURRENT_PASSWORD = 'qwerty';
 
 const passwordResetMachine =
-    /** @xstate-layout N4IgpgJg5mDOIC5QAUCGtYHcD2AnCABLnGAC4B0ASmAHYRi4CWNUBsjUNzrzbAxsVoBiACoBPAA5gCYALapGAG0SgJ2dqUbYaKkAA9EAWgBMATmPkADJYAsxgMwB2B8csBWABwAaEGMQBGR38rew9bf2Mw+1D-NwBfOJ80DBx8IhIKajoGbjYOLhYCXlgBMGFqAEcAVzhSAgl0LDxCYlgyXTUNLR0kfUQANkDye0Hox0tTGzd-Wx8-BGNB8n6JoLdTfw8PR0d7BKTG1JaMqlp6JkL2Tlzi0uEAWVQAa2lcVFJpRUZZRjriVD4AAtIB11L9uroDAhDNEPOQZh57JMPIMbP1+vY5ogzDYrKYPGZHCiIpZIvsQMkmmlWmRTtkLqwrgUeDR+IIaEJHi8CFUaE8aNhMKyGLg8ARsHw+FVcKCutpIUZ7ItyFtzNZ+uNnI4sQgbPY3ORTP03PYbBFFqZLcZyZSjuk2pkzjlCg0Us17WQCHxsPQ2WUOQBlKoAIx+dVdVOODoIpGwL1ZADM8LJZeD5b0of4Ro5yI4NbYbDZTEjjFMdWjguj0W49aEa0abYd3TTHfTchG7S2vT7pCV2aJJNJtPUm9SMt3fQnGGBFBBU5p06BMzZduRpp4s-q0TZLN5fAFNirxh43JYSeiK423WOHXTzu3R1HPd7fX3-ZzntJefzBcLcKLcHFSVpQICBpQfa8nzqF9pAAN1QL4IHeCFek6NMeiXAJTGschjFPWx3A8bcth1DxgnsLM8P1DxLQoxEr0jD1W3vF1HyYggpxoBC-WEINQ1+EdIPYzjuKTXAU1QsEFwwvoEGiexcJWIJYjME1SR1GZSzXVx7HcGwtjPBtEgpNiWzvZ1WA7ZtxxExQeI5cQpHFVkaDATBBMYqcZznSS5RkqFDGmYJC3RaJBhmU9TG1fcEHxYJ-CisJEQ1OwRgYzsTiyFjLNMmzmG4t8Hk-DyMujYhqlqDiFGUXz0IVaEMWCWw3EcKZxmMIlog0iIc3XYtjVPU8nASYyBXoeBeltazbyyiy8muQpbnZcgAEkIEUMB5xQzCEBWDSWsNMiiRXY8ossfp0um2lZoZebmSKVlCpocgABFGFgCRFFQMRcn+IFICId5Pm+ATY3QUgtsXWS9pivDcSii0HEtKYlXiYyppva6nVupkbkeu5nrej6vp+xaaHgxCZHkJQY2wcHIf8gZLB1fVgiNEZrFJMIJhsS7MeYubcbJ+zXvez7vtyb8BSFGR-zFMHYAh2rpPqmH5kLOFTBrU88zcY19b5qDzJx-I8ZFonxdJ1g5GqopYCpiRSDEAgEIYJXVCk7bZLcA1-ELJVbGwwszz3eYTQNI0ViRnYiTzQ2mON3IhZZeyGfqij4X91wiwLEOdWcQ7+h3cYtZPcwPHjsybogxiuxg82xZJmvSs9WAqklOBYATKo7PKmpFdp+nla9zNNkscg2sShKjuNFmOsNfoyMCbYoksRxK8y7Hm6u6CexFlbyYQxhCDE2RyAAYT396HadtOMyw-oLAJNFTyIxxpg68tjAsfxzT1QtkYmg3jNLerEhJ1z3k9Vah9Kanwvlfe2zAKbHzvjtBKj8VSlmNLuFcH9ophwSvCNegwJjuAiDRYBWM2xgNruOeuUCD7IJPsmcgABVPk0s-wASAlKYghAwK3SYchKGaEVb3wQOgp+WDX64J6jqQY-QiG6SLI4KKeY8KUIFrdKy-MJy9gJtAphHFkyoNkglUImCX44PfnImKppTDwn8IvWwKJX62E0YnGhLdd6vgJqY0eesJ4tSnnFXWOpSwWARq1UkpIrTmA8dXLxO8OL5Tsgw9am1h5QwCoENmJ5AjtTUlsfwpE3CRKLq4pUUUxgJNATlcBeUuJpIMRbJuSTdGxnjAQIRHwfIez8vVE6wwykuLwhUpxpTyn6WNFU3YaV0a5RAdQ+ptDoy2X3jA4+xjxLkAAHJuRKu6a+chHbzH6XVcRhgVK4W-gSVRRYaJZjcBpSwFjtiRAJJsS05heYLIaUs7KhzdHrIYZs5hOz9nuR0YQa+sBUCyGkOgL00piA0DqNoTJ5yxE7SuWUm5kQOqTHxBsfU3V9QqkXkqX+ep1gRFqcsoFUEUlNI2UYuB7CfwyxFGKCUvCAYCN+mACqit-FGGud-Al9ziVPI0i4ClTgVirASvSwF0LhKpNZUfcFEksUjzFXmfFdyiWPNJTFI0BptitT1CsPBaMDj-KoaqxZnoQV+KyYzaErhx4SqNQ8klzyYp5hzEaSYLUEqJQcCquagJsAItTu6+qEUDRmkpTRSYeEayyrwoafSapjDTzInsP5qz2gJsuQNKwbU2qkk6piGKhhx7WGwmeV5O41SqJREWhIQA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QAUCGtYHcD2AnCABLnGAC4B0ASmAHYRi4CWNUBsjUNzrzbAxsVoBiACoBPAA5gCYALapGAG0SgJ2dqUbYaKkAA9EAdgBsAJnKmAzAFYADLYAsATksOz1hwBoQYo2fIAHNaWpqbOxgCMprZOpgC+cd5oGDj4RCQU1HQM3GwcXCwEvLACYMLUAI4ArnCkBBLoWHiExLBkumoaWjpI+ogAtJZOEeQx1hHGkQ62lgGmE96+CAET5CZhpoZzJgEBhglJjaktGVS09EyF7Jy5xaXCALKoANbSuKik0oqMsox1xKg+AALSAddR-bq6AwIabWcjjWKGEIRWa2axOayLRAREyWciTezGJwxCLjUIHEDJJppVpkM7ZS6sa4FHg0fiCGhCJ6vAhVGjPGjYTBshi4PAEbB8PhVXBgrraKGIByrJEBByo4kYwy2YxYhATEz4gLGVwRCaI4wUqnHdJtTLnHKFBopZq2sgEPjYejssqcgDKVQARr86s7qSc7QRSNhXmyAGZ4WRyiEK3rQiK2cwrJzGNEOUIBTOGLw+RDzfzo6b5nMOPb7RKUo6u2n2hm5MM2lser3SEoc0SSaTaepNmkZbveuOMMCKCDJzSp0DQ-MOQLWAKWQzWQyhLcm3Wl-VBAL4yyzMzH6xX+IN63N05ZC7t0cR92e71931cl7SPkCoUirgYq4BKUoygQEAys+LpjpG77SAAbqg3wQB8kK9J0KY9EuZY6qMEQONuVhbDsG56qYV54rYBEREEIS2BuN6HDBr6tk+Tovm6dRTjQyE+sIAbBn8I4sVxBA8XxCa4EmGHggu2F9Ee4zkDimazARcwRE4ATkRp5AhLmxiEbm65OPWzHhlx9LsawHb3pGEmKPxnLiFIEpsjQYCYCJllTjOc6yfKCnQqEDirh4O4IrRVgYnqEzWMY5CEa49hzGqlq3pxLbWY6tlZeOjnOd+PJ2bB7rENUtTiQoyiBVhir6glJ5DCEWwosY1hWDph4TJYtgqRmtbKgxphOOqVr5XaOWMj5nYFcwfGfo8P7djQU7SWhw7wTIegSIwxABaocnoThCAUR4+kOFsnWGMScxOHFSKrpYHWkkEmZquuCQNoK9DwL0d5lWxuV5DchR3By5AAJIQIoYDzidin9M4q7TCayqdVesJ6kSTjkLEjjGBu66hNpE2idlj4g8ytxsktNDkAAIowsASIoqBiLkALApARAfF8PzCdG6CkAji6KRR5hjQaGx7Dq3VLBm9hrDEMQ5jMjjkplFMPg6M00+DdP3AzzOs+znOG0hKEyPIShRtgIti8FZbahYUQhMSZgmgsh4uCMG7GmN24vS91jk5ZlN67kBuss5TMs2zHO5H+grCjIQHisLsCi3V8kNaY-gbpENhuNRVglorthIklVeZtRBHUXs4dzVNVP6-ktNx6bicW6wcg1UUsA2xIpBiAQyEMDnR1BfnHX6Qlr1bLWhhbnqxp4h4hHqkEpi7OZjY663UdXB3htdwn5vQRH47MFbjCENtWdTyAmF52mZY4vjK-B09YVooYcUCJwhsH1eYtEQjjGbvZOkbdo6n1jvTJ2DV+jjBPGjU0mMPBohxgRfGFEq6jTNEZJwTgoFA2mlfFub4eznzNknDih93SwCqFKOAsA4xVCchVGo2d7aO1zojdMsw1ggJ3DqZUBdLDkRiBvbSkwjLTHXmQ1iFCGHXzgjQ+m0MaB30IFJWQ5AADCNCWbD1Hkg9+CAjInm1PYW6YQthzArmWAueMPBDAomqAIwww7a3UTA4+eVGF1G2loqGOjkL33EomIxJih630iYdF+x1xbQiRHiLSrgdxWBemqciZ4TzBBcGpHcsQXDKKsrAtRVCQmaONto3R0TpLkAAKr8lToBYCoFpQHQglBQoujNoKVfoIxARk8S2KrrEK6uwwjkWmIYeEWTaxDDMlqCpkc2zVOgbUj89TwmNP0RY06kQ8aTPsTMpxukczwlrJEMIxgtxFw2brLZQT-G7N7PUkQMZaAEEGZ8JJIzUllm3PCY0HUrB2A8A46RYR8QzFCI4FEJDHkvKPm82aOyJxfI5McxSWxAhaRMvmXeRZnH6hcHjXMJgF7nW0pYdFATMWlVYuJBaTkwmw3hgIkF+ptQnliGeLqDFbo+0VhiPGOYiRV29qNLYTLgYzVZWJQqWju6X22UDe2sZ-mJP5kClJzt9RuDhPYG6BphgYlMLpZUgRogTHzFXWsV5FWqPeTU9lvFOX7IidbfR5AAByXksVpFMXIEeSxp71UsZIjeRJpjzCwZmTEh5QjRBUlajwJDlSETdVUj12K1W+sOTE4N3kVWmNgKgWQ0h0AehlMQGgdRtA8ujW-U6cb8YohepMdUhFYppt3njWixZqKZgzINfNgTQ1suLZDA5iSmkGLaf+NOopxSSh6bzSCM1uG1HxSFC88IE0TuTRRfJ64VLbDNLY+YQRp0ssmu6edvoGlLqOby41BdHAnrGme6YKbbWLOJUZCYUQVgOEfTZWdqqOXOUPdiMKIxzWbEtVpTqcU9irjMiibe+ZvGxGgyDIE2Ba0Ia-Q1YYhSIMkNiHYF6FLh2JUech9GNhR2KsQwgFB+Ya7o1JOdbGh4PAjDKR1FYu9IiGAiN9OIQA */
     createMachine(
         {
             context: {
@@ -36,7 +39,10 @@ const passwordResetMachine =
                 hasReachedRateLimit: false,
                 hasUnknownErrorOccured: false,
                 passwordResetCode: undefined,
+                isPasswordResetCodeExpired: false,
                 hasUnknownErrorOccuredDuringPasswordResetCodeValidation: false,
+                newPassword: '',
+                hasUnknownErrorOccuredDuringPasswordReset: false,
             },
             schema: {
                 context: {} as {
@@ -44,7 +50,10 @@ const passwordResetMachine =
                     hasReachedRateLimit: boolean;
                     hasUnknownErrorOccured: boolean;
                     passwordResetCode: string | undefined;
+                    isPasswordResetCodeExpired: boolean;
                     hasUnknownErrorOccuredDuringPasswordResetCodeValidation: boolean;
+                    newPassword: string;
+                    hasUnknownErrorOccuredDuringPasswordReset: boolean;
                 },
                 events: {} as
                     | {
@@ -72,6 +81,9 @@ const passwordResetMachine =
                       }
                     | {
                           type: 'Submit password reset final form';
+                      }
+                    | {
+                          type: 'Make confirmation code expired';
                       }
                     | {
                           type: 'Type on new password field';
@@ -152,6 +164,23 @@ const passwordResetMachine =
 
                                         expect(alert).toHaveTextContent(
                                             'This field is required',
+                                        );
+                                    });
+                                },
+                            },
+                        },
+                        'Displaying password reset invalid code toast': {
+                            meta: {
+                                test: async () => {
+                                    await waitFor(() => {
+                                        expect(Toast.show).toHaveBeenCalledWith(
+                                            {
+                                                type: 'error',
+                                                text1: 'Changing password failed',
+                                                text2: expect.stringMatching(
+                                                    /confirmation.*code.*expired/i,
+                                                ),
+                                            },
                                         );
                                     });
                                 },
@@ -356,9 +385,75 @@ const passwordResetMachine =
                         'Invalid form': {
                             initial: 'New password is empty',
                             states: {
-                                'New password is empty': {},
-                                'New password is same as current one': {},
-                                'Unknown error occured during request': {},
+                                'New password is empty': {
+                                    meta: {
+                                        test: async ({
+                                            screen,
+                                        }: TestingContext) => {
+                                            await waitFor(() => {
+                                                const passwordResetNewPasswordField =
+                                                    screen.getByTestId(
+                                                        'password-reset-new-password-field',
+                                                    );
+                                                expect(
+                                                    passwordResetNewPasswordField,
+                                                ).toBeTruthy();
+
+                                                const alert = within(
+                                                    passwordResetNewPasswordField,
+                                                ).getByRole('alert');
+                                                expect(alert).toBeTruthy();
+
+                                                expect(alert).toHaveTextContent(
+                                                    'This field is required',
+                                                );
+                                            });
+                                        },
+                                    },
+                                },
+                                'New password is same as current one': {
+                                    meta: {
+                                        test: async ({
+                                            screen,
+                                        }: TestingContext) => {
+                                            await waitFor(() => {
+                                                const passwordResetNewPasswordField =
+                                                    screen.getByTestId(
+                                                        'password-reset-new-password-field',
+                                                    );
+                                                expect(
+                                                    passwordResetNewPasswordField,
+                                                ).toBeTruthy();
+
+                                                const alert = within(
+                                                    passwordResetNewPasswordField,
+                                                ).getByRole('alert');
+                                                expect(alert).toBeTruthy();
+
+                                                expect(alert).toHaveTextContent(
+                                                    'New password must be different than old password.',
+                                                );
+                                            });
+                                        },
+                                    },
+                                },
+                                'Unknown error occured during request': {
+                                    meta: {
+                                        test: async () => {
+                                            await waitFor(() => {
+                                                expect(
+                                                    Toast.show,
+                                                ).toHaveBeenCalledWith({
+                                                    type: 'error',
+                                                    text1: 'Changing password failed',
+                                                    text2: expect.stringMatching(
+                                                        /unknown.*error.*try.*again/i,
+                                                    ),
+                                                });
+                                            });
+                                        },
+                                    },
+                                },
                             },
                         },
                     },
@@ -377,6 +472,10 @@ const passwordResetMachine =
                                 target: '.Invalid form.Unknown error occured during request',
                             },
                             {
+                                cond: 'Is code invalid',
+                                target: '#Password reset.Rendering signing in screen.Displaying password reset invalid code toast',
+                            },
+                            {
                                 target: 'Rendering home screen',
                             },
                         ],
@@ -387,10 +486,32 @@ const passwordResetMachine =
                             actions:
                                 'Assign unknown error occured during password reset request to context',
                         },
+                        'Make confirmation code expired': {
+                            actions:
+                                'Assign password reset code has expired to context',
+                        },
                     },
                 },
                 'Rendering home screen': {
                     type: 'final',
+                    meta: {
+                        test: async ({ screen }: TestingContext) => {
+                            await Promise.all([
+                                waitFor(() => {
+                                    expect(Toast.show).toHaveBeenCalledWith({
+                                        type: 'success',
+                                        text1: 'Password changed successfully',
+                                    });
+                                }),
+
+                                waitFor(() => {
+                                    expect(
+                                        screen.getAllByText(/home/i).length,
+                                    ).toBeGreaterThanOrEqual(1);
+                                }),
+                            ]);
+                        },
+                    },
                 },
             },
             id: 'Password reset',
@@ -410,8 +531,16 @@ const passwordResetMachine =
 
                 'Is code empty': (context) => context.passwordResetCode === '',
 
-                'Is code invalid': (context) =>
-                    context.passwordResetCode !== VALID_PASSWORD_RESET_CODE,
+                'Is code invalid': ({
+                    isPasswordResetCodeExpired,
+                    passwordResetCode,
+                }) => {
+                    if (isPasswordResetCodeExpired === true) {
+                        return true;
+                    }
+
+                    return passwordResetCode !== VALID_PASSWORD_RESET_CODE;
+                },
 
                 'Has unknown error occured during token validation': (
                     context,
@@ -419,15 +548,15 @@ const passwordResetMachine =
                     context.hasUnknownErrorOccuredDuringPasswordResetCodeValidation ===
                     true,
 
-                // TODO: to implement
-                'Is new password empty': () => false,
+                'Is new password empty': ({ newPassword }) =>
+                    newPassword === '',
 
-                // TODO: to implement
-                'Is new password same as current one': () => false,
+                'Is new password same as current one': ({ newPassword }) =>
+                    newPassword === CURRENT_PASSWORD,
 
-                // TODO: to implement
-                'Has unknown error occured during password reset request': () =>
-                    false,
+                'Has unknown error occured during password reset request': ({
+                    hasUnknownErrorOccuredDuringPasswordReset,
+                }) => hasUnknownErrorOccuredDuringPasswordReset === true,
             },
             actions: {
                 'Assign typed email to context': assign({
@@ -461,6 +590,24 @@ const passwordResetMachine =
                     assign({
                         hasUnknownErrorOccuredDuringPasswordResetCodeValidation:
                             (_context) => true,
+                    }),
+
+                'Assign password reset code has expired to context': assign({
+                    isPasswordResetCodeExpired: (_context) => true,
+                }),
+
+                'Assign new password to context': assign({
+                    newPassword: (_context, event) => {
+                        assertEventType(event, 'Type on new password field');
+
+                        return event.newPassword;
+                    },
+                }),
+
+                'Assign unknown error occured during password reset request to context':
+                    assign({
+                        hasUnknownErrorOccuredDuringPasswordReset: (_context) =>
+                            true,
                     }),
             },
         },
@@ -565,6 +712,76 @@ const resetPasswordTestModel = createTestModel<TestingContext>(
                 `${SERVER_ENDPOINT}/authentication/validate-password-reset-token`,
                 (_req, res, ctx) => {
                     return res(ctx.status(500));
+                },
+            ),
+        );
+    },
+
+    'Submit password reset final form': async ({ screen }) => {
+        const passwordResetNewPasswordScreenContainer =
+            await screen.findByTestId(
+                'password-reset-new-password-screen-container',
+            );
+        expect(passwordResetNewPasswordScreenContainer).toBeTruthy();
+
+        const submitPasswordResetNewPasswordFormButton = within(
+            passwordResetNewPasswordScreenContainer,
+        ).getByText(/^submit$/i);
+        expect(submitPasswordResetNewPasswordFormButton).toBeTruthy();
+
+        fireEvent.press(submitPasswordResetNewPasswordFormButton);
+    },
+
+    'Type on new password field': async ({ screen }, e) => {
+        const event = e as EventFrom<
+            typeof passwordResetMachine,
+            'Type on new password field'
+        >;
+
+        const passwordResetNewPasswordScreenContainer =
+            await screen.findByTestId(
+                'password-reset-new-password-screen-container',
+            );
+        expect(passwordResetNewPasswordScreenContainer).toBeTruthy();
+
+        const newPasswordField = await within(
+            passwordResetNewPasswordScreenContainer,
+        ).findByPlaceholderText(/new.*password/i);
+        expect(newPasswordField).toBeTruthy();
+
+        fireEvent.changeText(newPasswordField, event.newPassword);
+    },
+
+    'Make password reset request fail': () => {
+        server.use(
+            rest.post<
+                ResetPasswordRequestBody,
+                never,
+                ResetPasswordResponseBody
+            >(
+                `${SERVER_ENDPOINT}/authentication/reset-password`,
+                (_req, res, ctx) => {
+                    return res(ctx.status(500));
+                },
+            ),
+        );
+    },
+
+    'Make confirmation code expired': () => {
+        server.use(
+            rest.post<
+                ResetPasswordRequestBody,
+                never,
+                ResetPasswordResponseBody
+            >(
+                `${SERVER_ENDPOINT}/authentication/reset-password`,
+                (_req, res, ctx) => {
+                    return res(
+                        ctx.status(400),
+                        ctx.json({
+                            status: 'INVALID_TOKEN',
+                        }),
+                    );
                 },
             ),
         );
@@ -851,5 +1068,200 @@ cases<{
                 },
             ],
         },
+    },
+);
+
+cases<{
+    target:
+        | {
+              'Rendering password reset final screen':
+                  | 'Displaying password reset token validated'
+                  | {
+                        'Invalid form':
+                            | 'New password is empty'
+                            | 'New password is same as current one'
+                            | 'Unknown error occured during request';
+                    };
+          }
+        | 'Rendering home screen'
+        | {
+              'Rendering signing in screen': 'Displaying password reset invalid code toast';
+          };
+    events: EventFrom<typeof passwordResetMachine>[];
+}>(
+    'Sets a new password',
+    async ({ target, events }) => {
+        db.authenticationUser.create(existingUser);
+        db.myProfileInformation.create({
+            userID: existingUser.uuid,
+            devicesCounter: 3,
+            playlistsCounter: 4,
+            followersCounter: 5,
+            followingCounter: 6,
+            userNickname: existingUser.nickname,
+            hasConfirmedEmail: true,
+        });
+
+        const screen = await renderUnauthenticatedApp();
+
+        const plan = resetPasswordTestModel.getPlanFromEvents(events, {
+            target,
+        });
+
+        await plan.test({ screen });
+    },
+    {
+        'Displays alert when new password is empty': {
+            target: {
+                'Rendering password reset final screen': {
+                    'Invalid form': 'New password is empty',
+                },
+            },
+            events: [
+                {
+                    type: 'Type email',
+                    email: existingUser.email,
+                },
+                {
+                    type: 'Request password reset',
+                },
+                {
+                    type: 'Type on password reset code field',
+                    code: '123456',
+                },
+                {
+                    type: 'Submit password reset token form',
+                },
+                {
+                    type: 'Submit password reset final form',
+                },
+            ],
+        },
+
+        'Displays alert when new password is same as current one': {
+            target: {
+                'Rendering password reset final screen': {
+                    'Invalid form': 'New password is same as current one',
+                },
+            },
+            events: [
+                {
+                    type: 'Type email',
+                    email: existingUser.email,
+                },
+                {
+                    type: 'Request password reset',
+                },
+                {
+                    type: 'Type on password reset code field',
+                    code: '123456',
+                },
+                {
+                    type: 'Submit password reset token form',
+                },
+                {
+                    type: 'Type on new password field',
+                    newPassword: CURRENT_PASSWORD,
+                },
+                {
+                    type: 'Submit password reset final form',
+                },
+            ],
+        },
+
+        'Displays error toast when an error occured during request': {
+            target: {
+                'Rendering password reset final screen': {
+                    'Invalid form': 'Unknown error occured during request',
+                },
+            },
+            events: [
+                {
+                    type: 'Type email',
+                    email: existingUser.email,
+                },
+                {
+                    type: 'Request password reset',
+                },
+                {
+                    type: 'Type on password reset code field',
+                    code: '123456',
+                },
+                {
+                    type: 'Submit password reset token form',
+                },
+                {
+                    type: 'Make password reset request fail',
+                },
+                {
+                    type: 'Type on new password field',
+                    newPassword: 'new password',
+                },
+                {
+                    type: 'Submit password reset final form',
+                },
+            ],
+        },
+
+        'Redirects to signing in screen when token has expired': {
+            target: {
+                'Rendering signing in screen':
+                    'Displaying password reset invalid code toast',
+            },
+            events: [
+                {
+                    type: 'Type email',
+                    email: existingUser.email,
+                },
+                {
+                    type: 'Request password reset',
+                },
+                {
+                    type: 'Type on password reset code field',
+                    code: '123456',
+                },
+                {
+                    type: 'Submit password reset token form',
+                },
+                {
+                    type: 'Make confirmation code expired',
+                },
+                {
+                    type: 'Type on new password field',
+                    newPassword: 'new password',
+                },
+                {
+                    type: 'Submit password reset final form',
+                },
+            ],
+        },
+
+        'Redirects to home screen and authenticates the user when password reset succeeds':
+            {
+                target: 'Rendering home screen',
+                events: [
+                    {
+                        type: 'Type email',
+                        email: existingUser.email,
+                    },
+                    {
+                        type: 'Request password reset',
+                    },
+                    {
+                        type: 'Type on password reset code field',
+                        code: '123456',
+                    },
+                    {
+                        type: 'Submit password reset token form',
+                    },
+                    {
+                        type: 'Type on new password field',
+                        newPassword: 'new password',
+                    },
+                    {
+                        type: 'Submit password reset final form',
+                    },
+                ],
+            },
     },
 );

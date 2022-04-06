@@ -165,18 +165,16 @@ export default class User extends BaseModel {
     })
     public activeTokens: HasMany<typeof Token>;
 
-    public async checkToken(
+    public async getToken(
         this: User,
         {
             token,
             tokenType,
-            revoke = false,
         }: {
             token: string;
             tokenType: TokenTypeName;
-            revoke?: boolean;
         },
-    ): Promise<boolean> {
+    ): Promise<Token | undefined> {
         const activeTokens = await this.related('activeTokens')
             .query()
             .whereHas('tokenType', (query) => {
@@ -186,16 +184,30 @@ export default class User extends BaseModel {
         for (const activeToken of activeTokens) {
             const isMatching = await Hash.verify(activeToken.value, token);
             if (isMatching === true) {
-                if (revoke === true) {
-                    activeToken.isRevoked = true;
-                    await activeToken.save();
-                }
-
-                return true;
+                return activeToken;
             }
         }
 
-        return false;
+        return undefined;
+    }
+
+    public async checkToken(
+        this: User,
+        {
+            token,
+            tokenType,
+        }: {
+            token: string;
+            tokenType: TokenTypeName;
+        },
+    ): Promise<boolean> {
+        const activeToken = await this.getToken({
+            token,
+            tokenType,
+        });
+        const isTokenValid = activeToken !== undefined;
+
+        return isTokenValid === true;
     }
 
     ///

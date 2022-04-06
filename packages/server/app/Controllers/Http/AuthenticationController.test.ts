@@ -1430,6 +1430,54 @@ test.group('Reset password', (group) => {
         assert.isTrue(token.isRevoked);
     });
 
+    test('Does not revoke token if provided password is same as old password', async (assert) => {
+        const request = createRequest();
+
+        const plainPassword = internet.password();
+        const user = await User.create({
+            uuid: datatype.uuid(),
+            nickname: internet.userName(),
+            email: internet.email(),
+            password: plainPassword,
+        });
+
+        const plainToken = generateToken();
+        const tokenType = await TokenType.findByOrFail(
+            'name',
+            TokenTypeName.enum.PASSWORD_RESET,
+        );
+        const token = await user.related('tokens').create({
+            uuid: datatype.uuid(),
+            tokenTypeUuid: tokenType.uuid,
+            value: plainToken,
+            expiresAt: DateTime.local().plus({
+                minutes: 15,
+            }),
+        });
+
+        const requestBody: ResetPasswordRequestBody = {
+            token: plainToken,
+            email: user.email,
+            password: plainPassword,
+            authenticationMode: 'web',
+        };
+        const response = await request
+            .post('/authentication/reset-password')
+            .send(requestBody)
+            .expect(400);
+        const parsedResponseBody = ResetPasswordResponseBody.parse(
+            response.body,
+        );
+
+        assert.deepStrictEqual(parsedResponseBody, {
+            status: 'PASSWORD_ALREADY_USED',
+        });
+
+        await token.refresh();
+
+        assert.isFalse(token.isRevoked);
+    });
+
     test('Returns an error when token is revoked', async (assert) => {
         const request = createRequest();
 

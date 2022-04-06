@@ -40,6 +40,11 @@ export default class Token extends BaseModel {
     @column()
     public isRevoked: boolean;
 
+    public async revoke(this: Token): Promise<void> {
+        this.isRevoked = true;
+        await this.save();
+    }
+
     @column.dateTime()
     public expiresAt: DateTime;
 

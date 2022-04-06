@@ -374,13 +374,11 @@ export default class AuthenticationController {
             };
         }
 
-        const isValidToken = await user.checkToken({
+        const activeToken = await user.getToken({
             token,
             tokenType: 'PASSWORD_RESET',
-            revoke: true,
         });
-        const isInvalidToken = isValidToken === false;
-        if (isInvalidToken === true) {
+        if (activeToken === undefined) {
             response.status(400);
 
             return {
@@ -398,6 +396,8 @@ export default class AuthenticationController {
 
         user.password = password;
         await user.save();
+
+        await activeToken.revoke();
 
         return await AuthenticationService.signInUserWithAuthenticationMode({
             auth,

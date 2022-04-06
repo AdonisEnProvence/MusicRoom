@@ -1,5 +1,6 @@
 import {
     AuthenticateWithGoogleOauthFailureReponseBody,
+    AuthenticateWithGoogleOauthResponseBody,
     ConfirmEmailResponseBody,
     GetMyProfileInformationResponseBody,
     RequestPasswordResetResponseBody,
@@ -430,7 +431,6 @@ export function createAppMachine({
                             },
                         },
 
-                        //here
                         googleAuthenticationHandler: {
                             initial: 'waitingForGoogleUserAccessToken',
                             states: {
@@ -516,13 +516,7 @@ export function createAppMachine({
                                             invoke: {
                                                 src: 'sendGoogleUserAccessTokenToServer',
 
-                                                onDone: {
-                                                    target: 'userIsAuthenticatedViaGoogleOauth',
-                                                    actions:
-                                                        'googleAuthenticationDisplayServerOperationSuccess',
-                                                },
-
-                                                onError: [
+                                                onDone: [
                                                     {
                                                         cond: 'googleAuthenticationServerEmailNorNicknameInvalidError',
 
@@ -540,27 +534,31 @@ export function createAppMachine({
                                                         target: '#app.waitingForUserAuthentication.googleAuthenticationHandler.waitingForGoogleUserAccessToken.Idle',
                                                     },
                                                     {
+                                                        target: 'userIsAuthenticatedViaGoogleOauth',
                                                         actions:
-                                                            'googleAuthenticationDisplayServerUnknownError',
-
-                                                        target: '#app.waitingForUserAuthentication.googleAuthenticationHandler.waitingForGoogleUserAccessToken.Idle',
+                                                            'googleAuthenticationDisplayServerOperationSuccess',
                                                     },
                                                 ],
+
+                                                onError: {
+                                                    actions:
+                                                        'googleAuthenticationDisplayServerUnknownError',
+
+                                                    target: '#app.waitingForUserAuthentication.googleAuthenticationHandler.waitingForGoogleUserAccessToken.Idle',
+                                                },
                                             },
                                         },
 
                                         userIsAuthenticatedViaGoogleOauth: {
-                                            entry: resetUserGoogleAccessToken,
-                                            type: 'final',
+                                            entry: [
+                                                resetUserGoogleAccessToken,
+                                                raise({
+                                                    type: '__AUTHENTICATED',
+                                                }),
+                                            ],
                                         },
                                     },
                                 },
-                            },
-
-                            onDone: {
-                                actions: raise({
-                                    type: '__AUTHENTICATED',
-                                }),
                             },
                         },
                     },
@@ -1337,8 +1335,13 @@ export function createAppMachine({
                     e,
                 ) => {
                     const event =
-                        e as DoneInvokeEvent<AuthenticateWithGoogleOauthFailureReponseBody>;
+                        e as DoneInvokeEvent<AuthenticateWithGoogleOauthResponseBody>;
 
+                    if (event.data.status !== 'FAILURE') {
+                        return false;
+                    }
+
+                    console.log({ event });
                     return (
                         event.data.googleAuthSignUpFailure.includes(
                             'INVALID_EMAIL',
@@ -1354,8 +1357,11 @@ export function createAppMachine({
                     e,
                 ) => {
                     const event =
-                        e as DoneInvokeEvent<AuthenticateWithGoogleOauthFailureReponseBody>;
+                        e as DoneInvokeEvent<AuthenticateWithGoogleOauthResponseBody>;
 
+                    if (event.data.status !== 'FAILURE') {
+                        return false;
+                    }
                     return (
                         event.data.googleAuthSignUpFailure.includes(
                             'UNAVAILABLE_EMAIL',

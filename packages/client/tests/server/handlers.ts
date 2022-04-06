@@ -65,6 +65,7 @@ import {
     TokenResponse,
     TokenResponseConfig,
 } from 'expo-auth-session';
+import { data } from 'msw/lib/types/context';
 import { SERVER_ENDPOINT } from '../../constants/Endpoints';
 import { SearchTracksAPIRawResponse } from '../../services/search-tracks';
 import { db } from '../data';
@@ -962,9 +963,9 @@ export const handlers = [
             const { authenticationMode } = req.body;
 
             console.log('authentication/authenticate-with-google-oauth');
-            const userID = datatype.uuid();
+            console.log(db.authenticationUser.count());
             db.authenticationUser.create({
-                uuid: userID,
+                uuid: datatype.uuid(),
                 email: internet.email(),
                 password: internet.password(),
                 nickname: internet.userName(),
@@ -975,9 +976,7 @@ export const handlers = [
                 ctx.status(200),
                 ctx.json({
                     status: 'SUCCESS',
-                    token: isApiTokenAuthentication
-                        ? datatype.uuid()
-                        : undefined,
+                    token: isApiTokenAuthentication ? 'token' : undefined,
                 }),
             );
         },

@@ -8,7 +8,6 @@ import {
     AuthenticateWithGoogleOauthRequestBody,
     AuthenticateWithGoogleOauthResponseBody,
 } from '@musicroom/types';
-import { datatype, internet } from 'faker';
 import {
     render,
     renderUnauthenticatedApp,
@@ -17,6 +16,7 @@ import {
 } from '../tests/tests-utils';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
 import { db, generateAuthenticationUser } from '../tests/data';
+import { server } from '../tests/server/test-server';
 
 interface TestingContext {
     screen: ReturnType<typeof render>;
@@ -33,7 +33,7 @@ const googleAuthMachine =
             },
             events: {} as
                 | {
-                      type: 'Press continue with google authentication button';
+                      type: 'Make google and server send back successful oauth';
                   }
                 | {
                       type: 'Make google authentication fail by dismiss';
@@ -52,6 +52,9 @@ const googleAuthMachine =
                   }
                 | {
                       type: 'Make server send back an nickname nor email unavailable error';
+                  }
+                | {
+                      type: 'Make server send back an unknown error';
                   },
         },
         initial: 'Rendering signing in screen',
@@ -132,6 +135,11 @@ const googleAuthMachine =
                                     },
                                 },
                             },
+                        },
+                    },
+
+                    'Server user access token verification error': {
+                        states: {
                             'Invalid related nickname or email': {
                                 meta: {
                                     test: async () => {
@@ -162,7 +170,7 @@ const googleAuthMachine =
                                     },
                                 },
                             },
-                            'unknown server error': {
+                            'Unknown server error': {
                                 meta: {
                                     test: async () => {
                                         await waitFor(() => {
@@ -182,8 +190,8 @@ const googleAuthMachine =
                 },
 
                 on: {
-                    'Press continue with google authentication button': {
-                        target: 'Rendering home screen',
+                    'Make google and server send back successful oauth': {
+                        target: '#app.Rendering home screen',
                     },
                     'Make google authentication fail by cancel': {
                         target: 'Rendering signing in screen.Google authentication failed.User cancelled google oauth',
@@ -199,12 +207,15 @@ const googleAuthMachine =
                     },
                     'Make server send back an nickname nor email unavailable error':
                         {
-                            target: 'Rendering signing in screen.Google authentication failed.Unavailable related nickname or email',
+                            target: 'Rendering signing in screen.Server user access token verification error.Unavailable related nickname or email',
                         },
                     'Make server send back an nickname nor email invalid error':
                         {
-                            target: 'Rendering signing in screen.Google authentication failed.Invalid related nickname or email',
+                            target: 'Rendering signing in screen.Server user access token verification error.Invalid related nickname or email',
                         },
+                    'Make server send back an unknown error': {
+                        target: 'Rendering signing in screen.Server user access token verification error.Unknown server error',
+                    },
                 },
             },
 
@@ -212,138 +223,187 @@ const googleAuthMachine =
                 meta: {
                     test: async ({ screen }: TestingContext) => {
                         await waitFor(() => {
-                            expect(
-                                screen.getAllByText(/home/i).length,
-                            ).toBeGreaterThanOrEqual(1);
-
                             expect(Toast.show).toHaveBeenCalledWith({
                                 type: 'success',
                                 text1: 'Continue with google succeeded',
                             });
+
+                            expect(
+                                screen.getAllByText(/home/i).length,
+                            ).toBeGreaterThanOrEqual(1);
                         });
                     },
                 },
             },
         },
-        id: 'Password reset',
+        id: 'app',
     });
 
-const resetPasswordTestModel = createTestModel<TestingContext>(
+async function pressContinueWithGoogleButton(
+    screen: ReturnType<typeof render>,
+) {
+    const continueWithGoogleAuthenticationButton = await screen.findByTestId(
+        'continue-with-google-authentication-button',
+    );
+    expect(continueWithGoogleAuthenticationButton).toBeTruthy();
+
+    fireEvent.press(continueWithGoogleAuthenticationButton);
+}
+
+const googleAuthenticationTestModel = createTestModel<TestingContext>(
     googleAuthMachine,
 ).withEvents({
-    'Press continue with google authentication button': async ({ screen }) => {
-        const continueWithGoogleAuthenticationButton =
-            await screen.findByTestId(
-                'continue-with-google-authentication-button',
-            );
-        expect(continueWithGoogleAuthenticationButton).toBeTruthy();
-
-        fireEvent.press(continueWithGoogleAuthenticationButton);
+    'Make google and server send back successful oauth': async ({ screen }) => {
+        await pressContinueWithGoogleButton(screen);
     },
 
-    'Make server send back an nickname nor email invalid error': () => {
-        rest.post<
-            AuthenticateWithGoogleOauthRequestBody,
-            never,
-            AuthenticateWithGoogleOauthResponseBody
-        >(
-            `${SERVER_ENDPOINT}/authentication/authenticate-with-google-oauth`,
-            (req, res, ctx) => {
-                return res(
-                    ctx.status(400),
-                    ctx.json({
-                        status: 'FAILURE',
-                        googleAuthSignUpFailure: [
-                            'INVALID_EMAIL',
-                            'INVALID_NICKNAME',
-                        ],
-                    }),
-                );
-            },
+    'Make server send back an nickname nor email invalid error': async ({
+        screen,
+    }) => {
+        server.use(
+            rest.post<
+                AuthenticateWithGoogleOauthRequestBody,
+                never,
+                AuthenticateWithGoogleOauthResponseBody
+            >(
+                `${SERVER_ENDPOINT}/authentication/authenticate-with-google-oauth`,
+                (req, res, ctx) => {
+                    return res(
+                        ctx.status(400),
+                        ctx.json({
+                            status: 'FAILURE',
+                            googleAuthSignUpFailure: [
+                                'INVALID_EMAIL',
+                                'INVALID_NICKNAME',
+                            ],
+                        }),
+                    );
+                },
+            ),
         );
+
+        await pressContinueWithGoogleButton(screen);
     },
 
-    'Make server send back an nickname nor email unavailable error': () => {
-        rest.post<
-            AuthenticateWithGoogleOauthRequestBody,
-            never,
-            AuthenticateWithGoogleOauthResponseBody
-        >(
-            `${SERVER_ENDPOINT}/authentication/authenticate-with-google-oauth`,
-            (req, res, ctx) => {
-                return res(
-                    ctx.status(400),
-                    ctx.json({
-                        status: 'FAILURE',
-                        googleAuthSignUpFailure: [
-                            'UNAVAILABLE_EMAIL',
-                            'UNAVAILABLE_NICKNAME',
-                        ],
-                    }),
-                );
-            },
+    'Make server send back an nickname nor email unavailable error': async ({
+        screen,
+    }) => {
+        server.use(
+            rest.post<
+                AuthenticateWithGoogleOauthRequestBody,
+                never,
+                AuthenticateWithGoogleOauthResponseBody
+            >(
+                `${SERVER_ENDPOINT}/authentication/authenticate-with-google-oauth`,
+                (req, res, ctx) => {
+                    return res(
+                        ctx.status(400),
+                        ctx.json({
+                            status: 'FAILURE',
+                            googleAuthSignUpFailure: [
+                                'UNAVAILABLE_EMAIL',
+                                'UNAVAILABLE_NICKNAME',
+                            ],
+                        }),
+                    );
+                },
+            ),
         );
+
+        await pressContinueWithGoogleButton(screen);
     },
 
-    'Make google authentication fail by dismiss': () => {
-        rest.get<never, never, AuthSessionResult>(
-            `http://msw.google.domain/fake-google-oauth-service`,
-            (_req, res, ctx) => {
-                return res(
-                    ctx.status(200),
-                    ctx.json({
-                        type: 'dismiss',
-                    }),
-                );
-            },
+    'Make server send back an unknown error': async ({ screen }) => {
+        server.use(
+            rest.post<
+                AuthenticateWithGoogleOauthRequestBody,
+                never,
+                AuthenticateWithGoogleOauthResponseBody
+            >(
+                `${SERVER_ENDPOINT}/authentication/authenticate-with-google-oauth`,
+                (_req, res, ctx) => {
+                    return res(ctx.status(500));
+                },
+            ),
         );
+
+        await pressContinueWithGoogleButton(screen);
     },
 
-    'Make google authentication fail by cancel': () => {
-        rest.get<never, never, AuthSessionResult>(
-            `http://msw.google.domain/fake-google-oauth-service`,
-            (_req, res, ctx) => {
-                return res(
-                    ctx.status(200),
-                    ctx.json({
-                        type: 'cancel',
-                    }),
-                );
-            },
+    'Make google authentication fail by dismiss': async ({ screen }) => {
+        server.use(
+            rest.get<never, never, AuthSessionResult>(
+                `http://msw.google.domain/fake-google-oauth-service`,
+                (_req, res, ctx) => {
+                    return res(
+                        ctx.status(200),
+                        ctx.json({
+                            type: 'dismiss',
+                        }),
+                    );
+                },
+            ),
         );
+
+        await pressContinueWithGoogleButton(screen);
     },
 
-    'Make google authentication fail by locked': () => {
-        rest.get<never, never, AuthSessionResult>(
-            `http://msw.google.domain/fake-google-oauth-service`,
-            (_req, res, ctx) => {
-                return res(
-                    ctx.status(200),
-                    ctx.json({
-                        type: 'locked',
-                    }),
-                );
-            },
+    'Make google authentication fail by cancel': async ({ screen }) => {
+        server.use(
+            rest.get<never, never, AuthSessionResult>(
+                `http://msw.google.domain/fake-google-oauth-service`,
+                (_req, res, ctx) => {
+                    return res(
+                        ctx.status(200),
+                        ctx.json({
+                            type: 'cancel',
+                        }),
+                    );
+                },
+            ),
         );
+
+        await pressContinueWithGoogleButton(screen);
     },
 
-    'Make google authentication fail by response error': () => {
-        rest.get<never, never, AuthSessionResult>(
-            `http://msw.google.domain/fake-google-oauth-service`,
-            (_req, res, ctx) => {
-                return res(
-                    ctx.status(200),
-                    ctx.json({
-                        type: 'error',
-                        errorCode: null,
-                        authentication: null,
-                        params: {},
-                        url: '',
-                        error: undefined,
-                    }),
-                );
-            },
+    'Make google authentication fail by locked': async ({ screen }) => {
+        server.use(
+            rest.get<never, never, AuthSessionResult>(
+                `http://msw.google.domain/fake-google-oauth-service`,
+                (_req, res, ctx) => {
+                    return res(
+                        ctx.status(200),
+                        ctx.json({
+                            type: 'locked',
+                        }),
+                    );
+                },
+            ),
         );
+
+        await pressContinueWithGoogleButton(screen);
+    },
+
+    'Make google authentication fail by response error': async ({ screen }) => {
+        server.use(
+            rest.get<never, never, AuthSessionResult>(
+                `http://msw.google.domain/fake-google-oauth-service`,
+                (req, res, ctx) => {
+                    return res(
+                        ctx.status(200),
+                        ctx.json({
+                            type: 'error',
+                            errorCode: null,
+                            authentication: null,
+                            params: {},
+                            url: '',
+                            error: undefined,
+                        }),
+                    );
+                },
+            ),
+        );
+        await pressContinueWithGoogleButton(screen);
     },
 });
 
@@ -352,16 +412,20 @@ const existingUser = generateAuthenticationUser();
 cases<{
     target:
         | {
-              'Rendering signing in screen': {
-                  'Google authentication failed':
-                      | 'Google response error'
-                      | 'User dismissed google oauth'
-                      | 'User google account is locked'
-                      | 'User cancelled google oauth'
-                      | 'Invalid related nickname or email'
-                      | 'Unavailable related nickname or email'
-                      | 'unknown server error';
-              };
+              'Rendering signing in screen':
+                  | {
+                        'Google authentication failed':
+                            | 'Google response error'
+                            | 'User dismissed google oauth'
+                            | 'User google account is locked'
+                            | 'User cancelled google oauth';
+                    }
+                  | {
+                        'Server user access token verification error':
+                            | 'Invalid related nickname or email'
+                            | 'Unavailable related nickname or email'
+                            | 'Unknown server error';
+                    };
           }
         | 'Rendering home screen';
     events: EventFrom<typeof googleAuthMachine>[];
@@ -381,7 +445,7 @@ cases<{
 
         const screen = await renderUnauthenticatedApp();
 
-        const plan = resetPasswordTestModel.getPlanFromEvents(events, {
+        const plan = googleAuthenticationTestModel.getPlanFromEvents(events, {
             target,
         });
 
@@ -389,82 +453,108 @@ cases<{
     },
     {
         'Continue with google authentication successfully': {
+            only: true,
             target: 'Rendering home screen',
             events: [
                 {
-                    type: 'Press continue with google authentication button',
+                    type: 'Make google and server send back successful oauth',
                 },
             ],
         },
         'Continue with google authentication failed du to google response error':
             {
-                target: 'Rendering home screen',
+                target: {
+                    'Rendering signing in screen': {
+                        'Google authentication failed': 'Google response error',
+                    },
+                },
                 events: [
                     {
                         type: 'Make google authentication fail by response error',
-                    },
-                    {
-                        type: 'Press continue with google authentication button',
                     },
                 ],
             },
         'Continue with google authentication failed as user dismissed oauth verification':
             {
-                target: 'Rendering home screen',
+                target: {
+                    'Rendering signing in screen': {
+                        'Google authentication failed':
+                            'User dismissed google oauth',
+                    },
+                },
                 events: [
                     {
                         type: 'Make google authentication fail by dismiss',
-                    },
-                    {
-                        type: 'Press continue with google authentication button',
                     },
                 ],
             },
         'Continue with google authentication failed as user account is locked':
             {
-                target: 'Rendering home screen',
+                target: {
+                    'Rendering signing in screen': {
+                        'Google authentication failed':
+                            'User google account is locked',
+                    },
+                },
                 events: [
                     {
                         type: 'Make google authentication fail by locked',
-                    },
-                    {
-                        type: 'Press continue with google authentication button',
                     },
                 ],
             },
         'Continue with google authentication failed as user cancelled oauth verification':
             {
-                target: 'Rendering home screen',
+                target: {
+                    'Rendering signing in screen': {
+                        'Google authentication failed':
+                            'User cancelled google oauth',
+                    },
+                },
                 events: [
                     {
-                        type: 'Make google authentication fail by response error',
-                    },
-                    {
-                        type: 'Press continue with google authentication button',
+                        type: 'Make google authentication fail by cancel',
                     },
                 ],
             },
         'Continue with google authentication failed du to extracted credentials invalidity':
             {
-                target: 'Rendering home screen',
+                target: {
+                    'Rendering signing in screen': {
+                        'Server user access token verification error':
+                            'Invalid related nickname or email',
+                    },
+                },
                 events: [
                     {
                         type: 'Make server send back an nickname nor email invalid error',
-                    },
-                    {
-                        type: 'Press continue with google authentication button',
                     },
                 ],
             },
         'Continue with google authentication failed du to extracted credentials unavailability':
             {
-                target: 'Rendering home screen',
+                target: {
+                    'Rendering signing in screen': {
+                        'Server user access token verification error':
+                            'Unavailable related nickname or email',
+                    },
+                },
                 events: [
                     {
                         type: 'Make server send back an nickname nor email unavailable error',
                     },
+                ],
+            },
+        'Continue with google authentication failed from server unknown error':
+            {
+                target: {
+                    'Rendering signing in screen': {
+                        'Server user access token verification error':
+                            'Unknown server error',
+                    },
+                },
+                events: [
                     {
-                        type: 'Press continue with google authentication button',
+                        type: 'Make server send back an unknown error',
                     },
                 ],
             },

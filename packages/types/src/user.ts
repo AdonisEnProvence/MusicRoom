@@ -38,7 +38,7 @@ export const MyProfileInformation = SharedUserProfileInformation.extend({
     playlistsCounter: z.number(),
     followersCounter: z.number(),
     followingCounter: z.number(),
-    hasConfirmedEmail: z.boolean(),
+    hasVerifiedAccount: z.boolean(),
 });
 export type MyProfileInformation = z.infer<typeof MyProfileInformation>;
 

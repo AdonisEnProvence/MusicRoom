@@ -130,6 +130,7 @@ test.group('Google Authentication Sign In and Sign Up tests group', (group) => {
 
         assert.equal(getMyProfileParsedBody.userNickname, createdUser.nickname);
         assert.equal(getMyProfileParsedBody.userID, createdUser.uuid);
+        assert.isTrue(getMyProfileParsedBody.hasVerifiedAccount);
     });
 
     test('It should sign in using web auth google oauth', async (assert) => {
@@ -188,6 +189,7 @@ test.group('Google Authentication Sign In and Sign Up tests group', (group) => {
             );
 
         assert.equal(getMyProfileParsedBody.userNickname, nickname);
+        assert.isTrue(getMyProfileParsedBody.hasVerifiedAccount);
     });
 
     test('It should sign up using api token google oauth', async (assert) => {

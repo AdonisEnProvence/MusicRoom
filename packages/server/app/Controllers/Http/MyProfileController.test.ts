@@ -68,20 +68,21 @@ test.group('MyProfileController', (group) => {
             followersCounter: 0,
             followingCounter: 0,
             playlistsCounter: 0,
-            hasConfirmedEmail: true,
+            hasVerifiedAccount: true,
             userID,
             userNickname,
         };
         assert.deepEqual(parsedBody, expectedBody);
     });
 
-    test('Returns true value for hasConfirmedEmail when user has confirmed her email', async (assert) => {
+    test('Returns true value for hasVerifiedAccount when user has confirmed her email', async (assert) => {
         const request = createRequest();
 
-        const user = await createUserAndAuthenticate(request);
-
-        user.confirmedEmailAt = DateTime.now();
-        await user.save();
+        const withoutEmailVerification = true;
+        const user = await createUserAndAuthenticate(
+            request,
+            withoutEmailVerification,
+        );
 
         const { body: rawBody } = await request
             .get(
@@ -94,7 +95,7 @@ test.group('MyProfileController', (group) => {
 
         const parsedBody = GetMyProfileInformationResponseBody.parse(rawBody);
         const expectedBody: GetMyProfileInformationResponseBody = {
-            hasConfirmedEmail: true,
+            hasVerifiedAccount: false,
 
             devicesCounter: 0,
             followersCounter: 0,
@@ -104,6 +105,32 @@ test.group('MyProfileController', (group) => {
             userNickname: user.nickname,
         };
         assert.deepStrictEqual(parsedBody, expectedBody);
+
+        user.confirmedEmailAt = DateTime.now();
+        await user.save();
+
+        const { body: secondRawBody } = await request
+            .get(
+                urlcat(
+                    TEST_MY_PROFILE_ROUTES_GROUP_PREFIX,
+                    'profile-information',
+                ),
+            )
+            .expect(200);
+
+        const secondParsedBody =
+            GetMyProfileInformationResponseBody.parse(secondRawBody);
+        const secondExpectedBody: GetMyProfileInformationResponseBody = {
+            hasVerifiedAccount: true,
+
+            devicesCounter: 0,
+            followersCounter: 0,
+            followingCounter: 0,
+            playlistsCounter: 0,
+            userID: user.uuid,
+            userNickname: user.nickname,
+        };
+        assert.deepStrictEqual(secondParsedBody, secondExpectedBody);
     });
 
     test('Returns a 401 error when the current user is unauthenticated', async () => {

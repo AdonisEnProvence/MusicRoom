@@ -25,8 +25,7 @@ const GoogleAuthenticationButton: React.FC = () => {
     const sx = useSx();
 
     React.useEffect(() => {
-        const responseIsDefined = response !== null;
-        if (responseIsDefined) {
+        if (response !== null) {
             appService.send({
                 type: 'RECEIVED_GOOGLE_OAUTH_RESPONSE',
                 googleResponse: response,

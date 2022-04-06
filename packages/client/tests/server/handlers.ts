@@ -295,6 +295,7 @@ export const handlers = [
                 return res(ctx.status(404));
             }
 
+            const hasVerifiedAccount = user.hasConfirmedEmail || user.googleID;
             return res(
                 ctx.json({
                     userID: user.userID,
@@ -303,7 +304,7 @@ export const handlers = [
                     followersCounter: user.followersCounter,
                     followingCounter: user.followingCounter,
                     devicesCounter: user.devicesCounter,
-                    hasConfirmedEmail: user.hasConfirmedEmail,
+                    hasVerifiedAccount,
                 }),
             );
         }),
@@ -962,13 +963,23 @@ export const handlers = [
         (req, res, ctx) => {
             const { authenticationMode } = req.body;
 
-            console.log('authentication/authenticate-with-google-oauth');
-            console.log(db.authenticationUser.count());
+            //In this handler we do not care if the user will in fact perform a sign up or a sign in
             db.authenticationUser.create({
-                uuid: datatype.uuid(),
+                uuid: CLIENT_INTEG_TEST_USER_ID,
                 email: internet.email(),
                 password: internet.password(),
                 nickname: internet.userName(),
+            });
+
+            db.myProfileInformation.update({
+                data: {
+                    googleID: true,
+                },
+                where: {
+                    userID: {
+                        equals: CLIENT_INTEG_TEST_USER_ID,
+                    },
+                },
             });
 
             const isApiTokenAuthentication = authenticationMode === 'api';

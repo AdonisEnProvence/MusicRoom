@@ -724,7 +724,7 @@ export function createAppMachine({
                                                         e as DoneInvokeEvent<GetMyProfileInformationResponseBody>;
                                                     return (
                                                         event.data
-                                                            .hasConfirmedEmail ===
+                                                            .hasVerifiedAccount ===
                                                         true
                                                     );
                                                 },
@@ -1266,11 +1266,11 @@ export function createAppMachine({
                         return true;
                     }
 
-                    const hasConfirmedEmail =
-                        myProfileInformation.hasConfirmedEmail === true;
-                    const hasNotConfirmedEmail = hasConfirmedEmail === false;
+                    const hasVerifiedAccount =
+                        myProfileInformation.hasVerifiedAccount === true;
+                    const hasNotVerifiedAccount = hasVerifiedAccount === false;
 
-                    return hasNotConfirmedEmail;
+                    return hasNotVerifiedAccount;
                 },
 
                 isConfirmationCodeInvalid: (_context, e) => {

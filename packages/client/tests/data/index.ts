@@ -73,6 +73,7 @@ export const db = factory({
         userNickname: () => internet.userName(),
         devicesCounter: () => datatype.number(),
         hasConfirmedEmail: () => false as boolean,
+        googleID: () => false as boolean,
         playlistsVisibilitySetting: () =>
             UserSettingVisibility.enum.PUBLIC as UserSettingVisibility,
         relationsVisibilitySetting: () =>

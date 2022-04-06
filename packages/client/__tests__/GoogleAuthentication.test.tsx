@@ -8,14 +8,16 @@ import {
     AuthenticateWithGoogleOauthRequestBody,
     AuthenticateWithGoogleOauthResponseBody,
 } from '@musicroom/types';
+import { internet } from 'faker/locale/zh_TW';
 import {
     render,
     renderUnauthenticatedApp,
     fireEvent,
     waitFor,
+    CLIENT_INTEG_TEST_USER_ID,
 } from '../tests/tests-utils';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
-import { db, generateAuthenticationUser } from '../tests/data';
+import { db } from '../tests/data';
 import { server } from '../tests/server/test-server';
 
 interface TestingContext {
@@ -407,8 +409,6 @@ const googleAuthenticationTestModel = createTestModel<TestingContext>(
     },
 });
 
-const existingUser = generateAuthenticationUser();
-
 cases<{
     target:
         | {
@@ -432,14 +432,13 @@ cases<{
 }>(
     'Google authentication',
     async ({ target, events }) => {
-        db.authenticationUser.create(existingUser);
         db.myProfileInformation.create({
-            userID: existingUser.uuid,
+            userID: CLIENT_INTEG_TEST_USER_ID,
             devicesCounter: 3,
             playlistsCounter: 4,
             followersCounter: 5,
             followingCounter: 6,
-            userNickname: existingUser.nickname,
+            userNickname: internet.userName(),
             hasConfirmedEmail: true,
         });
 
@@ -453,7 +452,6 @@ cases<{
     },
     {
         'Continue with google authentication successfully': {
-            only: true,
             target: 'Rendering home screen',
             events: [
                 {

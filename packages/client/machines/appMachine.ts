@@ -1341,7 +1341,6 @@ export function createAppMachine({
                         return false;
                     }
 
-                    console.log({ event });
                     return (
                         event.data.googleAuthSignUpFailure.includes(
                             'INVALID_EMAIL',

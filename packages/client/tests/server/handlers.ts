@@ -995,7 +995,7 @@ export const handlers = [
 
     rest.get<never, never, AuthSessionResult>(
         `http://msw.google.domain/fake-google-oauth-service`,
-        (req, res, ctx) => {
+        (_req, res, ctx) => {
             const tokenResponseConfig: TokenResponseConfig = {
                 accessToken: datatype.uuid(),
             };

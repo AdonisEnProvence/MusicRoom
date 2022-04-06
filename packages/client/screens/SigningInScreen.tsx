@@ -7,7 +7,6 @@ import * as z from 'zod';
 import GoogleAuthenticationButton from '../components/GoogleAuthenticationButton';
 import { AppScreen, TextField } from '../components/kit';
 import { useAppContext } from '../contexts/AppContext';
-import { sendAuthenticateWithGoogleAccount } from '../services/AuthenticationService';
 import { SigningInScreenProps } from '../types';
 
 interface SigningInFormFieldValues {
@@ -16,7 +15,6 @@ interface SigningInFormFieldValues {
 }
 
 const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
-    // GoogleAuthenticationButton
     const sx = useSx();
     const { appService } = useAppContext();
     const {

@@ -344,7 +344,6 @@ jest.mock('expo-auth-session/providers/google', () => {
                 setRequest(null);
             };
 
-            console.log([request, response, PromptAsync]);
             return [request, response, PromptAsync];
         },
     };

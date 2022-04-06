@@ -20,9 +20,7 @@ import {
     AuthenticateWithGoogleOauthRequestBody,
     ValidatePasswordResetTokenResponseBody,
     ValidatePasswordResetTokenRequestBody,
-    WebAuthAuthenticateWithGoogleOauthSuccessResponseBody,
     ApiTokenAuthenticateWithGoogleOauthSuccessResponseBody,
-    AuthenticateWithGoogleSuccessFulResponseBody,
     AuthenticateWithGoogleOauthResponseBody,
 } from '@musicroom/types';
 import { request, SHOULD_USE_TOKEN_AUTH } from './http';

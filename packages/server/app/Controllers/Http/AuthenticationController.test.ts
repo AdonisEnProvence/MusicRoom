@@ -1,4 +1,5 @@
 import Database from '@ioc:Adonis/Lucid/Database';
+import Hash from '@ioc:Adonis/Core/Hash';
 import {
     ConfirmEmailRequestBody,
     ConfirmEmailResponseBody,
@@ -1274,10 +1275,11 @@ test.group('Reset password', (group) => {
             }),
         });
 
+        const newPlainPassword = internet.password();
         const requestBody: ResetPasswordRequestBody = {
             token: plainToken,
             email: user.email,
-            password: internet.password(),
+            password: newPlainPassword,
             authenticationMode: 'web',
         };
         const response = await request
@@ -1292,6 +1294,17 @@ test.group('Reset password', (group) => {
         assert.deepStrictEqual(parsedResponseBody, {
             status: 'SUCCESS',
         });
+
+        await user.refresh();
+
+        invariant(
+            user.password !== undefined,
+            'The hashed password of the user must have been computed',
+        );
+        const hasPasswordChanged =
+            (await Hash.verify(user.password, newPlainPassword)) === true;
+
+        assert.isTrue(hasPasswordChanged);
 
         const getMyProfileRawResponse = await request
             .get('/me/profile-information')
@@ -1328,10 +1341,11 @@ test.group('Reset password', (group) => {
             }),
         });
 
+        const newPlainPassword = internet.password();
         const requestBody: ResetPasswordRequestBody = {
             token: plainToken,
             email: user.email,
-            password: internet.password(),
+            password: newPlainPassword,
             authenticationMode: 'api',
         };
         const response = await request
@@ -1344,6 +1358,17 @@ test.group('Reset password', (group) => {
             );
 
         assert.equal(parsedResponseBody.status, 'SUCCESS');
+
+        await user.refresh();
+
+        invariant(
+            user.password !== undefined,
+            'The hashed password of the user must have been computed',
+        );
+        const hasPasswordChanged =
+            (await Hash.verify(user.password, newPlainPassword)) === true;
+
+        assert.isTrue(hasPasswordChanged);
 
         const getMyProfileRawResponse = await request
             .get('/me/profile-information')

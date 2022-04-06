@@ -180,6 +180,40 @@ export type ValidatePasswordResetTokenResponseBody = z.infer<
     typeof ValidatePasswordResetTokenResponseBody
 >;
 
+export const ResetPasswordRequestBody = z.object({
+    email: z.string().email(),
+    token: z.string(),
+    password: z.string().regex(passwordStrengthRegex),
+    authenticationMode: AuthenticationModeValues,
+});
+export type ResetPasswordRequestBody = z.infer<typeof ResetPasswordRequestBody>;
+
+export const ResetPasswordSuccessfulWebAuthenticationResponseBody = z.object({
+    status: z.literal('SUCCESS'),
+});
+export type ResetPasswordSuccessfulWebAuthenticationResponseBody = z.infer<
+    typeof ResetPasswordSuccessfulWebAuthenticationResponseBody
+>;
+
+export const ResetPasswordSuccessfulApiAuthenticationResponseBody = z.object({
+    status: z.literal('SUCCESS'),
+    token: z.string(),
+});
+export type ResetPasswordSuccessfulApiAuthenticationResponseBody = z.infer<
+    typeof ResetPasswordSuccessfulApiAuthenticationResponseBody
+>;
+
+export const ResetPasswordResponseBody = z.union([
+    ResetPasswordSuccessfulWebAuthenticationResponseBody,
+    ResetPasswordSuccessfulApiAuthenticationResponseBody,
+    z.object({
+        status: z.enum(['INVALID_TOKEN', 'PASSWORD_ALREADY_USED']),
+    }),
+]);
+export type ResetPasswordResponseBody = z.infer<
+    typeof ResetPasswordResponseBody
+>;
+
 //Google auth
 export const GoogleAuthenticationFailureReasons = z.enum([
     'UNAVAILABLE_NICKNAME',

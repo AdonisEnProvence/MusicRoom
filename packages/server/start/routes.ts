@@ -109,6 +109,7 @@ Route.group(() => {
         '/validate-password-reset-token',
         'AuthenticationController.validatePasswordResetToken',
     );
+    Route.post('/reset-password', 'AuthenticationController.resetPassword');
 }).prefix(AUTHENTICATION_ROUTES_GROUP_PREFIX);
 
 /// Temporal MTV Routes ///

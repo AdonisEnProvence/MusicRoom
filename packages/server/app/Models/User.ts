@@ -140,6 +140,16 @@ export default class User extends BaseModel {
         }
     }
 
+    public async isSamePassword(password: string): Promise<boolean> {
+        if (this.password === undefined || this.password === null) {
+            return false;
+        }
+
+        const isSamePassword = await Hash.verify(this.password, password);
+
+        return isSamePassword === true;
+    }
+
     @column.dateTime()
     public confirmedEmailAt: DateTime | null;
 
@@ -155,6 +165,32 @@ export default class User extends BaseModel {
     })
     public activeTokens: HasMany<typeof Token>;
 
+    public async getToken(
+        this: User,
+        {
+            token,
+            tokenType,
+        }: {
+            token: string;
+            tokenType: TokenTypeName;
+        },
+    ): Promise<Token | undefined> {
+        const activeTokens = await this.related('activeTokens')
+            .query()
+            .whereHas('tokenType', (query) => {
+                return query.where('name', tokenType);
+            });
+
+        for (const activeToken of activeTokens) {
+            const isMatching = await Hash.verify(activeToken.value, token);
+            if (isMatching === true) {
+                return activeToken;
+            }
+        }
+
+        return undefined;
+    }
+
     public async checkToken(
         this: User,
         {
@@ -165,21 +201,15 @@ export default class User extends BaseModel {
             tokenType: TokenTypeName;
         },
     ): Promise<boolean> {
-        const activeTokens = await this.related('activeTokens')
-            .query()
-            .whereHas('tokenType', (query) => {
-                return query.where('name', tokenType);
-            });
+        const activeToken = await this.getToken({
+            token,
+            tokenType,
+        });
+        const isTokenValid = activeToken !== undefined;
 
-        for (const activeToken of activeTokens) {
-            const isMatching = await Hash.verify(activeToken.value, token);
-            if (isMatching === true) {
-                return true;
-            }
-        }
-
-        return false;
+        return isTokenValid === true;
     }
+
     ///
 
     @column.dateTime({ autoCreate: true })

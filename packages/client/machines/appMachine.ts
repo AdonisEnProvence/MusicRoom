@@ -1,4 +1,6 @@
 import {
+    AuthenticateWithGoogleOauthFailureReponseBody,
+    AuthenticateWithGoogleOauthResponseBody,
     ConfirmEmailResponseBody,
     GetMyProfileInformationResponseBody,
     RequestPasswordResetResponseBody,
@@ -26,6 +28,7 @@ import { raise } from 'xstate/lib/actions';
 import { IS_TEST } from '../constants/Env';
 import { SocketClient } from '../contexts/SocketContext';
 import {
+    sendAuthenticateWithGoogleAccount,
     sendEmailConfirmationCode,
     sendRequestingPasswordReset,
     sendResendingConfirmationEmail,
@@ -36,14 +39,14 @@ import {
 import { request, SHOULD_USE_TOKEN_AUTH } from '../services/http';
 import { getMyProfileInformation } from '../services/UsersSearchService';
 import { navigateFromRef } from '../navigation/RootNavigation';
-import { appModel } from './appModel';
+import { appModel, resetUserGoogleAccessToken } from './appModel';
 import { createAppMusicPlayerMachine } from './appMusicPlayerMachine';
 import { createAppMusicPlaylistsMachine } from './appMusicPlaylistsMachine';
 import { createUserMachine } from './appUserMachine';
 import { AppMusicPlayerMachineOptions } from './options/appMusicPlayerMachineOptions';
 import { AppMusicPlaylistsOptions } from './options/appMusicPlaylistsMachineOptions';
 import { AppUserMachineOptions } from './options/appUserMachineOptions';
-import { PLATFORM_OS_IS_WEB } from './utils';
+import { assertEventType, PLATFORM_OS_IS_WEB } from './utils';
 
 interface CreateAppMachineArgs {
     locationPollingTickDelay: number;
@@ -427,6 +430,137 @@ export function createAppMachine({
                                 }),
                             },
                         },
+
+                        googleAuthenticationHandler: {
+                            initial: 'waitingForGoogleUserAccessToken',
+                            states: {
+                                waitingForGoogleUserAccessToken: {
+                                    initial: 'Idle',
+                                    states: {
+                                        Idle: {
+                                            /**
+                                             * We're reseting this context prop in case the user encounters an error during the google
+                                             * authentication process and has to restart everything from there
+                                             */
+                                            entry: resetUserGoogleAccessToken,
+                                        },
+
+                                        googleAuthenticationErrorOccured: {},
+                                    },
+
+                                    on: {
+                                        RECEIVED_GOOGLE_OAUTH_RESPONSE: [
+                                            {
+                                                cond: 'googleAuthenticationIsSuccessful',
+                                                actions: appModel.assign({
+                                                    userGoogleAccessToken: (
+                                                        _context,
+                                                        { googleResponse },
+                                                    ) => {
+                                                        invariant(
+                                                            googleResponse.type ===
+                                                                'success',
+                                                            'to retrieve user google access token response should be at status success',
+                                                        );
+                                                        invariant(
+                                                            googleResponse.authentication !==
+                                                                null,
+                                                            'Inside a google success oauth response authentication should always be defined',
+                                                        );
+
+                                                        return googleResponse
+                                                            .authentication
+                                                            .accessToken;
+                                                    },
+                                                }),
+                                                target: 'sendingGoogleAccessTokenToServer',
+                                            },
+                                            {
+                                                cond: 'googleAuthenticationDismissError',
+
+                                                actions:
+                                                    'displayGoogleAuthenticationDismissErrorToast',
+
+                                                target: '.googleAuthenticationErrorOccured',
+                                            },
+                                            {
+                                                cond: 'googleAuthenticationCancelError',
+
+                                                actions:
+                                                    'displayGoogleAuthenticationCancelErrorToast',
+
+                                                target: '.googleAuthenticationErrorOccured',
+                                            },
+                                            {
+                                                cond: 'googleAuthenticationLockedError',
+
+                                                actions:
+                                                    'displayGoogleAuthenticationLockedErrorToast',
+
+                                                target: '.googleAuthenticationErrorOccured',
+                                            },
+                                            {
+                                                actions:
+                                                    'displayGoogleAuthenticationResponseErrorToast',
+
+                                                target: '.googleAuthenticationErrorOccured',
+                                            },
+                                        ],
+                                    },
+                                },
+
+                                sendingGoogleAccessTokenToServer: {
+                                    initial: 'Idle',
+                                    states: {
+                                        Idle: {
+                                            invoke: {
+                                                src: 'sendGoogleUserAccessTokenToServer',
+
+                                                onDone: [
+                                                    {
+                                                        cond: 'googleAuthenticationServerEmailNorNicknameInvalidError',
+
+                                                        actions:
+                                                            'googleAuthenticationDisplayServerEmailNorNicknameInvalidToastError',
+
+                                                        target: '#app.waitingForUserAuthentication.googleAuthenticationHandler.waitingForGoogleUserAccessToken.Idle',
+                                                    },
+                                                    {
+                                                        cond: 'googleAuthenticationServerEmailNorNicknameUnavailableError',
+
+                                                        actions:
+                                                            'googleAuthenticationServerEmailNorNicknameUnavailableToastError',
+
+                                                        target: '#app.waitingForUserAuthentication.googleAuthenticationHandler.waitingForGoogleUserAccessToken.Idle',
+                                                    },
+                                                    {
+                                                        target: 'userIsAuthenticatedViaGoogleOauth',
+                                                        actions:
+                                                            'googleAuthenticationDisplayServerOperationSuccess',
+                                                    },
+                                                ],
+
+                                                onError: {
+                                                    actions:
+                                                        'googleAuthenticationDisplayServerUnknownError',
+
+                                                    target: '#app.waitingForUserAuthentication.googleAuthenticationHandler.waitingForGoogleUserAccessToken.Idle',
+                                                },
+                                            },
+                                        },
+
+                                        userIsAuthenticatedViaGoogleOauth: {
+                                            entry: [
+                                                resetUserGoogleAccessToken,
+                                                raise({
+                                                    type: '__AUTHENTICATED',
+                                                }),
+                                            ],
+                                        },
+                                    },
+                                },
+                            },
+                        },
                     },
 
                     on: {
@@ -477,7 +611,6 @@ export function createAppMachine({
                     ],
                 },
 
-                //here
                 waitingForUserEmailConfirmation: {
                     tags: 'userEmailIsNotConfirmed',
                     type: 'parallel',
@@ -591,7 +724,7 @@ export function createAppMachine({
                                                         e as DoneInvokeEvent<GetMyProfileInformationResponseBody>;
                                                     return (
                                                         event.data
-                                                            .hasConfirmedEmail ===
+                                                            .hasVerifiedAccount ===
                                                         true
                                                     );
                                                 },
@@ -876,6 +1009,19 @@ export function createAppMachine({
                     socket.connect();
                 },
 
+                sendGoogleUserAccessTokenToServer: async ({
+                    userGoogleAccessToken,
+                }) => {
+                    invariant(
+                        userGoogleAccessToken !== undefined,
+                        'access token must be defined to be sent to server',
+                    );
+
+                    return await sendAuthenticateWithGoogleAccount({
+                        userGoogleAccessToken,
+                    });
+                },
+
                 signIn: async ({
                     email,
                     password,
@@ -1035,6 +1181,70 @@ export function createAppMachine({
                             text2: 'An unexpected error occured, please try again later',
                         });
                     },
+                //Google oauth authentication
+                displayGoogleAuthenticationDismissErrorToast: () => {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Continue with google error',
+                        text2: 'Oauth verification was dismissed',
+                    });
+                },
+
+                displayGoogleAuthenticationCancelErrorToast: () => {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Continue with google error',
+                        text2: 'Oauth verification was cancelled',
+                    });
+                },
+
+                displayGoogleAuthenticationLockedErrorToast: () => {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Continue with google error',
+                        text2: 'Given account is locked',
+                    });
+                },
+                displayGoogleAuthenticationResponseErrorToast: () => {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Continue with google error',
+                        text2: 'Google sent back an error please try again later',
+                    });
+                },
+                ///
+
+                //Google server accessToken verification actions
+                googleAuthenticationDisplayServerEmailNorNicknameInvalidToastError:
+                    () => {
+                        Toast.show({
+                            type: 'error',
+                            text1: 'Continue with google error',
+                            text2: 'Google account nickname or email is invalid',
+                        });
+                    },
+                googleAuthenticationServerEmailNorNicknameUnavailableToastError:
+                    () => {
+                        Toast.show({
+                            type: 'error',
+                            text1: 'Continue with google error',
+                            text2: 'Google account nickname or email is unavailable',
+                        });
+                    },
+                googleAuthenticationDisplayServerUnknownError: () => {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Continue with google error',
+                        text2: 'We encountered an error please try again later',
+                    });
+                },
+                googleAuthenticationDisplayServerOperationSuccess: () => {
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Continue with google succeeded',
+                    });
+                },
+                ///
             },
 
             delays: {
@@ -1056,11 +1266,11 @@ export function createAppMachine({
                         return true;
                     }
 
-                    const hasConfirmedEmail =
-                        myProfileInformation.hasConfirmedEmail === true;
-                    const hasNotConfirmedEmail = hasConfirmedEmail === false;
+                    const hasVerifiedAccount =
+                        myProfileInformation.hasVerifiedAccount === true;
+                    const hasNotVerifiedAccount = hasVerifiedAccount === false;
 
-                    return hasNotConfirmedEmail;
+                    return hasNotVerifiedAccount;
                 },
 
                 isConfirmationCodeInvalid: (_context, e) => {
@@ -1100,6 +1310,67 @@ export function createAppMachine({
 
                     return event.data.status === 'INVALID_TOKEN';
                 },
+                //Google authentication guards
+                googleAuthenticationDismissError: (_context, event) => {
+                    assertEventType(event, 'RECEIVED_GOOGLE_OAUTH_RESPONSE');
+                    return event.googleResponse.type === 'dismiss';
+                },
+                googleAuthenticationCancelError: (_context, event) => {
+                    assertEventType(event, 'RECEIVED_GOOGLE_OAUTH_RESPONSE');
+                    return event.googleResponse.type === 'cancel';
+                },
+                googleAuthenticationLockedError: (_context, event) => {
+                    assertEventType(event, 'RECEIVED_GOOGLE_OAUTH_RESPONSE');
+                    return event.googleResponse.type === 'locked';
+                },
+                googleAuthenticationIsSuccessful: (_context, event) => {
+                    assertEventType(event, 'RECEIVED_GOOGLE_OAUTH_RESPONSE');
+                    return event.googleResponse.type === 'success';
+                },
+                ///
+
+                //Google authentication server errors
+                googleAuthenticationServerEmailNorNicknameInvalidError: (
+                    _context,
+                    e,
+                ) => {
+                    const event =
+                        e as DoneInvokeEvent<AuthenticateWithGoogleOauthResponseBody>;
+
+                    if (event.data.status !== 'FAILURE') {
+                        return false;
+                    }
+
+                    return (
+                        event.data.googleAuthSignUpFailure.includes(
+                            'INVALID_EMAIL',
+                        ) ||
+                        event.data.googleAuthSignUpFailure.includes(
+                            'INVALID_NICKNAME',
+                        )
+                    );
+                },
+
+                googleAuthenticationServerEmailNorNicknameUnavailableError: (
+                    _context,
+                    e,
+                ) => {
+                    const event =
+                        e as DoneInvokeEvent<AuthenticateWithGoogleOauthResponseBody>;
+
+                    if (event.data.status !== 'FAILURE') {
+                        return false;
+                    }
+                    return (
+                        event.data.googleAuthSignUpFailure.includes(
+                            'UNAVAILABLE_EMAIL',
+                        ) ||
+                        event.data.googleAuthSignUpFailure.includes(
+                            'UNAVAILABLE_NICKNAME',
+                        )
+                    );
+                },
+                ///
             },
         },
     );

@@ -20,6 +20,8 @@ import {
     AuthenticateWithGoogleOauthRequestBody,
     ValidatePasswordResetTokenResponseBody,
     ValidatePasswordResetTokenRequestBody,
+    ApiTokenAuthenticateWithGoogleOauthSuccessResponseBody,
+    AuthenticateWithGoogleOauthResponseBody,
 } from '@musicroom/types';
 import { request, SHOULD_USE_TOKEN_AUTH } from './http';
 
@@ -251,40 +253,54 @@ type sendAuthenticateWithGoogleAccountArgs = Omit<
 
 async function sendApiTokenAuthenticateWithGoogleAccount({
     userGoogleAccessToken,
-}: sendAuthenticateWithGoogleAccountArgs): Promise<void> {
-    await request.post(
+}: sendAuthenticateWithGoogleAccountArgs): Promise<AuthenticateWithGoogleOauthResponseBody> {
+    const rawResponse = await request.post(
         '/authentication/authenticate-with-google-oauth',
         {
             userGoogleAccessToken,
             authenticationMode: 'api',
         } as AuthenticateWithGoogleOauthRequestBody,
         {
-            validateStatus: () => true,
+            validateStatus: (status) => status === 200 || status === 400,
         },
     );
 
-    return;
+    const parsedBody = AuthenticateWithGoogleOauthResponseBody.parse(
+        rawResponse.data,
+    );
+    if (parsedBody.status === 'FAILURE') {
+        return parsedBody;
+    }
+
+    //Not safe parsing as this should not throw any error
+    const apiResponseBody =
+        ApiTokenAuthenticateWithGoogleOauthSuccessResponseBody.parse(
+            rawResponse.data,
+        );
+    await request.persistToken(apiResponseBody.token);
+
+    return apiResponseBody;
 }
 async function sendWebAuthAuthenticateWithGoogleAccount({
     userGoogleAccessToken,
-}: sendAuthenticateWithGoogleAccountArgs): Promise<void> {
-    await request.post(
+}: sendAuthenticateWithGoogleAccountArgs): Promise<AuthenticateWithGoogleOauthResponseBody> {
+    const rawResponse = await request.post(
         '/authentication/authenticate-with-google-oauth',
         {
             userGoogleAccessToken,
             authenticationMode: 'web',
         } as AuthenticateWithGoogleOauthRequestBody,
         {
-            validateStatus: () => true,
+            validateStatus: (status) => status === 200 || status === 400,
         },
     );
 
-    return;
+    return AuthenticateWithGoogleOauthResponseBody.parse(rawResponse.data);
 }
 
 export async function sendAuthenticateWithGoogleAccount(
     args: sendAuthenticateWithGoogleAccountArgs,
-): Promise<void> {
+): Promise<AuthenticateWithGoogleOauthResponseBody> {
     if (SHOULD_USE_TOKEN_AUTH) {
         return await sendApiTokenAuthenticateWithGoogleAccount(args);
     }

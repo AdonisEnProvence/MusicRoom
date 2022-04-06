@@ -46,8 +46,11 @@ import {
     RequestPasswordResetResponseBody,
     ValidatePasswordResetTokenRequestBody,
     ValidatePasswordResetTokenResponseBody,
+    AuthenticateWithGoogleOauthRequestBody,
+    AuthenticateWithGoogleOauthResponseBody,
+    GoogleAuthenticationFailureReasons,
 } from '@musicroom/types';
-import { datatype } from 'faker';
+import { datatype, internet } from 'faker';
 import {
     DefaultRequestBody,
     PathParams,
@@ -57,6 +60,12 @@ import {
     RestRequest,
 } from 'msw';
 import * as z from 'zod';
+import {
+    AuthSessionResult,
+    TokenResponse,
+    TokenResponseConfig,
+} from 'expo-auth-session';
+import { data } from 'msw/lib/types/context';
 import { SERVER_ENDPOINT } from '../../constants/Endpoints';
 import { SearchTracksAPIRawResponse } from '../../services/search-tracks';
 import { db } from '../data';
@@ -286,6 +295,7 @@ export const handlers = [
                 return res(ctx.status(404));
             }
 
+            const hasVerifiedAccount = user.hasConfirmedEmail || user.googleID;
             return res(
                 ctx.json({
                     userID: user.userID,
@@ -294,7 +304,7 @@ export const handlers = [
                     followersCounter: user.followersCounter,
                     followingCounter: user.followingCounter,
                     devicesCounter: user.devicesCounter,
-                    hasConfirmedEmail: user.hasConfirmedEmail,
+                    hasVerifiedAccount,
                 }),
             );
         }),
@@ -936,9 +946,70 @@ export const handlers = [
             }
 
             return res(
+                ctx.json({
+                    status: 'SUCCESS',
+                }),
+                ctx.status(200),
+            );
+        },
+    ),
+
+    rest.post<
+        AuthenticateWithGoogleOauthRequestBody,
+        never,
+        AuthenticateWithGoogleOauthResponseBody
+    >(
+        `${SERVER_ENDPOINT}/authentication/authenticate-with-google-oauth`,
+        (req, res, ctx) => {
+            const { authenticationMode } = req.body;
+
+            //In this handler we do not care if the user will in fact perform a sign up or a sign in
+            db.authenticationUser.create({
+                uuid: CLIENT_INTEG_TEST_USER_ID,
+                email: internet.email(),
+                password: internet.password(),
+                nickname: internet.userName(),
+            });
+
+            db.myProfileInformation.update({
+                data: {
+                    googleID: true,
+                },
+                where: {
+                    userID: {
+                        equals: CLIENT_INTEG_TEST_USER_ID,
+                    },
+                },
+            });
+
+            const isApiTokenAuthentication = authenticationMode === 'api';
+            return res(
                 ctx.status(200),
                 ctx.json({
                     status: 'SUCCESS',
+                    token: isApiTokenAuthentication ? 'token' : undefined,
+                }),
+            );
+        },
+    ),
+
+    rest.get<never, never, AuthSessionResult>(
+        `http://msw.google.domain/fake-google-oauth-service`,
+        (_req, res, ctx) => {
+            const tokenResponseConfig: TokenResponseConfig = {
+                accessToken: datatype.uuid(),
+            };
+            const authentication = new TokenResponse(tokenResponseConfig);
+
+            return res(
+                ctx.status(200),
+                ctx.json({
+                    type: 'success',
+                    errorCode: null,
+                    authentication,
+                    params: {},
+                    url: '',
+                    error: undefined,
                 }),
             );
         },

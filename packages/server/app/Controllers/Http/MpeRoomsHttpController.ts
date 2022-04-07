@@ -23,7 +23,7 @@ export default class MpeRoomsHttpController {
             user !== undefined,
             'User must be logged in to list all Mpe rooms',
         );
-        await bouncer.authorize('hasConfirmedEmail');
+        await bouncer.authorize('hasVerifiedAccount');
 
         const { searchQuery, page } = ListAllMpeRoomsRequestBody.parse(
             request.body(),
@@ -88,7 +88,7 @@ export default class MpeRoomsHttpController {
             user !== undefined,
             'User must be logged in to list their own Mpe rooms',
         );
-        await bouncer.authorize('hasConfirmedEmail');
+        await bouncer.authorize('hasVerifiedAccount');
 
         const { searchQuery, page } = MpeSearchMyRoomsRequestBody.parse(
             request.body(),

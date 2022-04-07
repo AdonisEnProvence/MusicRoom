@@ -82,9 +82,8 @@ Ws.io
 
         const bouncer = Bouncer.forUser(user);
 
-        const accountIsNotConfirmed =
-            (await bouncer.denies('hasConfirmedEmail')) === true;
-        if (accountIsNotConfirmed === true) {
+        const accountIsNotVerified = await bouncer.denies('hasVerifiedAccount');
+        if (accountIsNotVerified) {
             next(
                 new Error(
                     'User must confirm email to perform socket connection',

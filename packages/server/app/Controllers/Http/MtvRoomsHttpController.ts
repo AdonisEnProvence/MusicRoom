@@ -33,7 +33,7 @@ export default class MtvRoomsHttpController {
             user !== undefined,
             'User must be authenticated to fetch MTV rooms',
         );
-        await bouncer.authorize('hasConfirmedEmail');
+        await bouncer.authorize('hasVerifiedAccount');
 
         const { searchQuery, page } = MtvRoomSearchRequestBody.parse(
             request.body(),

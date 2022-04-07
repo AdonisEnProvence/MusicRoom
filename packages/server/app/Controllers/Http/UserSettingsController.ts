@@ -21,7 +21,7 @@ export default class UserSettingsController {
             user !== undefined,
             'User must be logged in to get her settings',
         );
-        await bouncer.authorize('hasConfirmedEmail');
+        await bouncer.authorize('hasVerifiedAccount');
 
         await user.load((loader) => {
             loader
@@ -46,7 +46,7 @@ export default class UserSettingsController {
             user !== undefined,
             'User must be logged in to update her playlists visibility setting',
         );
-        await bouncer.authorize('hasConfirmedEmail');
+        await bouncer.authorize('hasVerifiedAccount');
 
         const { visibility } = UpdatePlaylistsVisibilityRequestBody.parse(
             request.body(),
@@ -75,7 +75,7 @@ export default class UserSettingsController {
             user !== undefined,
             'User must be logged in to update her relations visibility setting',
         );
-        await bouncer.authorize('hasConfirmedEmail');
+        await bouncer.authorize('hasVerifiedAccount');
 
         const { visibility } = UpdateRelationsVisibilityRequestBody.parse(
             request.body(),
@@ -105,7 +105,7 @@ export default class UserSettingsController {
             user !== undefined,
             'User must be logged in to update her nickname',
         );
-        await bouncer.authorize('hasConfirmedEmail');
+        await bouncer.authorize('hasVerifiedAccount');
 
         const { nickname } = UpdateNicknameRequestBody.parse(request.body());
 

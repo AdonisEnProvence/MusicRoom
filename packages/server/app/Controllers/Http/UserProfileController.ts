@@ -153,7 +153,7 @@ export default class UserProfileController {
             user !== undefined,
             "User must be authenticated to get another user's profile information",
         );
-        await bouncer.authorize('hasConfirmedEmail');
+        await bouncer.authorize('hasVerifiedAccount');
 
         const { userID } = GetUserProfileInformationRequestBody.parse(
             request.body(),
@@ -179,7 +179,7 @@ export default class UserProfileController {
             user !== undefined,
             'User must be authenticated to follow another user',
         );
-        await bouncer.authorize('hasConfirmedEmail');
+        await bouncer.authorize('hasVerifiedAccount');
 
         const { userID } = FollowUserRequestBody.parse(request.body());
 
@@ -229,7 +229,7 @@ export default class UserProfileController {
             user !== undefined,
             'User must be authenticated to unfollow another user',
         );
-        await bouncer.authorize('hasConfirmedEmail');
+        await bouncer.authorize('hasVerifiedAccount');
 
         const { userID } = UnfollowUserRequestBody.parse(request.body());
 
@@ -281,7 +281,7 @@ export default class UserProfileController {
             user !== undefined,
             "User must be authenticated to list another user's mpe rooms",
         );
-        await bouncer.authorize('hasConfirmedEmail');
+        await bouncer.authorize('hasVerifiedAccount');
 
         const { userID, searchQuery, page } =
             UserSearchMpeRoomsRequestBody.parse(request.body());

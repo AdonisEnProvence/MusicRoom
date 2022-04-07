@@ -85,11 +85,15 @@ export const { actions } = Bouncer.define('confirmEmail', (user: User) => {
 
         return canRequestPasswordReset === true;
     })
-    .define('hasConfirmedEmail', async (user: User) => {
-        return (
+    .define('hasVerifiedAccount', async (user: User) => {
+        const userConfirmedEmail =
             user.confirmedEmailAt !== null &&
-            user.confirmedEmailAt !== undefined
-        );
+            user.confirmedEmailAt !== undefined;
+        const userHasGoogleID =
+            user.googleID !== null && user.googleID !== undefined;
+        const userHasVerifiedEmail = userConfirmedEmail || userHasGoogleID;
+
+        return userHasVerifiedEmail;
     });
 
 /*

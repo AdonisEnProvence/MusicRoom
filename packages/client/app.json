@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "musicroom-test",
-    "slug": "musicroom-test",
+    "name": "musicroom",
+    "slug": "musicroom",
     "version": "1.0.0",
     "orientation": "portrait",
-    "owner": "prastoin",
+    "owner": "adonisenprovence",
     "icon": "./assets/images/icon.png",
     "scheme": "com.musicroom",
     "userInterfaceStyle": "automatic",

@@ -21,7 +21,7 @@ export default class TracksSearchesController {
             user !== undefined,
             'User must be authenticated to search users',
         );
-        await bouncer.authorize('hasConfirmedEmail');
+        await bouncer.authorize('hasVerifiedAccount');
 
         const params = request.params();
         const query = decodeURIComponent(params.query);

@@ -5,6 +5,7 @@ import invariant from 'tiny-invariant';
 export default class MyProfileController {
     public async getMyProfileInformation({
         auth,
+        bouncer,
     }: HttpContextContract): Promise<GetMyProfileInformationResponseBody> {
         const user = auth.user;
         invariant(
@@ -13,20 +14,14 @@ export default class MyProfileController {
         );
         //This should not be hasConfirmedEmail bouncer protected
 
-        const {
-            uuid,
-            nickname: userNickname,
-            confirmedEmailAt,
-            googleID,
-        } = user;
+        const { uuid, nickname: userNickname } = user;
 
         /**
          * A user that has signed up using a google account won't have to verify her email
          * A user that has signed up using a mail + pswd will have to verify her email to be able to
          * later link a google account to her account
          */
-        const hasVerifiedAccount =
-            googleID !== null || confirmedEmailAt !== null;
+        const hasVerifiedAccount = await bouncer.allows('hasVerifiedAccount');
 
         // After this user model column are erased
         await user

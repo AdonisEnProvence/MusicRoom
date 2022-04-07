@@ -231,4 +231,39 @@ test.group('Socket authentication tests group', (group) => {
             assert.isFalse(socket.connected);
         }
     });
+
+    test('User that has not confirmed her email but has a googleID should be able to create socket connection', async (assert) => {
+        const userID = datatype.uuid();
+        const email = internet.email();
+        const password = generateStrongPassword();
+        await User.create({
+            uuid: userID,
+            nickname: internet.userName(),
+            email,
+            password,
+            googleID: 'google-id',
+            // User has not confirmed her email
+            confirmedEmailAt: null,
+        });
+
+        const { body: rawBody } = await supertest(BASE_URL)
+            .post(urlcat(TEST_AUTHENTICATION_GROUP_PREFIX, 'sign-in'))
+            .send({
+                authenticationMode: 'api',
+                email,
+                password,
+            } as SignInRequestBody)
+            .expect(200);
+        const { token } = SignInSuccessfulApiTokensResponseBody.parse(rawBody);
+
+        const socket = io(BASE_URL, {
+            withCredentials: true,
+            auth: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        await waitForSocketToBeAcknowledged(socket);
+        assert.isTrue(socket.connected);
+    });
 });

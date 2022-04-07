@@ -138,7 +138,7 @@ export default class SearchUsersController {
             user !== undefined,
             'User must be authenticated to search users',
         );
-        await bouncer.authorize('hasConfirmedEmail');
+        await bouncer.authorize('hasVerifiedAccount');
 
         const rawBody = request.body();
         const { searchQuery, page } = SearchUsersRequestBody.parse(rawBody);
@@ -173,7 +173,7 @@ export default class SearchUsersController {
             user !== undefined,
             "User must be authenticated to list another user's followers",
         );
-        await bouncer.authorize('hasConfirmedEmail');
+        await bouncer.authorize('hasVerifiedAccount');
 
         const { page, searchQuery, userID } =
             ListUserFollowersRequestBody.parse(request.body());
@@ -203,7 +203,7 @@ export default class SearchUsersController {
             user !== undefined,
             "User must be authenticated to list another user's following",
         );
-        await bouncer.authorize('hasConfirmedEmail');
+        await bouncer.authorize('hasVerifiedAccount');
 
         const { page, searchQuery, userID } =
             ListUserFollowingRequestBody.parse(request.body());
@@ -235,7 +235,7 @@ export default class SearchUsersController {
             user !== undefined,
             'User must be authenticated to list her following',
         );
-        await bouncer.authorize('hasConfirmedEmail');
+        await bouncer.authorize('hasVerifiedAccount');
 
         const { page, searchQuery } = ListMyFollowingRequestBody.parse(
             request.body(),
@@ -258,7 +258,7 @@ export default class SearchUsersController {
             user !== undefined,
             'User must be authenticated to list her followers',
         );
-        await bouncer.authorize('hasConfirmedEmail');
+        await bouncer.authorize('hasVerifiedAccount');
 
         const { page, searchQuery } = ListMyFollowersRequestBody.parse(
             request.body(),

@@ -5,6 +5,7 @@ import {
     GetMyProfileInformationResponseBody,
     RequestPasswordResetResponseBody,
     ResendConfirmationEmailResponseBody,
+    ResetPasswordFailureResponseBody,
     SignInResponseBody,
     SignOutResponseBody,
     ValidatePasswordResetTokenResponseBody,
@@ -32,6 +33,7 @@ import {
     sendEmailConfirmationCode,
     sendRequestingPasswordReset,
     sendResendingConfirmationEmail,
+    sendResetPasswordNewPassword,
     sendSignIn,
     sendSignOut,
     sendValidatePasswordResetCode,
@@ -277,7 +279,7 @@ export function createAppMachine({
                                                         target: 'requestedPasswordResetSuccessfully',
 
                                                         actions: [
-                                                            'showToastForSuccessfulPasswordReset',
+                                                            'showToastForSuccessfulPasswordResetRequesting',
                                                             'redirectToPasswordResetTokenScreen',
                                                         ],
                                                     },
@@ -287,7 +289,7 @@ export function createAppMachine({
                                                     target: 'erredRequestingPasswordReset',
 
                                                     actions:
-                                                        'showToastForFailedPasswordReset',
+                                                        'showToastForFailedPasswordResetRequesting',
                                                 },
                                             },
 
@@ -361,8 +363,10 @@ export function createAppMachine({
                                                     {
                                                         target: 'codeIsValid',
 
-                                                        actions:
+                                                        actions: [
                                                             'showToastForValidPasswordResetCode',
+                                                            'redirectToPasswordResetFinalScreen',
+                                                        ],
                                                     },
                                                 ],
 
@@ -403,6 +407,120 @@ export function createAppMachine({
                                                     ) => event.code,
                                                 }),
                                             },
+                                    },
+
+                                    onDone: {
+                                        target: 'settingNewPassword',
+                                    },
+                                },
+
+                                settingNewPassword: {
+                                    initial: 'waitingForNewPassword',
+
+                                    states: {
+                                        waitingForNewPassword: {
+                                            on: {
+                                                SUBMIT_PASSWORD_RESET_NEW_PASSWORD_FORM:
+                                                    {
+                                                        target: 'sendingNewPasswordRequest',
+
+                                                        actions:
+                                                            appModel.assign({
+                                                                passwordResetNewPassword:
+                                                                    (
+                                                                        _context,
+                                                                        event,
+                                                                    ) =>
+                                                                        event.password,
+                                                            }),
+                                                    },
+                                            },
+                                        },
+
+                                        sendingNewPasswordRequest: {
+                                            invoke: {
+                                                src: 'setNewPassword',
+
+                                                onDone: [
+                                                    {
+                                                        cond: 'isPasswordResetCodeInvalid',
+
+                                                        target: 'codeIsInvalid',
+
+                                                        actions: [
+                                                            'showToastForInvalidPasswordResetCode',
+                                                            send({
+                                                                type: 'ROLLBACK_PASSWORD_RESET',
+                                                            }),
+                                                        ],
+                                                    },
+                                                    {
+                                                        cond: 'isPasswordResetNewPasswordEqualToCurrentPassword',
+
+                                                        target: 'passwordIsSameAsOldPassword',
+                                                    },
+                                                    {
+                                                        target: 'passwordChangedSuccessfully',
+
+                                                        actions:
+                                                            'showToastForSuccessfulPasswordReset',
+                                                    },
+                                                ],
+
+                                                onError: {
+                                                    target: 'unknownErrorOccuredDuringRequest',
+
+                                                    actions:
+                                                        'showToastForUnknownErrorDuringPasswordReset',
+                                                },
+                                            },
+                                        },
+
+                                        passwordIsSameAsOldPassword: {
+                                            tags: 'passwordIsSameAsOldPassword',
+                                        },
+
+                                        codeIsInvalid: {},
+
+                                        unknownErrorOccuredDuringRequest: {},
+
+                                        passwordChangedSuccessfully: {
+                                            type: 'final',
+                                        },
+                                    },
+
+                                    on: {
+                                        SUBMIT_PASSWORD_RESET_NEW_PASSWORD_FORM:
+                                            {
+                                                target: '.sendingNewPasswordRequest',
+
+                                                actions: appModel.assign({
+                                                    passwordResetNewPassword: (
+                                                        _context,
+                                                        event,
+                                                    ) => event.password,
+                                                }),
+                                            },
+
+                                        ROLLBACK_PASSWORD_RESET: {
+                                            target: 'waitingForEmail',
+
+                                            actions: [
+                                                appModel.assign({
+                                                    passwordResetCode:
+                                                        undefined,
+                                                    passwordResetNewPassword:
+                                                        undefined,
+                                                }),
+                                                'redirectToSigningInScreen',
+                                            ],
+                                        },
+                                    },
+
+                                    onDone: {
+                                        actions: raise({
+                                            type: '__AUTHENTICATED',
+                                        }),
                                     },
                                 },
                             },
@@ -1093,6 +1211,25 @@ export function createAppMachine({
                         code: passwordResetCode,
                     });
                 },
+
+                setNewPassword: async ({
+                    email,
+                    passwordResetCode,
+                    passwordResetNewPassword,
+                }) => {
+                    invariant(
+                        email !== undefined &&
+                            passwordResetCode !== undefined &&
+                            passwordResetNewPassword !== undefined,
+                        'Service must be called after an email, a password reset code and a new password have been assigned to context',
+                    );
+
+                    return await sendResetPasswordNewPassword({
+                        email,
+                        code: passwordResetCode,
+                        password: passwordResetNewPassword,
+                    });
+                },
             },
 
             actions: {
@@ -1146,7 +1283,7 @@ export function createAppMachine({
                     });
                 },
 
-                showToastForSuccessfulPasswordReset: () => {
+                showToastForSuccessfulPasswordResetRequesting: () => {
                     Toast.show({
                         type: 'success',
                         text1: 'Password reset request succeeded',
@@ -1154,7 +1291,7 @@ export function createAppMachine({
                     });
                 },
 
-                showToastForFailedPasswordReset: () => {
+                showToastForFailedPasswordResetRequesting: () => {
                     Toast.show({
                         type: 'error',
                         text1: 'Password reset request failed',
@@ -1181,6 +1318,7 @@ export function createAppMachine({
                             text2: 'An unexpected error occured, please try again later',
                         });
                     },
+
                 //Google oauth authentication
                 displayGoogleAuthenticationDismissErrorToast: () => {
                     Toast.show({
@@ -1245,6 +1383,37 @@ export function createAppMachine({
                     });
                 },
                 ///
+
+                redirectToPasswordResetFinalScreen: () => {
+                    navigateFromRef('PasswordResetFinal');
+                },
+
+                showToastForInvalidPasswordResetCode: () => {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Changing password failed',
+                        text2: 'The confirmation code has expired, please try again',
+                    });
+                },
+
+                showToastForSuccessfulPasswordReset: () => {
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Password changed successfully',
+                    });
+                },
+
+                showToastForUnknownErrorDuringPasswordReset: () => {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Changing password failed',
+                        text2: 'An unknown error occured, please try again',
+                    });
+                },
+
+                redirectToSigningInScreen: () => {
+                    navigateFromRef('SigningIn');
+                },
             },
 
             delays: {
@@ -1371,6 +1540,16 @@ export function createAppMachine({
                     );
                 },
                 ///
+
+                isPasswordResetNewPasswordEqualToCurrentPassword: (
+                    _context,
+                    e,
+                ) => {
+                    const event =
+                        e as DoneInvokeEvent<ResetPasswordFailureResponseBody>;
+
+                    return event.data.status === 'PASSWORD_ALREADY_USED';
+                },
             },
         },
     );

@@ -203,12 +203,17 @@ export type ResetPasswordSuccessfulApiAuthenticationResponseBody = z.infer<
     typeof ResetPasswordSuccessfulApiAuthenticationResponseBody
 >;
 
+export const ResetPasswordFailureResponseBody = z.object({
+    status: z.enum(['INVALID_TOKEN', 'PASSWORD_ALREADY_USED']),
+});
+export type ResetPasswordFailureResponseBody = z.infer<
+    typeof ResetPasswordFailureResponseBody
+>;
+
 export const ResetPasswordResponseBody = z.union([
     ResetPasswordSuccessfulWebAuthenticationResponseBody,
     ResetPasswordSuccessfulApiAuthenticationResponseBody,
-    z.object({
-        status: z.enum(['INVALID_TOKEN', 'PASSWORD_ALREADY_USED']),
-    }),
+    ResetPasswordFailureResponseBody,
 ]);
 export type ResetPasswordResponseBody = z.infer<
     typeof ResetPasswordResponseBody

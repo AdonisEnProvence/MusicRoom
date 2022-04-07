@@ -48,7 +48,8 @@ import {
     ValidatePasswordResetTokenResponseBody,
     AuthenticateWithGoogleOauthRequestBody,
     AuthenticateWithGoogleOauthResponseBody,
-    GoogleAuthenticationFailureReasons,
+    ResetPasswordRequestBody,
+    ResetPasswordResponseBody,
 } from '@musicroom/types';
 import { datatype, internet } from 'faker';
 import {
@@ -934,6 +935,22 @@ export const handlers = [
     >(
         `${SERVER_ENDPOINT}/authentication/validate-password-reset-token`,
         (req, res, ctx) => {
+            const user = db.authenticationUser.findFirst({
+                where: {
+                    email: {
+                        equals: req.body.email,
+                    },
+                },
+            });
+            if (user === null) {
+                return res(
+                    ctx.status(404),
+                    ctx.json({
+                        status: 'INVALID_TOKEN',
+                    }),
+                );
+            }
+
             const isValidCode = req.body.token === '123456';
             const isInvalidCode = isValidCode === false;
             if (isInvalidCode === true) {
@@ -1010,6 +1027,60 @@ export const handlers = [
                     params: {},
                     url: '',
                     error: undefined,
+                }),
+            );
+        },
+    ),
+
+    rest.post<ResetPasswordRequestBody, never, ResetPasswordResponseBody>(
+        `${SERVER_ENDPOINT}/authentication/reset-password`,
+        (req, res, ctx) => {
+            const user = db.authenticationUser.findFirst({
+                where: {
+                    email: {
+                        equals: req.body.email,
+                    },
+                },
+            });
+            if (user === null) {
+                return res(
+                    ctx.status(400),
+                    ctx.json({
+                        status: 'INVALID_TOKEN',
+                    }),
+                );
+            }
+
+            const isValidCode = req.body.token === '123456';
+            const isInvalidCode = isValidCode === false;
+            if (isInvalidCode === true) {
+                return res(
+                    ctx.status(400),
+                    ctx.json({
+                        status: 'INVALID_TOKEN',
+                    }),
+                );
+            }
+
+            /**
+             * Current password copy-pasted from packages/client/screens/PasswordResetFinalScreen.tsx
+             */
+            const isSamePassword =
+                req.body.password === 'MusicRoom is awesome!';
+            if (isSamePassword === true) {
+                return res(
+                    ctx.status(400),
+                    ctx.json({
+                        status: 'PASSWORD_ALREADY_USED',
+                    }),
+                );
+            }
+
+            return res(
+                ctx.status(200),
+                ctx.json({
+                    status: 'SUCCESS',
+                    token: 'token',
                 }),
             );
         },

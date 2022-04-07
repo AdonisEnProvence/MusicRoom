@@ -951,7 +951,7 @@ export const handlers = [
                 );
             }
 
-            const isValidCode = req.body.token === '123456';
+            const isValidCode = ['123456', '654321'].includes(req.body.token);
             const isInvalidCode = isValidCode === false;
             if (isInvalidCode === true) {
                 return res(
@@ -1051,7 +1051,7 @@ export const handlers = [
                 );
             }
 
-            const isValidCode = req.body.token === '123456';
+            const isValidCode = ['123456', '654321'].includes(req.body.token);
             const isInvalidCode = isValidCode === false;
             if (isInvalidCode === true) {
                 return res(

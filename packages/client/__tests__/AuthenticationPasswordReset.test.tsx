@@ -4,6 +4,7 @@ import cases from 'jest-in-case';
 import Toast from 'react-native-toast-message';
 import { rest } from 'msw';
 import {
+    passwordStrengthRegex,
     RequestPasswordResetRequestBody,
     RequestPasswordResetResponseBody,
     ResetPasswordRequestBody,
@@ -18,6 +19,8 @@ import {
     waitFor,
     fireEvent,
     within,
+    generateWeakPassword,
+    generateStrongPassword,
 } from '../tests/tests-utils';
 import { server } from '../tests/server/test-server';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
@@ -28,10 +31,10 @@ interface TestingContext {
 }
 
 const VALID_PASSWORD_RESET_CODE = '123456';
-const CURRENT_PASSWORD = 'qwerty';
+const CURRENT_PASSWORD = 'MusicRoom is awesome!';
 
 const passwordResetMachine =
-    /** @xstate-layout N4IgpgJg5mDOIC5QAUCGtYHcD2AnCABLnGAC4B0ASmAHYRi4CWNUBsjUNzrzbAxsVoBiACoBPAA5gCYALapGAG0SgJ2dqUbYaKkAA9EAdgBsAJnKmAzAFYADLYAsATksOz1hwBoQYo2fIAHNaWpqbOxgCMprZOpgC+cd5oGDj4RCQU1HQM3GwcXCwEvLACYMLUAI4ArnCkBBLoWHiExLBkumoaWjpI+ogAtJZOEeQx1hHGkQ62lgGmE96+CAET5CZhpoZzJgEBhglJjaktGVS09EyF7Jy5xaXCALKoANbSuKik0oqMsox1xKg+AALSAddR-bq6AwIabWcjjWKGEIRWa2axOayLRAREyWciTezGJwxCLjUIHEDJJppVpkM7ZS6sa4FHg0fiCGhCJ6vAhVGjPGjYTBshi4PAEbB8PhVXBgrraKGIByrJEBByo4kYwy2YxYhATEz4gLGVwRCaI4wUqnHdJtTLnHKFBopZq2sgEPjYejssqcgDKVQARr86s7qSc7QRSNhXmyAGZ4WRyiEK3rQiK2cwrJzGNEOUIBTOGLw+RDzfzo6b5nMOPb7RKUo6u2n2hm5MM2lser3SEoc0SSaTaepNmkZbveuOMMCKCDJzSp0DQ-MOQLWAKWQzWQyhLcm3Wl-VBAL4yyzMzH6xX+IN63N05ZC7t0cR92e71931cl7SPkCoUirgYq4BKUoygQEAys+LpjpG77SAAbqg3wQB8kK9J0KY9EuZY6qMEQONuVhbDsG56qYV54rYBEREEIS2BuN6HDBr6tk+Tovm6dRTjQyE+sIAbBn8I4sVxBA8XxCa4EmGHggu2F9Ee4zkDimazARcwRE4ATkRp5AhLmxiEbm65OPWzHhlx9LsawHb3pGEmKPxnLiFIEpsjQYCYCJllTjOc6yfKCnQqEDirh4O4IrRVgYnqEzWMY5CEa49hzGqlq3pxLbWY6tlZeOjnOd+PJ2bB7rENUtTiQoyiBVhir6glJ5DCEWwosY1hWDph4TJYtgqRmtbKgxphOOqVr5XaOWMj5nYFcwfGfo8P7djQU7SWhw7wTIegSIwxABaocnoThCAUR4+kOFsnWGMScxOHFSKrpYHWkkEmZquuCQNoK9DwL0d5lWxuV5DchR3By5AAJIQIoYDzidin9M4q7TCayqdVesJ6kSTjkLEjjGBu66hNpE2idlj4g8ytxsktNDkAAIowsASIoqBiLkALApARAfF8PzCdG6CkAji6KRR5hjQaGx7Dq3VLBm9hrDEMQ5jMjjkplFMPg6M00+DdP3AzzOs+znOG0hKEyPIShRtgIti8FZbahYUQhMSZgmgsh4uCMG7GmN24vS91jk5ZlN67kBuss5TMs2zHO5H+grCjIQHisLsCi3V8kNaY-gbpENhuNRVglorthIklVeZtRBHUXs4dzVNVP6-ktNx6bicW6wcg1UUsA2xIpBiAQyEMDnR1BfnHX6Qlr1bLWhhbnqxp4h4hHqkEpi7OZjY663UdXB3htdwn5vQRH47MFbjCENtWdTyAmF52mZY4vjK-B09YVooYcUCJwhsH1eYtEQjjGbvZOkbdo6n1jvTJ2DV+jjBPGjU0mMPBohxgRfGFEq6jTNEZJwTgoFA2mlfFub4eznzNknDih93SwCqFKOAsA4xVCchVGo2d7aO1zojdMsw1ggJ3DqZUBdLDkRiBvbSkwjLTHXmQ1iFCGHXzgjQ+m0MaB30IFJWQ5AADCNCWbD1Hkg9+CAjInm1PYW6YQthzArmWAueMPBDAomqAIwww7a3UTA4+eVGF1G2loqGOjkL33EomIxJih630iYdF+x1xbQiRHiLSrgdxWBemqciZ4TzBBcGpHcsQXDKKsrAtRVCQmaONto3R0TpLkAAKr8lToBYCoFpQHQglBQoujNoKVfoIxARk8S2KrrEK6uwwjkWmIYeEWTaxDDMlqCpkc2zVOgbUj89TwmNP0RY06kQ8aTPsTMpxukczwlrJEMIxgtxFw2brLZQT-G7N7PUkQMZaAEEGZ8JJIzUllm3PCY0HUrB2A8A46RYR8QzFCI4FEJDHkvKPm82aOyJxfI5McxSWxAhaRMvmXeRZnH6hcHjXMJgF7nW0pYdFATMWlVYuJBaTkwmw3hgIkF+ptQnliGeLqDFbo+0VhiPGOYiRV29qNLYTLgYzVZWJQqWju6X22UDe2sZ-mJP5kClJzt9RuDhPYG6BphgYlMLpZUgRogTHzFXWsV5FWqPeTU9lvFOX7IidbfR5AAByXksVpFMXIEeSxp71UsZIjeRJpjzCwZmTEh5QjRBUlajwJDlSETdVUj12K1W+sOTE4N3kVWmNgKgWQ0h0AehlMQGgdRtA8ujW-U6cb8YohepMdUhFYppt3njWixZqKZgzINfNgTQ1suLZDA5iSmkGLaf+NOopxSSh6bzSCM1uG1HxSFC88IE0TuTRRfJ64VLbDNLY+YQRp0ssmu6edvoGlLqOby41BdHAnrGme6YKbbWLOJUZCYUQVgOEfTZWdqqOXOUPdiMKIxzWbEtVpTqcU9irjMiibe+ZvGxGgyDIE2Ba0Ia-Q1YYhSIMkNiHYF6FLh2JUech9GNhR2KsQwgFB+Ya7o1JOdbGh4PAjDKR1FYu9IiGAiN9OIQA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QAUCGtYHcD2AnCABLnGAC4B0ASmAHYRi4CWNUBsjUNzrzbAxsVoBiACoBPAA5gCYALapGAG0SgJ2dqUbYaKkAA9EAdgBsAJnKmAzAFYADLYAsATksOz1hwBoQYo2fIAHNaWpqbOxgCMprZOpgC+cd5oGDj4RCQU1HQM3GwcXCwEvLACYMLUAI4ArnCkBBLoWHiExLBkumoaWjpI+ogAtJZOEeQx1hHGkQ62lgGmE96+CAET5CZhpoZzJgEBhglJjaktGVS09EyF7Jy5xaXCALKoANbSuKik0oqMsox1xKg+AALSAddR-bq6AwIabWcjjWKGEIRWa2axOayLRAREyWciTezGJwxCLjUIHEDJJppVpkM7ZS6sa4FHg0fiCGhCJ6vAhVGjPGjYTBshi4PAEbB8PhVXBgrraKGIByrJEBByo4kYwy2YxYhATEz4gLGVwRCaI4wUqnHdJtTLnHKFBopZq2sgEPjYejssqcgDKVQARr86s7qSc7QRSNhXmyAGZ4WRyiEK3rQiK2cwrJzGNEOUIBTOGLw+RDzfzo6b5nMOPb7RKUo6u2n2hm5MM2lser3SEoc0SSaTaepNmkZbveuOMMCKCDJzSp0DQ-MOQLWAKWQzWQyhLcm3Wl-VBAL4yyzMzH6xX+IN63N05ZC7t0cR92e71931cl7SPkCoUirgYq4BKUoygQEAys+LpjpG77SAAbqg3wQB8kK9J0KY9EuZY6qMEQONuVhbDsG56qYV54rYBEREEIS2BuN6HDBr6tk+Tovm6dRTjQyE+sIAbBn8I4sVxBA8XxCa4EmGHggu2F9Ee4zkDimazARcwRE4ATkRp5AhLmxiEbm65OPWzHhlx9LsawHb3pGEmKPxnLiFIEpsjQYCYCJllTjOc6yfKCnQqEDirh4O4IrRVgYnqEzWMY5CEa49hzGqlq3pxLbWY6tlZeOjnOd+PJ2bB7rENUtTiQoyiBVhir6glJ5DCEWwosY1hWDph4TJYtgqRmtbKgxphOOqVr5XaOWMj5nYFcwfGfo8P7djQU7SWhw7wTIegSIwxABaocnoThCAUR4+kOFsnWGMScxOHFSKrpYHWkkEmZquuCQNoK9DwL0d5lWxuV5DchR3By5AAJIQIoYDzidin9M4q7TCayqdVesJ6kSTjkLEjjGBu66hNpE2idlj4g8ytxsktNDkAAIowsASIoqBiLkALApARAfF8PzCdG6CkAji6KRR5hjQaGx7Dq3VLBm9hrDEMQ5jMjjkplFMPg6M00+DdP3AzzOs+znOG0hKEyPIShRtgIti8FZbahYUQhMSZgmgsh4uCMG7GmN24vS91jk5ZlN67kBuss5TMs2zHO5H+grCjIQHisLsCi3V8kNaY-gbpENhuNRVglorthIklVeZtRBHUXs4dzVNVP6-ktNx6bicW6wcg1UUsA2xIpBiAQyEMDnR1BfnHX6Qlr1bLWhhbnqxp4h4hHqkEpi7OZjY663UdXB3htdwn5vQRH47MFbjCENtWdTyAmF52mZY4vjK-B09YVooYcUCJwhsH1eYtEQjjGbvZOkbdo6n1jvTJ2DV+jjBPGjU0mMPBohxgRfGFEPodV3n1fegNWLTSvi3N8PZz5myThxQ+7pYBVClHAWAcYqhOQqjUbO9tHa50RumWYawQE7h1MqAulhyIxA3tpSYRlpjrygUDch9Dr5wWofTaGNA76ECkrIcgABhahLNh6jyQe-BARkTzansLdMIWw5gVzLAXPGHghgUTVAEYYYdtZqJgcfPKDC6jbU0VDbRyF77iUTIY4xQ9b4RMOi-Y64toRIjxFpVwO4rAvTVORM8J5gguDUjuWILglFkNgaoyhwSNHGy0ToqJ0lyAAFV+Sp0AsBUC0oDoQSgoUHRm0FKvwEYgIyeIbFV1iFdXYYRyLTEMPCTJtYhhmS1OUqylTAl+JqR+OpYSGl6PMadSIeMJl2OmY43SOZ4S1gShiMZRkSGTX8W2Kp0Cdm9jqSIGMtACADM+Ik4ZKSyzbnhMaQhNg8z2KkWEfEMxQiOBRE4HMTygkqK2dUicnyORHMUlsQIWkTL5l3kWJx+oXB41zCvZUGTCJePWZHV5GL3niQWk5UJsN4b8OBfqbUJ5Yhni6gxW6PtFYYjxjmIkVdvajS2Ay3WTLZossKpo7ul83lA3trGP5CT+aAuSc7fUbg4T2BugaYYGJTC6WVIEaIEx8xV1uT4iy1T0VKs1SqvZ4TrZ6PIAAOS8u6wgJi5AjyWNPeqFiC7OHxvYeYexRqdU2LpQuvVgjOCRAlBw8qj6KtKqxVlvF2VeoOdEgN3l82DzYKgWQ0h0AehlMQGgdRtBcojW-U60bEqWAzB1HtBEtxWDyQxNYplpEom3DMHNLybJBrEp6yG+yEmNP0a0-8adRTiklN03mkEZpcNqLikKRl+qSqJsaSWGJJGHmIgsrc+YtLIs2EvadwMZqVq7Au309Tl2+vLXOkxgo6jZzFIUWg2AqhQCBEess8i1i3UtdEAmD0b1hH6kMQpRJswRFfW6j980i1xyXT6xMMGzqRESme3Y7hE3XqWNELxtqq7jBShuHDvjXWbLnZ+tlzkyMERtaazY5qtKdTinsVcZlSQsbcMWYsuGuNAmwLWvj3LDXDAKVELxT67AvTJbva5xhizKnRjYWiqLtlkZQfmGu6NSTnWxoeDwIxSlGasETEllhvpxCAA */
     createMachine(
         {
             context: {
@@ -454,6 +457,32 @@ const passwordResetMachine =
                                         },
                                     },
                                 },
+                                'New password is not strong enough': {
+                                    meta: {
+                                        test: async ({
+                                            screen,
+                                        }: TestingContext) => {
+                                            await waitFor(() => {
+                                                const passwordResetNewPasswordField =
+                                                    screen.getByTestId(
+                                                        'password-reset-new-password-field',
+                                                    );
+                                                expect(
+                                                    passwordResetNewPasswordField,
+                                                ).toBeTruthy();
+
+                                                const alert = within(
+                                                    passwordResetNewPasswordField,
+                                                ).getByRole('alert');
+                                                expect(alert).toBeTruthy();
+
+                                                expect(alert).toHaveTextContent(
+                                                    'Password is too weak',
+                                                );
+                                            });
+                                        },
+                                    },
+                                },
                             },
                         },
                     },
@@ -462,6 +491,10 @@ const passwordResetMachine =
                             {
                                 cond: 'Is new password empty',
                                 target: '.Invalid form.New password is empty',
+                            },
+                            {
+                                cond: 'Is new password not strong enough',
+                                target: '.Invalid form.New password is not strong enough',
                             },
                             {
                                 cond: 'Is new password same as current one',
@@ -550,6 +583,10 @@ const passwordResetMachine =
 
                 'Is new password empty': ({ newPassword }) =>
                     newPassword === '',
+
+                'Is new password not strong enough': ({ newPassword }) => {
+                    return !passwordStrengthRegex.test(newPassword);
+                },
 
                 'Is new password same as current one': ({ newPassword }) =>
                     newPassword === CURRENT_PASSWORD,
@@ -1079,6 +1116,7 @@ cases<{
                   | {
                         'Invalid form':
                             | 'New password is empty'
+                            | 'New password is not strong enough'
                             | 'New password is same as current one'
                             | 'Unknown error occured during request';
                     };
@@ -1131,6 +1169,37 @@ cases<{
                 },
                 {
                     type: 'Submit password reset token form',
+                },
+                {
+                    type: 'Submit password reset final form',
+                },
+            ],
+        },
+
+        'Displays alert when new password is not strong enough': {
+            target: {
+                'Rendering password reset final screen': {
+                    'Invalid form': 'New password is not strong enough',
+                },
+            },
+            events: [
+                {
+                    type: 'Type email',
+                    email: existingUser.email,
+                },
+                {
+                    type: 'Request password reset',
+                },
+                {
+                    type: 'Type on password reset code field',
+                    code: '123456',
+                },
+                {
+                    type: 'Submit password reset token form',
+                },
+                {
+                    type: 'Type on new password field',
+                    newPassword: generateWeakPassword(),
                 },
                 {
                     type: 'Submit password reset final form',
@@ -1195,7 +1264,7 @@ cases<{
                 },
                 {
                     type: 'Type on new password field',
-                    newPassword: 'new password',
+                    newPassword: generateStrongPassword(),
                 },
                 {
                     type: 'Submit password reset final form',
@@ -1228,7 +1297,7 @@ cases<{
                 },
                 {
                     type: 'Type on new password field',
-                    newPassword: 'new password',
+                    newPassword: generateStrongPassword(),
                 },
                 {
                     type: 'Submit password reset final form',
@@ -1256,7 +1325,7 @@ cases<{
                     },
                     {
                         type: 'Type on new password field',
-                        newPassword: 'new password',
+                        newPassword: generateStrongPassword(),
                     },
                     {
                         type: 'Submit password reset final form',

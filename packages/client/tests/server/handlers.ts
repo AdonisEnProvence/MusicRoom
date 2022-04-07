@@ -1062,7 +1062,11 @@ export const handlers = [
                 );
             }
 
-            const isSamePassword = req.body.password === 'qwerty';
+            /**
+             * Current password copy-pasted from packages/client/screens/PasswordResetFinalScreen.tsx
+             */
+            const isSamePassword =
+                req.body.password === 'MusicRoom is awesome!';
             if (isSamePassword === true) {
                 return res(
                     ctx.status(400),

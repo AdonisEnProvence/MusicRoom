@@ -1,3 +1,4 @@
+import { passwordStrengthRegex } from '@musicroom/types';
 import { useSelector } from '@xstate/react';
 import { Text, useSx, View } from 'dripsy';
 import React, { useEffect } from 'react';
@@ -119,6 +120,15 @@ const PasswordResetFinalScreen: React.FC<PasswordResetFinalScreenProps> = ({
                                             value: true,
                                             message: 'This field is required',
                                         },
+                                        validate: {
+                                            isValidPassword: (password) => {
+                                                return (
+                                                    passwordStrengthRegex.test(
+                                                        password,
+                                                    ) || 'Password is too weak'
+                                                );
+                                            },
+                                        },
                                     }}
                                     render={({
                                         field: { onChange, onBlur, value },
@@ -130,6 +140,8 @@ const PasswordResetFinalScreen: React.FC<PasswordResetFinalScreenProps> = ({
                                                 onChangeText={onChange}
                                                 placeholder="Enter new password..."
                                                 placeholderTextColor="#fff"
+                                                autoCompleteType="password"
+                                                secureTextEntry
                                                 sx={{
                                                     borderWidth: 1,
                                                     borderColor: 'greyLighter',
@@ -150,6 +162,16 @@ const PasswordResetFinalScreen: React.FC<PasswordResetFinalScreenProps> = ({
                                         {errors.password.message}
                                     </Text>
                                 )}
+
+                                <View sx={{ marginTop: 'm' }}>
+                                    <Text
+                                        sx={{
+                                            color: 'greyLighter',
+                                        }}
+                                    >
+                                        Password must be 8 or more in length.
+                                    </Text>
+                                </View>
                             </View>
 
                             <TouchableOpacity

@@ -63,6 +63,11 @@ Route.group(() => {
     Route.post('/nickname', 'UserSettingsController.updateNickname');
     Route.post('/search/followers', 'SearchUsersController.listMyFollowers');
     Route.post('/search/following', 'SearchUsersController.listMyFollowing');
+
+    Route.post(
+        '/link-google-account',
+        'UserSettingsController.linkGoogleAccount',
+    );
 })
     .prefix(MY_PROFILE_ROUTES_GROUP_PREFIX)
     .middleware('every-auth');

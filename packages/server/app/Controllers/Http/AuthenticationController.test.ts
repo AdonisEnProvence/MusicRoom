@@ -855,94 +855,106 @@ test.group('Request password reset', (group) => {
         });
     });
 
-    test('Sends email when password reset is authorized', async (assert) => {
-        const request = createRequest();
-
-        const user = await User.create({
-            uuid: datatype.uuid(),
-            nickname: internet.userName(),
-            email: internet.email(),
+    const passwordListToTry = [
+        {
+            label: 'Sends email when password reset is authorized',
             password: internet.password(),
-        });
-        const tokenType = await TokenType.findByOrFail(
-            'name',
-            TokenTypeName.enum.PASSWORD_RESET,
-        );
-        await user.related('tokens').createMany(
-            generateArray({
-                minLength: 2,
-                maxLength: 2,
-                fill: () => ({
-                    uuid: datatype.uuid(),
-                    tokenTypeUuid: tokenType.uuid,
-                    value: generateToken(),
-                    expiresAt: DateTime.local().minus({
-                        minutes: datatype.number({
-                            min: 1,
-                            max: 59,
+        },
+        {
+            label: 'Sends email when password reset is authorized for a user created from a Google account',
+            password: undefined,
+        },
+    ];
+    for (const { label, password } of passwordListToTry) {
+        test(label, async (assert) => {
+            const request = createRequest();
+
+            const user = await User.create({
+                uuid: datatype.uuid(),
+                nickname: internet.userName(),
+                email: internet.email(),
+                password,
+            });
+            const tokenType = await TokenType.findByOrFail(
+                'name',
+                TokenTypeName.enum.PASSWORD_RESET,
+            );
+            await user.related('tokens').createMany(
+                generateArray({
+                    minLength: 2,
+                    maxLength: 2,
+                    fill: () => ({
+                        uuid: datatype.uuid(),
+                        tokenTypeUuid: tokenType.uuid,
+                        value: generateToken(),
+                        expiresAt: DateTime.local().minus({
+                            minutes: datatype.number({
+                                min: 1,
+                                max: 59,
+                            }),
                         }),
                     }),
                 }),
-            }),
-        );
+            );
 
-        const mailTrapPasswordResetSpy =
-            spy<(message: MessageNode) => void>(noop);
-        Mail.trap(mailTrapPasswordResetSpy);
+            const mailTrapPasswordResetSpy =
+                spy<(message: MessageNode) => void>(noop);
+            Mail.trap(mailTrapPasswordResetSpy);
 
-        const requestBody: RequestPasswordResetRequestBody = {
-            email: user.email,
-        };
-        const rawResponse = await request
-            .post('/authentication/request-password-reset')
-            .send(requestBody)
-            .expect(200);
-        const { status } = RequestPasswordResetResponseBody.parse(
-            rawResponse.body,
-        );
+            const requestBody: RequestPasswordResetRequestBody = {
+                email: user.email,
+            };
+            const rawResponse = await request
+                .post('/authentication/request-password-reset')
+                .send(requestBody)
+                .expect(200);
+            const { status } = RequestPasswordResetResponseBody.parse(
+                rawResponse.body,
+            );
 
-        assert.equal(status, 'SUCCESS');
+            assert.equal(status, 'SUCCESS');
 
-        await waitFor(() => {
-            assert.isTrue(mailTrapPasswordResetSpy.calledOnce);
-        });
-
-        {
-            const message = mailTrapPasswordResetSpy.lastCall.args[0];
-
-            assert.deepStrictEqual(message.to, [
-                {
-                    address: user.email,
-                    name: user.nickname,
-                },
-            ]);
-
-            assert.deepEqual(message.from, {
-                address: 'no-reply@adonisenprovence.com',
-                name: 'MusicRoom',
+            await waitFor(() => {
+                assert.isTrue(mailTrapPasswordResetSpy.calledOnce);
             });
 
-            const subject = message.subject;
-            invariant(
-                subject !== undefined,
-                'The subject of the message must be defined',
-            );
+            {
+                const message = mailTrapPasswordResetSpy.lastCall.args[0];
 
-            const passwordResetSubjectRegex = /\[\d{6}].*reset.*password/i;
-            assert.match(subject, passwordResetSubjectRegex);
+                assert.deepStrictEqual(message.to, [
+                    {
+                        address: user.email,
+                        name: user.nickname,
+                    },
+                ]);
 
-            const html = message.html;
-            invariant(
-                html !== undefined,
-                'HTML content of the email must be defined',
-            );
+                assert.deepEqual(message.from, {
+                    address: 'no-reply@adonisenprovence.com',
+                    name: 'MusicRoom',
+                });
 
-            const $ = cheerio.load(html);
-            const tokenElement = $('[data-testid="token"]');
-            const tokenValue = tokenElement.text().trim();
-            assert.match(tokenValue, /^\d{6}$/);
-        }
-    });
+                const subject = message.subject;
+                invariant(
+                    subject !== undefined,
+                    'The subject of the message must be defined',
+                );
+
+                const passwordResetSubjectRegex = /\[\d{6}].*reset.*password/i;
+                assert.match(subject, passwordResetSubjectRegex);
+
+                const html = message.html;
+                invariant(
+                    html !== undefined,
+                    'HTML content of the email must be defined',
+                );
+
+                const $ = cheerio.load(html);
+                const tokenElement = $('[data-testid="token"]');
+                const tokenValue = tokenElement.text().trim();
+                assert.match(tokenValue, /^\d{6}$/);
+            }
+        });
+    }
 });
 
 test.group('Validate password reset token', (group) => {
@@ -1288,71 +1300,83 @@ test.group('Reset password', (group) => {
         });
     });
 
-    test('Authenticates user with web mode if provided information are correct', async (assert) => {
-        const request = createRequest();
-
-        const user = await User.create({
-            uuid: datatype.uuid(),
-            nickname: internet.userName(),
-            email: internet.email(),
+    const passwordListToTry = [
+        {
+            label: 'Authenticates user with web mode if provided information are correct',
             password: internet.password(),
-        });
+        },
+        {
+            label: 'Authenticates user created from a Google account with web mode if provided information are correct',
+            password: undefined,
+        },
+    ];
+    for (const { label, password } of passwordListToTry) {
+        test(label, async (assert) => {
+            const request = createRequest();
 
-        const plainToken = generateToken();
-        const tokenType = await TokenType.findByOrFail(
-            'name',
-            TokenTypeName.enum.PASSWORD_RESET,
-        );
-        await user.related('tokens').create({
-            uuid: datatype.uuid(),
-            tokenTypeUuid: tokenType.uuid,
-            value: plainToken,
-            expiresAt: DateTime.local().plus({
-                minutes: 15,
-            }),
-        });
+            const user = await User.create({
+                uuid: datatype.uuid(),
+                nickname: internet.userName(),
+                email: internet.email(),
+                password,
+            });
 
-        const newPlainPassword = internet.password();
-        const requestBody: ResetPasswordRequestBody = {
-            token: plainToken,
-            email: user.email,
-            password: newPlainPassword,
-            authenticationMode: 'web',
-        };
-        const response = await request
-            .post('/authentication/reset-password')
-            .send(requestBody)
-            .expect(200);
-        const parsedResponseBody =
-            ResetPasswordSuccessfulWebAuthenticationResponseBody.parse(
-                response.body,
+            const plainToken = generateToken();
+            const tokenType = await TokenType.findByOrFail(
+                'name',
+                TokenTypeName.enum.PASSWORD_RESET,
             );
+            await user.related('tokens').create({
+                uuid: datatype.uuid(),
+                tokenTypeUuid: tokenType.uuid,
+                value: plainToken,
+                expiresAt: DateTime.local().plus({
+                    minutes: 15,
+                }),
+            });
 
-        assert.deepStrictEqual(parsedResponseBody, {
-            status: 'SUCCESS',
-        });
+            const newPlainPassword = internet.password();
+            const requestBody: ResetPasswordRequestBody = {
+                token: plainToken,
+                email: user.email,
+                password: newPlainPassword,
+                authenticationMode: 'web',
+            };
+            const response = await request
+                .post('/authentication/reset-password')
+                .send(requestBody)
+                .expect(200);
+            const parsedResponseBody =
+                ResetPasswordSuccessfulWebAuthenticationResponseBody.parse(
+                    response.body,
+                );
 
-        await user.refresh();
+            assert.deepStrictEqual(parsedResponseBody, {
+                status: 'SUCCESS',
+            });
 
-        invariant(
-            user.password !== undefined,
-            'The hashed password of the user must have been computed',
-        );
-        const hasPasswordChanged =
-            (await Hash.verify(user.password, newPlainPassword)) === true;
+            await user.refresh();
 
-        assert.isTrue(hasPasswordChanged);
-
-        const getMyProfileRawResponse = await request
-            .get('/me/profile-information')
-            .expect(200);
-        const getMyProfileParsedBody =
-            GetMyProfileInformationResponseBody.parse(
-                getMyProfileRawResponse.body,
+            invariant(
+                user.password !== undefined,
+                'The hashed password of the user must have been computed',
             );
+            const hasPasswordChanged =
+                (await Hash.verify(user.password, newPlainPassword)) === true;
 
-        assert.equal(getMyProfileParsedBody.userID, user.uuid);
-    });
+            assert.isTrue(hasPasswordChanged);
+
+            const getMyProfileRawResponse = await request
+                .get('/me/profile-information')
+                .expect(200);
+            const getMyProfileParsedBody =
+                GetMyProfileInformationResponseBody.parse(
+                    getMyProfileRawResponse.body,
+                );
+
+            assert.equal(getMyProfileParsedBody.userID, user.uuid);
+        });
+    }
 
     test('Authenticates user with api mode if provided information are correct', async (assert) => {
         const request = createRequest();

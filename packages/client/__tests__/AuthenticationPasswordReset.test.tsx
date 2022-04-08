@@ -40,7 +40,7 @@ const VALID_PASSWORD_RESET_CODE_LIST = ['123456', '654321'];
 const CURRENT_PASSWORD = 'MusicRoom is awesome!';
 
 const passwordResetMachine =
-    /** @xstate-layout N4IgpgJg5mDOIC5QAUCGtYHcD2AnCABLnGAC4B0ASmAHYRi4CWNUBsjUNzrzbAxsVoBiACoBPAA5gCYALapGAG0SgJ2dqUbYaKkAA9EAdgBsAJnKmAzAFYADLYAsATksOz1hwBoQYo2fIAHNaWpqbOxgCMprZOpgC+cd5oGDj4RCQU1HQM3GwcXCwEvLACYMLUAI4ArnCkBBLoWHiExLBkumoaWjpI+ogAtJZOEeQx1hHGkQ62lgGmE96+CAET5CZhpoZzJgEBhglJjaktGVS09EyF7Jy5xaXCALKoANbSuKik0oqMsox1xKg+AALSAddR-bq6AwIabWcjjWKGEIRWa2axOayLRAREyWciTezGJwxCLjUIHEDJJppVpkM7ZS6sa4FHg0fiCGhCJ6vAhVGjPGjYTBshi4PAEbB8PhVXBgrraKGIByrJEBByo4kYwy2YxYhATEz4gLGVwRCaI4wUqnHdJtTLnHKFBopZq2sgEPjYejssqcgDKVQARr86s7qSc7QRSNhXmyAGZ4WRyiEK3rQiK2cwrJzGNEOUIBTOGLw+RDzfzo6b5nMOPb7RKUo6u2n2hm5MM2lser3SEoc0SSaTaepNmkZbveuOMMCKCDJzSp0DQ-MOQLWAKWQzWQyhLcm3Wl-VBAL4yyzMzH6xX+IN63N05ZC7t0cR92e71931cl7SPkCoUirgYq4BKUoygQEAys+LpjpG77SAAbqg3wQB8kK9J0KY9EuZY6qMEQONuVhbDsG56qYV54rYBEREEIS2BuN6HDBr6tk+Tovm6dTwT6wgAOLYAQgaAs8UaCRIxAIVoVSwLx2EgJhC7ydC-RmnioSmMYcwrNqtiGBieoTOip45oYWzjNYJpWpxLb0uxrAdvekZTjQyFyUIAbBn8I4sVxBAuW5Ca4EmGHgkpipHuM5A4pmswEXMEROAE5HxeQIS5sYhG5uuTj1sx4ZcXZjoOTZ44BYo7niFIEpsjQYCYD5BVTjOc6hfKyllmEq4eDuCK0VYBmHkZxjkIRrj2NpbjWb5tmPsVjWdmVzBuZ+jw-gtTnusQ1S1P5CjKG1WERaSWlpS4mwrJYxjWFYyVDSatjRRmtbKgxphOOq00FbNDqMhtsHuuV7nctIno0FOwVocOPFgHoEiMMQrWqGF6E4QgFEeGlDjmZsxJzE4hlIquV0WUEmZquuX2LXaRV-Y5AN1EDq2cgJQkiWJ9SSdJsnM-OqN9PqenmOu10fa412ZiWSyhI4oxmVEhHKtqmwJA2gr0PAvR3gztO5Mytxssz5AAJIQIoYB84uAv9M4q7TCayo3VesJ6kSTjkLEjhaTYczvQEVObWx8364UdwcuQAAijCwBIiioGIuQAsCkBEB8Xw-N50boKQlsdejN0e8qxg7vmew6ndSwZvYawxDEOYzI45K3qVNNzX9IesnJkfR7H8cG0hKEyPIShidnucRZsj3zFY706pplgLIeLgjBuxofduV0kwHOtt3r+QG13Ucx3HCeFH+grCjIQHilnsA54d4VpmW-gbpENhuNRVhS9iel4tMyvUQItRPY29WK6yuPvUOht7g0G7sfPuhQ5D7SKLJOQEhSBiAIMhBg99kbtQntdNKllro4jVHWTEh5jR4g8IrWYN1dh5UbDNB8v0943CgYfHuJ9oLfXHMwAejBCA8VvrghSKMrbQnmIYD2ZkN5EwcLCQwhkCJwhsJYTMZpGLjFAYVXeED2Gd15g-fmKlxgnntqaJ2Hg0SuwIh7CiDdIguHFjon6bYOLMLgj2Th8DT4lU8e6WAVQpRwFgHGKoFVto1DvqPO+48n76lmGsNRO4dTKnnuRGI1CkqTEytMKhriWHuP8bwrxH4YEmxoAIwgQVZDkAAMLeOjkPdBSw8FHQSZlE8uk9KxGxrsMI5FNLuw8EMCiZDhjWEKa3VhHjSlvm8UbY2VTkKCP8omBpTTZL8NWUjMR+CElIjxIlVwO4rBXTVORM8J5gguFijuWILhpl0j0SU6mCzynh2WdU9ZwVyAAFV+QX0AsBUC0pEYQSgoUapUN5KKRMYgTKeIen6TCFsOY390b-3hKc2sQxcpameUHOmLcPm9gqd83ZvyQrtMfmjJxNd7Cov6RilKOZ4S1ksiuJEjgiXgLeYHCc5Lw4iBjLQAgMLPh7PhRIss254TGmulYOwHg0WZLCPiGYMtlT4uLny15-1WJCrkvEtGWxAiJWyvmUwhZNiYpOe7XMZlYq9K0paZuATiU8PeYzZaFUllmwtsY2V+ptQnliGeW6DF9KL0rhid2OYiR6RNFEXK-sPXzK9XMn1-k-U+N7n4w1floyxglbstO0rxF5wIoQ+wN1DAGmGBiUwKVlSBGiBMfMelOVTIzT6-lRauxMwpSswetTyAADl6pFuaWgjBpqBaaWcB7ew8w9jvRupsFKL8JhqOcEiLl+rZkCoZrm1y-qR0-PHVOhq9NCDNNgKgWQ0h0AehlMQGgdRtBBtpQi9GmURoLx1MEM02MbqWCuQxNYOUskom3DMI9xTB1LXPV3SlY6NmAv-JfUU4pJTgpTpBP6UTagLskZlR6iatLGgohuiDh5iLSK3PmRKThERbAcIh+yyHnJ5qWaOtZ17p13pQQQQUdQ75ikQYKKoUAgRkefgotY+lm3RE9gTBjYRHpDFuUSbMEQuPzRE0Ovjl6qW1IU-+1YVHdjuDo5kgI7s5h11olqQihmSWerPStGBlmCJtrrZsRtiUbqGT2KuXKpIP7vTde6-K-aDVAmwM+k1wa87DBuVERzbGHFXUxTa9lxcFG7vVGYxh2tWKWf6Kq0aOpLEYxdoeDwIxHnohtYWdUOZVZxCAA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QAUCGtYHcD2AnCABLnGAC4B0ASmAHYRi4CWNUBsjUNzrzbAxsVoBiACoBPAA5gCYALapGAG0SgJ2dqUbYaKkAA9EAdgBsAJnKmAzAFYADLYAsATksOz1hwBoQYo2fIAHNaWpqbOxgCMprZOpgC+cd5oGDj4RCQU1HQM3GwcXCwEvLACYMLUAI4ArnCkBBLoWHiExLBkumoaWjpI+ogAtJZOEeQx1hHGkQ62lgGmE96+CAET5CZhpoZzJgEBhglJjaktGVS09EyF7Jy5xaXCALKoANbSuKik0oqMsox1xKg+AALSAddR-bq6AwISa2chOawI1zWIKWCI2RaICIRZxrByI6LTUwBYwBA4gZJNNKtMhnbKXVjXAo8Gj8QQ0IRPV4EKo0Z40bCYVkMXB4AjYPh8Kq4MFdbRQxDWQzmJyqgLONXzBwRTEIdEo8hRULEmzOazm8mU47pNqZc45QoNFLNG1kAh8bD0NllDkAZSqACNfnUnVSTraCKRsK9WQAzPCyWUQ+W9aH9dERALkWZ2CL2GybByWXWEwzkbXBPOGbG2IKWo4uml2+m5UPWpvuz3SErs0SSaTaeoN6kZTte2OMMCKCBJzQp0BpuGmFzVyyGNHLhxzJwOQy6jPmOxDYy2Qy1ou2eKJCnD8O0rIXVu3111D1ens+zkvaS8-mC4W4KKuDipK0oEBA0pPs6I4Rm+0gAG6oN8EAfJCvSdMmPQLogbjwvYeaTIibjLqYJZOFs8LkW42qTEEtjWPW0F3s2j6Os+HZwd6jzfkQHxfD8fzpICIIzuh4JzlhfQIP0O5OGs9i2FWuzGgEJZKg45AolYLi1k4ASWGujFhi+dKsawbaNqOnEftx3K-gKQoyIBYoSlKMpiXKklppEcLKhE6weLujikT4iCFhpxjIsEWyqqqV6HExJkPg65nsVZXZcRylQ1LAIZpbBGU0nQ3Czmh2HSfiIxuLYxhboYwRBMM+7GB4mmqrmMRRJFDhGe2pzJQyQ6JR2E40EhmVCP6QaCRZMFuqN43xrgiYeZhCp6kEIz+Zesw4nMER6SWe3ZqYJ61dYJ4ouRvWWbapkpUNxkjcw402Ry4hSOKrI0GAmCPdaE5TqJqjiWVUmhA4GkeMq4zDHMQzWM1F3lsE0y1sSbg3XNLEPbNzEEAtigTVy0h4y+6TVLUBMKMoq0SetEQXVmQwhFs6ItVYqmhXqkVwjWW7aujO6WFjzH3YNZPPWNRNvV+3IejQE7Lahg6cWAegSIwxDAyAGH06mYXmhprhbNYmxOEL+7rsbLWM3RGMogk14CvQ8C9Fat33vag1MrcrJveQACSECKGApXzlJ-TOBp0zdYzphG-RurGKq8KEqSNhzMuZLXh72Pi7kvuFHc7LkAAIowsASIoqBiLkALApAvGfAQ3zBpG2DoKQ4deYbKo0cqDjEmepL7gp8kW6qJ6WMF8U3sN-Xe4X+R+5l5eV9Xtd+4hyEyPISgd13PfrZsS5RCEFtmJFCzcy4Iz6SSO5KpYkUtaLSVL1cK-F-79w0OvVca510KPZf8TkgKH1ysfA2CBTrmH0pEU0J5z5eG5lWSw5ZTyXkUjiRSex35NgLl-G4P814V0AVvQocgaZFFgHvCQpAxAECQgwbudMwbQlOtYbMF1bZbDqvVXUJIMGBQ8DmYk+Dc75S9i2YhzIii-1LuQzewDUoLwjMwHejBCCcSjEfdhEdOH+XhIYeq65raQ3onuNBOJuE2BnvMTMIRxgEMXrIxk38WSZWgeVfo4wsyx1cPHROiNuZTDTnYZcpiDK1X2FI9RMizL-U9q+DKAdlFAKgk9UcsAqiSjgLAWMVQibEEprlSBbCQaeXWumNEGCZiOMMM4HBa5mqmMCDPdGjMZhNNcXdAaWS+oFXfH-IONAtGECWrIcgABhDKld6GMJ8ZHbqFh8yxBTjENcIUliEmZgiJUtVMw7giH0xJuNpGpJGaXQO4ykLaIJgmWZ8y6GaPuTrPWHCBgeDkiPWKZ5xg2GMEdYxQwxibmXBaeJ2T+mfzUTCt01lRm3ImY85a5AACqfIHIAQga5aUTcIKDQmSrSSnzDEDEinJaIMwNmT22UdEk2ZhF6ScCnfaxgzk4wlpcsc3ZkV3N3lM5Z3lIprNpadelyp9zkW4WjU6M81wnh3Fyoh8KhmIrSaM7KtQm6S3Sl6IqEBuAAJUfXMAjcWh8VbgJOoeioEGN7ggVq+ImlRGhmuS8bKrYxAsO1Is2o0QzFVQMtiCSrn8tLjq3KereWcSNSajJlDGR5L4AUipIrFQx3Uu63cnrlzArQQEGqfrmkkkcCndEIa4XJOxnyte0bPiEH1cMt4JBiosFNZkkB2KwEijFPayputQYUuddmt1Cc81ngLTKmYfrLxuAfsqYN0KNXcsGSk+tAdG2xvDfWhNLBM0IBnijCdHrp3erQa-bMjh-LajCOqLc1b3G1vxki9kR7alD2ZR1GYZsmnFjQeaEYM89ihDRHpIecSEoIvXWG2DBMXoy2RSHMOjqGZnizLEAynNayGGGIWpYB1ETwkmBbEwG5yI5xg2utVr7yaEzIRvbt6rN1RhjAQElTaj04haqMeimwJj4eIzssKOJ77RAmEPU8W4oU0ZSXRlt80kNrxRe8tF0yAByv16MLLkAwpYVS1owNOriC2l5MzKgRKEaxuyJjwImPY5w64Lo9VXQp0NrG62MYDmpoVTztN-TJgs2AqBZDSHQO6aUxAaB1G0Ghoz+tyqmeMNmAilYcT1SsCWUDawrpbP1GeEW7n86efo1LV6ArUVTMxb2xy-bgL4u1uBSChRSk5SHeSp1pm4RstoiSBOkLAO7LXGWeqQ8DpxVMeqZ9SSlN1B81V9TNXAu6boQKOouVRRUIFFUKAQIj2mY0qY9qoQYjRCcCWMIcIEbHj0gdU5JWxZlfm4h6WqnBUPOFehkzkRUt9dJANs2SISy6UCNEGKmGETUfnrBxTvLFsfp++VHE2p+P-qE8Maz+49gaXIozHcYQp5vyex-F9QJsDhe8cjqScNNJRACLFBOMxaolkZ6l4wTSaKuBsJZrln72apZzIpfM-6iy6g8CMWIbK8yIi0tqJ2cQgA */
     createMachine(
         {
             context: {
@@ -86,6 +86,9 @@ const passwordResetMachine =
                       }
                     | {
                           type: 'Make unknown error occur during password reset code validation';
+                      }
+                    | {
+                          type: 'Request password reset code resending';
                       }
                     | {
                           type: 'Submit password reset token form';
@@ -346,8 +349,55 @@ const passwordResetMachine =
                                 },
                             },
                         },
-                        'Token validated': {
-                            type: 'final',
+                        'Requested password reset code resending': {
+                            initial: 'Displaying reached rate limit toast',
+                            states: {
+                                'Displaying reached rate limit toast': {
+                                    meta: {
+                                        test: async () => {
+                                            await waitFor(() => {
+                                                expect(
+                                                    Toast.show,
+                                                ).toHaveBeenCalledWith({
+                                                    type: 'error',
+                                                    text1: expect.any(String),
+                                                    text2: expect.any(String),
+                                                });
+                                            });
+                                        },
+                                    },
+                                },
+                                'Displaying success toast': {
+                                    meta: {
+                                        test: async () => {
+                                            await waitFor(() => {
+                                                expect(
+                                                    Toast.show,
+                                                ).toHaveBeenCalledWith({
+                                                    type: 'success',
+                                                    text1: expect.any(String),
+                                                    text2: expect.any(String),
+                                                });
+                                            });
+                                        },
+                                    },
+                                },
+                                'Displaying unknown error toast': {
+                                    meta: {
+                                        test: async () => {
+                                            await waitFor(() => {
+                                                expect(
+                                                    Toast.show,
+                                                ).toHaveBeenCalledWith({
+                                                    type: 'error',
+                                                    text1: expect.any(String),
+                                                    text2: expect.any(String),
+                                                });
+                                            });
+                                        },
+                                    },
+                                },
+                            },
                         },
                     },
                     on: {
@@ -381,6 +431,26 @@ const passwordResetMachine =
                             cond: 'Has not reached going back limit',
                             target: 'Rendering signing in screen',
                         },
+                        'Make rate limit reached': {
+                            actions:
+                                'Assign rate limit has been reached to context',
+                        },
+                        'Make unknown error occur': {
+                            actions: 'Assign unknown error occured to context',
+                        },
+                        'Request password reset code resending': [
+                            {
+                                cond: 'Has reached rate limit',
+                                target: '.Requested password reset code resending.Displaying reached rate limit toast',
+                            },
+                            {
+                                cond: 'Has unknown error occured',
+                                target: '.Requested password reset code resending.Displaying unknown error toast',
+                            },
+                            {
+                                target: '.Requested password reset code resending.Displaying success toast',
+                            },
+                        ],
                     },
                 },
                 'Rendering password reset final screen': {
@@ -759,6 +829,15 @@ const resetPasswordTestModel = createTestModel<TestingContext>(
         );
     },
 
+    'Request password reset code resending': async ({ screen }) => {
+        const requestPasswordResetCodeResendingButton = await screen.findByText(
+            /send.*new.*code/i,
+        );
+        expect(requestPasswordResetCodeResendingButton).toBeTruthy();
+
+        fireEvent.press(requestPasswordResetCodeResendingButton);
+    },
+
     'Type on password reset code field': async ({ screen }, e) => {
         const event = e as EventFrom<
             typeof passwordResetMachine,
@@ -1021,6 +1100,134 @@ cases<{
                 },
                 {
                     type: 'Request password reset',
+                },
+            ],
+        },
+    },
+);
+
+cases<{
+    target: {
+        'Rendering password reset code screen': {
+            'Requested password reset code resending':
+                | 'Displaying reached rate limit toast'
+                | 'Displaying success toast'
+                | 'Displaying unknown error toast';
+        };
+    };
+    events: EventFrom<typeof passwordResetMachine>[];
+}>(
+    'Request password reset email resending',
+    async ({ target, events }) => {
+        db.authenticationUser.create(existingUser);
+        db.myProfileInformation.create({
+            userID: existingUser.uuid,
+            devicesCounter: 3,
+            playlistsCounter: 4,
+            followersCounter: 5,
+            followingCounter: 6,
+            userNickname: existingUser.nickname,
+            hasConfirmedEmail: true,
+        });
+
+        const screen = await renderUnauthenticatedApp();
+
+        const plan = resetPasswordTestModel.getPlanFromEvents(events, {
+            target,
+        });
+
+        await plan.test({ screen });
+    },
+    {
+        'Shows success toast when password reset requesting succeeded': {
+            target: {
+                'Rendering password reset code screen': {
+                    'Requested password reset code resending':
+                        'Displaying success toast',
+                },
+            },
+            events: [
+                {
+                    type: 'Type email',
+                    email: existingUser.email,
+                },
+                {
+                    type: 'Request password reset',
+                },
+                {
+                    type: 'Request password reset code resending',
+                },
+            ],
+        },
+        'Shows error toast when rate limit is reached': {
+            target: {
+                'Rendering password reset code screen': {
+                    'Requested password reset code resending':
+                        'Displaying reached rate limit toast',
+                },
+            },
+            events: [
+                {
+                    type: 'Type email',
+                    email: existingUser.email,
+                },
+                {
+                    type: 'Request password reset',
+                },
+                {
+                    type: 'Make rate limit reached',
+                },
+                {
+                    type: 'Request password reset code resending',
+                },
+            ],
+        },
+        'Shows error toast when an unknown error occured': {
+            target: {
+                'Rendering password reset code screen': {
+                    'Requested password reset code resending':
+                        'Displaying unknown error toast',
+                },
+            },
+            events: [
+                {
+                    type: 'Type email',
+                    email: existingUser.email,
+                },
+                {
+                    type: 'Request password reset',
+                },
+                {
+                    type: 'Make unknown error occur',
+                },
+                {
+                    type: 'Request password reset code resending',
+                },
+            ],
+        },
+        'Users can request a password reset resending several times': {
+            target: {
+                'Rendering password reset code screen': {
+                    'Requested password reset code resending':
+                        'Displaying reached rate limit toast',
+                },
+            },
+            events: [
+                {
+                    type: 'Type email',
+                    email: existingUser.email,
+                },
+                {
+                    type: 'Request password reset',
+                },
+                {
+                    type: 'Request password reset code resending',
+                },
+                {
+                    type: 'Make rate limit reached',
+                },
+                {
+                    type: 'Request password reset code resending',
                 },
             ],
         },

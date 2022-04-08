@@ -23,6 +23,7 @@ export const appModel = createModel(
             SUBMIT_PASSWORD_RESET_CONFIRMATION_CODE_FORM: (args: {
                 code: string;
             }) => args,
+            RESEND_PASSWORD_RESET_CODE: () => ({}),
             SUBMIT_PASSWORD_RESET_NEW_PASSWORD_FORM: (args: {
                 password: string;
             }) => args,

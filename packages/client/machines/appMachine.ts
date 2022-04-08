@@ -328,14 +328,84 @@ export function createAppMachine({
                                 },
 
                                 validatingCode: {
-                                    initial: 'waitingForCode',
+                                    type: 'parallel',
 
                                     states: {
-                                        waitingForCode: {
+                                        handlingCodeFilling: {
+                                            initial: 'waitingForCode',
+
+                                            states: {
+                                                waitingForCode: {
+                                                    on: {
+                                                        SUBMIT_PASSWORD_RESET_CONFIRMATION_CODE_FORM:
+                                                            {
+                                                                target: 'sendingValidationRequest',
+
+                                                                actions:
+                                                                    appModel.assign(
+                                                                        {
+                                                                            passwordResetCode:
+                                                                                (
+                                                                                    _,
+                                                                                    event,
+                                                                                ) =>
+                                                                                    event.code,
+                                                                        },
+                                                                    ),
+                                                            },
+                                                    },
+                                                },
+
+                                                sendingValidationRequest: {
+                                                    invoke: {
+                                                        src: 'validatePasswordResetCode',
+
+                                                        onDone: [
+                                                            {
+                                                                cond: 'isPasswordResetCodeInvalid',
+
+                                                                target: 'codeIsInvalid',
+                                                            },
+                                                            {
+                                                                target: 'codeIsValid',
+
+                                                                actions: [
+                                                                    'showToastForValidPasswordResetCode',
+                                                                    'redirectToPasswordResetFinalScreen',
+                                                                ],
+                                                            },
+                                                        ],
+
+                                                        onError: {
+                                                            target: 'unknownErrorOccuredDuringValidation',
+
+                                                            actions:
+                                                                'showToastForUnknownErrorDuringPasswordResetCodeValidation',
+                                                        },
+                                                    },
+
+                                                    on: {
+                                                        SUBMIT_PASSWORD_RESET_CONFIRMATION_CODE_FORM:
+                                                            undefined,
+                                                    },
+                                                },
+
+                                                codeIsValid: {
+                                                    type: 'final',
+                                                },
+
+                                                codeIsInvalid: {
+                                                    tags: 'passwordResetCodeIsInvalid',
+                                                },
+
+                                                unknownErrorOccuredDuringValidation:
+                                                    {},
+                                            },
+
                                             on: {
                                                 SUBMIT_PASSWORD_RESET_CONFIRMATION_CODE_FORM:
                                                     {
-                                                        target: 'sendingValidationRequest',
+                                                        target: '.sendingValidationRequest',
 
                                                         actions:
                                                             appModel.assign({
@@ -348,69 +418,74 @@ export function createAppMachine({
                                                             }),
                                                     },
                                             },
+
+                                            onDone: {
+                                                target: '#app.waitingForUserAuthentication.passwordResetting.settingNewPassword',
+                                            },
                                         },
 
-                                        sendingValidationRequest: {
-                                            invoke: {
-                                                src: 'validatePasswordResetCode',
+                                        handlingPasswordResetCodeResending: {
+                                            initial: 'idle',
 
-                                                onDone: [
-                                                    {
-                                                        cond: 'isPasswordResetCodeInvalid',
+                                            states: {
+                                                idle: {},
 
-                                                        target: 'codeIsInvalid',
-                                                    },
-                                                    {
-                                                        target: 'codeIsValid',
+                                                sendingRequest: {
+                                                    invoke: {
+                                                        src: 'requestPasswordReset',
 
-                                                        actions: [
-                                                            'showToastForValidPasswordResetCode',
-                                                            'redirectToPasswordResetFinalScreen',
+                                                        onDone: [
+                                                            {
+                                                                cond: 'hasReachedRateLimitForPasswordResetRequests',
+
+                                                                target: 'reachedRateLimitForPasswordResetRequests',
+
+                                                                actions:
+                                                                    'showToastForRateLimitedPasswordResetRequests',
+                                                            },
+                                                            {
+                                                                cond: 'isProvidedEmailInvalid',
+
+                                                                target: 'providedEmailIsInvalid',
+
+                                                                actions:
+                                                                    'showToastForFailedPasswordResetAsEmailIsInvalid',
+                                                            },
+                                                            {
+                                                                target: 'requestedPasswordResetSuccessfully',
+
+                                                                actions:
+                                                                    'showToastForSuccessfulPasswordResetRequesting',
+                                                            },
                                                         ],
+
+                                                        onError: {
+                                                            target: 'erredRequestingPasswordReset',
+
+                                                            actions:
+                                                                'showToastForFailedPasswordResetRequesting',
+                                                        },
                                                     },
-                                                ],
-
-                                                onError: {
-                                                    target: 'unknownErrorOccuredDuringValidation',
-
-                                                    actions:
-                                                        'showToastForUnknownErrorDuringPasswordResetCodeValidation',
                                                 },
+
+                                                providedEmailIsInvalid: {},
+
+                                                reachedRateLimitForPasswordResetRequests:
+                                                    {},
+
+                                                erredRequestingPasswordReset:
+                                                    {},
+
+                                                requestedPasswordResetSuccessfully:
+                                                    {},
                                             },
 
                                             on: {
-                                                SUBMIT_PASSWORD_RESET_CONFIRMATION_CODE_FORM:
-                                                    undefined,
+                                                RESEND_PASSWORD_RESET_CODE: {
+                                                    target: '.sendingRequest',
+                                                },
                                             },
                                         },
-
-                                        codeIsValid: {
-                                            type: 'final',
-                                        },
-
-                                        codeIsInvalid: {
-                                            tags: 'passwordResetCodeIsInvalid',
-                                        },
-
-                                        unknownErrorOccuredDuringValidation: {},
-                                    },
-
-                                    on: {
-                                        SUBMIT_PASSWORD_RESET_CONFIRMATION_CODE_FORM:
-                                            {
-                                                target: 'validatingCode.sendingValidationRequest',
-
-                                                actions: appModel.assign({
-                                                    passwordResetCode: (
-                                                        _,
-                                                        event,
-                                                    ) => event.code,
-                                                }),
-                                            },
-                                    },
-
-                                    onDone: {
-                                        target: 'settingNewPassword',
                                     },
                                 },
 
@@ -546,7 +621,7 @@ export function createAppMachine({
                                 },
 
                                 SUBMIT_PASSWORD_RESET_CONFIRMATION_CODE_FORM: {
-                                    target: '.validatingCode.sendingValidationRequest',
+                                    target: '.validatingCode.handlingCodeFilling.sendingValidationRequest',
 
                                     actions: appModel.assign({
                                         passwordResetCode: (_, event) =>

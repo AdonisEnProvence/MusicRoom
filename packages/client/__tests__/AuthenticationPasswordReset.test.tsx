@@ -21,6 +21,7 @@ import {
     within,
     generateWeakPassword,
     generateStrongPassword,
+    TEST_STRONG_PASSWORD,
 } from '../tests/tests-utils';
 import { server } from '../tests/server/test-server';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
@@ -30,11 +31,16 @@ interface TestingContext {
     screen: ReturnType<typeof render>;
 }
 
-const VALID_PASSWORD_RESET_CODE = '123456';
+/**
+ * We need to use different codes to make the context change
+ * when providing a code several times, so that `@xstate/test`
+ * can return to a state node.
+ */
+const VALID_PASSWORD_RESET_CODE_LIST = ['123456', '654321'];
 const CURRENT_PASSWORD = 'MusicRoom is awesome!';
 
 const passwordResetMachine =
-    /** @xstate-layout N4IgpgJg5mDOIC5QAUCGtYHcD2AnCABLnGAC4B0ASmAHYRi4CWNUBsjUNzrzbAxsVoBiACoBPAA5gCYALapGAG0SgJ2dqUbYaKkAA9EAdgBsAJnKmAzAFYADLYAsATksOz1hwBoQYo2fIAHNaWpqbOxgCMprZOpgC+cd5oGDj4RCQU1HQM3GwcXCwEvLACYMLUAI4ArnCkBBLoWHiExLBkumoaWjpI+ogAtJZOEeQx1hHGkQ62lgGmE96+CAET5CZhpoZzJgEBhglJjaktGVS09EyF7Jy5xaXCALKoANbSuKik0oqMsox1xKg+AALSAddR-bq6AwIabWcjjWKGEIRWa2axOayLRAREyWciTezGJwxCLjUIHEDJJppVpkM7ZS6sa4FHg0fiCGhCJ6vAhVGjPGjYTBshi4PAEbB8PhVXBgrraKGIByrJEBByo4kYwy2YxYhATEz4gLGVwRCaI4wUqnHdJtTLnHKFBopZq2sgEPjYejssqcgDKVQARr86s7qSc7QRSNhXmyAGZ4WRyiEK3rQiK2cwrJzGNEOUIBTOGLw+RDzfzo6b5nMOPb7RKUo6u2n2hm5MM2lser3SEoc0SSaTaepNmkZbveuOMMCKCDJzSp0DQ-MOQLWAKWQzWQyhLcm3Wl-VBAL4yyzMzH6xX+IN63N05ZC7t0cR92e71931cl7SPkCoUirgYq4BKUoygQEAys+LpjpG77SAAbqg3wQB8kK9J0KY9EuZY6qMEQONuVhbDsG56qYV54rYBEREEIS2BuN6HDBr6tk+Tovm6dRTjQyE+sIAbBn8I4sVxBA8XxCa4EmGHggu2F9Ee4zkDimazARcwRE4ATkRp5AhLmxiEbm65OPWzHhlx9LsawHb3pGEmKPxnLiFIEpsjQYCYCJllTjOc6yfKCnQqEDirh4O4IrRVgYnqEzWMY5CEa49hzGqlq3pxLbWY6tlZeOjnOd+PJ2bB7rENUtTiQoyiBVhir6glJ5DCEWwosY1hWDph4TJYtgqRmtbKgxphOOqVr5XaOWMj5nYFcwfGfo8P7djQU7SWhw7wTIegSIwxABaocnoThCAUR4+kOFsnWGMScxOHFSKrpYHWkkEmZquuCQNoK9DwL0d5lWxuV5DchR3By5AAJIQIoYDzidin9M4q7TCayqdVesJ6kSTjkLEjjGBu66hNpE2idlj4g8ytxsktNDkAAIowsASIoqBiLkALApARAfF8PzCdG6CkAji6KRR5hjQaGx7Dq3VLBm9hrDEMQ5jMjjkplFMPg6M00+DdP3AzzOs+znOG0hKEyPIShRtgIti8FZbahYUQhMSZgmgsh4uCMG7GmN24vS91jk5ZlN67kBuss5TMs2zHO5H+grCjIQHisLsCi3V8kNaY-gbpENhuNRVglorthIklVeZtRBHUXs4dzVNVP6-ktNx6bicW6wcg1UUsA2xIpBiAQyEMDnR1BfnHX6Qlr1bLWhhbnqxp4h4hHqkEpi7OZjY663UdXB3htdwn5vQRH47MFbjCENtWdTyAmF52mZY4vjK-B09YVooYcUCJwhsH1eYtEQjjGbvZOkbdo6n1jvTJ2DV+jjBPGjU0mMPBohxgRfGFEPodV3n1fegNWLTSvi3N8PZz5myThxQ+7pYBVClHAWAcYqhOQqjUbO9tHa50RumWYawQE7h1MqAulhyIxA3tpSYRlpjrygUDch9Dr5wWofTaGNA76ECkrIcgABhahLNh6jyQe-BARkTzansLdMIWw5gVzLAXPGHghgUTVAEYYYdtZqJgcfPKDC6jbU0VDbRyF77iUTIY4xQ9b4RMOi-Y64toRIjxFpVwO4rAvTVORM8J5gguDUjuWILglFkNgaoyhwSNHGy0ToqJ0lyAAFV+Sp0AsBUC0oDoQSgoUHRm0FKvwEYgIyeIbFV1iFdXYYRyLTEMPCTJtYhhmS1OUqylTAl+JqR+OpYSGl6PMadSIeMJl2OmY43SOZ4S1gShiMZRkSGTX8W2Kp0Cdm9jqSIGMtACADM+Ik4ZKSyzbnhMaQhNg8z2KkWEfEMxQiOBRE4HMTygkqK2dUicnyORHMUlsQIWkTL5l3kWJx+oXB41zCvZUGTCJePWZHV5GL3niQWk5UJsN4b8OBfqbUJ5Yhni6gxW6PtFYYjxjmIkVdvajS2Ay3WTLZossKpo7ul83lA3trGP5CT+aAuSc7fUbg4T2BugaYYGJTC6WVIEaIEx8xV1uT4iy1T0VKs1SqvZ4TrZ6PIAAOS8u6wgJi5AjyWNPeqFiC7OHxvYeYexRqdU2LpQuvVgjOCRAlBw8qj6KtKqxVlvF2VeoOdEgN3l82DzYKgWQ0h0AehlMQGgdRtBcojW-U60bEqWAzB1HtBEtxWDyQxNYplpEom3DMHNLybJBrEp6yG+yEmNP0a0-8adRTiklN03mkEZpcNqLikKRl+qSqJsaSWGJJGHmIgsrc+YtLIs2EvadwMZqVq7Au309Tl2+vLXOkxgo6jZzFIUWg2AqhQCBEess8i1i3UtdEAmD0b1hH6kMQpRJswRFfW6j980i1xyXT6xMMGzqRESme3Y7hE3XqWNELxtqq7jBShuHDvjXWbLnZ+tlzkyMERtaazY5qtKdTinsVcZlSQsbcMWYsuGuNAmwLWvj3LDXDAKVELxT67AvTJbva5xhizKnRjYWiqLtlkZQfmGu6NSTnWxoeDwIxSlGasETEllhvpxCAA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QAUCGtYHcD2AnCABLnGAC4B0ASmAHYRi4CWNUBsjUNzrzbAxsVoBiACoBPAA5gCYALapGAG0SgJ2dqUbYaKkAA9EAdgBsAJnKmAzAFYADLYAsATksOz1hwBoQYo2fIAHNaWpqbOxgCMprZOpgC+cd5oGDj4RCQU1HQM3GwcXCwEvLACYMLUAI4ArnCkBBLoWHiExLBkumoaWjpI+ogAtJZOEeQx1hHGkQ62lgGmE96+CAET5CZhpoZzJgEBhglJjaktGVS09EyF7Jy5xaXCALKoANbSuKik0oqMsox1xKg+AALSAddR-bq6AwIabWcjjWKGEIRWa2axOayLRAREyWciTezGJwxCLjUIHEDJJppVpkM7ZS6sa4FHg0fiCGhCJ6vAhVGjPGjYTBshi4PAEbB8PhVXBgrraKGIByrJEBByo4kYwy2YxYhATEz4gLGVwRCaI4wUqnHdJtTLnHKFBopZq2sgEPjYejssqcgDKVQARr86s7qSc7QRSNhXmyAGZ4WRyiEK3rQiK2cwrJzGNEOUIBTOGLw+RDzfzo6b5nMOPb7RKUo6u2n2hm5MM2lser3SEoc0SSaTaepNmkZbveuOMMCKCDJzSp0DQ-MOQLWAKWQzWQyhLcm3Wl-VBAL4yyzMzH6xX+IN63N05ZC7t0cR92e71931cl7SPkCoUirgYq4BKUoygQEAys+LpjpG77SAAbqg3wQB8kK9J0KY9EuZY6qMEQONuVhbDsG56qYV54rYBEREEIS2BuN6HDBr6tk+Tovm6dTwT6wgAOLYAQgaAs8UaCRIxAIVoVSwLx2EgJhC7ydC-RmnioSmMYcwrNqtiGBieoTOip45oYWzjNYJpWpxLb0uxrAdvekZTjQyFyUIAbBn8I4sVxBAuW5Ca4EmGHgkpipHuM5A4pmswEXMEROAE5HxeQIS5sYhG5uuTj1sx4ZcXZjoOTZ44BYo7niFIEpsjQYCYD5BVTjOc6hfKyllmEq4eDuCK0VYBmHkZxjkIRrj2NpbjWb5tmPsVjWdmVzBuZ+jw-gtTnusQ1S1P5CjKG1WERaSWlpS4mwrJYxjWFYyVDSatjRRmtbKgxphOOq00FbNDqMhtsHuuV7nctIno0FOwVocOPFgHoEiMMQrWqGF6E4QgFEeGlDjmZsxJzE4hlIquV0WUEmZquuX2LXaRV-Y5AN1EDq2cgJQkiWJ9SSdJsnM-OqN9PqenmOu10fa412ZiWSyhI4oxmVEhHKtqmwJA2gr0PAvR3gztO5Mytxssz5AAJIQIoYB84uAv9M4q7TCayo3VesJ6kSTjkLEjhaTYczvQEVObWx8364UdwcuQAAijCwBIiioGIuQAsCkBEB8Xw-N50boKQlsdejN0e8qxg7vmew6ndSwZvYawxDEOYzI45K3qVNNzX9IesnJkfR7H8cG0hKEyPIShidnucRZsj3zFY706pplgLIeLgjBuxofduV0kwHOtt3r+QG13Ucx3HCeFH+grCjIQHilnsA54d4VpmW-gbpENhuNRVhS9iel4tMyvUQItRPY29WK6yuPvUOht7g0G7sfPuhQ5D7SKLJOQEhSBiAIMhBg99kbtQntdNKllro4jVHWTEh5jR4g8IrWYN1dh5UbDNB8v0943CgYfHuJ9oLfXHMwAejBCA8VvrghSKMrbQnmIYD2ZkN5EwcLCQwhkCJwhsJYTMZpGLjFAYVXeED2Gd15g-fmKlxgnntqaJ2Hg0SuwIh7CiDdIguHFjon6bYOLMLgj2Th8DT4lU8e6WAVQpRwFgHGKoFVto1DvqPO+48n76lmGsNRO4dTKnnuRGI1CkqTEytMKhriWHuP8bwrxH4YEmxoAIwgQVZDkAAMLeOjkPdBSw8FHQSZlE8uk9KxGxrsMI5FNLuw8EMCiZDhjWEKa3VhHjSlvm8UbY2VTkKCP8omBpTTZL8NWUjMR+CElIjxIlVwO4rBXTVORM8J5gguFijuWILhpl0j0SU6mCzynh2WdU9ZwVyAAFV+QX0AsBUC0pEYQSgoUapUN5KKRMYgTKeIen6TCFsOY390b-3hKc2sQxcpameUHOmLcPm9gqd83ZvyQrtMfmjJxNd7Cov6RilKOZ4S1ksiuJEjgiXgLeYHCc5Lw4iBjLQAgMLPh7PhRIss254TGmulYOwHg0WZLCPiGYMtlT4uLny15-1WJCrkvEtGWxAiJWyvmUwhZNiYpOe7XMZlYq9K0paZuATiU8PeYzZaFUllmwtsY2V+ptQnliGeW6DF9KL0rhid2OYiR6RNFEXK-sPXzK9XMn1-k-U+N7n4w1floyxglbstO0rxF5wIoQ+wN1DAGmGBiUwKVlSBGiBMfMelOVTIzT6-lRauxMwpSswetTyAADl6pFuaWgjBpqBaaWcB7ew8w9jvRupsFKL8JhqOcEiLl+rZkCoZrm1y-qR0-PHVOhq9NCDNNgKgWQ0h0AehlMQGgdRtBBtpQi9GmURoLx1MEM02MbqWCuQxNYOUskom3DMI9xTB1LXPV3SlY6NmAv-JfUU4pJTgpTpBP6UTagLskZlR6iatLGgohuiDh5iLSK3PmRKThERbAcIh+yyHnJ5qWaOtZ17p13pQQQQUdQ75ikQYKKoUAgRkefgotY+lm3RE9gTBjYRHpDFuUSbMEQuPzRE0Ovjl6qW1IU-+1YVHdjuDo5kgI7s5h11olqQihmSWerPStGBlmCJtrrZsRtiUbqGT2KuXKpIP7vTde6-K-aDVAmwM+k1wa87DBuVERzbGHFXUxTa9lxcFG7vVGYxh2tWKWf6Kq0aOpLEYxdoeDwIxHnohtYWdUOZVZxCAA */
     createMachine(
         {
             context: {
@@ -46,6 +52,7 @@ const passwordResetMachine =
                 hasUnknownErrorOccuredDuringPasswordResetCodeValidation: false,
                 newPassword: '',
                 hasUnknownErrorOccuredDuringPasswordReset: false,
+                wentBackTimes: 0,
             },
             schema: {
                 context: {} as {
@@ -57,6 +64,7 @@ const passwordResetMachine =
                     hasUnknownErrorOccuredDuringPasswordResetCodeValidation: boolean;
                     newPassword: string;
                     hasUnknownErrorOccuredDuringPasswordReset: boolean;
+                    wentBackTimes: number;
                 },
                 events: {} as
                     | {
@@ -94,6 +102,9 @@ const passwordResetMachine =
                       }
                     | {
                           type: 'Make password reset request fail';
+                      }
+                    | {
+                          type: 'Go back to previous screen';
                       },
             },
             initial: 'Rendering signing in screen',
@@ -365,9 +376,27 @@ const passwordResetMachine =
                                 actions:
                                     'Assign unknown error occured during password reset code validation to context',
                             },
+                        'Go back to previous screen': {
+                            actions: 'Increment went back times in context',
+                            cond: 'Has not reached going back limit',
+                            target: 'Rendering signing in screen',
+                        },
                     },
                 },
                 'Rendering password reset final screen': {
+                    meta: {
+                        test: async ({ screen }: TestingContext) => {
+                            await waitFor(() => {
+                                const passwordResetNewPasswordScreenContainer =
+                                    screen.getByTestId(
+                                        'password-reset-new-password-screen-container',
+                                    );
+                                expect(
+                                    passwordResetNewPasswordScreenContainer,
+                                ).toBeTruthy();
+                            });
+                        },
+                    },
                     initial: 'Idle',
                     states: {
                         Idle: {},
@@ -523,6 +552,11 @@ const passwordResetMachine =
                             actions:
                                 'Assign password reset code has expired to context',
                         },
+                        'Go back to previous screen': {
+                            actions: 'Increment went back times in context',
+                            cond: 'Has not reached going back limit',
+                            target: 'Rendering password reset code screen',
+                        },
                     },
                 },
                 'Rendering home screen': {
@@ -572,7 +606,15 @@ const passwordResetMachine =
                         return true;
                     }
 
-                    return passwordResetCode !== VALID_PASSWORD_RESET_CODE;
+                    if (passwordResetCode === undefined) {
+                        return true;
+                    }
+
+                    return (
+                        VALID_PASSWORD_RESET_CODE_LIST.includes(
+                            passwordResetCode,
+                        ) === false
+                    );
                 },
 
                 'Has unknown error occured during token validation': (
@@ -594,6 +636,13 @@ const passwordResetMachine =
                 'Has unknown error occured during password reset request': ({
                     hasUnknownErrorOccuredDuringPasswordReset,
                 }) => hasUnknownErrorOccuredDuringPasswordReset === true,
+
+                /**
+                 * To prevent infinite loop during path creation, we need to limit how
+                 * many times we authorize the user to go back to the previous screen.
+                 */
+                'Has not reached going back limit': ({ wentBackTimes }) =>
+                    wentBackTimes < 2,
             },
             actions: {
                 'Assign typed email to context': assign({
@@ -646,6 +695,10 @@ const passwordResetMachine =
                         hasUnknownErrorOccuredDuringPasswordReset: (_context) =>
                             true,
                     }),
+
+                'Increment went back times in context': assign({
+                    wentBackTimes: (context) => context.wentBackTimes + 1,
+                }),
             },
         },
     );
@@ -822,6 +875,13 @@ const resetPasswordTestModel = createTestModel<TestingContext>(
                 },
             ),
         );
+    },
+
+    'Go back to previous screen': async ({ screen }) => {
+        const goBackButtons = await screen.findAllByLabelText(/go.*back/i);
+        const lastGoBackButton = goBackButtons[goBackButtons.length - 1];
+
+        fireEvent.press(lastGoBackButton);
     },
 });
 
@@ -1075,7 +1135,7 @@ cases<{
                     },
                     {
                         type: 'Type on password reset code field',
-                        code: VALID_PASSWORD_RESET_CODE,
+                        code: VALID_PASSWORD_RESET_CODE_LIST[0],
                     },
                     {
                         type: 'Submit password reset token form',
@@ -1098,7 +1158,7 @@ cases<{
                 },
                 {
                     type: 'Type on password reset code field',
-                    code: VALID_PASSWORD_RESET_CODE,
+                    code: VALID_PASSWORD_RESET_CODE_LIST[0],
                 },
                 {
                     type: 'Submit password reset token form',
@@ -1326,6 +1386,54 @@ cases<{
                     {
                         type: 'Type on new password field',
                         newPassword: generateStrongPassword(),
+                    },
+                    {
+                        type: 'Submit password reset final form',
+                    },
+                ],
+            },
+
+        'Goes up to new password screen, goes back to signing in screen and then submits again all forms to finally get authenticated':
+            {
+                target: 'Rendering home screen',
+                events: [
+                    {
+                        type: 'Type email',
+                        email: existingUser.email,
+                    },
+                    {
+                        type: 'Request password reset',
+                    },
+                    {
+                        type: 'Type on password reset code field',
+                        code: VALID_PASSWORD_RESET_CODE_LIST[0],
+                    },
+                    {
+                        type: 'Submit password reset token form',
+                    },
+                    {
+                        type: 'Type on new password field',
+                        newPassword: TEST_STRONG_PASSWORD[0],
+                    },
+                    {
+                        type: 'Go back to previous screen',
+                    },
+                    {
+                        type: 'Go back to previous screen',
+                    },
+                    {
+                        type: 'Request password reset',
+                    },
+                    {
+                        type: 'Type on password reset code field',
+                        code: VALID_PASSWORD_RESET_CODE_LIST[1],
+                    },
+                    {
+                        type: 'Submit password reset token form',
+                    },
+                    {
+                        type: 'Type on new password field',
+                        newPassword: TEST_STRONG_PASSWORD[1],
                     },
                     {
                         type: 'Submit password reset final form',

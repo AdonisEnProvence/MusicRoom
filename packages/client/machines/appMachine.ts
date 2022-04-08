@@ -524,6 +524,36 @@ export function createAppMachine({
                                     },
                                 },
                             },
+
+                            /**
+                             * When users go back to previous screens in password reset wizard form,
+                             * we allow `appMachine` to be desynchronized from the currently displayed screen.
+                             * But when the user submits the form of one of the screens, we synchronize back
+                             * the machine.
+                             * The events listened here permit to synchronize the machine.
+                             *
+                             * We do not listen to `SUBMIT_PASSWORD_RESET_NEW_PASSWORD_FORM` event,
+                             * the submission event for the last screen, as to be on the last screen,
+                             * the machine has to be synchronized with the currently displayed screen.
+                             */
+                            on: {
+                                REQUEST_PASSWORD_RESET: {
+                                    target: '.requestingPasswordReset',
+
+                                    actions: appModel.assign({
+                                        email: (_, event) => event.email,
+                                    }),
+                                },
+
+                                SUBMIT_PASSWORD_RESET_CONFIRMATION_CODE_FORM: {
+                                    target: '.validatingCode.sendingValidationRequest',
+
+                                    actions: appModel.assign({
+                                        passwordResetCode: (_, event) =>
+                                            event.code,
+                                    }),
+                                },
+                            },
                         },
 
                         signingUp: {

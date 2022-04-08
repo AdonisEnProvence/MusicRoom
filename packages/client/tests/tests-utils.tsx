@@ -32,7 +32,15 @@ const queryClient = new QueryClient({
     },
 });
 
-const TEST_STRONG_PASSWORD: string[] = [
+/**
+ * Exported for when we need to be sure to use different passwords.
+ * In that case, we access available passwords directly from this array:
+ *
+ * ```ts
+ * const password = TEST_STRONG_PASSWORD[0]
+ * ```
+ */
+export const TEST_STRONG_PASSWORD: string[] = [
     'yolo super strong password',
     '69 Jean-Louis Murat is one of the best singers! 96',
 ];

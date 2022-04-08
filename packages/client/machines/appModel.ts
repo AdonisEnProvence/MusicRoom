@@ -35,6 +35,10 @@ export const appModel = createModel(
             RECEIVED_GOOGLE_OAUTH_RESPONSE: (args: {
                 googleResponse: AuthSessionResult;
             }) => args,
+            __RETRIEVED_USER_GOOGLE_ACCESS_TOKEN_SUCCESSFULLY: (
+                userGoogleAccessToken: string,
+            ) => ({ userGoogleAccessToken }),
+            __FAILED_TO_RETRIEVE_USER_GOOGLE_ACCESS_TOKEN: () => ({}),
             ///
 
             ACKNOWLEDGE_SOCKET_CONNECTION: () => ({}),

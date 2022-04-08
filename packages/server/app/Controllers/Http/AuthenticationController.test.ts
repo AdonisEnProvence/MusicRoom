@@ -1207,6 +1207,43 @@ test.group('Reset password', (group) => {
         });
     });
 
+    test('Returns an error if password is not strong enough', async () => {
+        const request = createRequest();
+
+        const userPlainPassword = 'weak';
+        const user = await User.create({
+            uuid: datatype.uuid(),
+            nickname: internet.userName(),
+            email: internet.email(),
+            password: userPlainPassword,
+        });
+
+        const plainToken = generateToken();
+        const tokenType = await TokenType.findByOrFail(
+            'name',
+            TokenTypeName.enum.PASSWORD_RESET,
+        );
+        await user.related('tokens').create({
+            uuid: datatype.uuid(),
+            tokenTypeUuid: tokenType.uuid,
+            value: plainToken,
+            expiresAt: DateTime.local().plus({
+                minutes: 15,
+            }),
+        });
+
+        const requestBody: ResetPasswordRequestBody = {
+            token: plainToken,
+            email: user.email,
+            password: userPlainPassword,
+            authenticationMode: 'web',
+        };
+        await request
+            .post('/authentication/reset-password')
+            .send(requestBody)
+            .expect(500);
+    });
+
     test('Returns an error if password is already used by the user', async (assert) => {
         const request = createRequest();
 

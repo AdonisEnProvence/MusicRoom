@@ -94,6 +94,17 @@ export const { actions } = Bouncer.define('confirmEmail', (user: User) => {
         const userHasVerifiedEmail = userConfirmedEmail || userHasGoogleID;
 
         return userHasVerifiedEmail;
+    })
+    .define('canLinkGoogleAccount', async (user: User) => {
+        const userHasVerifiedEmail =
+            user.confirmedEmailAt !== undefined &&
+            user.confirmedEmailAt !== null;
+        const userDoesNotHaveGoogleID =
+            user.googleID === undefined || user.googleID === null;
+
+        const userCanLinkGoogleAccount =
+            userHasVerifiedEmail && userDoesNotHaveGoogleID;
+        return userCanLinkGoogleAccount;
     });
 
 /*

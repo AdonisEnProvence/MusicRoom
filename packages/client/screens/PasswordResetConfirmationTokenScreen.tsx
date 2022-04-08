@@ -59,7 +59,9 @@ const PasswordResetConfirmationTokenScreen: React.FC<PasswordResetConfirmationTo
         }
 
         function handleResendConfirmationEmail() {
-            // TODO: Implement
+            appService.send({
+                type: 'RESEND_PASSWORD_RESET_CODE',
+            });
         }
 
         return (

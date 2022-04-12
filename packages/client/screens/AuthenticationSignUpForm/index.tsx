@@ -549,6 +549,7 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                             </TouchableOpacity>
 
                             <GoogleAuthenticationButton
+                                testID="continue-with-google-authentication-button"
                                 onResponse={
                                     sendReceivedGoogleUserAccessTokenToAppMachine
                                 }

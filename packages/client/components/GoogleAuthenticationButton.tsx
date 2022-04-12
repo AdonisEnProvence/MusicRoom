@@ -15,6 +15,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 interface GoogleAuthenticationButton {
     buttonLabel?: string;
+    testID: string;
     onResponse: (response: AuthSessionResult) => void;
     disabledAsConfirmed?: boolean;
 }
@@ -23,6 +24,7 @@ const GoogleAuthenticationButton: React.FC<GoogleAuthenticationButton> = ({
     disabledAsConfirmed,
     onResponse,
     buttonLabel,
+    testID,
 }) => {
     const [request, response, promptAsync] = Google.useAuthRequest({
         expoClientId: GOOGLE_AUTH_SESSION_EXPO_CLIENT_ID,
@@ -42,7 +44,7 @@ const GoogleAuthenticationButton: React.FC<GoogleAuthenticationButton> = ({
     return (
         <TouchableOpacity
             disabled={disabledAsConfirmed || !request}
-            testID="continue-with-google-authentication-button"
+            testID={testID}
             onPress={async () => {
                 await promptAsync();
             }}

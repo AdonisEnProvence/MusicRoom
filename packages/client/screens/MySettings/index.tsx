@@ -339,6 +339,7 @@ const MySettingsScreen: React.FC<MySettingsScreenProps> = ({ navigation }) => {
                                     disabledAsConfirmed={
                                         userHasLinkedGoogleAccount
                                     }
+                                    testID="my-settings-link-google-account-button"
                                     buttonLabel={'Link a google account'}
                                     onResponse={handleGoogleOauthOnResponse}
                                 />

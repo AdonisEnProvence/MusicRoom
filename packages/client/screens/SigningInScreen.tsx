@@ -293,6 +293,7 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
                             </TouchableOpacity>
 
                             <GoogleAuthenticationButton
+                                testID="continue-with-google-authentication-button"
                                 onResponse={
                                     sendReceivedGoogleUserAccessTokenToAppMachine
                                 }

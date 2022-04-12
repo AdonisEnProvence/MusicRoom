@@ -1,5 +1,8 @@
 import {
     GetMySettingsResponseBody,
+    LinkGoogleAccountFailureResponseBody,
+    LinkGoogleAccountRequestBody,
+    LinkGoogleAccountResponseBody,
     UpdateNicknameRequestBody,
     UpdateNicknameResponseBody,
     UpdatePlaylistsVisibilityRequestBody,
@@ -66,6 +69,19 @@ export async function setUserNickname({
     };
     const rawResponse = await request.post('/me/nickname', body);
     const parsedResponse = UpdateNicknameResponseBody.parse(rawResponse.data);
+
+    return parsedResponse;
+}
+
+export async function sendLinkGoogleAccount(
+    body: LinkGoogleAccountRequestBody,
+): Promise<LinkGoogleAccountResponseBody> {
+    const rawResponse = await request.post('/me/link-google-account', body, {
+        validateStatus: (status) => status === 200 || status === 400,
+    });
+    const parsedResponse = LinkGoogleAccountResponseBody.parse(
+        rawResponse.data,
+    );
 
     return parsedResponse;
 }

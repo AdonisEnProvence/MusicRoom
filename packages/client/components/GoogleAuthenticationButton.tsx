@@ -49,6 +49,7 @@ const GoogleAuthenticationButton: React.FC<GoogleAuthenticationButton> = ({
                 await promptAsync();
             }}
             style={sx({
+                marginTop: 'l',
                 paddingX: 's',
                 paddingY: 'm',
                 backgroundColor: disabledAsConfirmed

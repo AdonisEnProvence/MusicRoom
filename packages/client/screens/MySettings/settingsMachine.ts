@@ -408,37 +408,33 @@ export const settingsMachine =
                                     },
 
                                 'Persist user google access token to server': {
-                                    states: {
-                                        Idle: {
-                                            invoke: {
-                                                src: 'sendUserLinkGoogleAccount',
+                                    invoke: {
+                                        src: 'sendUserLinkGoogleAccount',
 
-                                                onDone: [
-                                                    {
-                                                        cond: 'linkGoogleAccountErrorRetrievedGoogleAccountUnavailable',
+                                        onDone: [
+                                            {
+                                                cond: 'linkGoogleAccountErrorRetrievedGoogleAccountUnavailable',
 
-                                                        actions:
-                                                            'Display toast error link google account server error google id unavailable',
+                                                actions:
+                                                    'Display toast error link google account server error google id unavailable',
 
-                                                        target: "#Settings.Fetched user's settings.Link Google account manager.Waiting for user to start a link google account operation",
-                                                    },
-                                                    {
-                                                        actions: [
-                                                            'Display link google account operation success toast',
-                                                            'reset user google access token from context',
-                                                        ],
-
-                                                        target: "#Settings.Fetched user's settings.Link Google account manager.User has linked a google account successfully",
-                                                    },
+                                                target: "#Settings.Fetched user's settings.Link Google account manager.Waiting for user to start a link google account operation",
+                                            },
+                                            {
+                                                actions: [
+                                                    'Display link google account operation success toast',
+                                                    'reset user google access token from context',
                                                 ],
 
-                                                onError: {
-                                                    actions:
-                                                        'Display unknown link google account server error',
-
-                                                    target: "#Settings.Fetched user's settings.Link Google account manager.Waiting for user to start a link google account operation",
-                                                },
+                                                target: "#Settings.Fetched user's settings.Link Google account manager.User has linked a google account successfully",
                                             },
+                                        ],
+
+                                        onError: {
+                                            actions:
+                                                'Display unknown link google account server error',
+
+                                            target: "#Settings.Fetched user's settings.Link Google account manager.Waiting for user to start a link google account operation",
                                         },
                                     },
                                 },
@@ -564,7 +560,7 @@ export const settingsMachine =
                 'User has already linked a google account': (context) => {
                     return (
                         context.mySettings !== undefined &&
-                        context.mySettings.hasLinkedGoogleAccount
+                        context.mySettings.hasLinkedGoogleAccount === true
                     );
                 },
 

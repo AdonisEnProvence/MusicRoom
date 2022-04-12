@@ -1,5 +1,6 @@
 import { useSelector } from '@xstate/react';
 import { SafeAreaView, Text, useSx, View } from 'dripsy';
+import { AuthSessionResult } from 'expo-auth-session';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { TouchableOpacity } from 'react-native';
@@ -62,6 +63,15 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
         appService.send({
             type: 'REQUEST_PASSWORD_RESET',
             email,
+        });
+    }
+
+    function sendReceivedGoogleUserAccessTokenToAppMachine(
+        response: AuthSessionResult,
+    ) {
+        appService.send({
+            type: 'RECEIVED_GOOGLE_OAUTH_RESPONSE',
+            googleResponse: response,
         });
     }
 
@@ -282,7 +292,11 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
                                 </Text>
                             </TouchableOpacity>
 
-                            <GoogleAuthenticationButton />
+                            <GoogleAuthenticationButton
+                                onResponse={
+                                    sendReceivedGoogleUserAccessTokenToAppMachine
+                                }
+                            />
 
                             <TouchableOpacity
                                 onPress={handleGoToSignUpFormScreen}

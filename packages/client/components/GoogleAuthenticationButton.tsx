@@ -3,7 +3,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
-import { useAppContext } from '../contexts/AppContext';
+import { AuthSessionResult } from 'expo-auth-session';
 import {
     GOOGLE_AUTH_SESSION_ANDROID_CLIENT_ID,
     GOOGLE_AUTH_SESSION_EXPO_CLIENT_ID,
@@ -13,8 +13,15 @@ import {
 
 WebBrowser.maybeCompleteAuthSession();
 
-const GoogleAuthenticationButton: React.FC = () => {
-    const { appService } = useAppContext();
+interface GoogleAuthenticationButton {
+    onResponse: (response: AuthSessionResult) => void;
+    disabledAsConfirmed?: boolean;
+}
+
+const GoogleAuthenticationButton: React.FC<GoogleAuthenticationButton> = ({
+    disabledAsConfirmed,
+    onResponse,
+}) => {
     const [request, response, promptAsync] = Google.useAuthRequest({
         expoClientId: GOOGLE_AUTH_SESSION_EXPO_CLIENT_ID,
         iosClientId: GOOGLE_AUTH_SESSION_IOS_CLIENT_ID,
@@ -26,16 +33,13 @@ const GoogleAuthenticationButton: React.FC = () => {
 
     React.useEffect(() => {
         if (response !== null) {
-            appService.send({
-                type: 'RECEIVED_GOOGLE_OAUTH_RESPONSE',
-                googleResponse: response,
-            });
+            onResponse(response);
         }
-    }, [response, appService]);
+    }, [response, onResponse]);
 
     return (
         <TouchableOpacity
-            disabled={!request}
+            disabled={disabledAsConfirmed || !request}
             testID="continue-with-google-authentication-button"
             onPress={async () => {
                 await promptAsync();
@@ -43,7 +47,9 @@ const GoogleAuthenticationButton: React.FC = () => {
             style={sx({
                 paddingX: 's',
                 paddingY: 'm',
-                backgroundColor: 'greyLighter',
+                backgroundColor: disabledAsConfirmed
+                    ? 'secondary'
+                    : 'greyLighter',
                 borderRadius: 's',
             })}
         >

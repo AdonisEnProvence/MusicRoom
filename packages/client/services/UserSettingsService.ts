@@ -1,6 +1,5 @@
 import {
     GetMySettingsResponseBody,
-    LinkGoogleAccountFailureResponseBody,
     LinkGoogleAccountRequestBody,
     LinkGoogleAccountResponseBody,
     UpdateNicknameRequestBody,

@@ -7,6 +7,7 @@ import { createMachine } from 'xstate';
 import { useInterpret } from '@xstate/react';
 import Toast from 'react-native-toast-message';
 import { passwordStrengthRegex } from '@musicroom/types';
+import { AuthSessionResult } from 'expo-auth-session';
 import { assertEventType } from '../../machines/utils';
 import { AppScreen, TextField } from '../../components/kit';
 import { sendSignUp, SignUpError } from '../../services/AuthenticationService';
@@ -255,6 +256,15 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                 email,
                 password,
             },
+        });
+    }
+
+    function sendReceivedGoogleUserAccessTokenToAppMachine(
+        response: AuthSessionResult,
+    ) {
+        appService.send({
+            type: 'RECEIVED_GOOGLE_OAUTH_RESPONSE',
+            googleResponse: response,
         });
     }
 
@@ -538,7 +548,11 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                 </Text>
                             </TouchableOpacity>
 
-                            <GoogleAuthenticationButton />
+                            <GoogleAuthenticationButton
+                                onResponse={
+                                    sendReceivedGoogleUserAccessTokenToAppMachine
+                                }
+                            />
 
                             <TouchableOpacity
                                 onPress={handleGoToSignInFormScreen}

@@ -561,6 +561,13 @@ export const settingsMachine =
             },
 
             guards: {
+                'User has already linked a google account': (context) => {
+                    return (
+                        context.mySettings !== undefined &&
+                        context.mySettings.hasLinkedGoogleAccount
+                    );
+                },
+
                 linkGoogleAccountErrorRetrievedGoogleAccountUnavailable: (
                     _context,
                     e,

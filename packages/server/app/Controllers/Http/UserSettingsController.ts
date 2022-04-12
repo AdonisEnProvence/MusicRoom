@@ -33,8 +33,12 @@ export default class UserSettingsController {
                 .load('relationsVisibilitySetting');
         });
 
+        const hasLinkedGoogleAccount =
+            user.googleID !== null && user.googleID !== undefined;
+
         return {
             nickname: user.nickname,
+            hasLinkedGoogleAccount,
             playlistsVisibilitySetting: user.playlistsVisibilitySetting.name,
             relationsVisibilitySetting: user.relationsVisibilitySetting.name,
         };

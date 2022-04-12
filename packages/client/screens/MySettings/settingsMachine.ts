@@ -445,6 +445,7 @@ export const settingsMachine =
 
                                 'User has linked a google account successfully':
                                     {
+                                        tags: 'UserHasLinkedGoogleAccount',
                                         type: 'final',
                                     },
                             },

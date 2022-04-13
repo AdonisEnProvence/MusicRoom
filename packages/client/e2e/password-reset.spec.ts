@@ -48,6 +48,10 @@ test('Renders home after resetting password', async ({ browser }) => {
         permissions: ['geolocation'],
         geolocation: GEOLOCATION_POSITIONS['Manosque, France'],
     });
+    const secondaryContext = await browser.newContext({
+        permissions: ['geolocation'],
+        geolocation: GEOLOCATION_POSITIONS['Manosque, France'],
+    });
 
     const mainPage = await mainContext.newPage();
     await mainPage.goto('/');
@@ -88,7 +92,39 @@ test('Renders home after resetting password', async ({ browser }) => {
 
     await pageIsOnEmailConfirmationScreen({ page: mainPage });
     await pageIsOnEmailConfirmationScreen({ page: otherTabOfMainContext });
+
+    const pageOfOtherDevice = await secondaryContext.newPage();
+    await pageOfOtherDevice.goto('/');
+
+    await pageIsOnSignInScreen({ page: pageOfOtherDevice });
+
+    await signIn({
+        page: pageOfOtherDevice,
+        email,
+        password: newPassword,
+    });
+
+    await pageIsOnEmailConfirmationScreen({ page: pageOfOtherDevice });
 });
+
+async function signIn({
+    page,
+    email,
+    password,
+}: {
+    page: Page;
+    email: string;
+    password: string;
+}) {
+    const emailInput = page.locator('css=[placeholder="Email"]');
+    await emailInput.fill(email);
+
+    const passwordInput = page.locator('css=[placeholder="Password"]');
+    await passwordInput.fill(password);
+
+    const submitSignInFormButton = page.locator('text="Log in"');
+    await submitSignInFormButton.click();
+}
 
 async function createAccount({ page, email }: { page: Page; email: string }) {
     await pageIsOnSignInScreen({ page });

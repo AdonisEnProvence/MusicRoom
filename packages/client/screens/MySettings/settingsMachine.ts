@@ -427,7 +427,7 @@ export const settingsMachine =
                                             {
                                                 actions: [
                                                     'Display link google account operation success toast',
-                                                    'reset user google access token from context',
+                                                    'Reset user google access token from context',
                                                 ],
 
                                                 target: "#Settings.Fetched user's settings.Link Google account manager.User has linked a google account successfully",

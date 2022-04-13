@@ -18,6 +18,7 @@ jobs:
               uses: wagoid/commitlint-github-action@v3
     lint_and_tests:
         runs-on: ubuntu-latest
+        timeout-minutes: 30
         services:
             redis:
                 image: redis

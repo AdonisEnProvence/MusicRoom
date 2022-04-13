@@ -1,6 +1,7 @@
 import BaseSeeder from '@ioc:Adonis/Lucid/Seeder';
 import User from 'App/Models/User';
 import faker, { datatype, internet } from 'faker';
+import { DateTime } from 'luxon';
 
 faker.seed(42);
 
@@ -55,6 +56,7 @@ export default class UserSeeder extends BaseSeeder {
             nickname: 'Carole',
             email: 'devessier@devessier.fr',
             password: 'devessierBgDu13',
+            confirmedEmailAt: DateTime.now(),
         });
 
         famousUser.related('followers').saveMany(users);

@@ -632,6 +632,8 @@ const updateVisibilitySettingsTestModel = createTestModel<TestingContext>(
                         return res(ctx.status(404));
                     }
 
+                    const hasLinkedGoogleAccount = user.googleID !== undefined;
+
                     return res(
                         ctx.delay(600),
                         ctx.json({
@@ -640,6 +642,7 @@ const updateVisibilitySettingsTestModel = createTestModel<TestingContext>(
                                 user.playlistsVisibilitySetting,
                             relationsVisibilitySetting:
                                 user.relationsVisibilitySetting,
+                            hasLinkedGoogleAccount,
                         }),
                     );
                 }),

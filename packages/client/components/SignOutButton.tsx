@@ -13,8 +13,8 @@ const SignOutButton: React.FC<{ testID?: string }> = ({ testID }) => {
     }
 
     const [_state, sendToDebouncingMachine] = useMachine(
-        createMachine(
-            {
+        () =>
+            createMachine({
                 initial: 'idle',
 
                 states: {
@@ -35,13 +35,12 @@ const SignOutButton: React.FC<{ testID?: string }> = ({ testID }) => {
                         target: 'debouncing',
                     },
                 },
+            }),
+        {
+            actions: {
+                callOnPressMethod: () => appService.send('SIGN_OUT'),
             },
-            {
-                actions: {
-                    callOnPressMethod: () => appService.send('SIGN_OUT'),
-                },
-            },
-        ),
+        },
     );
 
     return (

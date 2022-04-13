@@ -50,6 +50,8 @@ import {
     AuthenticateWithGoogleOauthResponseBody,
     ResetPasswordRequestBody,
     ResetPasswordResponseBody,
+    LinkGoogleAccountRequestBody,
+    LinkGoogleAccountResponseBody,
 } from '@musicroom/types';
 import { datatype, internet } from 'faker';
 import {
@@ -427,11 +429,13 @@ export const handlers = [
                 return res(ctx.status(404));
             }
 
+            const hasLinkedGoogleAccount = user.googleID;
             return res(
                 ctx.json({
                     nickname: user.userNickname,
                     playlistsVisibilitySetting: user.playlistsVisibilitySetting,
                     relationsVisibilitySetting: user.relationsVisibilitySetting,
+                    hasLinkedGoogleAccount,
                 }),
             );
         }),
@@ -1085,4 +1089,29 @@ export const handlers = [
             );
         },
     ),
+
+    rest.post<
+        LinkGoogleAccountRequestBody,
+        never,
+        LinkGoogleAccountResponseBody
+    >(`${SERVER_ENDPOINT}/me/link-google-account`, (_req, res, ctx) => {
+        db.myProfileInformation.update({
+            where: {
+                userID: {
+                    equals: CLIENT_INTEG_TEST_USER_ID,
+                },
+            },
+            data: {
+                googleID: true,
+            },
+        });
+
+        return res(
+            ctx.status(200),
+            ctx.json({
+                status: 'SUCCESS',
+            }),
+        );
+    }),
+    //
 ];

@@ -80,6 +80,47 @@ test.group('User settings', (group) => {
             responseBody.relationsVisibilitySetting,
             'FOLLOWERS_ONLY',
         );
+        assert.isFalse(responseBody.hasLinkedGoogleAccount);
+    });
+
+    test('Gets my settings with linked google account', async (assert) => {
+        const request = createRequest();
+
+        const privateVisibilitySetting = await SettingVisibility.findByOrFail(
+            'name',
+            UserSettingVisibility.enum.PRIVATE,
+        );
+        const followersOnlyVisibilitySetting =
+            await SettingVisibility.findByOrFail(
+                'name',
+                UserSettingVisibility.enum.FOLLOWERS_ONLY,
+            );
+        const user = await createUserAndAuthenticate(request);
+        user.googleID = 'google-id-token';
+        await user.save();
+        await user
+            .related('playlistsVisibilitySetting')
+            .associate(privateVisibilitySetting);
+        await user
+            .related('relationsVisibilitySetting')
+            .associate(followersOnlyVisibilitySetting);
+
+        const { body: rawResponseBody } = await request
+            .get('/me/settings')
+            .expect(200)
+            .expect('Content-Type', /json/);
+        const responseBody = GetMySettingsResponseBody.parse(rawResponseBody);
+
+        assert.equal(responseBody.nickname, user.nickname);
+        assert.equal<UserSettingVisibility>(
+            responseBody.playlistsVisibilitySetting,
+            'PRIVATE',
+        );
+        assert.equal<UserSettingVisibility>(
+            responseBody.relationsVisibilitySetting,
+            'FOLLOWERS_ONLY',
+        );
+        assert.isTrue(responseBody.hasLinkedGoogleAccount);
     });
 
     test("Prevents to get current user's settings when she is not authenticated", async () => {

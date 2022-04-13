@@ -3,11 +3,13 @@ import { Skeleton } from '@motify/skeleton';
 import { GetMySettingsResponseBody } from '@musicroom/types';
 import { useActor, useMachine } from '@xstate/react';
 import { ScrollView, Text, useSx, View } from 'dripsy';
+import { AuthSessionResult } from 'expo-auth-session';
 import React, { useEffect, useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from 'react-query';
 import invariant from 'tiny-invariant';
+import GoogleAuthenticationButton from '../../components/GoogleAuthenticationButton';
 import {
     AppScreen,
     AppScreenContainer,
@@ -141,6 +143,16 @@ const MySettingsScreen: React.FC<MySettingsScreenProps> = ({ navigation }) => {
             });
         }
     }, [data, status, sendToSettingsMachine]);
+
+    function handleGoogleOauthOnResponse(response: AuthSessionResult): void {
+        sendToSettingsMachine({
+            type: 'RECEIVED_GOOGLE_OAUTH_RESPONSE',
+            googleResponse: response,
+        });
+    }
+    const userHasLinkedGoogleAccount = state.hasTag(
+        'UserHasLinkedGoogleAccount',
+    );
 
     const settingsState = useMemo(() => {
         if (state.hasTag("Errored fetching user's settings")) {
@@ -322,6 +334,17 @@ const MySettingsScreen: React.FC<MySettingsScreenProps> = ({ navigation }) => {
                                         );
                                     },
                                 )}
+
+                                <GoogleAuthenticationButton
+                                    disabledAsConfirmed={
+                                        userHasLinkedGoogleAccount
+                                    }
+                                    testID="my-settings-link-google-account-button"
+                                    buttonLabel={'Link a google account'}
+                                    onResponse={handleGoogleOauthOnResponse}
+                                />
+
+                                <SignOutButton testID="my-profile-sign-out-button" />
                             </>
                         ) : settingsState.status === 'errored' ? (
                             <Text sx={{ color: 'white', fontSize: 'm' }}>
@@ -345,7 +368,6 @@ const MySettingsScreen: React.FC<MySettingsScreenProps> = ({ navigation }) => {
                                 </View>
                             </View>
                         ) : null}
-                        <SignOutButton testID="my-profile-sign-out-button" />
                     </View>
                 </ScrollView>
             </AppScreenContainer>

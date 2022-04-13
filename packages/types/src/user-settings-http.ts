@@ -3,6 +3,7 @@ import { UserSettingVisibility } from './user-settings';
 
 export const GetMySettingsResponseBody = z.object({
     nickname: z.string(),
+    hasLinkedGoogleAccount: z.boolean(),
     playlistsVisibilitySetting: UserSettingVisibility,
     relationsVisibilitySetting: UserSettingVisibility,
 });

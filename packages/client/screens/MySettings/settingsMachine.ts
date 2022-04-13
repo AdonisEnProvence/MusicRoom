@@ -1,14 +1,17 @@
 import {
     GetMySettingsResponseBody,
+    LinkGoogleAccountResponseBody,
     UserSettingVisibility,
 } from '@musicroom/types';
+import { AuthSessionResult } from 'expo-auth-session';
 import Toast from 'react-native-toast-message';
 import invariant from 'tiny-invariant';
-import { ActorRefFrom, assign, DoneInvokeEvent, send } from 'xstate';
+import { ActorRefFrom, assign, DoneInvokeEvent, forwardTo, send } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { createRetrieveUserGoogleAccessTokenMachine } from '../../machines/RetrieveUserGoogleAccessTokenMachine';
 import { assertEventType } from '../../machines/utils';
 import {
-    getMySettings,
+    sendLinkGoogleAccount,
     setUserPlaylistsSettingVisibility,
     setUserRelationsSettingVisibility,
 } from '../../services/UserSettingsService';
@@ -222,6 +225,7 @@ export type VisibilitySettingMachineActor = ActorRefFrom<
 const settingsModel = createModel(
     {
         mySettings: undefined as GetMySettingsResponseBody | undefined,
+        userGoogleAccessToken: undefined as string | undefined,
     },
     {
         events: {
@@ -238,11 +242,26 @@ const settingsModel = createModel(
             ) => ({ mySettings }),
 
             "failed to fetch user's settings": () => ({}),
+
+            'User links a google account': () => ({}),
+            RECEIVED_GOOGLE_OAUTH_RESPONSE: (args: {
+                googleResponse: AuthSessionResult;
+            }) => args,
+            __RETRIEVED_USER_GOOGLE_ACCESS_TOKEN_SUCCESSFULLY: (
+                userGoogleAccessToken: string,
+            ) => ({ userGoogleAccessToken }),
+            __FAILED_TO_RETRIEVE_USER_GOOGLE_ACCESS_TOKEN: () => ({}),
         },
         actions: {
             "Assign user's settings to context": () => ({}),
             'Forward to Playlists Visibility Manager Machine': () => ({}),
             'Forward to Relations Visibility Manager Machine': () => ({}),
+
+            'Display link google account operation success toast': () => ({}),
+            'Display toast error link google account server error google id unavailable':
+                () => ({}),
+            'Display unknown link google account server error': () => ({}),
+            'Reset user google access token from context': () => ({}),
         },
     },
 );
@@ -321,6 +340,114 @@ export const settingsMachine =
                                     target: "#Settings.Fetched user's settings.Relations Visibility",
                                     internal: true,
                                 },
+                            },
+                        },
+                        'Link Google account manager': {
+                            initial: 'Has user already linked a google account',
+
+                            states: {
+                                'Has user already linked a google account': {
+                                    always: [
+                                        {
+                                            cond: 'User has already linked a google account',
+                                            target: 'User has linked a google account successfully',
+                                        },
+                                        {
+                                            target: 'Waiting for user to start a link google account operation',
+                                        },
+                                    ],
+                                },
+
+                                'Waiting for user to start a link google account operation':
+                                    {
+                                        /**
+                                         * We're reseting this context prop in case the user encounters an error during the google
+                                         * authentication process and has to restart everything from there
+                                         */
+                                        entry: 'Reset user google access token from context',
+
+                                        invoke: {
+                                            id: 'retrieveUserGoogleAccesTokenMachine',
+
+                                            src: createRetrieveUserGoogleAccessTokenMachine(),
+                                        },
+
+                                        initial: 'Idle',
+
+                                        states: {
+                                            Idle: {},
+
+                                            'Retrieve user google access token failed':
+                                                {},
+                                        },
+
+                                        on: {
+                                            RECEIVED_GOOGLE_OAUTH_RESPONSE: {
+                                                actions: forwardTo(
+                                                    'retrieveUserGoogleAccesTokenMachine',
+                                                ),
+                                            },
+
+                                            __RETRIEVED_USER_GOOGLE_ACCESS_TOKEN_SUCCESSFULLY:
+                                                {
+                                                    actions:
+                                                        settingsModel.assign({
+                                                            userGoogleAccessToken:
+                                                                (
+                                                                    _context,
+                                                                    {
+                                                                        userGoogleAccessToken,
+                                                                    },
+                                                                ) =>
+                                                                    userGoogleAccessToken,
+                                                        }),
+                                                    target: 'Persist user google access token to server',
+                                                },
+
+                                            __FAILED_TO_RETRIEVE_USER_GOOGLE_ACCESS_TOKEN:
+                                                {
+                                                    target: '.Retrieve user google access token failed',
+                                                },
+                                        },
+                                    },
+
+                                'Persist user google access token to server': {
+                                    invoke: {
+                                        src: 'sendUserLinkGoogleAccount',
+
+                                        onDone: [
+                                            {
+                                                cond: 'linkGoogleAccountErrorRetrievedGoogleAccountUnavailable',
+
+                                                actions:
+                                                    'Display toast error link google account server error google id unavailable',
+
+                                                target: "#Settings.Fetched user's settings.Link Google account manager.Waiting for user to start a link google account operation",
+                                            },
+                                            {
+                                                actions: [
+                                                    'Display link google account operation success toast',
+                                                    'Reset user google access token from context',
+                                                ],
+
+                                                target: "#Settings.Fetched user's settings.Link Google account manager.User has linked a google account successfully",
+                                            },
+                                        ],
+
+                                        onError: {
+                                            actions:
+                                                'Display unknown link google account server error',
+
+                                            target: "#Settings.Fetched user's settings.Link Google account manager.Waiting for user to start a link google account operation",
+                                        },
+                                    },
+                                },
+
+                                'User has linked a google account successfully':
+                                    {
+                                        tags: 'UserHasLinkedGoogleAccount',
+                                        type: 'final',
+                                    },
                             },
                         },
                     },
@@ -418,6 +545,44 @@ export const settingsMachine =
                                 mySettings.relationsVisibilitySetting,
                         });
                 },
+
+                sendUserLinkGoogleAccount: async ({
+                    userGoogleAccessToken,
+                }) => {
+                    invariant(
+                        userGoogleAccessToken !== undefined,
+                        'access token must be defined to be sent to server',
+                    );
+
+                    return await sendLinkGoogleAccount({
+                        userGoogleAccessToken,
+                    });
+                },
+            },
+
+            guards: {
+                'User has already linked a google account': (context) => {
+                    return (
+                        context.mySettings !== undefined &&
+                        context.mySettings.hasLinkedGoogleAccount === true
+                    );
+                },
+
+                linkGoogleAccountErrorRetrievedGoogleAccountUnavailable: (
+                    _context,
+                    e,
+                ) => {
+                    const event =
+                        e as DoneInvokeEvent<LinkGoogleAccountResponseBody>;
+
+                    if (event.data.status !== 'FAILURE') {
+                        return false;
+                    }
+
+                    return event.data.linkGoogleAccountFailureReasons.includes(
+                        'UNAVAILABLE_GOOGLE_ID',
+                    );
+                },
             },
 
             actions: {
@@ -467,6 +632,34 @@ export const settingsMachine =
                         to: 'Relations Visibility Manager Machine',
                     },
                 ),
+
+                'Display link google account operation success toast': () => {
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Google account linked successfully',
+                    });
+                },
+
+                'Display toast error link google account server error google id unavailable':
+                    () => {
+                        Toast.show({
+                            type: 'error',
+                            text1: 'Link google account error',
+                            text2: 'Retrieved google account is unavailable',
+                        });
+                    },
+
+                'Display unknown link google account server error': () => {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Link google account error',
+                        text2: 'We encountered an error please try again later',
+                    });
+                },
+
+                'Reset user google access token from context': assign({
+                    userGoogleAccessToken: (_context) => undefined,
+                }),
             },
         },
     );

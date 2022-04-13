@@ -49,6 +49,7 @@ import { AppMusicPlayerMachineOptions } from './options/appMusicPlayerMachineOpt
 import { AppMusicPlaylistsOptions } from './options/appMusicPlaylistsMachineOptions';
 import { AppUserMachineOptions } from './options/appUserMachineOptions';
 import { assertEventType, PLATFORM_OS_IS_WEB } from './utils';
+import { createRetrieveUserGoogleAccessTokenMachine } from './RetrieveUserGoogleAccessTokenMachine';
 
 interface CreateAppMachineArgs {
     locationPollingTickDelay: number;
@@ -658,6 +659,12 @@ export function createAppMachine({
                             initial: 'waitingForGoogleUserAccessToken',
                             states: {
                                 waitingForGoogleUserAccessToken: {
+                                    invoke: {
+                                        id: 'retrieveUserGoogleAccesTokenMachine',
+
+                                        src: createRetrieveUserGoogleAccessTokenMachine(),
+                                    },
+
                                     initial: 'Idle',
                                     states: {
                                         Idle: {
@@ -672,63 +679,29 @@ export function createAppMachine({
                                     },
 
                                     on: {
-                                        RECEIVED_GOOGLE_OAUTH_RESPONSE: [
+                                        RECEIVED_GOOGLE_OAUTH_RESPONSE: {
+                                            actions: forwardTo(
+                                                'retrieveUserGoogleAccesTokenMachine',
+                                            ),
+                                        },
+
+                                        __RETRIEVED_USER_GOOGLE_ACCESS_TOKEN_SUCCESSFULLY:
                                             {
-                                                cond: 'googleAuthenticationIsSuccessful',
                                                 actions: appModel.assign({
                                                     userGoogleAccessToken: (
                                                         _context,
-                                                        { googleResponse },
-                                                    ) => {
-                                                        invariant(
-                                                            googleResponse.type ===
-                                                                'success',
-                                                            'to retrieve user google access token response should be at status success',
-                                                        );
-                                                        invariant(
-                                                            googleResponse.authentication !==
-                                                                null,
-                                                            'Inside a google success oauth response authentication should always be defined',
-                                                        );
-
-                                                        return googleResponse
-                                                            .authentication
-                                                            .accessToken;
-                                                    },
+                                                        {
+                                                            userGoogleAccessToken,
+                                                        },
+                                                    ) => userGoogleAccessToken,
                                                 }),
                                                 target: 'sendingGoogleAccessTokenToServer',
                                             },
+
+                                        __FAILED_TO_RETRIEVE_USER_GOOGLE_ACCESS_TOKEN:
                                             {
-                                                cond: 'googleAuthenticationDismissError',
-
-                                                actions:
-                                                    'displayGoogleAuthenticationDismissErrorToast',
-
                                                 target: '.googleAuthenticationErrorOccured',
                                             },
-                                            {
-                                                cond: 'googleAuthenticationCancelError',
-
-                                                actions:
-                                                    'displayGoogleAuthenticationCancelErrorToast',
-
-                                                target: '.googleAuthenticationErrorOccured',
-                                            },
-                                            {
-                                                cond: 'googleAuthenticationLockedError',
-
-                                                actions:
-                                                    'displayGoogleAuthenticationLockedErrorToast',
-
-                                                target: '.googleAuthenticationErrorOccured',
-                                            },
-                                            {
-                                                actions:
-                                                    'displayGoogleAuthenticationResponseErrorToast',
-
-                                                target: '.googleAuthenticationErrorOccured',
-                                            },
-                                        ],
                                     },
                                 },
 
@@ -1424,39 +1397,6 @@ export function createAppMachine({
                         });
                     },
 
-                //Google oauth authentication
-                displayGoogleAuthenticationDismissErrorToast: () => {
-                    Toast.show({
-                        type: 'error',
-                        text1: 'Continue with google error',
-                        text2: 'Oauth verification was dismissed',
-                    });
-                },
-
-                displayGoogleAuthenticationCancelErrorToast: () => {
-                    Toast.show({
-                        type: 'error',
-                        text1: 'Continue with google error',
-                        text2: 'Oauth verification was cancelled',
-                    });
-                },
-
-                displayGoogleAuthenticationLockedErrorToast: () => {
-                    Toast.show({
-                        type: 'error',
-                        text1: 'Continue with google error',
-                        text2: 'Given account is locked',
-                    });
-                },
-                displayGoogleAuthenticationResponseErrorToast: () => {
-                    Toast.show({
-                        type: 'error',
-                        text1: 'Continue with google error',
-                        text2: 'Google sent back an error please try again later',
-                    });
-                },
-                ///
-
                 //Google server accessToken verification actions
                 googleAuthenticationDisplayServerEmailNorNicknameInvalidToastError:
                     () => {
@@ -1584,24 +1524,6 @@ export function createAppMachine({
 
                     return event.data.status === 'INVALID_TOKEN';
                 },
-                //Google authentication guards
-                googleAuthenticationDismissError: (_context, event) => {
-                    assertEventType(event, 'RECEIVED_GOOGLE_OAUTH_RESPONSE');
-                    return event.googleResponse.type === 'dismiss';
-                },
-                googleAuthenticationCancelError: (_context, event) => {
-                    assertEventType(event, 'RECEIVED_GOOGLE_OAUTH_RESPONSE');
-                    return event.googleResponse.type === 'cancel';
-                },
-                googleAuthenticationLockedError: (_context, event) => {
-                    assertEventType(event, 'RECEIVED_GOOGLE_OAUTH_RESPONSE');
-                    return event.googleResponse.type === 'locked';
-                },
-                googleAuthenticationIsSuccessful: (_context, event) => {
-                    assertEventType(event, 'RECEIVED_GOOGLE_OAUTH_RESPONSE');
-                    return event.googleResponse.type === 'success';
-                },
-                ///
 
                 //Google authentication server errors
                 googleAuthenticationServerEmailNorNicknameInvalidError: (

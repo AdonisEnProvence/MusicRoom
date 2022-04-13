@@ -343,6 +343,8 @@ const MySettingsScreen: React.FC<MySettingsScreenProps> = ({ navigation }) => {
                                     buttonLabel={'Link a google account'}
                                     onResponse={handleGoogleOauthOnResponse}
                                 />
+
+                                <SignOutButton testID="my-profile-sign-out-button" />
                             </>
                         ) : settingsState.status === 'errored' ? (
                             <Text sx={{ color: 'white', fontSize: 'm' }}>
@@ -366,7 +368,6 @@ const MySettingsScreen: React.FC<MySettingsScreenProps> = ({ navigation }) => {
                                 </View>
                             </View>
                         ) : null}
-                        <SignOutButton testID="my-profile-sign-out-button" />
                     </View>
                 </ScrollView>
             </AppScreenContainer>

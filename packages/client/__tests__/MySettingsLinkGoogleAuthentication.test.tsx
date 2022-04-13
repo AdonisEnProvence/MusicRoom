@@ -8,7 +8,14 @@ import {
     LinkGoogleAccountRequestBody,
     LinkGoogleAccountResponseBody,
 } from '@musicroom/types';
-import { render, fireEvent, waitFor, renderApp } from '../tests/tests-utils';
+import { internet } from 'faker';
+import {
+    render,
+    fireEvent,
+    waitFor,
+    renderApp,
+    CLIENT_INTEG_TEST_USER_ID,
+} from '../tests/tests-utils';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
 import { server } from '../tests/server/test-server';
 import { db } from '../tests/data';
@@ -178,22 +185,22 @@ const linkGoogleAuthMachine =
                         target: '#app.Rendering my profile settings screen with disabled link google account button',
                     },
                     'Make google authentication fail by cancel': {
-                        target: 'Rendering my profile settings screen.Google authentication failed.User cancelled google oauth',
+                        target: '#app.Rendering my profile settings screen.Google authentication failed.User cancelled google oauth',
                     },
                     'Make google authentication fail by dismiss': {
-                        target: 'Rendering my profile settings screen.Google authentication failed.User dismissed google oauth',
+                        target: '#app.Rendering my profile settings screen.Google authentication failed.User dismissed google oauth',
                     },
                     'Make google authentication fail by locked': {
-                        target: 'Rendering my profile settings screen.Google authentication failed.User google account is locked',
+                        target: '#app.Rendering my profile settings screen.Google authentication failed.User google account is locked',
                     },
                     'Make google authentication fail by response error': {
-                        target: 'Rendering my profile settings screen.Google authentication failed.Google response error',
+                        target: '#app.Rendering my profile settings screen.Google authentication failed.Google response error',
                     },
                     'Make server send back an unknown error': {
-                        target: 'Rendering my profile settings screen.Server link accont user access token verification error.Unknown server error',
+                        target: '#app.Rendering my profile settings screen.Server link accont user access token verification error.Unknown server error',
                     },
                     'Make server send back an googleID unavailable': {
-                        target: 'Rendering my profile settings screen.Server link accont user access token verification error.Unavailable googleID',
+                        target: '#app.Rendering my profile settings screen.Server link accont user access token verification error.Unavailable googleID',
                     },
                 },
             },
@@ -226,8 +233,11 @@ async function pressLinkGoogleAccountButton(screen: ReturnType<typeof render>) {
     const linkGoogleAccountButton = await screen.findByTestId(
         'my-settings-link-google-account-button',
     );
-    expect(linkGoogleAccountButton).toBeTruthy();
-    expect(linkGoogleAccountButton).not.toBeDisabled();
+
+    await waitFor(() => {
+        expect(linkGoogleAccountButton).toBeTruthy();
+        expect(linkGoogleAccountButton).not.toBeDisabled();
+    });
 
     fireEvent.press(linkGoogleAccountButton);
 }
@@ -377,6 +387,16 @@ cases<{
 }>(
     'Google authentication',
     async ({ target, events }) => {
+        db.myProfileInformation.create({
+            userID: CLIENT_INTEG_TEST_USER_ID,
+            devicesCounter: 3,
+            playlistsCounter: 4,
+            followersCounter: 5,
+            followingCounter: 6,
+            userNickname: internet.userName(),
+            hasConfirmedEmail: true,
+        });
+
         const screen = await renderApp();
 
         const myProfileIcon = await screen.findByTestId(
@@ -429,7 +449,6 @@ cases<{
             },
         'Continue with google authentication failed as user dismissed oauth verification':
             {
-                only: true,
                 target: {
                     'Rendering my profile settings screen': {
                         'Google authentication failed':

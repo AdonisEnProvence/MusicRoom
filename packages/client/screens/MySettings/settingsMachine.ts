@@ -372,7 +372,11 @@ export const settingsMachine =
                                             src: createRetrieveUserGoogleAccessTokenMachine(),
                                         },
 
+                                        initial: 'Idle',
+
                                         states: {
+                                            Idle: {},
+
                                             'Retrieve user google access token failed':
                                                 {},
                                         },

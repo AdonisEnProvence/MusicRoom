@@ -8,8 +8,8 @@ import {
     UpdateNicknameResponseBody,
     GetMySettingsResponseBody,
     LinkGoogleAccountResponseBody,
+    LinkGoogleAccountRequestBody,
 } from '@musicroom/types';
-import { LinkGoogleAccountRequestBody } from '@musicroom/types/src/user-settings';
 import SettingVisibility from 'App/Models/SettingVisibility';
 import User from 'App/Models/User';
 import { AuthenticationService } from 'App/Services/AuthenticationService';

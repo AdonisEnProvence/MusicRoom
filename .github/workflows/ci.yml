@@ -113,6 +113,7 @@ jobs:
                   SMTP_PORT: 587
                   SMTP_USERNAME: <username>
                   SMTP_PASSWORD: <password>
+                  TEMPORAL_ADONIS_KEY: temporal-adonis-testing-auth-key
 
             - name: Run client tests 🧪
               run: |

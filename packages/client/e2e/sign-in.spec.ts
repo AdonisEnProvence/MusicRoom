@@ -15,7 +15,7 @@ test.afterEach(async ({ browser }) => {
     await closeAllContexts(browser);
 });
 
-test('Signs up a user, expects to be redirected to home and to be still loggged in on another page or after a refresh', async ({
+test('Sign in a user, expects to be redirected to home and to be still loggged in on another page or after a refresh', async ({
     browser,
 }) => {
     const {

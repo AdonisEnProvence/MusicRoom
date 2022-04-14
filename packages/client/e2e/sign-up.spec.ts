@@ -43,6 +43,10 @@ test('Signs up a user, expects to be redirected to home and to be still loggged 
 
     await page.click('text="Sign Up"');
 
+    await bypassVerifyEmailScreen({
+        page,
+    });
+
     await pageIsOnHomeScreen({ page, timeout: 20000 });
 
     await page.reload();

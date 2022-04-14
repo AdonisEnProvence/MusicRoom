@@ -13,6 +13,7 @@ import {
     createSpyOnClientSocketEvent,
     getSocketApiAuthToken,
     initTestUtils,
+    TEMPORAL_ADONIS_KEY_HEADER,
 } from './utils/TestUtils';
 
 test.group(`User service socket handler tests`, (group) => {
@@ -78,15 +79,19 @@ test.group(`User service socket handler tests`, (group) => {
 
                 await supertest(BASE_URL)
                     .post('/temporal/mtv/acknowledge-user-vote-for-track')
+                    .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
                     .send({
                         ...stateWithUserRelatedInformations,
-                    });
+                    })
+                    .expect(200);
 
                 await supertest(BASE_URL)
                     .post('/temporal/mtv/suggest-or-vote-update')
+                    .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
                     .send({
                         ...state,
-                    });
+                    })
+                    .expect(200);
 
                 return;
             });

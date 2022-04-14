@@ -13,6 +13,7 @@ import {
     createSpyOnClientSocketEvent,
     TEST_MPE_TEMPORAL_LISTENER,
     getSocketApiAuthToken,
+    TEMPORAL_ADONIS_KEY_HEADER,
 } from './utils/TestUtils';
 
 test.group('MPE Delete Tracks', (group) => {
@@ -70,6 +71,7 @@ test.group('MPE Delete Tracks', (group) => {
                             'acknowledge-deleting-tracks',
                         ),
                     )
+                    .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
                     .send(body)
                     .expect(200);
 
@@ -151,6 +153,7 @@ test.group('MPE Delete Tracks', (group) => {
                             'acknowledge-deleting-tracks',
                         ),
                     )
+                    .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
                     .send(body)
                     .expect(200);
 
@@ -226,6 +229,7 @@ test.group('MPE Delete Tracks', (group) => {
                             'acknowledge-deleting-tracks',
                         ),
                     )
+                    .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
                     .send(body)
                     .expect(200);
 

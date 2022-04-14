@@ -16,6 +16,7 @@ import {
     getDefaultMtvRoomCreateRoomArgs,
     getSocketApiAuthToken,
     initTestUtils,
+    TEMPORAL_ADONIS_KEY_HEADER,
 } from './utils/TestUtils';
 
 test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
@@ -305,13 +306,18 @@ test.group(`Sockets synch tests. e.g on connection, on create`, (group) => {
                 state.usersLength++;
                 await supertest(BASE_URL)
                     .post('/temporal/mtv/user-length-update')
+                    .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
                     .send({
                         ...state,
                         userRelatedInformation: null,
-                    });
+                    })
+                    .expect(200);
+
                 await supertest(BASE_URL)
                     .post('/temporal/mtv/join')
-                    .send({ state, joiningUserID: userID });
+                    .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
+                    .send({ state, joiningUserID: userID })
+                    .expect(200);
                 return;
             });
 

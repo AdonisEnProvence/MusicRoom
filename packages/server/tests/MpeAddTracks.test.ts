@@ -16,6 +16,7 @@ import {
     generateMpeWorkflowState,
     TEST_MPE_TEMPORAL_LISTENER,
     getSocketApiAuthToken,
+    TEMPORAL_ADONIS_KEY_HEADER,
 } from './utils/TestUtils';
 
 function noop() {
@@ -110,6 +111,7 @@ test.group('MPE Add Tracks', (group) => {
                                 'reject-adding-tracks',
                             ),
                         )
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
                         .send(body)
                         .expect(200);
                 }, 10);
@@ -187,6 +189,7 @@ test.group('MPE Add Tracks', (group) => {
                                 'acknowledge-adding-tracks',
                             ),
                         )
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
                         .send(body)
                         .expect(200);
                 }, 10);
@@ -268,6 +271,7 @@ test.group('MPE Add Tracks', (group) => {
                                 'acknowledge-adding-tracks',
                             ),
                         )
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
                         .send(body)
                         .expect(200);
                 }, 10);
@@ -352,6 +356,7 @@ test.group('MPE Add Tracks', (group) => {
                                 'acknowledge-adding-tracks',
                             ),
                         )
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
                         .send(body)
                         .expect(200);
                 }, 10);

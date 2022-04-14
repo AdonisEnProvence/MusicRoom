@@ -15,6 +15,7 @@ import {
     getDefaultMpeRoomCreateRoomArgs,
     getSocketApiAuthToken,
     initTestUtils,
+    TEMPORAL_ADONIS_KEY_HEADER,
     TEST_MPE_TEMPORAL_LISTENER,
 } from './utils/TestUtils';
 
@@ -165,6 +166,7 @@ test.group(`mpe rooms relationship tests`, (group) => {
                                 'mpe-creation-acknowledgement',
                             ),
                         )
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
                         .send(response.state)
                         .expect(200);
                     return response;

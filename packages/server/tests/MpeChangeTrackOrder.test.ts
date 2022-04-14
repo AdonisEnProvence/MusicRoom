@@ -16,6 +16,7 @@ import {
     generateMpeWorkflowState,
     getSocketApiAuthToken,
     initTestUtils,
+    TEMPORAL_ADONIS_KEY_HEADER,
     TEST_MPE_TEMPORAL_LISTENER,
 } from './utils/TestUtils';
 
@@ -164,6 +165,7 @@ test.group(`mpe rooms change track order group test`, (group) => {
                             'acknowledge-change-track-order',
                         ),
                     )
+                    .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
                     .send(response)
                     .expect(200);
 
@@ -338,6 +340,7 @@ test.group(`mpe rooms change track order group test`, (group) => {
                                 'reject-change-track-order',
                             ),
                         )
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
                         .send(response)
                         .expect(200);
 

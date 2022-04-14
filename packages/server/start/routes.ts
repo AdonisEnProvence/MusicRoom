@@ -183,7 +183,9 @@ Route.group(() => {
         `/acknowledge-update-time-constraint`,
         'Temporal/MtvTemporalToServerController.acknowledgeUpdateTimeConstraint',
     );
-}).prefix(MTV_TEMPORAL_LISTENER);
+})
+    .prefix(MTV_TEMPORAL_LISTENER)
+    .middleware('temporal-adonis-auth');
 
 /// //////// ////// ///
 
@@ -235,7 +237,9 @@ Route.group(() => {
         `/acknowledge-leave`,
         `Temporal/MpeTemporalToServerController.mpeLeaveAcknowledgement`,
     );
-}).prefix(MPE_TEMPORAL_LISTENER);
+})
+    .prefix(MPE_TEMPORAL_LISTENER)
+    .middleware('temporal-adonis-auth');
 
 const nodeEnvIsDevelopment = process.env.NODE_ENV === 'development';
 if (nodeEnvIsDevelopment) {

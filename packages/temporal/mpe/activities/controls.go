@@ -36,7 +36,15 @@ func (a *Activities) MpeCreationAcknowledgementActivity(_ context.Context, state
 
 	url := ADONIS_MPE_ENDPOINT + "/mpe-creation-acknowledgement"
 
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -50,7 +58,15 @@ func (a *Activities) RejectAddingTracksActivity(ctx context.Context, args Reject
 	}
 
 	url := ADONIS_MPE_ENDPOINT + "/reject-adding-tracks"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -64,7 +80,15 @@ func (a *Activities) AcknowledgeAddingTracksActivity(ctx context.Context, args A
 	}
 
 	url := ADONIS_MPE_ENDPOINT + "/acknowledge-adding-tracks"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -101,7 +125,15 @@ func (a *Activities) AcknowledgeChangeTrackOrderActivity(ctx context.Context, ar
 	}
 
 	url := ADONIS_MPE_ENDPOINT + "/acknowledge-change-track-order"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -115,7 +147,15 @@ func (a *Activities) RejectChangeTrackOrderActivity(ctx context.Context, args Re
 	}
 
 	url := ADONIS_MPE_ENDPOINT + "/reject-change-track-order"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -129,7 +169,15 @@ func (a *Activities) AcknowledgeDeletingTracksActivity(ctx context.Context, args
 	}
 
 	url := ADONIS_MPE_ENDPOINT + "/acknowledge-deleting-tracks"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -143,7 +191,15 @@ func (a *Activities) AcknowledgeJoinActivity(ctx context.Context, args Acknowled
 	}
 
 	url := ADONIS_MPE_ENDPOINT + "/acknowledge-join"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -162,7 +218,15 @@ func (a *Activities) AcknowledgeLeaveActivity(ctx context.Context, args Acknowle
 	}
 
 	url := ADONIS_MPE_ENDPOINT + "/acknowledge-leave"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -183,7 +247,15 @@ func (a *Activities) SendMtvRoomCreationRequestToServerActivity(ctx context.Cont
 	}
 
 	url := ADONIS_MPE_ENDPOINT + "/request-mtv-room-creation"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }

@@ -4,6 +4,7 @@ import {
     MtvWorkflowStateWithUserRelatedInformation,
 } from '@musicroom/types';
 import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
+import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
 import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
@@ -18,6 +19,7 @@ import {
     getSocketApiAuthToken,
     initTestUtils,
     MtvServerToTemporalControllerLeaveWorkflowStub,
+    TEMPORAL_ADONIS_KEY_HEADER,
 } from './utils/TestUtils';
 
 test.group(
@@ -108,7 +110,9 @@ test.group(
 
                     await supertest(BASE_URL)
                         .post('/temporal/mtv/user-length-update')
-                        .send(roomToLeaveState);
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
+                        .send(roomToLeaveState)
+                        .expect(200);
                     return;
                 });
             sinon
@@ -123,10 +127,14 @@ test.group(
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],
                     };
-                    await supertest(BASE_URL).post('/temporal/mtv/join').send({
-                        state: roomToJoinState,
-                        joiningUserID: relatedUserID,
-                    });
+                    await supertest(BASE_URL)
+                        .post('/temporal/mtv/join')
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
+                        .send({
+                            state: roomToJoinState,
+                            joiningUserID: relatedUserID,
+                        })
+                        .expect(200);
                     return;
                 });
 
@@ -360,7 +368,9 @@ test.group(
 
                     await supertest(BASE_URL)
                         .post('/temporal/mtv/user-length-update')
-                        .send(roomToLeaveState);
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
+                        .send(roomToLeaveState)
+                        .expect(200);
                     return;
                 });
             sinon
@@ -375,10 +385,14 @@ test.group(
                         emittingDeviceID: datatype.uuid(),
                         tracksVotedFor: [],
                     };
-                    await supertest(BASE_URL).post('/temporal/mtv/join').send({
-                        state: roomToJoinState,
-                        joiningUserID: relatedUserID,
-                    });
+                    await supertest(BASE_URL)
+                        .post('/temporal/mtv/join')
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
+                        .send({
+                            state: roomToJoinState,
+                            joiningUserID: relatedUserID,
+                        })
+                        .expect(200);
                     return;
                 });
 
@@ -567,75 +581,6 @@ test.group(
                 minimumScoreToBePlayed: 1,
             };
 
-            (
-                MtvServerToTemporalController.leaveWorkflow as MtvServerToTemporalControllerLeaveWorkflowStub
-            ).restore();
-            sinon
-                .stub(MtvServerToTemporalController, 'leaveWorkflow')
-                .callsFake(async ({ workflowID }) => {
-                    roomToLeaveState = {
-                        ...roomToLeaveState,
-                        roomID: workflowID,
-                        usersLength: roomToLeaveState.usersLength - 1,
-                    };
-
-                    await supertest(BASE_URL)
-                        .post('/temporal/mtv/user-length-update')
-                        .send(roomToLeaveState);
-                    return;
-                });
-            sinon
-                .stub(MtvServerToTemporalController, 'createMtvWorkflow')
-                .callsFake(async ({ workflowID, userID, params }) => {
-                    const state: MtvWorkflowStateWithUserRelatedInformation = {
-                        roomID: workflowID, //workflowID === roomID
-                        roomCreatorUserID: userID,
-                        playing: false,
-                        name: params.name,
-                        delegationOwnerUserID: null,
-                        playingMode: 'BROADCAST',
-                        isOpen: true,
-                        isOpenOnlyInvitedUsersCanVote: false,
-                        hasTimeAndPositionConstraints: false,
-                        timeConstraintIsValid: null,
-                        userRelatedInformation: {
-                            hasControlAndDelegationPermission: true,
-                            userHasBeenInvited: false,
-                            userFitsPositionConstraint: null,
-                            userID,
-                            emittingDeviceID: datatype.uuid(),
-                            tracksVotedFor: [],
-                        },
-                        usersLength: 1,
-                        tracks: [
-                            {
-                                id: datatype.uuid(),
-                                artistName: name.findName(),
-                                duration: 42000,
-                                title: random.words(3),
-                                score: datatype.number(),
-                            },
-                        ],
-                        currentTrack: null,
-                        minimumScoreToBePlayed: 1,
-                    };
-
-                    // Simulating Use Local Activity Notify
-                    await supertest(BASE_URL)
-                        .post('/temporal/mtv/mtv-creation-acknowledgement')
-                        .send(state);
-
-                    return {
-                        runID: datatype.uuid(),
-                        workflowID,
-                        state,
-                    };
-                });
-
-            /**
-             * Mocking a mtvRoom in the databse
-             */
-
             //CREATOR
             const creatorSocket = await createAuthenticatedUserAndGetSocket({
                 userID: userAID,
@@ -663,6 +608,96 @@ test.group(
                 userID: userCID,
                 token: userCToken,
             });
+
+            const { uuid: userCEmittingDevice } = await Device.findByOrFail(
+                'socket_id',
+                userCSocket.id,
+            );
+
+            (
+                MtvServerToTemporalController.leaveWorkflow as MtvServerToTemporalControllerLeaveWorkflowStub
+            ).restore();
+            sinon
+                .stub(MtvServerToTemporalController, 'leaveWorkflow')
+                .callsFake(async ({ workflowID }) => {
+                    roomToLeaveState = {
+                        ...roomToLeaveState,
+                        roomID: workflowID,
+                        usersLength: roomToLeaveState.usersLength - 1,
+                    };
+
+                    await supertest(BASE_URL)
+                        .post('/temporal/mtv/user-length-update')
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
+                        .send(roomToLeaveState)
+                        .expect(200);
+                    return;
+                });
+            sinon.stub(
+                MtvServerToTemporalController,
+                'changeUserEmittingDevice',
+            );
+            sinon
+                .stub(MtvServerToTemporalController, 'createMtvWorkflow')
+                .callsFake(async ({ workflowID, userID, params }) => {
+                    const state: MtvWorkflowStateWithUserRelatedInformation = {
+                        roomID: workflowID,
+                        roomCreatorUserID: userID,
+                        playing: false,
+                        name: params.name,
+                        delegationOwnerUserID: null,
+                        playingMode: 'BROADCAST',
+                        isOpen: true,
+                        isOpenOnlyInvitedUsersCanVote: false,
+                        hasTimeAndPositionConstraints: false,
+                        timeConstraintIsValid: null,
+                        userRelatedInformation: {
+                            hasControlAndDelegationPermission: true,
+                            userHasBeenInvited: false,
+                            userFitsPositionConstraint: null,
+                            userID,
+                            emittingDeviceID: userCEmittingDevice,
+                            tracksVotedFor: [],
+                        },
+                        usersLength: 1,
+                        tracks: [
+                            {
+                                id: datatype.uuid(),
+                                artistName: name.findName(),
+                                duration: 42000,
+                                title: random.words(3),
+                                score: datatype.number(),
+                            },
+                        ],
+                        currentTrack: null,
+                        minimumScoreToBePlayed: 1,
+                    };
+
+                    // Simulating Use Local Activity Notify
+                    setImmediate(
+                        async () =>
+                            await supertest(BASE_URL)
+                                .post(
+                                    '/temporal/mtv/mtv-creation-acknowledgement',
+                                )
+                                .set(
+                                    'Authorization',
+                                    TEMPORAL_ADONIS_KEY_HEADER,
+                                )
+                                .send(state)
+                                .expect(200),
+                    );
+
+                    return {
+                        runID: datatype.uuid(),
+                        workflowID,
+                        state,
+                    };
+                });
+
+            /**
+             * Mocking a mtvRoom in the databse
+             */
 
             //CREATOR
             const creatorSocketUserLengthUpdateSpy =
@@ -795,18 +830,22 @@ test.group(
                 assert.isTrue(userBSocketForcedDisconnectionSpy.calledOnce);
             });
 
-            connectedSocketsToRoom =
-                await SocketLifecycle.getConnectedSocketToRoom(
-                    mtvRoomIDToAssociate,
-                );
-            assert.isFalse(connectedSocketsToRoom.has(creatorSocket.id));
-            assert.isFalse(connectedSocketsToRoom.has(creatorSocketB.id));
+            await waitFor(async () => {
+                connectedSocketsToRoom =
+                    await SocketLifecycle.getConnectedSocketToRoom(
+                        mtvRoomIDToAssociate,
+                    );
+                assert.isFalse(connectedSocketsToRoom.has(creatorSocket.id));
+                assert.isFalse(connectedSocketsToRoom.has(creatorSocketB.id));
+            });
 
-            const leavingCreator = await User.findOrFail(userCID);
-            await leavingCreator.load('mtvRoom');
-            assert.isNotNull(leavingCreator.mtvRoom);
+            await waitFor(async () => {
+                const leavingCreator = await User.findOrFail(userCID);
+                await leavingCreator.load('mtvRoom');
+                assert.isNotNull(leavingCreator.mtvRoom);
 
-            assert.isNull(await MtvRoom.find(mtvRoomIDToAssociate));
+                assert.isNull(await MtvRoom.find(mtvRoomIDToAssociate));
+            });
         });
 
         test(`It should make a user leave the room after he emits a MTV_LEAVE_ROOM client socket event dw 
@@ -842,7 +881,9 @@ test.group(
 
                     await supertest(BASE_URL)
                         .post('/temporal/mtv/user-length-update')
-                        .send(state);
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
+                        .send(state)
+                        .expect(200);
                     return;
                 });
 

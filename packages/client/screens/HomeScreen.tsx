@@ -4,8 +4,6 @@ import { Button, useSx, View } from 'dripsy';
 import { TouchableOpacity } from 'react-native';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
-import { internet } from 'faker';
 import {
     AppScreen,
     AppScreenContainer,
@@ -14,7 +12,6 @@ import {
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import { useUserContext } from '../hooks/userHooks';
 import { HomeTabHomeScreenScreenProps } from '../types';
-import { sendWebAuthSignUp } from '../services/AuthenticationService';
 
 const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();

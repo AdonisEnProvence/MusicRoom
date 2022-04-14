@@ -1,7 +1,7 @@
 import Database from '@ioc:Adonis/Lucid/Database';
 import { MpeAcknowledgeJoinRequestBody } from '@musicroom/types';
 import MpeServerToTemporalController from 'App/Controllers/Http/Temporal/MpeServerToTemporalController';
-import { datatype } from 'faker';
+import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
@@ -12,6 +12,7 @@ import {
     generateMpeWorkflowState,
     getSocketApiAuthToken,
     initTestUtils,
+    TEMPORAL_ADONIS_KEY_HEADER,
     TEST_MPE_TEMPORAL_LISTENER,
 } from './utils/TestUtils';
 
@@ -33,6 +34,97 @@ test.group(`join mpe room group test`, (group) => {
         await disconnectEveryRemainingSocketConnection();
         sinon.restore();
         await Database.rollbackGlobalTransaction();
+    });
+
+    test('It should fail to hit ack mpe join room as request header is not set', async (assert) => {
+        const creatorUserID = datatype.uuid();
+        const joiningUserID = datatype.uuid();
+        const mpeRoomIDToAssociate = datatype.uuid();
+        const state = generateMpeWorkflowState({
+            roomID: mpeRoomIDToAssociate,
+            roomCreatorUserID: creatorUserID,
+        });
+
+        sinon
+            .stub(MpeServerToTemporalController, 'joinWorkflow')
+            .callsFake(async ({ userID, workflowID, userHasBeenInvited }) => {
+                const response: MpeAcknowledgeJoinRequestBody = {
+                    joiningUserID: userID,
+                    state: {
+                        ...state,
+                        userRelatedInformation: {
+                            userHasBeenInvited: false,
+                            userID: joiningUserID,
+                        },
+                    },
+                };
+
+                assert.equal(userID, joiningUserID);
+                assert.equal(workflowID, mpeRoomIDToAssociate);
+                assert.isFalse(userHasBeenInvited);
+
+                setImmediate(async () => {
+                    await supertest(BASE_URL)
+                        .post(
+                            urlcat(
+                                TEST_MPE_TEMPORAL_LISTENER,
+                                'acknowledge-join',
+                            ),
+                        )
+                        .send(response)
+                        .expect(401);
+                });
+
+                return {
+                    ok: 1,
+                };
+            });
+    });
+
+    test('It should fail to hit ack mpe join room as request set header is invalid', async (assert) => {
+        const creatorUserID = datatype.uuid();
+        const joiningUserID = datatype.uuid();
+        const mpeRoomIDToAssociate = datatype.uuid();
+        const state = generateMpeWorkflowState({
+            roomID: mpeRoomIDToAssociate,
+            roomCreatorUserID: creatorUserID,
+        });
+
+        sinon
+            .stub(MpeServerToTemporalController, 'joinWorkflow')
+            .callsFake(async ({ userID, workflowID, userHasBeenInvited }) => {
+                const response: MpeAcknowledgeJoinRequestBody = {
+                    joiningUserID: userID,
+                    state: {
+                        ...state,
+                        userRelatedInformation: {
+                            userHasBeenInvited: false,
+                            userID: joiningUserID,
+                        },
+                    },
+                };
+
+                assert.equal(userID, joiningUserID);
+                assert.equal(workflowID, mpeRoomIDToAssociate);
+                assert.isFalse(userHasBeenInvited);
+
+                setImmediate(async () => {
+                    await supertest(BASE_URL)
+                        .post(
+                            urlcat(
+                                TEST_MPE_TEMPORAL_LISTENER,
+                                'acknowledge-join',
+                            ),
+                        )
+                        .set('Authorization', random.word())
+                        .send(response)
+                        .expect(401);
+                });
+
+                return {
+                    ok: 1,
+                };
+            });
     });
 
     test('JoiningUser should join the given mpe room', async (assert) => {
@@ -136,6 +228,7 @@ test.group(`join mpe room group test`, (group) => {
                                 'acknowledge-join',
                             ),
                         )
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
                         .send(response)
                         .expect(200);
                 });

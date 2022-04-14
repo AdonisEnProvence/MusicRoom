@@ -4,7 +4,11 @@ import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
-import { BASE_URL, initTestUtils } from './utils/TestUtils';
+import {
+    BASE_URL,
+    initTestUtils,
+    TEMPORAL_ADONIS_KEY_HEADER,
+} from './utils/TestUtils';
 
 test.group(`Mtv room time constraint test group`, (group) => {
     const {
@@ -71,8 +75,9 @@ test.group(`Mtv room time constraint test group`, (group) => {
 
         await supertest(BASE_URL)
             .post('/temporal/mtv/acknowledge-update-time-constraint')
-            .send(state);
-
+            .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
+            .send(state)
+            .expect(200);
         await waitFor(() => {
             assert.equal(receivedEvents.length, 2);
         });

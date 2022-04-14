@@ -7,12 +7,16 @@ import { datatype, name, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
+import urlcat from 'urlcat';
 import {
     BASE_URL,
+    createSpyOnClientSocketEvent,
     getDefaultMtvRoomCreateRoomArgs,
     getSocketApiAuthToken,
     initTestUtils,
     sleep,
+    TEMPORAL_ADONIS_KEY_HEADER,
+    TEST_MTV_TEMPORAL_LISTENER,
 } from './utils/TestUtils';
 /**
  * User should create a room, and removes it after user disconnection
@@ -28,6 +32,7 @@ test.group('Rooms life cycle', (group) => {
         disconnectEveryRemainingSocketConnection,
         disconnectSocket,
         initSocketConnection,
+        waitFor,
     } = initTestUtils();
 
     group.beforeEach(async () => {
@@ -64,15 +69,19 @@ test.group('Rooms life cycle', (group) => {
     test('User creates a room, receives acknowledgement, on user disconnection, it should removes the room from database', async (assert) => {
         const userID = datatype.uuid();
         const socket = await createAuthenticatedUserAndGetSocket({ userID });
-        const receivedEvents: string[] = [];
+        const { uuid: emittingDeviceID } = await Device.findByOrFail(
+            'socket_id',
+            socket.id,
+        );
+        const mtvCreateRoomSynchedCallbackSpy = createSpyOnClientSocketEvent(
+            socket,
+            'MTV_CREATE_ROOM_SYNCHED_CALLBACK',
+        );
 
-        socket.once('MTV_CREATE_ROOM_SYNCHED_CALLBACK', () => {
-            receivedEvents.push('MTV_CREATE_ROOM_SYNCHED_CALLBACK');
-        });
-
-        socket.once('MTV_CREATE_ROOM_CALLBACK', () => {
-            receivedEvents.push('MTV_CREATE_ROOM_CALLBACK');
-        });
+        const mtvCreateRoomCallback = createSpyOnClientSocketEvent(
+            socket,
+            'MTV_CREATE_ROOM_CALLBACK',
+        );
         const roomName = random.words(1);
 
         /** Mocks */
@@ -95,7 +104,7 @@ test.group('Rooms life cycle', (group) => {
                         userFitsPositionConstraint: null,
                         userHasBeenInvited: false,
                         userID,
-                        emittingDeviceID: datatype.uuid(),
+                        emittingDeviceID,
                         tracksVotedFor: [],
                     },
                     usersLength: 1,
@@ -113,9 +122,19 @@ test.group('Rooms life cycle', (group) => {
                 };
 
                 // Simulating Use Local Activity Notify
-                await supertest(BASE_URL)
-                    .post('/temporal/mtv/mtv-creation-acknowledgement')
-                    .send(state);
+                setImmediate(
+                    async () =>
+                        await supertest(BASE_URL)
+                            .post(
+                                urlcat(
+                                    TEST_MTV_TEMPORAL_LISTENER,
+                                    '/mtv-creation-acknowledgement',
+                                ),
+                            )
+                            .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
+                            .send(state)
+                            .expect(200),
+                );
 
                 return {
                     runID: datatype.uuid(),
@@ -135,23 +154,25 @@ test.group('Rooms life cycle', (group) => {
             initialTracksIDs: [],
         });
         socket.emit('MTV_CREATE_ROOM', settings);
-        await sleep();
-        await sleep();
-        const roomBefore = await MtvRoom.findBy('creator', userID);
-        assert.isNotNull(roomBefore);
-        //As sinon mocks the whole thing synchrounously we cannot trust the order
-        assert.isTrue(
-            receivedEvents.includes('MTV_CREATE_ROOM_SYNCHED_CALLBACK'),
-        );
-        assert.isTrue(receivedEvents.includes('MTV_CREATE_ROOM_CALLBACK'));
+
+        await waitFor(async () => {
+            const roomBefore = await MtvRoom.findBy('creator', userID);
+            assert.isNotNull(roomBefore);
+            //As sinon mocks the whole thing synchrounously we cannot trust the order
+            assert.isTrue(mtvCreateRoomSynchedCallbackSpy.calledOnce);
+            assert.isTrue(mtvCreateRoomCallback.calledOnce);
+        });
 
         /**
          * Emit disconnect
          * Expecting room to be removed from database
          */
         await disconnectSocket(socket);
-        const roomAfter = await MtvRoom.findBy('creator', userID);
-        assert.isNull(roomAfter);
+
+        await waitFor(async () => {
+            const roomAfter = await MtvRoom.findBy('creator', userID);
+            assert.isNull(roomAfter);
+        });
     });
 
     test('When a room got evicted, users in it should receive a MTV_FORCED_DISCONNECTION socket event', async (assert) => {
@@ -237,7 +258,9 @@ test.group('Rooms life cycle', (group) => {
                 };
                 await supertest(BASE_URL)
                     .post('/temporal/mtv/join')
-                    .send({ state, joiningUserID: userB.userID });
+                    .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
+                    .send({ state, joiningUserID: userB.userID })
+                    .expect(200);
                 return;
             });
         /** ***** */

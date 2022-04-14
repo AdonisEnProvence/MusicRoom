@@ -19,6 +19,7 @@ import {
     waitForTimeout,
     TEST_MTV_TEMPORAL_LISTENER,
     TEST_MPE_TEMPORAL_LISTENER,
+    TEMPORAL_ADONIS_KEY_HEADER,
 } from './utils/TestUtils';
 
 test.group('MPE Export to MTV', (group) => {
@@ -83,6 +84,7 @@ test.group('MPE Export to MTV', (group) => {
                                 'request-mtv-room-creation',
                             ),
                         )
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
                         .send(body)
                         .expect(200);
                 }, 10);
@@ -143,6 +145,7 @@ test.group('MPE Export to MTV', (group) => {
                                 '/mtv-creation-acknowledgement',
                             ),
                         )
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
                         .send(body);
                 }, 10);
 

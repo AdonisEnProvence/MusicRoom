@@ -5,7 +5,12 @@ import { datatype, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
 import supertest from 'supertest';
-import { BASE_URL, initTestUtils, sleep } from './utils/TestUtils';
+import {
+    BASE_URL,
+    initTestUtils,
+    sleep,
+    TEMPORAL_ADONIS_KEY_HEADER,
+} from './utils/TestUtils';
 
 function getBasicState({
     userID,
@@ -87,8 +92,9 @@ test.group(`MtvRoom get users list test group`, (group) => {
 
         await supertest(BASE_URL)
             .post('/temporal/mtv/user-length-update')
-            .send(getBasicState({ userID, roomID }));
-
+            .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
+            .send(getBasicState({ userID, roomID }))
+            .expect(200);
         await sleep();
 
         assert.isTrue(usersListForcedRefreshHasBeenCalled);
@@ -110,7 +116,9 @@ test.group(`MtvRoom get users list test group`, (group) => {
 
         await supertest(BASE_URL)
             .post('/temporal/mtv/acknowledge-update-delegation-owner')
-            .send(getBasicState({ userID, roomID }));
+            .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
+            .send(getBasicState({ userID, roomID }))
+            .expect(200);
 
         await sleep();
 
@@ -135,14 +143,15 @@ test.group(`MtvRoom get users list test group`, (group) => {
             .post(
                 '/temporal/mtv/acknowledge-update-control-and-delegation-permission',
             )
+            .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
             .send(
                 getBasicState({
                     userID,
                     roomID,
                     withUserRelatedInformation: true,
                 }),
-            );
-
+            )
+            .expect(200);
         await sleep();
 
         assert.isTrue(usersListForcedRefreshHasBeenCalled);
@@ -169,8 +178,11 @@ test.group(`MtvRoom get users list test group`, (group) => {
                 withUserRelatedInformation: true,
             }),
         };
-        await supertest(BASE_URL).post('/temporal/mtv/leave').send(leaveBody);
-
+        await supertest(BASE_URL)
+            .post('/temporal/mtv/leave')
+            .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
+            .send(leaveBody)
+            .expect(200);
         await sleep();
 
         assert.isTrue(usersListForcedRefreshHasBeenCalled);

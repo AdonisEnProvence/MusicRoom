@@ -5,16 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"os"
 
 	activities "github.com/AdonisEnProvence/MusicRoom/activities"
 	shared_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/shared"
 )
-
-func (a *Activities) PingActivity(_ context.Context) error {
-	_, err := http.Get(activities.ADONIS_ENDPOINT + "/ping")
-
-	return err
-}
 
 func (a *Activities) PauseActivity(_ context.Context, state shared_mtv.MtvRoomExposedState) error {
 	requestBody := state
@@ -25,7 +20,16 @@ func (a *Activities) PauseActivity(_ context.Context, state shared_mtv.MtvRoomEx
 	}
 
 	url := activities.ADONIS_MTV_ENDPOINT + "/pause"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -39,7 +43,15 @@ func (a *Activities) PlayActivity(_ context.Context, state shared_mtv.MtvRoomExp
 	}
 
 	url := activities.ADONIS_MTV_ENDPOINT + "/play"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -52,7 +64,15 @@ func (a *Activities) CreationAcknowledgementActivity(_ context.Context, state sh
 
 	url := activities.ADONIS_MTV_ENDPOINT + "/mtv-creation-acknowledgement"
 
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -66,8 +86,15 @@ func (a *Activities) UserLengthUpdateActivity(ctx context.Context, state shared_
 	}
 
 	url := activities.ADONIS_MTV_ENDPOINT + "/user-length-update"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
 
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 	return err
 }
 
@@ -85,7 +112,15 @@ func (a *Activities) JoinActivity(ctx context.Context, args MtvJoinCallbackReque
 	}
 
 	url := activities.ADONIS_MTV_ENDPOINT + "/join"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -107,7 +142,15 @@ func (a *Activities) LeaveActivity(ctx context.Context, args AcknowledgeLeaveRoo
 	}
 
 	url := activities.ADONIS_MTV_ENDPOINT + "/leave"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -121,7 +164,15 @@ func (a *Activities) UserVoteForTrackAcknowledgement(ctx context.Context, state 
 	}
 
 	url := activities.ADONIS_MTV_ENDPOINT + "/acknowledge-user-vote-for-track"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -135,7 +186,15 @@ func (a *Activities) ChangeUserEmittingDeviceActivity(ctx context.Context, state
 	}
 
 	url := activities.ADONIS_MTV_ENDPOINT + "/change-user-emitting-device"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -149,7 +208,15 @@ func (a *Activities) NotifySuggestOrVoteUpdateActivity(ctx context.Context, stat
 	}
 
 	url := activities.ADONIS_MTV_ENDPOINT + "/suggest-or-vote-update"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -168,7 +235,15 @@ func (a *Activities) AcknowledgeTracksSuggestion(ctx context.Context, args Ackno
 	}
 
 	url := activities.ADONIS_MTV_ENDPOINT + "/acknowledge-tracks-suggestion"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -186,7 +261,15 @@ func (a *Activities) AcknowledgeTracksSuggestionFail(ctx context.Context, args A
 	}
 
 	url := activities.ADONIS_MTV_ENDPOINT + "/acknowledge-tracks-suggestion-fail"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -200,7 +283,15 @@ func (a *Activities) AcknowledgeUpdateUserFitsPositionConstraint(ctx context.Con
 	}
 
 	url := activities.ADONIS_MTV_ENDPOINT + "/acknowledge-update-user-fits-position-constraint"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -214,7 +305,15 @@ func (a *Activities) AcknowledgeUpdateDelegationOwner(ctx context.Context, state
 	}
 
 	url := activities.ADONIS_MTV_ENDPOINT + "/acknowledge-update-delegation-owner"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -228,7 +327,15 @@ func (a *Activities) AcknowledgeUpdateControlAndDelegationPermission(ctx context
 	}
 
 	url := activities.ADONIS_MTV_ENDPOINT + "/acknowledge-update-control-and-delegation-permission"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }
@@ -242,7 +349,15 @@ func (a *Activities) AcknowledgeUpdateTimeConstraint(ctx context.Context, state 
 	}
 
 	url := activities.ADONIS_MTV_ENDPOINT + "/acknowledge-update-time-constraint"
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshaledBody))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(marshaledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", os.Getenv("TEMPORAL_ADONIS_KEY"))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
 
 	return err
 }

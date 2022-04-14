@@ -33,6 +33,8 @@ import {
     DoneInvokeEvent,
 } from 'xstate';
 
+export const TEMPORAL_ADONIS_KEY_HEADER = 'temporal-adonis-testing-auth-key';
+
 /**
  * Token is stored using it's prefix inside the socke auth instance
  * We want to retrieve it without it

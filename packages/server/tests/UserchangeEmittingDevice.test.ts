@@ -17,6 +17,7 @@ import {
     getSocketApiAuthToken,
     initTestUtils,
     sleep,
+    TEMPORAL_ADONIS_KEY_HEADER,
 } from './utils/TestUtils';
 
 test.group(
@@ -76,7 +77,9 @@ test.group(
 
                     await supertest(BASE_URL)
                         .post('/temporal/mtv/change-user-emitting-device')
-                        .send(state);
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
+                        .send(state)
+                        .expect(200);
                     return;
                 });
 
@@ -235,7 +238,9 @@ test.group(
 
                     await supertest(BASE_URL)
                         .post('/temporal/mtv/change-user-emitting-device')
-                        .send(state);
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
+                        .send(state)
+                        .expect(200);
                     return;
                 });
 
@@ -310,7 +315,9 @@ test.group(
 
                     await supertest(BASE_URL)
                         .post('/temporal/mtv/change-user-emitting-device')
-                        .send(state);
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
+                        .send(state)
+                        .expect(200);
                     return;
                 });
 
@@ -384,7 +391,9 @@ test.group(
 
                     await supertest(BASE_URL)
                         .post('/temporal/mtv/mtv-creation-acknowledgement')
-                        .send(state);
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
+                        .send(state)
+                        .expect(200);
 
                     return {
                         runID: datatype.uuid(),
@@ -458,7 +467,9 @@ test.group(
                     };
                     await supertest(BASE_URL)
                         .post('/temporal/mtv/join')
-                        .send({ state, joiningUserID: userID });
+                        .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
+                        .send({ state, joiningUserID: userID })
+                        .expect(200);
                     return;
                 });
 

@@ -14,6 +14,7 @@ import {
     BASE_URL,
     TEST_MPE_TEMPORAL_LISTENER,
     getSocketApiAuthToken,
+    TEMPORAL_ADONIS_KEY_HEADER,
 } from './utils/TestUtils';
 
 test.group('MPE leave room tests group', (group) => {
@@ -87,6 +88,7 @@ test.group('MPE leave room tests group', (group) => {
                                     'acknowledge-leave',
                                 ),
                             )
+                            .set('Authorization', TEMPORAL_ADONIS_KEY_HEADER)
                             .send(body)
                             .expect(200);
                     });

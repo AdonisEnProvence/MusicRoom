@@ -6,7 +6,11 @@ import {
     pageIsOnHomeScreen,
     pageIsOnSignInScreen,
 } from './_utils/mpe-e2e-utils';
-import { closeAllContexts, GEOLOCATION_POSITIONS } from './_utils/page';
+import {
+    bypassVerifyEmailScreen,
+    closeAllContexts,
+    GEOLOCATION_POSITIONS,
+} from './_utils/page';
 
 test.afterEach(async ({ browser }) => {
     await closeAllContexts(browser);
@@ -39,16 +43,16 @@ test('Signs up a user, expects to be redirected to home and to be still loggged 
 
     await page.click('text="Sign Up"');
 
-    await pageIsOnHomeScreen({ page });
+    await pageIsOnHomeScreen({ page, timeout: 20000 });
 
     await page.reload();
 
-    await pageIsOnHomeScreen({ page });
+    await pageIsOnHomeScreen({ page, timeout: 20000 });
 
     const newTab = await context.newPage();
     await newTab.goto('/');
 
-    await pageIsOnHomeScreen({ page: newTab });
+    await pageIsOnHomeScreen({ page: newTab, timeout: 20000 });
 });
 
 test('It should renders home on every browser tab after a signUp', async ({
@@ -91,8 +95,12 @@ test('It should renders home on every browser tab after a signUp', async ({
 
     await page.click('text="Sign Up"');
 
-    await pageIsOnHomeScreen({ page });
-    await pageIsOnHomeScreen({ page: newTab1 });
-    await pageIsOnHomeScreen({ page: newTab2 });
+    await bypassVerifyEmailScreen({
+        page,
+    });
+
+    await pageIsOnHomeScreen({ page, timeout: 20000 });
+    await pageIsOnHomeScreen({ page: newTab1, timeout: 20000 });
+    await pageIsOnHomeScreen({ page: newTab2, timeout: 20000 });
     await pageIsOnSignInScreen({ page: secondContextPage });
 });

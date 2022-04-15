@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppScreenHeaderWithSearchBarMachineEvent } from '../../machines/appScreenHeaderWithSearchBarMachine';
 import AppScreen from './AppScreen';
+import AppScreenConstrained from './AppScreenConstrained';
 import AppScreenContainer from './AppScreenContainer';
 import AppScreenHeaderWithSearchBar from './AppScreenHeaderWithSearchBar';
 
@@ -41,7 +42,7 @@ const AppScreenWithSearchBar: React.FC<AppScreenWithSearchBarProps> = ({
     const insets = useSafeAreaInsets();
 
     return (
-        <AppScreen
+        <AppScreenConstrained
             testID={testID}
             screenOffsetY={showHeader === true ? 0 : screenOffsetY}
         >
@@ -60,7 +61,7 @@ const AppScreenWithSearchBar: React.FC<AppScreenWithSearchBarProps> = ({
             <View style={{ flex: 1 }}>
                 <AppScreenContainer>{children}</AppScreenContainer>
             </View>
-        </AppScreen>
+        </AppScreenConstrained>
     );
 };
 

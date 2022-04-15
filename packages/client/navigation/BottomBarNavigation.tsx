@@ -10,9 +10,11 @@ import {
     createBottomTabNavigator,
 } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useSx } from 'dripsy';
+import { useSx, View } from 'dripsy';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AppBottomBarConstraint from '../components/kit/AppBottomBarConstraint';
+import AppScreenConstrained from '../components/kit/AppScreenConstrained';
 import TheMusicPlayer from '../components/TheMusicPlayer';
 import { tabStyle } from '../constants/Colors';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
@@ -59,25 +61,29 @@ const TabBar: React.FC<BottomTabBarProps> = ({
                 setIsFullScren={setIsFullScreen}
             />
 
-            <BottomTabBar
-                safeAreaInsets={insets}
-                state={state}
-                descriptors={descriptors}
-                navigation={navigation}
-                style={sx({
-                    backgroundColor: 'greyLight',
+            <AppBottomBarConstraint>
+                <View sx={{ display: [undefined, 'none'] }}>
+                    <BottomTabBar
+                        safeAreaInsets={insets}
+                        state={state}
+                        descriptors={descriptors}
+                        navigation={navigation}
+                        style={sx({
+                            backgroundColor: 'greyLight',
 
-                    zIndex: 10,
-                    // @ts-expect-error This property is not correctly typed
-                    borderTopWidth: 0,
-                })}
-                activeTintColor="white"
-                labelStyle={sx({
-                    marginTop: 's',
-                    fontSize: 'xs',
-                })}
-                labelPosition="below-icon"
-            />
+                            zIndex: 10,
+                            // @ts-expect-error This property is not correctly typed
+                            borderTopWidth: 0,
+                        })}
+                        activeTintColor="white"
+                        labelStyle={sx({
+                            marginTop: 's',
+                            fontSize: 'xs',
+                        })}
+                        labelPosition="below-icon"
+                    />
+                </View>
+            </AppBottomBarConstraint>
         </>
     );
 };

@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'dripsy';
 import { View as MotiView } from 'moti';
 
-type AppScreenProps = {
+export type AppScreenProps = {
     testID?: string;
     screenOffsetY?: number;
 };

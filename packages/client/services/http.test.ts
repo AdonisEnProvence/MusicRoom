@@ -1,6 +1,12 @@
+import {
+    REQUEST_HEADER_APP_VERSION_KEY,
+    REQUEST_HEADER_DEVICE_INFORMATION,
+    REQUEST_HEADER_DEVICE_OS,
+} from '@musicroom/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Response } from 'node-fetch';
 import { createRequester } from './http';
+import * as ExpoConstantWrapper from './ExpoConstantsWrapper';
 
 global.fetch = jest.fn().mockResolvedValue(new Response());
 
@@ -8,8 +14,13 @@ test('persistToken should persist the token to AsyncStorage and set the Authoriz
     const request = createRequester();
 
     const token = '12345';
-
     await request.persistToken(token);
+
+    const expectedheaders: Record<string, string> = {};
+    expectedheaders.authorization = `Bearer ${token}`;
+    expectedheaders[REQUEST_HEADER_DEVICE_INFORMATION] = 'mock';
+    expectedheaders[REQUEST_HEADER_DEVICE_OS] = 'ios';
+
     expect(AsyncStorage.setItem).toHaveBeenCalledWith('auth-token', token);
 
     await request.get('http://localhost:3000');
@@ -17,9 +28,7 @@ test('persistToken should persist the token to AsyncStorage and set the Authoriz
         'http://localhost:3000',
         expect.objectContaining({
             method: 'get',
-            headers: {
-                authorization: `Bearer ${token}`,
-            },
+            headers: expectedheaders,
         }),
     );
 });
@@ -30,6 +39,11 @@ test('loadToken should load the token from AsyncStorage and set the Authorizatio
     const token = '12345';
     await AsyncStorage.setItem('auth-token', token);
 
+    const expectedheaders: Record<string, string> = {};
+    expectedheaders.authorization = `Bearer ${token}`;
+    expectedheaders[REQUEST_HEADER_DEVICE_INFORMATION] = 'mock';
+    expectedheaders[REQUEST_HEADER_DEVICE_OS] = 'ios';
+
     await request.loadToken();
 
     await request.get('http://localhost:3000');
@@ -37,9 +51,7 @@ test('loadToken should load the token from AsyncStorage and set the Authorizatio
         'http://localhost:3000',
         expect.objectContaining({
             method: 'get',
-            headers: {
-                authorization: `Bearer ${token}`,
-            },
+            headers: expectedheaders,
         }),
     );
 });
@@ -87,14 +99,17 @@ test('clearToken removes the token from AsyncStorage and does not send Authoriza
     const token = '12345';
     await request.persistToken(token);
 
+    const expectedheaders: Record<string, string> = {};
+    expectedheaders.authorization = `Bearer ${token}`;
+    expectedheaders[REQUEST_HEADER_DEVICE_INFORMATION] = 'mock';
+    expectedheaders[REQUEST_HEADER_DEVICE_OS] = 'ios';
+
     await request.get('http://localhost:3000');
     expect(fetch).toHaveBeenCalledWith(
         'http://localhost:3000',
         expect.objectContaining({
             method: 'get',
-            headers: {
-                authorization: `Bearer ${token}`,
-            },
+            headers: expectedheaders,
         }),
     );
 
@@ -108,6 +123,68 @@ test('clearToken removes the token from AsyncStorage and does not send Authoriza
             headers: {
                 authorization: expect.any(String),
             },
+        }),
+    );
+});
+
+test('It should set request headers by default', async () => {
+    jest.spyOn(
+        ExpoConstantWrapper,
+        'getConstantAppVersionWrapper',
+    ).mockReturnValue('app-version');
+    jest.spyOn(ExpoConstantWrapper, 'getDeviceNameWrapper').mockReturnValue(
+        'device-name',
+    );
+    jest.spyOn(ExpoConstantWrapper, 'getPlatformOsWrapper').mockReturnValue(
+        'platform-os',
+    );
+    const request = createRequester();
+
+    const token = '12345';
+    await request.persistToken(token);
+
+    const expectedheaders: Record<string, string> = {};
+    expectedheaders.authorization = `Bearer ${token}`;
+    expectedheaders[REQUEST_HEADER_DEVICE_OS] = 'platform-os';
+    expectedheaders[REQUEST_HEADER_APP_VERSION_KEY] = 'app-version';
+    expectedheaders[REQUEST_HEADER_DEVICE_INFORMATION] = 'device-name';
+
+    await request.get('http://localhost:3000');
+    expect(fetch).toHaveBeenCalledWith(
+        'http://localhost:3000',
+        expect.objectContaining({
+            method: 'get',
+            headers: expectedheaders,
+        }),
+    );
+});
+
+test('It should not set undefined headers', async () => {
+    jest.spyOn(
+        ExpoConstantWrapper,
+        'getConstantAppVersionWrapper',
+    ).mockReturnValue(undefined);
+    jest.spyOn(ExpoConstantWrapper, 'getDeviceNameWrapper').mockReturnValue(
+        undefined,
+    );
+    jest.spyOn(ExpoConstantWrapper, 'getPlatformOsWrapper').mockReturnValue(
+        'platform-os',
+    );
+    const request = createRequester();
+
+    const token = '12345';
+    await request.persistToken(token);
+
+    const expectedheaders: Record<string, string> = {};
+    expectedheaders.authorization = `Bearer ${token}`;
+    expectedheaders[REQUEST_HEADER_DEVICE_OS] = 'platform-os';
+
+    await request.get('http://localhost:3000');
+    expect(fetch).toHaveBeenCalledWith(
+        'http://localhost:3000',
+        expect.objectContaining({
+            method: 'get',
+            headers: expectedheaders,
         }),
     );
 });

@@ -24,10 +24,10 @@ export default class LoggerMiddleware {
         Logger.info(`
         ${
             deviceInformationIsDefined
-                ? `DEVICE_INFORMATION: ${deviceInformation}`
+                ? `DEVICE_INFORMATION: ${deviceInformation}\n`
                 : ''
-        }${deviceOsIsDefined ? `DEVICE_OS: ${deviceOs}` : ''}${
-            appVersionIsDefined ? `DEVICE_INFORMATION: ${appVersion}` : ''
+        }${deviceOsIsDefined ? `DEVICE_OS: ${deviceOs}\n` : ''}${
+            appVersionIsDefined ? `DEVICE_INFORMATION: ${appVersion}\n` : ''
         }
         URL: ${request.url()}
         METHOD: ${request.method()}

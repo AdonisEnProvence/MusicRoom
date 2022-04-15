@@ -1,7 +1,17 @@
 import { Platform } from 'react-native';
 import redaxios from 'redaxios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+    REQUEST_HEADER_APP_VERSION_KEY,
+    REQUEST_HEADER_DEVICE_INFORMATION,
+    REQUEST_HEADER_DEVICE_OS,
+} from '@musicroom/types';
 import { SERVER_ENDPOINT } from '../constants/Endpoints';
+import {
+    getConstantAppVersionWrapper,
+    getDeviceNameWrapper,
+    getPlatformOsWrapper,
+} from './ExpoConstantsWrapper';
 
 export const SHOULD_USE_TOKEN_AUTH = Platform.OS !== 'web';
 
@@ -39,9 +49,23 @@ type Requester = typeof redaxios & {
 export function createRequester(): Requester {
     const TOKEN_STORAGE_KEY = 'auth-token';
 
+    const headers: Record<string, string> = {};
+    headers[REQUEST_HEADER_DEVICE_OS] = getPlatformOsWrapper();
+
+    const appVersion = getConstantAppVersionWrapper();
+    if (appVersion !== undefined) {
+        headers[REQUEST_HEADER_APP_VERSION_KEY] = appVersion;
+    }
+
+    const deviceName = getDeviceNameWrapper();
+    if (deviceName !== undefined) {
+        headers[REQUEST_HEADER_DEVICE_INFORMATION] = deviceName;
+    }
+
     const request: Requester = redaxios.create({
         baseURL: SERVER_ENDPOINT,
         withCredentials: true,
+        headers,
     });
 
     function setRequestAuthorizationHeader(token: string) {

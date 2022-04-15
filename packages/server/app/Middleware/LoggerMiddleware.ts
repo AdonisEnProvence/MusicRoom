@@ -3,8 +3,8 @@ import Logger from '@ioc:Adonis/Core/Logger';
 import {
     REQUEST_HEADER_DEVICE_INFORMATION,
     REQUEST_HEADER_DEVICE_OS,
+    REQUEST_HEADER_APP_VERSION_KEY,
 } from '@musicroom/types';
-import { REQUEST_HEADER_APP_VERSION_KEY } from '@musicroom/types/src/http';
 
 export default class LoggerMiddleware {
     public async handle(

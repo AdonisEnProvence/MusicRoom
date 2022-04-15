@@ -43,4 +43,5 @@ Server.middleware.registerNamed({
     auth: () => import('App/Middleware/Auth'),
     'every-auth': () => import('App/Middleware/EveryAuth'),
     'temporal-adonis-auth': () => import('App/Middleware/TemporalAdonisAuth'),
+    'logger-middleware': () => import('App/Middleware/LoggerMiddleware'),
 });

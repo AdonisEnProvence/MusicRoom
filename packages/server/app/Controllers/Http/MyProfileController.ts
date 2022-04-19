@@ -4,7 +4,7 @@ import invariant from 'tiny-invariant';
 
 export default class MyProfileController {
     /**
-     * @listAllRooms
+     * @getMyProfileInformation
      * @description Authenticated route that will return authenticated user myProfileInformation.
      * @requestBody
      */

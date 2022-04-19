@@ -163,6 +163,11 @@ export default class SearchUsersController {
         };
     }
 
+    /**
+     * @listUserFollowers
+     * @description Authenticated route that returns given user followers list. Can fail depending on given user relations visibility. Uses pagination.
+     * @requestBody
+     */
     public async listUserFollowers({
         request,
         auth,
@@ -193,6 +198,11 @@ export default class SearchUsersController {
         });
     }
 
+    /**
+     * @listUserFollowing
+     * @description Authenticated route that returns given user following. Can fail depending on given user relations visibility. Uses pagination
+     * @requestBody
+     */
     public async listUserFollowing({
         request,
         auth,
@@ -225,6 +235,11 @@ export default class SearchUsersController {
         });
     }
 
+    /**
+     * @listMyFollowing
+     * @description Authenticated route that returns authenticated user following list. Uses pagination.
+     * @requestBody
+     */
     public async listMyFollowing({
         request,
         auth,
@@ -248,6 +263,11 @@ export default class SearchUsersController {
         });
     }
 
+    /**
+     * @listMyFollowers
+     * @description Authenticated route that returns authenticated user followers list. Uses pagination.
+     * @requestBody
+     */
     public async listMyFollowers({
         request,
         auth,

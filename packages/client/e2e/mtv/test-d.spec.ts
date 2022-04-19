@@ -5,7 +5,11 @@ import {
     assertMusicPlayerStatusIs,
 } from '../_utils/assert';
 import { hitGoNextButton } from '../_utils/global';
-import { knownSearches } from '../_utils/mpe-e2e-utils';
+import {
+    getAppHomeButtonLocator,
+    getAppSearchButtonLocator,
+    knownSearches,
+} from '../_utils/mpe-e2e-utils';
 import {
     closeAllContexts,
     createNewTabFromExistingContext,
@@ -20,9 +24,9 @@ async function createPublicRoomWithInvitation({
     page: Page;
     roomName: string;
 }) {
-    await expect(page.locator('text="Home"').first()).toBeVisible();
+    await expect(page.locator(getAppHomeButtonLocator())).toBeVisible();
 
-    const goToTracksSearch = page.locator('text="Search"');
+    const goToTracksSearch = page.locator(getAppSearchButtonLocator());
     await goToTracksSearch.click();
 
     const trackQuery = 'BB Brunes';

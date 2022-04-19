@@ -12,6 +12,8 @@ import {
     hitGoBack,
     withinMyUserProfilePageContainer,
     withinUserProfileScreen,
+    getAppSearchButtonLocator,
+    getAppHomeButtonLocator,
 } from '../_utils/mpe-e2e-utils';
 import { hitGoNextButton } from '../_utils/global';
 import { closeAllContexts, setupPageAndSignUpUser } from '../_utils/page';
@@ -22,9 +24,9 @@ test.afterEach(async ({ browser }) => {
 });
 
 async function createMtvRoom({ creatorPage }: { creatorPage: Page }) {
-    await expect(creatorPage.locator('text="Home"').first()).toBeVisible();
+    await expect(creatorPage.locator(getAppHomeButtonLocator())).toBeVisible();
 
-    const goToTracksSearch = creatorPage.locator('text="Search"');
+    const goToTracksSearch = creatorPage.locator(getAppSearchButtonLocator());
     await goToTracksSearch.click();
 
     const trackQuery = 'BB Brunes';

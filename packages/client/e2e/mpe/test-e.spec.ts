@@ -4,6 +4,8 @@ import { hitGoNextButton } from '../_utils/global';
 import {
     addTrack,
     createMpeRoom,
+    getAppHomeButtonLocator,
+    getAppSearchButtonLocator,
     goToHomeTabScreen,
     knownSearches,
     openMpeSettingsModal,
@@ -16,8 +18,9 @@ test.afterEach(async ({ browser }) => {
 });
 
 async function createRoom({ creatorPage }: { creatorPage: Page }) {
-    await expect(creatorPage.locator('text="Home"').first()).toBeVisible();
-    const goToTracksSearch = creatorPage.locator('text="Search"');
+    await expect(creatorPage.locator(getAppHomeButtonLocator())).toBeVisible();
+
+    const goToTracksSearch = creatorPage.locator(getAppSearchButtonLocator());
     await goToTracksSearch.click();
 
     const trackQuery = 'BB Brunes';

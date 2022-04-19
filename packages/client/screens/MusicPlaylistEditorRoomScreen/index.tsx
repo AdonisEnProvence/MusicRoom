@@ -10,7 +10,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { BottomSheetHandle, BottomSheetModal } from '@gorhom/bottom-sheet';
 import { intervalToDuration, formatDuration } from 'date-fns';
 import {
-    AppScreen,
     AppScreenContainer,
     AppScreenHeader,
     Typo,
@@ -22,6 +21,7 @@ import TrackListItem from '../../components/Track/TrackListItem';
 import { PlaylistActorRef } from '../../machines/playlistMachine';
 import BottomRightAbsoluteButton from '../../components/kit/BottomRightAbsoluteButton';
 import { InviteUserButton } from '../MusicTrackVoteUsersListModal';
+import AppScreenConstrained from '../../components/kit/AppScreenConstrained';
 
 interface MusicPlaylistEditorRoomScreenProps extends MpeTabMpeRoomScreenProps {
     playlist: MusicPlaylist;
@@ -382,7 +382,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
         ///
 
         return (
-            <AppScreen testID={`mpe-room-screen-${playlistID}`}>
+            <AppScreenConstrained testID={`mpe-room-screen-${playlistID}`}>
                 <AppScreenHeader
                     title={`Playlist ${playlist.roomName}`}
                     insetTop={insets.top}
@@ -593,7 +593,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                         </View>
                     </BottomSheetModal>
                 </AppScreenContainer>
-            </AppScreen>
+            </AppScreenConstrained>
         );
     };
 
@@ -606,7 +606,7 @@ const MusicPlaylistEditorRoomWrapper: React.FC<MpeTabMpeRoomScreenProps> = (
 
     if (playlist === undefined) {
         return (
-            <AppScreen>
+            <AppScreenConstrained>
                 <AppScreenHeader
                     title={`Playlist is loading`}
                     insetTop={insets.top}
@@ -628,7 +628,7 @@ const MusicPlaylistEditorRoomWrapper: React.FC<MpeTabMpeRoomScreenProps> = (
                         <Skeleton show={true} colorMode="dark" width="100%" />
                     </MotiView>
                 </AppScreenContainer>
-            </AppScreen>
+            </AppScreenConstrained>
         );
     }
 

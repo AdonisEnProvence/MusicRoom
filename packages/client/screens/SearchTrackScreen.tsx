@@ -6,7 +6,6 @@ import { ActorRef } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import invariant from 'tiny-invariant';
 import { Ionicons } from '@expo/vector-icons';
-import { AppScreenWithSearchBar } from '../components/kit';
 import TrackListItem from '../components/Track/TrackListItem';
 import {
     AppScreenHeaderWithSearchBarMachineEvent,
@@ -19,6 +18,7 @@ import {
 import { SearchTabSearchTracksScreenProps } from '../types';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import { useMusicPlaylistsActor } from '../hooks/useMusicPlaylistsActor';
+import AppScreenConstrainedWithSearchBar from '../components/kit/AppScreenConstrainedWithSearchBar';
 
 const searchTracksScreenModel = createModel(
     {
@@ -201,7 +201,7 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
     }
 
     return (
-        <AppScreenWithSearchBar
+        <AppScreenConstrainedWithSearchBar
             title="Search a track"
             testID="search-track-screen"
             searchInputPlaceholder="Search a track..."
@@ -349,7 +349,7 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
                     </View>
                 </View>
             </Modal>
-        </AppScreenWithSearchBar>
+        </AppScreenConstrainedWithSearchBar>
     );
 };
 

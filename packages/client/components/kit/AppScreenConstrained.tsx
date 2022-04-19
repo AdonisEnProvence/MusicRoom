@@ -96,6 +96,7 @@ const AppScreenConstrained: React.FC<AppScreenProps> = (props) => {
                 sx={{ flex: 1, flexDirection: 'row', maxWidth: ['100%', 860] }}
             >
                 <View
+                    testID="aside-menu"
                     sx={{
                         display: ['none', 'flex'],
                         padding: 'm',

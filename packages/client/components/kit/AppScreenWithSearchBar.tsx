@@ -4,11 +4,10 @@ import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppScreenHeaderWithSearchBarMachineEvent } from '../../machines/appScreenHeaderWithSearchBarMachine';
 import AppScreen from './AppScreen';
-import AppScreenConstrained from './AppScreenConstrained';
 import AppScreenContainer from './AppScreenContainer';
 import AppScreenHeaderWithSearchBar from './AppScreenHeaderWithSearchBar';
 
-type AppScreenWithSearchBarProps = {
+export type AppScreenWithSearchBarProps = {
     testID?: string;
     title: string;
     searchInputPlaceholder: string;
@@ -26,7 +25,12 @@ type AppScreenWithSearchBarProps = {
     | { canGoBack?: false }
 );
 
-const AppScreenWithSearchBar: React.FC<AppScreenWithSearchBarProps> = ({
+export const AppScreenWithSearchBarInternal: React.FC<
+    AppScreenWithSearchBarProps & {
+        Wrapper: React.FC<{ testID?: string; screenOffsetY?: number }>;
+    }
+> = ({
+    Wrapper,
     testID,
     title,
     searchInputPlaceholder,
@@ -42,7 +46,7 @@ const AppScreenWithSearchBar: React.FC<AppScreenWithSearchBarProps> = ({
     const insets = useSafeAreaInsets();
 
     return (
-        <AppScreenConstrained
+        <Wrapper
             testID={testID}
             screenOffsetY={showHeader === true ? 0 : screenOffsetY}
         >
@@ -61,8 +65,14 @@ const AppScreenWithSearchBar: React.FC<AppScreenWithSearchBarProps> = ({
             <View style={{ flex: 1 }}>
                 <AppScreenContainer>{children}</AppScreenContainer>
             </View>
-        </AppScreenConstrained>
+        </Wrapper>
     );
+};
+
+const AppScreenWithSearchBar: React.FC<AppScreenWithSearchBarProps> = (
+    props,
+) => {
+    return <AppScreenWithSearchBarInternal Wrapper={AppScreen} {...props} />;
 };
 
 export default AppScreenWithSearchBar;

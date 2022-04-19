@@ -115,7 +115,7 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
                                     marginBottom: 'xl',
                                 }}
                             >
-                                Welcome back Popol!
+                                Welcome back !
                             </Text>
 
                             {credentialsAreInvalid === true ||

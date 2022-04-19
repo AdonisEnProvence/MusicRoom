@@ -298,7 +298,7 @@ Route.group(() => {
     Route.get('/swagger', async () => {
         return AutoSwagger.docs(Route.toJSON(), {
             path: __dirname,
-            title: 'Foo',
+            title: 'Musicroom Public API documentation',
             version: '1.0.0',
             snakeCase: false,
             tagIndex: 2,
@@ -307,7 +307,7 @@ Route.group(() => {
                 '/docs',
                 '/test/bypass-email-confirmation',
                 '/',
-                '/test/email/:template',
+                '/email/:template',
                 '/test/toggle-mail-trap',
                 `/temporal/mpe/mpe-creation-acknowledgement`,
                 `/temporal/mpe/reject-adding-tracks`,

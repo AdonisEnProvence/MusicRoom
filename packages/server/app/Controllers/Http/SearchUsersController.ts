@@ -128,6 +128,11 @@ async function throwErrorIfRequestingUserCanNotAccessRelatedUserRelationsVisibil
 }
 
 export default class SearchUsersController {
+    /**
+     * @searchUsers
+     * @description Authenticated route that requires a searchQuery, returns users userSummary list matching the given query. Uses pagination.
+     * @requestBody
+     */
     public async searchUsers({
         request,
         auth,

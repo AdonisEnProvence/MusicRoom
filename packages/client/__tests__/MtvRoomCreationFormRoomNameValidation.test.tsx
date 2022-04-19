@@ -36,7 +36,7 @@ const roomNameValidationMachine = roomNameValidationModel.createMachine({
             meta: {
                 test: ({ screen }: TestingContext) => {
                     const roomNameInput =
-                        screen.getByPlaceholderText(/francis.*cabrel/i);
+                        screen.getByPlaceholderText(/Room.*name/i);
                     expect(roomNameInput).toBeTruthy();
                 },
             },
@@ -116,8 +116,7 @@ const roomNameValidationTestModel = createTestModel<TestingContext>(
         exec: ({ screen, triggerSubmit }, event) => {
             const { roomName } = TypeRoomNameAndSubmitEvent.parse(event);
 
-            const roomNameInput =
-                screen.getByPlaceholderText(/francis.*cabrel/i);
+            const roomNameInput = screen.getByPlaceholderText(/Room.*name/i);
 
             fireEvent.changeText(roomNameInput, roomName);
 

@@ -46,7 +46,7 @@ export const MusicTrackVoteCreationFormNameContent: React.FC<MusicTrackVoteCreat
                                         value={value}
                                         onBlur={onBlur}
                                         onChangeText={onChange}
-                                        placeholder="Francis Cabrel OnlyFans"
+                                        placeholder="Room name"
                                         placeholderTextColor="#fff"
                                     />
                                 )}
@@ -61,18 +61,6 @@ export const MusicTrackVoteCreationFormNameContent: React.FC<MusicTrackVoteCreat
                                     A room name must be set.
                                 </Text>
                             )}
-                        </View>
-
-                        <View
-                            sx={{
-                                marginTop: 'xl',
-                                backgroundColor: 'greyLighter',
-                                color: 'greyLight',
-                                padding: 'm',
-                                borderRadius: 's',
-                            }}
-                        >
-                            <Text>This is an advice</Text>
                         </View>
                     </>
                 }

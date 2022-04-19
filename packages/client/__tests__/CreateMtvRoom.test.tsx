@@ -1004,7 +1004,7 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
         exec: async ({ screen }, event) => {
             const { value: roomNameToType } = TypeRoomNameEvent.parse(event);
             const roomNameInput = await screen.findByPlaceholderText(
-                /francis.*cabrel.*onlyfans/i,
+                /Room.*name/i,
             );
 
             fireEvent.changeText(roomNameInput, roomNameToType);

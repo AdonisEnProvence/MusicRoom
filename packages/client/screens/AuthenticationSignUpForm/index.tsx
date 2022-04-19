@@ -347,7 +347,7 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                                 value={value}
                                                 onBlur={onBlur}
                                                 onChangeText={onChange}
-                                                placeholder="Your nickname"
+                                                placeholder="Nickname"
                                                 placeholderTextColor="#fff"
                                                 sx={{
                                                     borderWidth: 1,
@@ -418,7 +418,7 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                                 keyboardType={'email-address'}
                                                 onChangeText={onChange}
                                                 autoCompleteType={'email'}
-                                                placeholder="Your email"
+                                                placeholder="Email"
                                                 placeholderTextColor="#fff"
                                                 sx={{
                                                     borderWidth: 1,
@@ -486,7 +486,7 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
                                                 value={value}
                                                 onBlur={onBlur}
                                                 onChangeText={onChange}
-                                                placeholder="Your password"
+                                                placeholder="Password"
                                                 placeholderTextColor="#fff"
                                                 sx={{
                                                     borderWidth: 1,

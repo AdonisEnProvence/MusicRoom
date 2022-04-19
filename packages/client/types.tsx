@@ -157,8 +157,6 @@ export type MainStackParamList = {
 
     MusicTrackVoteSearch: undefined;
 
-    Settings: undefined;
-
     SignUpFormScreen: undefined;
 };
 
@@ -370,14 +368,6 @@ export type MusicPlaylistEditorRoomsSearchModalProps = {
         MusicPlaylistEditorRoomsSearchParamList,
         'MusicPlaylistEditorRoomsSearchModal'
     >;
-};
-
-export type SettingsScreenProps = {
-    navigation: CompositeNavigationProp<
-        StackNavigationProp<RootStackParamList, 'Main'>,
-        StackNavigationProp<MainStackParamList, 'Settings'>
-    >;
-    route: RouteProp<MainStackParamList, 'Settings'>;
 };
 
 export type SignUpFormScreenProps = {

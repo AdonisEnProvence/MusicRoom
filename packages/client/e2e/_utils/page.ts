@@ -167,21 +167,21 @@ export async function performSignUp(page: Page): Promise<{
 
     //Nickanme
     const yourNicknameInput = page.locator(
-        withinSignUpFormScreenContainer(`css=[placeholder="Your nickname"]`),
+        withinSignUpFormScreenContainer(`css=[placeholder="Nickname"]`),
     );
     await expect(yourNicknameInput).toBeVisible();
     await yourNicknameInput.fill(userNickname);
 
     //Email
     const yourEmailInput = page.locator(
-        withinSignUpFormScreenContainer(`css=[placeholder="Your email"]`),
+        withinSignUpFormScreenContainer(`css=[placeholder="Email"]`),
     );
     await expect(yourEmailInput).toBeVisible();
     await yourEmailInput.fill(email);
 
     //Password
     const yourPasswordInput = page.locator(
-        withinSignUpFormScreenContainer(`css=[placeholder="Your password"]`),
+        withinSignUpFormScreenContainer(`css=[placeholder="Password"]`),
     );
     await expect(yourPasswordInput).toBeVisible();
     await yourPasswordInput.fill(password);

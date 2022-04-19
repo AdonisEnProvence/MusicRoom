@@ -115,7 +115,7 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
                                     marginBottom: 'xl',
                                 }}
                             >
-                                Welcome back Popol!
+                                Welcome back !
                             </Text>
 
                             {credentialsAreInvalid === true ||
@@ -154,7 +154,6 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
                                 <Controller
                                     control={control}
                                     name="email"
-                                    defaultValue="devessier@devessier.fr"
                                     rules={{
                                         required: {
                                             value: true,
@@ -223,7 +222,6 @@ const SigningInScreen: React.FC<SigningInScreenProps> = ({ navigation }) => {
                                 <Controller
                                     control={control}
                                     name="password"
-                                    defaultValue="devessierBgDu13"
                                     rules={{
                                         required: {
                                             value: true,

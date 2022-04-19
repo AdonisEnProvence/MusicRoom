@@ -20,7 +20,6 @@ import MusicTrackVoteCreationFormVotesConstraints from '../screens/MusicTrackVot
 import MusicTrackVoteSearchScreen from '../screens/MusicTrackVoteSearchScreen';
 import MusicTrackVoteUsersListModal from '../screens/MusicTrackVoteUsersListModal';
 import MusicTrackVoteUsersSearchModal from '../screens/MusicTrackVoteUsersSearchModal';
-import SettingsScreen from '../screens/SettingsScreen';
 import SuggestTrackModal from '../screens/SuggestTrackModal';
 import UserProfileIndexScreen from '../screens/UserProfile';
 import {
@@ -739,12 +738,6 @@ const MainNavigator: React.FC<ColorModeProps> = ({
                 name="MusicTrackVoteSearch"
                 component={MusicTrackVoteSearchScreen}
                 options={{ title: 'Track Vote Search' }}
-            />
-
-            <MainStack.Screen
-                name="Settings"
-                options={{ title: 'Settings' }}
-                component={SettingsScreen}
             />
         </MainStack.Navigator>
     );

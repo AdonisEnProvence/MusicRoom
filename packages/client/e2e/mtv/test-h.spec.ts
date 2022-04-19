@@ -71,7 +71,7 @@ async function createPublicRoomWithTimeAndPhysicalConstraints({
         page.locator('text="What is the name of the room?"'),
     ).toBeVisible();
 
-    await page.fill('css=[placeholder="Francis Cabrel OnlyFans"]', roomName);
+    await page.fill('css=[placeholder="Room name"]', roomName);
     await hitGoNextButton({
         page,
     });

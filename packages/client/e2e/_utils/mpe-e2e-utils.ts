@@ -204,7 +204,7 @@ export async function createMpeRoom({
     ).toBeVisible();
 
     const roomName = random.words();
-    await page.fill('css=[placeholder="Francis Cabrel OnlyFans"]', roomName);
+    await page.fill('css=[placeholder="Playlist name"]', roomName);
 
     await hitGoNextButton({
         page,

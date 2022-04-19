@@ -45,7 +45,7 @@ const MusicPlaylistEditorCreationFormNameContent: React.FC<MusicTrackVoteCreatio
                                         value={value}
                                         onBlur={onBlur}
                                         onChangeText={onChange}
-                                        placeholder="Francis Cabrel OnlyFans"
+                                        placeholder="Playlist name"
                                         placeholderTextColor="#fff"
                                     />
                                 )}
@@ -60,18 +60,6 @@ const MusicPlaylistEditorCreationFormNameContent: React.FC<MusicTrackVoteCreatio
                                     A room name must be set.
                                 </Text>
                             )}
-                        </View>
-
-                        <View
-                            sx={{
-                                marginTop: 'xl',
-                                backgroundColor: 'greyLighter',
-                                color: 'greyLight',
-                                padding: 'm',
-                                borderRadius: 's',
-                            }}
-                        >
-                            <Text>This is an advice</Text>
                         </View>
                     </>
                 }

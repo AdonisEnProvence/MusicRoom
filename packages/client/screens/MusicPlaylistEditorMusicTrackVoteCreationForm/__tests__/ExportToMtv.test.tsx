@@ -455,7 +455,7 @@ const exportToMtvTestModel = createTestModel<
             >;
 
             const roomNameInput = await screen.findByPlaceholderText(
-                /francis.*cabrel.*onlyfans/i,
+                /Room.*name/i,
             );
 
             fireEvent.changeText(roomNameInput, roomNameToType);

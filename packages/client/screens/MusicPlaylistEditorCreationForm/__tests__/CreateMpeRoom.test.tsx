@@ -586,7 +586,7 @@ const createMpeRoomWithSettingsTestModel = createTestModel<
             >;
 
             const roomNameInput = await screen.findByPlaceholderText(
-                /francis.*cabrel.*onlyfans/i,
+                /Playlist.*name/i,
             );
 
             fireEvent.changeText(roomNameInput, roomNameToType);

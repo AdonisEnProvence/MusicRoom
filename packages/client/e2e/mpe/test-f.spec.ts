@@ -47,7 +47,7 @@ async function exportMpeRoomToMtvRoomWithConstraint({
         page.locator('text="What is the name of the room?"'),
     ).toBeVisible();
 
-    await page.fill('css=[placeholder="Francis Cabrel OnlyFans"]', mtvRoomName);
+    await page.fill('css=[placeholder="Room name"]', mtvRoomName);
 
     // Go to opening status screen.
     await hitGoNextButton({ page });

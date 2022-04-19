@@ -46,7 +46,7 @@ export const MusicTrackVoteCreationFormNameContent: React.FC<MusicTrackVoteCreat
                                         value={value}
                                         onBlur={onBlur}
                                         onChangeText={onChange}
-                                        placeholder="Francis Cabrel OnlyFans"
+                                        placeholder="Room name"
                                         placeholderTextColor="#fff"
                                     />
                                 )}

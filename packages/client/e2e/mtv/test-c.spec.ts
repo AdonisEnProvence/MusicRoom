@@ -41,7 +41,7 @@ async function createPublicRoomWithInvitation(page: Page) {
     ).toBeVisible();
 
     const roomName = 'MusicRoom is the best';
-    await page.fill('css=[placeholder="Francis Cabrel OnlyFans"]', roomName);
+    await page.fill('css=[placeholder="Room name"]', roomName);
     await hitGoNextButton({
         page,
     });

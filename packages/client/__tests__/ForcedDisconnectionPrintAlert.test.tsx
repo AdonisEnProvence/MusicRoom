@@ -1,8 +1,9 @@
 import { datatype, name, random } from 'faker';
+import Toast from 'react-native-toast-message';
 import { serverSocket } from '../services/websockets';
-import { fireEvent, renderApp, within } from '../tests/tests-utils';
+import { fireEvent, renderApp, within, waitFor } from '../tests/tests-utils';
 
-test(`On MTV_FORCED_DISCONNECTION it should displays the alert modal and dismiss it when clicking on dismiss button`, async () => {
+test(`On MTV_FORCED_DISCONNECTION it should displays the a toast and minimize the music player`, async () => {
     const screen = await renderApp();
 
     /**
@@ -47,31 +48,30 @@ test(`On MTV_FORCED_DISCONNECTION it should displays the alert modal and dismiss
      * Firstly expecting to be on the home
      * And then click on GO TO MUSIC TRACK VOTE button
      */
-    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
-    const goToMusicTrackVoteButton = await screen.findByText(
-        /GO TO MUSIC TRACK VOTE/i,
+    const homeScreenContrainer = await screen.findByTestId(
+        'home-screen-container',
     );
-    expect(goToMusicTrackVoteButton).toBeTruthy();
-    fireEvent.press(goToMusicTrackVoteButton);
-    expect(screen.getAllByText(/Track Vote/i)).toBeTruthy();
+    expect(homeScreenContrainer).toBeTruthy();
+
+    const searchScreenLink = screen.getByText(/^search$/i);
+    expect(searchScreenLink).toBeTruthy();
+    fireEvent.press(searchScreenLink);
+    expect(await screen.findByTestId('search-track-screen')).toBeTruthy();
 
     serverSocket.emit('MTV_FORCED_DISCONNECTION');
 
-    /**
-     * After MTV_FORCED_DISCONNECTION we expect the user to be on the Alert screen
-     */
-    const dismissButton = await screen.findByText(/DISMISS/i);
-    expect(dismissButton).toBeTruthy();
-    expect(await screen.getByText(/FORCED_DISCONNECTION/i)).toBeTruthy();
+    expect(Toast.show).toHaveBeenCalledWith({
+        type: 'info',
+        text1: 'Creator leaved his Music Track Vote room',
+        text2: `You've been forced disconnected`,
+    });
 
     /**
-     * By clicking on the dismiss button the user should see the home
+     * We expect that the music player would be dismissed, as the user was previously on the search tab
+     * we expect that he comes back there
      */
-    fireEvent.press(dismissButton);
-    expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
-    const musicPlayerMini = screen.getByTestId('music-player-mini');
-
-    expect(
-        within(musicPlayerMini).getByText(/Join a room to listen to music/i),
-    ).toBeTruthy();
+    const searchTrackContainer = await screen.findByTestId(
+        'search-track-screen',
+    );
+    expect(searchTrackContainer).toBeTruthy();
 });

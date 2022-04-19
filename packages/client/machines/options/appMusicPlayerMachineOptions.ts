@@ -75,23 +75,13 @@ export function getMusicPlayerMachineOptions({
                 setIsFullScreen(false);
             },
 
-            displayAlertForcedDisconnection: () => {
+            displayAlertForcedDisconnectionToastAndMinimizeMusicPlayer: () => {
+                Toast.show({
+                    type: 'info',
+                    text1: 'Creator leaved his Music Track Vote room',
+                    text2: `You've been forced disconnected`,
+                });
                 setIsFullScreen(false);
-                navigateFromRef('Main', {
-                    screen: 'Root',
-                    params: {
-                        screen: 'Home',
-                        params: {
-                            screen: 'HomeScreen',
-                        },
-                    },
-                });
-                navigateFromRef('Main', {
-                    screen: 'Alert',
-                    params: {
-                        reason: 'FORCED_DISCONNECTION',
-                    },
-                });
             },
 
             goBackFromRef: () => {

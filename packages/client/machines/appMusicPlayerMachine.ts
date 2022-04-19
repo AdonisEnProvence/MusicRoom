@@ -858,7 +858,7 @@ export const createAppMusicPlayerMachine = ({
 
                                                     actions: [
                                                         'assignRawContext',
-                                                        'displayAlertForcedDisconnection',
+                                                        'displayAlertForcedDisconnectionToastAndMinimizeMusicPlayer',
                                                     ],
                                                 },
 

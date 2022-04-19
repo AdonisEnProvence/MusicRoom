@@ -59,6 +59,7 @@
     "@googlemaps/google-maps-services-js": "^3.3.7",
     "@musicroom/types": "*",
     "@socket.io/redis-adapter": "^7.1.0",
+    "adonis-autoswagger": "^1.7.6",
     "geolib": "^3.3.3",
     "googleapis": "^92.0.0",
     "got": "^11.8.2",

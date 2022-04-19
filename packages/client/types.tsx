@@ -159,14 +159,8 @@ export type MainStackParamList = {
 
     Settings: undefined;
 
-    Alert: AlertParams;
-
     SignUpFormScreen: undefined;
 };
-
-interface AlertParams {
-    reason: 'FORCED_DISCONNECTION';
-}
 
 interface UserProfileParams {
     userID: string;
@@ -384,14 +378,6 @@ export type SettingsScreenProps = {
         StackNavigationProp<MainStackParamList, 'Settings'>
     >;
     route: RouteProp<MainStackParamList, 'Settings'>;
-};
-
-export type AlertScreenProps = {
-    navigation: CompositeNavigationProp<
-        StackNavigationProp<RootStackParamList, 'Main'>,
-        StackNavigationProp<MainStackParamList, 'Alert'>
-    >;
-    route: RouteProp<MainStackParamList, 'Alert'>;
 };
 
 export type SignUpFormScreenProps = {

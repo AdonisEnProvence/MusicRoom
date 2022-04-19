@@ -10,7 +10,6 @@ import Toast from 'react-native-toast-message';
 import { enableScreens } from 'react-native-screens';
 import { navigationStyle } from '../constants/Colors';
 import { useAppContext } from '../contexts/AppContext';
-import { AlertScreen } from '../screens/AlertScreen';
 import MusicTrackVoteChatModal from '../screens/MusicTrackVoteChatModal';
 import MusicTrackVoteCreationFormConfirmation from '../screens/MusicTrackVoteCreationFormConfirmation';
 import MusicTrackVoteCreationFormName from '../screens/MusicTrackVoteCreationFormName';
@@ -747,8 +746,6 @@ const MainNavigator: React.FC<ColorModeProps> = ({
                 options={{ title: 'Settings' }}
                 component={SettingsScreen}
             />
-
-            <MainStack.Screen name="Alert" component={AlertScreen} />
         </MainStack.Navigator>
     );
 };

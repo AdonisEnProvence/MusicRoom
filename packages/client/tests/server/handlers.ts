@@ -68,7 +68,6 @@ import {
     TokenResponse,
     TokenResponseConfig,
 } from 'expo-auth-session';
-import { data } from 'msw/lib/types/context';
 import { SERVER_ENDPOINT } from '../../constants/Endpoints';
 import { SearchTracksAPIRawResponse } from '../../services/search-tracks';
 import { db } from '../data';

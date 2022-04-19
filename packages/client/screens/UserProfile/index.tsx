@@ -107,7 +107,7 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
                             />
                         </>
                     ) : (
-                        <Text>LOADING</Text>
+                        <View testID="default-profile-page-screen-loading" />
                     )}
                 </AppScreenContainer>
             </AppScreen>

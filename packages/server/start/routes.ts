@@ -19,6 +19,7 @@
 */
 // import Redis from '@ioc:Adonis/Addons/Redis';
 import Route from '@ioc:Adonis/Core/Route';
+import AutoSwagger from 'adonis-autoswagger';
 
 export const MPE_TEMPORAL_LISTENER = `/temporal/mpe`;
 export const MY_PROFILE_ROUTES_GROUP_PREFIX = '/me';
@@ -291,5 +292,26 @@ Route.group(() => {
 
     Route.get('/', () => {
         return { hello: 'world' };
+    });
+
+    // returns swagger in YAML
+    Route.get('/swagger', async () => {
+        return AutoSwagger.docs(Route.toJSON(), {
+            path: __dirname,
+            title: 'Foo',
+            version: '1.0.0',
+            snakeCase: false,
+            tagIndex: 2,
+            ignore: ['/swagger', '/docs', '/temporal/mpe'],
+            common: {
+                parameters: {}, // OpenAPI conform parameters that are commonly used
+                headers: {}, // OpenAPI confomr headers that are commonly used
+            },
+        });
+    });
+
+    // Renders Swagger-UI and passes YAML-output of /swagger
+    Route.get('/docs', async () => {
+        return AutoSwagger.ui('/swagger');
     });
 }).middleware('logger-middleware');

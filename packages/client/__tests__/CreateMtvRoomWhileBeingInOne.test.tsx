@@ -2,7 +2,13 @@ import { MtvWorkflowState } from '@musicroom/types';
 import { datatype, random } from 'faker';
 import { serverSocket } from '../services/websockets';
 import { db, generateTrackMetadata } from '../tests/data';
-import { fireEvent, renderApp, waitFor, within } from '../tests/tests-utils';
+import {
+    findBottomBarSearchButton,
+    fireEvent,
+    renderApp,
+    waitFor,
+    within,
+} from '../tests/tests-utils';
 
 test(`Device should still be playing while entering the mtvRoomCreation form while already being in a room`, async () => {
     const fakeTrack = db.searchableTracks.create();
@@ -73,7 +79,7 @@ test(`Device should still be playing while entering the mtvRoomCreation form whi
     ).toBeTruthy();
 
     //Search steps
-    const searchScreenLink = screen.getByText(/^search$/i);
+    const searchScreenLink = await findBottomBarSearchButton({ screen });
     expect(searchScreenLink).toBeTruthy();
 
     fireEvent.press(searchScreenLink);
@@ -194,7 +200,7 @@ test('Device should stop playing when exiting current room while being in MTV Cr
     ).toBeTruthy();
 
     //Search steps
-    const searchScreenLink = screen.getByText(/^search$/i);
+    const searchScreenLink = await findBottomBarSearchButton({ screen });
     expect(searchScreenLink).toBeTruthy();
 
     fireEvent.press(searchScreenLink);
@@ -323,7 +329,7 @@ test('Music Player context is not refreshed when exiting MTV Room Creation Form'
     ).toBeTruthy();
 
     //Search steps
-    const searchScreenLink = screen.getByText(/^search$/i);
+    const searchScreenLink = await findBottomBarSearchButton({ screen });
     expect(searchScreenLink).toBeTruthy();
 
     fireEvent.press(searchScreenLink);

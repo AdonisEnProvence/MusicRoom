@@ -11,6 +11,7 @@ import { MtvRoomMinimumVotesForATrackToBePlayed } from '../machines/creationMtvR
 import { serverSocket } from '../services/websockets';
 import { db } from '../tests/data';
 import {
+    findBottomBarSearchButton,
     fireEvent,
     render,
     renderApp,
@@ -964,8 +965,8 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
     TestingContext,
     ContextFrom<typeof createMtvRoomWithSettingsMachine>
 >(createMtvRoomWithSettingsMachine).withEvents({
-    GO_TO_SEARCH_TRACKS: ({ screen }) => {
-        const searchScreenLink = screen.getByText(/^search$/i);
+    GO_TO_SEARCH_TRACKS: async ({ screen }) => {
+        const searchScreenLink = await findBottomBarSearchButton({ screen });
 
         fireEvent.press(searchScreenLink);
     },

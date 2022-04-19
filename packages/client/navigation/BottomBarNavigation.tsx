@@ -62,7 +62,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
             />
 
             <AppBottomBarConstraint>
-                <View sx={{ display: [undefined, 'none'] }}>
+                <View testID="bottom-bar" sx={{ display: [undefined, 'none'] }}>
                     <BottomTabBar
                         safeAreaInsets={insets}
                         state={state}

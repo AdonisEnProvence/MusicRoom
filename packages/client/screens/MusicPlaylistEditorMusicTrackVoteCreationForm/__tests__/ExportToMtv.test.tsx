@@ -14,6 +14,7 @@ import {
     waitFor,
     fireEvent,
     within,
+    findBottomBarLibraryButton,
 } from '../../../tests/tests-utils';
 import { serverSocket } from '../../../services/websockets';
 import { openMpeSettingsBottomSheetModal } from '../../../tests/tests-mpe-utils';
@@ -424,7 +425,7 @@ const exportToMtvTestModel = createTestModel<
     },
 
     GO_TO_LIBRARY: async ({ screen }) => {
-        const libraryScreenLink = await screen.findByText(/^library$/i);
+        const libraryScreenLink = await findBottomBarLibraryButton({ screen });
 
         fireEvent.press(libraryScreenLink);
     },

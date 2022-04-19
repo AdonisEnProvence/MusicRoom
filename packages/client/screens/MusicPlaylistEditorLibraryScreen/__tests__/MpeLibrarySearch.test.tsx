@@ -10,6 +10,7 @@ import {
     renderApp,
     waitFor,
     within,
+    findBottomBarLibraryButton,
 } from '../../../tests/tests-utils';
 
 interface TestingContext {
@@ -222,7 +223,9 @@ describe('MPE Library Search', () => {
                         screen.getAllByText(/home/i).length,
                     ).toBeGreaterThanOrEqual(1);
 
-                    const goToLibraryButton = screen.getByText(/^library$/i);
+                    const goToLibraryButton = await findBottomBarLibraryButton({
+                        screen,
+                    });
                     expect(goToLibraryButton).toBeTruthy();
 
                     fireEvent.press(goToLibraryButton);
@@ -258,7 +261,9 @@ test('Pressing Cancel button refreshes the list', async () => {
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const goToLibraryButton = screen.getByText(/^library$/i);
+    const goToLibraryButton = await findBottomBarLibraryButton({
+        screen,
+    });
     expect(goToLibraryButton).toBeTruthy();
 
     fireEvent.press(goToLibraryButton);
@@ -340,7 +345,9 @@ test('Pressing Clear button refreshes the list and resets the search query', asy
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const goToLibraryButton = screen.getByText(/^library$/i);
+    const goToLibraryButton = await findBottomBarLibraryButton({
+        screen,
+    });
     expect(goToLibraryButton).toBeTruthy();
 
     fireEvent.press(goToLibraryButton);
@@ -400,7 +407,9 @@ test('Pulling list refreshes it', async () => {
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const goToLibraryButton = screen.getByText(/^library$/i);
+    const goToLibraryButton = await findBottomBarLibraryButton({
+        screen,
+    });
     expect(goToLibraryButton).toBeTruthy();
 
     fireEvent.press(goToLibraryButton);

@@ -13,6 +13,11 @@ import { fromMpeRoomsToMpeRoomSummaries } from '../Ws/MpeRoomsWsController';
 const MPE_ROOMS_SEARCH_LIMIT = 10;
 
 export default class MpeRoomsHttpController {
+    /**
+     * @listAllRooms
+     * @description Authenticated route that will list all alive mpe rooms. Can pass searchQuery. Uses pagination.
+     * @requestBody
+     */
     public async listAllRooms({
         request,
         bouncer,
@@ -78,6 +83,11 @@ export default class MpeRoomsHttpController {
         };
     }
 
+    /**
+     * @listMyRooms
+     * @description Authenticated route that will list all authenticated user's mpe rooms. Can pass searchQuery. Uses pagination.
+     * @requestBody
+     */
     public async listMyRooms({
         request,
         bouncer,

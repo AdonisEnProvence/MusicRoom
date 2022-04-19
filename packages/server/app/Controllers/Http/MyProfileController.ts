@@ -3,6 +3,11 @@ import { GetMyProfileInformationResponseBody } from '@musicroom/types';
 import invariant from 'tiny-invariant';
 
 export default class MyProfileController {
+    /**
+     * @listAllRooms
+     * @description Authenticated route that will return authenticated user myProfileInformation.
+     * @requestBody
+     */
     public async getMyProfileInformation({
         auth,
         bouncer,

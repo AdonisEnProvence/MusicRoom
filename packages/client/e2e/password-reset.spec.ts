@@ -133,9 +133,9 @@ async function createAccount({ page, email }: { page: Page; email: string }) {
 
     await expect(page.locator('text="To party sign up !"')).toBeVisible();
 
-    await page.fill('[placeholder="Your nickname"]', internet.userName());
-    await page.fill('[placeholder="Your email"]', email);
-    await page.fill('[placeholder="Your password"]', 'adfg=1435&*&*(SjhgA');
+    await page.fill('[placeholder="Nickname"]', internet.userName());
+    await page.fill('[placeholder="Email"]', email);
+    await page.fill('[placeholder="Password"]', 'adfg=1435&*&*(SjhgA');
 
     await page.click('text="Sign Up"');
 

@@ -37,9 +37,9 @@ test('Signs up a user, expects to be redirected to home and to be still loggged 
 
     await expect(page.locator('text="To party sign up !"')).toBeVisible();
 
-    await page.fill('[placeholder="Your nickname"]', internet.userName());
-    await page.fill('[placeholder="Your email"]', internet.email());
-    await page.fill('[placeholder="Your password"]', 'adfg=1435&*&*(SjhgA');
+    await page.fill('[placeholder="Nickname"]', internet.userName());
+    await page.fill('[placeholder="Email"]', internet.email());
+    await page.fill('[placeholder="Password"]', 'adfg=1435&*&*(SjhgA');
 
     await page.click('text="Sign Up"');
 
@@ -93,9 +93,9 @@ test('It should renders home on every browser tab after a signUp', async ({
 
     await expect(page.locator('text="To party sign up !"')).toBeVisible();
 
-    await page.fill('[placeholder="Your nickname"]', internet.userName());
-    await page.fill('[placeholder="Your email"]', internet.email());
-    await page.fill('[placeholder="Your password"]', 'adfg=1435&*&*(SjhgA');
+    await page.fill('[placeholder="Nickname"]', internet.userName());
+    await page.fill('[placeholder="Email"]', internet.email());
+    await page.fill('[placeholder="Password"]', 'adfg=1435&*&*(SjhgA');
 
     await page.click('text="Sign Up"');
 

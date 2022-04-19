@@ -329,7 +329,11 @@ test('Test D see following link for more informations https://3.basecamp.com/470
             roomName: newRoomName,
             toggleFullscreen: false,
         }),
-        expect(userBPage.locator('text="FORCED_DISCONNECTION"')).toBeVisible(),
+        expect(
+            userBPage.locator(
+                `text="Creator leaved his Music Track Vote room"`,
+            ),
+        ).toBeVisible(),
         assertMusicPlayerStatusIs({
             page: userADevice3Page,
             testID: 'music-player-not-playing-device-emitting',

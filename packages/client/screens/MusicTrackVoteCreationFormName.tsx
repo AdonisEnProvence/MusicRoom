@@ -62,18 +62,6 @@ export const MusicTrackVoteCreationFormNameContent: React.FC<MusicTrackVoteCreat
                                 </Text>
                             )}
                         </View>
-
-                        <View
-                            sx={{
-                                marginTop: 'xl',
-                                backgroundColor: 'greyLighter',
-                                color: 'greyLight',
-                                padding: 'm',
-                                borderRadius: 's',
-                            }}
-                        >
-                            <Text>This is an advice</Text>
-                        </View>
                     </>
                 }
             />

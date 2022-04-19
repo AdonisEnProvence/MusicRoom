@@ -16,6 +16,11 @@ import { AuthenticationService } from 'App/Services/AuthenticationService';
 import invariant from 'tiny-invariant';
 
 export default class UserSettingsController {
+    /**
+     * @getMySettings
+     * @description Authenticated route that will returns authenticated user userSettings.
+     * @requestBody
+     */
     public async getMySettings({
         bouncer,
         auth,
@@ -44,6 +49,11 @@ export default class UserSettingsController {
         };
     }
 
+    /**
+     * @updatePlaylistsVisibility
+     * @description Authenticated route that will update authenticated user playlist visibility status using given one.
+     * @requestBody
+     */
     public async updatePlaylistsVisibility({
         request,
         bouncer,
@@ -73,6 +83,11 @@ export default class UserSettingsController {
         };
     }
 
+    /**
+     * @updateRelationsVisibility
+     * @description Authenticated route that will update authenticated user relations visibility status using given one.
+     * @requestBody
+     */
     public async updateRelationsVisibility({
         request,
         bouncer,
@@ -102,6 +117,11 @@ export default class UserSettingsController {
         };
     }
 
+    /**
+     * @updateNickname
+     * @description Authenticated route that will update authenticated user nickname value by the given one. Depending on given nickname availability and validity.
+     * @requestBody
+     */
     public async updateNickname({
         request,
         auth,
@@ -139,6 +159,11 @@ export default class UserSettingsController {
         }
     }
 
+    /**
+     * @linkGoogleAccount
+     * @description Authenticated route that will link retrieved google_id from given user google access token to the authenticated user account.
+     * @requestBody
+     */
     public async linkGoogleAccount({
         auth,
         bouncer,

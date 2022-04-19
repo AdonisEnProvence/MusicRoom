@@ -11,6 +11,10 @@ const youtube = google.youtube({
 
 //TODO
 export default class TracksSearchesController {
+    /**
+     * @searchTrackName
+     * @description Returns TracksMetadata array search result using given query
+     */
     public async searchTrackName({
         request,
         auth,

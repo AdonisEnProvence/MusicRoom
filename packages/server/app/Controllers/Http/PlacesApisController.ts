@@ -4,6 +4,11 @@ import urlcat from 'urlcat';
 import { PlaceAutocompleteResponse } from '@musicroom/types';
 
 export default class PlacesApisController {
+    /**
+     * @proxyPlacesAPIRequest
+     * @description Authenticated route that will proxy to google geocoding service an address search.
+     * @requestBody
+     */
     public async proxyPlacesAPIRequest({
         request,
     }: HttpContextContract): Promise<PlaceAutocompleteResponse> {

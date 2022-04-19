@@ -19,6 +19,7 @@
 */
 // import Redis from '@ioc:Adonis/Addons/Redis';
 import Route from '@ioc:Adonis/Core/Route';
+import AutoSwagger from 'adonis-autoswagger';
 
 export const MPE_TEMPORAL_LISTENER = `/temporal/mpe`;
 export const MY_PROFILE_ROUTES_GROUP_PREFIX = '/me';
@@ -291,5 +292,57 @@ Route.group(() => {
 
     Route.get('/', () => {
         return { hello: 'world' };
+    });
+
+    // returns swagger in YAML
+    Route.get('/swagger', async () => {
+        return AutoSwagger.docs(Route.toJSON(), {
+            path: __dirname,
+            title: 'Musicroom Public API documentation',
+            version: '1.0.0',
+            snakeCase: false,
+            tagIndex: 2,
+            ignore: [
+                '/swagger',
+                '/docs',
+                '/test/bypass-email-confirmation',
+                '/',
+                '/email/:template',
+                '/test/toggle-mail-trap',
+                `/temporal/mpe/mpe-creation-acknowledgement`,
+                `/temporal/mpe/reject-adding-tracks`,
+                `/temporal/mpe/acknowledge-adding-tracks`,
+                `/temporal/mpe/acknowledge-change-track-order`,
+                `/temporal/mpe/reject-change-track-order`,
+                `/temporal/mpe/acknowledge-deleting-tracks`,
+                `/temporal/mpe/acknowledge-join`,
+                `/temporal/mpe/request-mtv-room-creation`,
+                `/temporal/mpe/acknowledge-leave`,
+                `/temporal/mtv/mtv-creation-acknowledgement`,
+                `/temporal/mtv/play`,
+                `/temporal/mtv/pause`,
+                `/temporal/mtv/join`,
+                `/temporal/mtv/leave`,
+                `/temporal/mtv/change-user-emitting-device`,
+                `/temporal/mtv/user-length-update`,
+                `/temporal/mtv/suggest-or-vote-update`,
+                `/temporal/mtv/acknowledge-tracks-suggestion`,
+                `/temporal/mtv/acknowledge-tracks-suggestion-fail`,
+                `/temporal/mtv/acknowledge-user-vote-for-track`,
+                `/temporal/mtv/acknowledge-update-user-fits-position-constraint`,
+                `/temporal/mtv/acknowledge-update-delegation-owner`,
+                `/temporal/mtv/acknowledge-update-control-and-delegation-permission`,
+                `/temporal/mtv/acknowledge-update-time-constraint`,
+            ],
+            common: {
+                parameters: {}, // OpenAPI conform parameters that are commonly used
+                headers: {}, // OpenAPI confomr headers that are commonly used
+            },
+        });
+    });
+
+    // Renders Swagger-UI and passes YAML-output of /swagger
+    Route.get('/docs', async () => {
+        return AutoSwagger.ui('/swagger');
     });
 }).middleware('logger-middleware');

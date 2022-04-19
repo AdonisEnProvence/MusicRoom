@@ -143,6 +143,11 @@ async function getIfUserCanQueryOtherUserMpeRooms({
 }
 
 export default class UserProfileController {
+    /**
+     * @getUserProfileInformation
+     * @description Authenticated route that returns given user public userProfileInformation.
+     * @requestBody
+     */
     public async getUserProfileInformation({
         request,
         auth,
@@ -169,6 +174,11 @@ export default class UserProfileController {
         };
     }
 
+    /**
+     * @followUser
+     * @description Authenticated route that will for authenticated user follow given user.
+     * @requestBody
+     */
     public async followUser({
         request,
         auth,
@@ -219,6 +229,11 @@ export default class UserProfileController {
         };
     }
 
+    /**
+     * @unfollowUser
+     * @description Authenticated route that will for authenticated user unfollow given user.
+     * @requestBody
+     */
     public async unfollowUser({
         request,
         auth,
@@ -270,6 +285,11 @@ export default class UserProfileController {
         };
     }
 
+    /**
+     * @listUserMpeRooms
+     * @description Authenticated route that given user mpe rooms. Can fail depending on given user playlists visibility. Uses pagination.
+     * @requestBody
+     */
     public async listUserMpeRooms({
         request,
         auth,

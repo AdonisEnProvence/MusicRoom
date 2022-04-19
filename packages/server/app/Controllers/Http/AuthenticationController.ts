@@ -27,6 +27,11 @@ import { AuthenticationService } from 'App/Services/AuthenticationService';
 import { ResetPasswordResponseBody } from '@musicroom/types/src/authentication';
 
 export default class AuthenticationController {
+    /**
+     * @signUp
+     * @description Will attempt to sign up using given mail & password & userName credentials. On fail will return a failure reasons array.
+     * @requestBody
+     */
     public async signUp({
         request,
         response,
@@ -129,6 +134,11 @@ export default class AuthenticationController {
         }
     }
 
+    /**
+     * @signIn
+     * @description Will attempt to sign in using given mail & password.
+     * @requestBody
+     */
     public async signIn({
         request,
         response,
@@ -196,6 +206,11 @@ export default class AuthenticationController {
         }
     }
 
+    /**
+     * @signOut
+     * @description Authenticated route that sign out authenticated user.
+     * @requestBody
+     */
     public async signOut({
         request,
         auth,
@@ -218,6 +233,11 @@ export default class AuthenticationController {
         };
     }
 
+    /**
+     * @confirmEmail
+     * @description Authenticated route that will attempt to confirm authenticated user email using given code.
+     * @requestBody
+     */
     public async confirmEmail({
         request,
         response,
@@ -255,6 +275,11 @@ export default class AuthenticationController {
         };
     }
 
+    /**
+     * @resendConfirmationEmail
+     * @description Authenticated route that will attempt to resend authenticated user email confirmation code. Could fail depending on rate limit.
+     * @requestBody
+     */
     public async resendConfirmationEmail({
         auth,
         bouncer,
@@ -286,6 +311,11 @@ export default class AuthenticationController {
         };
     }
 
+    /**
+     * @requestPasswordReset
+     * @description Authenticated route that will attempt to request authenticated user password reset code. Could fail depending on rate limit.
+     * @requestBody
+     */
     public async requestPasswordReset({
         request,
         response,
@@ -322,6 +352,11 @@ export default class AuthenticationController {
         };
     }
 
+    /**
+     * @validatePasswordResetToken
+     * @description Authenticated route that will attempt to verify given reset password code for authenticated user.
+     * @requestBody
+     */
     public async validatePasswordResetToken({
         request,
         response,
@@ -357,6 +392,11 @@ export default class AuthenticationController {
         };
     }
 
+    /**
+     * @resetPassword
+     * @description Authenticated route that will attempt to reset authenticated user password using given reset password code.
+     * @requestBody
+     */
     public async resetPassword({
         request,
         auth,
@@ -406,6 +446,11 @@ export default class AuthenticationController {
         });
     }
 
+    /**
+     * @authenticateWithGoogleOauth
+     * @description Will attempt to sign in or sign up user via user google_id retrieved using given user google access token. On fail will send back a failure reasons array.
+     * @requestBody
+     */
     public async authenticateWithGoogleOauth({
         request,
         response,

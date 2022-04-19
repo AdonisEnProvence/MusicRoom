@@ -23,6 +23,11 @@ type FetchMtvRoomsRawPaginationEntry = z.infer<
 >;
 
 export default class MtvRoomsHttpController {
+    /**
+     * @fetchMtvRooms
+     * @description Will list all alive mtv rooms. Can pass searchQuery. Uses pagination.
+     * @requestBody
+     */
     public async fetchMtvRooms({
         request,
         auth,

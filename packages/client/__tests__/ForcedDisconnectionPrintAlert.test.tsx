@@ -1,7 +1,11 @@
 import { datatype, name, random } from 'faker';
 import Toast from 'react-native-toast-message';
 import { serverSocket } from '../services/websockets';
-import { fireEvent, renderApp, within, waitFor } from '../tests/tests-utils';
+import {
+    fireEvent,
+    renderApp,
+    findBottomBarSearchButton,
+} from '../tests/tests-utils';
 
 test(`On MTV_FORCED_DISCONNECTION it should displays the a toast and minimize the music player`, async () => {
     const screen = await renderApp();
@@ -53,7 +57,7 @@ test(`On MTV_FORCED_DISCONNECTION it should displays the a toast and minimize th
     );
     expect(homeScreenContrainer).toBeTruthy();
 
-    const searchScreenLink = screen.getByText(/^search$/i);
+    const searchScreenLink = await findBottomBarSearchButton({ screen });
     expect(searchScreenLink).toBeTruthy();
     fireEvent.press(searchScreenLink);
     expect(await screen.findByTestId('search-track-screen')).toBeTruthy();

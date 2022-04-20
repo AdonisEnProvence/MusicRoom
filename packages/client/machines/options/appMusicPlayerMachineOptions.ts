@@ -28,10 +28,9 @@ export function getMusicPlayerMachineOptions({
     return {
         services: {
             listenForFocus: () => (sendBack) => {
-                const listener = () => {
-                    console.log('SENDING FOCUS READY');
+                function listener() {
                     sendBack('FOCUS_READY');
-                };
+                }
 
                 //Can't be using always props in state machine as invoke is called before it
                 if (Platform.OS !== 'web') {
@@ -39,12 +38,13 @@ export function getMusicPlayerMachineOptions({
                     return;
                 }
 
-                document.addEventListener('click', listener);
+                // `true` means body should receive `click` events before anyone else.
+                // See capturing phase: https://javascript.info/bubbling-and-capturing.
+                document.body.addEventListener('click', listener, true);
                 setDisplayModal(true);
 
                 return () => {
-                    console.log('___CLEANUP___');
-                    document.removeEventListener('click', listener);
+                    document.body.removeEventListener('click', listener);
                     setDisplayModal(false);
                 };
             },

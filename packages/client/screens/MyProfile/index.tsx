@@ -19,6 +19,7 @@ import { MyProfileScreenProps } from '../../types';
 import { generateUserAvatarUri } from '../../constants/users-avatar';
 import { getMyProfileInformation } from '../../services/UsersSearchService';
 import { useRefreshOnFocus } from '../../hooks/useRefreshOnFocus';
+import ErrorScreen from '../kit/ErrorScreen';
 import LoadingScreen from '../UserProfile/kit/LoadingScreen';
 
 interface MyProfileInformationSectionProps {
@@ -143,32 +144,22 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
         navigation.navigate('MyFollowing');
     }
 
-    if (myProfileInformation === undefined || userNotFound) {
+    if (myProfileInformation === undefined) {
         return (
-            <AppScreen>
-                <AppScreenHeader
-                    title="My profile"
-                    insetTop={insets.top}
-                    canGoBack
-                    goBack={() => {
-                        navigation.goBack();
-                    }}
-                />
+            <LoadingScreen
+                title="My profile"
+                testID="default-my-profile-page-screen-loading"
+            />
+        );
+    }
 
-                <AppScreenContainer testID="default-my-profile-page-screen">
-                    {userNotFound ? (
-                        <>
-                            <Text>User not found</Text>
-                            <Button
-                                title="Go back"
-                                onPress={() => navigation.goBack()}
-                            />
-                        </>
-                    ) : (
-                        <View testID="default-my-profile-page-screen-loading" />
-                    )}
-                </AppScreenContainer>
-            </AppScreen>
+    if (userNotFound) {
+        return (
+            <ErrorScreen
+                title="My profile"
+                message="User not found"
+                testID="default-my-profile-page-screen"
+            />
         );
     }
 

@@ -410,9 +410,6 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                             opacity: shouldFreezeUi === true ? 0.4 : 1,
                         }}
                         style={sx({
-                            // Reduce player width on bigger devices
-                            width: ['auto', '70%'],
-                            marginX: [0, 'auto'],
                             flex: 1,
                         })}
                     >

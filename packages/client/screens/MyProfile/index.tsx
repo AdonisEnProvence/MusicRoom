@@ -19,6 +19,7 @@ import { MyProfileScreenProps } from '../../types';
 import { generateUserAvatarUri } from '../../constants/users-avatar';
 import { getMyProfileInformation } from '../../services/UsersSearchService';
 import { useRefreshOnFocus } from '../../hooks/useRefreshOnFocus';
+import LoadingScreen from '../UserProfile/kit/LoadingScreen';
 
 interface MyProfileInformationSectionProps {
     onPress: () => void;
@@ -164,7 +165,7 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
                             />
                         </>
                     ) : (
-                        <Text>LOADING</Text>
+                        <View testID="default-my-profile-page-screen-loading" />
                     )}
                 </AppScreenContainer>
             </AppScreen>

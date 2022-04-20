@@ -28,9 +28,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ testID, title }) => {
                 }}
             />
 
-            <AppScreenContainer testID={testID}>
-                <Text sx={{ color: 'white' }}>Loading...</Text>
-            </AppScreenContainer>
+            <AppScreenContainer testID={testID} />
         </AppScreen>
     );
 };

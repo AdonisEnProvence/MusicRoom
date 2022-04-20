@@ -23,6 +23,7 @@ import { createMpeRoomUniversalSearchMachine } from '../../machines/mpeRoomUnive
 import { IS_TEST } from '../../constants/Env';
 import { fetchOtherUserMpeRooms } from '../../services/MpeService';
 import { createUserInformationMachine } from '../../machines/userInformationMachine';
+import LoadingScreen from '../UserProfile/kit/LoadingScreen';
 
 const BlankScreen: React.FC<UserMusicPlaylistEditorSearchScreenProps> = ({
     navigation,
@@ -39,29 +40,6 @@ const BlankScreen: React.FC<UserMusicPlaylistEditorSearchScreenProps> = ({
                     navigation.goBack();
                 }}
             />
-        </AppScreen>
-    );
-};
-
-const LoadingScreen: React.FC<UserMusicPlaylistEditorSearchScreenProps> = ({
-    navigation,
-}) => {
-    const insets = useSafeAreaInsets();
-
-    return (
-        <AppScreen>
-            <AppScreenHeader
-                title="Loading user's MPE rooms"
-                insetTop={insets.top}
-                canGoBack
-                goBack={() => {
-                    navigation.goBack();
-                }}
-            />
-
-            <AppScreenContainer testID="default-profile-page-screen">
-                <Text sx={{ color: 'white' }}>Loading...</Text>
-            </AppScreenContainer>
         </AppScreen>
     );
 };
@@ -311,7 +289,12 @@ const UserMusicPlaylistEditorSearchScreen: React.FC<UserMusicPlaylistEditorSearc
 
         const showLoadingIndicator = state.matches('Show loading indicator');
         if (showLoadingIndicator === true) {
-            return <LoadingScreen {...props} />;
+            return (
+                <LoadingScreen
+                    title="Loading user's MPE rooms"
+                    testID="default-profile-page-screen"
+                />
+            );
         }
 
         const userIsUnknown = state.matches('Unknown user');

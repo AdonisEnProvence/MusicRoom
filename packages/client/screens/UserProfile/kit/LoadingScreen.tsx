@@ -9,7 +9,7 @@ import {
 } from '../../../components/kit';
 
 interface LoadingScreenProps {
-    testID: string;
+    testID?: string;
     title: string;
 }
 

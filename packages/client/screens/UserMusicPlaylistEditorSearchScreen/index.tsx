@@ -24,6 +24,7 @@ import { IS_TEST } from '../../constants/Env';
 import { fetchOtherUserMpeRooms } from '../../services/MpeService';
 import { createUserInformationMachine } from '../../machines/userInformationMachine';
 import LoadingScreen from '../UserProfile/kit/LoadingScreen';
+import ErrorScreen from '../kit/ErrorScreen';
 
 const BlankScreen: React.FC<UserMusicPlaylistEditorSearchScreenProps> = ({
     navigation,
@@ -40,59 +41,6 @@ const BlankScreen: React.FC<UserMusicPlaylistEditorSearchScreenProps> = ({
                     navigation.goBack();
                 }}
             />
-        </AppScreen>
-    );
-};
-
-const ForbiddenAccessToPlaylistsScreen: React.FC<
-    UserMusicPlaylistEditorSearchScreenProps & {
-        userProfileInformation: UserProfileInformation;
-    }
-> = ({ navigation, userProfileInformation: { userNickname } }) => {
-    const insets = useSafeAreaInsets();
-
-    return (
-        <AppScreen>
-            <AppScreenHeader
-                title={`${userNickname}'s MPE rooms`}
-                insetTop={insets.top}
-                canGoBack
-                goBack={() => {
-                    navigation.goBack();
-                }}
-            />
-
-            <AppScreenContainer testID="default-profile-page-screen">
-                <Text sx={{ color: 'white', marginBottom: 'xl' }}>
-                    Access to user's MPE rooms is forbidden
-                </Text>
-
-                <Button title="Go back" onPress={() => navigation.goBack()} />
-            </AppScreenContainer>
-        </AppScreen>
-    );
-};
-
-const NotFoundScreen: React.FC<UserMusicPlaylistEditorSearchScreenProps> = ({
-    navigation,
-}) => {
-    const insets = useSafeAreaInsets();
-
-    return (
-        <AppScreen>
-            <AppScreenHeader
-                title="User's MPE rooms"
-                insetTop={insets.top}
-                canGoBack
-                goBack={() => {
-                    navigation.goBack();
-                }}
-            />
-
-            <AppScreenContainer testID="default-profile-page-screen">
-                <Text>User not found</Text>
-                <Button title="Go back" onPress={() => navigation.goBack()} />
-            </AppScreenContainer>
         </AppScreen>
     );
 };
@@ -299,7 +247,12 @@ const UserMusicPlaylistEditorSearchScreen: React.FC<UserMusicPlaylistEditorSearc
 
         const userIsUnknown = state.matches('Unknown user');
         if (userIsUnknown === true) {
-            return <NotFoundScreen {...props} />;
+            return (
+                <ErrorScreen
+                    title="User's MPE rooms"
+                    message="User not found"
+                />
+            );
         }
 
         const userProfileInformation = state.context.userProfileInformation;
@@ -312,9 +265,10 @@ const UserMusicPlaylistEditorSearchScreen: React.FC<UserMusicPlaylistEditorSearc
             userProfileInformation.playlistsCounter === undefined;
         if (accessToUserPlaylistsIsDisallowed === true) {
             return (
-                <ForbiddenAccessToPlaylistsScreen
-                    {...props}
-                    userProfileInformation={userProfileInformation}
+                <ErrorScreen
+                    title={`${userProfileInformation.userNickname}'s MPE rooms`}
+                    message="Access to user's MPE rooms is forbidden"
+                    testID="default-profile-page-screen"
                 />
             );
         }

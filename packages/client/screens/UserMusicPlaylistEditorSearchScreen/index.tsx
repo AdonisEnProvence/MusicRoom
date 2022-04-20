@@ -23,8 +23,8 @@ import { createMpeRoomUniversalSearchMachine } from '../../machines/mpeRoomUnive
 import { IS_TEST } from '../../constants/Env';
 import { fetchOtherUserMpeRooms } from '../../services/MpeService';
 import { createUserInformationMachine } from '../../machines/userInformationMachine';
-import LoadingScreen from '../UserProfile/kit/LoadingScreen';
 import ErrorScreen from '../kit/ErrorScreen';
+import LoadingScreen from '../kit/LoadingScreen';
 
 const BlankScreen: React.FC<UserMusicPlaylistEditorSearchScreenProps> = ({
     navigation,

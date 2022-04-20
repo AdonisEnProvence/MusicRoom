@@ -1,5 +1,5 @@
-import { useInterpret, useMachine, useSelector } from '@xstate/react';
-import { Button, Text, useSx, View } from 'dripsy';
+import { useMachine } from '@xstate/react';
+import { Text, useSx, View } from 'dripsy';
 import React, { useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,7 +20,7 @@ import { generateUserAvatarUri } from '../../constants/users-avatar';
 import { getMyProfileInformation } from '../../services/UsersSearchService';
 import { useRefreshOnFocus } from '../../hooks/useRefreshOnFocus';
 import ErrorScreen from '../kit/ErrorScreen';
-import LoadingScreen from '../UserProfile/kit/LoadingScreen';
+import LoadingScreen from '../kit/LoadingScreen';
 
 interface MyProfileInformationSectionProps {
     onPress: () => void;

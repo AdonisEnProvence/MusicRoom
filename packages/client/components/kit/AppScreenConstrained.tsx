@@ -7,7 +7,8 @@ import {
     navigationRef,
 } from '../../navigation/RootNavigation';
 import { RootStackParamList } from '../../types';
-import AppScreen, { AppScreenProps } from './AppScreen';
+import { AppScreenProps } from './AppScreen';
+import AppScreenWithoutConstraint from './AppScreenWithoutConstraint';
 
 function getCurrentFocusedRoute() {
     const currentRoute = navigationRef.current?.getCurrentRoute();
@@ -151,13 +152,7 @@ const AppScreenConstrained: React.FC<AppScreenProps> = (props) => {
                     </ScrollView>
                 </View>
 
-                <View
-                    sx={{
-                        flex: 1,
-                    }}
-                >
-                    <AppScreen {...props} />
-                </View>
+                <AppScreenWithoutConstraint {...props} />
             </View>
         </View>
     );

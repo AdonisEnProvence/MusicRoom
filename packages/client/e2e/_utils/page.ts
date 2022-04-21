@@ -138,8 +138,9 @@ export async function setupPageAndSignUpUser({
 }
 
 export async function focusPage(page: Page): Promise<void> {
-    const focusTrap = page.locator('text="Click"').first();
-    await focusTrap.click();
+    const focusTrap = page.locator('text="Give focus"');
+
+    await Promise.all([expect(focusTrap).not.toBeVisible(), focusTrap.click()]);
 }
 
 export async function performSignUp(page: Page): Promise<{

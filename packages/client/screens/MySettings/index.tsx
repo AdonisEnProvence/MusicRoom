@@ -216,10 +216,7 @@ const MySettingsScreen: React.FC<MySettingsScreenProps> = ({ navigation }) => {
         );
     }
 
-    if (
-        settingsState.status === 'loading' ||
-        settingsState.status === 'debouncing'
-    ) {
+    if (settingsState.status === 'loading') {
         return (
             <AppScreen>
                 <AppScreenHeader
@@ -363,41 +360,44 @@ const MySettingsScreen: React.FC<MySettingsScreenProps> = ({ navigation }) => {
                             </SettingContainer>
                         </View>
 
-                        {settingsState.settings.map(
-                            (
-                                {
-                                    containerTestID,
-                                    title,
-                                    visibilitySettingActor,
-                                },
-                                index,
-                            ) => {
-                                const isLastSetting =
-                                    index === settingsState.settings.length - 1;
-                                const isNotLastSetting =
-                                    isLastSetting === false;
+                        {settingsState.status === 'success'
+                            ? settingsState.settings.map(
+                                  (
+                                      {
+                                          containerTestID,
+                                          title,
+                                          visibilitySettingActor,
+                                      },
+                                      index,
+                                  ) => {
+                                      const isLastSetting =
+                                          index ===
+                                          settingsState.settings.length - 1;
+                                      const isNotLastSetting =
+                                          isLastSetting === false;
 
-                                return (
-                                    <View
-                                        testID={containerTestID}
-                                        key={index}
-                                        sx={{
-                                            marginBottom:
-                                                isNotLastSetting === true
-                                                    ? 'xxl'
-                                                    : undefined,
-                                        }}
-                                    >
-                                        <VisibilitySetting
-                                            title={title}
-                                            visibilitySettingActor={
-                                                visibilitySettingActor
-                                            }
-                                        />
-                                    </View>
-                                );
-                            },
-                        )}
+                                      return (
+                                          <View
+                                              testID={containerTestID}
+                                              key={index}
+                                              sx={{
+                                                  marginBottom:
+                                                      isNotLastSetting === true
+                                                          ? 'xxl'
+                                                          : undefined,
+                                              }}
+                                          >
+                                              <VisibilitySetting
+                                                  title={title}
+                                                  visibilitySettingActor={
+                                                      visibilitySettingActor
+                                                  }
+                                              />
+                                          </View>
+                                      );
+                                  },
+                              )
+                            : null}
 
                         <GoogleAuthenticationButton
                             disabledAsConfirmed={userHasLinkedGoogleAccount}

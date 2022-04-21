@@ -87,21 +87,23 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
         state.hasTag('loading'),
     );
 
-    if (userProfileInformation === undefined) {
-        return (
-            <LoadingScreen
-                title="Loading user profile"
-                testID="default-profile-page-screen"
-            />
-        );
-    }
-
     if (userNotFound) {
+        //Beware that userProfileInformation will be undefined here too
+        //This assertion then has to be before the following
         return (
             <ErrorScreen
                 testID="default-profile-page-screen"
                 message="User not found"
                 title="Loading user profile"
+            />
+        );
+    }
+
+    if (userProfileInformation === undefined) {
+        return (
+            <LoadingScreen
+                title="Loading user profile"
+                testID="default-profile-page-screen"
             />
         );
     }

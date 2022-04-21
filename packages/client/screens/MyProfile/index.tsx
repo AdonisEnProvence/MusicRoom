@@ -144,20 +144,20 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
         navigation.navigate('MyFollowing');
     }
 
-    if (myProfileInformation === undefined) {
-        return (
-            <LoadingScreen
-                title="My profile"
-                testID="default-my-profile-page-screen-loading"
-            />
-        );
-    }
-
     if (userNotFound) {
         return (
             <ErrorScreen
                 title="My profile"
                 message="User not found"
+                testID="default-my-profile-page-screen"
+            />
+        );
+    }
+
+    if (myProfileInformation === undefined) {
+        return (
+            <LoadingScreen
+                title="My profile"
                 testID="default-my-profile-page-screen"
             />
         );

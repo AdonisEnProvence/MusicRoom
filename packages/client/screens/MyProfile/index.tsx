@@ -1,5 +1,5 @@
-import { useInterpret, useMachine, useSelector } from '@xstate/react';
-import { Button, Text, useSx, View } from 'dripsy';
+import { useMachine } from '@xstate/react';
+import { Text, useSx, View } from 'dripsy';
 import React, { useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,7 +19,8 @@ import { MyProfileScreenProps } from '../../types';
 import { generateUserAvatarUri } from '../../constants/users-avatar';
 import { getMyProfileInformation } from '../../services/UsersSearchService';
 import { useRefreshOnFocus } from '../../hooks/useRefreshOnFocus';
-import LoadingScreen from '../UserProfile/kit/LoadingScreen';
+import ErrorScreen from '../kit/ErrorScreen';
+import LoadingScreen from '../kit/LoadingScreen';
 
 interface MyProfileInformationSectionProps {
     onPress: () => void;
@@ -143,32 +144,22 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
         navigation.navigate('MyFollowing');
     }
 
-    if (myProfileInformation === undefined || userNotFound) {
+    if (userNotFound) {
         return (
-            <AppScreen>
-                <AppScreenHeader
-                    title="My profile"
-                    insetTop={insets.top}
-                    canGoBack
-                    goBack={() => {
-                        navigation.goBack();
-                    }}
-                />
+            <ErrorScreen
+                title="My profile"
+                message="User not found"
+                testID="default-my-profile-page-screen"
+            />
+        );
+    }
 
-                <AppScreenContainer testID="default-my-profile-page-screen">
-                    {userNotFound ? (
-                        <>
-                            <Text>User not found</Text>
-                            <Button
-                                title="Go back"
-                                onPress={() => navigation.goBack()}
-                            />
-                        </>
-                    ) : (
-                        <View testID="default-my-profile-page-screen-loading" />
-                    )}
-                </AppScreenContainer>
-            </AppScreen>
+    if (myProfileInformation === undefined) {
+        return (
+            <LoadingScreen
+                title="My profile"
+                testID="default-my-profile-page-screen"
+            />
         );
     }
 

@@ -1,15 +1,14 @@
 import { useNavigation } from '@react-navigation/native';
-import { Text } from 'dripsy';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React from 'react';
 import {
     AppScreen,
     AppScreenContainer,
     AppScreenHeader,
-} from '../../../components/kit';
+} from '../../components/kit';
 
 interface LoadingScreenProps {
-    testID: string;
+    testID?: string;
     title: string;
 }
 

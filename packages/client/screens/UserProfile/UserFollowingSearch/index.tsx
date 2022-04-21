@@ -20,41 +20,12 @@ import {
 import UserListItem from '../../../components/User/UserListItem';
 import { IS_TEST } from '../../../constants/Env';
 import { createUserInformationMachine } from '../../../machines/userInformationMachine';
-import UserNotFoundScreen from '../kit/UserNotFound';
 import BlankScreen from '../kit/BlankScreen';
-import LoadingScreen from '../kit/LoadingScreen';
 import { createUserFollowingSearchMachine } from '../../../machines/usersUniversalSearcMachine';
 import { UserFollowingSearchScreenProps } from '../../../types';
 import { useAppContext } from '../../../contexts/AppContext';
-
-const ForbiddenAccessToUserFollowingScreen: React.FC<
-    UserFollowingSearchScreenProps & {
-        userProfileInformation: UserProfileInformation;
-    }
-> = ({ navigation, userProfileInformation: { userNickname } }) => {
-    const insets = useSafeAreaInsets();
-
-    return (
-        <AppScreen>
-            <AppScreenHeader
-                title={`${userNickname}'s following`}
-                insetTop={insets.top}
-                canGoBack
-                goBack={() => {
-                    navigation.goBack();
-                }}
-            />
-
-            <AppScreenContainer testID="search-user-following-screen">
-                <Text sx={{ color: 'white', marginBottom: 'xl' }}>
-                    Access to user's following is forbidden
-                </Text>
-
-                <Button title="Go back" onPress={() => navigation.goBack()} />
-            </AppScreenContainer>
-        </AppScreen>
-    );
-};
+import LoadingScreen from '../../kit/LoadingScreen';
+import ErrorScreen from '../../kit/ErrorScreen';
 
 const UserfollowingScreen: React.FC<UserFollowingSearchScreenProps> = ({
     navigation,
@@ -248,9 +219,10 @@ const UserFollowingSearchScreen: React.FC<UserFollowingSearchScreenProps> = (
     const userIsUnknown = state.matches('Unknown user');
     if (userIsUnknown === true) {
         return (
-            <UserNotFoundScreen
+            <ErrorScreen
                 testID="search-user-following-screen"
                 title="User's following"
+                message="User not found"
             />
         );
     }
@@ -265,9 +237,10 @@ const UserFollowingSearchScreen: React.FC<UserFollowingSearchScreenProps> = (
         userProfileInformation.followingCounter === undefined;
     if (accessToUserRelationsIsDisallowed === true) {
         return (
-            <ForbiddenAccessToUserFollowingScreen
-                {...props}
-                userProfileInformation={userProfileInformation}
+            <ErrorScreen
+                title={`${userProfileInformation.userNickname}'s following`}
+                testID="search-user-following-screen"
+                message="Access to user's following is forbidden"
             />
         );
     }

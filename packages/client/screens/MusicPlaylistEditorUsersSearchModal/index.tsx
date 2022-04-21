@@ -1,38 +1,20 @@
-import { useSx, View } from 'dripsy';
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
-import { Typo } from '../../components/kit';
 import { usePlaylist } from '../../hooks/useMusicPlaylistsActor';
 import { MusicPlaylistEditorUsersSearchModalProps } from '../../types';
+import ErrorScreen from '../kit/ErrorScreen';
 import UsersSearchEngineScreen from '../UsersSearchEngineScreen';
 
 const MusicPlaylistEditorUsersSearchModal: React.FC<MusicPlaylistEditorUsersSearchModalProps> =
-    ({ navigation, route }) => {
+    ({ route }) => {
         const roomID = route.params.roomID;
-        const sx = useSx();
         const playlistRef = usePlaylist(roomID);
-
-        function handleGoBack() {
-            navigation.goBack();
-        }
 
         if (playlistRef === undefined) {
             return (
-                <View>
-                    <Typo>Could not find any related playlist</Typo>
-                    <TouchableOpacity
-                        onPress={handleGoBack}
-                        style={sx({
-                            borderRadius: 'full',
-                            borderWidth: 2,
-                            borderColor: 'secondary',
-                            paddingX: 'l',
-                            paddingY: 's',
-                        })}
-                    >
-                        <Typo>Go back</Typo>
-                    </TouchableOpacity>
-                </View>
+                <ErrorScreen
+                    title="Users search"
+                    message="Could not find any related playlist"
+                />
             );
         }
 

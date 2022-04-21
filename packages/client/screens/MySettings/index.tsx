@@ -20,6 +20,7 @@ import SignOutButton from '../../components/SignOutButton';
 import { useRefreshOnFocus } from '../../hooks/useRefreshOnFocus';
 import { getMySettings } from '../../services/UserSettingsService';
 import { MySettingsScreenProps } from '../../types';
+import ErrorScreen from '../kit/ErrorScreen';
 import {
     settingsMachine,
     VisibilitySettingMachineActor,
@@ -206,6 +207,71 @@ const MySettingsScreen: React.FC<MySettingsScreenProps> = ({ navigation }) => {
         throw new Error('Reached unreachable state');
     }, [state]);
 
+    if (settingsState.status === 'errored') {
+        return (
+            <ErrorScreen
+                title="My Settings"
+                message="An error occured while loading your settings"
+            />
+        );
+    }
+
+    if (settingsState.status === 'loading') {
+        return (
+            <AppScreen>
+                <AppScreenHeader
+                    title="My Settings"
+                    insetTop={insets.top}
+                    canGoBack={true}
+                    goBack={() => {
+                        navigation.goBack();
+                    }}
+                />
+
+                <AppScreenContainer testID="my-profile-settings-page-container">
+                    <ScrollView
+                        sx={{
+                            flex: 1,
+                        }}
+                        contentContainerStyle={{
+                            paddingBottom: insets.bottom,
+                        }}
+                    >
+                        <View
+                            sx={{
+                                flex: 1,
+                                paddingBottom: 'xxl',
+                                paddingLeft: 'l',
+                                paddingRight: 'l',
+                                maxWidth: [null, 420],
+                                width: '100%',
+                                marginLeft: 'auto',
+                                marginRight: 'auto',
+                            }}
+                        >
+                            <View
+                                sx={{ flex: 1 }}
+                                accessibilityLabel="Loading your settings"
+                            >
+                                <View sx={{ marginBottom: 'xl' }}>
+                                    <Skeleton width="100%" show />
+                                </View>
+
+                                <View sx={{ marginBottom: 'xl' }}>
+                                    <Skeleton width="100%" show />
+                                </View>
+
+                                <View>
+                                    <Skeleton width="100%" show />
+                                </View>
+                            </View>
+                        </View>
+                    </ScrollView>
+                </AppScreenContainer>
+            </AppScreen>
+        );
+    }
+
     return (
         <AppScreen>
             <AppScreenHeader
@@ -238,136 +304,109 @@ const MySettingsScreen: React.FC<MySettingsScreenProps> = ({ navigation }) => {
                             marginRight: 'auto',
                         }}
                     >
-                        {settingsState.status === 'success' ? (
-                            <>
+                        <View
+                            sx={{
+                                marginBottom: 'xxl',
+                            }}
+                        >
+                            <SettingContainer title="Personal information">
                                 <View
                                     sx={{
-                                        marginBottom: 'xxl',
+                                        paddingTop: 'm',
                                     }}
                                 >
-                                    <SettingContainer title="Personal information">
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            navigation.navigate(
+                                                'MySettingsUpdateNickname',
+                                            );
+                                        }}
+                                        style={sx({
+                                            flexDirection: 'row',
+                                            justifyContent: 'space-between',
+                                            paddingX: 'm',
+                                            paddingY: 'l',
+                                        })}
+                                    >
+                                        <Text sx={{ color: 'white' }}>
+                                            Nickname
+                                        </Text>
+
                                         <View
                                             sx={{
-                                                paddingTop: 'm',
+                                                flexDirection: 'row',
+                                                alignItems: 'center',
                                             }}
                                         >
-                                            <TouchableOpacity
-                                                onPress={() => {
-                                                    navigation.navigate(
-                                                        'MySettingsUpdateNickname',
-                                                    );
-                                                }}
-                                                style={sx({
-                                                    flexDirection: 'row',
-                                                    justifyContent:
-                                                        'space-between',
-                                                    paddingX: 'm',
-                                                    paddingY: 'l',
-                                                })}
-                                            >
-                                                <Text sx={{ color: 'white' }}>
-                                                    Nickname
-                                                </Text>
-
-                                                <View
-                                                    sx={{
-                                                        flexDirection: 'row',
-                                                        alignItems: 'center',
-                                                    }}
-                                                >
-                                                    <Text
-                                                        sx={{
-                                                            color: 'greyLighter',
-                                                            marginRight: 's',
-                                                        }}
-                                                    >
-                                                        {settingsState.nickname}
-                                                    </Text>
-
-                                                    <Ionicons
-                                                        name="chevron-forward"
-                                                        size={16}
-                                                        style={sx({
-                                                            color: 'greyLighter',
-                                                        })}
-                                                    />
-                                                </View>
-                                            </TouchableOpacity>
-                                        </View>
-                                    </SettingContainer>
-                                </View>
-
-                                {settingsState.settings.map(
-                                    (
-                                        {
-                                            containerTestID,
-                                            title,
-                                            visibilitySettingActor,
-                                        },
-                                        index,
-                                    ) => {
-                                        const isLastSetting =
-                                            index ===
-                                            settingsState.settings.length - 1;
-                                        const isNotLastSetting =
-                                            isLastSetting === false;
-
-                                        return (
-                                            <View
-                                                testID={containerTestID}
-                                                key={index}
+                                            <Text
                                                 sx={{
-                                                    marginBottom:
-                                                        isNotLastSetting ===
-                                                        true
-                                                            ? 'xxl'
-                                                            : undefined,
+                                                    color: 'greyLighter',
+                                                    marginRight: 's',
                                                 }}
                                             >
-                                                <VisibilitySetting
-                                                    title={title}
-                                                    visibilitySettingActor={
-                                                        visibilitySettingActor
-                                                    }
-                                                />
-                                            </View>
-                                        );
-                                    },
-                                )}
+                                                {settingsState.nickname}
+                                            </Text>
 
-                                <GoogleAuthenticationButton
-                                    disabledAsConfirmed={
-                                        userHasLinkedGoogleAccount
-                                    }
-                                    testID="my-settings-link-google-account-button"
-                                    buttonLabel={'Link a google account'}
-                                    onResponse={handleGoogleOauthOnResponse}
-                                />
-
-                                <SignOutButton testID="my-profile-sign-out-button" />
-                            </>
-                        ) : settingsState.status === 'errored' ? (
-                            <Text sx={{ color: 'white', fontSize: 'm' }}>
-                                An error occured while loading your settings
-                            </Text>
-                        ) : settingsState.status === 'loading' ? (
-                            <View
-                                sx={{ flex: 1 }}
-                                accessibilityLabel="Loading your settings"
-                            >
-                                <View sx={{ marginBottom: 'xl' }}>
-                                    <Skeleton width="100%" show />
+                                            <Ionicons
+                                                name="chevron-forward"
+                                                size={16}
+                                                style={sx({
+                                                    color: 'greyLighter',
+                                                })}
+                                            />
+                                        </View>
+                                    </TouchableOpacity>
                                 </View>
+                            </SettingContainer>
+                        </View>
 
-                                <View sx={{ marginBottom: 'xl' }}>
-                                    <Skeleton width="100%" show />
-                                </View>
+                        {settingsState.status === 'success'
+                            ? settingsState.settings.map(
+                                  (
+                                      {
+                                          containerTestID,
+                                          title,
+                                          visibilitySettingActor,
+                                      },
+                                      index,
+                                  ) => {
+                                      const isLastSetting =
+                                          index ===
+                                          settingsState.settings.length - 1;
+                                      const isNotLastSetting =
+                                          isLastSetting === false;
 
-                                <View>
-                                    <Skeleton width="100%" show />
-                                </View>
-                            </View>
-                        ) : null}
+                                      return (
+                                          <View
+                                              testID={containerTestID}
+                                              key={index}
+                                              sx={{
+                                                  marginBottom:
+                                                      isNotLastSetting === true
+                                                          ? 'xxl'
+                                                          : undefined,
+                                              }}
+                                          >
+                                              <VisibilitySetting
+                                                  title={title}
+                                                  visibilitySettingActor={
+                                                      visibilitySettingActor
+                                                  }
+                                              />
+                                          </View>
+                                      );
+                                  },
+                              )
+                            : null}
+
+                        <GoogleAuthenticationButton
+                            disabledAsConfirmed={userHasLinkedGoogleAccount}
+                            testID="my-settings-link-google-account-button"
+                            buttonLabel={'Link a google account'}
+                            onResponse={handleGoogleOauthOnResponse}
+                        />
+
+                        <SignOutButton testID="my-profile-sign-out-button" />
                     </View>
                 </ScrollView>
             </AppScreenContainer>

@@ -21,6 +21,7 @@ import {
     formatDateTime,
     parseIsoDateTimeString,
 } from '../hooks/useFormatDateTime';
+import ErrorScreen from './kit/ErrorScreen';
 
 interface RoomConstraintsDetailsPreviewProps {
     constraintsDetails: MtvRoomGetRoomConstraintDetailsCallbackArgs;
@@ -53,10 +54,8 @@ const RoomConstraintsDetailsPreview: React.FC<RoomConstraintsDetailsPreviewProps
             physicalConstraintEndsAt,
             physicalConstraintPosition,
             physicalConstraintRadius,
-            roomID,
         },
         devicePosition,
-        roomName,
         userFitsPositionConstraint,
         RequestLocationPermissionButton,
     }) => {
@@ -164,7 +163,6 @@ const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalPro
             roomID,
             constraintsDetails,
             name: roomName,
-            timeConstraintIsValid,
             userRelatedInformation,
         } = musicPlayerState.context;
 
@@ -199,22 +197,10 @@ const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalPro
 
         if (noCurrentRoomOrRoomDoesnotHaveConstraints) {
             return (
-                <AppScreen>
-                    <AppScreenHeader
-                        title="Music Track Vote Constraints"
-                        insetTop={insets.top}
-                        canGoBack={true}
-                        goBack={() => {
-                            navigation.goBack();
-                        }}
-                    />
-
-                    <AppScreenContainer>
-                        <Typo sx={{ fontSize: 's' }}>
-                            Your room is not concerned about any constraints
-                        </Typo>
-                    </AppScreenContainer>
-                </AppScreen>
+                <ErrorScreen
+                    title="Music Track Vote Constraints"
+                    message="Your room is not concerned about any constraints"
+                />
             );
         }
 

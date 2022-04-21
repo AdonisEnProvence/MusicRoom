@@ -52,9 +52,6 @@ const TheMusicPlayer: React.FC<TheMusicPlayerProps> = ({
     return (
         <View
             sx={{
-                backgroundColor: 'greyLight',
-                borderBottomColor: 'black',
-                borderBottomWidth: 1,
                 position: isFullScreen ? 'absolute' : 'relative',
                 top: isFullScreen ? -1 * MINI_PLAYER_HEIGHT : 0,
                 bottom: 0,

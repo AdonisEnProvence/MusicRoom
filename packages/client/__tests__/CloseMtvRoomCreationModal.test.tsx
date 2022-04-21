@@ -1,5 +1,10 @@
 import { db } from '../tests/data';
-import { fireEvent, renderApp, waitFor } from '../tests/tests-utils';
+import {
+    findBottomBarSearchButton,
+    fireEvent,
+    renderApp,
+    waitFor,
+} from '../tests/tests-utils';
 
 test('MtvRoom creation form modal can be closed', async () => {
     const screen = await renderApp();
@@ -7,8 +12,7 @@ test('MtvRoom creation form modal can be closed', async () => {
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const searchScreenLink = screen.getByText(/^search$/i);
-    expect(searchScreenLink).toBeTruthy();
+    const searchScreenLink = await findBottomBarSearchButton({ screen });
 
     fireEvent.press(searchScreenLink);
 

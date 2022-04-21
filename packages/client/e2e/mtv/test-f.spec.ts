@@ -13,7 +13,11 @@ import {
     focusPage,
     setupPageAndSignUpUser,
 } from '../_utils/page';
-import { knownSearches } from '../_utils/mpe-e2e-utils';
+import {
+    getAppHomeButtonLocator,
+    getAppSearchButtonLocator,
+    knownSearches,
+} from '../_utils/mpe-e2e-utils';
 import { waitForYouTubeVideoToLoad } from '../_utils/wait-youtube';
 import { knownSearchesRecordKey } from '../_utils/mock-http';
 
@@ -30,9 +34,9 @@ async function createPublicRoomWithTimeAndPhysicalConstraints({
     startsAt: Date;
     endsAt: Date;
 }) {
-    await expect(page.locator('text="Home"').first()).toBeVisible();
+    await expect(page.locator(getAppHomeButtonLocator())).toBeVisible();
 
-    const goToTracksSearch = page.locator('text="Search"');
+    const goToTracksSearch = page.locator(getAppSearchButtonLocator());
     await goToTracksSearch.click();
 
     const trackQuery = 'BB Brunes';

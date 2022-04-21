@@ -22,6 +22,29 @@ jest.setTimeout(20_000);
 
 faker.seed(42);
 
+/**
+ * We replace Dimensions module so that the width of the device is small.
+ * By default it's 750.
+ */
+jest.mock('react-native', () => {
+    const reactNative = jest.requireActual('react-native');
+    const Dimensions = reactNative.Dimensions;
+    const initialDimensionsGet = Dimensions.get;
+
+    Dimensions.get = (id: string) => {
+        if (id === 'window' || id === 'screen') {
+            return {
+                width: 200,
+                height: 200,
+            };
+        }
+
+        return initialDimensionsGet(id);
+    };
+
+    return reactNative;
+});
+
 jest.mock('react-native-maps', () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { Component } = require('react');

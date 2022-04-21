@@ -12,6 +12,7 @@ import {
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import { useUserContext } from '../hooks/userHooks';
 import { HomeTabHomeScreenScreenProps } from '../types';
+import AppScreenWithMenu from '../components/kit/AppScreenWithMenu';
 
 const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
@@ -26,7 +27,7 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
     }
 
     return (
-        <AppScreen>
+        <AppScreenWithMenu>
             <AppScreenHeader
                 title="Home"
                 insetTop={insets.top}
@@ -142,7 +143,7 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                     }}
                 />
             </AppScreenContainer>
-        </AppScreen>
+        </AppScreenWithMenu>
     );
 };
 

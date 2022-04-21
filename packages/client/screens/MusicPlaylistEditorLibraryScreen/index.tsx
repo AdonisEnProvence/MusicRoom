@@ -6,7 +6,6 @@ import { useActor, useMachine } from '@xstate/react';
 import { ActorRef } from 'xstate';
 import { MpeRoomSummary } from '@musicroom/types';
 import { RefreshControl } from 'react-native-web-refresh-control';
-import { AppScreenWithSearchBar } from '../../components/kit';
 import { MpeTabMpeRoomsScreenProps } from '../../types';
 import { useMusicPlaylistsActor } from '../../hooks/useMusicPlaylistsActor';
 import {
@@ -15,6 +14,7 @@ import {
 } from '../../machines/appScreenHeaderWithSearchBarMachine';
 import { libraryMpeRoomSearchMachine } from '../../machines/mpeRoomUniversalSearchMachine';
 import { IS_TEST } from '../../constants/Env';
+import AppScreenWithMenuWithSearchBar from '../../components/kit/AppScreenWithMenuWithSearchBar';
 
 interface PlaylistListItemProps {
     roomSummary: MpeRoomSummary;
@@ -83,7 +83,7 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> =
         }
 
         return (
-            <AppScreenWithSearchBar
+            <AppScreenWithMenuWithSearchBar
                 testID="library-mpe-rooms-list"
                 title="Your library"
                 searchInputPlaceholder="Search a room..."
@@ -161,7 +161,7 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> =
                     onEndReachedThreshold={0.5}
                     initialNumToRender={initialNumberOfItemsToRender}
                 />
-            </AppScreenWithSearchBar>
+            </AppScreenWithMenuWithSearchBar>
         );
     };
 

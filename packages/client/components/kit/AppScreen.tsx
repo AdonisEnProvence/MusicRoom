@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'dripsy';
 import { View as MotiView } from 'moti';
 
-type AppScreenProps = {
+export type AppScreenProps = {
     testID?: string;
     screenOffsetY?: number;
 };
@@ -20,16 +20,25 @@ const AppScreen: React.FC<AppScreenProps> = ({
                 backgroundColor: 'primary',
             }}
         >
-            <MotiView
-                animate={{
-                    translateY: screenOffsetY,
-                }}
-                style={{
+            <View
+                sx={{
                     flex: 1,
+                    marginX: 'auto',
+                    maxWidth: ['100%', 860],
+                    width: '100%',
                 }}
             >
-                {children}
-            </MotiView>
+                <MotiView
+                    animate={{
+                        translateY: screenOffsetY,
+                    }}
+                    style={{
+                        flex: 1,
+                    }}
+                >
+                    {children}
+                </MotiView>
+            </View>
         </View>
     );
 };

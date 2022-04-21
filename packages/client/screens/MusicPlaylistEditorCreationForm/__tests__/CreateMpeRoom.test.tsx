@@ -9,6 +9,7 @@ import {
     fireEvent,
     within,
     waitForTimeout,
+    findBottomBarSearchButton,
 } from '../../../tests/tests-utils';
 import {
     db,
@@ -534,8 +535,8 @@ const createMpeRoomWithSettingsTestModel = createTestModel<
     TestingContext,
     ContextFrom<typeof createMpeRoomWithSettingsMachine>
 >(createMpeRoomWithSettingsMachine).withEvents({
-    GO_TO_SEARCH_TRACKS: ({ screen }) => {
-        const searchScreenLink = screen.getByText(/^search$/i);
+    GO_TO_SEARCH_TRACKS: async ({ screen }) => {
+        const searchScreenLink = await findBottomBarSearchButton({ screen });
 
         fireEvent.press(searchScreenLink);
     },

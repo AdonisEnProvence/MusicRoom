@@ -2,31 +2,22 @@ import { test, expect, Page, Locator } from '@playwright/test';
 import { lorem } from 'faker';
 import { assertIsNotUndefined } from '../_utils/assert';
 import { hitGoNextButton } from '../_utils/global';
-import { knownSearches } from '../_utils/mpe-e2e-utils';
+import {
+    getAppHomeButtonLocator,
+    getAppSearchButtonLocator,
+    knownSearches,
+} from '../_utils/mpe-e2e-utils';
 import { closeAllContexts, setupPageAndSignUpUser } from '../_utils/page';
-
-type FindMiniPlayerWithRoomNameAndGoFullscreenArgs = {
-    roomName: string;
-    page: Page;
-};
-async function findMiniPlayerWithRoomNameAndGoFullscreen({
-    page,
-    roomName,
-}: FindMiniPlayerWithRoomNameAndGoFullscreenArgs) {
-    const miniPlayerWithRoomName = page.locator(`text="${roomName}"`).first();
-    await expect(miniPlayerWithRoomName).toBeVisible();
-    await miniPlayerWithRoomName.click();
-}
 
 type CreateRoomArgs = { creatorPage: Page; trackName: string };
 async function createDirectRoomAndGoFullscreen({
     creatorPage,
     trackName,
 }: CreateRoomArgs) {
-    await expect(creatorPage.locator('text="Home"').first()).toBeVisible();
+    await expect(creatorPage.locator(getAppHomeButtonLocator())).toBeVisible();
 
     //Searching for a track
-    const goToTracksSearch = creatorPage.locator('text="Search"');
+    const goToTracksSearch = creatorPage.locator(getAppSearchButtonLocator());
     await goToTracksSearch.click();
 
     const trackQuery = trackName;

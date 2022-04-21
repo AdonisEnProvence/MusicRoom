@@ -10,7 +10,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { BottomSheetHandle, BottomSheetModal } from '@gorhom/bottom-sheet';
 import { intervalToDuration, formatDuration } from 'date-fns';
 import {
-    AppScreen,
     AppScreenContainer,
     AppScreenHeader,
     Typo,
@@ -22,6 +21,7 @@ import TrackListItem from '../../components/Track/TrackListItem';
 import { PlaylistActorRef } from '../../machines/playlistMachine';
 import BottomRightAbsoluteButton from '../../components/kit/BottomRightAbsoluteButton';
 import { InviteUserButton } from '../MusicTrackVoteUsersListModal';
+import AppScreenWithMenu from '../../components/kit/AppScreenWithMenu';
 
 interface MusicPlaylistEditorRoomScreenProps extends MpeTabMpeRoomScreenProps {
     playlist: MusicPlaylist;
@@ -382,7 +382,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
         ///
 
         return (
-            <AppScreen testID={`mpe-room-screen-${playlistID}`}>
+            <AppScreenWithMenu testID={`mpe-room-screen-${playlistID}`}>
                 <AppScreenHeader
                     title={`Playlist ${playlist.roomName}`}
                     insetTop={insets.top}
@@ -410,9 +410,6 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                             opacity: shouldFreezeUi === true ? 0.4 : 1,
                         }}
                         style={sx({
-                            // Reduce player width on bigger devices
-                            width: ['auto', '70%'],
-                            marginX: [0, 'auto'],
                             flex: 1,
                         })}
                     >
@@ -593,7 +590,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                         </View>
                     </BottomSheetModal>
                 </AppScreenContainer>
-            </AppScreen>
+            </AppScreenWithMenu>
         );
     };
 
@@ -606,7 +603,7 @@ const MusicPlaylistEditorRoomWrapper: React.FC<MpeTabMpeRoomScreenProps> = (
 
     if (playlist === undefined) {
         return (
-            <AppScreen>
+            <AppScreenWithMenu>
                 <AppScreenHeader
                     title={`Playlist is loading`}
                     insetTop={insets.top}
@@ -628,7 +625,7 @@ const MusicPlaylistEditorRoomWrapper: React.FC<MpeTabMpeRoomScreenProps> = (
                         <Skeleton show={true} colorMode="dark" width="100%" />
                     </MotiView>
                 </AppScreenContainer>
-            </AppScreen>
+            </AppScreenWithMenu>
         );
     }
 

@@ -234,84 +234,75 @@ const TheMusicPlayerFullScreen: React.FC<TheMusicPlayerFullScreenProps> = ({
             />
 
             <AppScreenContainer scrollable>
+                <TheMusicPlayerWithControls
+                    hideControlButtons={hideControlButtons}
+                    isDeviceEmitting={isDeviceEmitting}
+                    progressElapsedTime={
+                        musicPlayerMachineContext.progressElapsedTime
+                    }
+                    currentTrack={musicPlayerMachineContext.currentTrack}
+                    setPlayerRef={setPlayerRef}
+                    isPlaying={isPlaying}
+                    roomIsReady={roomIsReady}
+                    onTrackReady={handleTrackReady}
+                    onPlayingToggle={handlePlayPauseToggle}
+                    onNextTrackPress={handleNextTrackPress}
+                />
+
                 <View
                     sx={{
-                        // Reduce player width on bigger devices
-                        width: ['auto', '70%'],
-                        marginX: [0, 'auto'],
-                        flex: 1,
+                        marginTop: 'l',
+                        flexGrow: 1,
+                        // Shrink the view on mobile and let is expand on bigger devices
+                        flexShrink: [1, 0],
+                        marginBottom: insets.bottom,
                     }}
                 >
-                    <TheMusicPlayerWithControls
-                        hideControlButtons={hideControlButtons}
-                        isDeviceEmitting={isDeviceEmitting}
-                        progressElapsedTime={
-                            musicPlayerMachineContext.progressElapsedTime
-                        }
-                        currentTrack={musicPlayerMachineContext.currentTrack}
-                        setPlayerRef={setPlayerRef}
-                        isPlaying={isPlaying}
-                        roomIsReady={roomIsReady}
-                        onTrackReady={handleTrackReady}
-                        onPlayingToggle={handlePlayPauseToggle}
-                        onNextTrackPress={handleNextTrackPress}
-                    />
-
                     <View
                         sx={{
-                            marginTop: 'l',
-                            flexGrow: 1,
-                            // Shrink the view on mobile and let is expand on bigger devices
-                            flexShrink: [1, 0],
-                            marginBottom: insets.bottom,
+                            flexDirection: 'row',
+                            padding: 'xs',
+
+                            marginBottom: 'l',
                         }}
                     >
-                        <View
-                            sx={{
-                                flexDirection: 'row',
-                                padding: 'xs',
+                        {tabs.map(({ text, selected, onPress }, index) => (
+                            <TouchableOpacity
+                                onPress={onPress}
+                                key={text}
+                                style={{ flex: 1 }}
+                            >
+                                <View
+                                    sx={{
+                                        padding: 's',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        borderRadius: 's',
 
-                                marginBottom: 'l',
-                            }}
-                        >
-                            {tabs.map(({ text, selected, onPress }, index) => (
-                                <TouchableOpacity
-                                    onPress={onPress}
-                                    key={text}
-                                    style={{ flex: 1 }}
+                                        backgroundColor: selected
+                                            ? 'greyLighter'
+                                            : 'greyLight',
+
+                                        marginRight:
+                                            index < tabs.length - 1
+                                                ? 'm'
+                                                : undefined,
+                                    }}
                                 >
-                                    <View
+                                    <Text
                                         sx={{
-                                            padding: 's',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            borderRadius: 's',
-
-                                            backgroundColor: selected
-                                                ? 'greyLighter'
-                                                : 'greyLight',
-
-                                            marginRight:
-                                                index < tabs.length - 1
-                                                    ? 'm'
-                                                    : undefined,
+                                            fontSize: 's',
+                                            color: 'white',
                                         }}
                                     >
-                                        <Text
-                                            sx={{
-                                                fontSize: 's',
-                                                color: 'white',
-                                            }}
-                                        >
-                                            {text}
-                                        </Text>
-                                    </View>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-
-                        {selectedTabComponent}
+                                        {text}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        ))}
                     </View>
+
+                    {selectedTabComponent}
                 </View>
             </AppScreenContainer>
         </AppScreen>

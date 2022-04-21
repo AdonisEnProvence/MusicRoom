@@ -123,8 +123,6 @@ const ChatView: React.FC<ChatViewProps> = ({
                     keyboardVerticalOffset={100}
                     style={sx({
                         flex: 1,
-                        width: ['auto', '70%'],
-                        marginX: [0, 'auto'],
                     })}
                 >
                     <View sx={{ flex: 1, paddingBottom: insets.bottom }}>

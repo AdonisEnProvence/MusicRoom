@@ -6,6 +6,8 @@ import {
     RenderAPI,
     RenderOptions,
     waitFor,
+    GetReturn,
+    within,
 } from '@testing-library/react-native';
 import { DripsyProvider } from 'dripsy';
 import { datatype } from 'faker';
@@ -266,4 +268,41 @@ export function toTrackCardContainerTestID({
     return [testIDPrefix, trackID, 'track-card-container']
         .filter((chunk) => chunk !== undefined)
         .join('-');
+}
+
+async function findBottomBar({
+    screen,
+}: {
+    screen: ReturnType<typeof render>;
+}) {
+    const bottomBar = await screen.findByTestId('bottom-bar');
+    expect(bottomBar).toBeTruthy();
+
+    return bottomBar;
+}
+
+export async function findBottomBarSearchButton({
+    screen,
+}: {
+    screen: ReturnType<typeof render>;
+}): Promise<GetReturn> {
+    const bottomBar = await findBottomBar({ screen });
+
+    const searchButton = within(bottomBar).getByText(/search/i);
+    expect(searchButton).toBeTruthy();
+
+    return searchButton;
+}
+
+export async function findBottomBarLibraryButton({
+    screen,
+}: {
+    screen: ReturnType<typeof render>;
+}): Promise<GetReturn> {
+    const bottomBar = await findBottomBar({ screen });
+
+    const libraryButton = within(bottomBar).getByText(/library/i);
+    expect(libraryButton).toBeTruthy();
+
+    return libraryButton;
 }

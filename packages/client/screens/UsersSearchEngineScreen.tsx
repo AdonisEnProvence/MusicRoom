@@ -187,7 +187,7 @@ const UsersSearchEngineScreen: React.FC<UsersSearchEngineProps> = ({
                             <Text sx={{ color: 'white' }}>
                                 {searchQueryIsNotEmpty
                                     ? 'There are not users that match this request'
-                                    : 'No users found in this room'}
+                                    : 'Nobody follows you yet'}
                             </Text>
                         );
                     }}

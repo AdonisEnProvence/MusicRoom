@@ -1,5 +1,6 @@
 import { db } from '../tests/data';
 import {
+    findBottomBarSearchButton,
     fireEvent,
     renderApp,
     waitFor,
@@ -13,7 +14,7 @@ test('SearchTracksScreen is dismissed when pressing on a track card', async () =
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const searchScreenLink = screen.getByText(/^search$/i);
+    const searchScreenLink = await findBottomBarSearchButton({ screen });
     expect(searchScreenLink).toBeTruthy();
 
     fireEvent.press(searchScreenLink);
@@ -81,7 +82,7 @@ test('SearchTracksScreen keeps its state when going back to it', async () => {
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const searchScreenLink = screen.getByText(/^search$/i);
+    const searchScreenLink = await findBottomBarSearchButton({ screen });
     expect(searchScreenLink).toBeTruthy();
 
     fireEvent.press(searchScreenLink);
@@ -158,7 +159,7 @@ test('SearchTracksScreen results are reset when pressing clear button', async ()
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const searchScreenLink = screen.getByText(/^search$/i);
+    const searchScreenLink = await findBottomBarSearchButton({ screen });
     expect(searchScreenLink).toBeTruthy();
 
     fireEvent.press(searchScreenLink);
@@ -212,7 +213,7 @@ test('SearchTracksScreen results are reset when pressing cancel button', async (
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const searchScreenLink = screen.getByText(/^search$/i);
+    const searchScreenLink = await findBottomBarSearchButton({ screen });
     expect(searchScreenLink).toBeTruthy();
 
     fireEvent.press(searchScreenLink);

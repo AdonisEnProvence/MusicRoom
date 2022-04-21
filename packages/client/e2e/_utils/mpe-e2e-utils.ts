@@ -166,14 +166,30 @@ export function withinEditMyNicknameContainer(selector: string): string {
     return `css=[data-testid="update-nickname-screen"] >> ${selector}`;
 }
 
+function withinAsideMenu(selector: string): string {
+    return `css=[data-testid="aside-menu"] >> visible=true >> ${selector}`;
+}
+
+export function getAppHomeButtonLocator(): string {
+    return withinAsideMenu('text="Home"');
+}
+
+export function getAppSearchButtonLocator(): string {
+    return withinAsideMenu('text="Search"');
+}
+
+export function getAppLibraryButtonLocator(): string {
+    return withinAsideMenu('text="Library"');
+}
+
 export async function createMpeRoom({
     page,
 }: {
     page: Page;
 }): Promise<{ roomName: string }> {
-    await expect(page.locator('text="Home"').first()).toBeVisible();
+    await expect(page.locator(getAppHomeButtonLocator())).toBeVisible();
 
-    const goToTracksSearch = page.locator('text="Search"');
+    const goToTracksSearch = page.locator(getAppSearchButtonLocator());
     await goToTracksSearch.click();
 
     const trackQuery = 'Biolay - Vendredi 12';
@@ -384,17 +400,16 @@ export async function openMpeSettingsModal({
     page: Page;
 }): Promise<void> {
     const openSettingsButton = page.locator(
-        `css=[data-testid="mpe-open-settings"]`,
+        `css=[data-testid="mpe-open-settings"]:not([aria-disabled="true"])`,
     );
-    expect(openSettingsButton).toBeTruthy();
-    await expect(openSettingsButton).not.toBeDisabled();
+    // await expect(openSettingsButton).toBeVisible();
 
     await openSettingsButton.click();
 
     const exportButton = page.locator(
         `css=[data-testid="export-mpe-to-mtv-button"]`,
     );
-    await expect(exportButton).toBeVisible();
+    await expect(exportButton).toBeVisible({ timeout: 30_000 });
     const leaveRoomButton = page.locator(
         `css=[data-testid="leave-mpe-room-button"]`,
     );
@@ -639,7 +654,7 @@ export async function goToHomeTabScreen({
 }: {
     page: Page;
 }): Promise<void> {
-    const homeBottomBar = page.locator(`css=[data-testid="home-tab"]`).last();
+    const homeBottomBar = page.locator(getAppHomeButtonLocator());
     await expect(homeBottomBar).toBeVisible();
 
     await homeBottomBar.click();
@@ -697,7 +712,9 @@ export async function addTrack({
     const addedTrackCardOnRoomScreen = page.locator(
         withinMpeRoomScreen(`text=${trackToAddTitle}`),
     );
-    await expect(addedTrackCardOnRoomScreen).toBeVisible();
+    await expect(addedTrackCardOnRoomScreen).toBeVisible({
+        timeout: 10_000,
+    });
 
     return trackToAdd;
 }

@@ -8,7 +8,10 @@ export interface KnownSearchesElement {
     duration: number;
 }
 
-export type knownSearchesRecordKey = 'Biolay - Vendredi 12' | 'BB Brunes';
+export type knownSearchesRecordKey =
+    | 'Biolay - Vendredi 12'
+    | 'BB Brunes'
+    | 'Madeleine';
 
 export type KnownSearchesRecord = Record<
     knownSearchesRecordKey,

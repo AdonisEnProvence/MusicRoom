@@ -75,6 +75,39 @@ export const knownSearches: KnownSearchesRecord = {
             duration: 0,
         },
     ],
+
+    Madeleine: [
+        {
+            id: 'g8bS50c8v2s',
+            title: 'Jacques Brel Madeleine 1962',
+            artistName: 'Anastasio Eric',
+            duration: 0,
+        },
+        {
+            id: 'I7E1TV9giy4',
+            title: 'Omido - Madeleine (Lyrics) ft. Rick Jansen',
+            artistName: 'Cakes & Eclairs',
+            duration: 0,
+        },
+        {
+            id: 'RpJ-2U707pg',
+            title: 'Michael Phantom - Madeleine (Official Music Video) || VIEWS ||',
+            artistName: 'VIEWS',
+            duration: 0,
+        },
+        {
+            id: 'bdLHTAaMNdg',
+            title: 'Madeleine',
+            artistName: 'Jacques Brel - Topic',
+            duration: 0,
+        },
+        {
+            id: 'B49mIKWXc_8',
+            title: 'Madeleine - Ça va passer [CLIP OFFICIEL]',
+            artistName: 'itsmadeleine. love',
+            duration: 0,
+        },
+    ],
 };
 
 export async function pressMpeRoomInvitationToast({
@@ -402,7 +435,14 @@ export async function openMpeSettingsModal({
     const openSettingsButton = page.locator(
         `css=[data-testid="mpe-open-settings"]:not([aria-disabled="true"])`,
     );
-    // await expect(openSettingsButton).toBeVisible();
+    await expect(openSettingsButton).toBeVisible();
+    await expect(openSettingsButton).not.toHaveAttribute(
+        'aria-disabled',
+        'true',
+        {
+            timeout: 10_000,
+        },
+    );
 
     await openSettingsButton.click();
 
@@ -709,8 +749,9 @@ export async function addTrack({
         .first();
     await trackToAddCard.click();
 
+    const addedTrackTestID = `mpe-${trackToAdd.id}-track-card-container`;
     const addedTrackCardOnRoomScreen = page.locator(
-        withinMpeRoomScreen(`text=${trackToAddTitle}`),
+        `css=[data-testid="${addedTrackTestID}"]`,
     );
     await expect(addedTrackCardOnRoomScreen).toBeVisible({
         timeout: 10_000,

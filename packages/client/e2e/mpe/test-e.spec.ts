@@ -142,7 +142,9 @@ async function exportMpeRoomToMtvRoom({
         page,
     });
 
-    const exportToMtvButton = page.locator('text="Export to MTV"');
+    const exportToMtvButton = page
+        .locator('css=[data-testid="export-mpe-to-mtv-button"]')
+        .last();
     await exportToMtvButton.click();
 
     await expect(
@@ -222,7 +224,7 @@ test('mpe e2e test-e', async ({ browser }) => {
 
     const addedTrack = await addTrack({
         page,
-        searchQuery: 'BB Brunes',
+        searchQuery: 'Madeleine',
     });
 
     await assertMusicPlayerStatusIs({

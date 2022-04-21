@@ -12,6 +12,8 @@ import {
 import { UserProfileIndexScreenProps } from '../../types';
 import { createUserProfileInformationMachine } from '../../machines/userProfileInformationMachine';
 import { generateUserAvatarUri } from '../../constants/users-avatar';
+import LoadingScreen from '../kit/LoadingScreen';
+import ErrorScreen from '../kit/ErrorScreen';
 
 type UserProfileContentProps = UserProfileIndexScreenProps & {
     userID: string;
@@ -87,30 +89,20 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
 
     if (userProfileInformation === undefined) {
         return (
-            <AppScreen>
-                <AppScreenHeader
-                    title=""
-                    insetTop={insets.top}
-                    canGoBack={true}
-                    goBack={() => {
-                        navigation.goBack();
-                    }}
-                />
+            <LoadingScreen
+                title="Loading user profile"
+                testID="default-profile-page-screen"
+            />
+        );
+    }
 
-                <AppScreenContainer testID="default-profile-page-screen">
-                    {userNotFound ? (
-                        <>
-                            <Text>User not found</Text>
-                            <Button
-                                title="Go back"
-                                onPress={() => navigation.goBack()}
-                            />
-                        </>
-                    ) : (
-                        <View testID="default-profile-page-screen-loading" />
-                    )}
-                </AppScreenContainer>
-            </AppScreen>
+    if (userNotFound) {
+        return (
+            <ErrorScreen
+                testID="default-profile-page-screen"
+                message="User not found"
+                title="Loading user profile"
+            />
         );
     }
 

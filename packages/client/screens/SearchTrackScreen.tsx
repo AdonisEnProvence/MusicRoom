@@ -18,7 +18,7 @@ import {
 import { SearchTabSearchTracksScreenProps } from '../types';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import { useMusicPlaylistsActor } from '../hooks/useMusicPlaylistsActor';
-import AppScreenConstrainedWithSearchBar from '../components/kit/AppScreenConstrainedWithSearchBar';
+import AppScreenWithMenuWithSearchBar from '../components/kit/AppScreenWithMenuWithSearchBar';
 
 const searchTracksScreenModel = createModel(
     {
@@ -201,7 +201,7 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
     }
 
     return (
-        <AppScreenConstrainedWithSearchBar
+        <AppScreenWithMenuWithSearchBar
             title="Search a track"
             testID="search-track-screen"
             searchInputPlaceholder="Search a track..."
@@ -349,7 +349,7 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
                     </View>
                 </View>
             </Modal>
-        </AppScreenConstrainedWithSearchBar>
+        </AppScreenWithMenuWithSearchBar>
     );
 };
 

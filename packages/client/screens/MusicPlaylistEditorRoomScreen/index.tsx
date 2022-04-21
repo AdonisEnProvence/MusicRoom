@@ -21,7 +21,7 @@ import TrackListItem from '../../components/Track/TrackListItem';
 import { PlaylistActorRef } from '../../machines/playlistMachine';
 import BottomRightAbsoluteButton from '../../components/kit/BottomRightAbsoluteButton';
 import { InviteUserButton } from '../MusicTrackVoteUsersListModal';
-import AppScreenConstrained from '../../components/kit/AppScreenConstrained';
+import AppScreenWithMenu from '../../components/kit/AppScreenWithMenu';
 
 interface MusicPlaylistEditorRoomScreenProps extends MpeTabMpeRoomScreenProps {
     playlist: MusicPlaylist;
@@ -382,7 +382,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
         ///
 
         return (
-            <AppScreenConstrained testID={`mpe-room-screen-${playlistID}`}>
+            <AppScreenWithMenu testID={`mpe-room-screen-${playlistID}`}>
                 <AppScreenHeader
                     title={`Playlist ${playlist.roomName}`}
                     insetTop={insets.top}
@@ -590,7 +590,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                         </View>
                     </BottomSheetModal>
                 </AppScreenContainer>
-            </AppScreenConstrained>
+            </AppScreenWithMenu>
         );
     };
 
@@ -603,7 +603,7 @@ const MusicPlaylistEditorRoomWrapper: React.FC<MpeTabMpeRoomScreenProps> = (
 
     if (playlist === undefined) {
         return (
-            <AppScreenConstrained>
+            <AppScreenWithMenu>
                 <AppScreenHeader
                     title={`Playlist is loading`}
                     insetTop={insets.top}
@@ -625,7 +625,7 @@ const MusicPlaylistEditorRoomWrapper: React.FC<MpeTabMpeRoomScreenProps> = (
                         <Skeleton show={true} colorMode="dark" width="100%" />
                     </MotiView>
                 </AppScreenContainer>
-            </AppScreenConstrained>
+            </AppScreenWithMenu>
         );
     }
 

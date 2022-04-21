@@ -14,7 +14,7 @@ import {
 } from '../../machines/appScreenHeaderWithSearchBarMachine';
 import { libraryMpeRoomSearchMachine } from '../../machines/mpeRoomUniversalSearchMachine';
 import { IS_TEST } from '../../constants/Env';
-import AppScreenConstrainedWithSearchBar from '../../components/kit/AppScreenConstrainedWithSearchBar';
+import AppScreenWithMenuWithSearchBar from '../../components/kit/AppScreenWithMenuWithSearchBar';
 
 interface PlaylistListItemProps {
     roomSummary: MpeRoomSummary;
@@ -83,7 +83,7 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> =
         }
 
         return (
-            <AppScreenConstrainedWithSearchBar
+            <AppScreenWithMenuWithSearchBar
                 testID="library-mpe-rooms-list"
                 title="Your library"
                 searchInputPlaceholder="Search a room..."
@@ -161,7 +161,7 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> =
                     onEndReachedThreshold={0.5}
                     initialNumToRender={initialNumberOfItemsToRender}
                 />
-            </AppScreenConstrainedWithSearchBar>
+            </AppScreenWithMenuWithSearchBar>
         );
     };
 

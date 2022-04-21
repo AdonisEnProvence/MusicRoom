@@ -35,7 +35,7 @@ function getCurrentFocusedRoute() {
     }
 }
 
-const AppScreenConstrained: React.FC<AppScreenProps> = (props) => {
+const AppScreenWithMenu: React.FC<AppScreenProps> = (props) => {
     const currentFocusedRoute = getCurrentFocusedRoute();
 
     const links: {
@@ -158,4 +158,4 @@ const AppScreenConstrained: React.FC<AppScreenProps> = (props) => {
     );
 };
 
-export default AppScreenConstrained;
+export default AppScreenWithMenu;

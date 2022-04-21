@@ -14,7 +14,7 @@ import { useSx, View } from 'dripsy';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppBottomBarConstraint from '../components/kit/AppBottomBarConstraint';
-import AppScreenConstrained from '../components/kit/AppScreenConstrained';
+import AppScreenWithMenu from '../components/kit/AppScreenWithMenu';
 import TheMusicPlayer from '../components/TheMusicPlayer';
 import { tabStyle } from '../constants/Colors';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';

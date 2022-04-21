@@ -25,6 +25,7 @@ import { fetchOtherUserMpeRooms } from '../../services/MpeService';
 import { createUserInformationMachine } from '../../machines/userInformationMachine';
 import ErrorScreen from '../kit/ErrorScreen';
 import LoadingScreen from '../kit/LoadingScreen';
+import { MusicPlaylistEditorRoomSearchResult } from '../../components/MusicPlaylistEditorSearch/MusicPlaylistEditorRoomSearchResult';
 
 const BlankScreen: React.FC<UserMusicPlaylistEditorSearchScreenProps> = ({
     navigation,
@@ -42,31 +43,6 @@ const BlankScreen: React.FC<UserMusicPlaylistEditorSearchScreenProps> = ({
                 }}
             />
         </AppScreen>
-    );
-};
-
-interface PlaylistListItemProps {
-    roomSummary: MpeRoomSummary;
-    onPress: (roomSummary: MpeRoomSummary) => void;
-}
-
-const PlaylistListItem: React.FC<PlaylistListItemProps> = ({
-    roomSummary,
-    onPress,
-}) => {
-    const { roomID, roomName } = roomSummary;
-
-    return (
-        <TouchableOpacity
-            testID={`mpe-room-card-${roomID}`}
-            onPress={() => {
-                onPress(roomSummary);
-            }}
-        >
-            <View>
-                <Text sx={{ color: 'white' }}>{roomName}</Text>
-            </View>
-        </TouchableOpacity>
     );
 };
 
@@ -157,7 +133,7 @@ const MpeRoomsList: React.FC<
                 }
                 renderItem={({ item }) => {
                     return (
-                        <PlaylistListItem
+                        <MusicPlaylistEditorRoomSearchResult
                             roomSummary={item}
                             onPress={handleRoomPress}
                         />

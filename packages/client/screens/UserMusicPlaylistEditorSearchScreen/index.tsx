@@ -190,6 +190,7 @@ const MpeRoomsList: React.FC<
                     paddingBottom: insets.bottom,
                 }}
                 onEndReachedThreshold={0.5}
+                onEndReached={handleLoadMore}
                 initialNumToRender={initialNumberOfItemsToRender}
             />
         </AppScreenWithSearchBar>

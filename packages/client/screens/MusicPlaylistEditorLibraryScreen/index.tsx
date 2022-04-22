@@ -136,6 +136,7 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> =
                         paddingBottom: insets.bottom,
                     }}
                     onEndReachedThreshold={0.5}
+                    onEndReached={handleLoadMore}
                     initialNumToRender={initialNumberOfItemsToRender}
                 />
             </AppScreenWithMenuWithSearchBar>

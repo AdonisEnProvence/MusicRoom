@@ -95,7 +95,10 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                         </Text>
                     </View>
 
-                    <View sx={{ marginTop: 'xxl' }}>
+                    <View
+                        testID="home-screen-mtv-group"
+                        sx={{ marginTop: 'xxl' }}
+                    >
                         <Text
                             sx={{
                                 color: 'white',
@@ -173,7 +176,10 @@ const HomeScreen: React.FC<HomeTabHomeScreenScreenProps> = ({ navigation }) => {
                         </View>
                     </View>
 
-                    <View sx={{ marginTop: 'xxl', marginBottom: 'xxl' }}>
+                    <View
+                        testID="home-screen-mpe-group"
+                        sx={{ marginTop: 'xxl', marginBottom: 'xxl' }}
+                    >
                         <Text
                             sx={{
                                 color: 'white',

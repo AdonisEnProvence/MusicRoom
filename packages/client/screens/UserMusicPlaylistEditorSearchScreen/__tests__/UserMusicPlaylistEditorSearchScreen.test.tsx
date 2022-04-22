@@ -113,9 +113,11 @@ const otherUserMpeRoomsMachine =
                                 await screen.findByText(otherUserNickname),
                             ).toBeTruthy();
 
-                            const playlistsCount = await screen.findByText(
-                                /playlists/i,
-                            );
+                            const playlistsCount = await within(
+                                await screen.findByTestId(
+                                    /-profile-page-screen/,
+                                ),
+                            ).findByText(/playlists/i);
                             expect(playlistsCount).toBeTruthy();
                             expect(playlistsCount).toHaveTextContent(
                                 String(OTHER_USER_MPE_ROOMS.length),
@@ -464,9 +466,9 @@ const otherUserMpeRoomsTestModel = createTestModel<TestingContext>(
             },
         });
 
-        const goToOtherUserPlaylistsButton = await screen.findByText(
-            /playlists/i,
-        );
+        const goToOtherUserPlaylistsButton = await within(
+            await screen.findByTestId(/-profile-page-screen/),
+        ).findByText(/playlists/i);
         expect(goToOtherUserPlaylistsButton).toBeTruthy();
 
         fireEvent.press(goToOtherUserPlaylistsButton);
@@ -475,9 +477,9 @@ const otherUserMpeRoomsTestModel = createTestModel<TestingContext>(
     "Make API respond instantly and go to user's playlists": async ({
         screen,
     }) => {
-        const goToOtherUserPlaylistsButton = await screen.findByText(
-            /playlists/i,
-        );
+        const goToOtherUserPlaylistsButton = await within(
+            await screen.findByTestId(/-profile-page-screen/),
+        ).findByText(/playlists/i);
         expect(goToOtherUserPlaylistsButton).toBeTruthy();
 
         fireEvent.press(goToOtherUserPlaylistsButton);
@@ -529,9 +531,9 @@ const otherUserMpeRoomsTestModel = createTestModel<TestingContext>(
             ),
         );
 
-        const goToOtherUserPlaylistsButton = await screen.findByText(
-            /playlists/i,
-        );
+        const goToOtherUserPlaylistsButton = await within(
+            await screen.findByTestId(/-profile-page-screen/),
+        ).findByText(/playlists/i);
         expect(goToOtherUserPlaylistsButton).toBeTruthy();
 
         fireEvent.press(goToOtherUserPlaylistsButton);
@@ -550,9 +552,9 @@ const otherUserMpeRoomsTestModel = createTestModel<TestingContext>(
                 },
             });
 
-            const goToOtherUserPlaylistsButton = await screen.findByText(
-                /playlists/i,
-            );
+            const goToOtherUserPlaylistsButton = await within(
+                await screen.findByTestId(/-profile-page-screen/),
+            ).findByText(/playlists/i);
             expect(goToOtherUserPlaylistsButton).toBeTruthy();
 
             fireEvent.press(goToOtherUserPlaylistsButton);

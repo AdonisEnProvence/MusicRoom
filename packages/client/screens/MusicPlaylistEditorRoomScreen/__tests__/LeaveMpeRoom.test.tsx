@@ -5,7 +5,11 @@ import {
     joinMpeRoom,
     openMpeSettingsBottomSheetModal,
 } from '../../../tests/tests-mpe-utils';
-import { fireEvent, waitFor } from '../../../tests/tests-utils';
+import {
+    findGoToMpeSearchOnHome,
+    fireEvent,
+    waitFor,
+} from '../../../tests/tests-utils';
 
 test('It should join then leave the mpe room user should be redirected', async () => {
     const { screen, state } = await joinMpeRoom();
@@ -54,10 +58,10 @@ test('It should join then leave the mpe room user should not be redirected', asy
 
     fireEvent.press(lastGoBackButton);
 
-    await waitFor(() => {
-        const goToMtvSearchScreenButton = screen.getByText(
-            /go.*to.*music.*playlist.*editor/i,
-        );
+    await waitFor(async () => {
+        const goToMtvSearchScreenButton = await findGoToMpeSearchOnHome({
+            screen,
+        });
         expect(goToMtvSearchScreenButton).toBeTruthy();
     });
 
@@ -74,15 +78,15 @@ test('It should join then leave the mpe room user should not be redirected', asy
         roomSummary,
     });
 
-    await waitFor(() => {
+    await waitFor(async () => {
         expect(Toast.show).toHaveBeenNthCalledWith(1, {
             type: 'success',
             text1: `Leaving ${state.value.name} is a success`,
         });
 
-        const goToMtvSearchScreenButton = screen.getByText(
-            /go.*to.*music.*playlist.*editor/i,
-        );
+        const goToMtvSearchScreenButton = await findGoToMpeSearchOnHome({
+            screen,
+        });
         expect(goToMtvSearchScreenButton).toBeTruthy();
     });
 });
@@ -123,10 +127,10 @@ test('It should join then forced leave the mpe room user should not be redirecte
 
     fireEvent.press(lastGoBackButton);
 
-    await waitFor(() => {
-        const goToMtvSearchScreenButton = screen.getByText(
-            /go.*to.*music.*playlist.*editor/i,
-        );
+    await waitFor(async () => {
+        const goToMtvSearchScreenButton = await findGoToMpeSearchOnHome({
+            screen,
+        });
         expect(goToMtvSearchScreenButton).toBeTruthy();
     });
 
@@ -143,16 +147,16 @@ test('It should join then forced leave the mpe room user should not be redirecte
         roomSummary,
     });
 
-    await waitFor(() => {
+    await waitFor(async () => {
         expect(Toast.show).toHaveBeenNthCalledWith(1, {
             type: 'error',
             text1: `${state.value.name} creator has quit`,
             text2: `forced disconnection`,
         });
 
-        const goToMtvSearchScreenButton = screen.getByText(
-            /go.*to.*music.*playlist.*editor/i,
-        );
+        const goToMtvSearchScreenButton = await findGoToMpeSearchOnHome({
+            screen,
+        });
         expect(goToMtvSearchScreenButton).toBeTruthy();
     });
 });

@@ -98,6 +98,7 @@ export const MusicTrackVoteCreationFormPhysicalConstraintsContent: React.FC<Musi
 
         return (
             <MtvRoomCreationFormScreen
+                testID="music-track-vote-creation-form-physical-constraints-screen"
                 title="Do you want to restrict voting right to physical constraints?"
                 onBackButtonPress={handleGoBack}
                 onNextButtonPress={handleSubmit(handleGoNext)}

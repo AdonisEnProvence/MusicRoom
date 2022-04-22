@@ -85,7 +85,7 @@ export const MusicPlaylistEditorRoomSearchResult: React.FC<MusicPlaylistEditorRo
                                                     fontSize: 'm',
                                                     paddingLeft: 'm',
                                                 })}
-                                                accessibilityLabel={`${roomName} is a public playlist`}
+                                                accessibilityLabel={`${roomName} is a public room`}
                                             />
                                         </>
                                     ) : (
@@ -96,7 +96,7 @@ export const MusicPlaylistEditorRoomSearchResult: React.FC<MusicPlaylistEditorRo
                                                 fontSize: 'm',
                                                 paddingLeft: 'm',
                                             })}
-                                            accessibilityLabel={`${roomName} is a private playlist where you've been invited`}
+                                            accessibilityLabel={`${roomName} is a private room`}
                                         />
                                     )}
                                 </View>

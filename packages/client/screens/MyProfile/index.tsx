@@ -1,5 +1,5 @@
 import { useMachine } from '@xstate/react';
-import { Text, useSx, View } from 'dripsy';
+import { ScrollView, Text, useSx, View } from 'dripsy';
 import React, { useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -38,25 +38,34 @@ const MyProfileInformationSection: React.FC<MyProfileInformationSectionProps> =
         }
 
         return (
-            <View
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    width: '100%',
-                }}
+            <TouchableOpacity
+                onPress={() => onPress()}
+                style={sx({
+                    padding: 'l',
+                    backgroundColor: 'greyLighter',
+                    borderRadius: 's',
+                    textAlign: 'left',
+                })}
             >
-                <TouchableOpacity
-                    onPress={() => onPress()}
-                    style={sx({
-                        backgroundColor: 'gold',
-                        padding: 'l',
-                        borderRadius: 's',
-                        textAlign: 'center',
-                    })}
+                <Text
+                    sx={{
+                        color: 'greyLight',
+                        fontSize: 'm',
+                    }}
                 >
-                    <Text>{`${informationName} ${informationCounter}`}</Text>
-                </TouchableOpacity>
-            </View>
+                    {informationName}
+                </Text>
+                <Text
+                    sx={{
+                        marginTop: 's',
+                        color: 'black',
+                        fontWeight: 'bold',
+                        fontSize: 'l',
+                    }}
+                >
+                    {informationCounter}
+                </Text>
+            </TouchableOpacity>
         );
     };
 
@@ -163,25 +172,25 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
         );
     }
 
-    const { userID } = myProfileInformation;
+    const { userNickname, userID } = myProfileInformation;
     const myProfileInformationSections: MyProfileInformationSectionProps[] = [
         {
-            informationName: 'followers',
+            informationName: 'Followers',
             onPress: handleGoToMyFollowers,
             informationCounter: myProfileInformation.followersCounter,
         },
         {
-            informationName: 'following',
+            informationName: 'Following',
             onPress: handleGoToMyFollowing,
             informationCounter: myProfileInformation.followingCounter,
         },
         {
-            informationName: 'playlists',
+            informationName: 'Playlists',
             onPress: handleGoToMyLibrary,
             informationCounter: myProfileInformation.playlistsCounter,
         },
         {
-            informationName: 'devices',
+            informationName: 'Devices',
             onPress: handleGoToMyDevices,
             informationCounter: myProfileInformation.devicesCounter,
         },
@@ -214,47 +223,83 @@ const MyProfileScreen: React.FC<MyProfileScreenProps> = ({ navigation }) => {
                 }}
             />
 
-            <AppScreenContainer testID="my-profile-page-container">
-                <View
+            <AppScreenContainer
+                testID="my-profile-page-container"
+                sx={{
+                    flex: 1,
+                }}
+            >
+                <ScrollView
                     sx={{
                         flex: 1,
-                        paddingX: 'l',
-                        maxWidth: [null, 420, 720],
-                        marginX: 'auto',
-                        alignItems: 'center',
                     }}
                 >
                     <View
                         sx={{
-                            padding: 'l',
-                            marginBottom: 'xl',
-                            borderRadius: 'full',
-                            backgroundColor: 'greyLight',
+                            width: '100%',
+                            paddingX: 'l',
+                            maxWidth: [null, 420, 720],
+                            marginX: 'auto',
+                            alignItems: 'center',
                         }}
                     >
-                        <SvgImage
-                            uri={generateUserAvatarUri({ userID })}
-                            accessibilityLabel="My avatar"
-                            style={sx({
-                                width: 'xl',
-                                height: 'xl',
+                        <View
+                            sx={{
+                                padding: 'l',
+                                marginBottom: 'xl',
                                 borderRadius: 'full',
-                            })}
-                        />
-                    </View>
-
-                    <Typo>{userID} my profile</Typo>
-                    {myProfileInformationSections.map(
-                        ({ informationName, onPress, informationCounter }) => (
-                            <MyProfileInformationSection
-                                key={`${userID}_${informationName}`}
-                                informationName={informationName}
-                                onPress={onPress}
-                                informationCounter={informationCounter}
+                                backgroundColor: 'greyLight',
+                            }}
+                        >
+                            <SvgImage
+                                uri={generateUserAvatarUri({ userID })}
+                                accessibilityLabel="My avatar"
+                                style={sx({
+                                    width: 'xl',
+                                    height: 'xl',
+                                    borderRadius: 'full',
+                                })}
                             />
-                        ),
-                    )}
-                </View>
+                        </View>
+
+                        <Typo>{userNickname}</Typo>
+                        <View
+                            sx={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                flexDirection: 'row',
+                                width: '100%',
+                                marginTop: 'xl',
+                                marginBottom: 'xl',
+                            }}
+                        >
+                            {myProfileInformationSections.map(
+                                ({
+                                    informationName,
+                                    onPress,
+                                    informationCounter,
+                                }) => (
+                                    <View
+                                        sx={{
+                                            flex: 1,
+                                            flexBasis: ['100%', '50%'],
+                                            padding: 'l',
+                                        }}
+                                        key={`${userID}_${informationName}`}
+                                    >
+                                        <MyProfileInformationSection
+                                            informationName={informationName}
+                                            onPress={onPress}
+                                            informationCounter={
+                                                informationCounter
+                                            }
+                                        />
+                                    </View>
+                                ),
+                            )}
+                        </View>
+                    </View>
+                </ScrollView>
             </AppScreenContainer>
         </AppScreen>
     );

@@ -359,7 +359,7 @@ export async function searchAndJoinMpeRoomFromMpeRoomsSearchEngine({
     otherUserDevicesToApplyAssertionOn?: Page[];
 }): Promise<void> {
     const goToMusicPlaylistEditorButton = page.locator(
-        `text="Go to Music Playlist Editor"`,
+        `css=[data-testid="home-screen-mpe-group"] >> text="Join a room"`,
     );
     await expect(goToMusicPlaylistEditorButton).toBeVisible();
     await expect(goToMusicPlaylistEditorButton).toBeEnabled();

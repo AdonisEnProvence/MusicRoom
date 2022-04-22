@@ -255,19 +255,49 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
                         </View>
 
                         {userProfileInformation.following ? (
-                            <Button
-                                disabled={isLoading}
-                                title="UNFOLLOW"
-                                testID={`unfollow-${userID}-button`}
+                            <TouchableOpacity
                                 onPress={handleUnfollowPress}
-                            />
-                        ) : (
-                            <Button
+                                style={sx({
+                                    padding: 'l',
+                                    backgroundColor: 'greyLighter',
+                                    borderRadius: 's',
+                                })}
                                 disabled={isLoading}
-                                title="FOLLOW"
-                                testID={`follow-${userID}-button`}
+                                testID={`unfollow-${userID}-button`}
+                            >
+                                <Text
+                                    sx={{
+                                        color: 'greyLight',
+                                        textAlign: 'center',
+                                        fontWeight: 'bold',
+                                        fontSize: 'm',
+                                    }}
+                                >
+                                    Unfollow
+                                </Text>
+                            </TouchableOpacity>
+                        ) : (
+                            <TouchableOpacity
                                 onPress={handleFollowPress}
-                            />
+                                style={sx({
+                                    padding: 'l',
+                                    backgroundColor: 'greyLighter',
+                                    borderRadius: 's',
+                                })}
+                                disabled={isLoading}
+                                testID={`follow-${userID}-button`}
+                            >
+                                <Text
+                                    sx={{
+                                        color: 'greyLight',
+                                        textAlign: 'center',
+                                        fontWeight: 'bold',
+                                        fontSize: 'm',
+                                    }}
+                                >
+                                    Follow
+                                </Text>
+                            </TouchableOpacity>
                         )}
                     </View>
                 </ScrollView>

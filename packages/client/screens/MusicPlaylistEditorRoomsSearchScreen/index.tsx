@@ -5,7 +5,6 @@ import { FlatList, TouchableOpacity } from 'react-native';
 import { useActor, useMachine } from '@xstate/react';
 import { ActorRef } from 'xstate';
 import { MpeRoomSummary } from '@musicroom/types';
-import { Entypo, FontAwesome } from '@expo/vector-icons';
 import { AppScreenWithSearchBar } from '../../components/kit';
 import { MpeTabMpeRoomsScreenProps } from '../../types';
 import { useMusicPlaylistsActor } from '../../hooks/useMusicPlaylistsActor';
@@ -15,80 +14,7 @@ import {
 } from '../../machines/appScreenHeaderWithSearchBarMachine';
 import { mpeRoomSearchMachine } from '../../machines/mpeRoomUniversalSearchMachine';
 import { IS_TEST } from '../../constants/Env';
-
-interface PlaylistListItemProps {
-    roomSummary: MpeRoomSummary;
-    onPress: (roomSummary: MpeRoomSummary) => void;
-}
-
-const PlaylistListItem: React.FC<PlaylistListItemProps> = ({
-    roomSummary,
-    onPress,
-}) => {
-    const sx = useSx();
-    const { roomID, roomName, isOpen, isInvited } = roomSummary;
-
-    return (
-        <TouchableOpacity
-            testID={`mpe-room-card-${roomID}`}
-            onPress={() => {
-                onPress(roomSummary);
-            }}
-        >
-            <View sx={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text
-                    numberOfLines={1}
-                    sx={{ color: 'white', fontSize: 's', flexShrink: 1 }}
-                >
-                    {roomName}
-                </Text>
-
-                <View
-                    sx={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        flexShrink: 0,
-                    }}
-                >
-                    {isOpen === true ? (
-                        <>
-                            {isInvited && (
-                                <FontAwesome
-                                    name="envelope"
-                                    style={sx({
-                                        color: 'greyLighter',
-                                        fontSize: 'm',
-                                        paddingLeft: 'm',
-                                    })}
-                                    accessibilityLabel={`You're invited to ${roomName}`}
-                                />
-                            )}
-                            <Entypo
-                                name="globe"
-                                style={sx({
-                                    color: 'greyLighter',
-                                    fontSize: 'm',
-                                    paddingLeft: 'm',
-                                })}
-                                accessibilityLabel={`${roomName} is a public room`}
-                            />
-                        </>
-                    ) : (
-                        <Entypo
-                            name="lock"
-                            style={sx({
-                                color: 'greyLighter',
-                                fontSize: 'm',
-                                paddingLeft: 'm',
-                            })}
-                            accessibilityLabel={`${roomName} is a private room`}
-                        />
-                    )}
-                </View>
-            </View>
-        </TouchableOpacity>
-    );
-};
+import { MusicPlaylistEditorRoomSearchResult } from '../../components/MusicPlaylistEditorSearch/MusicPlaylistEditorRoomSearchResult';
 
 const MusicPlaylistEditorRoomsSearchScreen: React.FC<MpeTabMpeRoomsScreenProps> =
     ({ navigation }) => {
@@ -143,7 +69,7 @@ const MusicPlaylistEditorRoomsSearchScreen: React.FC<MpeTabMpeRoomsScreenProps> 
                     data={mpeRooms}
                     renderItem={({ item }) => {
                         return (
-                            <PlaylistListItem
+                            <MusicPlaylistEditorRoomSearchResult
                                 roomSummary={item}
                                 onPress={handleRoomPress}
                             />
@@ -198,6 +124,7 @@ const MusicPlaylistEditorRoomsSearchScreen: React.FC<MpeTabMpeRoomsScreenProps> 
                         paddingBottom: insets.bottom,
                     }}
                     onEndReachedThreshold={0.5}
+                    onEndReached={handleLoadMore}
                     initialNumToRender={initialNumberOfItemsToRender}
                 />
             </AppScreenWithSearchBar>

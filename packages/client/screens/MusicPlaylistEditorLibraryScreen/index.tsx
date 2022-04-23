@@ -15,30 +15,7 @@ import {
 import { libraryMpeRoomSearchMachine } from '../../machines/mpeRoomUniversalSearchMachine';
 import { IS_TEST } from '../../constants/Env';
 import AppScreenWithMenuWithSearchBar from '../../components/kit/AppScreenWithMenuWithSearchBar';
-
-interface PlaylistListItemProps {
-    roomSummary: MpeRoomSummary;
-    onPress: (roomSummary: MpeRoomSummary) => void;
-}
-
-const PlaylistListItem: React.FC<PlaylistListItemProps> = ({
-    roomSummary,
-    onPress,
-}) => {
-    const { roomID, roomName } = roomSummary;
-    return (
-        <TouchableOpacity
-            testID={`mpe-room-card-${roomID}`}
-            onPress={() => {
-                onPress(roomSummary);
-            }}
-        >
-            <View>
-                <Text sx={{ color: 'white' }}>{roomName}</Text>
-            </View>
-        </TouchableOpacity>
-    );
-};
+import { MusicPlaylistEditorRoomSearchResult } from '../../components/MusicPlaylistEditorSearch/MusicPlaylistEditorRoomSearchResult';
 
 const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> =
     () => {
@@ -104,7 +81,7 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> =
                     }
                     renderItem={({ item }) => {
                         return (
-                            <PlaylistListItem
+                            <MusicPlaylistEditorRoomSearchResult
                                 roomSummary={item}
                                 onPress={handleRoomPress}
                             />
@@ -159,6 +136,7 @@ const MusicPlaylistEditorListScreen: React.FC<MpeTabMpeRoomsScreenProps> =
                         paddingBottom: insets.bottom,
                     }}
                     onEndReachedThreshold={0.5}
+                    onEndReached={handleLoadMore}
                     initialNumToRender={initialNumberOfItemsToRender}
                 />
             </AppScreenWithMenuWithSearchBar>

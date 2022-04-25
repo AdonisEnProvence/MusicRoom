@@ -569,6 +569,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                                         marginTop: 'l',
                                         borderRadius: 's',
                                     })}
+                                    testID="export-mpe-to-mtv-button"
                                 >
                                     <Text
                                         sx={{
@@ -592,6 +593,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                                         borderWidth: 'm',
                                         marginTop: 'l',
                                     })}
+                                    testID="leave-mpe-room-button"
                                 >
                                     <Text
                                         sx={{

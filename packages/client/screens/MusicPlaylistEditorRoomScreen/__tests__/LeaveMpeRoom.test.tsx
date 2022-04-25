@@ -32,7 +32,7 @@ test('It should join then leave the mpe room user should be redirected', async (
         screen,
     });
 
-    const leaveRoomButton = screen.getByText(/Leave room/i);
+    const leaveRoomButton = screen.getByTestId(`leave-mpe-room-button`);
     expect(leaveRoomButton).toBeTruthy();
     expect(leaveRoomButton).not.toBeDisabled();
 

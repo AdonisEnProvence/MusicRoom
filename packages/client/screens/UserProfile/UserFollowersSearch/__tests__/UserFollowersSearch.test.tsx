@@ -328,6 +328,7 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
         await goToUserFollowersScreen({
             screen,
             expectedFollowersCounter: followers.length,
+            userID: famousUserID,
         });
         context.screen = screen;
     },
@@ -361,7 +362,11 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
                 }),
             ),
         );
-        await goToUserFollowersScreen({ screen, expectedFollowersCounter: 1 });
+        await goToUserFollowersScreen({
+            screen,
+            expectedFollowersCounter: 1,
+            userID,
+        });
         context.screen = screen;
     },
     'Make API respond forbidden exception and render application': async (
@@ -402,7 +407,11 @@ const searchUserFollowersTestModel = createTestModel<TestingContext>(
                 }),
             ),
         );
-        await goToUserFollowersScreen({ screen, expectedFollowersCounter: 1 });
+        await goToUserFollowersScreen({
+            screen,
+            expectedFollowersCounter: 1,
+            userID,
+        });
         context.screen = screen;
     },
     'Load more followers results': async (context) => {
@@ -708,12 +717,16 @@ async function goToUserProfileThroughMusicTrackVoteRoom({
 async function goToUserFollowersScreen({
     screen,
     expectedFollowersCounter,
+    userID,
 }: {
     screen: ReturnType<typeof render>;
     expectedFollowersCounter: number;
+    userID: string;
 }): Promise<void> {
-    const followersCounter = screen.getByText(
-        new RegExp(`followers.*${expectedFollowersCounter}`),
+    const followersCounter = screen.getByTestId(
+        new RegExp(
+            `${userID}-Followers-user-profile-information-${expectedFollowersCounter}`,
+        ),
     );
     fireEvent.press(followersCounter);
 

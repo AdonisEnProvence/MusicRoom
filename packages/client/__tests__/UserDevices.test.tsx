@@ -101,12 +101,10 @@ After clicking on one not emitting device card it should set the clicked one as 
     expect(goSettingsButton).toBeTruthy();
     fireEvent.press(goSettingsButton);
 
-    expect(await screen.findByText(/Welcome.*Settings.*/i)).toBeTruthy();
-
     //Click on change emitting device button
-    const displaychangeEmittingDeviceBottomSheetModalButton = within(
+    const displaychangeEmittingDeviceBottomSheetModalButton = await within(
         musicPlayerFullScreen,
-    ).getByText(/Change.*emitting.*device/i);
+    ).findByText(/Change.*emitting.*device/i);
     expect(displaychangeEmittingDeviceBottomSheetModalButton).toBeTruthy();
 
     fireEvent.press(displaychangeEmittingDeviceBottomSheetModalButton);

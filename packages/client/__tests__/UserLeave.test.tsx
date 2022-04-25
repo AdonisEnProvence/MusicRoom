@@ -75,8 +75,6 @@ He will be redirected to the home and will view the default mini music player
     expect(goSettingsButton).toBeTruthy();
     fireEvent.press(goSettingsButton);
 
-    expect(await screen.findByText(/settings tab/i)).toBeTruthy();
-
     /**
      * Press on the leave room button
      */

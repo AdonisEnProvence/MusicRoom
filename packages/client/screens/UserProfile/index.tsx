@@ -1,5 +1,5 @@
 import { useInterpret, useSelector } from '@xstate/react';
-import { Button, Text, useSx, View } from 'dripsy';
+import { Button, ScrollView, Text, useSx, View } from 'dripsy';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TouchableOpacity } from 'react-native';
@@ -40,26 +40,35 @@ const UserProfileInformationSection: React.FC<UserProfileInformationSectionProps
         }
 
         return (
-            <View
+            <TouchableOpacity
                 testID={testID}
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    width: '100%',
-                }}
+                onPress={() => onPress()}
+                style={sx({
+                    padding: 'l',
+                    backgroundColor: 'greyLighter',
+                    borderRadius: 's',
+                    textAlign: 'left',
+                })}
             >
-                <TouchableOpacity
-                    onPress={() => onPress()}
-                    style={sx({
-                        backgroundColor: 'gold',
-                        padding: 'l',
-                        borderRadius: 's',
-                        textAlign: 'center',
-                    })}
+                <Text
+                    sx={{
+                        color: 'greyLight',
+                        fontSize: 'm',
+                    }}
                 >
-                    <Text>{`${informationName} ${informationCounter}`}</Text>
-                </TouchableOpacity>
-            </View>
+                    {informationName}
+                </Text>
+                <Text
+                    sx={{
+                        marginTop: 's',
+                        color: 'black',
+                        fontWeight: 'bold',
+                        fontSize: 'l',
+                    }}
+                >
+                    {informationCounter}
+                </Text>
+            </TouchableOpacity>
         );
     };
 
@@ -110,7 +119,7 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
 
     const userProfileInformationSections: UserProfileInformationSection[] = [
         {
-            informationName: 'followers',
+            informationName: 'Followers',
             onPress: () => {
                 navigation.navigate('UserFollowersSearch', {
                     userID,
@@ -119,7 +128,7 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
             informationCounter: userProfileInformation.followersCounter,
         },
         {
-            informationName: 'following',
+            informationName: 'Following',
             onPress: () => {
                 navigation.navigate('UserFollowingSearch', {
                     userID,
@@ -128,7 +137,7 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
             informationCounter: userProfileInformation.followingCounter,
         },
         {
-            informationName: 'playlists',
+            informationName: 'Playlists',
             onPress: () => {
                 navigation.navigate('UserMusicPlaylistEditorSearchScreen', {
                     userID,
@@ -164,73 +173,134 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
             <AppScreenContainer
                 testID={`${userProfileInformation.userID}-profile-page-screen`}
             >
-                <View
+                <ScrollView
                     sx={{
                         flex: 1,
-                        paddingX: 'l',
-                        maxWidth: [null, 420, 720],
-                        marginX: 'auto',
-                        alignItems: 'center',
                     }}
                 >
                     <View
                         sx={{
-                            padding: 'l',
-                            marginBottom: 'xl',
-                            borderRadius: 'full',
-                            backgroundColor: 'greyLight',
+                            flex: 1,
+                            paddingX: 'l',
+                            maxWidth: [null, 420, 720],
+                            marginX: 'auto',
+                            alignItems: 'center',
                         }}
                     >
-                        <SvgImage
-                            uri={generateUserAvatarUri({ userID })}
-                            accessibilityLabel={`${userProfileInformation.userNickname} avatar`}
-                            style={sx({
-                                width: 'xl',
-                                height: 'xl',
+                        <View
+                            sx={{
+                                padding: 'l',
+                                marginBottom: 'xl',
                                 borderRadius: 'full',
-                            })}
-                        />
-                    </View>
-
-                    <Text
-                        sx={{
-                            color: 'white',
-                            marginBottom: 'xl',
-                            fontSize: 'l',
-                            fontWeight: 'bold',
-                        }}
-                    >
-                        {userProfileInformation.userNickname}
-                    </Text>
-
-                    {userProfileInformationSections.map(
-                        ({ informationName, onPress, informationCounter }) => (
-                            <UserProfileInformationSection
-                                key={`${userProfileInformation.userID}_${informationName}`}
-                                testID={`${userProfileInformation.userID}-${informationName}-user-profile-information`}
-                                informationName={informationName}
-                                onPress={onPress}
-                                informationCounter={informationCounter}
+                                backgroundColor: 'greyLight',
+                            }}
+                        >
+                            <SvgImage
+                                uri={generateUserAvatarUri({ userID })}
+                                accessibilityLabel={`${userProfileInformation.userNickname} avatar`}
+                                style={sx({
+                                    width: 'xl',
+                                    height: 'xl',
+                                    borderRadius: 'full',
+                                })}
                             />
-                        ),
-                    )}
+                        </View>
 
-                    {userProfileInformation.following ? (
-                        <Button
-                            disabled={isLoading}
-                            title="UNFOLLOW"
-                            testID={`unfollow-${userID}-button`}
-                            onPress={handleUnfollowPress}
-                        />
-                    ) : (
-                        <Button
-                            disabled={isLoading}
-                            title="FOLLOW"
-                            testID={`follow-${userID}-button`}
-                            onPress={handleFollowPress}
-                        />
-                    )}
-                </View>
+                        <Text
+                            sx={{
+                                color: 'white',
+                                marginBottom: 'xl',
+                                fontSize: 'l',
+                                fontWeight: 'bold',
+                            }}
+                        >
+                            {userProfileInformation.userNickname}
+                        </Text>
+
+                        <View
+                            sx={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                flexDirection: 'row',
+                                width: '100%',
+                                marginTop: 'xl',
+                                marginBottom: 'xl',
+                            }}
+                        >
+                            {userProfileInformationSections.map(
+                                ({
+                                    informationName,
+                                    onPress,
+                                    informationCounter,
+                                }) => (
+                                    <View
+                                        sx={{
+                                            flex: 1,
+                                            flexBasis: ['100%', '50%'],
+                                            padding: 'l',
+                                        }}
+                                        key={`${userProfileInformation.userID}_${informationName}`}
+                                    >
+                                        <UserProfileInformationSection
+                                            informationName={informationName}
+                                            testID={`${userProfileInformation.userID}-${informationName}-user-profile-information-${informationCounter}`}
+                                            onPress={onPress}
+                                            informationCounter={
+                                                informationCounter
+                                            }
+                                        />
+                                    </View>
+                                ),
+                            )}
+                        </View>
+
+                        {userProfileInformation.following ? (
+                            <TouchableOpacity
+                                onPress={handleUnfollowPress}
+                                style={sx({
+                                    padding: 'l',
+                                    backgroundColor: 'greyLighter',
+                                    borderRadius: 's',
+                                })}
+                                disabled={isLoading}
+                                testID={`unfollow-${userID}-button`}
+                            >
+                                <Text
+                                    sx={{
+                                        color: 'greyLight',
+                                        textAlign: 'center',
+                                        fontWeight: 'bold',
+                                        fontSize: 'm',
+                                    }}
+                                >
+                                    Unfollow
+                                </Text>
+                            </TouchableOpacity>
+                        ) : (
+                            <TouchableOpacity
+                                onPress={handleFollowPress}
+                                style={sx({
+                                    padding: 'l',
+                                    backgroundColor: 'greyLighter',
+                                    borderRadius: 's',
+                                })}
+                                disabled={isLoading}
+                                testID={`follow-${userID}-button`}
+                            >
+                                <Text
+                                    sx={{
+                                        color: 'greyLight',
+                                        textAlign: 'center',
+                                        fontWeight: 'bold',
+                                        fontSize: 'm',
+                                    }}
+                                >
+                                    Follow
+                                </Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                </ScrollView>
             </AppScreenContainer>
         </AppScreen>
     );

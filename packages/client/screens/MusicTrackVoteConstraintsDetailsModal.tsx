@@ -3,10 +3,10 @@ import {
     LatlngCoords,
     MtvRoomGetRoomConstraintDetailsCallbackArgs,
 } from '@musicroom/types';
-import { View, Button } from 'dripsy';
+import { View, ScrollView, useSx, Text } from 'dripsy';
 import React, { useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Dimensions } from 'react-native';
+import { Dimensions, TouchableOpacity } from 'react-native';
 import {
     AppScreen,
     AppScreenContainer,
@@ -119,6 +119,7 @@ const RoomConstraintsDetailsPreview: React.FC<RoomConstraintsDetailsPreviewProps
                             width: '100%',
                             maxWidth,
                             height: maxHeight,
+                            marginBottom: 'xl',
                         }}
                     >
                         <PositionConstraintsDetailsOnMap
@@ -129,9 +130,9 @@ const RoomConstraintsDetailsPreview: React.FC<RoomConstraintsDetailsPreviewProps
                             positionConstraintRadius={physicalConstraintRadius}
                             defaultZoom={11}
                         />
-
-                        <RequestLocationPermissionButton />
                     </View>
+
+                    <RequestLocationPermissionButton />
                 </View>
             </View>
         );
@@ -140,6 +141,7 @@ const RoomConstraintsDetailsPreview: React.FC<RoomConstraintsDetailsPreviewProps
 const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalProps> =
     ({ navigation }) => {
         const insets = useSafeAreaInsets();
+        const sx = useSx();
 
         const {
             userState: {
@@ -216,40 +218,62 @@ const MusicTrackVoteConstraintsDetailsModal: React.FC<MusicTrackVoteChatModalPro
                 />
 
                 <AppScreenContainer>
-                    <Skeleton
-                        show={displayLoader}
-                        colorMode="dark"
-                        width="100%"
+                    <ScrollView
+                        sx={{
+                            flex: 1,
+                        }}
                     >
-                        {constraintsDetails !== undefined ? (
-                            <RoomConstraintsDetailsPreview
-                                RequestLocationPermissionButton={() => {
-                                    if (locationPermissionIsNotGranted) {
-                                        return (
-                                            <Button
-                                                sx={{
-                                                    fontSize: 's',
-                                                }}
-                                                title={'Get device position'}
-                                                onPress={() => {
-                                                    sendToMusicPlayerMachine({
-                                                        type: 'GET_ROOM_CONSTRAINTS_DETAILS',
-                                                    });
-                                                }}
-                                            />
-                                        );
+                        <Skeleton
+                            show={displayLoader}
+                            colorMode="dark"
+                            width="100%"
+                        >
+                            {constraintsDetails !== undefined ? (
+                                <RoomConstraintsDetailsPreview
+                                    RequestLocationPermissionButton={() => {
+                                        if (locationPermissionIsNotGranted) {
+                                            return (
+                                                <TouchableOpacity
+                                                    onPress={() => {
+                                                        sendToMusicPlayerMachine(
+                                                            {
+                                                                type: 'GET_ROOM_CONSTRAINTS_DETAILS',
+                                                            },
+                                                        );
+                                                    }}
+                                                    style={sx({
+                                                        padding: 'l',
+                                                        textAlign: 'center',
+                                                        backgroundColor:
+                                                            'greyLighter',
+                                                        borderRadius: 's',
+                                                        fontSize: 'm',
+                                                        marginBottom: 'xl',
+                                                    })}
+                                                >
+                                                    <Text
+                                                        sx={{
+                                                            color: 'greyLight',
+                                                            fontSize: 'm',
+                                                        }}
+                                                    >
+                                                        Get device position
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            );
+                                        }
+                                        return null;
+                                    }}
+                                    userFitsPositionConstraint={
+                                        userRelatedInformation?.userFitsPositionConstraint
                                     }
-                                    return null;
-                                }}
-                                userFitsPositionConstraint={
-                                    userRelatedInformation?.userFitsPositionConstraint
-                                }
-                                devicePosition={devicePosition}
-                                constraintsDetails={constraintsDetails}
-                                roomName={roomName}
-                            />
-                        ) : undefined}
-                    </Skeleton>
+                                    devicePosition={devicePosition}
+                                    constraintsDetails={constraintsDetails}
+                                    roomName={roomName}
+                                />
+                            ) : undefined}
+                        </Skeleton>
+                    </ScrollView>
                 </AppScreenContainer>
             </AppScreen>
         );

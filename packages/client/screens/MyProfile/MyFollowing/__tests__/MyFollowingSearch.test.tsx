@@ -477,8 +477,8 @@ function goToMyFollowersScreen({
     screen: ReturnType<typeof render>;
     expectedFollowersCounter: number;
 }): void {
-    const followingCounter = screen.getByText(
-        new RegExp(`following.*${expectedFollowersCounter}`),
+    const followingCounter = screen.getByTestId(
+        new RegExp(`my-profile-Following-${expectedFollowersCounter}`),
     );
     fireEvent.press(followingCounter);
 }

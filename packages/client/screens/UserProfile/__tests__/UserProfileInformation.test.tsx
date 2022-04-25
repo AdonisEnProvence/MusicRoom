@@ -281,13 +281,19 @@ test('It should display not followed known user profile page with every user inf
         const followButton = userProfileScreen.getByText(/^follow$/i);
         expect(followButton).toBeTruthy();
 
-        const playlistsCounter = userProfileScreen.getByText(/playlists.*3/i);
+        const playlistsCounter = userProfileScreen.getByTestId(
+            new RegExp(`${userID}-Playlists-user-profile-information-3`),
+        );
         expect(playlistsCounter).toBeTruthy();
 
-        const followersCounter = userProfileScreen.getByText(/followers.*4/i);
+        const followersCounter = userProfileScreen.getByTestId(
+            new RegExp(`${userID}-Followers-user-profile-information-4`),
+        );
         expect(followersCounter).toBeTruthy();
 
-        const followingCounter = userProfileScreen.getByText(/following.*5/i);
+        const followingCounter = userProfileScreen.getByTestId(
+            new RegExp(`${userID}-Following-user-profile-information-5`),
+        );
         expect(followingCounter).toBeTruthy();
 
         const userAvatar = userProfileScreen.getByLabelText(

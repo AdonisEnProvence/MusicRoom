@@ -32,16 +32,16 @@ test('It should display my profile page with my profile information', async () =
     await waitFor(() => {
         expect(screen.getByTestId('my-profile-page-container')).toBeTruthy();
 
-        const devicesCounter = screen.getByText(/devices.*3/i);
+        const devicesCounter = screen.getByTestId(/my-profile-devices-3/i);
         expect(devicesCounter).toBeTruthy();
 
-        const playlistsCounter = screen.getByText(/playlists.*4/i);
+        const playlistsCounter = screen.getByTestId(/my-profile-playlists-4/i);
         expect(playlistsCounter).toBeTruthy();
 
-        const followersCounter = screen.getByText(/followers.*5/i);
+        const followersCounter = screen.getByTestId(/my-profile-followers-5/i);
         expect(followersCounter).toBeTruthy();
 
-        const followingCounter = screen.getByText(/following.*6/i);
+        const followingCounter = screen.getByTestId(/my-profile-following-6/i);
         expect(followingCounter).toBeTruthy();
 
         const avatar = screen.getByLabelText(/my.*avatar/i);
@@ -74,16 +74,16 @@ test('It should display my library after pressing playlists counter', async () =
     const playlistsCounter = await waitFor(() => {
         expect(screen.getByTestId('my-profile-page-container')).toBeTruthy();
 
-        const devicesCounter = screen.getByText(/devices.*3/i);
+        const devicesCounter = screen.getByTestId(/my-profile-devices-3/i);
         expect(devicesCounter).toBeTruthy();
 
-        const playlistsCounter = screen.getByText(/playlists.*4/i);
+        const playlistsCounter = screen.getByTestId(/my-profile-playlists-4/i);
         expect(playlistsCounter).toBeTruthy();
 
-        const followersCounter = screen.getByText(/followers.*5/i);
+        const followersCounter = screen.getByTestId(/my-profile-followers-5/i);
         expect(followersCounter).toBeTruthy();
 
-        const followingCounter = screen.getByText(/following.*6/i);
+        const followingCounter = screen.getByTestId(/my-profile-following-6/i);
         expect(followingCounter).toBeTruthy();
 
         const avatar = screen.getByLabelText(/my.*avatar/i);

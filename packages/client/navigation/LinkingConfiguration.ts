@@ -9,31 +9,6 @@ import * as Linking from 'expo-linking';
 export default {
     prefixes: [Linking.makeUrl('/')],
     config: {
-        screens: {
-            initialRouteName: 'Root',
-            Root: {
-                initialRouteName: 'Home',
-                screens: {
-                    Home: {
-                        screens: {
-                            HomeScreen: 'home',
-                        },
-                    },
-                    SearchTracks: {
-                        screens: {
-                            SearchTracksScreen: 'searchTracks',
-                        },
-                    },
-                },
-            },
-
-            MusicTrackVoteSearch: 'track-vote/search',
-            MusicTrackVote: 'track-vote/:roomId',
-
-            SearchTrackResults: 'searchTrackResults/:tracks',
-            Settings: 'settings/:id',
-            Chat: 'chat',
-            NotFound: '*',
-        },
+        screens: {},
     },
 };

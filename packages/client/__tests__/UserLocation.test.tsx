@@ -136,14 +136,12 @@ describe('User device location tests', () => {
         expect(goSettingsButton).toBeTruthy();
         fireEvent.press(goSettingsButton);
 
-        expect(await screen.findByText(/settings tab/i)).toBeTruthy();
-
         /**
          * Press on the leave room button
          */
-        const requestLocationButton = within(musicPlayerFullScreen).getByText(
-            /LOCATION/i,
-        );
+        const requestLocationButton = await within(
+            musicPlayerFullScreen,
+        ).findByText(/LOCATION/i);
         expect(requestLocationButton).toBeTruthy();
         fireEvent.press(requestLocationButton);
 

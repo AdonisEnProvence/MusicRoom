@@ -108,20 +108,16 @@ const otherUserMpeRoomsMachine =
                         test: async ({
                             screen,
                             otherUserNickname,
+                            otherUserID,
                         }: TestingContext) => {
                             expect(
                                 await screen.findByText(otherUserNickname),
                             ).toBeTruthy();
 
-                            const playlistsCount = await within(
-                                await screen.findByTestId(
-                                    /-profile-page-screen/,
-                                ),
-                            ).findByText(/playlists/i);
-                            expect(playlistsCount).toBeTruthy();
-                            expect(playlistsCount).toHaveTextContent(
-                                String(OTHER_USER_MPE_ROOMS.length),
+                            const playlistCounter = await screen.findByTestId(
+                                `${otherUserID}-Playlists-user-profile-information-${OTHER_USER_MPE_ROOMS.length}`,
                             );
+                            expect(playlistCounter).toBeTruthy();
                         },
                     },
                     on: {

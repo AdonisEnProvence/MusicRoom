@@ -118,9 +118,9 @@ test('It should follow related user, and display his followers only information'
     await waitFor(() => {
         const unfollowButton = screen.getByTestId(`unfollow-${userID}-button`);
         expect(unfollowButton).toBeTruthy();
-        const playlistsCounter = screen.getByText(/.*playlists.*3/i);
-        const followersCounter = screen.getByText(/.*followers.*1/i);
-        const followingCounter = screen.getByText(/.*following.*2/i);
+        const playlistsCounter = screen.getByTestId(/.*playlists.*3/i);
+        const followersCounter = screen.getByTestId(/.*followers.*1/i);
+        const followingCounter = screen.getByTestId(/.*following.*2/i);
         expect(playlistsCounter).toBeTruthy();
         expect(followersCounter).toBeTruthy();
         expect(followingCounter).toBeTruthy();

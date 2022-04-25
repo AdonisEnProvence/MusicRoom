@@ -118,6 +118,7 @@ const MtvRoomUserListElementSettings: React.FC<MtvRoomUserListElementSettings> =
                             <View
                                 sx={{
                                     padding: 's',
+                                    marginTop: 'l',
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                     borderRadius: 's',
@@ -130,13 +131,20 @@ const MtvRoomUserListElementSettings: React.FC<MtvRoomUserListElementSettings> =
                                         setAsDelegationOwner(selectedUser)
                                     }
                                     style={sx({
-                                        backgroundColor: '#8B0000',
-                                        padding: 'l',
-                                        borderRadius: 's',
+                                        padding: 'm',
                                         textAlign: 'center',
+                                        backgroundColor: 'greyLighter',
+                                        borderRadius: 's',
                                     })}
                                 >
-                                    <Text> Set as delegation owner</Text>
+                                    <Text
+                                        sx={{
+                                            color: 'greyLight',
+                                            fontSize: 's',
+                                        }}
+                                    >
+                                        Set as delegation owner
+                                    </Text>
                                 </TouchableOpacity>
                             </View>
                         )}

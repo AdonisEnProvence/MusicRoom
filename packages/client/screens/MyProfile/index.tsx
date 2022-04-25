@@ -31,7 +31,7 @@ interface MyProfileInformationSectionProps {
 const MyProfileInformationSection: React.FC<MyProfileInformationSectionProps> =
     ({ informationName, informationCounter, onPress }) => {
         const sx = useSx();
-
+        const testID = `my-profile-${informationName}-${informationCounter}`;
         const informationIsNotVisibleForUser = informationCounter === undefined;
         if (informationIsNotVisibleForUser) {
             return null;
@@ -39,6 +39,7 @@ const MyProfileInformationSection: React.FC<MyProfileInformationSectionProps> =
 
         return (
             <TouchableOpacity
+                testID={testID}
                 onPress={() => onPress()}
                 style={sx({
                     padding: 'l',

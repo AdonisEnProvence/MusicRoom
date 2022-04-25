@@ -243,7 +243,7 @@ const UserProfileContent: React.FC<UserProfileContentProps> = ({
                                     >
                                         <UserProfileInformationSection
                                             informationName={informationName}
-                                            testID={`${userProfileInformation.userID}-${informationName}-user-profile-information`}
+                                            testID={`${userProfileInformation.userID}-${informationName}-user-profile-information-${informationCounter}`}
                                             onPress={onPress}
                                             informationCounter={
                                                 informationCounter

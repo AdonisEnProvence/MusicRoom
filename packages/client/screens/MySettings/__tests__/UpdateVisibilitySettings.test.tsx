@@ -201,9 +201,17 @@ const updateVisibilitySettingsMachine =
                                         'Screen must have been rendered before being in this state',
                                     );
 
+                                    const mySettingsContainer =
+                                        await screen.findByTestId(
+                                            `my-profile-settings-page-container`,
+                                        );
+                                    expect(mySettingsContainer).toBeTruthy();
+
                                     await waitFor(() => {
                                         expect(
-                                            screen.getByText(nickname),
+                                            within(
+                                                mySettingsContainer,
+                                            ).getByText(nickname),
                                         ).toBeTruthy();
                                     });
                                 },

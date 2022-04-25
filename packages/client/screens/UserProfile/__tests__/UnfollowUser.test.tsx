@@ -3,7 +3,12 @@ import { MtvRoomUsersListElement } from '@musicroom/types';
 import Toast from 'react-native-toast-message';
 import { serverSocket } from '../../../services/websockets';
 import { db, generateMtvWorklowState } from '../../../tests/data';
-import { fireEvent, renderApp, waitFor } from '../../../tests/tests-utils';
+import {
+    fireEvent,
+    renderApp,
+    waitFor,
+    within,
+} from '../../../tests/tests-utils';
 
 test('It should unfollow related user, and hide his followers only information', async () => {
     const userID = datatype.uuid();
@@ -83,9 +88,12 @@ test('It should unfollow related user, and hide his followers only information',
         expect(profileScreen).toBeTruthy();
         const unfollowButton = screen.getByTestId(`unfollow-${userID}-button`);
         expect(unfollowButton).toBeTruthy();
-        const playlistsCounter = screen.getByText(/.*playlists.*3/i);
-        const followersCounter = screen.getByText(/.*followers.*1/i);
-        const followingCounter = screen.getByText(/.*following.*2/i);
+        const playlistsCounter =
+            within(profileScreen).getByTestId(/.*playlists.*3/i);
+        const followersCounter =
+            within(profileScreen).getByTestId(/.*followers.*1/i);
+        const followingCounter =
+            within(profileScreen).getByTestId(/.*following.*2/i);
         expect(playlistsCounter).toBeTruthy();
         expect(followersCounter).toBeTruthy();
         expect(followingCounter).toBeTruthy();
@@ -205,9 +213,12 @@ test('It should display toast error on unfollow operation error', async () => {
         expect(profileScreen).toBeTruthy();
         const unfollowButton = screen.getByTestId(`unfollow-${userID}-button`);
         expect(unfollowButton).toBeTruthy();
-        const playlistsCounter = screen.getByText(/.*playlists.*3/i);
-        const followersCounter = screen.getByText(/.*followers.*1/i);
-        const followingCounter = screen.getByText(/.*following.*2/i);
+        const playlistsCounter =
+            within(profileScreen).getByTestId(/.*playlists.*3/i);
+        const followersCounter =
+            within(profileScreen).getByTestId(/.*followers.*1/i);
+        const followingCounter =
+            within(profileScreen).getByTestId(/.*following.*2/i);
         expect(playlistsCounter).toBeTruthy();
         expect(followersCounter).toBeTruthy();
         expect(followingCounter).toBeTruthy();

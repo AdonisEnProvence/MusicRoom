@@ -10,6 +10,7 @@ import {
     renderApp,
     waitFor,
     within,
+    findGoToMpeSearchOnHome,
 } from '../../../tests/tests-utils';
 
 interface TestingContext {
@@ -273,9 +274,8 @@ describe('MPE Rooms Search', () => {
                         screen.getAllByText(/home/i).length,
                     ).toBeGreaterThanOrEqual(1);
 
-                    const goToMpeRoomsSearchButton = screen.getByText(
-                        /go.*to.*music.*playlist.*editor/i,
-                    );
+                    const goToMpeRoomsSearchButton =
+                        await findGoToMpeSearchOnHome({ screen });
                     expect(goToMpeRoomsSearchButton).toBeTruthy();
 
                     fireEvent.press(goToMpeRoomsSearchButton);
@@ -311,9 +311,7 @@ test('Pressing Cancel button refreshes the list', async () => {
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const goToMpeRoomsSearchButton = screen.getByText(
-        /go.*to.*music.*playlist.*editor/i,
-    );
+    const goToMpeRoomsSearchButton = await findGoToMpeSearchOnHome({ screen });
     expect(goToMpeRoomsSearchButton).toBeTruthy();
 
     fireEvent.press(goToMpeRoomsSearchButton);
@@ -397,9 +395,7 @@ test('Pressing Clear button refreshes the list and resets the search query', asy
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const goToMpeRoomsSearchButton = screen.getByText(
-        /go.*to.*music.*playlist.*editor/i,
-    );
+    const goToMpeRoomsSearchButton = await findGoToMpeSearchOnHome({ screen });
     expect(goToMpeRoomsSearchButton).toBeTruthy();
 
     fireEvent.press(goToMpeRoomsSearchButton);

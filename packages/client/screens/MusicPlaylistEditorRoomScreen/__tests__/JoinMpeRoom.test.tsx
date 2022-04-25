@@ -7,6 +7,7 @@ import {
 } from '../../../tests/data';
 import { joinMpeRoom } from '../../../tests/tests-mpe-utils';
 import {
+    findGoToMpeSearchOnHome,
     fireEvent,
     renderApp,
     waitFor,
@@ -40,9 +41,7 @@ test('It should display get context fail toast and redirect the user to the mpe 
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const goToMtvSearchScreenButton = screen.getByText(
-        /go.*to.*music.*playlist.*editor/i,
-    );
+    const goToMtvSearchScreenButton = await findGoToMpeSearchOnHome({ screen });
     expect(goToMtvSearchScreenButton).toBeTruthy();
 
     fireEvent.press(goToMtvSearchScreenButton);

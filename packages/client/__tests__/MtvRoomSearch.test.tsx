@@ -14,6 +14,12 @@ async function withinMtvRoomsSearchScreen(screen: ReturnType<typeof render>) {
     return within(await screen.findByTestId('mtv-room-search-engine'));
 }
 
+async function findGoToMtvSearchOnHome(screen: ReturnType<typeof render>) {
+    return await within(
+        await screen.findByTestId('home-screen-mtv-group'),
+    ).findByText(/join.*room/i);
+}
+
 test('Rooms are listed when coming to the screen and infinitely loaded', async () => {
     const rooms = generateArray({
         minLength: 11,
@@ -27,9 +33,7 @@ test('Rooms are listed when coming to the screen and infinitely loaded', async (
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const goToMtvSearchScreenButton = screen.getByText(
-        /go.*to.*music.*track.*vote/i,
-    );
+    const goToMtvSearchScreenButton = await findGoToMtvSearchOnHome(screen);
     expect(goToMtvSearchScreenButton).toBeTruthy();
 
     fireEvent.press(goToMtvSearchScreenButton);
@@ -138,9 +142,7 @@ test('Rooms are filtered and infinitely loaded', async () => {
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const goToMtvSearchScreenButton = screen.getByText(
-        /go.*to.*music.*track.*vote/i,
-    );
+    const goToMtvSearchScreenButton = await findGoToMtvSearchOnHome(screen);
     expect(goToMtvSearchScreenButton).toBeTruthy();
 
     fireEvent.press(goToMtvSearchScreenButton);
@@ -223,9 +225,7 @@ test('Clearing search input displays rooms without filter', async () => {
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const goToMtvSearchScreenButton = screen.getByText(
-        /go.*to.*music.*track.*vote/i,
-    );
+    const goToMtvSearchScreenButton = await findGoToMtvSearchOnHome(screen);
     expect(goToMtvSearchScreenButton).toBeTruthy();
 
     fireEvent.press(goToMtvSearchScreenButton);
@@ -289,9 +289,7 @@ test('Cancelling search input displays rooms without filter', async () => {
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const goToMtvSearchScreenButton = screen.getByText(
-        /go.*to.*music.*track.*vote/i,
-    );
+    const goToMtvSearchScreenButton = await findGoToMtvSearchOnHome(screen);
     expect(goToMtvSearchScreenButton).toBeTruthy();
 
     fireEvent.press(goToMtvSearchScreenButton);
@@ -349,9 +347,7 @@ test('Cancelling search input when all data have been loaded does nothing', asyn
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const goToMtvSearchScreenButton = screen.getByText(
-        /go.*to.*music.*track.*vote/i,
-    );
+    const goToMtvSearchScreenButton = await findGoToMtvSearchOnHome(screen);
     expect(goToMtvSearchScreenButton).toBeTruthy();
 
     fireEvent.press(goToMtvSearchScreenButton);
@@ -414,9 +410,7 @@ test('Displays empty state when no rooms match the query', async () => {
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const goToMtvSearchScreenButton = screen.getByText(
-        /go.*to.*music.*track.*vote/i,
-    );
+    const goToMtvSearchScreenButton = await findGoToMtvSearchOnHome(screen);
     expect(goToMtvSearchScreenButton).toBeTruthy();
 
     fireEvent.press(goToMtvSearchScreenButton);
@@ -452,9 +446,7 @@ test('Room card specific icon for isOpen isInvited', async () => {
 
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const goToMtvSearchScreenButton = screen.getByText(
-        /go.*to.*music.*track.*vote/i,
-    );
+    const goToMtvSearchScreenButton = await findGoToMtvSearchOnHome(screen);
     expect(goToMtvSearchScreenButton).toBeTruthy();
 
     fireEvent.press(goToMtvSearchScreenButton);

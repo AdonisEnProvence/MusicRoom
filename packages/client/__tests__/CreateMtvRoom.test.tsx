@@ -1112,20 +1112,32 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
             const { place, radius, startsAt, endsAt } =
                 SetPhysicalConstraintsValuesEvent.parse(event);
 
-            const placeInput = await screen.findByPlaceholderText(/place/i);
+            const physicalConstraintsScreen = within(
+                await screen.findByTestId(
+                    'music-track-vote-creation-form-physical-constraints-screen',
+                ),
+            );
+
+            const placeInput =
+                await physicalConstraintsScreen.findByPlaceholderText(/place/i);
             fireEvent(placeInput, 'focus');
             fireEvent.changeText(placeInput, place);
-            const placeSuggestion = await screen.findByText(place);
+            const placeSuggestion = await physicalConstraintsScreen.findByText(
+                place,
+            );
             fireEvent.press(placeSuggestion);
 
-            const radiusPicker = screen.getByTestId('ios_picker');
+            const radiusPicker =
+                physicalConstraintsScreen.getByTestId('ios_picker');
             fireEvent(radiusPicker, 'valueChange', radius, 0);
 
-            const startsAtInput = screen.getByText(/starts.*at/i);
+            const startsAtInput =
+                physicalConstraintsScreen.getByText(/starts.*at/i);
             fireEvent.press(startsAtInput);
-            const startsAtDateTimePicker = screen.getByTestId(
-                'starts-at-datetime-picker',
-            );
+            const startsAtDateTimePicker =
+                physicalConstraintsScreen.getByTestId(
+                    'starts-at-datetime-picker',
+                );
             fireEvent(
                 startsAtDateTimePicker,
                 'change',
@@ -1133,16 +1145,19 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
                 new Date(startsAt),
             );
             const startsAtDateTimePickerConfirmButton =
-                screen.getByA11yLabel(/confirm/i);
+                physicalConstraintsScreen.getByA11yLabel(/confirm/i);
             fireEvent.press(startsAtDateTimePickerConfirmButton);
 
             await waitForElementToBeRemoved(() =>
-                screen.getByTestId('starts-at-datetime-picker'),
+                physicalConstraintsScreen.getByTestId(
+                    'starts-at-datetime-picker',
+                ),
             );
 
-            const endsAtInput = screen.getByText(/ends.*at/i);
+            const endsAtInput =
+                physicalConstraintsScreen.getByText(/ends.*at/i);
             fireEvent.press(endsAtInput);
-            const endsAtDateTimePicker = screen.getByTestId(
+            const endsAtDateTimePicker = physicalConstraintsScreen.getByTestId(
                 'ends-at-datetime-picker',
             );
             fireEvent(
@@ -1152,10 +1167,11 @@ const createMtvRoomWithSettingsTestModel = createTestModel<
                 new Date(endsAt),
             );
             const endsAtDateTimePickerConfirmButton =
-                screen.getByA11yLabel(/confirm/i);
+                physicalConstraintsScreen.getByA11yLabel(/confirm/i);
             fireEvent.press(endsAtDateTimePickerConfirmButton);
 
-            const goNextButtons = screen.getAllByText(/next/i);
+            const goNextButtons =
+                physicalConstraintsScreen.getAllByText(/next/i);
             const goNextButton = goNextButtons[goNextButtons.length - 1];
 
             fireEvent.press(goNextButton);

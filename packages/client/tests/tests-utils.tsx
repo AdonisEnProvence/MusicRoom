@@ -306,3 +306,13 @@ export async function findBottomBarLibraryButton({
 
     return libraryButton;
 }
+
+export async function findGoToMpeSearchOnHome({
+    screen,
+}: {
+    screen: ReturnType<typeof render>;
+}): Promise<GetReturn> {
+    return await within(
+        await screen.findByTestId('home-screen-mpe-group'),
+    ).findByText(/join.*room/i);
+}

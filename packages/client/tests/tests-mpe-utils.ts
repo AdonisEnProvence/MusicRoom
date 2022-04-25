@@ -20,6 +20,7 @@ import {
 } from './data';
 import {
     extractTrackIDFromCardContainerTestID,
+    findGoToMpeSearchOnHome,
     fireEvent,
     render,
     renderApp,
@@ -360,9 +361,7 @@ export async function joinMpeRoom(
         !firstRoomState.userRelatedInformation.userHasBeenInvited;
     expect(screen.getAllByText(/home/i).length).toBeGreaterThanOrEqual(1);
 
-    const goToMtvSearchScreenButton = screen.getByText(
-        /go.*to.*music.*playlist.*editor/i,
-    );
+    const goToMtvSearchScreenButton = await findGoToMpeSearchOnHome({ screen });
     expect(goToMtvSearchScreenButton).toBeTruthy();
 
     fireEvent.press(goToMtvSearchScreenButton);

@@ -120,7 +120,9 @@ async function joinRoom({
     roomName: string;
     expectedListenersCounter: number;
 }) {
-    await page.click('text="Go to Music Track Vote"');
+    await page.click(
+        'css=[data-testid="home-screen-mtv-group"] >> text="Join a room"',
+    );
 
     // Code to use infinite scroll
     let matchingRoom: Locator | undefined;

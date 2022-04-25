@@ -238,6 +238,9 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                     onChange={handleSheetChanges}
                     backgroundStyle={sx({
                         backgroundColor: 'greyLight',
+                        maxWidth: ['100%', 860],
+                        width: '100%',
+                        marginX: 'auto',
                     })}
                     handleComponent={(props) => (
                         <BottomSheetHandle

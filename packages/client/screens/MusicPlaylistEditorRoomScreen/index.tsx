@@ -537,6 +537,9 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                         snapPoints={snapPoints}
                         backgroundStyle={sx({
                             backgroundColor: 'greyLight',
+                            maxWidth: ['100%', 860],
+                            width: '100%',
+                            marginX: 'auto',
                         })}
                         handleComponent={(props) => (
                             <BottomSheetHandle

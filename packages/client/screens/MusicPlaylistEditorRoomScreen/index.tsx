@@ -553,43 +553,57 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                                 height: contentHeightForFirstSnapPoint,
                             }}
                         >
-                            <TouchableOpacity
-                                disabled={disableEveryCta}
-                                testID="leave-mpe-room-button"
-                                style={sx({
-                                    flexShrink: 0,
-                                    backgroundColor: '#8B0000',
+                            <View
+                                sx={{
+                                    flex: 1,
                                     padding: 'm',
-                                    flexDirection: 'row',
-                                    justifyContent: 'center',
-                                    marginBottom: 'l',
-                                    borderRadius: 's',
-                                    marginLeft: 'auto',
-                                    marginRight: 'auto',
-                                })}
-                                onPress={handleLeavePress}
+                                    alignItems: 'center',
+                                }}
                             >
-                                <Typo>Leave room</Typo>
-                            </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={handleExportToMtvPress}
+                                    style={sx({
+                                        padding: 'l',
+                                        textAlign: 'center',
+                                        backgroundColor: 'greyLighter',
+                                        marginTop: 'l',
+                                        borderRadius: 's',
+                                    })}
+                                >
+                                    <Text
+                                        sx={{
+                                            color: 'greyLight',
+                                            fontSize: 's',
+                                        }}
+                                    >
+                                        Export to MTV
+                                    </Text>
+                                </TouchableOpacity>
 
-                            <TouchableOpacity
-                                testID="export-mpe-to-mtv-button"
-                                disabled={disableEveryCta}
-                                style={sx({
-                                    flexShrink: 0,
-                                    backgroundColor: 'secondary',
-                                    padding: 'm',
-                                    flexDirection: 'row',
-                                    justifyContent: 'center',
-                                    marginBottom: 'l',
-                                    borderRadius: 's',
-                                    marginLeft: 'auto',
-                                    marginRight: 'auto',
-                                })}
-                                onPress={handleExportToMtvPress}
-                            >
-                                <Typo>Export to MTV</Typo>
-                            </TouchableOpacity>
+                                <TouchableOpacity
+                                    disabled={disableEveryCta}
+                                    onPress={handleLeavePress}
+                                    style={sx({
+                                        padding: 'l',
+                                        textAlign: 'center',
+                                        backgroundColor: 'greyLighter',
+                                        borderRadius: 's',
+                                        borderColor: '#8B0000',
+                                        borderWidth: 'm',
+                                        marginTop: 'l',
+                                    })}
+                                >
+                                    <Text
+                                        sx={{
+                                            color: '#8B0000',
+                                            fontWeight: 'bold',
+                                            fontSize: 's',
+                                        }}
+                                    >
+                                        Leave the room
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </BottomSheetModal>
                 </AppScreenContainer>

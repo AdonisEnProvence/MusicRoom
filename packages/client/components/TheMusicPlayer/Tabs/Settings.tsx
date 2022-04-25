@@ -135,6 +135,8 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                     snapPoints={snapPoints}
                     backgroundStyle={sx({
                         backgroundColor: 'greyLight',
+                    })}
+                    style={sx({
                         maxWidth: ['100%', 860],
                         width: '100%',
                         marginX: 'auto',
@@ -151,88 +153,98 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                             height: contentHeightForFirstSnapPoint,
                         }}
                     >
-                        <FlatList
-                            testID="change-emitting-device-bottom-sheet-flat-list"
-                            data={userMachineContext.devices}
-                            renderItem={({ item: { deviceID, name } }) => {
-                                const isDeviceEmitting =
-                                    deviceID ===
-                                    musicPlayerMachineContext
-                                        .userRelatedInformation
-                                        ?.emittingDeviceID;
-                                const isThisDeviceMe =
-                                    userMachineContext.currDeviceID ===
-                                    deviceID;
-                                const deviceLabel = `${name}${
-                                    isThisDeviceMe ? ' (This device)' : ''
-                                }`;
+                        <View
+                            sx={{
+                                flex: 1,
+                                padding: 'm',
+                                alignItems: 'flex-start',
+                            }}
+                        >
+                            <FlatList
+                                testID="change-emitting-device-bottom-sheet-flat-list"
+                                data={userMachineContext.devices}
+                                renderItem={({ item: { deviceID, name } }) => {
+                                    const isDeviceEmitting =
+                                        deviceID ===
+                                        musicPlayerMachineContext
+                                            .userRelatedInformation
+                                            ?.emittingDeviceID;
+                                    const isThisDeviceMe =
+                                        userMachineContext.currDeviceID ===
+                                        deviceID;
+                                    const deviceLabel = `${name}${
+                                        isThisDeviceMe ? ' (This device)' : ''
+                                    }`;
 
-                                return (
-                                    <View
-                                        sx={{
-                                            flex: 1,
-                                            padding: 'm',
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            backgroundColor: 'greyLight',
-                                            borderRadius: 's',
-                                        }}
-                                    >
-                                        <TouchableOpacity
-                                            onPress={() => {
-                                                sendToMusicPlayerMachine({
-                                                    type: 'CHANGE_EMITTING_DEVICE',
-                                                    deviceID,
-                                                });
-                                                bottomSheetModalRef.current?.close();
+                                    return (
+                                        <View
+                                            sx={{
+                                                flex: 1,
+                                                padding: 'm',
+                                                flexDirection: 'row',
+                                                alignItems: 'center',
+                                                backgroundColor: 'greyLight',
+                                                borderRadius: 's',
                                             }}
-                                            testID={`${deviceID}-device-card`}
                                         >
-                                            <View
-                                                sx={{
-                                                    flexDirection: 'row',
-                                                    alignItems: 'center',
-                                                    color: 'white',
+                                            <TouchableOpacity
+                                                onPress={() => {
+                                                    sendToMusicPlayerMachine({
+                                                        type: 'CHANGE_EMITTING_DEVICE',
+                                                        deviceID,
+                                                    });
+                                                    bottomSheetModalRef.current?.close();
                                                 }}
+                                                testID={`${deviceID}-device-card`}
                                             >
-                                                <Text
+                                                <View
                                                     sx={{
+                                                        flexDirection: 'row',
+                                                        alignItems: 'center',
                                                         color: 'white',
                                                     }}
                                                 >
-                                                    {deviceLabel}
-                                                </Text>
-                                                {isDeviceEmitting && (
-                                                    <Foundation
-                                                        name="volume"
-                                                        accessibilityLabel={`${name} is emitting`}
-                                                        style={sx({
-                                                            fontSize: 's',
+                                                    <Text
+                                                        sx={{
                                                             color: 'white',
-                                                            padding: 's',
-                                                        })}
-                                                    />
-                                                )}
-                                            </View>
-                                        </TouchableOpacity>
-                                    </View>
-                                );
-                            }}
-                            keyExtractor={(item) => item.deviceID}
-                            ListEmptyComponent={() => {
-                                return (
-                                    <View>
-                                        <Text>Couldn't find any device</Text>
-                                    </View>
-                                );
-                            }}
-                            contentContainerStyle={{
-                                paddingBottom: insets.bottom,
-                            }}
-                            style={{
-                                flex: 1,
-                            }}
-                        />
+                                                        }}
+                                                    >
+                                                        {deviceLabel}
+                                                    </Text>
+                                                    {isDeviceEmitting && (
+                                                        <Foundation
+                                                            name="volume"
+                                                            accessibilityLabel={`${name} is emitting`}
+                                                            style={sx({
+                                                                fontSize: 's',
+                                                                color: 'white',
+                                                                padding: 's',
+                                                            })}
+                                                        />
+                                                    )}
+                                                </View>
+                                            </TouchableOpacity>
+                                        </View>
+                                    );
+                                }}
+                                keyExtractor={(item) => item.deviceID}
+                                ListEmptyComponent={() => {
+                                    return (
+                                        <View>
+                                            <Text>
+                                                Couldn't find any device
+                                            </Text>
+                                        </View>
+                                    );
+                                }}
+                                contentContainerStyle={{
+                                    paddingBottom: insets.bottom,
+                                }}
+                                style={{
+                                    flex: 1,
+                                }}
+                            />
+                        </View>
                     </View>
                 </BottomSheetModal>
             </View>

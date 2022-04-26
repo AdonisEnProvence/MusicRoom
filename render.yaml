@@ -21,6 +21,8 @@ services:
       startCommand: yarn install --production=false && yarn build:tsc && cd ./packages/server && yarn migrate:force && yarn build && cd ./build && yarn start # run on deploy
       envVars:
           # Plain constants
+          - key: SKIP_INSTALL_DEPS
+            value: true
           - key: NODE_ENV
             value: production
           - key: SESSION_DRIVER

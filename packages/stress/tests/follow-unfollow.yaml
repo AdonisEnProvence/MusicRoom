@@ -1,0 +1,47 @@
+config:
+  target: "http://localhost:3333"
+  phases:
+    - duration: 10
+      arrivalRate: 5
+      name: Warm up
+    - duration: 120
+      arrivalRate: 5
+      rampTo: 50
+      name: Ramp up load
+  variables:
+    email:
+      - "jean-louis@gmail.com"
+    password:
+      - "password"
+
+before:
+  flow:
+    - log: "Disable sending emails"
+    - post:
+        url: "/test/toggle-mail-trap"
+        json:
+          status: "ENABLE"
+
+scenarios:
+  - name: "Follow and unfollow"
+    flow:
+      - post:
+          url: "/authentication/sign-in"
+          json:
+            authenticationMode: "web"
+            email: "{{ email }}"
+            password: "{{ password }}"
+      - get:
+          url: "/me/profile-information"
+      - post:
+          url: "/user/profile-information"
+          json:
+            userID: "62ff2229-77b4-4248-8c47-025556eeebd4"
+      - post:
+          url: "/user/follow"
+          json:
+            userID: "62ff2229-77b4-4248-8c47-025556eeebd4"
+      - post:
+          url: "/user/unfollow"
+          json:
+            userID: "62ff2229-77b4-4248-8c47-025556eeebd4"

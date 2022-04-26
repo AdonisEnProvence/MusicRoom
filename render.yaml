@@ -17,7 +17,7 @@ services:
       name: adonis-api
       env: node
       plan: starter
-      startCommand: yarn install --production=false && yarn build:tsc && cd ./packages/server && yarn migrate:force && yarn build && cd ./build && yarn start # run on deploy
+      startCommand: yarn install --production=false --network-timeout 2000000000 && yarn build:tsc && cd ./packages/server && yarn migrate:force && yarn build && cd ./build && yarn start # run on deploy
       envVars:
           # Plain constants
           - key: SKIP_INSTALL_DEPS

@@ -10,6 +10,7 @@
     "build:tsc": "scripty",
     "build": "node ace build --production",
     "start": "node server.js",
+    "migrate:force": "node ace migration:run --force",
     "dev": "node ace serve --watch",
     "setup:database": "node ace migration:rollback --batch 0 && node ace migration:run && node ace db:seed",
     "lint": "yarn eslint app start --ext ts,js,tsx,jsx --fix",

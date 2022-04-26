@@ -1,0 +1,19 @@
+{
+  "name": "@musicroom/stress",
+  "version": "0.0.2",
+  "license": "MIT",
+  "volta": {
+    "node": "16.8.0",
+    "yarn": "1.22.10"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test:stress": "yarn artillery run tests/*.yaml --output report.json",
+    "test:stress:report": "yarn artillery report --output report.html report.json"
+  },
+  "devDependencies": {
+    "artillery": "^2.0.0-14"
+  }
+}

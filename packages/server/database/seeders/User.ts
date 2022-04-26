@@ -49,6 +49,28 @@ export default class UserSeeder extends BaseSeeder {
                 email: internet.email(),
                 password: internet.password(),
             })),
+
+            {
+                uuid: 'a1671fdf-ec75-426e-b39d-8f0872ade6db',
+                nickname: 'Jean-Louis',
+                email: 'jean-louis@gmail.com',
+                password: 'password',
+                confirmedEmailAt: DateTime.local(),
+            },
+            {
+                uuid: '62ff2229-77b4-4248-8c47-025556eeebd4',
+                nickname: 'Benjamin',
+                email: 'benjamin@gmail.com',
+                password: 'password',
+                confirmedEmailAt: DateTime.local(),
+            },
+            {
+                uuid: 'ae5ae603-33d3-4fb6-9c65-630cbf06aadc',
+                nickname: 'Adrien',
+                email: 'adrien@gmail.com',
+                password: 'password',
+                confirmedEmailAt: DateTime.local(),
+            },
         ]);
 
         const famousUser = await User.create({

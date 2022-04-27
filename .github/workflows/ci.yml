@@ -18,6 +18,29 @@ jobs:
               uses: wagoid/commitlint-github-action@v3
     lint_and_tests:
         runs-on: ubuntu-latest
+        env:
+            DB_CONNECTION: pg
+            POSTGRESQL_ADDON_HOST: '127.0.0.1'
+            POSTGRESQL_ADDON_PORT: 5432
+            POSTGRESQL_ADDON_USER: lucid
+            POSTGRESQL_ADDON_PASSWORD: yourpassword
+            POSTGRESQL_ADDON_DB: lucid
+            REDIS_CONNECTION: 'local'
+            REDIS_HOST: '127.0.0.1'
+            REDIS_PORT: '6379'
+            GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+            GOOGLE_GEOCODING_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+            HOST: '0.0.0.0'
+            APP_KEY: '-qyExFFunSk4vSAvUiwheisaGicpYVpC'
+            PORT: 3333
+            SESSION_DRIVER: cookie
+            CACHE_VIEWS: false
+            SMTP_HOST: localhost
+            SMTP_PORT: 587
+            SMTP_USERNAME: <username>
+            SMTP_PASSWORD: <password>
+            NODE_ENV: 'testing'
+            TEMPORAL_ADONIS_KEY: temporal-adonis-testing-auth-key
         timeout-minutes: 30
         services:
             redis:
@@ -91,29 +114,6 @@ jobs:
               run: |
                   cd packages/server
                   yarn test
-              env:
-                  REDIS_CONNECTION: 'local'
-                  REDIS_HOST: '127.0.0.1'
-                  REDIS_PORT: '6379'
-                  GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-                  GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
-                  GOOGLE_GEOCODING_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
-                  HOST: '0.0.0.0'
-                  APP_KEY: '-qyExFFunSk4vSAvUiwheisaGicpYVpC'
-                  DB_CONNECTION: pg
-                  POSTGRESQL_ADDON_HOST: '127.0.0.1'
-                  POSTGRESQL_ADDON_PORT: 5432
-                  POSTGRESQL_ADDON_USER: lucid
-                  POSTGRESQL_ADDON_PASSWORD: yourpassword
-                  POSTGRESQL_ADDON_DB: lucid
-                  PORT: 3333
-                  SESSION_DRIVER: cookie
-                  CACHE_VIEWS: false
-                  SMTP_HOST: localhost
-                  SMTP_PORT: 587
-                  SMTP_USERNAME: <username>
-                  SMTP_PASSWORD: <password>
-                  TEMPORAL_ADONIS_KEY: temporal-adonis-testing-auth-key
 
             - name: Run client tests 🧪
               run: |
@@ -122,8 +122,9 @@ jobs:
               env:
                   GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
                   GOOGLE_MAPS_JAVASCRIPT_API_KEY: ${{ secrets.GOOGLE_MAPS_JAVASCRIPT_API_KEY }}
-                  NODE_ENV: 'test'
                   GOOGLE_AUTH_SESSION_EXPO_CLIENT_ID: 'YOUR_GOOGLE_AUTH_SESSION_EXPO_CLIENT_ID_KEY'
                   GOOGLE_AUTH_SESSION_IOS_CLIENT_ID: 'YOUR_GOOGLE_AUTH_SESSION_IOS_CLIENT_ID_KEY'
                   GOOGLE_AUTH_SESSION_ANDROID_CLIENT_ID: 'YOUR_GOOGLE_AUTH_SESSION_ANDROID_CLIENT_ID_KEY'
                   GOOGLE_AUTH_SESSION_WEB_CLIENT_ID: 'YOUR_GOOGLE_AUTH_SESSION_WEB_CLIENT_ID_KEY'
+                  NODE_ENV: 'test'
+

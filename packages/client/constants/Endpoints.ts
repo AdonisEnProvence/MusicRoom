@@ -7,7 +7,7 @@ function computeServerEndpoint(
     os: 'ios' | 'android' | 'windows' | 'macos' | 'web',
 ): string {
     if (env !== 'development') {
-        return 'http://localhost:3333'; //TODO TO BE DEFINED LATER
+        return 'https://adonisenprovencemusciroom-api.cleverapps.io/'; //TODO TO BE DEFINED LATER
     }
 
     switch (os) {

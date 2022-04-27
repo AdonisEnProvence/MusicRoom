@@ -26,3 +26,7 @@ export const GOOGLE_AUTH_SESSION_ANDROID_CLIENT_ID = z
 export const GOOGLE_AUTH_SESSION_WEB_CLIENT_ID = z
     .string()
     .parse(process.env.GOOGLE_AUTH_SESSION_WEB_CLIENT_ID);
+
+export const ADONIS_API_PRODUCTION_ENDPOINT = z
+    .string()
+    .parse(process.env.ADONIS_API_PRODUCTION_ENDPOINT);

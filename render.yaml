@@ -132,5 +132,5 @@ envVarGroups:
             sync: false
           - key: GOOGLE_API_KEY
             sync: false
-          - key: ADONIS_ENDPOINT
+          - key: ADONIS_API_PRODUCTION_ENDPOINT
             sync: false

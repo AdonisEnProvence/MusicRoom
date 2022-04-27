@@ -110,20 +110,20 @@ register_default_namespace() {
     fi
 }
 
-add_custom_search_attributes() {
-      echo "Adding Custom*Field search attributes."
-      # TODO: Remove CustomStringField
-# @@@SNIPSTART add-custom-search-attributes-for-testing-command
-      tctl --auto_confirm admin cluster add-search-attributes \
-          --name CustomKeywordField --type Keyword \
-          --name CustomStringField --type Text \
-          --name CustomTextField --type Text \
-          --name CustomIntField --type Int \
-          --name CustomDatetimeField --type Datetime \
-          --name CustomDoubleField --type Double \
-          --name CustomBoolField --type Bool
-# @@@SNIPEND
-}
+# add_custom_search_attributes() {
+#       echo "Adding Custom*Field search attributes."
+#       # TODO: Remove CustomStringField
+# # @@@SNIPSTART add-custom-search-attributes-for-testing-command
+#       tctl --auto_confirm admin cluster add-search-attributes \
+#           --name CustomKeywordField --type Keyword \
+#           --name CustomStringField --type Text \
+#           --name CustomTextField --type Text \
+#           --name CustomIntField --type Int \
+#           --name CustomDatetimeField --type Datetime \
+#           --name CustomDoubleField --type Double \
+#           --name CustomBoolField --type Bool
+# # @@@SNIPEND
+# }
 
 setup_server(){
     echo "Temporal CLI address: ${TEMPORAL_CLI_ADDRESS}."
@@ -138,9 +138,9 @@ setup_server(){
         register_default_namespace
     fi
 
-    if [ "${SKIP_ADD_CUSTOM_SEARCH_ATTRIBUTES}" != true ]; then
-        add_custom_search_attributes
-    fi
+    # if [ "${SKIP_ADD_CUSTOM_SEARCH_ATTRIBUTES}" != true ]; then
+    #     add_custom_search_attributes
+    # fi
 }
 
 # === Main ===

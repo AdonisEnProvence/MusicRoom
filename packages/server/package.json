@@ -10,13 +10,14 @@
     "build:tsc": "scripty",
     "build": "node ace build --production",
     "dev": "node ace serve --watch",
+    "migrate:force": "node ace migration:run --force",
     "setup:database": "node ace migration:rollback --batch 0 && node ace migration:run && node ace db:seed",
     "lint": "yarn eslint app start --ext ts,js,tsx,jsx --fix",
     "test": "node -r @adonisjs/assembler/build/register japaFile.ts",
     "test:watch": "nodemon -e ts --exec 'yarn test'",
     "coverage": "nyc yarn test",
     "clean": "rimraf dist *.tsbuildinfo",
-    "install": "cd ../types && yarn build:tsc && cd ../server && yarn build",
+    "install": "cd ../types && yarn build:tsc && cd ../server && yarn migrate:force && yarn build",
     "start": "cd dist && node server.js"
   },
   "devDependencies": {

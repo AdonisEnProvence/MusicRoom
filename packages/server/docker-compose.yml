@@ -3,11 +3,11 @@ services:
     database:
         image: 'postgres:latest'
         ports:
-            - ${PG_PORT}:5432
+            - ${POSTGRESQL_ADDON_PORT}:5432
         environment:
-            POSTGRES_PASSWORD: ${PG_PASSWORD}
-            POSTGRES_USER: ${PG_USER}
-            POSTGRES_DB: ${PG_DB_NAME}
+            POSTGRES_PASSWORD: ${POSTGRESQL_ADDON_PASSWORD}
+            POSTGRES_USER: ${POSTGRESQL_ADDON_USER}
+            POSTGRES_DB: ${POSTGRESQL_ADDON_DB}
         volumes:
             - database-data:/var/lib/postgresql/data/
     database-test:

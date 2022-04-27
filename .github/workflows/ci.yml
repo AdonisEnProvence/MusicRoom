@@ -101,11 +101,11 @@ jobs:
                   HOST: '0.0.0.0'
                   APP_KEY: '-qyExFFunSk4vSAvUiwheisaGicpYVpC'
                   DB_CONNECTION: pg
-                  PG_HOST: '127.0.0.1'
-                  PG_PORT: 5432
-                  PG_USER: lucid
-                  PG_PASSWORD: yourpassword
-                  PG_DB_NAME: lucid
+                  POSTGRESQL_ADDON_HOST: '127.0.0.1'
+                  POSTGRESQL_ADDON_PORT: 5432
+                  POSTGRESQL_ADDON_USER: lucid
+                  POSTGRESQL_ADDON_PASSWORD: yourpassword
+                  POSTGRESQL_ADDON_DB: lucid
                   PORT: 3333
                   SESSION_DRIVER: cookie
                   CACHE_VIEWS: false

@@ -17,15 +17,14 @@ import Env from '@ioc:Adonis/Core/Env';
 export default Env.rules({
     /** Database */
     DB_CONNECTION: Env.schema.string(),
-    PG_HOST: Env.schema.string({ format: 'host' }),
-    PG_PORT: Env.schema.number(),
-    PG_USER: Env.schema.string(),
-    PG_PASSWORD: Env.schema.string.optional(),
-    PG_DB_NAME: Env.schema.string(),
+    POSTGRESQL_ADDON_HOST: Env.schema.string({ format: 'host' }),
+    POSTGRESQL_ADDON_PORT: Env.schema.number(),
+    POSTGRESQL_ADDON_USER: Env.schema.string(),
+    POSTGRESQL_ADDON_PASSWORD: Env.schema.string.optional(),
+    POSTGRESQL_ADDON_DB: Env.schema.string(),
     /** ******** */
 
     GOOGLE_API_KEY: Env.schema.string(),
-    GOOGLE_PLACES_API_KEY: Env.schema.string(),
     GOOGLE_GEOCODING_API_KEY: Env.schema.string(),
     HOST: Env.schema.string({ format: 'host' }),
     PORT: Env.schema.number(),

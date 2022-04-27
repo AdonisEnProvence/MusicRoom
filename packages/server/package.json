@@ -9,14 +9,15 @@
   "scripts": {
     "build:tsc": "scripty",
     "build": "node ace build --production",
-    "start": "node server.js",
     "dev": "node ace serve --watch",
     "setup:database": "node ace migration:rollback --batch 0 && node ace migration:run && node ace db:seed",
     "lint": "yarn eslint app start --ext ts,js,tsx,jsx --fix",
     "test": "node -r @adonisjs/assembler/build/register japaFile.ts",
     "test:watch": "nodemon -e ts --exec 'yarn test'",
     "coverage": "nyc yarn test",
-    "clean": "rimraf dist *.tsbuildinfo"
+    "clean": "rimraf dist *.tsbuildinfo",
+    "install": "cd ../types && yarn build:tsc && cd ../server && yarn build",
+    "start": "cd dist && node server.js"
   },
   "devDependencies": {
     "@adonisjs/assembler": "^5.4.1",

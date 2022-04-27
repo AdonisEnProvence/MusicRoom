@@ -5,7 +5,10 @@
     ],
     "exclude": [
         "node_modules",
-        "dist"
+        "dist",
+        "tests/**/*.ts",
+        "app/**/*.test.ts",
+        "japaFile.ts"
     ],
     "compilerOptions": {
         "outDir": "dist",

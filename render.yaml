@@ -27,8 +27,8 @@ services:
     value: 0.0.0.0
   - key: TEMPORAL_BROADCAST_ADDRESS
     value: 0.0.0.0
-  # - key: TEMPORAL_CLI_ADDRESS
-  #   value: localhost:7233
+  - key: TEMPORAL_CLI_ADDRESS
+    value: localhost:7233
   - key: SKIP_POSTGRES_DB_CREATION
     value: true
   - key: DB

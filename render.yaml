@@ -17,7 +17,7 @@ services:
   plan: Starter
   region: oregon
   env: docker
-  dockerfilePath: ./packages/temporal/Dockerfile.server
+  dockerfilePath: ./packages/temporal/Dockerfile.server.yaml
   envVars:
   - key: SERVICES
     value: frontend,matching,history,worker

@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/AdonisEnProvence/MusicRoom/shared"
 	"github.com/bojanz/httpx"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -35,7 +36,9 @@ var (
 
 func main() {
 	var err error
-	temporal, err = client.NewClient(client.Options{})
+	temporal, err = client.NewClient(client.Options{
+		HostPort: shared.GetTemporalHostPort(),
+	})
 	if err != nil {
 		log.Fatalln("unable to create Temporal client", err)
 	}

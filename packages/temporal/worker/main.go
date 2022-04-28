@@ -5,6 +5,7 @@ import (
 
 	activities_mpe "github.com/AdonisEnProvence/MusicRoom/mpe/activities"
 	activities_mtv "github.com/AdonisEnProvence/MusicRoom/mtv/activities"
+	"github.com/AdonisEnProvence/MusicRoom/shared"
 
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
@@ -17,7 +18,9 @@ import (
 
 func main() {
 	// Create the client object just once per process
-	c, err := client.NewClient(client.Options{})
+	c, err := client.NewClient(client.Options{
+		HostPort: shared.GetTemporalHostPort(),
+	})
 	if err != nil {
 		log.Fatalln("unable to create Temporal client", err)
 	}

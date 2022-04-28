@@ -75,7 +75,7 @@ services:
                 property: host
     - type: web
       name: api
-      plan: Starter
+      plan: free
       region: frankfurt
       env: go
       buildCommand: cd packages/temporal && go build -o bin_api api/*

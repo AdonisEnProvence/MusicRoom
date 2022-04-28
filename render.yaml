@@ -109,6 +109,10 @@ services:
       buildCommand: yarn install --production=false && yarn build:tsc  && cd ./packages/client && yarn web:production:build
       staticPublishPath: ./packages/client/web-build
       pullRequestPreviewsEnabled: false
+      routes:
+          - type: redirect
+            source: /*
+            destination: /
       envVars:
           - key: NODE_ENV
             value: production

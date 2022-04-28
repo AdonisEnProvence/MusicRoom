@@ -30,11 +30,16 @@ type (
 )
 
 var (
-	HTTPPort = os.Getenv("PORT")
-	temporal client.Client
+	HTTPPort          = os.Getenv("PORT")
+	AdonisTemporalKey = os.Getenv("ADONIS_TEMPORAL_KEY")
+	temporal          client.Client
 )
 
 func main() {
+	if AdonisTemporalKey == "" {
+		log.Fatal("TEMPORAL_ADONIS_KEY should be defined in the env variables")
+	}
+
 	var err error
 	temporal, err = client.NewClient(client.Options{
 		HostPort: shared.GetTemporalHostPort(),
@@ -45,7 +50,7 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.Handle("/ping", http.HandlerFunc(PingHandler)).Methods(http.MethodGet)
+	r.Handle("/ping", AuthorizationMiddleware(http.HandlerFunc(PingHandler))).Methods(http.MethodGet)
 	AddMtvHandler(r)
 	AddMpeHandler(r)
 

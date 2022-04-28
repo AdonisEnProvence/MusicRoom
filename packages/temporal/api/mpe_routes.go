@@ -17,15 +17,15 @@ import (
 )
 
 func AddMpeHandler(r *mux.Router) {
-	r.Handle("/mpe/create", http.HandlerFunc(createMpeRoomHandler)).Methods(http.MethodPut)
-	r.Handle("/mpe/add-tracks", http.HandlerFunc(MpeAddTracksHandler)).Methods(http.MethodPut)
-	r.Handle("/mpe/change-track-order", http.HandlerFunc(MpeChangeTrackOrderHandler)).Methods(http.MethodPut)
-	r.Handle("/mpe/delete-tracks", http.HandlerFunc(MpeDeleteTracksHandler)).Methods(http.MethodPut)
-	r.Handle("/mpe/get-state", http.HandlerFunc(getStateQueryHandler)).Methods(http.MethodPut)
-	r.Handle("/mpe/join", http.HandlerFunc(MpeJoinHandler)).Methods(http.MethodPut)
-	r.Handle("/mpe/leave", http.HandlerFunc(MpeLeaveHandler)).Methods(http.MethodPut)
-	r.Handle("/mpe/export-to-mtv", http.HandlerFunc(MpeExportToMtvRoomHandler)).Methods(http.MethodPut)
-	r.Handle("/mpe/terminate", http.HandlerFunc(MpeTerminateHandler)).Methods(http.MethodPut)
+	r.Handle("/mpe/create", AuthorizationMiddleware(http.HandlerFunc(createMpeRoomHandler))).Methods(http.MethodPut)
+	r.Handle("/mpe/add-tracks", AuthorizationMiddleware(http.HandlerFunc(MpeAddTracksHandler))).Methods(http.MethodPut)
+	r.Handle("/mpe/change-track-order", AuthorizationMiddleware(http.HandlerFunc(MpeChangeTrackOrderHandler))).Methods(http.MethodPut)
+	r.Handle("/mpe/delete-tracks", AuthorizationMiddleware(http.HandlerFunc(MpeDeleteTracksHandler))).Methods(http.MethodPut)
+	r.Handle("/mpe/get-state", AuthorizationMiddleware(http.HandlerFunc(getStateQueryHandler))).Methods(http.MethodPut)
+	r.Handle("/mpe/join", AuthorizationMiddleware(http.HandlerFunc(MpeJoinHandler))).Methods(http.MethodPut)
+	r.Handle("/mpe/leave", AuthorizationMiddleware(http.HandlerFunc(MpeLeaveHandler))).Methods(http.MethodPut)
+	r.Handle("/mpe/export-to-mtv", AuthorizationMiddleware(http.HandlerFunc(MpeExportToMtvRoomHandler))).Methods(http.MethodPut)
+	r.Handle("/mpe/terminate", AuthorizationMiddleware(http.HandlerFunc(MpeTerminateHandler))).Methods(http.MethodPut)
 }
 
 type MpeGetStateQueryRequestBody struct {

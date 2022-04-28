@@ -47,4 +47,5 @@ export default Env.rules({
     SMTP_PASSWORD: Env.schema.string(),
 
     TEMPORAL_ADONIS_KEY: Env.schema.string(),
+    ADONIS_TEMPORAL_KEY: Env.schema.string(),
 });

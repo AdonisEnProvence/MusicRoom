@@ -10,8 +10,8 @@ import {
     MtvWorkflowState,
     MtvTemporalGetStateQueryResponse,
 } from '@musicroom/types';
-import got from 'got';
 import urlcat from 'urlcat';
+import { adonisToTemporalRequester } from './AdonisTemporalRequester';
 
 const MTV_TEMPORAL_ENDPOINT = urlcat(Env.get('TEMPORAL_ENDPOINT'), '/mtv');
 
@@ -129,7 +129,7 @@ export default class MtvServerToTemporalController {
         };
 
         return MtvCreateWorkflowResponse.parse(
-            await got
+            await adonisToTemporalRequester
                 .put(url, {
                     json: body,
                 })
@@ -143,7 +143,7 @@ export default class MtvServerToTemporalController {
     }: TemporalMtvTerminateWorkflowArgs): Promise<void> {
         const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/terminate');
 
-        await got.put(url, {
+        await adonisToTemporalRequester.put(url, {
             json: {
                 workflowID,
                 runID,
@@ -160,7 +160,7 @@ export default class MtvServerToTemporalController {
     }: TemporalMtvJoinWorklowArgs): Promise<void> {
         try {
             const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/join');
-            await got.put(url, {
+            await adonisToTemporalRequester.put(url, {
                 json: {
                     userID,
                     deviceID,
@@ -183,7 +183,7 @@ export default class MtvServerToTemporalController {
     }: TemporalMtvLeaveWorkflowArgs): Promise<void> {
         try {
             const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/leave');
-            await got.put(url, {
+            await adonisToTemporalRequester.put(url, {
                 json: {
                     userID,
                     runID,
@@ -205,7 +205,7 @@ export default class MtvServerToTemporalController {
         try {
             const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/pause');
 
-            await got.put(url, {
+            await adonisToTemporalRequester.put(url, {
                 json: {
                     workflowID,
                     runID,
@@ -225,7 +225,7 @@ export default class MtvServerToTemporalController {
         try {
             const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/play');
 
-            await got.put(url, {
+            await adonisToTemporalRequester.put(url, {
                 json: {
                     workflowID,
                     runID,
@@ -245,7 +245,7 @@ export default class MtvServerToTemporalController {
         try {
             const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/state');
 
-            const res = await got
+            const res = await adonisToTemporalRequester
                 .put(url, {
                     json: {
                         workflowID,
@@ -269,7 +269,7 @@ export default class MtvServerToTemporalController {
         try {
             const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/users-list');
 
-            const res = await got
+            const res = await adonisToTemporalRequester
                 .put(url, {
                     json: {
                         workflowID,
@@ -295,7 +295,7 @@ export default class MtvServerToTemporalController {
                 '/room-constraints-details',
             );
 
-            const res = await got
+            const res = await adonisToTemporalRequester
                 .put(url, {
                     json: {
                         workflowID,
@@ -318,7 +318,7 @@ export default class MtvServerToTemporalController {
     }: TemporalMtvGoToNextTrackArgs): Promise<void> {
         const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/go-to-next-track');
 
-        await got.put(url, {
+        await adonisToTemporalRequester.put(url, {
             json: {
                 workflowID,
                 runID,
@@ -338,7 +338,7 @@ export default class MtvServerToTemporalController {
                 MTV_TEMPORAL_ENDPOINT,
                 '/change-user-emitting-device',
             );
-            await got.put(url, {
+            await adonisToTemporalRequester.put(url, {
                 json: {
                     userID,
                     deviceID,
@@ -364,7 +364,7 @@ export default class MtvServerToTemporalController {
     }: TemporalMtvSuggestTracksArgs): Promise<void> {
         const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/suggest-tracks');
 
-        await got.put(url, {
+        await adonisToTemporalRequester.put(url, {
             json: {
                 workflowID,
                 runID,
@@ -383,7 +383,7 @@ export default class MtvServerToTemporalController {
     }: TemporalMtvVoteForTrackArgs): Promise<void> {
         const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/vote-for-track');
 
-        await got.put(url, {
+        await adonisToTemporalRequester.put(url, {
             json: {
                 workflowID,
                 runID,
@@ -401,7 +401,7 @@ export default class MtvServerToTemporalController {
     }: TemporalMtvUpdateDelegationOwner): Promise<void> {
         const url = urlcat(MTV_TEMPORAL_ENDPOINT, '/update-delegation-owner');
 
-        await got.put(url, {
+        await adonisToTemporalRequester.put(url, {
             json: {
                 workflowID,
                 runID,
@@ -422,7 +422,7 @@ export default class MtvServerToTemporalController {
             '/update-control-and-delegation-permission',
         );
 
-        await got.put(url, {
+        await adonisToTemporalRequester.put(url, {
             json: {
                 workflowID,
                 runID,
@@ -443,7 +443,7 @@ export default class MtvServerToTemporalController {
             '/update-user-fits-position-constraint',
         );
 
-        await got.put(url, {
+        await adonisToTemporalRequester.put(url, {
             json: {
                 workflowID,
                 runID,

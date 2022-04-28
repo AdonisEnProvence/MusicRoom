@@ -41,6 +41,7 @@ jobs:
             SMTP_PASSWORD: <password>
             NODE_ENV: 'testing'
             TEMPORAL_ADONIS_KEY: temporal-adonis-testing-auth-key
+            ADONIS_TEMPORAL_KEY: adonis-temporal-testing-auth-key
         timeout-minutes: 30
         services:
             redis:

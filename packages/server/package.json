@@ -17,7 +17,7 @@
     "test:watch": "nodemon -e ts --exec 'yarn test'",
     "coverage": "nyc yarn test",
     "clean": "rimraf dist *.tsbuildinfo",
-    "install": "cd ../types && yarn build:tsc && cd ../server && yarn migrate:force && yarn build",
+    "install":  "./build.sh",
     "start": "cd dist && node server.js"
   },
   "devDependencies": {

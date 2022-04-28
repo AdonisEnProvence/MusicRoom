@@ -81,6 +81,8 @@ services:
       buildCommand: cd packages/temporal && go build -o bin_api api/*
       startCommand: cd packages/temporal && ./bin_api
       envVars:
+          - key: ADONIS_TEMPORAL_KEY
+            sync: false
           - key: TEMPORAL_CLUSTER_HOST
             fromService:
                 name: temporal

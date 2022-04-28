@@ -19,8 +19,8 @@ import {
     MpeExportToMtvResponseBody,
     MpeExportToMtvRequestBody,
 } from '@musicroom/types';
-import got from 'got';
 import urlcat from 'urlcat';
+import { adonisToTemporalRequester } from './AdonisTemporalRequester';
 
 const MPE_TEMPORAL_ENDPOINT = urlcat(Env.get('TEMPORAL_ENDPOINT'), '/mpe');
 
@@ -37,7 +37,7 @@ export default class MpeServerToTemporalController {
         const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/create');
 
         return MpeCreateWorkflowResponse.parse(
-            await got
+            await adonisToTemporalRequester
                 .put(url, {
                     json: body,
                 })
@@ -51,7 +51,7 @@ export default class MpeServerToTemporalController {
         const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/join');
 
         return MpeJoinResponseBody.parse(
-            await got
+            await adonisToTemporalRequester
                 .put(url, {
                     json: body,
                 })
@@ -65,7 +65,7 @@ export default class MpeServerToTemporalController {
         const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/add-tracks');
 
         return MpeAddTracksResponseBody.parse(
-            await got
+            await adonisToTemporalRequester
                 .put(url, {
                     json: body,
                 })
@@ -79,7 +79,7 @@ export default class MpeServerToTemporalController {
         const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/change-track-order');
 
         return MpeChangeTrackOrderResponseBody.parse(
-            await got
+            await adonisToTemporalRequester
                 .put(url, {
                     json: body,
                 })
@@ -93,7 +93,7 @@ export default class MpeServerToTemporalController {
         const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/delete-tracks');
 
         return MpeDeleteTracksResponseBody.parse(
-            await got
+            await adonisToTemporalRequester
                 .put(url, {
                     json: body,
                 })
@@ -107,7 +107,7 @@ export default class MpeServerToTemporalController {
         const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/get-state');
 
         return MpeGetStateQueryResponseBody.parse(
-            await got
+            await adonisToTemporalRequester
                 .put(url, {
                     json: body,
                 })
@@ -121,7 +121,7 @@ export default class MpeServerToTemporalController {
         const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/export-to-mtv');
 
         return MpeExportToMtvResponseBody.parse(
-            await got
+            await adonisToTemporalRequester
                 .put(url, {
                     json: body,
                 })
@@ -135,7 +135,7 @@ export default class MpeServerToTemporalController {
         const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/leave');
 
         return MpeLeaveWorkflowResponseBody.parse(
-            await got
+            await adonisToTemporalRequester
                 .put(url, {
                     json: body,
                 })
@@ -149,7 +149,7 @@ export default class MpeServerToTemporalController {
         const url = urlcat(MPE_TEMPORAL_ENDPOINT, '/terminate');
 
         return MpeTerminateWorkflowResponseBody.parse(
-            await got
+            await adonisToTemporalRequester
                 .put(url, {
                     json: body,
                 })

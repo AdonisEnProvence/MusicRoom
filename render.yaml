@@ -1,113 +1,138 @@
 databases:
-- name: temporal-db
-  databaseName: temporal
-  user: temporal
-  plan: Starter
-  region: oregon
-- name: temporal-db-visibility
-  databaseName: visibility
-  user: visibility
-  plan: Starter
-  region: oregon
+    - name: temporal-db
+      databaseName: temporal
+      user: temporal
+      plan: Starter
+      region: oregon
+    - name: temporal-db-visibility
+      databaseName: visibility
+      user: visibility
+      plan: Starter
+      region: oregon
 
 services:
-- type: pserv
-  name: temporal
-  autoDeploy: false
-  plan: Starter
-  region: oregon
-  env: docker
-  dockerfilePath: ./packages/temporal/Dockerfile.server.yaml
-  envVars:
-  - key: SERVICES
-    value: frontend,matching,history,worker
-  - key: DYNAMIC_CONFIG_FILE_PATH
-    value: /etc/temporal/dynamicconfig.yaml
-  - key: BIND_ON_IP
-    value: 0.0.0.0
-  - key: TEMPORAL_BROADCAST_ADDRESS
-    value: 0.0.0.0
-  - key: TEMPORAL_CLI_ADDRESS
-    value: localhost:7233
-  - key: SKIP_POSTGRES_DB_CREATION
-    value: true
-  - key: DB
-    value: postgresql
-  - key: DBNAME
-    fromDatabase:
-      name: temporal-db
-      property: database
-  - key: DB_PORT
-    fromDatabase:
-      name: temporal-db
-      property: port
-  - key: POSTGRES_USER
-    fromDatabase:
-      name: temporal-db
-      property: user
-  - key: POSTGRES_PWD
-    fromDatabase:
-      name: temporal-db
-      property: password
-  - key: POSTGRES_SEEDS
-    fromDatabase:
-      name: temporal-db
-      property: host
-  - key: VISIBILITY_DBNAME
-    fromDatabase:
-      name: temporal-db-visibility
-      property: database
-  - key: VISIBILITY_DB_PORT
-    fromDatabase:
-      name: temporal-db-visibility
-      property: port
-  - key: VISIBILITY_POSTGRES_USER
-    fromDatabase:
-      name: temporal-db-visibility
-      property: user
-  - key: VISIBILITY_POSTGRES_PWD
-    fromDatabase:
-      name: temporal-db-visibility
-      property: password
-  - key: VISIBILITY_POSTGRES_SEEDS
-    fromDatabase:
-      name: temporal-db-visibility
-      property: host
-- type: web
-  name: api
-  plan: Starter
-  region: oregon
-  env: go
-  buildCommand: cd packages/temporal && go build -o bin_api api/*
-  startCommand: cd packages/temporal && ./bin_api
-  envVars:
-  - key: TEMPORAL_CLUSTER_HOST
-    fromService:
+    - type: pserv
       name: temporal
-      type: pserv
-      property: host
-  - fromGroup: "Temporal services"
-- type: worker
-  name: worker
-  plan: Starter
-  region: oregon
-  env: go
-  buildCommand: cd packages/temporal && go build -o bin_worker worker/*
-  startCommand: cd packages/temporal && ./bin_worker
-  envVars:
-  - key: TEMPORAL_CLUSTER_HOST
-    fromService:
-      name: temporal
-      type: pserv
-      property: host
-  - fromGroup: "Temporal services"
+      autoDeploy: false
+      plan: Starter
+      region: oregon
+      env: docker
+      dockerfilePath: ./packages/temporal/Dockerfile.server.yaml
+      envVars:
+          - key: SERVICES
+            value: frontend,matching,history,worker
+          - key: DYNAMIC_CONFIG_FILE_PATH
+            value: /etc/temporal/dynamicconfig.yaml
+          - key: BIND_ON_IP
+            value: 0.0.0.0
+          - key: TEMPORAL_BROADCAST_ADDRESS
+            value: 0.0.0.0
+          - key: TEMPORAL_CLI_ADDRESS
+            value: localhost:7233
+          - key: SKIP_POSTGRES_DB_CREATION
+            value: true
+          - key: DB
+            value: postgresql
+          - key: DBNAME
+            fromDatabase:
+                name: temporal-db
+                property: database
+          - key: DB_PORT
+            fromDatabase:
+                name: temporal-db
+                property: port
+          - key: POSTGRES_USER
+            fromDatabase:
+                name: temporal-db
+                property: user
+          - key: POSTGRES_PWD
+            fromDatabase:
+                name: temporal-db
+                property: password
+          - key: POSTGRES_SEEDS
+            fromDatabase:
+                name: temporal-db
+                property: host
+          - key: VISIBILITY_DBNAME
+            fromDatabase:
+                name: temporal-db-visibility
+                property: database
+          - key: VISIBILITY_DB_PORT
+            fromDatabase:
+                name: temporal-db-visibility
+                property: port
+          - key: VISIBILITY_POSTGRES_USER
+            fromDatabase:
+                name: temporal-db-visibility
+                property: user
+          - key: VISIBILITY_POSTGRES_PWD
+            fromDatabase:
+                name: temporal-db-visibility
+                property: password
+          - key: VISIBILITY_POSTGRES_SEEDS
+            fromDatabase:
+                name: temporal-db-visibility
+                property: host
+    - type: web
+      name: api
+      plan: Starter
+      region: oregon
+      env: go
+      buildCommand: cd packages/temporal && go build -o bin_api api/*
+      startCommand: cd packages/temporal && ./bin_api
+      envVars:
+          - key: TEMPORAL_CLUSTER_HOST
+            fromService:
+                name: temporal
+                type: pserv
+                property: host
+          - fromGroup: 'Temporal services'
+    - type: worker
+      name: worker
+      plan: Starter
+      region: oregon
+      env: go
+      buildCommand: cd packages/temporal && go build -o bin_worker worker/*
+      startCommand: cd packages/temporal && ./bin_worker
+      envVars:
+          - key: TEMPORAL_CLUSTER_HOST
+            fromService:
+                name: temporal
+                type: pserv
+                property: host
+          - fromGroup: 'Temporal services'
+    - type: web
+      name: musicroom-client
+      env: static
+      buildCommand: yarn install --production=false && yarn build:tsc  && cd ./packages/client && yarn web:production:build
+      staticPublishPath: ./packages/client/web-build
+      pullRequestPreviewsEnabled: false
+      envVars:
+          - key: NODE_ENV
+            value: production
+          - key: SKIP_INSTALL_DEPS
+            value: true
+          - key: GOOGLE_PLACES_API_KEY
+            sync: false
+          - key: GOOGLE_MAPS_JAVASCRIPT_API_KEY
+            sync: false
+          - key: GOOGLE_AUTH_SESSION_WEB_CLIENT_ID
+            sync: false
+          - key: GOOGLE_AUTH_SESSION_IOS_CLIENT_ID
+            sync: false
+          - key: GOOGLE_AUTH_SESSION_EXPO_CLIENT_ID
+            sync: false
+          - key: GOOGLE_AUTH_SESSION_ANDROID_CLIENT_ID
+            sync: false
+          - key: ADONIS_API_PRODUCTION_ENDPOINT
+            sync: false
 
 envVarGroups:
-  - name: "Temporal services"
-    envVars:
-      - key: TEMPORAL_ADONIS_KEY
-        sync: false
-      - key: GOOGLE_API_KEY
-        sync: false
-      - key: ADONIS_ENDPOINT
-        sync: false
+    - name: 'Temporal services'
+      envVars:
+          - key: TEMPORAL_ADONIS_KEY
+            sync: false
+          - key: GOOGLE_API_KEY
+            sync: false
+          - key: ADONIS_ENDPOINT
+            sync: false

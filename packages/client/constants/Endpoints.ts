@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { ADONIS_API_PRODUCTION_ENDPOINT } from './ApiKeys';
 
 type ApplicationEnvironment = 'development' | 'prod';
 
@@ -7,7 +8,7 @@ function computeServerEndpoint(
     os: 'ios' | 'android' | 'windows' | 'macos' | 'web',
 ): string {
     if (env !== 'development') {
-        return 'http://localhost:3333'; //TODO TO BE DEFINED LATER
+        return ADONIS_API_PRODUCTION_ENDPOINT;
     }
 
     switch (os) {

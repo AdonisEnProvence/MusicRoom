@@ -118,20 +118,7 @@ services:
             value: production
           - key: SKIP_INSTALL_DEPS
             value: true
-          - key: GOOGLE_PLACES_API_KEY
-            sync: false
-          - key: GOOGLE_MAPS_JAVASCRIPT_API_KEY
-            sync: false
-          - key: GOOGLE_AUTH_SESSION_WEB_CLIENT_ID
-            sync: false
-          - key: GOOGLE_AUTH_SESSION_IOS_CLIENT_ID
-            sync: false
-          - key: GOOGLE_AUTH_SESSION_EXPO_CLIENT_ID
-            sync: false
-          - key: GOOGLE_AUTH_SESSION_ANDROID_CLIENT_ID
-            sync: false
-          - key: ADONIS_API_PRODUCTION_ENDPOINT
-            sync: false
+          - fromGroup: 'Client'
 
 envVarGroups:
     - name: 'Temporal services'

@@ -84,9 +84,9 @@ async function startServerApiAfterDelay() {
     cd('packages/server');
     await $`env-cmd -f ./.env.testing yarn setup:database`;
 
-    cd('packages/server/dist');
+    cd('packages/server');
     return {
-        api: $`env-cmd -f ../.env.testing yarn start`,
+        api: $`env-cmd -f .env.testing yarn start`,
     };
 }
 

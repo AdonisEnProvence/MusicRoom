@@ -3,19 +3,19 @@ databases:
       databaseName: temporal
       user: temporal
       plan: Starter
-      region: oregon
+      region: frankfurt
     - name: temporal-db-visibility
       databaseName: visibility
       user: visibility
       plan: Starter
-      region: oregon
+      region: frankfurt
 
 services:
     - type: pserv
       name: temporal
       autoDeploy: false
       plan: Starter
-      region: oregon
+      region: frankfurt
       env: docker
       dockerfilePath: ./packages/temporal/Dockerfile.server.yaml
       envVars:
@@ -75,8 +75,8 @@ services:
                 property: host
     - type: web
       name: api
-      plan: Starter
-      region: oregon
+      plan: free
+      region: frankfurt
       env: go
       buildCommand: cd packages/temporal && go build -o bin_api api/*
       startCommand: cd packages/temporal && ./bin_api
@@ -92,7 +92,7 @@ services:
     - type: worker
       name: worker
       plan: Starter
-      region: oregon
+      region: frankfurt
       env: go
       buildCommand: cd packages/temporal && go build -o bin_worker worker/*
       startCommand: cd packages/temporal && ./bin_worker
@@ -106,7 +106,7 @@ services:
     - type: web
       name: musicroom-client
       env: static
-      buildCommand: yarn install --production=false && yarn build:tsc  && cd ./packages/client && yarn web:production:build
+      buildCommand: yarn install --production=false && ( cd packages/types && yarn build:tsc ) && ( cd packages/client && yarn web:production:build )
       staticPublishPath: ./packages/client/web-build
       pullRequestPreviewsEnabled: false
       routes:

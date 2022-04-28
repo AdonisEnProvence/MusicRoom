@@ -106,7 +106,7 @@ services:
     - type: web
       name: musicroom-client
       env: static
-      buildCommand: yarn install --production=false && yarn build:tsc  && cd ./packages/client && yarn web:production:build
+      buildCommand: yarn install --production=false && ( cd packages/types && yarn build:tsc ) && ( cd packages/client && yarn web:production:build )
       staticPublishPath: ./packages/client/web-build
       pullRequestPreviewsEnabled: false
       routes:

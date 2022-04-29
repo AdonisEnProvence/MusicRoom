@@ -12,9 +12,9 @@ import MpeRoom from 'App/Models/MpeRoom';
 import User from 'App/Models/User';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
-import { TypedSocket } from 'start/socket';
 import MpeRoomInvitation from 'App/Models/MpeRoomInvitation';
 import invariant from 'tiny-invariant';
+import { TypedSocket } from 'App/Services/Ws';
 import MpeServerToTemporalController from '../Http/Temporal/MpeServerToTemporalController';
 
 interface IsUserInMpeRoomArgs {

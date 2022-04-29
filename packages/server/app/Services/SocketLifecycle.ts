@@ -4,12 +4,11 @@ import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
 import MpeRoom from 'App/Models/MpeRoom';
 import User from 'App/Models/User';
-import { TypedSocket } from 'start/socket';
 import UserAgentParser from 'ua-parser-js';
 import * as z from 'zod';
 import MtvRoom from '../Models/MtvRoom';
 import UserService from './UserService';
-import Ws from './Ws';
+import Ws, { remoteJoinSocketIoRoom, TypedSocket } from './Ws';
 
 function generateCustomDeviceNameFromWebBrowserUserAgent(
     userAgent: string,
@@ -21,19 +20,6 @@ function generateCustomDeviceNameFromWebBrowserUserAgent(
 }
 
 export default class SocketLifecycle {
-    /**
-     * Make the given socket joins the given mtvRoomID
-     * @param socket socket to sync
-     * @param mtvRoomID room whom to be sync with
-     */
-    private static async remoteJoinSocketIoRoom(
-        socket: TypedSocket,
-        roomID: string,
-    ): Promise<void> {
-        const adapter = Ws.adapter();
-        await adapter.remoteJoin(socket.id, roomID);
-    }
-
     public static async doesRoomExist(roomID: string): Promise<MtvRoom | null> {
         // const userID = user.uuid;
 
@@ -145,7 +131,7 @@ export default class SocketLifecycle {
                 `User ${deviceOwner.uuid} is already a mtv room member, retrieve context`,
             );
 
-            await this.remoteJoinSocketIoRoom(socket, deviceOwner.mtvRoomID);
+            await remoteJoinSocketIoRoom(socket.id, deviceOwner.mtvRoomID);
             await MtvRoomsWsController.checkUserDevicesPositionIfRoomHasPositionConstraints(
                 {
                     user: deviceOwner,
@@ -188,7 +174,7 @@ export default class SocketLifecycle {
         await Promise.all(
             deviceOwner.mpeRooms.map(
                 async (mpeRoom) =>
-                    await this.remoteJoinSocketIoRoom(socket, mpeRoom.uuid),
+                    await remoteJoinSocketIoRoom(socket.id, mpeRoom.uuid),
             ),
         );
     }

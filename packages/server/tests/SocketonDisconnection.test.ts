@@ -3,6 +3,9 @@ import { MtvWorkflowStateWithUserRelatedInformation } from '@musicroom/types';
 import MtvServerToTemporalController from 'App/Controllers/Http/Temporal/MtvServerToTemporalController';
 import Device from 'App/Models/Device';
 import MtvRoom from 'App/Models/MtvRoom';
+import User from 'App/Models/User';
+import SocketLifecycle from 'App/Services/SocketLifecycle';
+import UserService from 'App/Services/UserService';
 import { datatype, name, random } from 'faker';
 import test from 'japa';
 import sinon from 'sinon';
@@ -344,5 +347,40 @@ test.group('Rooms life cycle', (group) => {
          * Check if room is not in database
          */
         assert.isNull(await MtvRoom.findBy('creator', userID));
+    });
+
+    test('It should remove zombie device after a failed remote join', async (assert) => {
+        const userID = datatype.uuid();
+
+        const socketA = await createAuthenticatedUserAndGetSocket({
+            userID,
+        });
+        const user = await User.findOrFail(userID);
+        const token = getSocketApiAuthToken(socketA);
+        const socketB = await createSocketConnection({ userID, token });
+
+        await Device.create({
+            socketID: random.word(),
+            uuid: datatype.uuid(),
+            userID,
+            name: random.word(),
+        });
+
+        /**
+         *  Check if both user's devices are in database
+         *  Then emit disconnect from one device
+         */
+        await user.refresh();
+        assert.equal((await Device.query().where('user_id', userID)).length, 3);
+
+        const roomID = datatype.uuid();
+        await UserService.joinEveryUserDevicesToRoom(user, roomID);
+
+        assert.equal((await Device.query().where('user_id', userID)).length, 2);
+        const socketConnectedToRoom =
+            await SocketLifecycle.getConnectedSocketToRoom(roomID);
+        assert.equal(socketConnectedToRoom.size, 2);
+        assert.isTrue(socketConnectedToRoom.has(socketA.id));
+        assert.isTrue(socketConnectedToRoom.has(socketB.id));
     });
 });

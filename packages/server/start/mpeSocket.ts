@@ -13,8 +13,7 @@ import {
 import MpeRoomsWsController from 'App/Controllers/Ws/MpeRoomsWsController';
 import MtvRoomService from 'App/Services/MtvRoomService';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
-import Ws from 'App/Services/Ws';
-import { TypedSocket } from './socket';
+import Ws, { TypedSocket } from 'App/Services/Ws';
 
 export default function initMpeSocketEventListeners(socket: TypedSocket): void {
     socket.on('MPE_CREATE_ROOM', async (args) => {

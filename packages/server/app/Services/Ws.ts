@@ -5,8 +5,10 @@ import {
     AllServerToClientEvents,
 } from '@musicroom/types';
 import { createAdapter, RedisAdapter } from '@socket.io/redis-adapter';
+import Device from 'App/Models/Device';
 import { RedisClient } from 'redis';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
+import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 
 class Ws {
     public io: Server<AllClientToServerEvents, AllServerToClientEvents>;
@@ -39,4 +41,34 @@ class Ws {
     }
 }
 
-export default new Ws();
+const WsSingleton = new Ws();
+
+export type TypedSocket = Socket<
+    AllClientToServerEvents,
+    AllServerToClientEvents,
+    DefaultEventsMap
+>;
+
+/**
+ * Make the given socket joins the given mtvRoomID
+ * @param socketID socketID to sync
+ * @param roomID room whom to be sync with
+ */
+export async function remoteJoinSocketIoRoom(
+    socketID: string,
+    roomID: string,
+): Promise<void> {
+    try {
+        const adapter = WsSingleton.adapter();
+        await adapter.remoteJoin(socketID, roomID);
+    } catch (e) {
+        const zombieDevice = await Device.findBy('socket_id', socketID);
+        if (zombieDevice) {
+            await zombieDevice.delete();
+        }
+
+        console.error(e);
+    }
+}
+
+export default WsSingleton;

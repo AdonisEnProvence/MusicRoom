@@ -362,7 +362,6 @@ jest.mock('expo-auth-session/providers/google', () => {
                         validateStatus: () => true,
                     },
                 );
-                console.log({ rawResponse });
                 setResponse(rawResponse.data);
                 setRequest(null);
             };

@@ -211,7 +211,6 @@ export function createUserProfileInformationMachine({
                                 userProfileInformation: response,
                             });
                         } catch (e) {
-                            console.log('error occured', e);
                             sendBack({
                                 type: '__RETRIEVE_USER_PROFILE_INFORMATION_FAILURE',
                             });

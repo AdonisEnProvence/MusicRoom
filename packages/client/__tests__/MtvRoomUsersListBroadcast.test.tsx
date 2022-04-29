@@ -473,20 +473,12 @@ describe('User list tests', () => {
         });
 
         serverSocket.on('MTV_GET_USERS_LIST', (cb) => {
-            console.log('GET USERS LIST CALLED');
-            console.log(fakeUsersArray);
             cb(fakeUsersArray);
         });
 
         serverSocket.on(
             'MTV_UPDATE_CONTROL_AND_DELEGATION_PERMISSION',
             ({ hasControlAndDelegationPermission, toUpdateUserID }) => {
-                console.log('RECEIVED UPDATE FOR A USER');
-                console.log({
-                    hasControlAndDelegationPermission,
-                    toUpdateUserID,
-                });
-
                 fakeUsersArray = fakeUsersArray.map((fakeUser) =>
                     fakeUser.userID === toUpdateUserID
                         ? {

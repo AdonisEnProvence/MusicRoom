@@ -393,14 +393,6 @@ export const MusicTrackVoteCreationFormPhysicalConstraintsContent: React.FC<Musi
                                                 isOneHourAfterFormBeginning: (
                                                     endsAt,
                                                 ) => {
-                                                    console.log(
-                                                        'isOneHourAfterFormBeginning',
-                                                        {
-                                                            endsAt,
-                                                            oneHourAfterInitialMounting,
-                                                        },
-                                                    );
-
                                                     const isOneHourAfterInitialMounting =
                                                         isAfter(
                                                             endsAt,

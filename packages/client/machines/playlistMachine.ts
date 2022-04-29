@@ -157,8 +157,6 @@ const assignMergeNewState = playlistModel.assign(
                 userRelatedInformationUpdate = state.userRelatedInformation;
             }
 
-            console.log('assignMergeNewState', event.state);
-
             return {
                 ...context.state,
                 ...state,
@@ -561,7 +559,6 @@ export function createPlaylistMachine({
                     sendingToServer: {
                         always: {
                             actions: sendParent(() => {
-                                console.log('SENDING TO PARENT ');
                                 return appMusicPlaylistsModel.events.JOIN_ROOM({
                                     roomID,
                                 });
@@ -607,7 +604,6 @@ export function createPlaylistMachine({
                     sendingToServer: {
                         always: {
                             actions: sendParent(() => {
-                                console.log('SENDING TO PARENT ');
                                 return appMusicPlaylistsModel.events.LEAVE_ROOM(
                                     {
                                         roomID,
@@ -636,7 +632,6 @@ export function createPlaylistMachine({
 
             CREATOR_INVITE_USER: {
                 actions: sendParent((_context, { userID }) => {
-                    console.log('SENDING TO PARENT ');
                     return appMusicPlaylistsModel.events.CREATOR_INVITE_USER_IN_ROOM(
                         {
                             roomID,

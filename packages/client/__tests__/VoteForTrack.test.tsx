@@ -65,7 +65,6 @@ After the vote has been accepted the score will be updated and the card disabled
     if (state.tracks === null) throw new Error('state.track is null');
 
     serverSocket.on('MTV_VOTE_FOR_TRACK', ({ trackID }) => {
-        console.log('SERVER IS PROCESSING MTV_VOTE_FOR_TRACK');
         if (state.tracks === null) throw new Error('state.track is null');
         const stateCpy: MtvWorkflowStateWithUserRelatedInformation = {
             ...state,
@@ -90,7 +89,6 @@ After the vote has been accepted the score will be updated and the card disabled
             })
             .sort((a, b) => (a.score < b.score ? 1 : -1));
 
-        console.log('EMITTING BULLSHIT');
         serverSocket.emit('MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK', stateCpy);
     });
 
@@ -141,7 +139,6 @@ After the vote has been accepted the score will be updated and the card disabled
     expect(trackToVoteFor).toBeTruthy();
     expect(trackToVoteFor).not.toBeDisabled();
 
-    console.log('pressing');
     fireEvent.press(trackToVoteFor);
 
     await waitFor(() => {

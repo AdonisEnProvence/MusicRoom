@@ -277,7 +277,6 @@ export function createAppMusicPlaylistsMachine({
                     socket.on(
                         'MPE_GET_CONTEXT_SUCCESS_CALLBACK',
                         ({ state, roomID, userIsNotInRoom }) => {
-                            console.log({ userIsNotInRoom });
                             sendBack({
                                 type: 'RECEIVED_MPE_GET_CONTEXT_SUCCESS_CALLBACK',
                                 roomID,
@@ -297,9 +296,6 @@ export function createAppMusicPlaylistsMachine({
                     socket.on(
                         'MPE_JOIN_ROOM_CALLBACK',
                         ({ roomID, state, userIsNotInRoom }) => {
-                            console.log('MPEJOINROOMCALLBACK', {
-                                userIsNotInRoom,
-                            });
                             sendBack({
                                 type: 'JOIN_ROOM_ACKNOWLEDGEMENT',
                                 state,
@@ -310,10 +306,6 @@ export function createAppMusicPlaylistsMachine({
                     );
 
                     socket.on('MPE_LEAVE_ROOM_CALLBACK', ({ roomSummary }) => {
-                        console.log('MPE_LEAVE_ROOM_CALLBACK', {
-                            roomSummary,
-                        });
-
                         sendBack({
                             type: 'RECEIVED_MPE_LEAVE_ROOM_CALLBACK',
                             roomSummary,
@@ -332,7 +324,6 @@ export function createAppMusicPlaylistsMachine({
                     );
 
                     socket.on('MPE_FORCED_DISCONNECTION', ({ roomSummary }) => {
-                        console.log(`RECEIVED MPE_FORCED_DISCONNECTION`);
                         sendBack({
                             type: 'RECEIVED_FORCED_DISCONNECTION',
                             roomSummary,
@@ -342,10 +333,6 @@ export function createAppMusicPlaylistsMachine({
                     socket.on(
                         'MPE_RECEIVED_ROOM_INVITATION',
                         ({ roomSummary }) => {
-                            console.log(
-                                `MPE_RECEIVED_ROOM_INVITATION MPE_FORCED_DISCONNECTION`,
-                            );
-
                             sendBack({
                                 type: 'MPE_RECEIVED_ROOM_INVITATION',
                                 roomSummary,
@@ -437,7 +424,6 @@ export function createAppMusicPlaylistsMachine({
 
                             case 'JOIN_ROOM': {
                                 const { roomID } = event;
-                                console.log('SEND JOIN ROOM', { roomID });
                                 socket.emit('MPE_JOIN_ROOM', {
                                     roomID,
                                 });
@@ -447,7 +433,6 @@ export function createAppMusicPlaylistsMachine({
 
                             case 'LEAVE_ROOM': {
                                 const { roomID } = event;
-                                console.log('SEND Leave ROOM', { roomID });
                                 socket.emit('MPE_LEAVE_ROOM', {
                                     roomID,
                                 });
@@ -468,10 +453,6 @@ export function createAppMusicPlaylistsMachine({
 
                             case 'CREATOR_INVITE_USER_IN_ROOM': {
                                 const { roomID, userID } = event;
-                                console.log(
-                                    'send creator invite user in mpe room',
-                                    { event },
-                                );
                                 socket.emit('MPE_CREATOR_INVITE_USER', {
                                     invitedUserID: userID,
                                     roomID,

@@ -17,10 +17,9 @@
     "build:tsc": "scripty",
     "lint": "yarn eslint . --ext ts,tsx --fix",
     "generate:xstate": "xstate-codegen machines/*.ts",
-    "postinstall": "expo-yarn-workspaces postinstall && yarn install:react-youtube",
+    "postinstall": "expo-yarn-workspaces postinstall",
     "test": "jest --reporters jest-silent-reporter",
     "test:watch": "jest --watch",
-    "install:react-youtube": "cd ../../node_modules/react-youtube && yarn --production=false && yarn compile",
     "test:e2e": "playwright test",
     "clean": "rimraf dist *.tsbuildinfo"
   },

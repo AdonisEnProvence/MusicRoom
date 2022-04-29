@@ -437,14 +437,6 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                             </Skeleton>
                         </View>
 
-                        {userIsNotInRoom === true && (
-                            <BottomRightAbsoluteButton
-                                testID={`mpe-join-${roomID}`}
-                                onPress={handleJoinPress}
-                                Icon={() => <Typo>JOIN</Typo>}
-                            />
-                        )}
-
                         <FlatList
                             data={tracks}
                             ListHeaderComponent={() => {
@@ -529,6 +521,64 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                                 );
                             }}
                         />
+
+                        {userIsNotInRoom === true && (
+                            <View
+                                sx={{
+                                    position: 'absolute',
+                                    bottom: 0,
+                                    left: 0,
+                                    right: 0,
+
+                                    marginBottom: ['3xl', '4xl'],
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    paddingX: 'm',
+                                }}
+                            >
+                                <TouchableOpacity
+                                    testID={`mpe-join-${roomID}`}
+                                    style={sx({
+                                        paddingX: 'l',
+                                        paddingY: 'm',
+                                        borderRadius: 'full',
+                                        backgroundColor: 'secondary',
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+
+                                        // Copy pasted from https://ethercreative.github.io/react-native-shadow-generator/
+                                        shadowColor: '#000',
+                                        shadowOffset: {
+                                            width: 0,
+                                            height: 6,
+                                        },
+                                        shadowOpacity: 0.37,
+                                        shadowRadius: 7.49,
+
+                                        elevation: 12,
+                                    })}
+                                    onPress={handleJoinPress}
+                                >
+                                    <Text
+                                        sx={{
+                                            color: 'white',
+                                            fontSize: 'm',
+
+                                            marginRight: 'l',
+                                        }}
+                                    >
+                                        Join playlist
+                                    </Text>
+
+                                    <Ionicons
+                                        name="enter-outline"
+                                        color="white"
+                                        size={24}
+                                    />
+                                </TouchableOpacity>
+                            </View>
+                        )}
                     </MotiView>
 
                     <BottomSheetModal

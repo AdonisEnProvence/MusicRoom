@@ -373,7 +373,7 @@ export async function searchAndJoinMpeRoomFromMpeRoomsSearchEngine({
     await expect(mpeRoomCard).toBeEnabled();
     await mpeRoomCard.click();
 
-    const joinRoomButton = page.locator(`text="JOIN"`);
+    const joinRoomButton = page.locator(`text="Join playlist"`);
     await expect(joinRoomButton).toBeVisible();
     await expect(joinRoomButton).toBeEnabled();
 
@@ -503,7 +503,7 @@ export async function leaveMpeRoom({
         page: leavingPage,
     });
 
-    const leaveButton = leavingPage.locator(`text="Leave room"`);
+    const leaveButton = leavingPage.locator(`text="Leave the room"`);
     await expect(leaveButton).toBeVisible();
     await expect(leaveButton).toBeEnabled();
 

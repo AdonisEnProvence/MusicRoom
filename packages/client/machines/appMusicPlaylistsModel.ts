@@ -162,6 +162,8 @@ export const appMusicPlaylistsModel = createModel(
             }) => args,
 
             USER_IGNORED_MPE_ROOM_INVITATION: () => ({}),
+
+            REQUEST_LOCATION_PERMISSION: () => ({}),
             ///
         },
 

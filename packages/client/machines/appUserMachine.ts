@@ -93,6 +93,7 @@ export const createUserMachine = ({
             context: {
                 devices: [],
                 currDeviceID: undefined,
+                location: undefined,
                 locationPermission: false,
             },
 
@@ -445,7 +446,10 @@ export const createUserMachine = ({
                             );
                         }
 
-                        console.log('asking for current location');
+                        console.log(
+                            'asking for current location',
+                            context.location,
+                        );
                         const location = await getCurrentPositionAsync({
                             accuracy: 4,
                             distanceInterval: 100,
@@ -470,6 +474,7 @@ export const createUserMachine = ({
                             }
                         }
 
+                        console.log({ needToUpdatePosition });
                         if (needToUpdatePosition) {
                             sendBack({
                                 type: 'UPDATE_CURRENT_LOCATION',

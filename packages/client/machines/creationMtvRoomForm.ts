@@ -273,7 +273,12 @@ export function createCreationMtvRoomFormMachine({
                         SET_PHYSICAL_CONSTRAINTS_VALUES_AND_GO_NEXT: {
                             target: 'playingMode',
 
-                            actions: assignPhysicalConstraintValuesToContext,
+                            actions: [
+                                assignPhysicalConstraintValuesToContext,
+                                sendParent({
+                                    type: 'REQUEST_LOCATION_PERMISSION',
+                                }),
+                            ],
                         },
 
                         GO_BACK: {

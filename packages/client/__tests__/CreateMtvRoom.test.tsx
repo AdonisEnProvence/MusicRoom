@@ -449,11 +449,23 @@ const createMtvRoomWithSettingsMachine =
                 id: 'playingMode',
 
                 meta: {
-                    test: async ({ screen }: TestingContext) => {
+                    test: async (
+                        { screen }: TestingContext,
+                        state: CreateMtvRoomWithSettingsMachineState,
+                    ) => {
                         const playingModeScreenTitle = await screen.findByText(
                             /which.*playing.*mode/i,
                         );
                         expect(playingModeScreenTitle).toBeTruthy();
+
+                        if (
+                            state.context.hasPhysicalConstraints &&
+                            state.context.physicalConstraintsValues
+                        ) {
+                            expect(
+                                requestForegroundPermissionsAsyncMocked,
+                            ).toBeCalledTimes(1);
+                        }
                     },
                 },
 
@@ -856,7 +868,7 @@ const createMtvRoomWithSettingsMachine =
                         ) {
                             expect(
                                 requestForegroundPermissionsAsyncMocked,
-                            ).toBeCalledTimes(1);
+                            ).toBeCalledTimes(2);
                         } else {
                             expect(
                                 requestForegroundPermissionsAsyncMocked,

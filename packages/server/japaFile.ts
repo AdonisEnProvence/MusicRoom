@@ -37,5 +37,5 @@ configure({
     files: ['**/*.test.ts'],
     before: [rollbackMigrations, runMigrations, startHttpServer],
     after: [rollbackMigrations],
-    timeout: 5_000,
+    timeout: 15_000,
 });

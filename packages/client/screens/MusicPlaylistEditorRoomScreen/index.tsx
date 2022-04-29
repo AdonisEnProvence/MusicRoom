@@ -538,7 +538,7 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
                                 }}
                             >
                                 <TouchableOpacity
-                                    testID={`mpe-join-${roomID}`}
+                                    testID={`mpe-join-${roomID}-absolute-button`}
                                     style={sx({
                                         paddingX: 'l',
                                         paddingY: 'm',

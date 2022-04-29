@@ -1,15 +1,9 @@
-import {
-    AllClientToServerEvents,
-    AllServerToClientEvents,
-    UserDevice,
-} from '@musicroom/types';
+import { UserDevice } from '@musicroom/types';
 import MtvRoomsWsController from 'App/Controllers/Ws/MtvRoomsWsController';
 import Device from 'App/Models/Device';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import UserService from 'App/Services/UserService';
 import Ws from 'App/Services/Ws';
-import { Socket } from 'socket.io';
-import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import MtvRoom from 'App/Models/MtvRoom';
 import { DateTime } from 'luxon';
 import HttpContext from '@ioc:Adonis/Core/HttpContext';
@@ -21,12 +15,6 @@ import initMtvSocketEventListeners from './mtvSocket';
 import initMpeSocketEventListeners from './mpeSocket';
 
 Ws.boot();
-
-export type TypedSocket = Socket<
-    AllClientToServerEvents,
-    AllServerToClientEvents,
-    DefaultEventsMap
->;
 
 //TODO we should be using zod to parse every payload coming from the client
 

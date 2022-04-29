@@ -9,7 +9,7 @@ import Device from 'App/Models/Device';
 import SocketLifecycle from 'App/Services/SocketLifecycle';
 import MtvRoomsChatController from 'App/Controllers/Ws/MtvRoomsChatController';
 import MtvRoomService from 'App/Services/MtvRoomService';
-import { TypedSocket } from './socket';
+import { TypedSocket } from 'App/Services/Ws';
 
 export default function initMtvSocketEventListeners(socket: TypedSocket): void {
     /// CHAT ///

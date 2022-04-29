@@ -4,7 +4,7 @@ import Device from 'App/Models/Device';
 import MpeRoom from 'App/Models/MpeRoom';
 import User from 'App/Models/User';
 import SocketLifecycle from './SocketLifecycle';
-import Ws from './Ws';
+import Ws, { remoteJoinSocketIoRoom } from './Ws';
 
 export default class UserService {
     public static async joinEveryUserDevicesToRoom(
@@ -16,10 +16,9 @@ export default class UserService {
             user.devices.map(async (device) => {
                 try {
                     console.log('remote join device ', device.socketID);
-                    await Ws.adapter().remoteJoin(device.socketID, roomID);
+                    await remoteJoinSocketIoRoom(device.socketID, roomID);
                     return device.socketID;
                 } catch (e) {
-                    console.error(e);
                     return undefined;
                 }
             }),

@@ -1,7 +1,7 @@
 import { MpeChangeTrackOrderOperationToApply } from '@musicroom/types';
 import { expect, Page, Locator } from '@playwright/test';
 import { random } from 'faker';
-import { assertIsNotNull } from '../_utils/assert';
+import { assertIsNotNull, assertIsNotUndefined } from '../_utils/assert';
 import { hitGoNextButton } from '../_utils/global';
 import {
     KnownSearchesElement,
@@ -365,15 +365,34 @@ export async function searchAndJoinMpeRoomFromMpeRoomsSearchEngine({
     await expect(goToMusicPlaylistEditorButton).toBeEnabled();
     await goToMusicPlaylistEditorButton.click();
 
-    const mpeRoomCard = page.locator(
-        withinMpeRoomsSearchEngineScreen(`text="${roomName}"`),
-    );
-    // eslint-disable-next-line no-constant-condition
-    await expect(mpeRoomCard).toBeVisible();
-    await expect(mpeRoomCard).toBeEnabled();
-    await mpeRoomCard.click();
+    // Code to use infinite scroll
+    let matchingRoom: Locator | undefined;
+    let hasFoundRoom = false;
 
-    const joinRoomButton = page.locator(`text="JOIN"`);
+    await page.mouse.move((page.viewportSize()?.width ?? 0) / 2, 150);
+    while (hasFoundRoom === false) {
+        await page.mouse.wheel(0, 999999);
+
+        matchingRoom = page.locator(
+            withinMpeRoomsSearchEngineScreen(`text="${roomName}"`),
+        );
+        const isMatchingRoomVisible = await matchingRoom.isVisible();
+        if (isMatchingRoomVisible === false) {
+            hasFoundRoom = false;
+
+            continue;
+        }
+
+        hasFoundRoom = true;
+    }
+    assertIsNotUndefined(matchingRoom);
+
+    // eslint-disable-next-line no-constant-condition
+    await expect(matchingRoom).toBeVisible();
+    await expect(matchingRoom).toBeEnabled();
+    await matchingRoom.click();
+
+    const joinRoomButton = page.locator(`text="Join playlist"`);
     await expect(joinRoomButton).toBeVisible();
     await expect(joinRoomButton).toBeEnabled();
 
@@ -503,7 +522,7 @@ export async function leaveMpeRoom({
         page: leavingPage,
     });
 
-    const leaveButton = leavingPage.locator(`text="Leave room"`);
+    const leaveButton = leavingPage.locator(`text="Leave the room"`);
     await expect(leaveButton).toBeVisible();
     await expect(leaveButton).toBeEnabled();
 

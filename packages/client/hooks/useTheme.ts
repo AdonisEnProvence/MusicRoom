@@ -19,6 +19,8 @@ export const GLOBAL_THEME_CONSTANTS = {
         l: 16,
         xl: 24,
         xxl: 48,
+        '3xl': 64,
+        '4xl': 96,
     },
     borderWidths: {
         s: 1,

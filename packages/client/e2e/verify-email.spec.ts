@@ -7,6 +7,7 @@ import {
     pageIsOnEmailConfirmationScreen,
     pageIsOnHomeScreen,
     pageIsOnSignInScreen,
+    withinSignUpFormScreenContainer,
 } from './_utils/mpe-e2e-utils';
 import {
     closeAllContexts,
@@ -78,9 +79,20 @@ test('It should renders home on every browser tab after a signUp and verify emai
 
     await expect(page.locator('text="To party sign up !"')).toBeVisible();
 
-    await page.fill('[placeholder="Nickname"]', internet.userName());
-    await page.fill('[placeholder="Email"]', myEmail);
-    await page.fill('[placeholder="Password"]', 'adfg=1435&*&*(SjhgA');
+    const userName = internet.userName();
+    await page.fill(
+        withinSignUpFormScreenContainer('[placeholder="Nickname"]'),
+        userName,
+    );
+    await page.fill(
+        withinSignUpFormScreenContainer('[placeholder="Email"]'),
+        myEmail,
+    );
+    const password = 'adfg=1435&*&*(SjhgA';
+    await page.fill(
+        withinSignUpFormScreenContainer('[placeholder="Password"]'),
+        password,
+    );
 
     await page.click('text="Sign Up"');
 

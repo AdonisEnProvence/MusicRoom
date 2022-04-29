@@ -78,7 +78,7 @@ test('MpeRoom invitation and onlyInvitedUserCanEdit test', async ({
     await expect(hasBeenInvitedIcon).toBeVisible();
 
     //UserB has hit the toast
-    const joinRoomButton = joiningUserB.locator(`text="JOIN"`);
+    const joinRoomButton = joiningUserB.locator(`text="Join playlist"`);
     await expect(joinRoomButton).toBeVisible();
     await expect(joinRoomButton).toBeEnabled();
 

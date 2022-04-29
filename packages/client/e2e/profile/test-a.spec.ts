@@ -284,7 +284,7 @@ test('Profile test-a', async ({ browser }) => {
         });
 
         const allUserProfileInformationElements = userAProfileScreen.locator(
-            'css=[data-testid$="user-profile-information"]',
+            'css=[data-testid*="user-profile-information"]',
         );
         await expect(allUserProfileInformationElements).toHaveCount(3);
 
@@ -293,15 +293,21 @@ test('Profile test-a', async ({ browser }) => {
         );
         await expect(userANicknameText).toBeVisible();
 
-        const followerCounter =
-            userAProfileScreen.locator(`text="followers 0"`);
+        const followerCounter = userAProfileScreen.locator(
+            `css=[data-testid$="Followers-user-profile-information-0"]`,
+        );
         await expect(followerCounter).toBeVisible();
 
-        const followingCounter = userBPage.locator(`text="following 0"`).last();
+        const followingCounter = userBPage
+            .locator(
+                `css=[data-testid$="Following-user-profile-information-0"]`,
+            )
+            .last();
         await expect(followingCounter).toBeVisible();
 
-        const playlistsCounter =
-            userAProfileScreen.locator(`text="playlists 0"`);
+        const playlistsCounter = userAProfileScreen.locator(
+            `css=[data-testid$="Playlists-user-profile-information-0"]`,
+        );
         await expect(playlistsCounter).toBeVisible();
 
         const followButton = userAProfileScreen.locator(
@@ -330,22 +336,22 @@ test('Profile test-a', async ({ browser }) => {
     //UserA look to his myProfilePage
     {
         const myFollowerCounter = userAPage
-            .locator(`text="followers 0"`)
+            .locator(`css=[data-testid="my-profile-Followers-0"]`)
             .last();
         await expect(myFollowerCounter).toBeVisible();
 
         const myFollowingCounter = userAPage
-            .locator(`text="following 0"`)
+            .locator(`css=[data-testid="my-profile-Following-0"]`)
             .last();
         await expect(myFollowingCounter).toBeVisible();
 
         const myPlaylistsCounter = userAPage
-            .locator(`text="playlists 0"`)
+            .locator(`css=[data-testid="my-profile-Playlists-0"]`)
             .last();
         await expect(myPlaylistsCounter).toBeVisible();
 
         const myDevicesPlaylistCounter = userAPage
-            .locator(`text="devices 1"`)
+            .locator(`css=[data-testid="my-profile-Devices-1"]`)
             .last();
         await expect(myDevicesPlaylistCounter).toBeVisible();
 
@@ -440,16 +446,24 @@ test('Profile test-a', async ({ browser }) => {
             .last();
         await expect(userANicknameText).toBeVisible();
 
-        const followerCounter = userBPage.locator(`text="followers 1"`).last();
+        const followerCounter = userBPage
+            .locator(
+                `css=[data-testid$="Followers-user-profile-information-1"]`,
+            )
+            .last();
         await expect(followerCounter).toBeVisible();
 
-        const followingCounter = userBPage.locator(`text="following 0"`).last();
+        const followingCounter = userBPage
+            .locator(
+                `css=[data-testid$="Following-user-profile-information-0"]`,
+            )
+            .last();
         await expect(followingCounter).toBeVisible();
 
         const allUserProfileInformationElements = userBPage.locator(
             withinMyUserProfilePageContainer({
                 userID: userAUserID,
-                selector: 'css=[data-testid$="user-profile-information"]',
+                selector: 'css=[data-testid*="user-profile-information"]',
             }),
         );
         await expect(allUserProfileInformationElements).toHaveCount(2);

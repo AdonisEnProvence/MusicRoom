@@ -14,6 +14,7 @@ import SettingVisibility from 'App/Models/SettingVisibility';
 import User from 'App/Models/User';
 import { AuthenticationService } from 'App/Services/AuthenticationService';
 import invariant from 'tiny-invariant';
+import * as z from 'zod';
 
 export default class UserSettingsController {
     /**
@@ -136,15 +137,27 @@ export default class UserSettingsController {
         await bouncer.authorize('hasVerifiedAccount');
 
         const { nickname } = UpdateNicknameRequestBody.parse(request.body());
+        const trimmedUserNickname = nickname.trim();
 
-        if (user.nickname === nickname) {
+        const nickanmeIsInvalid = !z
+            .string()
+            .min(1)
+            .safeParse(trimmedUserNickname).success;
+
+        if (nickanmeIsInvalid) {
+            return {
+                status: 'UNAVAILABLE_NICKNAME',
+            };
+        }
+
+        if (user.nickname === trimmedUserNickname) {
             return {
                 status: 'SAME_NICKNAME',
             };
         }
 
         try {
-            user.nickname = nickname;
+            user.nickname = trimmedUserNickname;
 
             await user.save();
 

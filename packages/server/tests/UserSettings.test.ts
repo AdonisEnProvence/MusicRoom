@@ -418,6 +418,95 @@ test.group('User settings', (group) => {
         assert.equal(user.nickname, initialNickname);
     });
 
+    test(`Returns an error when trying to update user's nickname with an empty nickname`, async () => {
+        const request = createRequest();
+
+        await createUserAndAuthenticate(request);
+
+        const requestBody: UpdateNicknameRequestBody = {
+            nickname: '',
+        };
+        await request.post('/me/nickname').send(requestBody).expect(500);
+    });
+
+    test(`Returns an error when trying to update user's nickname with a space nickname`, async (assert) => {
+        const request = createRequest();
+
+        const user = await createUserAndAuthenticate(request);
+        const initialNickname = user.nickname;
+
+        const requestBody: UpdateNicknameRequestBody = {
+            nickname: '             ',
+        };
+        const { body: rawResponseBody } = await request
+            .post('/me/nickname')
+            .send(requestBody)
+            .expect(200)
+            .expect('Content-Type', /json/);
+        const responseBody = UpdateNicknameResponseBody.parse(rawResponseBody);
+
+        assert.equal<UpdateNicknameResponseStatus>(
+            responseBody.status,
+            'UNAVAILABLE_NICKNAME',
+        );
+
+        await user.refresh();
+
+        assert.equal(user.nickname, initialNickname);
+    });
+
+    test(`It should fail to update user nickname as given trimmed new nickname leads to existing one`, async (assert) => {
+        const request = createRequest();
+
+        const user = await createUserAndAuthenticate(request);
+        const initialNickname = user.nickname;
+
+        const requestBody: UpdateNicknameRequestBody = {
+            nickname: `     ${initialNickname} `,
+        };
+        const { body: rawResponseBody } = await request
+            .post('/me/nickname')
+            .send(requestBody)
+            .expect(200)
+            .expect('Content-Type', /json/);
+        const responseBody = UpdateNicknameResponseBody.parse(rawResponseBody);
+
+        assert.equal<UpdateNicknameResponseStatus>(
+            responseBody.status,
+            'SAME_NICKNAME',
+        );
+
+        await user.refresh();
+
+        assert.equal(user.nickname, initialNickname);
+    });
+
+    test(`It should success to update and trim given new user nickname`, async (assert) => {
+        const request = createRequest();
+
+        const user = await createUserAndAuthenticate(request);
+
+        const newTrimmedUserNickname = random.word();
+        const requestBody: UpdateNicknameRequestBody = {
+            nickname: `     ${newTrimmedUserNickname} `,
+        };
+        const { body: rawResponseBody } = await request
+            .post('/me/nickname')
+            .send(requestBody)
+            .expect(200)
+            .expect('Content-Type', /json/);
+        const responseBody = UpdateNicknameResponseBody.parse(rawResponseBody);
+
+        assert.equal<UpdateNicknameResponseStatus>(
+            responseBody.status,
+            'SUCCESS',
+        );
+
+        await user.refresh();
+
+        assert.equal(user.nickname, newTrimmedUserNickname);
+    });
+
     test(`Returns an error when trying to update user's nickname with an unavailable nickname`, async (assert) => {
         const request = createRequest();
 

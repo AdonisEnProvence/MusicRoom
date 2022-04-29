@@ -814,6 +814,12 @@ export function createAppMusicPlaylistsMachine({
                         },
 
                         on: {
+                            REQUEST_LOCATION_PERMISSION: {
+                                actions: sendParent({
+                                    type: 'REQUEST_LOCATION_PERMISSION',
+                                }),
+                            },
+
                             SAVE_MTV_ROOM_CREATION_MODAL_CLOSER: {
                                 actions:
                                     assignCloseMtvRoomCreationModalToContext,

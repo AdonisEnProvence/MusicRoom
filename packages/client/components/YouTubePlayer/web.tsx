@@ -5,34 +5,18 @@ import React, {
     useImperativeHandle,
     useRef,
 } from 'react';
-import YouTube, { Options } from 'react-youtube';
-import { YouTubePlayer } from 'youtube-player/dist/types';
+import ReactPlayer from 'react-player';
 import { PlayerComponent, PlayerProps, PlayerRef } from './contract';
-
-function getYoutubePlayerState(
-    id: typeof YouTube.PlayerState[keyof typeof YouTube.PlayerState],
-): keyof typeof YouTube.PlayerState {
-    const matchingState = Object.entries(YouTube.PlayerState).find(
-        ([, stateId]) => stateId === id,
-    );
-    if (matchingState === undefined) {
-        throw new Error(`Could not find any match for the id: ${id}`);
-    }
-
-    return matchingState[0] as keyof typeof YouTube.PlayerState;
-}
 
 const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
     ({ videoId, playing, onReady, seekToInSeconds, mute }, ref) => {
-        const playerRef = useRef<YouTubePlayer>();
+        const playerRef = useRef<ReactPlayer | null>(null);
 
         useImperativeHandle(ref, () => ({
             getDuration() {
                 const duration = playerRef.current?.getDuration();
                 if (duration === undefined) {
-                    throw new Error(
-                        'Could not get duration from react-youtube',
-                    );
+                    throw new Error('Could not get duration from react-player');
                 }
 
                 return Promise.resolve(duration);
@@ -42,7 +26,7 @@ const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
                 const currentTime = playerRef.current?.getCurrentTime();
                 if (currentTime === undefined) {
                     throw new Error(
-                        'Could not get current time from react-native-youtube-iframe',
+                        'Could not get current time from react-player',
                     );
                 }
 
@@ -50,42 +34,11 @@ const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
             },
         }));
 
-        function handlePlayerStateChange({
-            data,
-        }: {
-            data: typeof YouTube.PlayerState[keyof typeof YouTube.PlayerState];
-        }) {
-            const playerState = getYoutubePlayerState(data);
-
-            switch (playerState) {
-                case 'CUED': {
-                    onReady?.();
-                }
-            }
-        }
-
         useEffect(() => {
-            playerRef.current?.seekTo(seekToInSeconds, true);
-            if (playing === true) {
-                playerRef.current?.playVideo();
-            } else {
-                playerRef.current?.pauseVideo();
-            }
-        }, [playing, playerRef, seekToInSeconds]);
+            playerRef.current?.seekTo(seekToInSeconds, 'seconds');
+        }, [playerRef, seekToInSeconds]);
 
-        useEffect(() => {
-            if (mute) {
-                console.log('Mute');
-                playerRef.current?.setVolume(0);
-                playerRef.current?.mute();
-            } else {
-                console.log('UnMute');
-                playerRef.current?.unMute();
-                playerRef.current?.setVolume(100);
-            }
-        }, [mute]);
-
-        const playerOptions: Options = {
+        const playerOptions = {
             height: '100%',
             width: '100%',
             playerVars: {
@@ -95,14 +48,6 @@ const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
             },
         };
 
-        function setPlayerRef(ref: YouTube) {
-            if (ref === null) {
-                return;
-            }
-
-            playerRef.current = ref.getInternalPlayer();
-        }
-
         return (
             <View
                 sx={{
@@ -111,20 +56,21 @@ const WebPlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
                     position: 'relative',
                 }}
             >
-                <YouTube
-                    ref={setPlayerRef}
-                    videoId={videoId}
-                    opts={playerOptions}
-                    onReady={() => {
-                        onReady?.();
+                <ReactPlayer
+                    ref={(player) => {
+                        playerRef.current = player;
                     }}
-                    onStateChange={handlePlayerStateChange}
-                    containerStyle={{
+                    url={`https://www.youtube.com/watch?v=${videoId}`}
+                    playing={playing}
+                    onReady={onReady}
+                    muted={mute}
+                    config={{ youtube: playerOptions }}
+                    width="100%"
+                    height="100%"
+                    style={{
                         position: 'absolute',
                         left: 0,
                         top: 0,
-                        height: '100%',
-                        width: '100%',
                     }}
                 />
             </View>

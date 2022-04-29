@@ -37,7 +37,7 @@ var (
 
 func main() {
 	if AdonisTemporalKey == "" {
-		log.Fatal("TEMPORAL_ADONIS_KEY should be defined in the env variables")
+		log.Fatal("ADONIS_TEMPORAL_KEY should be defined in the env variables")
 	}
 
 	var err error

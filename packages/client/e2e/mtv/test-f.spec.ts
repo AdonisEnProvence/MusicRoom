@@ -397,11 +397,6 @@ test('Test F', async ({ browser }) => {
     });
 
     await Promise.all([
-        voteForEnabledTrackInMusicPlayerFullScreen({
-            page: userADevice1Page,
-            trackToVoteForID: initialTrackID,
-        }),
-
         waitForYouTubeVideoToLoad(userADevice1Page),
         waitForYouTubeVideoToLoad(userBDevice1Page),
         waitForYouTubeVideoToLoad(userBDevice2Page),

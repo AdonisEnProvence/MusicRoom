@@ -106,6 +106,7 @@ async function exportMpeRoomToMtvRoomWithConstraint({
     await expect(roomNameInFullScreenPlayer).toBeVisible();
 }
 
+// Note this test can have some issue with the bottom sheet modal that sometimes takes the whole screen
 /**
  * Temp test-a description:
  *

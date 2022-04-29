@@ -4,6 +4,7 @@ import invariant from 'tiny-invariant';
 import {
     pageIsOnEmailConfirmationScreen,
     pageIsOnSignInScreen,
+    withinSignUpFormScreenContainer,
 } from './_utils/mpe-e2e-utils';
 import {
     closeAllContexts,
@@ -133,9 +134,20 @@ async function createAccount({ page, email }: { page: Page; email: string }) {
 
     await expect(page.locator('text="To party sign up !"')).toBeVisible();
 
-    await page.fill('[placeholder="Nickname"]', internet.userName());
-    await page.fill('[placeholder="Email"]', email);
-    await page.fill('[placeholder="Password"]', 'adfg=1435&*&*(SjhgA');
+    const userName = internet.userName();
+    await page.fill(
+        withinSignUpFormScreenContainer('[placeholder="Nickname"]'),
+        userName,
+    );
+    await page.fill(
+        withinSignUpFormScreenContainer('[placeholder="Email"]'),
+        email,
+    );
+    const password = 'adfg=1435&*&*(SjhgA';
+    await page.fill(
+        withinSignUpFormScreenContainer('[placeholder="Password"]'),
+        password,
+    );
 
     await page.click('text="Sign Up"');
 

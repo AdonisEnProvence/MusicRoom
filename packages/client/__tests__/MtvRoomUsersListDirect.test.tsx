@@ -499,8 +499,6 @@ describe('User list tests', () => {
         });
 
         serverSocket.on('MTV_GET_USERS_LIST', (cb) => {
-            console.log('GET USERS LIST CALLED');
-            console.log(fakeUsersArray);
             cb(fakeUsersArray);
         });
 

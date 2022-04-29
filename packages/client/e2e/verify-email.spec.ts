@@ -39,7 +39,6 @@ test('It should renders home on every browser tab after a signUp and verify emai
     //Could be improve using waitForSelector and complex css selector + regex ?
     await aliveInboxPage.waitForTimeout(8000);
     const myEmail = await aliveInboxPage.inputValue('input#mail');
-    console.log({ myEmail });
 
     invariant(myEmail.includes('@'), 'email is not loaded');
     ///
@@ -105,7 +104,6 @@ test('It should renders home on every browser tab after a signUp and verify emai
     const emailVerificationSubjectTextContent =
         await emailVerificationSubject.textContent();
 
-    console.log({ emailVerificationSubjectTextContent });
     expect(emailVerificationSubjectTextContent).not.toBeNull();
     invariant(
         emailVerificationSubjectTextContent !== null,
@@ -117,7 +115,6 @@ test('It should renders home on every browser tab after a signUp and verify emai
         emailVerificationSubjectTextContent.lastIndexOf(']'),
     );
     expect(token.length).toBe(6);
-    console.log({ token });
 
     await verifyEmail({ page, token });
 

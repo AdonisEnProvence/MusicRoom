@@ -271,7 +271,6 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
         const userIsNotInvitedAndRoomIsInOpenOnlyInvitedUsersCanEdit =
             roomIsOpenAndOnlyInvitedUsersCanEdit && !userIsInvited;
 
-        console.log(userIsNotInRoom, shouldFreezeUi);
         //Interface disabling variables
         const disableEveryCta = userIsNotInRoom || shouldFreezeUi;
 
@@ -285,8 +284,6 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
             userRelatedInformation !== null &&
             userRelatedInformation.userID === roomCreatorUserID;
         ///
-
-        console.log({ disableEveryPlaylistEditOperationCta, disableEveryCta });
 
         function handleAddTrack() {
             navigation.navigate('SearchTracks', {
@@ -344,7 +341,6 @@ const MusicPlaylistEditorRoomScreen: React.FC<MusicPlaylistEditorRoomScreenProps
         }
 
         function handleInviteUserButtonPressed() {
-            console.log('invitation pressed');
             navigation.navigate('MusicPlaylistEditorUsersSearch', {
                 screen: 'MusicPlaylistEditorUsersSearchModal',
                 params: {

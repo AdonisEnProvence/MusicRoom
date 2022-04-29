@@ -127,10 +127,6 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
             bottomSheetModalRef.current?.present();
         }
 
-        function handleSheetChanges(index: number) {
-            console.log('handleSheetChanges', index);
-        }
-
         function handleGoBack() {
             navigation.goBack();
         }
@@ -235,7 +231,6 @@ const MusicTrackVoteUsersListModal: React.FC<MusicTrackVoteUsersListModalProps> 
                     ref={bottomSheetModalRef}
                     index={0}
                     snapPoints={snapPoints}
-                    onChange={handleSheetChanges}
                     backgroundStyle={sx({
                         backgroundColor: 'greyLight',
                         maxWidth: ['100%', 860],

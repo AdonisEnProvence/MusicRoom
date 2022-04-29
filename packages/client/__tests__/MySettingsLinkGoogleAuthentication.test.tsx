@@ -78,9 +78,6 @@ const linkGoogleAuthMachine =
                             'Google response error': {
                                 meta: {
                                     test: async () => {
-                                        console.log(
-                                            'entering google response error meta test',
-                                        );
                                         await waitFor(() => {
                                             expect(
                                                 Toast.show,
@@ -96,9 +93,6 @@ const linkGoogleAuthMachine =
                             'User dismissed google oauth': {
                                 meta: {
                                     test: async () => {
-                                        console.log(
-                                            'entering google authentication user dismissed google oauth meta instance',
-                                        );
                                         await waitFor(() => {
                                             expect(
                                                 Toast.show,
@@ -290,7 +284,6 @@ const googleAuthenticationTestModel = createTestModel<TestingContext>(
             rest.get<never, never, AuthSessionResult>(
                 `http://msw.google.domain/fake-google-oauth-service`,
                 (_req, res, ctx) => {
-                    console.log('MOCK CALLED');
                     return res(
                         ctx.status(200),
                         ctx.json({
@@ -345,7 +338,6 @@ const googleAuthenticationTestModel = createTestModel<TestingContext>(
             rest.get<never, never, AuthSessionResult>(
                 `http://msw.google.domain/fake-google-oauth-service`,
                 (req, res, ctx) => {
-                    console.log('GOOGLE MOCK CALLED');
                     return res(
                         ctx.status(200),
                         ctx.json({

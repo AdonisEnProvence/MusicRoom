@@ -355,7 +355,6 @@ export const handlers = [
         `${SERVER_ENDPOINT}/user/unfollow`,
         withAuthentication((req, res, ctx) => {
             const { userID } = req.body;
-            console.log('UNFOLLOW');
             const user = db.userProfileInformation.findFirst({
                 where: {
                     userID: {
@@ -558,7 +557,6 @@ export const handlers = [
                 page * PAGE_SIZE,
             );
 
-            console.log({ paginatedFollowers });
             return res(
                 ctx.json({
                     data: paginatedFollowers,

@@ -106,7 +106,6 @@ export const createUserMachine = ({
                         onReceive: Receiver<AppUserMachineEvent>,
                     ) => {
                         socket.on('CONNECTED_DEVICES_UPDATE', (devices) => {
-                            console.log('RECEIVED CONNECTED_DEVICES_UPDATE');
                             sendBack({
                                 type: 'CONNECTED_DEVICES_UPDATE',
                                 devices,
@@ -116,9 +115,6 @@ export const createUserMachine = ({
                         socket.on(
                             'MTV_RECEIVED_ROOM_INVITATION',
                             (invitation) => {
-                                console.log(
-                                    'RECEIVED RECEIVED_MTV_ROOM_INVITATION',
-                                );
                                 sendBack({
                                     type: 'RECEIVED_MTV_ROOM_INVITATION',
                                     invitation,
@@ -446,17 +442,12 @@ export const createUserMachine = ({
                             );
                         }
 
-                        console.log(
-                            'asking for current location',
-                            context.location,
-                        );
                         const location = await getCurrentPositionAsync({
                             accuracy: 4,
                             distanceInterval: 100,
                             mayShowUserSettingsDialog: false,
                             timeInterval: 1,
                         });
-                        console.log(location.coords);
                         let needToUpdatePosition = true;
                         if (context.location !== undefined) {
                             const distanceBetweenTwoCoordsInMeters = distance(
@@ -465,16 +456,11 @@ export const createUserMachine = ({
                                 context.location.coords.latitude,
                                 context.location.coords.longitude,
                             );
-                            console.log(
-                                'DELTA',
-                                distanceBetweenTwoCoordsInMeters,
-                            );
                             if (distanceBetweenTwoCoordsInMeters < 100) {
                                 needToUpdatePosition = false;
                             }
                         }
 
-                        console.log({ needToUpdatePosition });
                         if (needToUpdatePosition) {
                             sendBack({
                                 type: 'UPDATE_CURRENT_LOCATION',

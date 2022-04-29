@@ -345,7 +345,6 @@ export async function joinMpeRoom(
     });
 
     serverSocket.on('MPE_JOIN_ROOM', ({ roomID }) => {
-        console.log('JOIN_ROOM_IS_CALLED');
         serverSocket.emit('MPE_JOIN_ROOM_CALLBACK', {
             roomID,
             state: firstRoomState,

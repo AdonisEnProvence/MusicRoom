@@ -124,7 +124,6 @@ export const createRoomUsersListMachine = ({
                 id: 'socketConnection',
                 src: (_, _event) => (sendBack, onReceive) => {
                     socket.on('MTV_USERS_LIST_FORCED_REFRESH', () => {
-                        console.log('RECEIVED FORCED REFRESH');
                         sendBack({
                             type: 'RETRIEVE_USERS_LIST',
                         });

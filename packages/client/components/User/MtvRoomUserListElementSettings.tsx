@@ -99,9 +99,6 @@ const MtvRoomUserListElementSettings: React.FC<MtvRoomUserListElementSettings> =
                                         toggleHasControlAndDelegationPermission(
                                             selectedUser,
                                         );
-                                        console.log(
-                                            'toggle user control and delegation permission !',
-                                        );
                                     }}
                                     accessibilityLabel={`${
                                         selectedUser.hasControlAndDelegationPermission ===

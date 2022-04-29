@@ -28,7 +28,6 @@ test('Delete track and trigger sucess toast', async () => {
             userRelatedInformation: null,
         };
 
-        console.log('emitting', state.value);
         serverSocket.emit('MPE_DELETE_TRACKS_SUCCESS_CALLBACK', {
             roomID: state.value.roomID,
             state: state.value as MpeWorkflowState,

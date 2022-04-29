@@ -248,7 +248,6 @@ const AuthenticationSignUpFormScreen: React.FC<SignUpFormScreenProps> = ({
         password,
         userNickname,
     }: AuthenticationSignUpFormFormFieldValues) {
-        console.log('submiting ');
         send({
             type: 'Validated sign up form',
             body: {

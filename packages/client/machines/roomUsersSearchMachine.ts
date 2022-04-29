@@ -480,8 +480,6 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
             fetchUsers:
                 ({ searchQuery, filteredUsersPage }) =>
                 async (sendBack) => {
-                    console.log('in fetch users service');
-
                     try {
                         const {
                             data: users,
@@ -491,8 +489,6 @@ export const roomUsersSearchMachine = roomUsersSearchModel.createMachine(
                             searchQuery,
                             page: filteredUsersPage,
                         });
-
-                        console.log('fetched users', users, page, hasMore);
 
                         sendBack({
                             type: 'FETCHED_USERS',

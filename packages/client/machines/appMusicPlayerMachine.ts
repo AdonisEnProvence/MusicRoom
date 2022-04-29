@@ -249,7 +249,6 @@ export const createAppMusicPlayerMachine = ({
                         });
 
                         socket.on('MTV_USER_LENGTH_UPDATE', (state) => {
-                            console.log('USER_LENGTH_UPDATE');
                             sendBack({
                                 type: 'USER_LENGTH_UPDATE',
                                 state,
@@ -324,10 +323,6 @@ export const createAppMusicPlayerMachine = ({
                         socket.on(
                             'MTV_VOTE_OR_SUGGEST_TRACK_CALLBACK',
                             (state) => {
-                                console.log(
-                                    'RECEIVED VOTE FOR TRACK CALLBACK',
-                                    state,
-                                );
                                 sendBack({
                                     type: 'VOTE_OR_SUGGEST_TRACK_CALLBACK',
                                     state,
@@ -1138,16 +1133,6 @@ export const createAppMusicPlayerMachine = ({
 
                                                 onDone: {
                                                     target: 'connectingToRoom',
-
-                                                    actions: (
-                                                        _,
-                                                        event: CreationMtvRoomFormDoneInvokeEvent,
-                                                    ) => {
-                                                        console.log(
-                                                            'done event',
-                                                            event,
-                                                        );
-                                                    },
                                                 },
                                             },
 
@@ -1424,10 +1409,6 @@ export const createAppMusicPlayerMachine = ({
                     ) {
                         return context;
                     }
-                    console.log(
-                        'MERGE ASSIGN FROM event.type = ' + event.type,
-                        event.state,
-                    );
                     let userRelatedInformationUpdate =
                         context.userRelatedInformation;
                     if (event.state.userRelatedInformation !== null) {
@@ -1449,7 +1430,6 @@ export const createAppMusicPlayerMachine = ({
                     ) {
                         return context;
                     }
-                    console.log('assignConstraintsDetails');
 
                     return {
                         ...context,

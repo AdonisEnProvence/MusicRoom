@@ -28,7 +28,6 @@ export async function mockSearchTracks({
     await context.route(
         'http://localhost:3333/search/track/*',
         (route, request) => {
-            console.log('request', request.url(), request.method());
             const requestMethod = request.method();
             if (requestMethod !== 'GET') {
                 void route.abort('failed');

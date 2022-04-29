@@ -98,7 +98,6 @@ export function createUserInformationMachine(
                             userProfileInformation: response,
                         });
                     } catch (e) {
-                        console.log('error occured');
                         sendBack({
                             type: "Failed to retrieve user's profile information",
                         });

@@ -176,8 +176,13 @@ describe('Mtv room contraints details test group', () => {
             expect(screen.getByText('Mtv Room Constraints')).toBeTruthy();
         });
 
-        expect(requestForegroundPermissionsAsyncMocked).toBeCalledTimes(3);
-        expect(mockHasbeenCalled).toBeTruthy();
+        await waitFor(() => {
+            expect(mockHasbeenCalled).toBeTruthy();
+        });
+
+        await waitFor(() => {
+            expect(requestForegroundPermissionsAsyncMocked).toBeCalledTimes(1);
+        });
     });
 
     it(`It should display a map with room position constraint marker+radius then after getting location permission should display a device position marker`, async () => {

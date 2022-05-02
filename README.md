@@ -4,11 +4,11 @@
 
 Cross-platform iOS, Android and Web application using React Native (Expo) and Adonis and Temporal within one monorepo.
 
-This project is a 42 school project you can find it [here](docs/en.subject.pdf).
+[Open subject of the 42 school project →](docs/en.subject.pdf)
 
 ## Music Track vote
 
-![Music Track Vote demo gif](docs/mtv-demo.gif)
+![Music Track Vote demo Gif](docs/mtv-demo.gif)
 
 A Music Track Vote (MTV) is a collaborative music listening session in which users suggest and vote for tracks to be played.
 
@@ -26,15 +26,15 @@ Users can chat and follow other users in the MTV room.
 
 ## Music Playlist Editor
 
-![Music Track Vote demo gif](docs/mpe-demo.gif)
+![Music Track Vote demo Gif](docs/mpe-demo.gif)
 
 A Music Playlist Editor (MPE) is a real time collaborative playlist.
 
-Users create or join MPE rooms in which they suggest tracks, remove tracks, change tracks order and export the playlist into a MTV.
+Users create or join MPE rooms in which they suggest tracks, remove tracks, change tracks order and export the playlist into an MTV.
 
-Users can be member of several MPE rooms at the same time, that are listed in their Library.
+Users can be members of several MPE rooms at the same time, that are listed on their Library.
 
-When exporting a MPE room into a MTV room, users define the configuration of the MTV room, whose initial tracks are the tracks of the playlist.
+When exporting an MPE room into an MTV room, users define the configuration of the MTV room, whose initial tracks are the tracks of the playlist.
 
 ## Technical Stack
 

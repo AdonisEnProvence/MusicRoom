@@ -1,117 +1,43 @@
-# Project setup
+# MusicRoom
 
-## Tools
+## Application definition
 
-Next, make sure you have installed [volta](http://volta.sh/) which ensures you have the right version of node and yarn for this project
+Cross-platform iOS, Android and Web application using React Native (Expo) and Adonis and Temporal within one monorepo.
 
-You might also need [expo](https://docs.expo.io/get-started/installation/) to iterate on the client package
+This project is a 42 school project you can find it [here](docs/en.subject.pdf).
 
-## Clone
+## Music Track vote
 
-Next, checkout a working copy of this project enter the directory you just created
+![Music Track Vote demo gif](docs/mtv-demo.gif)
 
-## Install dependencies
+A Music Track Vote (MTV) is a collaborative music listening session in which users suggest and vote for tracks to be played.
 
-[`yarn`](https://yarnpkg.com/) is the recommended package manager to use with this project. Please use it instead of npm.
+The creator can define several options during room creation, such as position and time constraints, to only allow users located at a certain place and at certain time to vote.
 
-Install dependencies with yarn by running
+Creator can choose between two emission modes: _broadcast_ and _direct_. In _broadcast_ mode, all users play the sound. In _direct_ mode, only one user in the room emits sound. This user is defined by the creator or by users with the explicit permission.
 
-```sh
-yarn
-```
+Users can play sound on only one of their devices and are free to choose on which one.
 
-## Env variables
+It’s also possible to create private MTV rooms that only invited users can join.
 
-If you want to test the app as a whole you should fill a .env file for each package.
-It involves to create several google api keys ( with billing account for google console )
+When joining a MTV room, depending on their permissions, users should be able to suggest a track, vote for other tracks and control the player (play, pause, play next track).
 
-## Starting the project
+Users can chat and follow other users in the MTV room.
 
-Start up the project in development mode by running
+## Music Playlist Editor
 
-### Client
+![Music Track Vote demo gif](docs/mpe-demo.gif)
 
-Start the expo app by running.
+A Music Playlist Editor (MPE) is a real time collaborative playlist.
 
-```sh
-cd packages/client && yarn start
-```
+Users create or join MPE rooms in which they suggest tracks, remove tracks, change tracks order and export the playlist into a MTV.
 
-Then choose a platform where to run the app.
+Users can be member of several MPE rooms at the same time, that are listed in their Library.
 
-Changing any files in the folder will result in an incremental rebuild, and a refresh of the screen
+When exporting a MPE room into a MTV room, users define the configuration of the MTV room, whose initial tracks are the tracks of the playlist.
 
-### Server
+## Technical Stack
 
-First launch redis & postgres container:
+[See Technical stack →](docs/technical-stack.md)
 
-```sh
-cd packages/server && docker-compose up -d
-```
-
-Run the database migrations
-( Until we've done the authenfication feature we need to seed the db using node ace db:seed )
-
-```sh
-node ace migration:rollback --batch 0 && node ace migration:run && node ace db:seed
-```
-
-Start the server:
-
-```sh
-yarn dev
-```
-
-By default, the server is served on https://localhost:3333.
-
-Do not forget to set the env variables, if not the server won't start
-
-### Temporal
-
-First launch temporal server:
-
-```sh
-cd packages/temporal && yarn temporal
-```
-
-Start the api
-
-```sh
-yarn dev
-```
-
-Start the worker
-
-```sh
-yarn worker
-```
-
-If you got some errors from the two previous commands, just wait few minutes for the temporal server to be ready
-
-## Utils
-
-From musicRoom/
-
-Build all the packages
-
-```sh
-yarn build
-```
-
-Clean all the packages
-
-```sh
-yarn clean
-```
-
-Lint
-
-```sh
-yarn lint
-```
-
-Run jest tests
-
-```sh
-yarn test
-```
+[See Run in local →](docs/run-in-local.md)

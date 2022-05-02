@@ -19,6 +19,7 @@ import { SearchTabSearchTracksScreenProps } from '../types';
 import { useMusicPlayerContext } from '../hooks/musicPlayerHooks';
 import { useMusicPlaylistsActor } from '../hooks/useMusicPlaylistsActor';
 import AppScreenWithMenuWithSearchBar from '../components/kit/AppScreenWithMenuWithSearchBar';
+import AppModal from '../components/kit/AppModal';
 
 const searchTracksScreenModel = createModel(
     {
@@ -231,124 +232,90 @@ const SearchTrackScreen: React.FC<SearchTabSearchTracksScreenProps> = ({
                 keyExtractor={(_, index) => String(index)}
             />
 
-            <Modal
-                animationType="fade"
-                transparent={true}
-                visible={showModal}
-                onRequestClose={() => {
-                    searchTracksScreenService.send({
-                        type: 'CLOSE_MODAL',
-                    });
-                }}
-            >
-                <View
-                    sx={{
-                        flex: 1,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
-                >
-                    <View
+            {showModal === true ? (
+                <AppModal>
+                    <Text
                         sx={{
-                            backgroundColor: 'grey',
-                            borderRadius: 's',
-                            padding: 'xl',
-                            margin: 'm',
-
-                            shadowColor: '#000',
-                            shadowOffset: {
-                                width: 0,
-                                height: 2,
-                            },
-                            shadowOpacity: 0.25,
-                            shadowRadius: 4,
-                            elevation: 5,
+                            color: 'white',
+                            fontSize: 's',
+                            marginTop: 'l',
+                            marginBottom: 'l',
+                            textAlign: 'center',
                         }}
                     >
-                        <Text
-                            sx={{
-                                color: 'white',
-                                fontSize: 's',
-                                marginTop: 'l',
-                                marginBottom: 'l',
-                                textAlign: 'center',
-                            }}
-                        >
-                            What do you want to do with this track?
-                        </Text>
+                        What do you want to do with this track?
+                    </Text>
 
-                        <View
-                            sx={{
-                                flexDirection: 'row',
-                                justifyContent: 'center',
-                                flexWrap: 'wrap',
-                                alignItems: 'center',
-                                flex: 1,
-                            }}
+                    <View
+                        sx={{
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <TouchableOpacity
+                            onPress={handleCreateMtvButtonPress}
+                            style={sx({
+                                borderRadius: 'full',
+                                borderWidth: 2,
+                                borderColor: 'secondary',
+                                paddingX: 'l',
+                                paddingY: 's',
+                                margin: 'm',
+                            })}
                         >
-                            <TouchableOpacity
-                                onPress={handleCreateMtvButtonPress}
-                                style={sx({
-                                    borderRadius: 'full',
-                                    borderWidth: 2,
-                                    borderColor: 'secondary',
-                                    paddingX: 'l',
-                                    paddingY: 's',
-                                    margin: 'm',
-                                })}
+                            <Text
+                                sx={{
+                                    color: 'secondary',
+                                    fontWeight: 'bold',
+                                }}
                             >
-                                <Text
-                                    sx={{
-                                        color: 'secondary',
-                                        fontWeight: 'bold',
-                                    }}
-                                >
-                                    Create MTV
-                                </Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                onPress={handleCreateMpeButtonPress}
-                                style={sx({
-                                    borderRadius: 'full',
-                                    borderWidth: 2,
-                                    borderColor: 'secondary',
-                                    paddingX: 'l',
-                                    paddingY: 's',
-                                    margin: 'm',
-                                })}
-                            >
-                                <Text
-                                    sx={{
-                                        color: 'secondary',
-                                        fontWeight: 'bold',
-                                    }}
-                                >
-                                    Create MPE
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
+                                Create MTV
+                            </Text>
+                        </TouchableOpacity>
 
                         <TouchableOpacity
+                            onPress={handleCreateMpeButtonPress}
                             style={sx({
-                                position: 'absolute',
-                                top: 0,
-                                right: 0,
-                                margin: 's',
-                                padding: 's',
+                                borderRadius: 'full',
+                                borderWidth: 2,
+                                borderColor: 'secondary',
+                                paddingX: 'l',
+                                paddingY: 's',
+                                margin: 'm',
                             })}
-                            onPress={handleCloseModalButtonPress}
                         >
-                            <Ionicons
-                                name="close"
-                                color="white"
-                                size={24}
-                                accessibilityLabel="Close modal"
-                            />
+                            <Text
+                                sx={{
+                                    color: 'secondary',
+                                    fontWeight: 'bold',
+                                }}
+                            >
+                                Create MPE
+                            </Text>
                         </TouchableOpacity>
                     </View>
-                </View>
-            </Modal>
+
+                    <TouchableOpacity
+                        style={sx({
+                            position: 'absolute',
+                            top: 0,
+                            right: 0,
+                            margin: 's',
+                            padding: 's',
+                        })}
+                        onPress={handleCloseModalButtonPress}
+                    >
+                        <Ionicons
+                            name="close"
+                            color="white"
+                            size={24}
+                            accessibilityLabel="Close modal"
+                        />
+                    </TouchableOpacity>
+                </AppModal>
+            ) : null}
         </AppScreenWithMenuWithSearchBar>
     );
 };

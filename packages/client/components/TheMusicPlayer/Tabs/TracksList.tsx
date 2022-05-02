@@ -177,17 +177,32 @@ const TracksListTab: React.FC<TracksListProps> = ({
             type: 'TRACK',
             track,
         }));
+
+        const readyToBePlayedTracks = musicPlayerMachineContext.tracks.filter(
+            ({ score }) =>
+                score >= musicPlayerMachineContext.minimumScoreToBePlayed,
+        );
+        const allTracksAreReadyToBePlayed =
+            readyToBePlayedTracks.length ===
+            musicPlayerMachineContext.tracks.length;
+        if (allTracksAreReadyToBePlayed === true) {
+            return formattedTracksListItem;
+        }
+
         const firstSuggestedTrackIndex =
             musicPlayerMachineContext.tracks.findIndex(
                 (track) =>
                     track.score <
                     musicPlayerMachineContext.minimumScoreToBePlayed,
             );
+        const noTrackIsWaitingForMoreVotesToBePlayed =
+            firstSuggestedTrackIndex === -1;
+        const firstTrackIsWaitingForMoreVotesToBePlayed =
+            firstSuggestedTrackIndex === 0;
 
         if (
-            firstSuggestedTrackIndex === -1 ||
-            firstSuggestedTrackIndex ===
-                musicPlayerMachineContext.tracks.length - 1
+            noTrackIsWaitingForMoreVotesToBePlayed === true ||
+            firstTrackIsWaitingForMoreVotesToBePlayed === true
         ) {
             return formattedTracksListItem;
         }

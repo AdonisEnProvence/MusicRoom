@@ -20,7 +20,7 @@ Users can play sound on only one of their devices and are free to choose on whic
 
 It’s also possible to create private MTV rooms that only invited users can join.
 
-When joining a MTV room, depending on their permissions, users should be able to suggest a track, vote for other tracks and control the player (play, pause, play next track).
+When joining an MTV room, depending on their permissions, users should be able to suggest a track, vote for other tracks and control the player (play, pause, play next track).
 
 Users can chat and follow other users in the MTV room.
 

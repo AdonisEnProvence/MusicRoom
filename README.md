@@ -40,4 +40,4 @@ When exporting an MPE room into an MTV room, users define the configuration of t
 
 [See Technical stack →](docs/technical-stack.md)
 
-[See Run in local →](docs/run-in-local.md)
+[See Setup →](docs/setup.md)

@@ -9,7 +9,7 @@ It includes mainly 3 packages.
 -   [XState](https://xstate.js.org/docs/), handle logic inside state machines
 -   [Dripsy](https://www.dripsy.xyz/), centralize style
 -   [socket.io-client](https://github.com/socketio/socket.io-client)
--   [Jest](https://jestjs.io/) + [Testing Library](https://testing-library.com/)
+-   [Jest](https://jestjs.io/) + [Testing Library](https://testing-library.com/) + [@xstate/test](https://xstate.js.org/docs/packages/xstate-test/)
 
 ### **Adonis microservice**
 

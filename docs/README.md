@@ -2,4 +2,4 @@
 
 [Technical stack →](technical-stack.md)
 
-[Run in local →](run-in-local.md)
+[Setup →](setup.md)

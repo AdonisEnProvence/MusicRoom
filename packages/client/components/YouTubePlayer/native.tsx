@@ -55,7 +55,11 @@ const NativePlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
                 webViewProps={{
                     androidHardwareAccelerationDisabled: true,
                 }}
-                onReady={onReady}
+                onReady={() => {
+                    if (onReady) onReady();
+
+                    playerRef.current?.seekTo(seekToInSeconds, true);
+                }}
             />
         );
     },

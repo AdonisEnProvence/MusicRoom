@@ -52,7 +52,14 @@ const NativePlayer: PlayerComponent = forwardRef<PlayerRef, PlayerProps>(
                 mute={mute}
                 //FIX for android see https://stackoverflow.com/questions/63171131/when-rendering-iframes-with-html-android-crashes-while-navigating-back-to-s
                 webViewStyle={{ opacity: 0.99 }}
-                onReady={onReady}
+                webViewProps={{
+                    androidHardwareAccelerationDisabled: true,
+                }}
+                onReady={() => {
+                    if (onReady) onReady();
+
+                    playerRef.current?.seekTo(seekToInSeconds, true);
+                }}
             />
         );
     },

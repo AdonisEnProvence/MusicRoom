@@ -122,7 +122,7 @@ func createMpeRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 	creatorUserRelatedInformation := &shared_mpe.InternalStateUser{
 		UserID:             body.UserID,
-		UserHasBeenInvited: false,
+		UserHasBeenInvited: true,
 	}
 
 	params := shared_mpe.MpeRoomParameters{

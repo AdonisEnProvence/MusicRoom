@@ -6,6 +6,9 @@
     "node": "16.8.0",
     "yarn": "1.22.10"
   },
+  "engines": {
+    "node": "^16.8.0"
+  },
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
